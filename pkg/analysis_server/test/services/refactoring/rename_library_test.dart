@@ -25,18 +25,18 @@ library my.app;
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Library name must not be null.");
+        expectedMessage: 'Library name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Library name must not be blank.");
+        expectedMessage: 'Library name must not be blank.');
     // same name
     refactoring.newName = 'my.app';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            "The new name must be different than the current name.");
+            'The new name must be different than the current name.');
   }
 
   test_createChange() async {

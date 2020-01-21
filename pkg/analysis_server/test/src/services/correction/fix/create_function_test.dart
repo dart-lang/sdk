@@ -389,39 +389,39 @@ void test(param0) {
   }
 
   test_returnType_bool_and_left() async {
-    await assert_returnType_bool("test() && b;");
+    await assert_returnType_bool('test() && b;');
   }
 
   test_returnType_bool_and_right() async {
-    await assert_returnType_bool("b && test();");
+    await assert_returnType_bool('b && test();');
   }
 
   test_returnType_bool_assert() async {
-    await assert_returnType_bool("assert ( test() );");
+    await assert_returnType_bool('assert ( test() );');
   }
 
   test_returnType_bool_do() async {
-    await assert_returnType_bool("do {} while ( test() );");
+    await assert_returnType_bool('do {} while ( test() );');
   }
 
   test_returnType_bool_if() async {
-    await assert_returnType_bool("if ( test() ) {}");
+    await assert_returnType_bool('if ( test() ) {}');
   }
 
   test_returnType_bool_or_left() async {
-    await assert_returnType_bool("test() || b;");
+    await assert_returnType_bool('test() || b;');
   }
 
   test_returnType_bool_or_right() async {
-    await assert_returnType_bool("b || test();");
+    await assert_returnType_bool('b || test();');
   }
 
   test_returnType_bool_unaryNegation() async {
-    await assert_returnType_bool("!test();");
+    await assert_returnType_bool('!test();');
   }
 
   test_returnType_bool_while() async {
-    await assert_returnType_bool("while ( test() ) {}");
+    await assert_returnType_bool('while ( test() ) {}');
   }
 
   test_returnType_fromAssignment_eq() async {

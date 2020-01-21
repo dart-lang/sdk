@@ -16,9 +16,9 @@ class FlutterAnalyzeBenchmark extends Benchmark {
   FlutterAnalyzeBenchmark()
       : super(
           'analysis-flutter-analyze',
-          "Clone the flutter/flutter repo and run "
+          'Clone the flutter/flutter repo and run '
               "'flutter analyze --flutter-repo' with the current Dart VM and "
-              "analysis server.",
+              'analysis server.',
           kind: 'cpu',
         );
 

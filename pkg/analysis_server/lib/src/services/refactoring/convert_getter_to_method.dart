@@ -127,7 +127,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       Element refElement = reference.element;
       SourceRange refRange = reference.range;
       // insert "()"
-      var edit = SourceEdit(refRange.end, 0, "()");
+      var edit = SourceEdit(refRange.end, 0, '()');
       doSourceChange_addElementEdit(change, refElement, edit);
     }
   }

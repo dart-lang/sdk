@@ -48,7 +48,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
       }
       return;
     }
-    fail("Expected to find |$message| but got: " + change.message);
+    fail('Expected to find |$message| but got: ' + change.message);
   }
 
   Future<void> _assertNotApplicable(String key, String code) async {
@@ -63,7 +63,7 @@ class PostfixCompletionTest extends AbstractSingleUnitTest {
 
     bool isApplicable = await processor.isApplicable();
     if (!isApplicable) {
-      fail("Postfix completion not applicable at given location");
+      fail('Postfix completion not applicable at given location');
     }
 
     if (isApplicable) {

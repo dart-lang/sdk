@@ -216,8 +216,8 @@ class ByteStreamServerChannelTest {
         .flush()
         .then((_) => requestStream.first.timeout(Duration(seconds: 1)))
         .then((Request request) {
-      expect(request.id, equals("0"));
-      expect(request.method, equals("server.version"));
+      expect(request.id, equals('0'));
+      expect(request.method, equals('server.version'));
     });
   }
 
@@ -286,13 +286,13 @@ class _IOSinkMock implements IOSink {
   void write(Object obj) {}
 
   @override
-  void writeAll(Iterable objects, [String separator = ""]) {}
+  void writeAll(Iterable objects, [String separator = '']) {}
 
   @override
   void writeCharCode(int charCode) {}
 
   @override
-  void writeln([Object obj = ""]) {
+  void writeln([Object obj = '']) {
     Timer(Duration(milliseconds: 10), () {
       throw '42';
     });

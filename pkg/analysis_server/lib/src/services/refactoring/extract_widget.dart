@@ -617,7 +617,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
     if (element is MethodElement) {
       if (_isMemberOfEnclosingClass(element)) {
         status.addError(
-            "Reference to an enclosing class method cannot be extracted.");
+            'Reference to an enclosing class method cannot be extracted.');
       }
     } else if (element is LocalVariableElement) {
       if (!expressionRange.contains(element.nameOffset)) {

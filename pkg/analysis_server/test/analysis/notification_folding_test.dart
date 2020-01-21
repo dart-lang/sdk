@@ -48,7 +48,7 @@ main async() {}
       }
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       var params = ServerErrorParams.fromNotification(notification);
-      throw "${params.message}\n${params.stackTrace}";
+      throw '${params.message}\n${params.stackTrace}';
     }
   }
 

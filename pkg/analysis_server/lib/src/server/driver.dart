@@ -141,7 +141,7 @@ class CommandLineParser {
         while (i < count) {
           remainingArgs.add(args[i++]);
         }
-      } else if (arg.startsWith("-D")) {
+      } else if (arg.startsWith('-D')) {
         definedVariables[arg.substring(2)] = args[++i];
       } else {
         remainingArgs.add(arg);
@@ -208,34 +208,34 @@ class Driver implements ServerStarter {
   /**
    * The name of the application that is used to start a server.
    */
-  static const BINARY_NAME = "server";
+  static const BINARY_NAME = 'server';
 
   /**
    * The name of the option used to set the identifier for the client.
    */
-  static const String CLIENT_ID = "client-id";
+  static const String CLIENT_ID = 'client-id';
 
   /**
    * The name of the option used to set the version for the client.
    */
-  static const String CLIENT_VERSION = "client-version";
+  static const String CLIENT_VERSION = 'client-version';
 
   /**
    * The name of the option used to enable DartPad specific functionality.
    */
-  static const String DARTPAD_OPTION = "dartpad";
+  static const String DARTPAD_OPTION = 'dartpad';
 
   /**
    * The name of the option to disable the completion feature.
    */
   static const String DISABLE_SERVER_FEATURE_COMPLETION =
-      "disable-server-feature-completion";
+      'disable-server-feature-completion';
 
   /**
    * The name of the option to disable the search feature.
    */
   static const String DISABLE_SERVER_FEATURE_SEARCH =
-      "disable-server-feature-search";
+      'disable-server-feature-search';
 
   /**
    * The name of the option used to enable experiments.
@@ -245,39 +245,39 @@ class Driver implements ServerStarter {
   /**
    * The name of the option used to enable instrumentation.
    */
-  static const String ENABLE_INSTRUMENTATION_OPTION = "enable-instrumentation";
+  static const String ENABLE_INSTRUMENTATION_OPTION = 'enable-instrumentation';
 
   /**
    * The name of the option used to set the file read mode.
    */
-  static const String FILE_READ_MODE = "file-read-mode";
+  static const String FILE_READ_MODE = 'file-read-mode';
 
   /**
    * The name of the option used to print usage information.
    */
-  static const String HELP_OPTION = "help";
+  static const String HELP_OPTION = 'help';
 
   /**
    * The name of the flag used to configure reporting analytics.
    */
-  static const String ANALYTICS_FLAG = "analytics";
+  static const String ANALYTICS_FLAG = 'analytics';
 
   /**
    * Suppress analytics for this session.
    */
-  static const String SUPPRESS_ANALYTICS_FLAG = "suppress-analytics";
+  static const String SUPPRESS_ANALYTICS_FLAG = 'suppress-analytics';
 
   /**
    * The name of the option used to cause instrumentation to also be written to
    * a local file.
    */
-  static const String INSTRUMENTATION_LOG_FILE = "instrumentation-log-file";
+  static const String INSTRUMENTATION_LOG_FILE = 'instrumentation-log-file';
 
   /**
    * The name of the option used to specify if [print] should print to the
    * console instead of being intercepted.
    */
-  static const String INTERNAL_PRINT_TO_CONSOLE = "internal-print-to-console";
+  static const String INTERNAL_PRINT_TO_CONSOLE = 'internal-print-to-console';
 
   /**
    * The name of the option used to describe the new analysis driver logger.
@@ -288,50 +288,50 @@ class Driver implements ServerStarter {
    * The name of the flag used to enable version 2 of semantic highlight
    * notification.
    */
-  static const String USE_ANALYSIS_HIGHLIGHT2 = "useAnalysisHighlight2";
+  static const String USE_ANALYSIS_HIGHLIGHT2 = 'useAnalysisHighlight2';
 
   /**
    * The option for specifying the http diagnostic port.
    * If specified, users can review server status and performance information
    * by opening a web browser on http://localhost:<port>
    */
-  static const String PORT_OPTION = "port";
+  static const String PORT_OPTION = 'port';
 
   /**
    * The path to the SDK.
    */
-  static const String SDK_OPTION = "sdk";
+  static const String SDK_OPTION = 'sdk';
 
   /**
    * The path to the data cache.
    */
-  static const String CACHE_FOLDER = "cache";
+  static const String CACHE_FOLDER = 'cache';
 
   /**
    * Whether to enable parsing via the Fasta parser.
    */
-  static const String USE_FASTA_PARSER = "use-fasta-parser";
+  static const String USE_FASTA_PARSER = 'use-fasta-parser';
 
   /**
    * The name of the flag to use the Language Server Protocol (LSP).
    */
-  static const String USE_LSP = "lsp";
+  static const String USE_LSP = 'lsp';
 
   /**
    * Whether or not to enable ML ranking for code completion.
    */
-  static const String ENABLE_COMPLETION_MODEL = "enable-completion-model";
+  static const String ENABLE_COMPLETION_MODEL = 'enable-completion-model';
 
   /**
    * The path on disk to a directory containing language model files for smart
    * code completion.
    */
-  static const String COMPLETION_MODEL_FOLDER = "completion-model";
+  static const String COMPLETION_MODEL_FOLDER = 'completion-model';
 
   /**
    * A directory to analyze in order to train an analysis server snapshot.
    */
-  static const String TRAIN_USING = "train-using";
+  static const String TRAIN_USING = 'train-using';
 
   /**
    * The instrumentation service that is to be used by the analysis server.
@@ -727,8 +727,8 @@ class Driver implements ServerStarter {
   CommandLineParser _createArgParser() {
     CommandLineParser parser = CommandLineParser();
     parser.addOption(CLIENT_ID,
-        help: "an identifier used to identify the client");
-    parser.addOption(CLIENT_VERSION, help: "the version of the client");
+        help: 'an identifier used to identify the client');
+    parser.addOption(CLIENT_VERSION, help: 'the version of the client');
     parser.addFlag(DARTPAD_OPTION,
         help: 'enable DartPad specific functionality',
         defaultsTo: false,
@@ -743,18 +743,18 @@ class Driver implements ServerStarter {
         hide: true,
         splitCommas: true);
     parser.addFlag(ENABLE_INSTRUMENTATION_OPTION,
-        help: "enable sending instrumentation information to a server",
+        help: 'enable sending instrumentation information to a server',
         defaultsTo: false,
         negatable: false);
     parser.addFlag(HELP_OPTION,
-        help: "print this help message without starting a server",
+        help: 'print this help message without starting a server',
         abbr: 'h',
         defaultsTo: false,
         negatable: false);
     parser.addOption(INSTRUMENTATION_LOG_FILE,
-        help: "write instrumentation data to the given file");
+        help: 'write instrumentation data to the given file');
     parser.addFlag(INTERNAL_PRINT_TO_CONSOLE,
-        help: "enable sending `print` output to the console",
+        help: 'enable sending `print` output to the console',
         defaultsTo: false,
         negatable: false);
     parser.addOption(NEW_ANALYSIS_DRIVER_LOG,
@@ -767,40 +767,40 @@ class Driver implements ServerStarter {
         help: 'suppress analytics for this session',
         hide: !telemetry.SHOW_ANALYTICS_UI);
     parser.addOption(PORT_OPTION,
-        help: "the http diagnostic port on which the server provides"
-            " status and performance information");
-    parser.addOption(SDK_OPTION, help: "[path] the path to the sdk");
+        help: 'the http diagnostic port on which the server provides'
+            ' status and performance information');
+    parser.addOption(SDK_OPTION, help: '[path] the path to the sdk');
     parser.addFlag(USE_ANALYSIS_HIGHLIGHT2,
-        help: "enable version 2 of semantic highlight",
+        help: 'enable version 2 of semantic highlight',
         defaultsTo: false,
         negatable: false);
     parser.addOption(FILE_READ_MODE,
-        help: "an option for reading files (some clients normalize eol "
-            "characters, which make the file offset and range information "
-            "incorrect)",
-        allowed: ["as-is", "normalize-eol-always"],
+        help: 'an option for reading files (some clients normalize eol '
+            'characters, which make the file offset and range information '
+            'incorrect)',
+        allowed: ['as-is', 'normalize-eol-always'],
         allowedHelp: {
-          "as-is": "file contents are read as-is",
-          "normalize-eol-always":
+          'as-is': 'file contents are read as-is',
+          'normalize-eol-always':
               r"eol characters normalized to the single character new line ('\n')"
         },
-        defaultsTo: "as-is");
+        defaultsTo: 'as-is');
     parser.addOption(CACHE_FOLDER,
-        help: "[path] path to the location where to cache data");
-    parser.addFlag("preview-dart-2",
-        help: "Enable the Dart 2.0 preview (deprecated)", hide: true);
+        help: '[path] path to the location where to cache data');
+    parser.addFlag('preview-dart-2',
+        help: 'Enable the Dart 2.0 preview (deprecated)', hide: true);
     parser.addFlag(USE_FASTA_PARSER,
         defaultsTo: true,
-        help: "Whether to enable parsing via the Fasta parser");
+        help: 'Whether to enable parsing via the Fasta parser');
     parser.addFlag(USE_LSP,
-        defaultsTo: false, help: "Whether to use the Language Server Protocol");
+        defaultsTo: false, help: 'Whether to use the Language Server Protocol');
     parser.addFlag(ENABLE_COMPLETION_MODEL,
-        help: "Whether or not to turn on ML ranking for code completion");
+        help: 'Whether or not to turn on ML ranking for code completion');
     parser.addOption(COMPLETION_MODEL_FOLDER,
-        help: "[path] path to the location of a code completion model");
+        help: '[path] path to the location of a code completion model');
     parser.addOption(TRAIN_USING,
-        help: "Pass in a directory to analyze for purposes of training an "
-            "analysis server snapshot.");
+        help: 'Pass in a directory to analyze for purposes of training an '
+            'analysis server snapshot.');
 
     return parser;
   }

@@ -32,8 +32,8 @@ Widget build(BuildContext context) {
 ''';
 
   static final expectedResults = [
-    ClosingLabel(51, 96, "Row"),
-    ClosingLabel(79, 57, "<Widget>[]")
+    ClosingLabel(51, 96, 'Row'),
+    ClosingLabel(79, 57, '<Widget>[]')
   ];
 
   List<ClosingLabel> lastLabels;
@@ -50,7 +50,7 @@ Widget build(BuildContext context) {
       }
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       var params = ServerErrorParams.fromNotification(notification);
-      throw "${params.message}\n${params.stackTrace}";
+      throw '${params.message}\n${params.stackTrace}';
     }
   }
 

@@ -5104,26 +5104,26 @@ class FixProcessor extends BaseProcessor {
 
   bool _isDartCoreIterableElement(ClassElement element) =>
       element != null &&
-      element.name == "Iterable" &&
+      element.name == 'Iterable' &&
       element.library.isDartCore;
 
   bool _isDartCoreList(DartType type) =>
       type is InterfaceType && _isDartCoreListElement(type.element);
 
   bool _isDartCoreListElement(ClassElement element) =>
-      element != null && element.name == "List" && element.library.isDartCore;
+      element != null && element.name == 'List' && element.library.isDartCore;
 
   bool _isDartCoreMap(DartType type) =>
       type is InterfaceType && _isDartCoreMapElement(type.element);
 
   bool _isDartCoreMapElement(ClassElement element) =>
-      element != null && element.name == "Map" && element.library.isDartCore;
+      element != null && element.name == 'Map' && element.library.isDartCore;
 
   bool _isDartCoreSet(DartType type) =>
       type is InterfaceType && _isDartCoreSetElement(type.element);
 
   bool _isDartCoreSetElement(ClassElement element) =>
-      element != null && element.name == "Set" && element.library.isDartCore;
+      element != null && element.name == 'Set' && element.library.isDartCore;
 
   bool _isLibSrcPath(String path) {
     List<String> parts = resourceProvider.pathContext.split(path);

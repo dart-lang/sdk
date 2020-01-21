@@ -394,31 +394,31 @@ class Server {
 
   RequestData sendAnalysisGetErrors(String file) {
     var params = AnalysisGetErrorsParams(file).toJson();
-    return _send("analysis.getErrors", params);
+    return _send('analysis.getErrors', params);
   }
 
   RequestData sendAnalysisGetHover(String file, int offset) {
     var params = AnalysisGetHoverParams(file, offset).toJson();
-    return _send("analysis.getHover", params);
+    return _send('analysis.getHover', params);
   }
 
   RequestData sendAnalysisGetLibraryDependencies() {
-    return _send("analysis.getLibraryDependencies", null);
+    return _send('analysis.getLibraryDependencies', null);
   }
 
   RequestData sendAnalysisGetNavigation(String file, int offset, int length) {
     var params = AnalysisGetNavigationParams(file, offset, length).toJson();
-    return _send("analysis.getNavigation", params);
+    return _send('analysis.getNavigation', params);
   }
 
   RequestData sendAnalysisGetReachableSources(String file) {
     var params = AnalysisGetReachableSourcesParams(file).toJson();
-    return _send("analysis.getReachableSources", params);
+    return _send('analysis.getReachableSources', params);
   }
 
   void sendAnalysisReanalyze() {
     var params = AnalysisReanalyzeParams().toJson();
-    _send("analysis.reanalyze", params);
+    _send('analysis.reanalyze', params);
   }
 
   void sendAnalysisSetAnalysisRoots(
@@ -428,24 +428,24 @@ class Server {
     var params = AnalysisSetAnalysisRootsParams(included, excluded,
             packageRoots: packageRoots)
         .toJson();
-    _send("analysis.setAnalysisRoots", params);
+    _send('analysis.setAnalysisRoots', params);
   }
 
   void sendAnalysisSetGeneralSubscriptions(
       List<GeneralAnalysisService> subscriptions) {
     var params = AnalysisSetGeneralSubscriptionsParams(subscriptions).toJson();
-    _send("analysis.setGeneralSubscriptions", params);
+    _send('analysis.setGeneralSubscriptions', params);
   }
 
   void sendAnalysisSetPriorityFiles(List<String> files) {
     var params = AnalysisSetPriorityFilesParams(files).toJson();
-    _send("analysis.setPriorityFiles", params);
+    _send('analysis.setPriorityFiles', params);
   }
 
   void sendAnalysisSetSubscriptions(
       Map<AnalysisService, List<String>> subscriptions) {
     var params = AnalysisSetSubscriptionsParams(subscriptions).toJson();
-    _send("analysis.setSubscriptions", params);
+    _send('analysis.setSubscriptions', params);
   }
 
   void sendAnalysisUpdateContent(Map<String, dynamic> files) {
@@ -462,16 +462,16 @@ class Server {
 
   void sendAnalysisUpdateOptions(AnalysisOptions options) {
     var params = AnalysisUpdateOptionsParams(options).toJson();
-    _send("analysis.updateOptions", params);
+    _send('analysis.updateOptions', params);
   }
 
   void sendCompletionGetSuggestions(String file, int offset) {
     var params = CompletionGetSuggestionsParams(file, offset).toJson();
-    _send("completion.getSuggestions", params);
+    _send('completion.getSuggestions', params);
   }
 
   RequestData sendDiagnosticGetDiagnostics() {
-    return _send("diagnostic.getDiagnostics", null);
+    return _send('diagnostic.getDiagnostics', null);
   }
 
   RequestData sendEditFormat(
@@ -480,24 +480,24 @@ class Server {
     var params = EditFormatParams(file, selectionOffset, selectionLength,
             lineLength: lineLength)
         .toJson();
-    return _send("edit.format", params);
+    return _send('edit.format', params);
   }
 
   RequestData sendEditGetAssists(String file, int offset, int length) {
     var params = EditGetAssistsParams(file, offset, length).toJson();
-    return _send("edit.getAssists", params);
+    return _send('edit.getAssists', params);
   }
 
   RequestData sendEditGetAvailableRefactorings(
       String file, int offset, int length) {
     var params =
         EditGetAvailableRefactoringsParams(file, offset, length).toJson();
-    return _send("edit.getAvailableRefactorings", params);
+    return _send('edit.getAvailableRefactorings', params);
   }
 
   RequestData sendEditGetFixes(String file, int offset) {
     var params = EditGetFixesParams(file, offset).toJson();
-    return _send("edit.getFixes", params);
+    return _send('edit.getFixes', params);
   }
 
   RequestData sendEditGetRefactoring(RefactoringKind kind, String file,
@@ -507,38 +507,38 @@ class Server {
             kind, file, offset, length, validateOnly,
             options: options)
         .toJson();
-    return _send("edit.getRefactoring", params);
+    return _send('edit.getRefactoring', params);
   }
 
   RequestData sendEditOrganizeDirectives(String file) {
     var params = EditOrganizeDirectivesParams(file).toJson();
-    return _send("edit.organizeDirectives", params);
+    return _send('edit.organizeDirectives', params);
   }
 
   RequestData sendEditSortMembers(String file) {
     var params = EditSortMembersParams(file).toJson();
-    return _send("edit.sortMembers", params);
+    return _send('edit.sortMembers', params);
   }
 
   RequestData sendExecutionCreateContext(String contextRoot) {
     var params = ExecutionCreateContextParams(contextRoot).toJson();
-    return _send("execution.createContext", params);
+    return _send('execution.createContext', params);
   }
 
   RequestData sendExecutionDeleteContext(String id) {
     var params = ExecutionDeleteContextParams(id).toJson();
-    return _send("execution.deleteContext", params);
+    return _send('execution.deleteContext', params);
   }
 
   RequestData sendExecutionMapUri(String id, {String file, String uri}) {
     var params = ExecutionMapUriParams(id, file: file, uri: uri).toJson();
-    return _send("execution.mapUri", params);
+    return _send('execution.mapUri', params);
   }
 
   RequestData sendExecutionSetSubscriptions(
       List<ExecutionService> subscriptions) {
     var params = ExecutionSetSubscriptionsParams(subscriptions).toJson();
-    return _send("execution.setSubscriptions", params);
+    return _send('execution.setSubscriptions', params);
   }
 
   void sendSearchFindElementReferences(
@@ -546,42 +546,42 @@ class Server {
     var params =
         SearchFindElementReferencesParams(file, offset, includePotential)
             .toJson();
-    _send("search.findElementReferences", params);
+    _send('search.findElementReferences', params);
   }
 
   void sendSearchFindMemberDeclarations(String name) {
     var params = SearchFindMemberDeclarationsParams(name).toJson();
-    _send("search.findMemberDeclarations", params);
+    _send('search.findMemberDeclarations', params);
   }
 
   void sendSearchFindMemberReferences(String name) {
     var params = SearchFindMemberReferencesParams(name).toJson();
-    _send("search.findMemberReferences", params);
+    _send('search.findMemberReferences', params);
   }
 
   void sendSearchFindTopLevelDeclarations(String pattern) {
     var params = SearchFindTopLevelDeclarationsParams(pattern).toJson();
-    _send("search.findTopLevelDeclarations", params);
+    _send('search.findTopLevelDeclarations', params);
   }
 
   void sendSearchGetTypeHierarchy(String file, int offset, {bool superOnly}) {
     var params =
         SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly)
             .toJson();
-    _send("search.getTypeHierarchy", params);
+    _send('search.getTypeHierarchy', params);
   }
 
   RequestData sendServerGetVersion() {
-    return _send("server.getVersion", null);
+    return _send('server.getVersion', null);
   }
 
   void sendServerSetSubscriptions(List<ServerService> subscriptions) {
     var params = ServerSetSubscriptionsParams(subscriptions).toJson();
-    _send("server.setSubscriptions", params);
+    _send('server.setSubscriptions', params);
   }
 
   void sendServerShutdown() {
-    _send("server.shutdown", null);
+    _send('server.shutdown', null);
   }
 
   /**
@@ -683,15 +683,15 @@ class Server {
    */
   void _handleNotification(Notification notification) {
     switch (notification.event) {
-      case "server.connected":
+      case 'server.connected':
 //        new ServerConnectedParams.fromNotification(notification);
         _serverConnectedCompleter.complete(null);
         break;
-      case "server.error":
+      case 'server.error':
 //        new ServerErrorParams.fromNotification(notification);
         throw StateError('Server error: ${notification.toJson()}');
         break;
-      case "server.status":
+      case 'server.status':
         if (_analysisFinishedCompleter != null) {
           ServerStatusParams params =
               ServerStatusParams.fromNotification(notification);
@@ -701,51 +701,51 @@ class Server {
           }
         }
         break;
-      case "analysis.analyzedFiles":
+      case 'analysis.analyzedFiles':
         AnalysisAnalyzedFilesParams params =
             AnalysisAnalyzedFilesParams.fromNotification(notification);
         _analyzedFiles = params.directories;
         break;
-      case "analysis.errors":
+      case 'analysis.errors':
         AnalysisErrorsParams params =
             AnalysisErrorsParams.fromNotification(notification);
         _errorMap.pathMap[params.file] = params.errors;
         break;
-      case "analysis.flushResults":
+      case 'analysis.flushResults':
 //        new AnalysisFlushResultsParams.fromNotification(notification);
         _errorMap.pathMap.clear();
         break;
-      case "analysis.folding":
+      case 'analysis.folding':
 //        new AnalysisFoldingParams.fromNotification(notification);
         break;
-      case "analysis.highlights":
+      case 'analysis.highlights':
 //        new AnalysisHighlightsParams.fromNotification(notification);
         break;
-      case "analysis.implemented":
+      case 'analysis.implemented':
 //        new AnalysisImplementedParams.fromNotification(notification);
         break;
-      case "analysis.invalidate":
+      case 'analysis.invalidate':
 //        new AnalysisInvalidateParams.fromNotification(notification);
         break;
-      case "analysis.navigation":
+      case 'analysis.navigation':
 //        new AnalysisNavigationParams.fromNotification(notification);
         break;
-      case "analysis.occurrences":
+      case 'analysis.occurrences':
 //        new AnalysisOccurrencesParams.fromNotification(notification);
         break;
-      case "analysis.outline":
+      case 'analysis.outline':
 //        new AnalysisOutlineParams.fromNotification(notification);
         break;
-      case "analysis.overrides":
+      case 'analysis.overrides':
 //        new AnalysisOverridesParams.fromNotification(notification);
         break;
-      case "completion.results":
+      case 'completion.results':
 //        new CompletionResultsParams.fromNotification(notification);
         break;
-      case "search.results":
+      case 'search.results':
 //        new SearchResultsParams.fromNotification(notification);
         break;
-      case "execution.launchData":
+      case 'execution.launchData':
 //        new ExecutionLaunchDataParams.fromNotification(notification);
         break;
       default:

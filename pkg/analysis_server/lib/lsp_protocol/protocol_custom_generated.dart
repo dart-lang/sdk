@@ -53,15 +53,15 @@ class AnalyzerStatusParams implements ToJsonable {
       reporter.push('isAnalyzing');
       try {
         if (!obj.containsKey('isAnalyzing')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['isAnalyzing'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['isAnalyzing'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -69,7 +69,7 @@ class AnalyzerStatusParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type AnalyzerStatusParams");
+      reporter.reportError('must be of type AnalyzerStatusParams');
       return false;
     }
   }
@@ -126,15 +126,15 @@ class ClosingLabel implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -143,15 +143,15 @@ class ClosingLabel implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -159,7 +159,7 @@ class ClosingLabel implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ClosingLabel");
+      reporter.reportError('must be of type ClosingLabel');
       return false;
     }
   }
@@ -247,15 +247,15 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('file');
       try {
         if (!obj.containsKey('file')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['file'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['file'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -264,15 +264,15 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('offset');
       try {
         if (!obj.containsKey('offset')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['offset'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['offset'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -281,15 +281,15 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('libId');
       try {
         if (!obj.containsKey('libId')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['libId'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['libId'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -298,15 +298,15 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('displayUri');
       try {
         if (!obj.containsKey('displayUri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['displayUri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['displayUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -315,15 +315,15 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('rOffset');
       try {
         if (!obj.containsKey('rOffset')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['rOffset'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['rOffset'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -332,15 +332,15 @@ class CompletionItemResolutionInfo implements ToJsonable {
       reporter.push('rLength');
       try {
         if (!obj.containsKey('rLength')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['rLength'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['rLength'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -348,7 +348,7 @@ class CompletionItemResolutionInfo implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionItemResolutionInfo");
+      reporter.reportError('must be of type CompletionItemResolutionInfo');
       return false;
     }
   }
@@ -410,15 +410,15 @@ class DartDiagnosticServer implements ToJsonable {
       reporter.push('port');
       try {
         if (!obj.containsKey('port')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['port'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['port'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -426,7 +426,7 @@ class DartDiagnosticServer implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DartDiagnosticServer");
+      reporter.reportError('must be of type DartDiagnosticServer');
       return false;
     }
   }
@@ -503,7 +503,7 @@ class Element implements ToJsonable {
       reporter.push('range');
       try {
         if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -512,15 +512,15 @@ class Element implements ToJsonable {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['name'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['name'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -529,15 +529,15 @@ class Element implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['kind'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -546,7 +546,7 @@ class Element implements ToJsonable {
       reporter.push('parameters');
       try {
         if (obj['parameters'] != null && !(obj['parameters'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -556,7 +556,7 @@ class Element implements ToJsonable {
       try {
         if (obj['typeParameters'] != null &&
             !(obj['typeParameters'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -565,7 +565,7 @@ class Element implements ToJsonable {
       reporter.push('returnType');
       try {
         if (obj['returnType'] != null && !(obj['returnType'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -573,7 +573,7 @@ class Element implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Element");
+      reporter.reportError('must be of type Element');
       return false;
     }
   }
@@ -698,15 +698,15 @@ class FlutterOutline implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['kind'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -715,7 +715,7 @@ class FlutterOutline implements ToJsonable {
       reporter.push('label');
       try {
         if (obj['label'] != null && !(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -724,7 +724,7 @@ class FlutterOutline implements ToJsonable {
       reporter.push('className');
       try {
         if (obj['className'] != null && !(obj['className'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -733,7 +733,7 @@ class FlutterOutline implements ToJsonable {
       reporter.push('variableName');
       try {
         if (obj['variableName'] != null && !(obj['variableName'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -745,7 +745,7 @@ class FlutterOutline implements ToJsonable {
             !((obj['attributes'] is List &&
                 (obj['attributes'].every((item) =>
                     FlutterOutlineAttribute.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<FlutterOutlineAttribute>");
+          reporter.reportError('must be of type List<FlutterOutlineAttribute>');
           return false;
         }
       } finally {
@@ -755,7 +755,7 @@ class FlutterOutline implements ToJsonable {
       try {
         if (obj['dartElement'] != null &&
             !(Element.canParse(obj['dartElement'], reporter))) {
-          reporter.reportError("must be of type Element");
+          reporter.reportError('must be of type Element');
           return false;
         }
       } finally {
@@ -764,15 +764,15 @@ class FlutterOutline implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -781,15 +781,15 @@ class FlutterOutline implements ToJsonable {
       reporter.push('codeRange');
       try {
         if (!obj.containsKey('codeRange')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['codeRange'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['codeRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -801,7 +801,7 @@ class FlutterOutline implements ToJsonable {
             !((obj['children'] is List &&
                 (obj['children'].every(
                     (item) => FlutterOutline.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<FlutterOutline>");
+          reporter.reportError('must be of type List<FlutterOutline>');
           return false;
         }
       } finally {
@@ -809,7 +809,7 @@ class FlutterOutline implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FlutterOutline");
+      reporter.reportError('must be of type FlutterOutline');
       return false;
     }
   }
@@ -894,15 +894,15 @@ class FlutterOutlineAttribute implements ToJsonable {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['name'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['name'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -911,15 +911,15 @@ class FlutterOutlineAttribute implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -929,7 +929,7 @@ class FlutterOutlineAttribute implements ToJsonable {
       try {
         if (obj['valueRange'] != null &&
             !(Range.canParse(obj['valueRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -937,7 +937,7 @@ class FlutterOutlineAttribute implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FlutterOutlineAttribute");
+      reporter.reportError('must be of type FlutterOutlineAttribute');
       return false;
     }
   }
@@ -1016,15 +1016,15 @@ class Outline implements ToJsonable {
       reporter.push('element');
       try {
         if (!obj.containsKey('element')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['element'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Element.canParse(obj['element'], reporter))) {
-          reporter.reportError("must be of type Element");
+          reporter.reportError('must be of type Element');
           return false;
         }
       } finally {
@@ -1033,15 +1033,15 @@ class Outline implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -1050,15 +1050,15 @@ class Outline implements ToJsonable {
       reporter.push('codeRange');
       try {
         if (!obj.containsKey('codeRange')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['codeRange'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['codeRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -1070,7 +1070,7 @@ class Outline implements ToJsonable {
             !((obj['children'] is List &&
                 (obj['children']
                     .every((item) => Outline.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Outline>");
+          reporter.reportError('must be of type List<Outline>');
           return false;
         }
       } finally {
@@ -1078,7 +1078,7 @@ class Outline implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Outline");
+      reporter.reportError('must be of type Outline');
       return false;
     }
   }
@@ -1146,15 +1146,15 @@ class PublishClosingLabelsParams implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -1163,17 +1163,17 @@ class PublishClosingLabelsParams implements ToJsonable {
       reporter.push('labels');
       try {
         if (!obj.containsKey('labels')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['labels'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['labels'] is List &&
             (obj['labels']
                 .every((item) => ClosingLabel.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<ClosingLabel>");
+          reporter.reportError('must be of type List<ClosingLabel>');
           return false;
         }
       } finally {
@@ -1181,7 +1181,7 @@ class PublishClosingLabelsParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type PublishClosingLabelsParams");
+      reporter.reportError('must be of type PublishClosingLabelsParams');
       return false;
     }
   }
@@ -1246,15 +1246,15 @@ class PublishFlutterOutlineParams implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -1263,15 +1263,15 @@ class PublishFlutterOutlineParams implements ToJsonable {
       reporter.push('outline');
       try {
         if (!obj.containsKey('outline')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['outline'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(FlutterOutline.canParse(obj['outline'], reporter))) {
-          reporter.reportError("must be of type FlutterOutline");
+          reporter.reportError('must be of type FlutterOutline');
           return false;
         }
       } finally {
@@ -1279,7 +1279,7 @@ class PublishFlutterOutlineParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type PublishFlutterOutlineParams");
+      reporter.reportError('must be of type PublishFlutterOutlineParams');
       return false;
     }
   }
@@ -1339,15 +1339,15 @@ class PublishOutlineParams implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -1356,15 +1356,15 @@ class PublishOutlineParams implements ToJsonable {
       reporter.push('outline');
       try {
         if (!obj.containsKey('outline')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['outline'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Outline.canParse(obj['outline'], reporter))) {
-          reporter.reportError("must be of type Outline");
+          reporter.reportError('must be of type Outline');
           return false;
         }
       } finally {
@@ -1372,7 +1372,7 @@ class PublishOutlineParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type PublishOutlineParams");
+      reporter.reportError('must be of type PublishOutlineParams');
       return false;
     }
   }

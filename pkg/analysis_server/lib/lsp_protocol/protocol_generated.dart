@@ -62,7 +62,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       reporter.push('label');
       try {
         if (obj['label'] != null && !(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -71,15 +71,15 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       reporter.push('edit');
       try {
         if (!obj.containsKey('edit')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['edit'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(WorkspaceEdit.canParse(obj['edit'], reporter))) {
-          reporter.reportError("must be of type WorkspaceEdit");
+          reporter.reportError('must be of type WorkspaceEdit');
           return false;
         }
       } finally {
@@ -87,7 +87,7 @@ class ApplyWorkspaceEditParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ApplyWorkspaceEditParams");
+      reporter.reportError('must be of type ApplyWorkspaceEditParams');
       return false;
     }
   }
@@ -150,15 +150,15 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       reporter.push('applied');
       try {
         if (!obj.containsKey('applied')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['applied'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['applied'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -167,7 +167,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       reporter.push('failureReason');
       try {
         if (obj['failureReason'] != null && !(obj['failureReason'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -175,7 +175,7 @@ class ApplyWorkspaceEditResponse implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ApplyWorkspaceEditResponse");
+      reporter.reportError('must be of type ApplyWorkspaceEditResponse');
       return false;
     }
   }
@@ -234,15 +234,15 @@ class CancelParams implements ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError("must be of type Either2<num, String>");
+          reporter.reportError('must be of type Either2<num, String>');
           return false;
         }
       } finally {
@@ -250,7 +250,7 @@ class CancelParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CancelParams");
+      reporter.reportError('must be of type CancelParams');
       return false;
     }
   }
@@ -320,7 +320,7 @@ class ClientCapabilities implements ToJsonable {
         if (obj['workspace'] != null &&
             !(WorkspaceClientCapabilities.canParse(
                 obj['workspace'], reporter))) {
-          reporter.reportError("must be of type WorkspaceClientCapabilities");
+          reporter.reportError('must be of type WorkspaceClientCapabilities');
           return false;
         }
       } finally {
@@ -332,7 +332,7 @@ class ClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilities.canParse(
                 obj['textDocument'], reporter))) {
           reporter
-              .reportError("must be of type TextDocumentClientCapabilities");
+              .reportError('must be of type TextDocumentClientCapabilities');
           return false;
         }
       } finally {
@@ -341,7 +341,7 @@ class ClientCapabilities implements ToJsonable {
       reporter.push('experimental');
       try {
         if (obj['experimental'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -349,7 +349,7 @@ class ClientCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ClientCapabilities");
+      reporter.reportError('must be of type ClientCapabilities');
       return false;
     }
   }
@@ -448,15 +448,15 @@ class CodeAction implements ToJsonable {
       reporter.push('title');
       try {
         if (!obj.containsKey('title')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['title'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['title'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -466,7 +466,7 @@ class CodeAction implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(CodeActionKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type CodeActionKind");
+          reporter.reportError('must be of type CodeActionKind');
           return false;
         }
       } finally {
@@ -478,7 +478,7 @@ class CodeAction implements ToJsonable {
             !((obj['diagnostics'] is List &&
                 (obj['diagnostics']
                     .every((item) => Diagnostic.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Diagnostic>");
+          reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
       } finally {
@@ -488,7 +488,7 @@ class CodeAction implements ToJsonable {
       try {
         if (obj['edit'] != null &&
             !(WorkspaceEdit.canParse(obj['edit'], reporter))) {
-          reporter.reportError("must be of type WorkspaceEdit");
+          reporter.reportError('must be of type WorkspaceEdit');
           return false;
         }
       } finally {
@@ -498,7 +498,7 @@ class CodeAction implements ToJsonable {
       try {
         if (obj['command'] != null &&
             !(Command.canParse(obj['command'], reporter))) {
-          reporter.reportError("must be of type Command");
+          reporter.reportError('must be of type Command');
           return false;
         }
       } finally {
@@ -506,7 +506,7 @@ class CodeAction implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeAction");
+      reporter.reportError('must be of type CodeAction');
       return false;
     }
   }
@@ -587,17 +587,17 @@ class CodeActionContext implements ToJsonable {
       reporter.push('diagnostics');
       try {
         if (!obj.containsKey('diagnostics')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['diagnostics'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['diagnostics'] is List &&
             (obj['diagnostics']
                 .every((item) => Diagnostic.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Diagnostic>");
+          reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
       } finally {
@@ -609,7 +609,7 @@ class CodeActionContext implements ToJsonable {
             !((obj['only'] is List &&
                 (obj['only'].every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CodeActionKind>");
+          reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
       } finally {
@@ -617,7 +617,7 @@ class CodeActionContext implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeActionContext");
+      reporter.reportError('must be of type CodeActionContext');
       return false;
     }
   }
@@ -757,7 +757,7 @@ class CodeActionOptions implements ToJsonable {
             !((obj['codeActionKinds'] is List &&
                 (obj['codeActionKinds'].every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CodeActionKind>");
+          reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
       } finally {
@@ -765,7 +765,7 @@ class CodeActionOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeActionOptions");
+      reporter.reportError('must be of type CodeActionOptions');
       return false;
     }
   }
@@ -842,15 +842,15 @@ class CodeActionParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -859,15 +859,15 @@ class CodeActionParams implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -876,15 +876,15 @@ class CodeActionParams implements ToJsonable {
       reporter.push('context');
       try {
         if (!obj.containsKey('context')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['context'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(CodeActionContext.canParse(obj['context'], reporter))) {
-          reporter.reportError("must be of type CodeActionContext");
+          reporter.reportError('must be of type CodeActionContext');
           return false;
         }
       } finally {
@@ -892,7 +892,7 @@ class CodeActionParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeActionParams");
+      reporter.reportError('must be of type CodeActionParams');
       return false;
     }
   }
@@ -964,14 +964,14 @@ class CodeActionRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -983,7 +983,7 @@ class CodeActionRegistrationOptions
             !((obj['codeActionKinds'] is List &&
                 (obj['codeActionKinds'].every(
                     (item) => CodeActionKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CodeActionKind>");
+          reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
       } finally {
@@ -991,7 +991,7 @@ class CodeActionRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeActionRegistrationOptions");
+      reporter.reportError('must be of type CodeActionRegistrationOptions');
       return false;
     }
   }
@@ -1070,15 +1070,15 @@ class CodeLens implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -1088,7 +1088,7 @@ class CodeLens implements ToJsonable {
       try {
         if (obj['command'] != null &&
             !(Command.canParse(obj['command'], reporter))) {
-          reporter.reportError("must be of type Command");
+          reporter.reportError('must be of type Command');
           return false;
         }
       } finally {
@@ -1097,7 +1097,7 @@ class CodeLens implements ToJsonable {
       reporter.push('data');
       try {
         if (obj['data'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -1105,7 +1105,7 @@ class CodeLens implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeLens");
+      reporter.reportError('must be of type CodeLens');
       return false;
     }
   }
@@ -1162,7 +1162,7 @@ class CodeLensOptions implements ToJsonable {
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -1170,7 +1170,7 @@ class CodeLensOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeLensOptions");
+      reporter.reportError('must be of type CodeLensOptions');
       return false;
     }
   }
@@ -1225,15 +1225,15 @@ class CodeLensParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -1241,7 +1241,7 @@ class CodeLensParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeLensParams");
+      reporter.reportError('must be of type CodeLensParams');
       return false;
     }
   }
@@ -1303,7 +1303,7 @@ class CodeLensRegistrationOptions
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -1312,14 +1312,14 @@ class CodeLensRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -1327,7 +1327,7 @@ class CodeLensRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type CodeLensRegistrationOptions");
+      reporter.reportError('must be of type CodeLensRegistrationOptions');
       return false;
     }
   }
@@ -1406,15 +1406,15 @@ class Color implements ToJsonable {
       reporter.push('red');
       try {
         if (!obj.containsKey('red')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['red'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['red'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -1423,15 +1423,15 @@ class Color implements ToJsonable {
       reporter.push('green');
       try {
         if (!obj.containsKey('green')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['green'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['green'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -1440,15 +1440,15 @@ class Color implements ToJsonable {
       reporter.push('blue');
       try {
         if (!obj.containsKey('blue')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['blue'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['blue'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -1457,15 +1457,15 @@ class Color implements ToJsonable {
       reporter.push('alpha');
       try {
         if (!obj.containsKey('alpha')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['alpha'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['alpha'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -1473,7 +1473,7 @@ class Color implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Color");
+      reporter.reportError('must be of type Color');
       return false;
     }
   }
@@ -1540,15 +1540,15 @@ class ColorInformation implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -1557,15 +1557,15 @@ class ColorInformation implements ToJsonable {
       reporter.push('color');
       try {
         if (!obj.containsKey('color')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['color'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Color.canParse(obj['color'], reporter))) {
-          reporter.reportError("must be of type Color");
+          reporter.reportError('must be of type Color');
           return false;
         }
       } finally {
@@ -1573,7 +1573,7 @@ class ColorInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ColorInformation");
+      reporter.reportError('must be of type ColorInformation');
       return false;
     }
   }
@@ -1650,15 +1650,15 @@ class ColorPresentation implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -1668,7 +1668,7 @@ class ColorPresentation implements ToJsonable {
       try {
         if (obj['textEdit'] != null &&
             !(TextEdit.canParse(obj['textEdit'], reporter))) {
-          reporter.reportError("must be of type TextEdit");
+          reporter.reportError('must be of type TextEdit');
           return false;
         }
       } finally {
@@ -1680,7 +1680,7 @@ class ColorPresentation implements ToJsonable {
             !((obj['additionalTextEdits'] is List &&
                 (obj['additionalTextEdits']
                     .every((item) => TextEdit.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<TextEdit>");
+          reporter.reportError('must be of type List<TextEdit>');
           return false;
         }
       } finally {
@@ -1688,7 +1688,7 @@ class ColorPresentation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ColorPresentation");
+      reporter.reportError('must be of type ColorPresentation');
       return false;
     }
   }
@@ -1765,15 +1765,15 @@ class ColorPresentationParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -1782,15 +1782,15 @@ class ColorPresentationParams implements ToJsonable {
       reporter.push('color');
       try {
         if (!obj.containsKey('color')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['color'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Color.canParse(obj['color'], reporter))) {
-          reporter.reportError("must be of type Color");
+          reporter.reportError('must be of type Color');
           return false;
         }
       } finally {
@@ -1799,15 +1799,15 @@ class ColorPresentationParams implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -1815,7 +1815,7 @@ class ColorPresentationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ColorPresentationParams");
+      reporter.reportError('must be of type ColorPresentationParams');
       return false;
     }
   }
@@ -1862,7 +1862,7 @@ class ColorProviderOptions implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
-      reporter.reportError("must be of type ColorProviderOptions");
+      reporter.reportError('must be of type ColorProviderOptions');
       return false;
     }
   }
@@ -1929,15 +1929,15 @@ class Command implements ToJsonable {
       reporter.push('title');
       try {
         if (!obj.containsKey('title')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['title'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['title'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -1946,15 +1946,15 @@ class Command implements ToJsonable {
       reporter.push('command');
       try {
         if (!obj.containsKey('command')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['command'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['command'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -1965,7 +1965,7 @@ class Command implements ToJsonable {
         if (obj['arguments'] != null &&
             !((obj['arguments'] is List &&
                 (obj['arguments'].every((item) => true))))) {
-          reporter.reportError("must be of type List<dynamic>");
+          reporter.reportError('must be of type List<dynamic>');
           return false;
         }
       } finally {
@@ -1973,7 +1973,7 @@ class Command implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Command");
+      reporter.reportError('must be of type Command');
       return false;
     }
   }
@@ -2044,15 +2044,15 @@ class CompletionContext implements ToJsonable {
       reporter.push('triggerKind');
       try {
         if (!obj.containsKey('triggerKind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['triggerKind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(CompletionTriggerKind.canParse(obj['triggerKind'], reporter))) {
-          reporter.reportError("must be of type CompletionTriggerKind");
+          reporter.reportError('must be of type CompletionTriggerKind');
           return false;
         }
       } finally {
@@ -2062,7 +2062,7 @@ class CompletionContext implements ToJsonable {
       try {
         if (obj['triggerCharacter'] != null &&
             !(obj['triggerCharacter'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2070,7 +2070,7 @@ class CompletionContext implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionContext");
+      reporter.reportError('must be of type CompletionContext');
       return false;
     }
   }
@@ -2308,15 +2308,15 @@ class CompletionItem implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2326,7 +2326,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(CompletionItemKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type CompletionItemKind");
+          reporter.reportError('must be of type CompletionItemKind');
           return false;
         }
       } finally {
@@ -2335,7 +2335,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('detail');
       try {
         if (obj['detail'] != null && !(obj['detail'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2347,7 +2347,7 @@ class CompletionItem implements ToJsonable {
             !((obj['documentation'] is String ||
                 MarkupContent.canParse(obj['documentation'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<String, MarkupContent>");
+              .reportError('must be of type Either2<String, MarkupContent>');
           return false;
         }
       } finally {
@@ -2356,7 +2356,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('deprecated');
       try {
         if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2365,7 +2365,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('preselect');
       try {
         if (obj['preselect'] != null && !(obj['preselect'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2374,7 +2374,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('sortText');
       try {
         if (obj['sortText'] != null && !(obj['sortText'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2383,7 +2383,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('filterText');
       try {
         if (obj['filterText'] != null && !(obj['filterText'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2392,7 +2392,7 @@ class CompletionItem implements ToJsonable {
       reporter.push('insertText');
       try {
         if (obj['insertText'] != null && !(obj['insertText'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -2402,7 +2402,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['insertTextFormat'] != null &&
             !(InsertTextFormat.canParse(obj['insertTextFormat'], reporter))) {
-          reporter.reportError("must be of type InsertTextFormat");
+          reporter.reportError('must be of type InsertTextFormat');
           return false;
         }
       } finally {
@@ -2412,7 +2412,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['textEdit'] != null &&
             !(TextEdit.canParse(obj['textEdit'], reporter))) {
-          reporter.reportError("must be of type TextEdit");
+          reporter.reportError('must be of type TextEdit');
           return false;
         }
       } finally {
@@ -2424,7 +2424,7 @@ class CompletionItem implements ToJsonable {
             !((obj['additionalTextEdits'] is List &&
                 (obj['additionalTextEdits']
                     .every((item) => TextEdit.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<TextEdit>");
+          reporter.reportError('must be of type List<TextEdit>');
           return false;
         }
       } finally {
@@ -2435,7 +2435,7 @@ class CompletionItem implements ToJsonable {
         if (obj['commitCharacters'] != null &&
             !((obj['commitCharacters'] is List &&
                 (obj['commitCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -2445,7 +2445,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['command'] != null &&
             !(Command.canParse(obj['command'], reporter))) {
-          reporter.reportError("must be of type Command");
+          reporter.reportError('must be of type Command');
           return false;
         }
       } finally {
@@ -2455,7 +2455,7 @@ class CompletionItem implements ToJsonable {
       try {
         if (obj['data'] != null &&
             !(CompletionItemResolutionInfo.canParse(obj['data'], reporter))) {
-          reporter.reportError("must be of type CompletionItemResolutionInfo");
+          reporter.reportError('must be of type CompletionItemResolutionInfo');
           return false;
         }
       } finally {
@@ -2463,7 +2463,7 @@ class CompletionItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionItem");
+      reporter.reportError('must be of type CompletionItem');
       return false;
     }
   }
@@ -2609,15 +2609,15 @@ class CompletionList implements ToJsonable {
       reporter.push('isIncomplete');
       try {
         if (!obj.containsKey('isIncomplete')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['isIncomplete'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['isIncomplete'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2626,17 +2626,17 @@ class CompletionList implements ToJsonable {
       reporter.push('items');
       try {
         if (!obj.containsKey('items')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['items'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['items'] is List &&
             (obj['items']
                 .every((item) => CompletionItem.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CompletionItem>");
+          reporter.reportError('must be of type List<CompletionItem>');
           return false;
         }
       } finally {
@@ -2644,7 +2644,7 @@ class CompletionList implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionList");
+      reporter.reportError('must be of type CompletionList');
       return false;
     }
   }
@@ -2711,7 +2711,7 @@ class CompletionOptions implements ToJsonable {
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2722,7 +2722,7 @@ class CompletionOptions implements ToJsonable {
         if (obj['triggerCharacters'] != null &&
             !((obj['triggerCharacters'] is List &&
                 (obj['triggerCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -2730,7 +2730,7 @@ class CompletionOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionOptions");
+      reporter.reportError('must be of type CompletionOptions');
       return false;
     }
   }
@@ -2811,7 +2811,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       try {
         if (obj['context'] != null &&
             !(CompletionContext.canParse(obj['context'], reporter))) {
-          reporter.reportError("must be of type CompletionContext");
+          reporter.reportError('must be of type CompletionContext');
           return false;
         }
       } finally {
@@ -2820,15 +2820,15 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -2837,15 +2837,15 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -2853,7 +2853,7 @@ class CompletionParams implements TextDocumentPositionParams, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionParams");
+      reporter.reportError('must be of type CompletionParams');
       return false;
     }
   }
@@ -2961,7 +2961,7 @@ class CompletionRegistrationOptions
         if (obj['triggerCharacters'] != null &&
             !((obj['triggerCharacters'] is List &&
                 (obj['triggerCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -2973,7 +2973,7 @@ class CompletionRegistrationOptions
             !((obj['allCommitCharacters'] is List &&
                 (obj['allCommitCharacters']
                     .every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -2983,7 +2983,7 @@ class CompletionRegistrationOptions
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -2992,14 +2992,14 @@ class CompletionRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -3007,7 +3007,7 @@ class CompletionRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type CompletionRegistrationOptions");
+      reporter.reportError('must be of type CompletionRegistrationOptions');
       return false;
     }
   }
@@ -3113,7 +3113,7 @@ class ConfigurationItem implements ToJsonable {
       reporter.push('scopeUri');
       try {
         if (obj['scopeUri'] != null && !(obj['scopeUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3122,7 +3122,7 @@ class ConfigurationItem implements ToJsonable {
       reporter.push('section');
       try {
         if (obj['section'] != null && !(obj['section'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3130,7 +3130,7 @@ class ConfigurationItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ConfigurationItem");
+      reporter.reportError('must be of type ConfigurationItem');
       return false;
     }
   }
@@ -3185,17 +3185,17 @@ class ConfigurationParams implements ToJsonable {
       reporter.push('items');
       try {
         if (!obj.containsKey('items')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['items'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['items'] is List &&
             (obj['items'].every(
                 (item) => ConfigurationItem.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<ConfigurationItem>");
+          reporter.reportError('must be of type List<ConfigurationItem>');
           return false;
         }
       } finally {
@@ -3203,7 +3203,7 @@ class ConfigurationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ConfigurationParams");
+      reporter.reportError('must be of type ConfigurationParams');
       return false;
     }
   }
@@ -3275,15 +3275,15 @@ class CreateFile implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['kind'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3292,15 +3292,15 @@ class CreateFile implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3310,7 +3310,7 @@ class CreateFile implements ToJsonable {
       try {
         if (obj['options'] != null &&
             !(CreateFileOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type CreateFileOptions");
+          reporter.reportError('must be of type CreateFileOptions');
           return false;
         }
       } finally {
@@ -3318,7 +3318,7 @@ class CreateFile implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CreateFile");
+      reporter.reportError('must be of type CreateFile');
       return false;
     }
   }
@@ -3381,7 +3381,7 @@ class CreateFileOptions implements ToJsonable {
       reporter.push('overwrite');
       try {
         if (obj['overwrite'] != null && !(obj['overwrite'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -3390,7 +3390,7 @@ class CreateFileOptions implements ToJsonable {
       reporter.push('ignoreIfExists');
       try {
         if (obj['ignoreIfExists'] != null && !(obj['ignoreIfExists'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -3398,7 +3398,7 @@ class CreateFileOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type CreateFileOptions");
+      reporter.reportError('must be of type CreateFileOptions');
       return false;
     }
   }
@@ -3471,15 +3471,15 @@ class DeleteFile implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['kind'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3488,15 +3488,15 @@ class DeleteFile implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3506,7 +3506,7 @@ class DeleteFile implements ToJsonable {
       try {
         if (obj['options'] != null &&
             !(DeleteFileOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type DeleteFileOptions");
+          reporter.reportError('must be of type DeleteFileOptions');
           return false;
         }
       } finally {
@@ -3514,7 +3514,7 @@ class DeleteFile implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DeleteFile");
+      reporter.reportError('must be of type DeleteFile');
       return false;
     }
   }
@@ -3577,7 +3577,7 @@ class DeleteFileOptions implements ToJsonable {
       reporter.push('recursive');
       try {
         if (obj['recursive'] != null && !(obj['recursive'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -3587,7 +3587,7 @@ class DeleteFileOptions implements ToJsonable {
       try {
         if (obj['ignoreIfNotExists'] != null &&
             !(obj['ignoreIfNotExists'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -3595,7 +3595,7 @@ class DeleteFileOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DeleteFileOptions");
+      reporter.reportError('must be of type DeleteFileOptions');
       return false;
     }
   }
@@ -3698,15 +3698,15 @@ class Diagnostic implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -3716,7 +3716,7 @@ class Diagnostic implements ToJsonable {
       try {
         if (obj['severity'] != null &&
             !(DiagnosticSeverity.canParse(obj['severity'], reporter))) {
-          reporter.reportError("must be of type DiagnosticSeverity");
+          reporter.reportError('must be of type DiagnosticSeverity');
           return false;
         }
       } finally {
@@ -3725,7 +3725,7 @@ class Diagnostic implements ToJsonable {
       reporter.push('code');
       try {
         if (obj['code'] != null && !(obj['code'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3734,7 +3734,7 @@ class Diagnostic implements ToJsonable {
       reporter.push('source');
       try {
         if (obj['source'] != null && !(obj['source'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3743,15 +3743,15 @@ class Diagnostic implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3764,7 +3764,7 @@ class Diagnostic implements ToJsonable {
                 (obj['relatedInformation'].every((item) =>
                     DiagnosticRelatedInformation.canParse(item, reporter)))))) {
           reporter.reportError(
-              "must be of type List<DiagnosticRelatedInformation>");
+              'must be of type List<DiagnosticRelatedInformation>');
           return false;
         }
       } finally {
@@ -3772,7 +3772,7 @@ class Diagnostic implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Diagnostic");
+      reporter.reportError('must be of type Diagnostic');
       return false;
     }
   }
@@ -3855,15 +3855,15 @@ class DiagnosticRelatedInformation implements ToJsonable {
       reporter.push('location');
       try {
         if (!obj.containsKey('location')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['location'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Location.canParse(obj['location'], reporter))) {
-          reporter.reportError("must be of type Location");
+          reporter.reportError('must be of type Location');
           return false;
         }
       } finally {
@@ -3872,15 +3872,15 @@ class DiagnosticRelatedInformation implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -3888,7 +3888,7 @@ class DiagnosticRelatedInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DiagnosticRelatedInformation");
+      reporter.reportError('must be of type DiagnosticRelatedInformation');
       return false;
     }
   }
@@ -3971,11 +3971,11 @@ class DidChangeConfigurationParams implements ToJsonable {
       reporter.push('settings');
       try {
         if (!obj.containsKey('settings')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['settings'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -3983,7 +3983,7 @@ class DidChangeConfigurationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidChangeConfigurationParams");
+      reporter.reportError('must be of type DidChangeConfigurationParams');
       return false;
     }
   }
@@ -4055,17 +4055,17 @@ class DidChangeTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(VersionedTextDocumentIdentifier.canParse(
             obj['textDocument'], reporter))) {
           reporter
-              .reportError("must be of type VersionedTextDocumentIdentifier");
+              .reportError('must be of type VersionedTextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -4074,18 +4074,18 @@ class DidChangeTextDocumentParams implements ToJsonable {
       reporter.push('contentChanges');
       try {
         if (!obj.containsKey('contentChanges')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['contentChanges'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['contentChanges'] is List &&
             (obj['contentChanges'].every((item) =>
                 TextDocumentContentChangeEvent.canParse(item, reporter)))))) {
           reporter.reportError(
-              "must be of type List<TextDocumentContentChangeEvent>");
+              'must be of type List<TextDocumentContentChangeEvent>');
           return false;
         }
       } finally {
@@ -4093,7 +4093,7 @@ class DidChangeTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidChangeTextDocumentParams");
+      reporter.reportError('must be of type DidChangeTextDocumentParams');
       return false;
     }
   }
@@ -4158,17 +4158,17 @@ class DidChangeWatchedFilesParams implements ToJsonable {
       reporter.push('changes');
       try {
         if (!obj.containsKey('changes')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['changes'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['changes'] is List &&
             (obj['changes']
                 .every((item) => FileEvent.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<FileEvent>");
+          reporter.reportError('must be of type List<FileEvent>');
           return false;
         }
       } finally {
@@ -4176,7 +4176,7 @@ class DidChangeWatchedFilesParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidChangeWatchedFilesParams");
+      reporter.reportError('must be of type DidChangeWatchedFilesParams');
       return false;
     }
   }
@@ -4237,17 +4237,17 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
       reporter.push('watchers');
       try {
         if (!obj.containsKey('watchers')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['watchers'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['watchers'] is List &&
             (obj['watchers'].every(
                 (item) => FileSystemWatcher.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<FileSystemWatcher>");
+          reporter.reportError('must be of type List<FileSystemWatcher>');
           return false;
         }
       } finally {
@@ -4256,7 +4256,7 @@ class DidChangeWatchedFilesRegistrationOptions implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type DidChangeWatchedFilesRegistrationOptions");
+          'must be of type DidChangeWatchedFilesRegistrationOptions');
       return false;
     }
   }
@@ -4313,15 +4313,15 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
       reporter.push('event');
       try {
         if (!obj.containsKey('event')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['event'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(WorkspaceFoldersChangeEvent.canParse(obj['event'], reporter))) {
-          reporter.reportError("must be of type WorkspaceFoldersChangeEvent");
+          reporter.reportError('must be of type WorkspaceFoldersChangeEvent');
           return false;
         }
       } finally {
@@ -4329,7 +4329,7 @@ class DidChangeWorkspaceFoldersParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidChangeWorkspaceFoldersParams");
+      reporter.reportError('must be of type DidChangeWorkspaceFoldersParams');
       return false;
     }
   }
@@ -4384,15 +4384,15 @@ class DidCloseTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -4400,7 +4400,7 @@ class DidCloseTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidCloseTextDocumentParams");
+      reporter.reportError('must be of type DidCloseTextDocumentParams');
       return false;
     }
   }
@@ -4455,15 +4455,15 @@ class DidOpenTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentItem.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentItem");
+          reporter.reportError('must be of type TextDocumentItem');
           return false;
         }
       } finally {
@@ -4471,7 +4471,7 @@ class DidOpenTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidOpenTextDocumentParams");
+      reporter.reportError('must be of type DidOpenTextDocumentParams');
       return false;
     }
   }
@@ -4534,15 +4534,15 @@ class DidSaveTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -4551,7 +4551,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
       reporter.push('text');
       try {
         if (obj['text'] != null && !(obj['text'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4559,7 +4559,7 @@ class DidSaveTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DidSaveTextDocumentParams");
+      reporter.reportError('must be of type DidSaveTextDocumentParams');
       return false;
     }
   }
@@ -4636,7 +4636,7 @@ class DocumentFilter implements ToJsonable {
       reporter.push('language');
       try {
         if (obj['language'] != null && !(obj['language'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4645,7 +4645,7 @@ class DocumentFilter implements ToJsonable {
       reporter.push('scheme');
       try {
         if (obj['scheme'] != null && !(obj['scheme'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4654,7 +4654,7 @@ class DocumentFilter implements ToJsonable {
       reporter.push('pattern');
       try {
         if (obj['pattern'] != null && !(obj['pattern'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4662,7 +4662,7 @@ class DocumentFilter implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentFilter");
+      reporter.reportError('must be of type DocumentFilter');
       return false;
     }
   }
@@ -4733,15 +4733,15 @@ class DocumentFormattingParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -4750,15 +4750,15 @@ class DocumentFormattingParams implements ToJsonable {
       reporter.push('options');
       try {
         if (!obj.containsKey('options')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['options'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(FormattingOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type FormattingOptions");
+          reporter.reportError('must be of type FormattingOptions');
           return false;
         }
       } finally {
@@ -4766,7 +4766,7 @@ class DocumentFormattingParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentFormattingParams");
+      reporter.reportError('must be of type DocumentFormattingParams');
       return false;
     }
   }
@@ -4833,15 +4833,15 @@ class DocumentHighlight implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -4851,7 +4851,7 @@ class DocumentHighlight implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(DocumentHighlightKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type DocumentHighlightKind");
+          reporter.reportError('must be of type DocumentHighlightKind');
           return false;
         }
       } finally {
@@ -4859,7 +4859,7 @@ class DocumentHighlight implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentHighlight");
+      reporter.reportError('must be of type DocumentHighlight');
       return false;
     }
   }
@@ -4961,15 +4961,15 @@ class DocumentLink implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -4978,7 +4978,7 @@ class DocumentLink implements ToJsonable {
       reporter.push('target');
       try {
         if (obj['target'] != null && !(obj['target'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -4987,7 +4987,7 @@ class DocumentLink implements ToJsonable {
       reporter.push('data');
       try {
         if (obj['data'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -4995,7 +4995,7 @@ class DocumentLink implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentLink");
+      reporter.reportError('must be of type DocumentLink');
       return false;
     }
   }
@@ -5052,7 +5052,7 @@ class DocumentLinkOptions implements ToJsonable {
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -5060,7 +5060,7 @@ class DocumentLinkOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentLinkOptions");
+      reporter.reportError('must be of type DocumentLinkOptions');
       return false;
     }
   }
@@ -5115,15 +5115,15 @@ class DocumentLinkParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -5131,7 +5131,7 @@ class DocumentLinkParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentLinkParams");
+      reporter.reportError('must be of type DocumentLinkParams');
       return false;
     }
   }
@@ -5193,7 +5193,7 @@ class DocumentLinkRegistrationOptions
       try {
         if (obj['resolveProvider'] != null &&
             !(obj['resolveProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -5202,14 +5202,14 @@ class DocumentLinkRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -5217,7 +5217,7 @@ class DocumentLinkRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentLinkRegistrationOptions");
+      reporter.reportError('must be of type DocumentLinkRegistrationOptions');
       return false;
     }
   }
@@ -5287,15 +5287,15 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       reporter.push('firstTriggerCharacter');
       try {
         if (!obj.containsKey('firstTriggerCharacter')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['firstTriggerCharacter'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['firstTriggerCharacter'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5307,7 +5307,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
             !((obj['moreTriggerCharacter'] is List &&
                 (obj['moreTriggerCharacter']
                     .every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -5315,7 +5315,7 @@ class DocumentOnTypeFormattingOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentOnTypeFormattingOptions");
+      reporter.reportError('must be of type DocumentOnTypeFormattingOptions');
       return false;
     }
   }
@@ -5405,15 +5405,15 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -5422,15 +5422,15 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -5439,15 +5439,15 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       reporter.push('ch');
       try {
         if (!obj.containsKey('ch')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['ch'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['ch'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5456,15 +5456,15 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       reporter.push('options');
       try {
         if (!obj.containsKey('options')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['options'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(FormattingOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type FormattingOptions");
+          reporter.reportError('must be of type FormattingOptions');
           return false;
         }
       } finally {
@@ -5472,7 +5472,7 @@ class DocumentOnTypeFormattingParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentOnTypeFormattingParams");
+      reporter.reportError('must be of type DocumentOnTypeFormattingParams');
       return false;
     }
   }
@@ -5556,15 +5556,15 @@ class DocumentOnTypeFormattingRegistrationOptions
       reporter.push('firstTriggerCharacter');
       try {
         if (!obj.containsKey('firstTriggerCharacter')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['firstTriggerCharacter'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['firstTriggerCharacter'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5576,7 +5576,7 @@ class DocumentOnTypeFormattingRegistrationOptions
             !((obj['moreTriggerCharacter'] is List &&
                 (obj['moreTriggerCharacter']
                     .every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -5585,14 +5585,14 @@ class DocumentOnTypeFormattingRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -5601,7 +5601,7 @@ class DocumentOnTypeFormattingRegistrationOptions
       return true;
     } else {
       reporter.reportError(
-          "must be of type DocumentOnTypeFormattingRegistrationOptions");
+          'must be of type DocumentOnTypeFormattingRegistrationOptions');
       return false;
     }
   }
@@ -5682,15 +5682,15 @@ class DocumentRangeFormattingParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -5699,15 +5699,15 @@ class DocumentRangeFormattingParams implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -5716,15 +5716,15 @@ class DocumentRangeFormattingParams implements ToJsonable {
       reporter.push('options');
       try {
         if (!obj.containsKey('options')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['options'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(FormattingOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type FormattingOptions");
+          reporter.reportError('must be of type FormattingOptions');
           return false;
         }
       } finally {
@@ -5732,7 +5732,7 @@ class DocumentRangeFormattingParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentRangeFormattingParams");
+      reporter.reportError('must be of type DocumentRangeFormattingParams');
       return false;
     }
   }
@@ -5853,15 +5853,15 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['name'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['name'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5870,7 +5870,7 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('detail');
       try {
         if (obj['detail'] != null && !(obj['detail'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -5879,15 +5879,15 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(SymbolKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type SymbolKind");
+          reporter.reportError('must be of type SymbolKind');
           return false;
         }
       } finally {
@@ -5896,7 +5896,7 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('deprecated');
       try {
         if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -5905,15 +5905,15 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -5922,15 +5922,15 @@ class DocumentSymbol implements ToJsonable {
       reporter.push('selectionRange');
       try {
         if (!obj.containsKey('selectionRange')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['selectionRange'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['selectionRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -5942,7 +5942,7 @@ class DocumentSymbol implements ToJsonable {
             !((obj['children'] is List &&
                 (obj['children'].every(
                     (item) => DocumentSymbol.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentSymbol>");
+          reporter.reportError('must be of type List<DocumentSymbol>');
           return false;
         }
       } finally {
@@ -5950,7 +5950,7 @@ class DocumentSymbol implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentSymbol");
+      reporter.reportError('must be of type DocumentSymbol');
       return false;
     }
   }
@@ -6019,15 +6019,15 @@ class DocumentSymbolParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -6035,7 +6035,7 @@ class DocumentSymbolParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type DocumentSymbolParams");
+      reporter.reportError('must be of type DocumentSymbolParams');
       return false;
     }
   }
@@ -6126,16 +6126,16 @@ class ExecuteCommandOptions implements ToJsonable {
       reporter.push('commands');
       try {
         if (!obj.containsKey('commands')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['commands'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['commands'] is List &&
             (obj['commands'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -6143,7 +6143,7 @@ class ExecuteCommandOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ExecuteCommandOptions");
+      reporter.reportError('must be of type ExecuteCommandOptions');
       return false;
     }
   }
@@ -6206,15 +6206,15 @@ class ExecuteCommandParams implements ToJsonable {
       reporter.push('command');
       try {
         if (!obj.containsKey('command')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['command'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['command'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -6225,7 +6225,7 @@ class ExecuteCommandParams implements ToJsonable {
         if (obj['arguments'] != null &&
             !((obj['arguments'] is List &&
                 (obj['arguments'].every((item) => true))))) {
-          reporter.reportError("must be of type List<dynamic>");
+          reporter.reportError('must be of type List<dynamic>');
           return false;
         }
       } finally {
@@ -6233,7 +6233,7 @@ class ExecuteCommandParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ExecuteCommandParams");
+      reporter.reportError('must be of type ExecuteCommandParams');
       return false;
     }
   }
@@ -6293,16 +6293,16 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
       reporter.push('commands');
       try {
         if (!obj.containsKey('commands')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['commands'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['commands'] is List &&
             (obj['commands'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -6310,7 +6310,7 @@ class ExecuteCommandRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ExecuteCommandRegistrationOptions");
+      reporter.reportError('must be of type ExecuteCommandRegistrationOptions');
       return false;
     }
   }
@@ -6451,15 +6451,15 @@ class FileEvent implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -6468,15 +6468,15 @@ class FileEvent implements ToJsonable {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['type'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['type'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6484,7 +6484,7 @@ class FileEvent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FileEvent");
+      reporter.reportError('must be of type FileEvent');
       return false;
     }
   }
@@ -6558,15 +6558,15 @@ class FileSystemWatcher implements ToJsonable {
       reporter.push('globPattern');
       try {
         if (!obj.containsKey('globPattern')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['globPattern'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['globPattern'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -6576,7 +6576,7 @@ class FileSystemWatcher implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(WatchKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type WatchKind");
+          reporter.reportError('must be of type WatchKind');
           return false;
         }
       } finally {
@@ -6584,7 +6584,7 @@ class FileSystemWatcher implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FileSystemWatcher");
+      reporter.reportError('must be of type FileSystemWatcher');
       return false;
     }
   }
@@ -6676,15 +6676,15 @@ class FoldingRange implements ToJsonable {
       reporter.push('startLine');
       try {
         if (!obj.containsKey('startLine')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['startLine'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['startLine'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6693,7 +6693,7 @@ class FoldingRange implements ToJsonable {
       reporter.push('startCharacter');
       try {
         if (obj['startCharacter'] != null && !(obj['startCharacter'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6702,15 +6702,15 @@ class FoldingRange implements ToJsonable {
       reporter.push('endLine');
       try {
         if (!obj.containsKey('endLine')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['endLine'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['endLine'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6719,7 +6719,7 @@ class FoldingRange implements ToJsonable {
       reporter.push('endCharacter');
       try {
         if (obj['endCharacter'] != null && !(obj['endCharacter'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6729,7 +6729,7 @@ class FoldingRange implements ToJsonable {
       try {
         if (obj['kind'] != null &&
             !(FoldingRangeKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type FoldingRangeKind");
+          reporter.reportError('must be of type FoldingRangeKind');
           return false;
         }
       } finally {
@@ -6737,7 +6737,7 @@ class FoldingRange implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FoldingRange");
+      reporter.reportError('must be of type FoldingRange');
       return false;
     }
   }
@@ -6832,15 +6832,15 @@ class FoldingRangeParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -6848,7 +6848,7 @@ class FoldingRangeParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FoldingRangeParams");
+      reporter.reportError('must be of type FoldingRangeParams');
       return false;
     }
   }
@@ -6891,7 +6891,7 @@ class FoldingRangeProviderOptions implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
-      reporter.reportError("must be of type FoldingRangeProviderOptions");
+      reporter.reportError('must be of type FoldingRangeProviderOptions');
       return false;
     }
   }
@@ -6953,15 +6953,15 @@ class FormattingOptions implements ToJsonable {
       reporter.push('tabSize');
       try {
         if (!obj.containsKey('tabSize')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['tabSize'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['tabSize'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -6970,15 +6970,15 @@ class FormattingOptions implements ToJsonable {
       reporter.push('insertSpaces');
       try {
         if (!obj.containsKey('insertSpaces')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['insertSpaces'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['insertSpaces'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -6986,7 +6986,7 @@ class FormattingOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type FormattingOptions");
+      reporter.reportError('must be of type FormattingOptions');
       return false;
     }
   }
@@ -7056,17 +7056,17 @@ class Hover implements ToJsonable {
       reporter.push('contents');
       try {
         if (!obj.containsKey('contents')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['contents'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['contents'] is String ||
             MarkupContent.canParse(obj['contents'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<String, MarkupContent>");
+              .reportError('must be of type Either2<String, MarkupContent>');
           return false;
         }
       } finally {
@@ -7075,7 +7075,7 @@ class Hover implements ToJsonable {
       reporter.push('range');
       try {
         if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7083,7 +7083,7 @@ class Hover implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Hover");
+      reporter.reportError('must be of type Hover');
       return false;
     }
   }
@@ -7199,11 +7199,11 @@ class InitializeParams implements ToJsonable {
       reporter.push('processId');
       try {
         if (!obj.containsKey('processId')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['processId'] != null && !(obj['processId'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -7212,7 +7212,7 @@ class InitializeParams implements ToJsonable {
       reporter.push('rootPath');
       try {
         if (obj['rootPath'] != null && !(obj['rootPath'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7221,11 +7221,11 @@ class InitializeParams implements ToJsonable {
       reporter.push('rootUri');
       try {
         if (!obj.containsKey('rootUri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['rootUri'] != null && !(obj['rootUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7234,7 +7234,7 @@ class InitializeParams implements ToJsonable {
       reporter.push('initializationOptions');
       try {
         if (obj['initializationOptions'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -7243,15 +7243,15 @@ class InitializeParams implements ToJsonable {
       reporter.push('capabilities');
       try {
         if (!obj.containsKey('capabilities')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['capabilities'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(ClientCapabilities.canParse(obj['capabilities'], reporter))) {
-          reporter.reportError("must be of type ClientCapabilities");
+          reporter.reportError('must be of type ClientCapabilities');
           return false;
         }
       } finally {
@@ -7260,7 +7260,7 @@ class InitializeParams implements ToJsonable {
       reporter.push('trace');
       try {
         if (obj['trace'] != null && !(obj['trace'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7272,7 +7272,7 @@ class InitializeParams implements ToJsonable {
             !((obj['workspaceFolders'] is List &&
                 (obj['workspaceFolders'].every(
                     (item) => WorkspaceFolder.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<WorkspaceFolder>");
+          reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
         }
       } finally {
@@ -7280,7 +7280,7 @@ class InitializeParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type InitializeParams");
+      reporter.reportError('must be of type InitializeParams');
       return false;
     }
   }
@@ -7349,15 +7349,15 @@ class InitializeResult implements ToJsonable {
       reporter.push('capabilities');
       try {
         if (!obj.containsKey('capabilities')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['capabilities'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(ServerCapabilities.canParse(obj['capabilities'], reporter))) {
-          reporter.reportError("must be of type ServerCapabilities");
+          reporter.reportError('must be of type ServerCapabilities');
           return false;
         }
       } finally {
@@ -7365,7 +7365,7 @@ class InitializeResult implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type InitializeResult");
+      reporter.reportError('must be of type InitializeResult');
       return false;
     }
   }
@@ -7406,7 +7406,7 @@ class InitializedParams implements ToJsonable {
     if (obj is Map<String, dynamic>) {
       return true;
     } else {
-      reporter.reportError("must be of type InitializedParams");
+      reporter.reportError('must be of type InitializedParams');
       return false;
     }
   }
@@ -7501,15 +7501,15 @@ class Location implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7518,15 +7518,15 @@ class Location implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7534,7 +7534,7 @@ class Location implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Location");
+      reporter.reportError('must be of type Location');
       return false;
     }
   }
@@ -7630,7 +7630,7 @@ class LocationLink implements ToJsonable {
       try {
         if (obj['originSelectionRange'] != null &&
             !(Range.canParse(obj['originSelectionRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7639,15 +7639,15 @@ class LocationLink implements ToJsonable {
       reporter.push('targetUri');
       try {
         if (!obj.containsKey('targetUri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['targetUri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['targetUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7656,15 +7656,15 @@ class LocationLink implements ToJsonable {
       reporter.push('targetRange');
       try {
         if (!obj.containsKey('targetRange')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['targetRange'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['targetRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7673,15 +7673,15 @@ class LocationLink implements ToJsonable {
       reporter.push('targetSelectionRange');
       try {
         if (!obj.containsKey('targetSelectionRange')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['targetSelectionRange'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['targetSelectionRange'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -7689,7 +7689,7 @@ class LocationLink implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type LocationLink");
+      reporter.reportError('must be of type LocationLink');
       return false;
     }
   }
@@ -7758,15 +7758,15 @@ class LogMessageParams implements ToJsonable {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['type'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(MessageType.canParse(obj['type'], reporter))) {
-          reporter.reportError("must be of type MessageType");
+          reporter.reportError('must be of type MessageType');
           return false;
         }
       } finally {
@@ -7775,15 +7775,15 @@ class LogMessageParams implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7791,7 +7791,7 @@ class LogMessageParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type LogMessageParams");
+      reporter.reportError('must be of type LogMessageParams');
       return false;
     }
   }
@@ -7875,15 +7875,15 @@ class MarkupContent implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(MarkupKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type MarkupKind");
+          reporter.reportError('must be of type MarkupKind');
           return false;
         }
       } finally {
@@ -7892,15 +7892,15 @@ class MarkupContent implements ToJsonable {
       reporter.push('value');
       try {
         if (!obj.containsKey('value')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['value'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['value'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -7908,7 +7908,7 @@ class MarkupContent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type MarkupContent");
+      reporter.reportError('must be of type MarkupContent');
       return false;
     }
   }
@@ -8006,15 +8006,15 @@ class Message implements ToJsonable {
       reporter.push('jsonrpc');
       try {
         if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['jsonrpc'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['jsonrpc'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8022,7 +8022,7 @@ class Message implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Message");
+      reporter.reportError('must be of type Message');
       return false;
     }
   }
@@ -8074,15 +8074,15 @@ class MessageActionItem implements ToJsonable {
       reporter.push('title');
       try {
         if (!obj.containsKey('title')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['title'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['title'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8090,7 +8090,7 @@ class MessageActionItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type MessageActionItem");
+      reporter.reportError('must be of type MessageActionItem');
       return false;
     }
   }
@@ -8369,15 +8369,15 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('method');
       try {
         if (!obj.containsKey('method')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['method'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Method.canParse(obj['method'], reporter))) {
-          reporter.reportError("must be of type Method");
+          reporter.reportError('must be of type Method');
           return false;
         }
       } finally {
@@ -8386,7 +8386,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('params');
       try {
         if (obj['params'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -8395,15 +8395,15 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('jsonrpc');
       try {
         if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['jsonrpc'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['jsonrpc'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8411,7 +8411,7 @@ class NotificationMessage implements Message, IncomingMessage, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type NotificationMessage");
+      reporter.reportError('must be of type NotificationMessage');
       return false;
     }
   }
@@ -8495,15 +8495,15 @@ class ParameterInformation implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8515,7 +8515,7 @@ class ParameterInformation implements ToJsonable {
             !((obj['documentation'] is String ||
                 MarkupContent.canParse(obj['documentation'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<String, MarkupContent>");
+              .reportError('must be of type Either2<String, MarkupContent>');
           return false;
         }
       } finally {
@@ -8523,7 +8523,7 @@ class ParameterInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ParameterInformation");
+      reporter.reportError('must be of type ParameterInformation');
       return false;
     }
   }
@@ -8592,15 +8592,15 @@ class Position implements ToJsonable {
       reporter.push('line');
       try {
         if (!obj.containsKey('line')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['line'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['line'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -8609,15 +8609,15 @@ class Position implements ToJsonable {
       reporter.push('character');
       try {
         if (!obj.containsKey('character')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['character'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['character'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -8625,7 +8625,7 @@ class Position implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Position");
+      reporter.reportError('must be of type Position');
       return false;
     }
   }
@@ -8690,15 +8690,15 @@ class PublishDiagnosticsParams implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8707,17 +8707,17 @@ class PublishDiagnosticsParams implements ToJsonable {
       reporter.push('diagnostics');
       try {
         if (!obj.containsKey('diagnostics')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['diagnostics'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['diagnostics'] is List &&
             (obj['diagnostics']
                 .every((item) => Diagnostic.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Diagnostic>");
+          reporter.reportError('must be of type List<Diagnostic>');
           return false;
         }
       } finally {
@@ -8725,7 +8725,7 @@ class PublishDiagnosticsParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type PublishDiagnosticsParams");
+      reporter.reportError('must be of type PublishDiagnosticsParams');
       return false;
     }
   }
@@ -8789,15 +8789,15 @@ class Range implements ToJsonable {
       reporter.push('start');
       try {
         if (!obj.containsKey('start')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['start'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['start'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -8806,15 +8806,15 @@ class Range implements ToJsonable {
       reporter.push('end');
       try {
         if (!obj.containsKey('end')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['end'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['end'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -8822,7 +8822,7 @@ class Range implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Range");
+      reporter.reportError('must be of type Range');
       return false;
     }
   }
@@ -8881,15 +8881,15 @@ class RangeAndPlaceholder implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -8898,15 +8898,15 @@ class RangeAndPlaceholder implements ToJsonable {
       reporter.push('placeholder');
       try {
         if (!obj.containsKey('placeholder')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['placeholder'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['placeholder'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -8914,7 +8914,7 @@ class RangeAndPlaceholder implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RangeAndPlaceholder");
+      reporter.reportError('must be of type RangeAndPlaceholder');
       return false;
     }
   }
@@ -8968,15 +8968,15 @@ class ReferenceContext implements ToJsonable {
       reporter.push('includeDeclaration');
       try {
         if (!obj.containsKey('includeDeclaration')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['includeDeclaration'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['includeDeclaration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -8984,7 +8984,7 @@ class ReferenceContext implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ReferenceContext");
+      reporter.reportError('must be of type ReferenceContext');
       return false;
     }
   }
@@ -9059,15 +9059,15 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('context');
       try {
         if (!obj.containsKey('context')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['context'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(ReferenceContext.canParse(obj['context'], reporter))) {
-          reporter.reportError("must be of type ReferenceContext");
+          reporter.reportError('must be of type ReferenceContext');
           return false;
         }
       } finally {
@@ -9076,15 +9076,15 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -9093,15 +9093,15 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -9109,7 +9109,7 @@ class ReferenceParams implements TextDocumentPositionParams, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ReferenceParams");
+      reporter.reportError('must be of type ReferenceParams');
       return false;
     }
   }
@@ -9183,15 +9183,15 @@ class Registration implements ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['id'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9200,15 +9200,15 @@ class Registration implements ToJsonable {
       reporter.push('method');
       try {
         if (!obj.containsKey('method')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['method'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['method'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9217,7 +9217,7 @@ class Registration implements ToJsonable {
       reporter.push('registerOptions');
       try {
         if (obj['registerOptions'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -9225,7 +9225,7 @@ class Registration implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Registration");
+      reporter.reportError('must be of type Registration');
       return false;
     }
   }
@@ -9285,17 +9285,17 @@ class RegistrationParams implements ToJsonable {
       reporter.push('registrations');
       try {
         if (!obj.containsKey('registrations')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['registrations'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['registrations'] is List &&
             (obj['registrations']
                 .every((item) => Registration.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Registration>");
+          reporter.reportError('must be of type List<Registration>');
           return false;
         }
       } finally {
@@ -9303,7 +9303,7 @@ class RegistrationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RegistrationParams");
+      reporter.reportError('must be of type RegistrationParams');
       return false;
     }
   }
@@ -9383,15 +9383,15 @@ class RenameFile implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['kind'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9400,15 +9400,15 @@ class RenameFile implements ToJsonable {
       reporter.push('oldUri');
       try {
         if (!obj.containsKey('oldUri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['oldUri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['oldUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9417,15 +9417,15 @@ class RenameFile implements ToJsonable {
       reporter.push('newUri');
       try {
         if (!obj.containsKey('newUri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['newUri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['newUri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9435,7 +9435,7 @@ class RenameFile implements ToJsonable {
       try {
         if (obj['options'] != null &&
             !(RenameFileOptions.canParse(obj['options'], reporter))) {
-          reporter.reportError("must be of type RenameFileOptions");
+          reporter.reportError('must be of type RenameFileOptions');
           return false;
         }
       } finally {
@@ -9443,7 +9443,7 @@ class RenameFile implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameFile");
+      reporter.reportError('must be of type RenameFile');
       return false;
     }
   }
@@ -9508,7 +9508,7 @@ class RenameFileOptions implements ToJsonable {
       reporter.push('overwrite');
       try {
         if (obj['overwrite'] != null && !(obj['overwrite'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -9517,7 +9517,7 @@ class RenameFileOptions implements ToJsonable {
       reporter.push('ignoreIfExists');
       try {
         if (obj['ignoreIfExists'] != null && !(obj['ignoreIfExists'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -9525,7 +9525,7 @@ class RenameFileOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameFileOptions");
+      reporter.reportError('must be of type RenameFileOptions');
       return false;
     }
   }
@@ -9580,7 +9580,7 @@ class RenameOptions implements ToJsonable {
       try {
         if (obj['prepareProvider'] != null &&
             !(obj['prepareProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -9588,7 +9588,7 @@ class RenameOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameOptions");
+      reporter.reportError('must be of type RenameOptions');
       return false;
     }
   }
@@ -9663,15 +9663,15 @@ class RenameParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -9680,15 +9680,15 @@ class RenameParams implements ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -9697,15 +9697,15 @@ class RenameParams implements ToJsonable {
       reporter.push('newName');
       try {
         if (!obj.containsKey('newName')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['newName'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['newName'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9713,7 +9713,7 @@ class RenameParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameParams");
+      reporter.reportError('must be of type RenameParams');
       return false;
     }
   }
@@ -9779,7 +9779,7 @@ class RenameRegistrationOptions
       try {
         if (obj['prepareProvider'] != null &&
             !(obj['prepareProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -9788,14 +9788,14 @@ class RenameRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -9803,7 +9803,7 @@ class RenameRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type RenameRegistrationOptions");
+      reporter.reportError('must be of type RenameRegistrationOptions');
       return false;
     }
   }
@@ -9885,15 +9885,15 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError("must be of type Either2<num, String>");
+          reporter.reportError('must be of type Either2<num, String>');
           return false;
         }
       } finally {
@@ -9902,15 +9902,15 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('method');
       try {
         if (!obj.containsKey('method')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['method'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Method.canParse(obj['method'], reporter))) {
-          reporter.reportError("must be of type Method");
+          reporter.reportError('must be of type Method');
           return false;
         }
       } finally {
@@ -9919,7 +9919,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('params');
       try {
         if (obj['params'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -9928,15 +9928,15 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       reporter.push('jsonrpc');
       try {
         if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['jsonrpc'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['jsonrpc'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -9944,7 +9944,7 @@ class RequestMessage implements Message, IncomingMessage, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type RequestMessage");
+      reporter.reportError('must be of type RequestMessage');
       return false;
     }
   }
@@ -10058,15 +10058,15 @@ class ResponseError<D> implements ToJsonable {
       reporter.push('code');
       try {
         if (!obj.containsKey('code')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['code'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(ErrorCodes.canParse(obj['code'], reporter))) {
-          reporter.reportError("must be of type ErrorCodes");
+          reporter.reportError('must be of type ErrorCodes');
           return false;
         }
       } finally {
@@ -10075,15 +10075,15 @@ class ResponseError<D> implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -10092,7 +10092,7 @@ class ResponseError<D> implements ToJsonable {
       reporter.push('data');
       try {
         if (obj['data'] != null && !(obj['data'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -10100,7 +10100,7 @@ class ResponseError<D> implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ResponseError<D>");
+      reporter.reportError('must be of type ResponseError<D>');
       return false;
     }
   }
@@ -10185,11 +10185,11 @@ class ResponseMessage implements Message, ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] != null && !((obj['id'] is num || obj['id'] is String))) {
-          reporter.reportError("must be of type Either2<num, String>");
+          reporter.reportError('must be of type Either2<num, String>');
           return false;
         }
       } finally {
@@ -10198,7 +10198,7 @@ class ResponseMessage implements Message, ToJsonable {
       reporter.push('result');
       try {
         if (obj['result'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10208,7 +10208,7 @@ class ResponseMessage implements Message, ToJsonable {
       try {
         if (obj['error'] != null &&
             !(ResponseError.canParse(obj['error'], reporter))) {
-          reporter.reportError("must be of type ResponseError<dynamic>");
+          reporter.reportError('must be of type ResponseError<dynamic>');
           return false;
         }
       } finally {
@@ -10217,15 +10217,15 @@ class ResponseMessage implements Message, ToJsonable {
       reporter.push('jsonrpc');
       try {
         if (!obj.containsKey('jsonrpc')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['jsonrpc'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['jsonrpc'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -10233,7 +10233,7 @@ class ResponseMessage implements Message, ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ResponseMessage");
+      reporter.reportError('must be of type ResponseMessage');
       return false;
     }
   }
@@ -10291,7 +10291,7 @@ class SaveOptions implements ToJsonable {
       reporter.push('includeText');
       try {
         if (obj['includeText'] != null && !(obj['includeText'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10299,7 +10299,7 @@ class SaveOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SaveOptions");
+      reporter.reportError('must be of type SaveOptions');
       return false;
     }
   }
@@ -10626,7 +10626,7 @@ class ServerCapabilities implements ToJsonable {
                     obj['textDocumentSync'], reporter) ||
                 obj['textDocumentSync'] is num))) {
           reporter.reportError(
-              "must be of type Either2<TextDocumentSyncOptions, num>");
+              'must be of type Either2<TextDocumentSyncOptions, num>');
           return false;
         }
       } finally {
@@ -10635,7 +10635,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('hoverProvider');
       try {
         if (obj['hoverProvider'] != null && !(obj['hoverProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10646,7 +10646,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['completionProvider'] != null &&
             !(CompletionOptions.canParse(
                 obj['completionProvider'], reporter))) {
-          reporter.reportError("must be of type CompletionOptions");
+          reporter.reportError('must be of type CompletionOptions');
           return false;
         }
       } finally {
@@ -10657,7 +10657,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['signatureHelpProvider'] != null &&
             !(SignatureHelpOptions.canParse(
                 obj['signatureHelpProvider'], reporter))) {
-          reporter.reportError("must be of type SignatureHelpOptions");
+          reporter.reportError('must be of type SignatureHelpOptions');
           return false;
         }
       } finally {
@@ -10667,7 +10667,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['definitionProvider'] != null &&
             !(obj['definitionProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10676,7 +10676,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('typeDefinitionProvider');
       try {
         if (obj['typeDefinitionProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10685,7 +10685,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('implementationProvider');
       try {
         if (obj['implementationProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10695,7 +10695,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['referencesProvider'] != null &&
             !(obj['referencesProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10705,7 +10705,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['documentHighlightProvider'] != null &&
             !(obj['documentHighlightProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10715,7 +10715,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['documentSymbolProvider'] != null &&
             !(obj['documentSymbolProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10725,7 +10725,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['workspaceSymbolProvider'] != null &&
             !(obj['workspaceSymbolProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10738,7 +10738,7 @@ class ServerCapabilities implements ToJsonable {
                 CodeActionOptions.canParse(
                     obj['codeActionProvider'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<bool, CodeActionOptions>");
+              .reportError('must be of type Either2<bool, CodeActionOptions>');
           return false;
         }
       } finally {
@@ -10748,7 +10748,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['codeLensProvider'] != null &&
             !(CodeLensOptions.canParse(obj['codeLensProvider'], reporter))) {
-          reporter.reportError("must be of type CodeLensOptions");
+          reporter.reportError('must be of type CodeLensOptions');
           return false;
         }
       } finally {
@@ -10758,7 +10758,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['documentFormattingProvider'] != null &&
             !(obj['documentFormattingProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10768,7 +10768,7 @@ class ServerCapabilities implements ToJsonable {
       try {
         if (obj['documentRangeFormattingProvider'] != null &&
             !(obj['documentRangeFormattingProvider'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -10780,7 +10780,7 @@ class ServerCapabilities implements ToJsonable {
             !(DocumentOnTypeFormattingOptions.canParse(
                 obj['documentOnTypeFormattingProvider'], reporter))) {
           reporter
-              .reportError("must be of type DocumentOnTypeFormattingOptions");
+              .reportError('must be of type DocumentOnTypeFormattingOptions');
           return false;
         }
       } finally {
@@ -10791,7 +10791,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['renameProvider'] != null &&
             !((obj['renameProvider'] is bool ||
                 RenameOptions.canParse(obj['renameProvider'], reporter)))) {
-          reporter.reportError("must be of type Either2<bool, RenameOptions>");
+          reporter.reportError('must be of type Either2<bool, RenameOptions>');
           return false;
         }
       } finally {
@@ -10802,7 +10802,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['documentLinkProvider'] != null &&
             !(DocumentLinkOptions.canParse(
                 obj['documentLinkProvider'], reporter))) {
-          reporter.reportError("must be of type DocumentLinkOptions");
+          reporter.reportError('must be of type DocumentLinkOptions');
           return false;
         }
       } finally {
@@ -10811,7 +10811,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('colorProvider');
       try {
         if (obj['colorProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10820,7 +10820,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('foldingRangeProvider');
       try {
         if (obj['foldingRangeProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10829,7 +10829,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('declarationProvider');
       try {
         if (obj['declarationProvider'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10840,7 +10840,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['executeCommandProvider'] != null &&
             !(ExecuteCommandOptions.canParse(
                 obj['executeCommandProvider'], reporter))) {
-          reporter.reportError("must be of type ExecuteCommandOptions");
+          reporter.reportError('must be of type ExecuteCommandOptions');
           return false;
         }
       } finally {
@@ -10851,7 +10851,7 @@ class ServerCapabilities implements ToJsonable {
         if (obj['workspace'] != null &&
             !(ServerCapabilitiesWorkspace.canParse(
                 obj['workspace'], reporter))) {
-          reporter.reportError("must be of type ServerCapabilitiesWorkspace");
+          reporter.reportError('must be of type ServerCapabilitiesWorkspace');
           return false;
         }
       } finally {
@@ -10860,7 +10860,7 @@ class ServerCapabilities implements ToJsonable {
       reporter.push('experimental');
       try {
         if (obj['experimental'] != null && !(true)) {
-          reporter.reportError("must be of type dynamic");
+          reporter.reportError('must be of type dynamic');
           return false;
         }
       } finally {
@@ -10868,7 +10868,7 @@ class ServerCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ServerCapabilities");
+      reporter.reportError('must be of type ServerCapabilities');
       return false;
     }
   }
@@ -10977,7 +10977,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
             !(ServerCapabilitiesWorkspaceFolders.canParse(
                 obj['workspaceFolders'], reporter))) {
           reporter.reportError(
-              "must be of type ServerCapabilitiesWorkspaceFolders");
+              'must be of type ServerCapabilitiesWorkspaceFolders');
           return false;
         }
       } finally {
@@ -10985,7 +10985,7 @@ class ServerCapabilitiesWorkspace implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ServerCapabilitiesWorkspace");
+      reporter.reportError('must be of type ServerCapabilitiesWorkspace');
       return false;
     }
   }
@@ -11049,7 +11049,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
       reporter.push('supported');
       try {
         if (obj['supported'] != null && !(obj['supported'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -11059,7 +11059,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
       try {
         if (obj['changeNotifications'] != null &&
             !(obj['changeNotifications'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -11068,7 +11068,7 @@ class ServerCapabilitiesWorkspaceFolders implements ToJsonable {
       return true;
     } else {
       reporter
-          .reportError("must be of type ServerCapabilitiesWorkspaceFolders");
+          .reportError('must be of type ServerCapabilitiesWorkspaceFolders');
       return false;
     }
   }
@@ -11133,15 +11133,15 @@ class ShowMessageParams implements ToJsonable {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['type'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(MessageType.canParse(obj['type'], reporter))) {
-          reporter.reportError("must be of type MessageType");
+          reporter.reportError('must be of type MessageType');
           return false;
         }
       } finally {
@@ -11150,15 +11150,15 @@ class ShowMessageParams implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11166,7 +11166,7 @@ class ShowMessageParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ShowMessageParams");
+      reporter.reportError('must be of type ShowMessageParams');
       return false;
     }
   }
@@ -11239,15 +11239,15 @@ class ShowMessageRequestParams implements ToJsonable {
       reporter.push('type');
       try {
         if (!obj.containsKey('type')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['type'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(MessageType.canParse(obj['type'], reporter))) {
-          reporter.reportError("must be of type MessageType");
+          reporter.reportError('must be of type MessageType');
           return false;
         }
       } finally {
@@ -11256,15 +11256,15 @@ class ShowMessageRequestParams implements ToJsonable {
       reporter.push('message');
       try {
         if (!obj.containsKey('message')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['message'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['message'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11276,7 +11276,7 @@ class ShowMessageRequestParams implements ToJsonable {
             !((obj['actions'] is List &&
                 (obj['actions'].every(
                     (item) => MessageActionItem.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<MessageActionItem>");
+          reporter.reportError('must be of type List<MessageActionItem>');
           return false;
         }
       } finally {
@@ -11284,7 +11284,7 @@ class ShowMessageRequestParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type ShowMessageRequestParams");
+      reporter.reportError('must be of type ShowMessageRequestParams');
       return false;
     }
   }
@@ -11373,17 +11373,17 @@ class SignatureHelp implements ToJsonable {
       reporter.push('signatures');
       try {
         if (!obj.containsKey('signatures')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['signatures'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['signatures'] is List &&
             (obj['signatures'].every(
                 (item) => SignatureInformation.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<SignatureInformation>");
+          reporter.reportError('must be of type List<SignatureInformation>');
           return false;
         }
       } finally {
@@ -11393,7 +11393,7 @@ class SignatureHelp implements ToJsonable {
       try {
         if (obj['activeSignature'] != null &&
             !(obj['activeSignature'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -11403,7 +11403,7 @@ class SignatureHelp implements ToJsonable {
       try {
         if (obj['activeParameter'] != null &&
             !(obj['activeParameter'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -11411,7 +11411,7 @@ class SignatureHelp implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SignatureHelp");
+      reporter.reportError('must be of type SignatureHelp');
       return false;
     }
   }
@@ -11473,7 +11473,7 @@ class SignatureHelpOptions implements ToJsonable {
         if (obj['triggerCharacters'] != null &&
             !((obj['triggerCharacters'] is List &&
                 (obj['triggerCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -11481,7 +11481,7 @@ class SignatureHelpOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SignatureHelpOptions");
+      reporter.reportError('must be of type SignatureHelpOptions');
       return false;
     }
   }
@@ -11551,7 +11551,7 @@ class SignatureHelpRegistrationOptions
         if (obj['triggerCharacters'] != null &&
             !((obj['triggerCharacters'] is List &&
                 (obj['triggerCharacters'].every((item) => item is String))))) {
-          reporter.reportError("must be of type List<String>");
+          reporter.reportError('must be of type List<String>');
           return false;
         }
       } finally {
@@ -11560,14 +11560,14 @@ class SignatureHelpRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -11575,7 +11575,7 @@ class SignatureHelpRegistrationOptions
       }
       return true;
     } else {
-      reporter.reportError("must be of type SignatureHelpRegistrationOptions");
+      reporter.reportError('must be of type SignatureHelpRegistrationOptions');
       return false;
     }
   }
@@ -11660,15 +11660,15 @@ class SignatureInformation implements ToJsonable {
       reporter.push('label');
       try {
         if (!obj.containsKey('label')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['label'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['label'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11680,7 +11680,7 @@ class SignatureInformation implements ToJsonable {
             !((obj['documentation'] is String ||
                 MarkupContent.canParse(obj['documentation'], reporter)))) {
           reporter
-              .reportError("must be of type Either2<String, MarkupContent>");
+              .reportError('must be of type Either2<String, MarkupContent>');
           return false;
         }
       } finally {
@@ -11692,7 +11692,7 @@ class SignatureInformation implements ToJsonable {
             !((obj['parameters'] is List &&
                 (obj['parameters'].every((item) =>
                     ParameterInformation.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<ParameterInformation>");
+          reporter.reportError('must be of type List<ParameterInformation>');
           return false;
         }
       } finally {
@@ -11700,7 +11700,7 @@ class SignatureInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SignatureInformation");
+      reporter.reportError('must be of type SignatureInformation');
       return false;
     }
   }
@@ -11758,7 +11758,7 @@ class StaticRegistrationOptions implements ToJsonable {
       reporter.push('id');
       try {
         if (obj['id'] != null && !(obj['id'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11766,7 +11766,7 @@ class StaticRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type StaticRegistrationOptions");
+      reporter.reportError('must be of type StaticRegistrationOptions');
       return false;
     }
   }
@@ -11865,15 +11865,15 @@ class SymbolInformation implements ToJsonable {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['name'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['name'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11882,15 +11882,15 @@ class SymbolInformation implements ToJsonable {
       reporter.push('kind');
       try {
         if (!obj.containsKey('kind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['kind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(SymbolKind.canParse(obj['kind'], reporter))) {
-          reporter.reportError("must be of type SymbolKind");
+          reporter.reportError('must be of type SymbolKind');
           return false;
         }
       } finally {
@@ -11899,7 +11899,7 @@ class SymbolInformation implements ToJsonable {
       reporter.push('deprecated');
       try {
         if (obj['deprecated'] != null && !(obj['deprecated'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -11908,15 +11908,15 @@ class SymbolInformation implements ToJsonable {
       reporter.push('location');
       try {
         if (!obj.containsKey('location')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['location'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Location.canParse(obj['location'], reporter))) {
-          reporter.reportError("must be of type Location");
+          reporter.reportError('must be of type Location');
           return false;
         }
       } finally {
@@ -11925,7 +11925,7 @@ class SymbolInformation implements ToJsonable {
       reporter.push('containerName');
       try {
         if (obj['containerName'] != null && !(obj['containerName'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -11933,7 +11933,7 @@ class SymbolInformation implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type SymbolInformation");
+      reporter.reportError('must be of type SymbolInformation');
       return false;
     }
   }
@@ -12061,15 +12061,15 @@ class TextDocumentChangeRegistrationOptions
       reporter.push('syncKind');
       try {
         if (!obj.containsKey('syncKind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['syncKind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentSyncKind.canParse(obj['syncKind'], reporter))) {
-          reporter.reportError("must be of type TextDocumentSyncKind");
+          reporter.reportError('must be of type TextDocumentSyncKind');
           return false;
         }
       } finally {
@@ -12078,14 +12078,14 @@ class TextDocumentChangeRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -12094,7 +12094,7 @@ class TextDocumentChangeRegistrationOptions
       return true;
     } else {
       reporter
-          .reportError("must be of type TextDocumentChangeRegistrationOptions");
+          .reportError('must be of type TextDocumentChangeRegistrationOptions');
       return false;
     }
   }
@@ -12398,7 +12398,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesSynchronization.canParse(
                 obj['synchronization'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesSynchronization");
+              'must be of type TextDocumentClientCapabilitiesSynchronization');
           return false;
         }
       } finally {
@@ -12410,7 +12410,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesCompletion.canParse(
                 obj['completion'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCompletion");
+              'must be of type TextDocumentClientCapabilitiesCompletion');
           return false;
         }
       } finally {
@@ -12422,7 +12422,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesHover.canParse(
                 obj['hover'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesHover");
+              'must be of type TextDocumentClientCapabilitiesHover');
           return false;
         }
       } finally {
@@ -12434,7 +12434,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesSignatureHelp.canParse(
                 obj['signatureHelp'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesSignatureHelp");
+              'must be of type TextDocumentClientCapabilitiesSignatureHelp');
           return false;
         }
       } finally {
@@ -12446,7 +12446,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesReferences.canParse(
                 obj['references'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesReferences");
+              'must be of type TextDocumentClientCapabilitiesReferences');
           return false;
         }
       } finally {
@@ -12458,7 +12458,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDocumentHighlight.canParse(
                 obj['documentHighlight'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDocumentHighlight");
+              'must be of type TextDocumentClientCapabilitiesDocumentHighlight');
           return false;
         }
       } finally {
@@ -12470,7 +12470,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDocumentSymbol.canParse(
                 obj['documentSymbol'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDocumentSymbol");
+              'must be of type TextDocumentClientCapabilitiesDocumentSymbol');
           return false;
         }
       } finally {
@@ -12482,7 +12482,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesFormatting.canParse(
                 obj['formatting'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesFormatting");
+              'must be of type TextDocumentClientCapabilitiesFormatting');
           return false;
         }
       } finally {
@@ -12494,7 +12494,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesRangeFormatting.canParse(
                 obj['rangeFormatting'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesRangeFormatting");
+              'must be of type TextDocumentClientCapabilitiesRangeFormatting');
           return false;
         }
       } finally {
@@ -12506,7 +12506,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesOnTypeFormatting.canParse(
                 obj['onTypeFormatting'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesOnTypeFormatting");
+              'must be of type TextDocumentClientCapabilitiesOnTypeFormatting');
           return false;
         }
       } finally {
@@ -12518,7 +12518,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDeclaration.canParse(
                 obj['declaration'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDeclaration");
+              'must be of type TextDocumentClientCapabilitiesDeclaration');
           return false;
         }
       } finally {
@@ -12530,7 +12530,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDefinition.canParse(
                 obj['definition'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDefinition");
+              'must be of type TextDocumentClientCapabilitiesDefinition');
           return false;
         }
       } finally {
@@ -12542,7 +12542,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesTypeDefinition.canParse(
                 obj['typeDefinition'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesTypeDefinition");
+              'must be of type TextDocumentClientCapabilitiesTypeDefinition');
           return false;
         }
       } finally {
@@ -12554,7 +12554,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesImplementation.canParse(
                 obj['implementation'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesImplementation");
+              'must be of type TextDocumentClientCapabilitiesImplementation');
           return false;
         }
       } finally {
@@ -12566,7 +12566,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesCodeAction.canParse(
                 obj['codeAction'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCodeAction");
+              'must be of type TextDocumentClientCapabilitiesCodeAction');
           return false;
         }
       } finally {
@@ -12578,7 +12578,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesCodeLens.canParse(
                 obj['codeLens'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCodeLens");
+              'must be of type TextDocumentClientCapabilitiesCodeLens');
           return false;
         }
       } finally {
@@ -12590,7 +12590,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesDocumentLink.canParse(
                 obj['documentLink'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesDocumentLink");
+              'must be of type TextDocumentClientCapabilitiesDocumentLink');
           return false;
         }
       } finally {
@@ -12602,7 +12602,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesColorProvider.canParse(
                 obj['colorProvider'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesColorProvider");
+              'must be of type TextDocumentClientCapabilitiesColorProvider');
           return false;
         }
       } finally {
@@ -12614,7 +12614,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesRename.canParse(
                 obj['rename'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesRename");
+              'must be of type TextDocumentClientCapabilitiesRename');
           return false;
         }
       } finally {
@@ -12626,7 +12626,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesPublishDiagnostics.canParse(
                 obj['publishDiagnostics'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesPublishDiagnostics");
+              'must be of type TextDocumentClientCapabilitiesPublishDiagnostics');
           return false;
         }
       } finally {
@@ -12638,7 +12638,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
             !(TextDocumentClientCapabilitiesFoldingRange.canParse(
                 obj['foldingRange'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesFoldingRange");
+              'must be of type TextDocumentClientCapabilitiesFoldingRange');
           return false;
         }
       } finally {
@@ -12646,7 +12646,7 @@ class TextDocumentClientCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentClientCapabilities");
+      reporter.reportError('must be of type TextDocumentClientCapabilities');
       return false;
     }
   }
@@ -12756,7 +12756,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -12768,7 +12768,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
             !(TextDocumentClientCapabilitiesCodeActionLiteralSupport.canParse(
                 obj['codeActionLiteralSupport'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport");
+              'must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport');
           return false;
         }
       } finally {
@@ -12777,7 +12777,7 @@ class TextDocumentClientCapabilitiesCodeAction implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCodeAction");
+          'must be of type TextDocumentClientCapabilitiesCodeAction');
       return false;
     }
   }
@@ -12840,17 +12840,17 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
       reporter.push('valueSet');
       try {
         if (!obj.containsKey('valueSet')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['valueSet'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['valueSet'] is List &&
             (obj['valueSet']
                 .every((item) => CodeActionKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CodeActionKind>");
+          reporter.reportError('must be of type List<CodeActionKind>');
           return false;
         }
       } finally {
@@ -12859,7 +12859,7 @@ class TextDocumentClientCapabilitiesCodeActionKind implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCodeActionKind");
+          'must be of type TextDocumentClientCapabilitiesCodeActionKind');
       return false;
     }
   }
@@ -12921,17 +12921,17 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
       reporter.push('codeActionKind');
       try {
         if (!obj.containsKey('codeActionKind')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['codeActionKind'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentClientCapabilitiesCodeActionKind.canParse(
             obj['codeActionKind'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCodeActionKind");
+              'must be of type TextDocumentClientCapabilitiesCodeActionKind');
           return false;
         }
       } finally {
@@ -12940,7 +12940,7 @@ class TextDocumentClientCapabilitiesCodeActionLiteralSupport
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport");
+          'must be of type TextDocumentClientCapabilitiesCodeActionLiteralSupport');
       return false;
     }
   }
@@ -12993,7 +12993,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13002,7 +13002,7 @@ class TextDocumentClientCapabilitiesCodeLens implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCodeLens");
+          'must be of type TextDocumentClientCapabilitiesCodeLens');
       return false;
     }
   }
@@ -13058,7 +13058,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13067,7 +13067,7 @@ class TextDocumentClientCapabilitiesColorProvider implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesColorProvider");
+          'must be of type TextDocumentClientCapabilitiesColorProvider');
       return false;
     }
   }
@@ -13148,7 +13148,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13160,7 +13160,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
             !(TextDocumentClientCapabilitiesCompletionItem.canParse(
                 obj['completionItem'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCompletionItem");
+              'must be of type TextDocumentClientCapabilitiesCompletionItem');
           return false;
         }
       } finally {
@@ -13172,7 +13172,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
             !(TextDocumentClientCapabilitiesCompletionItemKind.canParse(
                 obj['completionItemKind'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesCompletionItemKind");
+              'must be of type TextDocumentClientCapabilitiesCompletionItemKind');
           return false;
         }
       } finally {
@@ -13181,7 +13181,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
       reporter.push('contextSupport');
       try {
         if (obj['contextSupport'] != null && !(obj['contextSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13190,7 +13190,7 @@ class TextDocumentClientCapabilitiesCompletion implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCompletion");
+          'must be of type TextDocumentClientCapabilitiesCompletion');
       return false;
     }
   }
@@ -13296,7 +13296,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       reporter.push('snippetSupport');
       try {
         if (obj['snippetSupport'] != null && !(obj['snippetSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13306,7 +13306,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         if (obj['commitCharactersSupport'] != null &&
             !(obj['commitCharactersSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13318,7 +13318,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
             !((obj['documentationFormat'] is List &&
                 (obj['documentationFormat']
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<MarkupKind>");
+          reporter.reportError('must be of type List<MarkupKind>');
           return false;
         }
       } finally {
@@ -13328,7 +13328,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         if (obj['deprecatedSupport'] != null &&
             !(obj['deprecatedSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13338,7 +13338,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       try {
         if (obj['preselectSupport'] != null &&
             !(obj['preselectSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13347,7 +13347,7 @@ class TextDocumentClientCapabilitiesCompletionItem implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCompletionItem");
+          'must be of type TextDocumentClientCapabilitiesCompletionItem');
       return false;
     }
   }
@@ -13421,7 +13421,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
             !((obj['valueSet'] is List &&
                 (obj['valueSet'].every(
                     (item) => CompletionItemKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<CompletionItemKind>");
+          reporter.reportError('must be of type List<CompletionItemKind>');
           return false;
         }
       } finally {
@@ -13430,7 +13430,7 @@ class TextDocumentClientCapabilitiesCompletionItemKind implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesCompletionItemKind");
+          'must be of type TextDocumentClientCapabilitiesCompletionItemKind');
       return false;
     }
   }
@@ -13499,7 +13499,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13508,7 +13508,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
       reporter.push('linkSupport');
       try {
         if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13517,7 +13517,7 @@ class TextDocumentClientCapabilitiesDeclaration implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDeclaration");
+          'must be of type TextDocumentClientCapabilitiesDeclaration');
       return false;
     }
   }
@@ -13582,7 +13582,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13591,7 +13591,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
       reporter.push('linkSupport');
       try {
         if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13600,7 +13600,7 @@ class TextDocumentClientCapabilitiesDefinition implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDefinition");
+          'must be of type TextDocumentClientCapabilitiesDefinition');
       return false;
     }
   }
@@ -13656,7 +13656,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13665,7 +13665,7 @@ class TextDocumentClientCapabilitiesDocumentHighlight implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDocumentHighlight");
+          'must be of type TextDocumentClientCapabilitiesDocumentHighlight');
       return false;
     }
   }
@@ -13718,7 +13718,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13727,7 +13727,7 @@ class TextDocumentClientCapabilitiesDocumentLink implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDocumentLink");
+          'must be of type TextDocumentClientCapabilitiesDocumentLink');
       return false;
     }
   }
@@ -13800,7 +13800,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13812,7 +13812,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
             !(TextDocumentClientCapabilitiesSymbolKind.canParse(
                 obj['symbolKind'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesSymbolKind");
+              'must be of type TextDocumentClientCapabilitiesSymbolKind');
           return false;
         }
       } finally {
@@ -13822,7 +13822,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
       try {
         if (obj['hierarchicalDocumentSymbolSupport'] != null &&
             !(obj['hierarchicalDocumentSymbolSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13831,7 +13831,7 @@ class TextDocumentClientCapabilitiesDocumentSymbol implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesDocumentSymbol");
+          'must be of type TextDocumentClientCapabilitiesDocumentSymbol');
       return false;
     }
   }
@@ -13915,7 +13915,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13924,7 +13924,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
       reporter.push('rangeLimit');
       try {
         if (obj['rangeLimit'] != null && !(obj['rangeLimit'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -13934,7 +13934,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
       try {
         if (obj['lineFoldingOnly'] != null &&
             !(obj['lineFoldingOnly'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -13943,7 +13943,7 @@ class TextDocumentClientCapabilitiesFoldingRange implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesFoldingRange");
+          'must be of type TextDocumentClientCapabilitiesFoldingRange');
       return false;
     }
   }
@@ -14001,7 +14001,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14010,7 +14010,7 @@ class TextDocumentClientCapabilitiesFormatting implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesFormatting");
+          'must be of type TextDocumentClientCapabilitiesFormatting');
       return false;
     }
   }
@@ -14076,7 +14076,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14088,7 +14088,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
             !((obj['contentFormat'] is List &&
                 (obj['contentFormat']
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<MarkupKind>");
+          reporter.reportError('must be of type List<MarkupKind>');
           return false;
         }
       } finally {
@@ -14097,7 +14097,7 @@ class TextDocumentClientCapabilitiesHover implements ToJsonable {
       return true;
     } else {
       reporter
-          .reportError("must be of type TextDocumentClientCapabilitiesHover");
+          .reportError('must be of type TextDocumentClientCapabilitiesHover');
       return false;
     }
   }
@@ -14168,7 +14168,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14177,7 +14177,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
       reporter.push('linkSupport');
       try {
         if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14186,7 +14186,7 @@ class TextDocumentClientCapabilitiesImplementation implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesImplementation");
+          'must be of type TextDocumentClientCapabilitiesImplementation');
       return false;
     }
   }
@@ -14242,7 +14242,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14251,7 +14251,7 @@ class TextDocumentClientCapabilitiesOnTypeFormatting implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesOnTypeFormatting");
+          'must be of type TextDocumentClientCapabilitiesOnTypeFormatting');
       return false;
     }
   }
@@ -14308,7 +14308,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
       try {
         if (obj['labelOffsetSupport'] != null &&
             !(obj['labelOffsetSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14317,7 +14317,7 @@ class TextDocumentClientCapabilitiesParameterInformation implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesParameterInformation");
+          'must be of type TextDocumentClientCapabilitiesParameterInformation');
       return false;
     }
   }
@@ -14370,7 +14370,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
       try {
         if (obj['relatedInformation'] != null &&
             !(obj['relatedInformation'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14379,7 +14379,7 @@ class TextDocumentClientCapabilitiesPublishDiagnostics implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesPublishDiagnostics");
+          'must be of type TextDocumentClientCapabilitiesPublishDiagnostics');
       return false;
     }
   }
@@ -14432,7 +14432,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14441,7 +14441,7 @@ class TextDocumentClientCapabilitiesRangeFormatting implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesRangeFormatting");
+          'must be of type TextDocumentClientCapabilitiesRangeFormatting');
       return false;
     }
   }
@@ -14494,7 +14494,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14503,7 +14503,7 @@ class TextDocumentClientCapabilitiesReferences implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesReferences");
+          'must be of type TextDocumentClientCapabilitiesReferences');
       return false;
     }
   }
@@ -14566,7 +14566,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14575,7 +14575,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
       reporter.push('prepareSupport');
       try {
         if (obj['prepareSupport'] != null && !(obj['prepareSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14584,7 +14584,7 @@ class TextDocumentClientCapabilitiesRename implements ToJsonable {
       return true;
     } else {
       reporter
-          .reportError("must be of type TextDocumentClientCapabilitiesRename");
+          .reportError('must be of type TextDocumentClientCapabilitiesRename');
       return false;
     }
   }
@@ -14653,7 +14653,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14665,7 +14665,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
             !(TextDocumentClientCapabilitiesSignatureInformation.canParse(
                 obj['signatureInformation'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesSignatureInformation");
+              'must be of type TextDocumentClientCapabilitiesSignatureInformation');
           return false;
         }
       } finally {
@@ -14674,7 +14674,7 @@ class TextDocumentClientCapabilitiesSignatureHelp implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesSignatureHelp");
+          'must be of type TextDocumentClientCapabilitiesSignatureHelp');
       return false;
     }
   }
@@ -14748,7 +14748,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
             !((obj['documentationFormat'] is List &&
                 (obj['documentationFormat']
                     .every((item) => MarkupKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<MarkupKind>");
+          reporter.reportError('must be of type List<MarkupKind>');
           return false;
         }
       } finally {
@@ -14760,7 +14760,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
             !(TextDocumentClientCapabilitiesParameterInformation.canParse(
                 obj['parameterInformation'], reporter))) {
           reporter.reportError(
-              "must be of type TextDocumentClientCapabilitiesParameterInformation");
+              'must be of type TextDocumentClientCapabilitiesParameterInformation');
           return false;
         }
       } finally {
@@ -14769,7 +14769,7 @@ class TextDocumentClientCapabilitiesSignatureInformation implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesSignatureInformation");
+          'must be of type TextDocumentClientCapabilitiesSignatureInformation');
       return false;
     }
   }
@@ -14836,7 +14836,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
             !((obj['valueSet'] is List &&
                 (obj['valueSet']
                     .every((item) => SymbolKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<SymbolKind>");
+          reporter.reportError('must be of type List<SymbolKind>');
           return false;
         }
       } finally {
@@ -14845,7 +14845,7 @@ class TextDocumentClientCapabilitiesSymbolKind implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesSymbolKind");
+          'must be of type TextDocumentClientCapabilitiesSymbolKind');
       return false;
     }
   }
@@ -14925,7 +14925,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14934,7 +14934,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       reporter.push('willSave');
       try {
         if (obj['willSave'] != null && !(obj['willSave'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14944,7 +14944,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       try {
         if (obj['willSaveWaitUntil'] != null &&
             !(obj['willSaveWaitUntil'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14953,7 +14953,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       reporter.push('didSave');
       try {
         if (obj['didSave'] != null && !(obj['didSave'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -14962,7 +14962,7 @@ class TextDocumentClientCapabilitiesSynchronization implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesSynchronization");
+          'must be of type TextDocumentClientCapabilitiesSynchronization');
       return false;
     }
   }
@@ -15036,7 +15036,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15045,7 +15045,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
       reporter.push('linkSupport');
       try {
         if (obj['linkSupport'] != null && !(obj['linkSupport'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15054,7 +15054,7 @@ class TextDocumentClientCapabilitiesTypeDefinition implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type TextDocumentClientCapabilitiesTypeDefinition");
+          'must be of type TextDocumentClientCapabilitiesTypeDefinition');
       return false;
     }
   }
@@ -15127,7 +15127,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       reporter.push('range');
       try {
         if (obj['range'] != null && !(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -15136,7 +15136,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       reporter.push('rangeLength');
       try {
         if (obj['rangeLength'] != null && !(obj['rangeLength'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -15145,15 +15145,15 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       reporter.push('text');
       try {
         if (!obj.containsKey('text')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['text'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['text'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15161,7 +15161,7 @@ class TextDocumentContentChangeEvent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentContentChangeEvent");
+      reporter.reportError('must be of type TextDocumentContentChangeEvent');
       return false;
     }
   }
@@ -15232,17 +15232,17 @@ class TextDocumentEdit implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(VersionedTextDocumentIdentifier.canParse(
             obj['textDocument'], reporter))) {
           reporter
-              .reportError("must be of type VersionedTextDocumentIdentifier");
+              .reportError('must be of type VersionedTextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -15251,17 +15251,17 @@ class TextDocumentEdit implements ToJsonable {
       reporter.push('edits');
       try {
         if (!obj.containsKey('edits')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['edits'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['edits'] is List &&
             (obj['edits']
                 .every((item) => TextEdit.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<TextEdit>");
+          reporter.reportError('must be of type List<TextEdit>');
           return false;
         }
       } finally {
@@ -15269,7 +15269,7 @@ class TextDocumentEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentEdit");
+      reporter.reportError('must be of type TextDocumentEdit');
       return false;
     }
   }
@@ -15327,15 +15327,15 @@ class TextDocumentIdentifier implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15343,7 +15343,7 @@ class TextDocumentIdentifier implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentIdentifier");
+      reporter.reportError('must be of type TextDocumentIdentifier');
       return false;
     }
   }
@@ -15422,15 +15422,15 @@ class TextDocumentItem implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15439,15 +15439,15 @@ class TextDocumentItem implements ToJsonable {
       reporter.push('languageId');
       try {
         if (!obj.containsKey('languageId')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['languageId'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['languageId'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15456,15 +15456,15 @@ class TextDocumentItem implements ToJsonable {
       reporter.push('version');
       try {
         if (!obj.containsKey('version')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['version'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['version'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -15473,15 +15473,15 @@ class TextDocumentItem implements ToJsonable {
       reporter.push('text');
       try {
         if (!obj.containsKey('text')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['text'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['text'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -15489,7 +15489,7 @@ class TextDocumentItem implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentItem");
+      reporter.reportError('must be of type TextDocumentItem');
       return false;
     }
   }
@@ -15567,15 +15567,15 @@ class TextDocumentPositionParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -15584,15 +15584,15 @@ class TextDocumentPositionParams implements ToJsonable {
       reporter.push('position');
       try {
         if (!obj.containsKey('position')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['position'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Position.canParse(obj['position'], reporter))) {
-          reporter.reportError("must be of type Position");
+          reporter.reportError('must be of type Position');
           return false;
         }
       } finally {
@@ -15600,7 +15600,7 @@ class TextDocumentPositionParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentPositionParams");
+      reporter.reportError('must be of type TextDocumentPositionParams');
       return false;
     }
   }
@@ -15686,14 +15686,14 @@ class TextDocumentRegistrationOptions implements ToJsonable {
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -15701,7 +15701,7 @@ class TextDocumentRegistrationOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentRegistrationOptions");
+      reporter.reportError('must be of type TextDocumentRegistrationOptions');
       return false;
     }
   }
@@ -15796,7 +15796,7 @@ class TextDocumentSaveRegistrationOptions
       reporter.push('includeText');
       try {
         if (obj['includeText'] != null && !(obj['includeText'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15805,14 +15805,14 @@ class TextDocumentSaveRegistrationOptions
       reporter.push('documentSelector');
       try {
         if (!obj.containsKey('documentSelector')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['documentSelector'] != null &&
             !((obj['documentSelector'] is List &&
                 (obj['documentSelector'].every(
                     (item) => DocumentFilter.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<DocumentFilter>");
+          reporter.reportError('must be of type List<DocumentFilter>');
           return false;
         }
       } finally {
@@ -15821,7 +15821,7 @@ class TextDocumentSaveRegistrationOptions
       return true;
     } else {
       reporter
-          .reportError("must be of type TextDocumentSaveRegistrationOptions");
+          .reportError('must be of type TextDocumentSaveRegistrationOptions');
       return false;
     }
   }
@@ -15947,7 +15947,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       reporter.push('openClose');
       try {
         if (obj['openClose'] != null && !(obj['openClose'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15957,7 +15957,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       try {
         if (obj['change'] != null &&
             !(TextDocumentSyncKind.canParse(obj['change'], reporter))) {
-          reporter.reportError("must be of type TextDocumentSyncKind");
+          reporter.reportError('must be of type TextDocumentSyncKind');
           return false;
         }
       } finally {
@@ -15966,7 +15966,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       reporter.push('willSave');
       try {
         if (obj['willSave'] != null && !(obj['willSave'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15976,7 +15976,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       try {
         if (obj['willSaveWaitUntil'] != null &&
             !(obj['willSaveWaitUntil'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -15986,7 +15986,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       try {
         if (obj['save'] != null &&
             !(SaveOptions.canParse(obj['save'], reporter))) {
-          reporter.reportError("must be of type SaveOptions");
+          reporter.reportError('must be of type SaveOptions');
           return false;
         }
       } finally {
@@ -15994,7 +15994,7 @@ class TextDocumentSyncOptions implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextDocumentSyncOptions");
+      reporter.reportError('must be of type TextDocumentSyncOptions');
       return false;
     }
   }
@@ -16065,15 +16065,15 @@ class TextEdit implements ToJsonable {
       reporter.push('range');
       try {
         if (!obj.containsKey('range')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['range'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(Range.canParse(obj['range'], reporter))) {
-          reporter.reportError("must be of type Range");
+          reporter.reportError('must be of type Range');
           return false;
         }
       } finally {
@@ -16082,15 +16082,15 @@ class TextEdit implements ToJsonable {
       reporter.push('newText');
       try {
         if (!obj.containsKey('newText')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['newText'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['newText'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -16098,7 +16098,7 @@ class TextEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type TextEdit");
+      reporter.reportError('must be of type TextEdit');
       return false;
     }
   }
@@ -16161,15 +16161,15 @@ class Unregistration implements ToJsonable {
       reporter.push('id');
       try {
         if (!obj.containsKey('id')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['id'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['id'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -16178,15 +16178,15 @@ class Unregistration implements ToJsonable {
       reporter.push('method');
       try {
         if (!obj.containsKey('method')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['method'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['method'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -16194,7 +16194,7 @@ class Unregistration implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type Unregistration");
+      reporter.reportError('must be of type Unregistration');
       return false;
     }
   }
@@ -16250,17 +16250,17 @@ class UnregistrationParams implements ToJsonable {
       reporter.push('unregisterations');
       try {
         if (!obj.containsKey('unregisterations')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['unregisterations'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['unregisterations'] is List &&
             (obj['unregisterations']
                 .every((item) => Unregistration.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<Unregistration>");
+          reporter.reportError('must be of type List<Unregistration>');
           return false;
         }
       } finally {
@@ -16268,7 +16268,7 @@ class UnregistrationParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type UnregistrationParams");
+      reporter.reportError('must be of type UnregistrationParams');
       return false;
     }
   }
@@ -16336,11 +16336,11 @@ class VersionedTextDocumentIdentifier
       reporter.push('version');
       try {
         if (!obj.containsKey('version')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['version'] != null && !(obj['version'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -16349,15 +16349,15 @@ class VersionedTextDocumentIdentifier
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -16365,7 +16365,7 @@ class VersionedTextDocumentIdentifier
       }
       return true;
     } else {
-      reporter.reportError("must be of type VersionedTextDocumentIdentifier");
+      reporter.reportError('must be of type VersionedTextDocumentIdentifier');
       return false;
     }
   }
@@ -16460,15 +16460,15 @@ class WillSaveTextDocumentParams implements ToJsonable {
       reporter.push('textDocument');
       try {
         if (!obj.containsKey('textDocument')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['textDocument'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(TextDocumentIdentifier.canParse(obj['textDocument'], reporter))) {
-          reporter.reportError("must be of type TextDocumentIdentifier");
+          reporter.reportError('must be of type TextDocumentIdentifier');
           return false;
         }
       } finally {
@@ -16477,15 +16477,15 @@ class WillSaveTextDocumentParams implements ToJsonable {
       reporter.push('reason');
       try {
         if (!obj.containsKey('reason')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['reason'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['reason'] is num)) {
-          reporter.reportError("must be of type num");
+          reporter.reportError('must be of type num');
           return false;
         }
       } finally {
@@ -16493,7 +16493,7 @@ class WillSaveTextDocumentParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WillSaveTextDocumentParams");
+      reporter.reportError('must be of type WillSaveTextDocumentParams');
       return false;
     }
   }
@@ -16635,7 +16635,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       reporter.push('applyEdit');
       try {
         if (obj['applyEdit'] != null && !(obj['applyEdit'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16647,7 +16647,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesWorkspaceEdit.canParse(
                 obj['workspaceEdit'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesWorkspaceEdit");
+              'must be of type WorkspaceClientCapabilitiesWorkspaceEdit');
           return false;
         }
       } finally {
@@ -16659,7 +16659,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesDidChangeConfiguration.canParse(
                 obj['didChangeConfiguration'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesDidChangeConfiguration");
+              'must be of type WorkspaceClientCapabilitiesDidChangeConfiguration');
           return false;
         }
       } finally {
@@ -16671,7 +16671,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesDidChangeWatchedFiles.canParse(
                 obj['didChangeWatchedFiles'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles");
+              'must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles');
           return false;
         }
       } finally {
@@ -16683,7 +16683,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesSymbol.canParse(
                 obj['symbol'], reporter))) {
           reporter
-              .reportError("must be of type WorkspaceClientCapabilitiesSymbol");
+              .reportError('must be of type WorkspaceClientCapabilitiesSymbol');
           return false;
         }
       } finally {
@@ -16695,7 +16695,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
             !(WorkspaceClientCapabilitiesExecuteCommand.canParse(
                 obj['executeCommand'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesExecuteCommand");
+              'must be of type WorkspaceClientCapabilitiesExecuteCommand');
           return false;
         }
       } finally {
@@ -16705,7 +16705,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       try {
         if (obj['workspaceFolders'] != null &&
             !(obj['workspaceFolders'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16714,7 +16714,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       reporter.push('configuration');
       try {
         if (obj['configuration'] != null && !(obj['configuration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16722,7 +16722,7 @@ class WorkspaceClientCapabilities implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceClientCapabilities");
+      reporter.reportError('must be of type WorkspaceClientCapabilities');
       return false;
     }
   }
@@ -16791,7 +16791,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16800,7 +16800,7 @@ class WorkspaceClientCapabilitiesDidChangeConfiguration implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type WorkspaceClientCapabilitiesDidChangeConfiguration");
+          'must be of type WorkspaceClientCapabilitiesDidChangeConfiguration');
       return false;
     }
   }
@@ -16856,7 +16856,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16865,7 +16865,7 @@ class WorkspaceClientCapabilitiesDidChangeWatchedFiles implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles");
+          'must be of type WorkspaceClientCapabilitiesDidChangeWatchedFiles');
       return false;
     }
   }
@@ -16918,7 +16918,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -16927,7 +16927,7 @@ class WorkspaceClientCapabilitiesExecuteCommand implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type WorkspaceClientCapabilitiesExecuteCommand");
+          'must be of type WorkspaceClientCapabilitiesExecuteCommand');
       return false;
     }
   }
@@ -16989,7 +16989,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
       try {
         if (obj['dynamicRegistration'] != null &&
             !(obj['dynamicRegistration'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -17001,7 +17001,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
             !(WorkspaceClientCapabilitiesSymbolKind.canParse(
                 obj['symbolKind'], reporter))) {
           reporter.reportError(
-              "must be of type WorkspaceClientCapabilitiesSymbolKind");
+              'must be of type WorkspaceClientCapabilitiesSymbolKind');
           return false;
         }
       } finally {
@@ -17009,7 +17009,7 @@ class WorkspaceClientCapabilitiesSymbol implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceClientCapabilitiesSymbol");
+      reporter.reportError('must be of type WorkspaceClientCapabilitiesSymbol');
       return false;
     }
   }
@@ -17075,7 +17075,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
             !((obj['valueSet'] is List &&
                 (obj['valueSet']
                     .every((item) => SymbolKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<SymbolKind>");
+          reporter.reportError('must be of type List<SymbolKind>');
           return false;
         }
       } finally {
@@ -17084,7 +17084,7 @@ class WorkspaceClientCapabilitiesSymbolKind implements ToJsonable {
       return true;
     } else {
       reporter
-          .reportError("must be of type WorkspaceClientCapabilitiesSymbolKind");
+          .reportError('must be of type WorkspaceClientCapabilitiesSymbolKind');
       return false;
     }
   }
@@ -17163,7 +17163,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
       try {
         if (obj['documentChanges'] != null &&
             !(obj['documentChanges'] is bool)) {
-          reporter.reportError("must be of type bool");
+          reporter.reportError('must be of type bool');
           return false;
         }
       } finally {
@@ -17175,7 +17175,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
             !((obj['resourceOperations'] is List &&
                 (obj['resourceOperations'].every((item) =>
                     ResourceOperationKind.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<ResourceOperationKind>");
+          reporter.reportError('must be of type List<ResourceOperationKind>');
           return false;
         }
       } finally {
@@ -17185,7 +17185,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
       try {
         if (obj['failureHandling'] != null &&
             !(FailureHandlingKind.canParse(obj['failureHandling'], reporter))) {
-          reporter.reportError("must be of type FailureHandlingKind");
+          reporter.reportError('must be of type FailureHandlingKind');
           return false;
         }
       } finally {
@@ -17194,7 +17194,7 @@ class WorkspaceClientCapabilitiesWorkspaceEdit implements ToJsonable {
       return true;
     } else {
       reporter.reportError(
-          "must be of type WorkspaceClientCapabilitiesWorkspaceEdit");
+          'must be of type WorkspaceClientCapabilitiesWorkspaceEdit');
       return false;
     }
   }
@@ -17301,7 +17301,7 @@ class WorkspaceEdit implements ToJsonable {
                     obj['changes'].values.every((item) => (item is List &&
                         (item.every((item) =>
                             TextEdit.canParse(item, reporter)))))))))) {
-          reporter.reportError("must be of type Map<String, List<TextEdit>>");
+          reporter.reportError('must be of type Map<String, List<TextEdit>>');
           return false;
         }
       } finally {
@@ -17320,7 +17320,7 @@ class WorkspaceEdit implements ToJsonable {
                             RenameFile.canParse(item, reporter) ||
                             DeleteFile.canParse(item, reporter)))))))) {
           reporter.reportError(
-              "must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>");
+              'must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>');
           return false;
         }
       } finally {
@@ -17328,7 +17328,7 @@ class WorkspaceEdit implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceEdit");
+      reporter.reportError('must be of type WorkspaceEdit');
       return false;
     }
   }
@@ -17393,15 +17393,15 @@ class WorkspaceFolder implements ToJsonable {
       reporter.push('uri');
       try {
         if (!obj.containsKey('uri')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['uri'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['uri'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -17410,15 +17410,15 @@ class WorkspaceFolder implements ToJsonable {
       reporter.push('name');
       try {
         if (!obj.containsKey('name')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['name'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['name'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -17426,7 +17426,7 @@ class WorkspaceFolder implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceFolder");
+      reporter.reportError('must be of type WorkspaceFolder');
       return false;
     }
   }
@@ -17496,17 +17496,17 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       reporter.push('added');
       try {
         if (!obj.containsKey('added')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['added'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['added'] is List &&
             (obj['added']
                 .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<WorkspaceFolder>");
+          reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
         }
       } finally {
@@ -17515,17 +17515,17 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       reporter.push('removed');
       try {
         if (!obj.containsKey('removed')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['removed'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!((obj['removed'] is List &&
             (obj['removed']
                 .every((item) => WorkspaceFolder.canParse(item, reporter)))))) {
-          reporter.reportError("must be of type List<WorkspaceFolder>");
+          reporter.reportError('must be of type List<WorkspaceFolder>');
           return false;
         }
       } finally {
@@ -17533,7 +17533,7 @@ class WorkspaceFoldersChangeEvent implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceFoldersChangeEvent");
+      reporter.reportError('must be of type WorkspaceFoldersChangeEvent');
       return false;
     }
   }
@@ -17591,15 +17591,15 @@ class WorkspaceSymbolParams implements ToJsonable {
       reporter.push('query');
       try {
         if (!obj.containsKey('query')) {
-          reporter.reportError("must not be undefined");
+          reporter.reportError('must not be undefined');
           return false;
         }
         if (obj['query'] == null) {
-          reporter.reportError("must not be null");
+          reporter.reportError('must not be null');
           return false;
         }
         if (!(obj['query'] is String)) {
-          reporter.reportError("must be of type String");
+          reporter.reportError('must be of type String');
           return false;
         }
       } finally {
@@ -17607,7 +17607,7 @@ class WorkspaceSymbolParams implements ToJsonable {
       }
       return true;
     } else {
-      reporter.reportError("must be of type WorkspaceSymbolParams");
+      reporter.reportError('must be of type WorkspaceSymbolParams');
       return false;
     }
   }

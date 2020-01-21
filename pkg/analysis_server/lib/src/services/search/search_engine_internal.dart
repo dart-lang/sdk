@@ -213,19 +213,19 @@ class SearchMatchImpl implements SearchMatch {
   @override
   String toString() {
     StringBuffer buffer = StringBuffer();
-    buffer.write("SearchMatch(kind=");
+    buffer.write('SearchMatch(kind=');
     buffer.write(kind);
-    buffer.write(", libraryUri=");
+    buffer.write(', libraryUri=');
     buffer.write(librarySource.uri);
-    buffer.write(", unitUri=");
+    buffer.write(', unitUri=');
     buffer.write(unitSource.uri);
-    buffer.write(", range=");
+    buffer.write(', range=');
     buffer.write(sourceRange);
-    buffer.write(", isResolved=");
+    buffer.write(', isResolved=');
     buffer.write(isResolved);
-    buffer.write(", isQualified=");
+    buffer.write(', isQualified=');
     buffer.write(isQualified);
-    buffer.write(")");
+    buffer.write(')');
     return buffer.toString();
   }
 

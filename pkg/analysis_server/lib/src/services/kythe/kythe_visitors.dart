@@ -1206,7 +1206,7 @@ mixin OutputUtils {
   KytheEntry addEdge(KytheVName source, String edgeKind, KytheVName target,
       {int ordinalIntValue = _notFound}) {
     if (ordinalIntValue == _notFound) {
-      return addEntry(source, edgeKind, target, "/", <int>[]);
+      return addEntry(source, edgeKind, target, '/', <int>[]);
     } else {
       return addEntry(source, edgeKind, target, schema.ORDINAL,
           _encodeInt(ordinalIntValue));

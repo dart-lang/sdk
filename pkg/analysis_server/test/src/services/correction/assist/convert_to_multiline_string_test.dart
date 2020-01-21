@@ -154,7 +154,7 @@ main() {
   print('a $b - ${c} d');
 }
 """);
-    await assertHasAssistAt("- ", r"""
+    await assertHasAssistAt('- ', r"""
 main() {
   var b = 'b';
   var c = 'c';

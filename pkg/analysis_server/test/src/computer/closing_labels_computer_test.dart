@@ -29,14 +29,14 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
   }
 
   test_adjacentLinesExcluded() async {
-    String content = """
+    String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/new Thing(1,
       2)/*2:Thing*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
@@ -46,13 +46,13 @@ void myMethod() {
   /// of the expression and not where the opening paren is, so this test ensures we
   /// don't end up with lots of unwanted labels on each line here.
   test_chainedConstructorOverManyLines() async {
-    String content = """
+    String content = '''
 main() {
   return new thing
     .whatIsSplit
     .acrossManyLines(1, 2);
 }
-    """;
+    ''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
@@ -62,7 +62,7 @@ main() {
   /// of the expression and not where the opening paren is, so this test ensures we
   /// don't end up with lots of unwanted labels on each line here.
   test_chainedMethodsOverManyLines() async {
-    String content = """
+    String content = '''
 List<ClosingLabel> compute() {
   _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
   return _closingLabelsByEndLine.values
@@ -71,14 +71,14 @@ List<ClosingLabel> compute() {
       .map((clwlc) => clwlc.label)
       .toList();
 }
-    """;
+    ''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
   }
 
   test_constConstructor() async {
-    String content = """
+    String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/const Class(
@@ -87,14 +87,14 @@ void myMethod() {
     )/*2:Class*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
   test_constNamedConstructor() async {
-    String content = """
+    String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/const Class.fromThing(
@@ -103,7 +103,7 @@ void myMethod() {
     )/*2:Class.fromThing*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
@@ -139,20 +139,20 @@ Widget build(BuildContext context) {
   }
 
   test_labelsShownForMultipleElements() async {
-    String content = """
+    String content = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
     child: new RaisedButton(),
   )/*1:Row*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 1);
   }
 
   test_labelsShownForMultipleElements_2() async {
-    String content = """
+    String content = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
     child: /*2*/new RaisedButton(
@@ -160,14 +160,14 @@ Widget build(BuildContext context) {
     )/*2:RaisedButton*/,
   )/*1:Row*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
   test_listLiterals() async {
-    String content = """
+    String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     Widget.createWidget(/*2*/<Widget>[
@@ -176,7 +176,7 @@ void myMethod() {
     ]/*2:<Widget>[]*/)
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
@@ -186,7 +186,7 @@ void myMethod() {
   /// other labels that end on the same line, even if they are 1-2 lines, otherwise
   /// it isn't obvious which closing bracket goes with the label.
   test_mixedLineSpanning() async {
-    String content = """
+    String content = '''
 main() {
     /*1*/new Foo((m) {
       /*2*/new Bar(
@@ -196,7 +196,7 @@ main() {
     })/*1:Foo*/;
   }
 }
-  """;
+  ''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 3);
@@ -227,7 +227,7 @@ Widget build(BuildContext context) {
   }
 
   test_newConstructor() async {
-    String content = """
+    String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/new Class(
@@ -236,14 +236,14 @@ void myMethod() {
     )/*2:Class*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
   test_newNamedConstructor() async {
-    String content = """
+    String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
     /*2*/new Class.fromThing(
@@ -252,19 +252,19 @@ void myMethod() {
     )/*2:Class.fromThing*/
   )/*1:Wrapper*/;
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
   test_noLabelsForOneElement() async {
-    String content = """
+    String content = '''
 Widget build(BuildContext context) {
   return new Row(
   );
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
@@ -354,11 +354,11 @@ void myMethod() {
   }
 
   test_sameLineExcluded() async {
-    String content = """
+    String content = '''
 void myMethod() {
   return new Thing();
 }
-""";
+''';
 
     var labels = await _computeElements(content);
     _compareLabels(labels, content, expectedLabelCount: 0);
@@ -374,7 +374,7 @@ void myMethod() {
     expect(labels, hasLength(expectedLabelCount));
 
     // Find all numeric markers for label starts.
-    var regex = RegExp("/\\*(\\d+)\\*/");
+    var regex = RegExp('/\\*(\\d+)\\*/');
     var expectedLabels = regex.allMatches(content);
 
     // Check we didn't get more than expected, since the loop below only
@@ -386,7 +386,7 @@ void myMethod() {
     expectedLabels.forEach((m) {
       var i = m.group(1);
       // Find the end marker.
-      var endMatch = RegExp("/\\*$i:(.+?)\\*/").firstMatch(content);
+      var endMatch = RegExp('/\\*$i:(.+?)\\*/').firstMatch(content);
 
       var expectedStart = m.end;
       var expectedLength = endMatch.start - expectedStart;

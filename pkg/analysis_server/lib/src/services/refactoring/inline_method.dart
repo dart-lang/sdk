@@ -91,7 +91,7 @@ String _getMethodSourceForInvocation(
       // prepare argument source to apply at this occurrence
       String occurrenceArgumentSource;
       if (argumentPrecedence < occurrence.parentPrecedence) {
-        occurrenceArgumentSource = "($argumentSource)";
+        occurrenceArgumentSource = '($argumentSource)';
       } else {
         occurrenceArgumentSource = argumentSource;
       }
@@ -239,9 +239,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   @override
   String get refactoringName {
     if (_methodElement is MethodElement) {
-      return "Inline Method";
+      return 'Inline Method';
     } else {
-      return "Inline Function";
+      return 'Inline Function';
     }
   }
 
@@ -531,14 +531,14 @@ class _ReferenceProcessor {
             ref._methodExpressionPart, _refUtils, usage, target, arguments);
         if (getExpressionPrecedence(ref._methodExpression) <
             getExpressionParentPrecedence(usage)) {
-          source = "($source)";
+          source = '($source)';
         }
         // do replace
         SourceRange methodUsageRange = range.node(usage);
         SourceEdit edit = newSourceEdit_range(methodUsageRange, source);
         _addRefEdit(edit);
       } else {
-        SourceEdit edit = newSourceEdit_range(_refLineRange, "");
+        SourceEdit edit = newSourceEdit_range(_refLineRange, '');
         _addRefEdit(edit);
       }
       return;

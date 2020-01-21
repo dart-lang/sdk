@@ -185,20 +185,20 @@ CompilationUnitElement getCompilationUnitElement(Element element) {
 String getDefaultValueCode(DartType type) {
   if (type != null) {
     if (type.isDartCoreBool) {
-      return "false";
+      return 'false';
     }
     if (type.isDartCoreInt) {
-      return "0";
+      return '0';
     }
     if (type.isDartCoreDouble) {
-      return "0.0";
+      return '0.0';
     }
     if (type.isDartCoreString) {
       return "''";
     }
   }
   // no better guess
-  return "null";
+  return 'null';
 }
 
 /**
@@ -625,10 +625,10 @@ class CorrectionUtils {
    */
   String get endOfLine {
     if (_endOfLine == null) {
-      if (_buffer.contains("\r\n")) {
-        _endOfLine = "\r\n";
+      if (_buffer.contains('\r\n')) {
+        _endOfLine = '\r\n';
       } else {
-        _endOfLine = "\n";
+        _endOfLine = '\n';
       }
     }
     return _endOfLine;
@@ -674,7 +674,7 @@ class CorrectionUtils {
     // skip hash-bang
     if (offset < source.length - 2) {
       String linePrefix = getText(offset, 2);
-      if (linePrefix == "#!") {
+      if (linePrefix == '#!') {
         insertEmptyLineBefore = true;
         offset = getLineNext(offset);
         // skip empty lines to first line comment
@@ -685,7 +685,7 @@ class CorrectionUtils {
           if (line.trim().isEmpty) {
             emptyOffset = nextLineOffset;
             continue;
-          } else if (line.startsWith("//")) {
+          } else if (line.startsWith('//')) {
             offset = emptyOffset;
             break;
           } else {
@@ -697,7 +697,7 @@ class CorrectionUtils {
     // skip line comments
     while (offset < source.length - 2) {
       String linePrefix = getText(offset, 2);
-      if (linePrefix == "//") {
+      if (linePrefix == '//') {
         insertEmptyLineBefore = true;
         offset = getLineNext(offset);
       } else {
@@ -931,7 +931,7 @@ class CorrectionUtils {
     // just a Function, not FunctionTypeAliasElement
     if (type is FunctionType && element is! FunctionTypeAliasElement) {
       if (parametersBuffer == null) {
-        return "Function";
+        return 'Function';
       }
       parametersBuffer.write('(');
       for (ParameterElement parameter in type.parameters) {
@@ -969,7 +969,7 @@ class CorrectionUtils {
       if (importElement != null) {
         if (importElement.prefix != null) {
           sb.write(importElement.prefix.displayName);
-          sb.write(".");
+          sb.write('.');
         }
       } else {
         librariesToImport.add(library.source);
@@ -990,11 +990,11 @@ class CorrectionUtils {
       }
       // append type arguments
       if (hasArguments && allArgumentsVisible) {
-        sb.write("<");
+        sb.write('<');
         for (int i = 0; i < arguments.length; i++) {
           DartType argument = arguments[i];
           if (i != 0) {
-            sb.write(", ");
+            sb.write(', ');
           }
           String argumentSrc = getTypeSource(argument, librariesToImport);
           if (argumentSrc != null) {
@@ -1003,7 +1003,7 @@ class CorrectionUtils {
             return null;
           }
         }
-        sb.write(">");
+        sb.write('>');
       }
     }
     // done
@@ -1028,7 +1028,7 @@ class CorrectionUtils {
       if (indentLeft) {
         line = removeStart(line, indent);
       } else {
-        line = "$indent$line";
+        line = '$indent$line';
       }
       // append line
       sb.write(line);
@@ -1170,7 +1170,7 @@ class CorrectionUtils {
       lineOffset += line.length + eol.length;
       // update line indent
       if (!inString) {
-        line = "$newIndent${removeStart(line, oldIndent)}";
+        line = '$newIndent${removeStart(line, oldIndent)}';
       }
       // append line
       sb.write(line);
@@ -1268,9 +1268,9 @@ class CorrectionUtils {
   _InvertedCondition _invertCondition0(Expression expression) {
     if (expression is BooleanLiteral) {
       if (expression.value) {
-        return _InvertedCondition._simple("false");
+        return _InvertedCondition._simple('false');
       } else {
-        return _InvertedCondition._simple("true");
+        return _InvertedCondition._simple('true');
       }
     } else if (expression is BinaryExpression) {
       TokenType operator = expression.operator.type;
@@ -1279,42 +1279,42 @@ class CorrectionUtils {
       _InvertedCondition ls = _InvertedCondition._simple(getNodeText(le));
       _InvertedCondition rs = _InvertedCondition._simple(getNodeText(re));
       if (operator == TokenType.LT) {
-        return _InvertedCondition._binary2(ls, " >= ", rs);
+        return _InvertedCondition._binary2(ls, ' >= ', rs);
       }
       if (operator == TokenType.GT) {
-        return _InvertedCondition._binary2(ls, " <= ", rs);
+        return _InvertedCondition._binary2(ls, ' <= ', rs);
       }
       if (operator == TokenType.LT_EQ) {
-        return _InvertedCondition._binary2(ls, " > ", rs);
+        return _InvertedCondition._binary2(ls, ' > ', rs);
       }
       if (operator == TokenType.GT_EQ) {
-        return _InvertedCondition._binary2(ls, " < ", rs);
+        return _InvertedCondition._binary2(ls, ' < ', rs);
       }
       if (operator == TokenType.EQ_EQ) {
-        return _InvertedCondition._binary2(ls, " != ", rs);
+        return _InvertedCondition._binary2(ls, ' != ', rs);
       }
       if (operator == TokenType.BANG_EQ) {
-        return _InvertedCondition._binary2(ls, " == ", rs);
+        return _InvertedCondition._binary2(ls, ' == ', rs);
       }
       if (operator == TokenType.AMPERSAND_AMPERSAND) {
         ls = _invertCondition0(le);
         rs = _invertCondition0(re);
         return _InvertedCondition._binary(
-            TokenType.BAR_BAR.precedence, ls, " || ", rs);
+            TokenType.BAR_BAR.precedence, ls, ' || ', rs);
       }
       if (operator == TokenType.BAR_BAR) {
         ls = _invertCondition0(le);
         rs = _invertCondition0(re);
         return _InvertedCondition._binary(
-            TokenType.AMPERSAND_AMPERSAND.precedence, ls, " && ", rs);
+            TokenType.AMPERSAND_AMPERSAND.precedence, ls, ' && ', rs);
       }
     } else if (expression is IsExpression) {
       String expressionSource = getNodeText(expression.expression);
       String typeSource = getNodeText(expression.type);
       if (expression.notOperator == null) {
-        return _InvertedCondition._simple("$expressionSource is! $typeSource");
+        return _InvertedCondition._simple('$expressionSource is! $typeSource');
       } else {
-        return _InvertedCondition._simple("$expressionSource is $typeSource");
+        return _InvertedCondition._simple('$expressionSource is $typeSource');
       }
     } else if (expression is PrefixExpression) {
       TokenType operator = expression.operator.type;
@@ -1327,7 +1327,7 @@ class CorrectionUtils {
     }
     DartType type = expression.staticType;
     if (type.isDartCoreBool) {
-      return _InvertedCondition._simple("!${getNodeText(expression)}");
+      return _InvertedCondition._simple('!${getNodeText(expression)}');
     }
     return _InvertedCondition._simple(getNodeText(expression));
   }
@@ -1376,8 +1376,8 @@ class CorrectionUtils {
  */
 class CorrectionUtils_InsertDesc {
   int offset = 0;
-  String prefix = "";
-  String suffix = "";
+  String prefix = '';
+  String suffix = '';
 }
 
 /**
@@ -1481,7 +1481,7 @@ class _InvertedCondition {
       _InvertedCondition left, String operation, _InvertedCondition right) {
     // TODO(scheglov) consider merging with "_binary()" after testing
     return _InvertedCondition(
-        1 << 20, "${left._source}$operation${right._source}");
+        1 << 20, '${left._source}$operation${right._source}');
   }
 
   /**
@@ -1491,7 +1491,7 @@ class _InvertedCondition {
   static String _parenthesizeIfRequired(
       _InvertedCondition expr, int newOperatorPrecedence) {
     if (expr._precedence < newOperatorPrecedence) {
-      return "(${expr._source})";
+      return '(${expr._source})';
     }
     return expr._source;
   }

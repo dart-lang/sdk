@@ -126,27 +126,27 @@ class InfoBuilder {
       } else if (defaultValue is NullLiteral) {
         return "an explicit default value of 'null'";
       }
-      return "a nullable default value";
+      return 'a nullable default value';
     }
 
     if (node is DefaultFormalParameter) {
       if (fixKind == NullabilityFixKind.addRequired) {
-        return "This parameter is non-nullable, so cannot have "
-            "${aNullableDefault(node)}";
+        return 'This parameter is non-nullable, so cannot have '
+            '${aNullableDefault(node)}';
       } else {
-        return "This parameter has ${aNullableDefault(node)}";
+        return 'This parameter has ${aNullableDefault(node)}';
       }
     } else if (node is FieldFormalParameter) {
       if (parent is DefaultFormalParameter) {
-        return "This field is initialized by an optional field formal "
-            "parameter that has ${aNullableDefault(parent)}";
+        return 'This field is initialized by an optional field formal '
+            'parameter that has ${aNullableDefault(parent)}';
       }
-      return "This field is initialized by a field formal parameter and a "
-          "nullable value is passed as an argument";
+      return 'This field is initialized by a field formal parameter and a '
+          'nullable value is passed as an argument';
     } else if (parent is DefaultFormalParameter) {
-      return "This parameter has ${aNullableDefault(parent)}";
+      return 'This parameter has ${aNullableDefault(parent)}';
     } else if (parent is AsExpression) {
-      return "The value of the expression is nullable";
+      return 'The value of the expression is nullable';
     }
 
     // Text indicating the type of nullable value found.
@@ -154,25 +154,25 @@ class InfoBuilder {
     if (node is NullLiteral) {
       nullableValue = "an explicit 'null'";
     } else if (origin.kind == EdgeOriginKind.dynamicAssignment) {
-      nullableValue = "a dynamic value, which is nullable";
+      nullableValue = 'a dynamic value, which is nullable';
     } else {
-      nullableValue = "a nullable value";
+      nullableValue = 'a nullable value';
     }
 
     if (origin.kind == EdgeOriginKind.listLengthConstructor) {
-      return "List value type must be nullable because a length is specified,"
-          " and the list items are initialized as null.";
+      return 'List value type must be nullable because a length is specified,'
+          ' and the list items are initialized as null.';
     }
 
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
     int lineNumber = unit.lineInfo.getLocation(node.offset).lineNumber;
 
     if (origin.kind == EdgeOriginKind.uninitializedRead) {
-      return "Used on line $lineNumber, when it is possibly uninitialized";
+      return 'Used on line $lineNumber, when it is possibly uninitialized';
     }
 
     if (parent is ArgumentList) {
-      return capitalize("$nullableValue is passed as an argument");
+      return capitalize('$nullableValue is passed as an argument');
     }
 
     /// If the [node] is inside the return expression for a function body,
@@ -205,50 +205,50 @@ class InfoBuilder {
       AstNode function = functionBody.parent;
       if (function is MethodDeclaration) {
         if (function.isGetter) {
-          return "This getter returns $nullableValue on line $lineNumber";
+          return 'This getter returns $nullableValue on line $lineNumber';
         }
-        return "This method returns $nullableValue on line $lineNumber";
+        return 'This method returns $nullableValue on line $lineNumber';
       }
-      return "This function returns $nullableValue on line $lineNumber";
+      return 'This function returns $nullableValue on line $lineNumber';
     }
 
     TypedLiteral collectionLiteral = findCollectionLiteral();
     if (collectionLiteral != null) {
       if (collectionLiteral is ListLiteral) {
-        return "This list is initialized with $nullableValue on line "
-            "$lineNumber";
+        return 'This list is initialized with $nullableValue on line '
+            '$lineNumber';
       } else if (collectionLiteral is SetOrMapLiteral) {
         var mapOrSet = collectionLiteral.isMap ? 'map' : 'set';
-        return "This $mapOrSet is initialized with $nullableValue on line "
-            "$lineNumber";
+        return 'This $mapOrSet is initialized with $nullableValue on line '
+            '$lineNumber';
       }
     } else if (node is InvocationExpression &&
         origin.kind == EdgeOriginKind.namedParameterNotSupplied) {
-      return "This named parameter was omitted in a call to this function";
+      return 'This named parameter was omitted in a call to this function';
     } else if (parent is VariableDeclaration) {
       AstNode grandparent = parent.parent?.parent;
       if (grandparent is FieldDeclaration) {
-        return "This field is initialized to $nullableValue";
+        return 'This field is initialized to $nullableValue';
       }
-      return "This variable is initialized to $nullableValue";
+      return 'This variable is initialized to $nullableValue';
     } else if (node is ConstructorDeclaration &&
         origin.kind == EdgeOriginKind.fieldNotInitialized) {
       String constructorName =
           node.declaredElement.enclosingElement.displayName;
       if (node.declaredElement.displayName.isNotEmpty) {
         constructorName =
-            "$constructorName.${node.declaredElement.displayName}";
+            '$constructorName.${node.declaredElement.displayName}';
       }
       return "The constructor '$constructorName' does not initialize this "
-          "field in its initializer list";
+          'field in its initializer list';
     }
 
     String enclosingMemberDescription = buildEnclosingMemberDescription(node);
     if (enclosingMemberDescription != null) {
       return capitalize(
-          "$nullableValue is assigned in $enclosingMemberDescription");
+          '$nullableValue is assigned in $enclosingMemberDescription');
     } else {
-      return capitalize("$nullableValue is assigned");
+      return capitalize('$nullableValue is assigned');
     }
   }
 
@@ -259,7 +259,7 @@ class InfoBuilder {
     if (_inTestCode(origin.node)) {
       // TODO(brianwilkerson) Don't add this if the graph node with which the
       //  origin is associated is also in test code.
-      description += " in test code";
+      description += ' in test code';
     }
     return description;
   }
@@ -300,7 +300,7 @@ class InfoBuilder {
   String _buildInheritanceDescriptionForOrigin(
       EdgeOriginInfo origin, TypeAnnotation type) {
     if (origin.kind == EdgeOriginKind.parameterInheritance) {
-      String overriddenName = "the overridden method";
+      String overriddenName = 'the overridden method';
       if (type != null && type.parent is FormalParameter) {
         FormalParameter parameter = type.parent;
         if (parameter.parent is DefaultFormalParameter) {
@@ -312,12 +312,12 @@ class InfoBuilder {
           String methodName = method.name.name;
           ClassOrMixinDeclaration cls = method.parent;
           String className = cls.name.name;
-          overriddenName += ", $className.$methodName,";
+          overriddenName += ', $className.$methodName,';
         }
       }
-      return "The corresponding parameter in $overriddenName is nullable";
+      return 'The corresponding parameter in $overriddenName is nullable';
     } else {
-      return "An overridding method has a nullable return value";
+      return 'An overridding method has a nullable return value';
     }
   }
 
@@ -484,13 +484,13 @@ class InfoBuilder {
     final parent = astNode.parent;
     if (parent is PropertyAccess && parent.target == astNode ||
         parent is PrefixedIdentifier && parent.prefix == astNode) {
-      return "This value must be null-checked before accessing its properties.";
+      return 'This value must be null-checked before accessing its properties.';
     }
     if (parent is MethodInvocation && parent.target == astNode) {
-      return "This value must be null-checked before calling its methods.";
+      return 'This value must be null-checked before calling its methods.';
     }
 
-    return "This value must be null-checked before use here.";
+    return 'This value must be null-checked before use here.';
   }
 
   /// Explain the type annotations that were not changed because they were
@@ -516,7 +516,7 @@ class InfoBuilder {
               RegionType.nonNullableType,
               mapper.map(node.offset),
               node.length,
-              "This type is not changed; it is determined to be non-nullable",
+              'This type is not changed; it is determined to be non-nullable',
               details));
         }
       }
@@ -678,39 +678,39 @@ class InfoBuilder {
     void describeFunction(AstNode node) {
       if (node is ConstructorDeclaration) {
         if (node.name == null) {
-          baseDescription = "the default constructor of";
-          functionName = "";
+          baseDescription = 'the default constructor of';
+          functionName = '';
         } else {
-          baseDescription = "the constructor";
+          baseDescription = 'the constructor';
           functionName = node.name.name;
         }
       } else if (node is MethodDeclaration) {
         functionName = node.name.name;
         if (node.isGetter) {
-          baseDescription = "the getter";
+          baseDescription = 'the getter';
         } else if (node.isOperator) {
-          baseDescription = "the operator";
+          baseDescription = 'the operator';
         } else if (node.isSetter) {
-          baseDescription = "the setter";
-          functionName += "=";
+          baseDescription = 'the setter';
+          functionName += '=';
         } else {
-          baseDescription = "the method";
+          baseDescription = 'the method';
         }
       } else if (node is FunctionDeclaration) {
         functionName = node.name.name;
         if (node.isGetter) {
-          baseDescription = "the getter";
+          baseDescription = 'the getter';
         } else if (node.isSetter) {
-          baseDescription = "the setter";
-          functionName += "=";
+          baseDescription = 'the setter';
+          functionName += '=';
         } else {
-          baseDescription = "the function";
+          baseDescription = 'the function';
         }
       } else if (node is FieldDeclaration) {
         var field = node.thisOrAncestorOfType<VariableDeclaration>();
         field ??= node.fields.variables[0];
         functionName = field.name.name;
-        baseDescription = "the field";
+        baseDescription = 'the field';
       } else {
         // Throwing here allows us to gather more information. Not throwing here
         // causes an NPE on line 709.

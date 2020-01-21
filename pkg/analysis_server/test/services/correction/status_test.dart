@@ -118,7 +118,7 @@ class RefactoringStatusTest {
     expect(problems[0].location.offset, 1);
     expect(problems[0].location.length, 2);
     // add WARNING, resulting severity is still FATAL
-    refactoringStatus.addWarning("warning");
+    refactoringStatus.addWarning('warning');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.FATAL);
   }
 
@@ -141,12 +141,12 @@ class RefactoringStatusTest {
 
   void test_addStatus_Error_withWarning() {
     RefactoringStatus refactoringStatus = RefactoringStatus();
-    refactoringStatus.addError("err");
+    refactoringStatus.addError('err');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
     // merge with OK
     {
       RefactoringStatus other = RefactoringStatus();
-      other.addWarning("warn");
+      other.addWarning('warn');
       refactoringStatus.addStatus(other);
     }
     expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);
@@ -155,7 +155,7 @@ class RefactoringStatusTest {
 
   void test_addStatus_Warning_null() {
     RefactoringStatus refactoringStatus = RefactoringStatus();
-    refactoringStatus.addWarning("warn");
+    refactoringStatus.addWarning('warn');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     // merge with "null"
     refactoringStatus.addStatus(null);
@@ -164,12 +164,12 @@ class RefactoringStatusTest {
 
   void test_addStatus_Warning_withError() {
     RefactoringStatus refactoringStatus = RefactoringStatus();
-    refactoringStatus.addWarning("warn");
+    refactoringStatus.addWarning('warn');
     expect(refactoringStatus.severity, RefactoringProblemSeverity.WARNING);
     // merge with OK
     {
       RefactoringStatus other = RefactoringStatus();
-      other.addError("err");
+      other.addError('err');
       refactoringStatus.addStatus(other);
     }
     expect(refactoringStatus.severity, RefactoringProblemSeverity.ERROR);

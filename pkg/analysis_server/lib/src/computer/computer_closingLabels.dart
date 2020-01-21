@@ -62,7 +62,7 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
     if (node.argumentList != null) {
       String labelText = node.constructorName.type.name.name;
       if (node.constructorName.name != null) {
-        labelText += ".${node.constructorName.name.name}";
+        labelText += '.${node.constructorName.name.name}';
       }
       // We override the node used for doing line calculations because otherwise
       // constructors that split over multiple lines (but have parens on same
@@ -88,7 +88,7 @@ class _DartUnitClosingLabelsComputerVisitor extends RecursiveAstVisitor<void> {
     ClosingLabel label;
 
     if (typeName != null) {
-      label = _addLabel(node, "<$typeName>[]");
+      label = _addLabel(node, '<$typeName>[]');
     }
 
     if (label != null) _pushLabel(label);

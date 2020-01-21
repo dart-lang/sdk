@@ -29,7 +29,7 @@ class FoldingComputerTest extends AbstractContextTest {
   }
 
   test_annotations() async {
-    String content = """
+    String content = '''
 @myMultilineAnnotation/*1:INC*/(
   "this",
   "is a test"
@@ -73,7 +73,7 @@ class MyClass2 {/*4:INC*/
   @constructorAnnotation1/*9:EXC:ANNOTATIONS*/
   MyClass2() {}
 /*4:INC:CLASS_BODY*/}
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
@@ -106,7 +106,7 @@ main() {/*1:INC*/
   }
 
   test_class() async {
-    String content = """
+    String content = '''
 // Content before
 
 class Person {/*1:INC*/
@@ -120,7 +120,7 @@ class Person {/*1:INC*/
 /*1:INC:CLASS_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
@@ -140,7 +140,7 @@ main() {}
   }
 
   test_constructor_invocations() async {
-    String content = """
+    String content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -150,7 +150,7 @@ main() {/*1:INC*/
 /*1:INC:FUNCTION_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
@@ -186,12 +186,12 @@ main() {}
   }
 
   test_file_header_with_no_function_comment() async {
-    String content = """
+    String content = '''
 // Copyright some year by some people/*1:EXC*/
 // See LICENCE etc./*1:INC:FILE_HEADER*/
 
 main() {}
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
@@ -226,7 +226,7 @@ main() {}
   }
 
   test_function() async {
-    String content = """
+    String content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -234,14 +234,14 @@ main() {/*1:INC*/
 /*1:INC:FUNCTION_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
   }
 
   test_function_expression_invocation() async {
-    String content = """
+    String content = '''
 // Content before
 
 getFunc() => (String a, String b) {/*1:INC*/
@@ -256,14 +256,14 @@ main2() {/*2:INC*/
 /*2:INC:FUNCTION_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
   }
 
   test_function_with_dart_doc() async {
-    String content = """
+    String content = '''
 // Content before
 
 /*1:EXC*//// This is a doc comment
@@ -273,14 +273,14 @@ main() {/*2:INC*/
 /*2:INC:FUNCTION_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
   }
 
   test_invocations() async {
-    String content = """
+    String content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -290,14 +290,14 @@ main() {/*1:INC*/
 /*1:INC:FUNCTION_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
   }
 
   test_literal_list() async {
-    String content = """
+    String content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -308,14 +308,14 @@ main() {/*1:INC*/
 /*1:INC:FUNCTION_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
   }
 
   test_literal_map() async {
-    String content = """
+    String content = '''
 // Content before
 
 main2() {/*1:INC*/
@@ -326,14 +326,14 @@ main2() {/*1:INC*/
 /*1:INC:FUNCTION_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
   }
 
   test_mixin() async {
-    String content = """
+    String content = '''
 // Content before
 
 mixin M {/*1:INC*/
@@ -343,7 +343,7 @@ mixin M {/*1:INC*/
 /*1:INC:CLASS_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
@@ -384,7 +384,7 @@ main() {}
   }
 
   test_nested_function() async {
-    String content = """
+    String content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -395,14 +395,14 @@ main() {/*1:INC*/
 /*1:INC:FUNCTION_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
   }
 
   test_nested_invocations() async {
-    String content = """
+    String content = '''
 // Content before
 
 main() {/*1:INC*/
@@ -416,7 +416,7 @@ main() {/*1:INC*/
 /*1:INC:FUNCTION_BODY*/}
 
 // Content after
-""";
+''';
 
     final regions = await _computeRegions(content);
     _compareRegions(regions, content);
@@ -450,17 +450,17 @@ main() {}
     // ensure it's in the results.
     expectedRegions.forEach((m) {
       final i = m.group(1);
-      final inclusiveStart = m.group(2) == "INC";
+      final inclusiveStart = m.group(2) == 'INC';
       // Find the end marker.
       final endMatch = RegExp('/\\*$i:(INC|EXC):(.+?)\\*/').firstMatch(content);
 
-      final inclusiveEnd = endMatch.group(1) == "INC";
+      final inclusiveEnd = endMatch.group(1) == 'INC';
       final expectedKindString = endMatch.group(2);
       final expectedKind = FoldingKind.VALUES.firstWhere(
           (f) => f.toString() == 'FoldingKind.$expectedKindString',
           orElse: () => throw Exception(
-              "Annotated test code references $expectedKindString but "
-              "this does not exist in FoldingKind"));
+              'Annotated test code references $expectedKindString but '
+              'this does not exist in FoldingKind'));
 
       final expectedStart = inclusiveStart ? m.start : m.end;
       final expectedLength =

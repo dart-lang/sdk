@@ -466,7 +466,7 @@ export 'dart:math';
 part 'part.dart';
 ''');
     await prepareHighlights();
-    assertHasStringRegion(HighlightRegionType.DIRECTIVE, "library lib;");
+    assertHasStringRegion(HighlightRegionType.DIRECTIVE, 'library lib;');
     assertHasStringRegion(HighlightRegionType.DIRECTIVE, "import 'dart:math';");
     assertHasStringRegion(HighlightRegionType.DIRECTIVE, "export 'dart:math';");
     assertHasStringRegion(HighlightRegionType.DIRECTIVE, "part 'part.dart';");
@@ -478,7 +478,7 @@ part of lib;
 ''');
     _addLibraryForTestPart();
     await prepareHighlights();
-    assertHasStringRegion(HighlightRegionType.DIRECTIVE, "part of lib;");
+    assertHasStringRegion(HighlightRegionType.DIRECTIVE, 'part of lib;');
   }
 
   test_DYNAMIC_TYPE() async {

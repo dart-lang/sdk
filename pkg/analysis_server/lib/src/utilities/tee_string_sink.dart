@@ -18,7 +18,7 @@ class TeeStringSink implements StringSink {
   }
 
   @override
-  void writeAll(Iterable objects, [String separator = ""]) {
+  void writeAll(Iterable objects, [String separator = '']) {
     sink1.writeAll(objects, separator);
     sink2.writeAll(objects, separator);
   }
@@ -30,7 +30,7 @@ class TeeStringSink implements StringSink {
   }
 
   @override
-  void writeln([Object obj = ""]) {
+  void writeln([Object obj = '']) {
     sink1.writeln(obj);
     sink2.writeln(obj);
   }

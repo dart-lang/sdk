@@ -109,7 +109,7 @@ class MemberSorter {
         kind = _MemberKind.CLASS_CONSTRUCTOR;
         SimpleIdentifier nameNode = member.name;
         if (nameNode == null) {
-          name = "";
+          name = '';
         } else {
           name = nameNode.name;
         }
@@ -129,10 +129,10 @@ class MemberSorter {
         name = method.name.name;
         if (method.isGetter) {
           kind = _MemberKind.CLASS_ACCESSOR;
-          name += " getter";
+          name += ' getter';
         } else if (method.isSetter) {
           kind = _MemberKind.CLASS_ACCESSOR;
-          name += " setter";
+          name += ' setter';
         } else {
           kind = _MemberKind.CLASS_METHOD;
         }
@@ -166,9 +166,9 @@ class MemberSorter {
       String uriContent = uriDirective.uri.stringValue;
       _DirectivePriority kind;
       if (directive is ImportDirective) {
-        if (uriContent.startsWith("dart:")) {
+        if (uriContent.startsWith('dart:')) {
           kind = _DirectivePriority.IMPORT_SDK;
-        } else if (uriContent.startsWith("package:")) {
+        } else if (uriContent.startsWith('package:')) {
           kind = _DirectivePriority.IMPORT_PKG;
         } else if (uriContent.contains('://')) {
           kind = _DirectivePriority.IMPORT_OTHER;
@@ -177,9 +177,9 @@ class MemberSorter {
         }
       }
       if (directive is ExportDirective) {
-        if (uriContent.startsWith("dart:")) {
+        if (uriContent.startsWith('dart:')) {
           kind = _DirectivePriority.EXPORT_SDK;
-        } else if (uriContent.startsWith("package:")) {
+        } else if (uriContent.startsWith('package:')) {
           kind = _DirectivePriority.EXPORT_PKG;
         } else if (uriContent.contains('://')) {
           kind = _DirectivePriority.EXPORT_OTHER;
@@ -291,10 +291,10 @@ class MemberSorter {
         name = function.name.name;
         if (function.isGetter) {
           kind = _MemberKind.UNIT_ACCESSOR;
-          name += " getter";
+          name += ' getter';
         } else if (function.isSetter) {
           kind = _MemberKind.UNIT_ACCESSOR;
-          name += " setter";
+          name += ' setter';
         } else {
           if (name == 'main') {
             kind = _MemberKind.UNIT_FUNCTION_MAIN;

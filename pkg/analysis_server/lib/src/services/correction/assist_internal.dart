@@ -1779,7 +1779,7 @@ class AssistProcessor extends BaseProcessor {
         builder.writeln('builder: (context, snapshot) {');
 
         widgetSrc = widgetSrc.replaceAll(
-          RegExp("^$indentOld", multiLine: true),
+          RegExp('^$indentOld', multiLine: true),
           indentNew2,
         );
         builder.write(indentNew2);
@@ -1874,8 +1874,8 @@ class AssistProcessor extends BaseProcessor {
           builder.write(eol);
           builder.write(indentNew);
           widgetSrc = widgetSrc.replaceAll(
-              RegExp("^$indentOld", multiLine: true), indentNew);
-          widgetSrc += ",$eol$indentOld";
+              RegExp('^$indentOld', multiLine: true), indentNew);
+          widgetSrc += ',$eol$indentOld';
         }
         if (parentClassElement == null) {
           builder.addSimpleLinkedEdit('CHILD', 'child');
@@ -2429,7 +2429,7 @@ class AssistProcessor extends BaseProcessor {
         // Linked editing not needed since arg is always a list.
         builder.write('children: ');
         builder.write(literalSrc.replaceAll(
-            RegExp("^$indentOld", multiLine: true), "$indentList"));
+            RegExp('^$indentOld', multiLine: true), '$indentList'));
         builder.write(',');
         builder.write(eol);
         builder.write(indentArg);
@@ -3012,7 +3012,7 @@ class AssistProcessor extends BaseProcessor {
       // The separator includes 'child:' but that has no newlines.
       String separator =
           getText(namedExp.offset, childArg.offset - namedExp.offset);
-      String prefix = separator.contains(eol) ? "" : "$eol$indentNew";
+      String prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
         builder.addSimpleInsertion(
             namedExp.offset + 'child:'.length, ' <Widget>[');
@@ -3024,7 +3024,7 @@ class AssistProcessor extends BaseProcessor {
       }
       String newChildArgSrc =
           _replaceSourceIndent(childArgSrc, indentOld, indentNew);
-      newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
+      newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       builder.addSimpleReplacement(range.node(childArg), newChildArgSrc);
     }
   }

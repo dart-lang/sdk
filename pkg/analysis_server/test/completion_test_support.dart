@@ -155,18 +155,18 @@ class LocationSpec {
           modifiedSource.substring(index + n);
     }
     if (modifiedSource == originalSource) {
-      throw StateError("No tests in source: " + originalSource);
+      throw StateError('No tests in source: ' + originalSource);
     }
     for (String result in validationStrings) {
       if (result.length < 3) {
-        throw StateError("Invalid location result: " + result);
+        throw StateError('Invalid location result: ' + result);
       }
       String id = result.substring(0, 1);
       String sign = result.substring(1, 2);
       String value = result.substring(2);
       LocationSpec test = tests[id];
       if (test == null) {
-        throw StateError("Invalid location result id: $id for: $result");
+        throw StateError('Invalid location result id: $id for: $result');
       }
       test.source = modifiedSource;
       if (sign == '+') {
@@ -174,7 +174,7 @@ class LocationSpec {
       } else if (sign == '-') {
         test.negativeResults.add(value);
       } else {
-        String err = "Invalid location result sign: $sign for: $result";
+        String err = 'Invalid location result sign: $sign for: $result';
         throw StateError(err);
       }
     }
@@ -191,14 +191,14 @@ class LocationSpec {
     if (!(badPoints.isEmpty && badResults.isEmpty)) {
       StringBuffer err = StringBuffer();
       if (badPoints.isNotEmpty) {
-        err.write("No test location for tests:");
+        err.write('No test location for tests:');
         for (String ch in badPoints) {
           err..write(' ')..write(ch);
         }
         err.write(' ');
       }
       if (badResults.isNotEmpty) {
-        err.write("No results for tests:");
+        err.write('No results for tests:');
         for (String ch in badResults) {
           err..write(' ')..write(ch);
         }

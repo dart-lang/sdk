@@ -288,7 +288,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   @override
   Future generateContent(Map<String, String> params) async {
     void writeRow(List<String> data, {List<String> classes}) {
-      buf.write("<tr>");
+      buf.write('<tr>');
       for (int i = 0; i < data.length; i++) {
         String c = classes == null ? null : classes[i];
         if (c != null) {
@@ -297,7 +297,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
           buf.write('<td>${escape(data[i])}</td>');
         }
       }
-      buf.writeln("</tr>");
+      buf.writeln('</tr>');
     }
 
     buf.writeln('<div class="columns">');
@@ -346,16 +346,16 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 
     buf.write('<table>');
     writeRow([printInteger(requestCount), 'requests'],
-        classes: ["right", null]);
+        classes: ['right', null]);
     writeRow([printInteger(latencyCount), 'requests with latency information'],
-        classes: ["right", null]);
+        classes: ['right', null]);
     if (latencyCount > 0) {
       writeRow([printMilliseconds(averageLatency), 'average latency'],
-          classes: ["right", null]);
+          classes: ['right', null]);
       writeRow([printMilliseconds(maximumLatency), 'maximum latency'],
-          classes: ["right", null]);
+          classes: ['right', null]);
       writeRow([printPercentage(slowRequestPercent), '> 150 ms latency'],
-          classes: ["right", null]);
+          classes: ['right', null]);
     }
     buf.write('</table>');
   }
@@ -938,7 +938,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
             raw: true);
         pre(() {
           buf.writeln('<code>${escape(ex.stackTrace.toString())}</code>');
-        }, classes: "scroll-table");
+        }, classes: 'scroll-table');
       }
     }
   }

@@ -80,11 +80,11 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     LineInfo lineInfo,
     Outline outline,
   ) {
-    final name = outline.element.name != null && outline.element.name != ""
+    final name = outline.element.name != null && outline.element.name != ''
         ? outline.element.name
         : (outline.element.kind == ElementKind.EXTENSION
-            ? "<unnamed extension>"
-            : "<unnamed>");
+            ? '<unnamed extension>'
+            : '<unnamed>');
     return DocumentSymbol(
       name,
       outline.element.parameters,

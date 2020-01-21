@@ -134,7 +134,7 @@ class ServerError implements Exception {
 
   @override
   String toString() {
-    return "Server Error: $message";
+    return 'Server Error: $message';
   }
 }
 

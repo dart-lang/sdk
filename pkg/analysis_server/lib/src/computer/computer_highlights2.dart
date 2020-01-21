@@ -288,7 +288,7 @@ class DartUnitHighlightsComputer2 {
 
   bool _addIdentifierRegion_keyword(SimpleIdentifier node) {
     String name = node.name;
-    if (name == "void") {
+    if (name == 'void') {
       return _addRegion_node(node, HighlightRegionType.KEYWORD);
     }
     return false;
@@ -879,7 +879,7 @@ class _DartUnitHighlightsComputerVisitor2 extends RecursiveAstVisitor<void> {
   void visitTypeName(TypeName node) {
     DartType type = node.type;
     if (type != null) {
-      if (type.isDynamic && node.name.name == "dynamic") {
+      if (type.isDynamic && node.name.name == 'dynamic') {
         computer._addRegion_node(node, HighlightRegionType.TYPE_NAME_DYNAMIC);
         return null;
       }
