@@ -11,6 +11,11 @@ set -e
 if [ "$LINTER_BOT" = "release" ]; then
   echo "Validating release..."
   dart tool/bot/version_check.dart
+
+elif [ "$LINTER_BOT" = "score" ]; then
+
+  # Scorecard generation is best effort; don't fail the build.
+  set +e
   echo ""
   echo ""
   echo "Generating scorecard..."
