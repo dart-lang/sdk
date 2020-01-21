@@ -200,6 +200,81 @@ test:lib/
     );
   }
 
+  test_parsePackagesFile_dotPackages() {
+    var path = convertPath('/test/.packages');
+    newFile(path, content: '''
+bbb:${toUriStr('/packages/bbb/lib')}
+''');
+
+    var packages = parsePackagesFile(resourceProvider, getFile(path));
+
+    _assertPackage(
+      packages,
+      name: 'bbb',
+      expectedLibPath: '/packages/bbb/lib',
+      expectedVersion: null,
+    );
+  }
+
+  test_parsePackagesFile_packageConfig() {
+    var path = convertPath('/test/.dart_tool/package_config.json');
+    newFile(path, content: '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "aaa",
+      "rootUri": "${toUriStr('/packages/aaa')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    }
+  ]
+}
+''');
+
+    var packages = parsePackagesFile(resourceProvider, getFile(path));
+
+    _assertPackage(
+      packages,
+      name: 'aaa',
+      expectedLibPath: '/packages/aaa/lib',
+      expectedVersion: Version(2, 3, 0),
+    );
+  }
+
+  test_parsePackagesFile_packageConfig_fromDotPackages() {
+    newFile('/test/.dart_tool/package_config.json', content: '''
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "aaa",
+      "rootUri": "${toUriStr('/packages/aaa')}",
+      "packageUri": "lib/",
+      "languageVersion": "2.3"
+    }
+  ]
+}
+''');
+
+    var dotPackagesPath = '/test/.packages';
+    newFile(dotPackagesPath, content: '''
+bbb:${toUriStr('/packages/bbb/lib')}
+''');
+
+    var packages = parsePackagesFile(
+      resourceProvider,
+      getFile(dotPackagesPath),
+    );
+
+    _assertPackage(
+      packages,
+      name: 'aaa',
+      expectedLibPath: '/packages/aaa/lib',
+      expectedVersion: Version(2, 3, 0),
+    );
+  }
+
   void _assertPackage(
     Packages packages, {
     @required String name,

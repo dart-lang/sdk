@@ -190,7 +190,7 @@ class ContextBuilder {
     String filePath = builderOptions.defaultPackageFilePath;
     if (filePath != null) {
       File configFile = resourceProvider.getFile(filePath);
-      return parseDotPackagesFile(resourceProvider, configFile);
+      return parsePackagesFile(resourceProvider, configFile);
     }
     String directoryPath = builderOptions.defaultPackagesDirectoryPath;
     if (directoryPath != null) {
@@ -233,7 +233,7 @@ class ContextBuilder {
     Resource location = _findPackagesLocation(path);
     if (location is File) {
       try {
-        return parseDotPackagesFile(resourceProvider, location);
+        return parsePackagesFile(resourceProvider, location);
       } catch (_) {
         return Packages.empty;
       }
@@ -462,6 +462,13 @@ class ContextBuilder {
     var resource = resourceProvider.getResource(path);
     while (resource != null) {
       if (resource is Folder) {
+        var packageConfigFile = resource
+            .getChildAssumingFolder('.dart_tool')
+            .getChildAssumingFile('package_config.json');
+        if (packageConfigFile.exists) {
+          return packageConfigFile;
+        }
+
         var dotPackagesFile = resource.getChildAssumingFile('.packages');
         if (dotPackagesFile.exists) {
           return dotPackagesFile;

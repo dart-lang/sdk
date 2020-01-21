@@ -142,7 +142,7 @@ class GnWorkspace extends Workspace {
 
         var packageMap = <String, List<Folder>>{};
         for (var packagesFile in packagesFiles) {
-          var packages = parseDotPackagesFile(provider, packagesFile);
+          var packages = parsePackagesFile(provider, packagesFile);
           for (var package in packages.packages) {
             packageMap[package.name] = [package.libFolder];
           }
