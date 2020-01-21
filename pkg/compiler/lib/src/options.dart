@@ -366,6 +366,19 @@ class CompilerOptions implements DiagnosticOptions {
         _extractExperiments(options, onError: onError, onWarning: onWarning);
     if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       platformBinaries ??= fe.computePlatformBinariesLocation();
+    } else {
+      // TODO(sigmund): change these defaults before we unfork the sdk.
+      // To unfork the plan is to accept the same platform files regardless of
+      // the experiment flag (it will be enabled in the sdk regardless).
+      if (_hasOption(options, Flags.testMode) &&
+          languageExperiments[fe.ExperimentalFlag.nonNullable]) {
+        var experimentWithoutNullability = Map.of(languageExperiments);
+        experimentWithoutNullability[fe.ExperimentalFlag.nonNullable] = false;
+        if (equalMaps(
+            experimentWithoutNullability, fe.defaultExperimentalFlags)) {
+          platformBinaries ??= fe.computePlatformBinariesLocation();
+        }
+      }
     }
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri

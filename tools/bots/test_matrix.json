@@ -140,6 +140,43 @@
       "xcodebuild/ReleaseX64/dart2js_platform.dill",
       "xcodebuild/ReleaseX64/dart2js_platform_strong.dill"
     ],
+    "dart2js_hostasserts_nnbd": [
+      ".packages",
+      "out/ReleaseX64NNBD/dart",
+      "out/ReleaseX64NNBD/dart2js_platform.dill",
+      "out/ReleaseX64NNBD/dart2js_platform_strong.dill",
+      "pkg/",
+      "runtime/tests/",
+      "samples-dev/",
+      "samples/",
+      "sdk/",
+      "sdk_nnbd/",
+      "tests/angular/",
+      "tests/co19_2/co19_2-analyzer.status",
+      "tests/co19_2/co19_2-co19.status",
+      "tests/co19_2/co19_2-dart2js.status",
+      "tests/co19_2/co19_2-dartdevc.status",
+      "tests/co19_2/co19_2-kernel.status",
+      "tests/co19_2/co19_2-runtime.status",
+      "tests/compiler/",
+      "tests/corelib_2/",
+      "tests/dart/",
+      "tests/kernel/",
+      "tests/language_2/",
+      "tests/lib_2/",
+      "tests/light_unittest.dart",
+      "tests/search/",
+      "tests/standalone_2/",
+      "tests/ffi/",
+      "third_party/d8/",
+      "third_party/pkg/",
+      "third_party/pkg_tested/",
+      "third_party/requirejs/",
+      "tools/",
+      "xcodebuild/ReleaseX64NNBD/dart",
+      "xcodebuild/ReleaseX64NNBD/dart2js_platform.dill",
+      "xcodebuild/ReleaseX64NNBD/dart2js_platform_strong.dill"
+    ],
     "front-end": [
       ".packages",
       "out/ReleaseIA32/",
@@ -370,6 +407,13 @@
       "options": {
         "use-sdk": true
     }},
+    "dart2js-weak-(linux|mac|win)-x64-d8": {
+      "options": {
+        "builder-tag": "dart2js-weak",
+        "enable-experiment": ["non-nullable"],
+        "dart2js-options": ["--no-runtime-null-safety"],
+        "use-sdk": true
+    }},
     "dart2js-(linux|win)-firefox": {
       "options": {
         "use-sdk": true
@@ -406,6 +450,13 @@
     }},
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
       "options": {
+        "host-checked": true
+    }},
+    "dart2js-hostasserts-weak-(linux|mac|win)-x64-d8": {
+      "options": {
+        "builder-tag": "dart2js-weak",
+        "enable-experiment": ["non-nullable"],
+        "dart2js-options": ["--no-runtime-null-safety"],
         "host-checked": true
     }},
     "dart2js-old-rti-(linux|mac|win)-x64-d8": {
@@ -578,7 +629,6 @@
         "use-sdk": true,
         "enable-experiment": ["non-nullable"],
         "enable-asserts": true
-
     }},
     "cfe-(linux|mac|win)": {
       "options": {
@@ -1998,8 +2048,32 @@
           "script": "tools/build.py",
           "arguments": [
             "--nnbd",
-            "create_sdk"
+            "create_sdk",
+            "dart2js_bot"
           ]
+        },
+        {
+          "name": "check dart nnbd sdk for static errors",
+          "script": "out/ReleaseX64NNBD/dart-sdk/bin/dart",
+          "arguments": [
+            "--enable-experiment=non-nullable",
+            "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
+            "--target",
+            "dart2js_server"
+          ]
+        },
+        {
+          "name": "dart2js nnbd weak tests",
+          "arguments": [
+            "-ndart2js-hostasserts-weak-linux-x64-d8",
+            "--dart2js-batch",
+            "language_2",
+            "corelib_2",
+            "dart2js_extra",
+            "dart2js_native"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_hostasserts_nnbd"
         }
       ]
     },

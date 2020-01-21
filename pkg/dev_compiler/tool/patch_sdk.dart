@@ -261,8 +261,16 @@ class PatchApplier extends GeneralizingAstVisitor {
     var name = _qualifiedName(node);
     var patchNode = patch.patches[name];
     if (patchNode == null) {
-      print('warning: patch not found for $name: $node');
-      patchWasMissing = true;
+      // *.fromEnvironment are left unpatched by dart2js and are handled via
+      // codegen.
+      if (name != 'bool.fromEnvironment' &&
+          name != 'int.fromEnvironment' &&
+          name != 'String.fromEnvironment') {
+        print('warning: patch not found for $name: $node');
+        // TODO(sigmund): delete this fail logic? Rather than emit an empty
+        // file, it's more useful to emit a file with missing patches.
+        // patchWasMissing = true;
+      }
       return;
     }
 

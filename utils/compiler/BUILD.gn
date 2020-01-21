@@ -34,7 +34,6 @@ prebuilt_dart_action("dart2js_create_snapshot_entry") {
   script = "create_snapshot_entry.dart"
 
   inputs = [
-    "../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart",
     "$target_gen_dir/dart2js_files.stamp",
     "../../tools/make_version.py",
     "../../tools/VERSION",
@@ -69,8 +68,13 @@ application_snapshot("dart2js") {
   training_args = [
     "--packages=" + rebase_path("../../.packages"),
     "--libraries-spec=" + rebase_path("../../$libraries_specification_path"),
-    rebase_path("$target_gen_dir/dart2js.dart"),
   ]
+
+  if (use_nnbd) {
+    training_args += [ "--enable-experiment=non-nullable" ]
+  }
+
+  training_args += [ rebase_path("$target_gen_dir/dart2js.dart") ]
 }
 
 compile_platform("compile_dart2js_platform") {
@@ -88,6 +92,10 @@ compile_platform("compile_dart2js_platform") {
     "--target=dart2js",
     "dart:core",
   ]
+
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
 }
 compile_platform("compile_dart2js_server_platform") {
   single_root_scheme = "org-dartlang-sdk"
@@ -104,4 +112,8 @@ compile_platform("compile_dart2js_server_platform") {
     "--target=dart2js_server",
     "dart:core",
   ]
+
+  if (use_nnbd) {
+    args += [ "--enable-experiment=non-nullable" ]
+  }
 }
