@@ -26,6 +26,9 @@ class EditPlanTest extends AbstractSingleUnitTest {
 
   EditPlanner _planner;
 
+  @override
+  bool get analyzeWithNnbd => true;
+
   EditPlanner get planner {
     if (_planner == null) createPlanner();
     return _planner;
@@ -229,16 +232,16 @@ void f() {
   Future<void> test_remove_class_member() async {
     await analyze('''
 class C {
-  int x;
-  int y;
-  int z;
+  int? x;
+  int? y;
+  int? z;
 }
 ''');
     var declaration = findNode.fieldDeclaration('y');
     var changes = checkPlan(planner.removeNode(declaration), '''
 class C {
-  int x;
-  int z;
+  int? x;
+  int? z;
 }
 ''');
     expect(changes.keys, [declaration.offset - 2]);
@@ -297,13 +300,13 @@ enum E {
   Future<void> test_remove_field_declaration() async {
     await analyze('''
 class C {
-  int x, y, z;
+  int? x, y, z;
 }
 ''');
     var declaration = findNode.simple('y').parent;
     var changes = checkPlan(planner.removeNode(declaration), '''
 class C {
-  int x, z;
+  int? x, z;
 }
 ''');
     expect(changes.keys, [declaration.offset]);
@@ -740,12 +743,12 @@ import 'dart:math';
   Future<void> test_remove_type_argument() async {
     await analyze('''
 class C<T, U, V> {}
-C<int, double, String> c;
+C<int, double, String>? c;
 ''');
     var typeArgument = findNode.simple('double').parent;
     var changes = checkPlan(planner.removeNode(typeArgument), '''
 class C<T, U, V> {}
-C<int, String> c;
+C<int, String>? c;
 ''');
     expect(changes.keys, [typeArgument.offset]);
   }
@@ -758,9 +761,9 @@ C<int, String> c;
   }
 
   Future<void> test_remove_variable_declaration() async {
-    await analyze('int x, y, z;');
+    await analyze('int? x, y, z;');
     var declaration = findNode.simple('y').parent;
-    var changes = checkPlan(planner.removeNode(declaration), 'int x, z;');
+    var changes = checkPlan(planner.removeNode(declaration), 'int? x, z;');
     expect(changes.keys, [declaration.offset]);
   }
 
