@@ -1202,8 +1202,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
         // Only intrinsify getter if the field cannot contain a mutable double.
         // Reading from a mutable double box requires allocating a fresh double.
         if (field.is_instance() && !field.needs_load_guard() &&
-            !field.is_late() &&
-            (FLAG_precompiled_mode || !IsPotentialUnboxedField(field))) {
+            !field.is_late() && !IsPotentialUnboxedField(field)) {
           SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
           GenerateGetterIntrinsic(compiler::target::Field::OffsetOf(field));
           SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
@@ -1221,8 +1220,7 @@ bool FlowGraphCompiler::TryIntrinsifyHelper() {
           field = field.CloneFromOriginal();
 #endif
 
-          if (field.is_instance() &&
-              (FLAG_precompiled_mode || field.guarded_cid() == kDynamicCid)) {
+          if (field.is_instance() && field.guarded_cid() == kDynamicCid) {
             SpecialStatsBegin(CombinedCodeStatistics::kTagIntrinsics);
             GenerateSetterIntrinsic(compiler::target::Field::OffsetOf(field));
             SpecialStatsEnd(CombinedCodeStatistics::kTagIntrinsics);
