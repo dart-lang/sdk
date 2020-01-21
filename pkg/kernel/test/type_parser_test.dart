@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart" show Expect;
+import 'package:expect/expect.dart' show Expect;
 
-import "type_parser.dart";
+import 'package:kernel/testing/type_parser.dart';
 
 testParse(String text) {
   Expect.stringEquals(text.trim(), "${parse(text).join('\n')}");

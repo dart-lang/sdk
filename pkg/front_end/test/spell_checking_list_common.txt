@@ -350,6 +350,7 @@ calculates
 calculation
 calculator
 call
+callable
 callback
 called
 caller
@@ -3073,6 +3074,7 @@ updates
 updating
 upon
 upper
+uppercase
 upwards
 uri
 uris

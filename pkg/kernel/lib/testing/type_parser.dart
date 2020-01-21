@@ -2,16 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:_fe_analyzer_shared/src/parser/type_info_impl.dart"
-    show splitCloser;
-
-import "package:_fe_analyzer_shared/src/scanner/scanner.dart"
-    show scanString, ScannerConfiguration, Token;
-
-import "package:front_end/src/fasta/problems.dart";
-
 import 'package:kernel/ast.dart' show Nullability;
-import 'package:kernel/text/text_serialization_verifier.dart';
 
 abstract class ParsedType {
   R accept<R, A>(Visitor<R, A> visitor, [A a]);
@@ -38,8 +29,8 @@ Nullability interpretParsedNullability(ParsedNullability parsedNullability,
     case ParsedNullability.omitted:
       return ifOmitted;
   }
-  return unhandled(
-      "$parsedNullability", "interpretParsedNullability", noOffset, noUri);
+  return throw new UnsupportedError(
+      "$parsedNullability in interpretParsedNullability");
 }
 
 String parsedNullabilityToString(ParsedNullability parsedNullability) {
@@ -51,8 +42,8 @@ String parsedNullabilityToString(ParsedNullability parsedNullability) {
     case ParsedNullability.omitted:
       return '';
   }
-  return unhandled(
-      "$parsedNullability", "interpretParsedNullability", noOffset, noUri);
+  return throw new UnsupportedError(
+      "$parsedNullability parsedNullabilityToString");
 }
 
 class ParsedInterfaceType extends ParsedType {
@@ -290,6 +281,18 @@ class ParsedNamedArgument {
   }
 }
 
+class Token {
+  final int charOffset;
+  final String text;
+  final bool isIdentifier;
+
+  Token next;
+
+  Token(this.charOffset, this.text, {this.isIdentifier: false});
+
+  bool get isEof => text == null;
+}
+
 class Parser {
   Token peek;
 
@@ -309,15 +312,15 @@ class Parser {
   }
 
   void expect(String string) {
-    if (!identical(string, peek.stringValue)) {
+    if (string != peek.text) {
       throw "Expected '$string', "
-          "but got '${peek.lexeme}'\n${computeLocation()}";
+          "but got '${peek.text}'\n${computeLocation()}";
     }
     advance();
   }
 
   bool optional(String value) {
-    return identical(value, peek.stringValue);
+    return value == peek.text;
   }
 
   bool optionalAdvance(String value) {
@@ -361,7 +364,6 @@ class Parser {
             advance();
             arguments.add(parseType());
           }
-          peek = splitCloser(peek) ?? peek;
           expect(">");
         }
         ParsedNullability parsedNullability = parseNullability();
@@ -395,9 +397,9 @@ class Parser {
   String parseName() {
     if (!peek.isIdentifier) {
       throw "Expected a name, "
-          "but got '${peek.stringValue}'\n${computeLocation()}";
+          "but got '${peek.text}'\n${computeLocation()}";
     }
-    String result = peek.lexeme;
+    String result = peek.text;
     advance();
     return result;
   }
@@ -439,7 +441,6 @@ class Parser {
       do {
         typeVariables.add(parseTypeVariable());
       } while (optionalAdvance(","));
-      peek = splitCloser(peek) ?? peek;
       expect(">");
     }
     return typeVariables;
@@ -498,10 +499,86 @@ class Parser {
   }
 }
 
+final int codeUnitUppercaseA = 'A'.codeUnitAt(0);
+final int codeUnitUppercaseZ = 'Z'.codeUnitAt(0);
+
+bool isUppercaseLetter(int c) =>
+    codeUnitUppercaseA <= c && c <= codeUnitUppercaseZ;
+
+final int codeUnitLowercaseA = 'a'.codeUnitAt(0);
+final int codeUnitLowercaseZ = 'z'.codeUnitAt(0);
+
+bool isLowercaseLetter(int c) =>
+    codeUnitLowercaseA <= c && c <= codeUnitLowercaseZ;
+
+final int codeUnitUnderscore = '_'.codeUnitAt(0);
+
+bool isUnderscore(int c) => c == codeUnitUnderscore;
+
+final int codeUnit0 = '0'.codeUnitAt(0);
+final int codeUnit9 = '9'.codeUnitAt(0);
+
+bool isNumber(int c) => codeUnit0 <= c && c <= codeUnit9;
+
+bool isNameStart(int c) =>
+    isUppercaseLetter(c) || isLowercaseLetter(c) || isUnderscore(c);
+
+bool isNamePart(int c) => isNameStart(c) || isNumber(c);
+
+final int codeUnitLineFeed = '\n'.codeUnitAt(0);
+final int codeUnitCarriageReturn = '\r'.codeUnitAt(0);
+final int codeUnitTab = '\t'.codeUnitAt(0);
+final int codeUnitSpace = ' '.codeUnitAt(0);
+
+bool isWhiteSpace(int c) =>
+    c == codeUnitCarriageReturn ||
+    c == codeUnitLineFeed ||
+    c == codeUnitTab ||
+    c == codeUnitSpace;
+
+Token scanString(String text) {
+  int offset = 0;
+  Token first;
+  Token current;
+  while (offset < text.length) {
+    int c = text.codeUnitAt(offset);
+    if (isWhiteSpace(c)) {
+      offset++;
+      continue;
+    }
+    Token token;
+    if (isNameStart(c)) {
+      int startOffset = offset;
+      offset++;
+      while (offset < text.length) {
+        int c = text.codeUnitAt(offset);
+        if (isNamePart(c)) {
+          offset++;
+        } else {
+          break;
+        }
+      }
+      token = new Token(startOffset, text.substring(startOffset, offset),
+          isIdentifier: true);
+    } else {
+      token = new Token(offset, text.substring(offset, offset + 1));
+      offset += 1;
+    }
+    first ??= token;
+    current?.next = token;
+    current = token;
+  }
+  Token eof = new Token(offset, null);
+  if (current == null) {
+    current = first = eof;
+  } else {
+    current.next = eof;
+  }
+  return first;
+}
+
 List<ParsedType> parse(String text) {
-  Parser parser = new Parser(
-      scanString(text, configuration: ScannerConfiguration.nonNullable).tokens,
-      text);
+  Parser parser = new Parser(scanString(text), text);
   List<ParsedType> types = <ParsedType>[];
   while (!parser.atEof) {
     types.add(parser.parseType());
@@ -510,10 +587,10 @@ List<ParsedType> parse(String text) {
 }
 
 List<ParsedTypeVariable> parseTypeVariables(String text) {
-  Parser parser = new Parser(scanString(text).tokens, text);
+  Parser parser = new Parser(scanString(text), text);
   List<ParsedType> result = parser.parseTypeVariablesOpt();
   if (!parser.atEof) {
-    throw "Expected EOF, but got '${parser.peek.stringValue}'\n"
+    throw "Expected EOF, but got '${parser.peek.text}'\n"
         "${parser.computeLocation()}";
   }
   return result;

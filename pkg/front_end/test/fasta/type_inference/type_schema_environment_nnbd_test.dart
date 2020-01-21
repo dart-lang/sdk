@@ -7,12 +7,11 @@ import 'package:front_end/src/fasta/type_inference/type_schema_environment.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/testing/type_parser_environment.dart';
+import 'package:kernel/testing/mock_sdk.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import '../types/kernel_type_parser.dart';
-import '../types/mock_sdk.dart';
-import '../types/type_parser.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -28,7 +27,7 @@ class TypeSchemaEnvironmentTest {
 
   TypeSchemaEnvironment env;
 
-  KernelEnvironment kernelEnvironment;
+  TypeParserEnvironment typeParserEnvironment;
 
   Library get testLib => component.libraries.single;
 
@@ -44,21 +43,17 @@ class TypeSchemaEnvironmentTest {
   ///
   /// If [environment] is passed it's used to resolve the type terms in [text].
   /// If [typeParameters] are passed, they are used to extend
-  /// [kernelEnvironment] to resolve the type terms in [text].  Not more than
-  /// one of [environment] or [typeParameters] should be passed in.
+  /// [typeParserEnvironment] to resolve the type terms in [text].  Not more
+  /// than one of [environment] or [typeParameters] should be passed in.
   DartType toType(String text,
-      {KernelEnvironment environment, String typeParameters}) {
+      {TypeParserEnvironment environment, String typeParameters}) {
     assert(environment == null || typeParameters == null);
     environment ??= extend(typeParameters);
-    return environment.kernelFromParsedType(parse(text).single);
+    return environment.parseType(text);
   }
 
-  KernelEnvironment extend(String typeParameters) {
-    if (typeParameters?.isEmpty ?? true) return kernelEnvironment;
-    return const KernelFromParsedType()
-        .computeTypeParameterEnvironment(
-            parseTypeVariables("<$typeParameters>"), kernelEnvironment)
-        .environment;
+  TypeParserEnvironment extend(String typeParameters) {
+    return typeParserEnvironment.extendWithTypeParameters(typeParameters);
   }
 
   void test_addLowerBound() {
@@ -275,7 +270,7 @@ class TypeSchemaEnvironmentTest {
 
   void testLower(String first, String second, String expected,
       {String typeParameters}) {
-    KernelEnvironment environment = extend(typeParameters);
+    TypeParserEnvironment environment = extend(typeParameters);
     DartType firstType = toType(first, environment: environment);
     DartType secondType = toType(second, environment: environment);
     DartType expectedType = toType(expected, environment: environment);
@@ -288,7 +283,7 @@ class TypeSchemaEnvironmentTest {
 
   void testUpper(String first, String second, String expected,
       {String typeParameters}) {
-    KernelEnvironment environment = extend(typeParameters);
+    TypeParserEnvironment environment = extend(typeParameters);
     DartType firstType = toType(first, environment: environment);
     DartType secondType = toType(second, environment: environment);
     DartType expectedType = toType(expected, environment: environment);
@@ -1175,13 +1170,26 @@ class TypeSchemaEnvironmentTest {
 
   void _initialize(String testSdk) {
     Uri uri = Uri.parse("dart:core");
-    kernelEnvironment = new KernelEnvironment(uri, uri);
+    typeParserEnvironment = new TypeSchemaTypeParserEnvironment(uri);
     Library library =
-        parseLibrary(uri, mockSdk + testSdk, environment: kernelEnvironment)
+        parseLibrary(uri, mockSdk + testSdk, environment: typeParserEnvironment)
           ..isNonNullableByDefault = true;
     component = new Component(libraries: <Library>[library]);
     coreTypes = new CoreTypes(component);
     env = new TypeSchemaEnvironment(
         coreTypes, new ClassHierarchy(component, coreTypes));
+  }
+}
+
+class TypeSchemaTypeParserEnvironment extends TypeParserEnvironment {
+  TypeSchemaTypeParserEnvironment(Uri uri) : super(uri, uri);
+
+  DartType getPredefinedNamedType(String name) {
+    if (name == "unknown") {
+      // Don't return a const object to ensure we test implementations that use
+      // identical.
+      return new UnknownType();
+    }
+    return null;
   }
 }

@@ -12,6 +12,8 @@ import "package:kernel/core_types.dart" show CoreTypes;
 
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 
+import 'package:kernel/testing/type_parser_environment.dart' show parseComponent;
+
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
 
@@ -30,8 +32,6 @@ import "package:front_end/src/fasta/kernel/kernel_builder.dart"
     show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
-
-import "kernel_type_parser.dart" show parseComponent;
 
 const String expectedHierarchy = """
 Object:

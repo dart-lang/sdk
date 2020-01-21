@@ -243,6 +243,7 @@ decreases
 deemed
 deepest
 deeply
+def
 degrades
 degree
 del

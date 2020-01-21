@@ -6,8 +6,7 @@ import "package:expect/expect.dart" show Expect;
 
 import 'package:kernel/ast.dart' hide MapEntry;
 import 'package:kernel/src/nnbd_top_merge.dart';
-
-import 'type_test_helper.dart';
+import 'package:kernel/testing/type_parser_environment.dart';
 
 const Map<String, dynamic> data = {
   'Object? vs Object?': 'Object?',

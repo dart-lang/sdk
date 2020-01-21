@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/type_inference/type_schema.dart';
 import "package:kernel/ast.dart"
     show
         BottomType,
@@ -26,13 +25,15 @@ import "package:kernel/ast.dart"
         VoidType,
         setParents;
 
-import "package:kernel/src/bounds_checks.dart" show calculateBounds;
+import 'package:kernel/core_types.dart' show CoreTypes;
 
-import "mock_sdk.dart" show mockSdk;
+import 'package:kernel/src/bounds_checks.dart' show calculateBounds;
 
-import "type_parser.dart" as type_parser show parse;
+import 'package:kernel/testing/mock_sdk.dart' show mockSdk;
 
-import "type_parser.dart"
+import 'package:kernel/testing/type_parser.dart' as type_parser show parse;
+
+import 'package:kernel/testing/type_parser.dart'
     show
         ParsedClass,
         ParsedIntersectionType,
@@ -43,37 +44,40 @@ import "type_parser.dart"
         ParsedTypedef,
         ParsedVoidType,
         Visitor;
-import 'type_parser.dart';
+import 'package:kernel/testing/type_parser.dart';
 
 Component parseComponent(String source, Uri uri) {
   Uri coreUri = Uri.parse("dart:core");
-  KernelEnvironment coreEnvironment = new KernelEnvironment(coreUri, coreUri);
+  TypeParserEnvironment coreEnvironment =
+      new TypeParserEnvironment(coreUri, coreUri);
   Library coreLibrary =
       parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
-  KernelEnvironment libraryEnvironment =
-      new KernelEnvironment(uri, uri).extend(coreEnvironment.declarations);
+  TypeParserEnvironment libraryEnvironment = new TypeParserEnvironment(uri, uri)
+      ._extend(coreEnvironment._declarations);
   Library library = parseLibrary(uri, source, environment: libraryEnvironment);
   library.name = "lib";
   return new Component(libraries: <Library>[coreLibrary, library]);
 }
 
 Library parseLibrary(Uri uri, String text,
-    {Uri fileUri, KernelEnvironment environment}) {
+    {Uri fileUri, TypeParserEnvironment environment}) {
   fileUri ??= uri;
-  environment ??= new KernelEnvironment(uri, fileUri);
+  environment ??= new TypeParserEnvironment(uri, fileUri);
   Library library =
       new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."));
   List<ParsedType> types = type_parser.parse(text);
   for (ParsedType type in types) {
     if (type is ParsedClass) {
       String name = type.name;
-      environment[name] = new Class(fileUri: fileUri, name: name)
-        ..typeParameters.addAll(
-            new List<TypeParameter>.filled(type.typeVariables.length, null));
+      environment._registerDeclaration(
+          name,
+          new Class(fileUri: fileUri, name: name)
+            ..typeParameters.addAll(new List<TypeParameter>.filled(
+                type.typeVariables.length, null)));
     }
   }
   for (ParsedType type in types) {
-    Node node = environment.kernelFromParsedType(type);
+    Node node = environment._kernelFromParsedType(type);
     if (node is Class) {
       library.addClass(node);
     } else if (node is Typedef) {
@@ -85,14 +89,42 @@ Library parseLibrary(Uri uri, String text,
   return library;
 }
 
-class KernelEnvironment {
+class Env {
+  Component component;
+
+  CoreTypes coreTypes;
+
+  TypeParserEnvironment _libraryEnvironment;
+
+  Env(String source) {
+    Uri libraryUri = Uri.parse('memory:main.dart');
+    Uri coreUri = Uri.parse("dart:core");
+    TypeParserEnvironment coreEnvironment =
+        new TypeParserEnvironment(coreUri, coreUri);
+    Library coreLibrary =
+        parseLibrary(coreUri, mockSdk, environment: coreEnvironment);
+    _libraryEnvironment = new TypeParserEnvironment(libraryUri, libraryUri)
+        ._extend(coreEnvironment._declarations);
+    Library library =
+        parseLibrary(libraryUri, source, environment: _libraryEnvironment);
+    library.name = "lib";
+    component = new Component(libraries: <Library>[coreLibrary, library]);
+    coreTypes = new CoreTypes(component);
+  }
+
+  DartType parseType(String text) {
+    return _libraryEnvironment.parseType(text);
+  }
+}
+
+class TypeParserEnvironment {
   final Uri uri;
 
   final Uri fileUri;
 
-  final Map<String, TreeNode> declarations = <String, TreeNode>{};
+  final Map<String, TreeNode> _declarations = <String, TreeNode>{};
 
-  final KernelEnvironment parent;
+  final TypeParserEnvironment _parent;
 
   /// Collects types to set their nullabilities after type parameters are ready.
   ///
@@ -106,47 +138,72 @@ class KernelEnvironment {
   /// updated when the bound of the [TypeParameter] is ready.
   final List<TypeParameterType> pendingNullabilities = <TypeParameterType>[];
 
-  KernelEnvironment(this.uri, this.fileUri, [this.parent]);
+  TypeParserEnvironment(this.uri, this.fileUri, [this._parent]);
 
-  Node kernelFromParsedType(ParsedType type) {
-    Node node = type.accept(const KernelFromParsedType(), this);
+  Node _kernelFromParsedType(ParsedType type) {
+    Node node = type.accept(const _KernelFromParsedType(), this);
     return node;
+  }
+
+  DartType parseType(String text) {
+    return _kernelFromParsedType(type_parser.parse(text).single);
   }
 
   bool isObject(String name) => name == "Object" && "$uri" == "dart:core";
 
-  Class get objectClass => this["Object"];
+  Class get objectClass => lookupDeclaration("Object");
 
-  TreeNode operator [](String name) {
-    TreeNode result = declarations[name];
-    if (result == null && parent != null) {
-      return parent[name];
+  TreeNode lookupDeclaration(String name) {
+    TreeNode result = _declarations[name];
+    if (result == null && _parent != null) {
+      return _parent.lookupDeclaration(name);
     }
     if (result == null) throw "Not found: $name";
     return result;
   }
 
-  void operator []=(String name, TreeNode declaration) {
-    TreeNode existing = declarations[name];
+  TreeNode _registerDeclaration(String name, TreeNode declaration) {
+    TreeNode existing = _declarations[name];
     if (existing != null) {
       throw "Duplicated declaration: $name";
     }
-    declarations[name] = declaration;
+    return _declarations[name] = declaration;
   }
 
-  KernelEnvironment extend(Map<String, TreeNode> declarations) {
-    return new KernelEnvironment(uri, fileUri, this)
-      ..declarations.addAll(declarations);
+  TypeParserEnvironment _extend(Map<String, TreeNode> declarations) {
+    return new TypeParserEnvironment(uri, fileUri, this)
+      .._declarations.addAll(declarations);
+  }
+
+  TypeParserEnvironment extendWithTypeParameters(String typeParameters) {
+    if (typeParameters?.isEmpty ?? true) return this;
+    return const _KernelFromParsedType()
+        .computeTypeParameterEnvironment(
+            parseTypeVariables("<${typeParameters}>"), this)
+        .environment;
+  }
+
+  /// Returns the predefined type by the [name], if any.
+  ///
+  /// Use this in subclasses to add support for additional predefined types.
+  DartType getPredefinedNamedType(String name) {
+    if (_parent != null) {
+      return _parent.getPredefinedNamedType(name);
+    }
+    return null;
   }
 }
 
-class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
-  const KernelFromParsedType();
+class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
+  const _KernelFromParsedType();
 
   DartType visitInterfaceType(
-      ParsedInterfaceType node, KernelEnvironment environment) {
+      ParsedInterfaceType node, TypeParserEnvironment environment) {
     String name = node.name;
-    if (name == "dynamic") {
+    DartType predefined = environment.getPredefinedNamedType(name);
+    if (predefined != null) {
+      return predefined;
+    } else if (name == "dynamic") {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new DynamicType();
@@ -162,18 +219,14 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       // Don't return a const object to ensure we test implementations that use
       // identical.
       return new NeverType(interpretParsedNullability(node.parsedNullability));
-    } else if (name == "unknown") {
-      // Don't return a const object to ensure we test implementations that use
-      // identical.
-      return new UnknownType();
     }
-    TreeNode declaration = environment[name];
+    TreeNode declaration = environment.lookupDeclaration(name);
     List<ParsedType> arguments = node.arguments;
     List<DartType> kernelArguments =
         new List<DartType>.filled(arguments.length, null);
     for (int i = 0; i < arguments.length; i++) {
       kernelArguments[i] =
-          arguments[i].accept<Node, KernelEnvironment>(this, environment);
+          arguments[i].accept<Node, TypeParserEnvironment>(this, environment);
     }
     if (declaration is Class) {
       if (declaration.name == 'Null' &&
@@ -220,9 +273,9 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
     }
   }
 
-  Class visitClass(ParsedClass node, KernelEnvironment environment) {
+  Class visitClass(ParsedClass node, TypeParserEnvironment environment) {
     String name = node.name;
-    Class cls = environment[name];
+    Class cls = environment.lookupDeclaration(name);
     ParameterEnvironment parameterEnvironment =
         computeTypeParameterEnvironment(node.typeVariables, environment);
     List<TypeParameter> parameters = parameterEnvironment.parameters;
@@ -231,9 +284,9 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       ..clear()
       ..addAll(parameters);
     {
-      KernelEnvironment environment = parameterEnvironment.environment;
-      InterfaceType type =
-          node.supertype?.accept<Node, KernelEnvironment>(this, environment);
+      TypeParserEnvironment environment = parameterEnvironment.environment;
+      InterfaceType type = node.supertype
+          ?.accept<Node, TypeParserEnvironment>(this, environment);
       if (type == null) {
         if (!environment.isObject(name)) {
           cls.supertype = environment.objectClass.asRawSupertype;
@@ -241,31 +294,31 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       } else {
         cls.supertype = toSupertype(type);
       }
-      InterfaceType mixedInType =
-          node.mixedInType?.accept<Node, KernelEnvironment>(this, environment);
+      InterfaceType mixedInType = node.mixedInType
+          ?.accept<Node, TypeParserEnvironment>(this, environment);
       if (mixedInType != null) {
         cls.mixedInType = toSupertype(mixedInType);
       }
       List<ParsedType> interfaces = node.interfaces;
       for (int i = 0; i < interfaces.length; i++) {
-        cls.implementedTypes.add(toSupertype(
-            interfaces[i].accept<Node, KernelEnvironment>(this, environment)));
+        cls.implementedTypes.add(toSupertype(interfaces[i]
+            .accept<Node, TypeParserEnvironment>(this, environment)));
       }
     }
     return cls;
   }
 
-  Typedef visitTypedef(ParsedTypedef node, KernelEnvironment environment) {
+  Typedef visitTypedef(ParsedTypedef node, TypeParserEnvironment environment) {
     String name = node.name;
-    Typedef def = environment[name] =
-        new Typedef(name, null, fileUri: environment.fileUri);
+    Typedef def = environment._registerDeclaration(
+        name, new Typedef(name, null, fileUri: environment.fileUri));
     ParameterEnvironment parameterEnvironment =
         computeTypeParameterEnvironment(node.typeVariables, environment);
     def.typeParameters.addAll(parameterEnvironment.parameters);
     DartType type;
     {
-      KernelEnvironment environment = parameterEnvironment.environment;
-      type = node.type.accept<Node, KernelEnvironment>(this, environment);
+      TypeParserEnvironment environment = parameterEnvironment.environment;
+      type = node.type.accept<Node, TypeParserEnvironment>(this, environment);
       if (type is FunctionType) {
         FunctionType f = type;
         type = new FunctionType(
@@ -286,27 +339,29 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
   }
 
   FunctionType visitFunctionType(
-      ParsedFunctionType node, KernelEnvironment environment) {
+      ParsedFunctionType node, TypeParserEnvironment environment) {
     ParameterEnvironment parameterEnvironment =
         computeTypeParameterEnvironment(node.typeVariables, environment);
     List<DartType> positionalParameters = <DartType>[];
     List<NamedType> namedParameters = <NamedType>[];
     DartType returnType;
     {
-      KernelEnvironment environment = parameterEnvironment.environment;
-      returnType =
-          node.returnType?.accept<Node, KernelEnvironment>(this, environment);
+      TypeParserEnvironment environment = parameterEnvironment.environment;
+      returnType = node.returnType
+          ?.accept<Node, TypeParserEnvironment>(this, environment);
       for (ParsedType argument in node.arguments.required) {
-        positionalParameters
-            .add(argument.accept<Node, KernelEnvironment>(this, environment));
+        positionalParameters.add(
+            argument.accept<Node, TypeParserEnvironment>(this, environment));
       }
       for (ParsedType argument in node.arguments.positional) {
-        positionalParameters
-            .add(argument.accept<Node, KernelEnvironment>(this, environment));
+        positionalParameters.add(
+            argument.accept<Node, TypeParserEnvironment>(this, environment));
       }
       for (ParsedNamedArgument argument in node.arguments.named) {
-        namedParameters.add(new NamedType(argument.name,
-            argument.type.accept<Node, KernelEnvironment>(this, environment),
+        namedParameters.add(new NamedType(
+            argument.name,
+            argument.type
+                .accept<Node, TypeParserEnvironment>(this, environment),
             isRequired: argument.isRequired));
       }
     }
@@ -318,20 +373,22 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
         typeParameters: parameterEnvironment.parameters);
   }
 
-  VoidType visitVoidType(ParsedVoidType node, KernelEnvironment environment) {
+  VoidType visitVoidType(
+      ParsedVoidType node, TypeParserEnvironment environment) {
     return const VoidType();
   }
 
   TypeParameter visitTypeVariable(
-      ParsedTypeVariable node, KernelEnvironment environment) {
+      ParsedTypeVariable node, TypeParserEnvironment environment) {
     throw "not implemented: $node";
   }
 
   TypeParameterType visitIntersectionType(
-      ParsedIntersectionType node, KernelEnvironment environment) {
+      ParsedIntersectionType node, TypeParserEnvironment environment) {
     TypeParameterType type =
-        node.a.accept<Node, KernelEnvironment>(this, environment);
-    DartType bound = node.b.accept<Node, KernelEnvironment>(this, environment);
+        node.a.accept<Node, TypeParserEnvironment>(this, environment);
+    DartType bound =
+        node.b.accept<Node, TypeParserEnvironment>(this, environment);
     return new TypeParameterType.intersection(
         type.parameter, type.nullability, bound);
   }
@@ -341,7 +398,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
   }
 
   ParameterEnvironment computeTypeParameterEnvironment(
-      List<ParsedTypeVariable> typeVariables, KernelEnvironment environment) {
+      List<ParsedTypeVariable> typeVariables,
+      TypeParserEnvironment environment) {
     List<TypeParameter> typeParameters =
         new List<TypeParameter>.filled(typeVariables.length, null);
     Map<String, TypeParameter> typeParametersByName = <String, TypeParameter>{};
@@ -349,8 +407,8 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
       String name = typeVariables[i].name;
       typeParametersByName[name] = typeParameters[i] = new TypeParameter(name);
     }
-    KernelEnvironment nestedEnvironment =
-        environment.extend(typeParametersByName);
+    TypeParserEnvironment nestedEnvironment =
+        environment._extend(typeParametersByName);
     Class objectClass = environment.objectClass;
     for (int i = 0; i < typeVariables.length; i++) {
       ParsedType bound = typeVariables[i].bound;
@@ -362,7 +420,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
           ..defaultType = const DynamicType();
       } else {
         DartType type =
-            bound.accept<Node, KernelEnvironment>(this, nestedEnvironment);
+            bound.accept<Node, TypeParserEnvironment>(this, nestedEnvironment);
         typeParameter
           ..bound = type
           // The default type will be overridden below, but we need to set it
@@ -387,7 +445,7 @@ class KernelFromParsedType implements Visitor<Node, KernelEnvironment> {
 
 class ParameterEnvironment {
   final List<TypeParameter> parameters;
-  final KernelEnvironment environment;
+  final TypeParserEnvironment environment;
 
   const ParameterEnvironment(this.parameters, this.environment);
 }
