@@ -21,11 +21,13 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 
+import 'metrics_util.dart';
 import 'visitors.dart';
 
-main() {
+main() async {
   var analysisRoots = [''];
-  _computeCompletionMetrics(PhysicalResourceProvider.INSTANCE, analysisRoots);
+  await _computeCompletionMetrics(
+      PhysicalResourceProvider.INSTANCE, analysisRoots);
 }
 
 /// When enabled, expected, but missing completion tokens will be printed to
@@ -37,6 +39,9 @@ Future _computeCompletionMetrics(
     ResourceProvider resourceProvider, List<String> analysisRoots) async {
   int includedCount = 0;
   int notIncludedCount = 0;
+  Counter completionKindCounter = Counter('completion kind counter');
+  Counter completionElementKindCounter =
+      Counter('completion element kind counter');
 
   for (var root in analysisRoots) {
     print('Analyzing root: \"$root\"');
@@ -90,6 +95,11 @@ Future _computeCompletionMetrics(
                   print(
                       '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
                   print('');
+
+                  completionKindCounter
+                      .count(expectedCompletion.kind.toString());
+                  completionElementKindCounter
+                      .count(expectedCompletion.elementKind.toString());
                 }
               }
             }
@@ -105,7 +115,8 @@ Future _computeCompletionMetrics(
     final percentIncluded = includedCount / totalCompletionCount;
     final percentNotIncluded = 1 - percentIncluded;
 
-    print('');
+    completionKindCounter.printCounterValues();
+    completionElementKindCounter.printCounterValues();
     print('Summary for $root:');
     print('Total number of completion tests   = $totalCompletionCount');
     print(
@@ -115,6 +126,8 @@ Future _computeCompletionMetrics(
   }
   includedCount = 0;
   notIncludedCount = 0;
+  completionKindCounter.clear();
+  completionElementKindCounter.clear();
 }
 
 Point<int> _placementInSuggestionList(List<CompletionSuggestion> suggestions,
