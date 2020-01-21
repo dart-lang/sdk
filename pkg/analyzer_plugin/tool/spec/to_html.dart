@@ -283,7 +283,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   }
 
   void generateNotificationsIndex(Iterable<Notification> notifications) {
-    h5(() => write("Notifications"));
+    h5(() => write('Notifications'));
     element('div', {'class': 'subindex'}, () {
       element('ul', {}, () {
         for (var notification in notifications) {
@@ -302,7 +302,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
       return;
     }
     h3(() {
-      write("Refactorings");
+      write('Refactorings');
       write(' (');
       link('refactorings', () => write('\u2191'));
       write(')');
@@ -322,7 +322,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   }
 
   void generateRequestsIndex(Iterable<Request> requests) {
-    h5(() => write("Requests"));
+    h5(() => write('Requests'));
     element('ul', {}, () {
       for (var request in requests) {
         if (!request.experimental) {
@@ -367,7 +367,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
 
   void generateTypesIndex(Set<String> types) {
     h3(() {
-      write("Types");
+      write('Types');
       write(' (');
       link('types', () => write('\u2191'));
       write(')');
