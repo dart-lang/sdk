@@ -2555,10 +2555,6 @@ class InterfaceConflict extends DelayedMember {
           String uri = '${classBuilder.library.uri}';
           if (uri == 'dart:js' &&
                   classBuilder.fileUri.pathSegments.last == 'js.dart' ||
-              // Remove 'js_dart2js.dart' once the file is renamed
-              // to 'js.dart' everywhere.
-              uri == 'dart:js' &&
-                  classBuilder.fileUri.pathSegments.last == 'js_dart2js.dart' ||
               uri == 'dart:_interceptors' &&
                   classBuilder.fileUri.pathSegments.last == 'js_number.dart') {
             // TODO(johnniwinther): Fix the dart2js libraries and remove the
