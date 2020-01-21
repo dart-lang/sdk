@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -79,6 +81,10 @@ class NullabilityFixDescription {
       other is NullabilityFixDescription &&
       appliedMessage == other.appliedMessage &&
       kind == other.kind;
+
+  @override
+  toString() =>
+      'NullabilityFixDescription(${json.encode(appliedMessage)}, $kind)';
 }
 
 /// An enumeration of the various kinds of nullability fixes.

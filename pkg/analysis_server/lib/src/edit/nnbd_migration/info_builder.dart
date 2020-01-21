@@ -322,7 +322,7 @@ class InfoBuilder {
   }
 
   /// Compute the details for the fix with the given [edit].
-  List<RegionDetail> _computeDetails(AtomicEditWithInfo edit) {
+  List<RegionDetail> _computeDetails(AtomicEdit edit) {
     List<RegionDetail> details = [];
     var fixInfo = edit.info;
     for (FixReasonInfo reason in fixInfo.fixReasons) {
@@ -553,12 +553,11 @@ class InfoBuilder {
         int end = offset + length;
         // Insert the replacement text without deleting the replaced text.
         content = content.replaceRange(end, end, replacement);
-        String explanation = edit is AtomicEditWithInfo
-            ? '${edit.info.description.appliedMessage}.'
-            : null;
-        List<EditDetail> edits = edit is AtomicEditWithInfo
-            ? _computeEdits(edit.info, sourceOffset)
-            : [];
+        var info = edit.info;
+        String explanation =
+            info != null ? '${info.description.appliedMessage}.' : null;
+        List<EditDetail> edits =
+            info != null ? _computeEdits(info, sourceOffset) : [];
         List<RegionDetail> details = _computeDetails(edit);
         if (length > 0) {
           if (explanation != null) {

@@ -212,6 +212,38 @@ f(List<int> x) {}
     expect(origin.node, null);
   }
 
+  Future<void> test_fix_reason_add_required_function() async {
+    await analyze('_f({int/*!*/ i) {}');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description,
+            NullabilityFixDescription.addRequired(null, '_f', 'i'));
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  Future<void> test_fix_reason_add_required_method() async {
+    await analyze('class C { _f({int/*!*/ i) {} }');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description,
+            NullabilityFixDescription.addRequired('C', '_f', 'i'));
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
   Future<void> test_fix_reason_discard_condition() async {
     await analyze('''
 _f(int/*!*/ i) {
@@ -225,7 +257,26 @@ _f(int/*!*/ i) {
     for (var change in changes.values) {
       expect(change, isNotEmpty);
       for (var edit in change) {
-        var info = (edit as AtomicEditWithInfo).info;
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.discardCondition);
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  Future<void> test_fix_reason_discard_condition_no_block() async {
+    await analyze('''
+_f(int/*!*/ i) {
+  if (i != null) return i;
+}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
         expect(info.description, NullabilityFixDescription.discardCondition);
         expect(info.fixReasons.single,
             same(explicitTypeNullability[intAnnotation]));
@@ -248,7 +299,28 @@ _f(int/*!*/ i) {
     for (var change in changes.values) {
       expect(change, isNotEmpty);
       for (var edit in change) {
-        var info = (edit as AtomicEditWithInfo).info;
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.discardElse);
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  Future<void> test_fix_reason_discard_else_empty_then() async {
+    await analyze('''
+_f(int/*!*/ i) {
+  if (i != null) {} else {
+    return 'null';
+  }
+}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
         expect(info.description, NullabilityFixDescription.discardElse);
         expect(info.fixReasons.single,
             same(explicitTypeNullability[intAnnotation]));
@@ -271,7 +343,7 @@ _f(int/*!*/ i) {
     for (var change in changes.values) {
       expect(change, isNotEmpty);
       for (var edit in change) {
-        var info = (edit as AtomicEditWithInfo).info;
+        var info = edit.info;
         expect(info.description, NullabilityFixDescription.discardThen);
         expect(info.fixReasons.single,
             same(explicitTypeNullability[intAnnotation]));
@@ -293,7 +365,7 @@ _f(int/*!*/ i) {
     for (var change in changes.values) {
       expect(change, isNotEmpty);
       for (var edit in change) {
-        var info = (edit as AtomicEditWithInfo).info;
+        var info = edit.info;
         expect(info.description, NullabilityFixDescription.discardThen);
         expect(info.fixReasons.single,
             same(explicitTypeNullability[intAnnotation]));
@@ -316,7 +388,7 @@ main() {
 }
 ''');
     var yUsage = findNode.simple('y);');
-    var edit = changes[yUsage.end].single as AtomicEditWithInfo;
+    var edit = changes[yUsage.end].single;
     expect(edit.isInsertion, true);
     expect(edit.replacement, '!');
     var info = edit.info;
@@ -340,7 +412,7 @@ int x = null;
     var entries = changes.entries.toList();
     expect(entries, hasLength(1));
     expect(entries.single.key, intAnnotation.end);
-    var edit = entries.single.value.single as AtomicEditWithInfo;
+    var edit = entries.single.value.single;
     expect(edit.isInsertion, true);
     expect(edit.replacement, '?');
     var info = edit.info;
@@ -348,6 +420,27 @@ int x = null;
     var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
+  }
+
+  @FailingTest(reason: 'Produces no changes')
+  Future<void> test_fix_reason_rewrite_required() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+_f({@required int i}) {}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description,
+            NullabilityFixDescription.addRequired(null, '_f', 'i'));
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
   }
 
   Future<void> test_graphEdge() async {
@@ -1115,20 +1208,13 @@ class _InstrumentationTestWithFixBuilder extends _InstrumentationTestBase {
   @override
   bool get useFixBuilder => true;
 
+  /// Test fails under the pre-FixBuilder implementation; passes now.
   @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_fix_reason_discard_condition() =>
-      super.test_fix_reason_edge();
+  Future<void> test_fix_reason_discard_then_no_else() =>
+      super.test_fix_reason_discard_then_no_else();
 
+  /// Test fails under the pre-FixBuilder implementation; passes now.
   @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_fix_reason_discard_else() => super.test_fix_reason_edge();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_fix_reason_discard_then() => super.test_fix_reason_edge();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_fix_reason_edge() => super.test_fix_reason_edge();
+  Future<void> test_fix_reason_rewrite_required() =>
+      super.test_fix_reason_rewrite_required();
 }

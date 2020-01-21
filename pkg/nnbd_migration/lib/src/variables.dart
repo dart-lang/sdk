@@ -34,6 +34,8 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _decoratedTypeAnnotations = <Source, Map<int, DecoratedType>>{};
 
+  final _expressionChecks = <Source, Map<int, ExpressionChecks>>{};
+
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
   final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
@@ -107,6 +109,13 @@ class Variables implements VariableRecorder, VariableRepository {
     }
   }
 
+  /// Retrieves the [ExpressionChecks] object corresponding to the given
+  /// [expression], if one exists; otherwise null.
+  ExpressionChecks expressionChecks(Source source, Expression expression) {
+    return (_expressionChecks[source] ??
+        {})[uniqueIdentifierForSpan(expression.offset, expression.end)];
+  }
+
   ConditionalDiscard getConditionalDiscard(Source source, AstNode node) =>
       (_conditionalDiscards[source] ?? {})[node.offset];
 
@@ -168,6 +177,9 @@ class Variables implements VariableRecorder, VariableRepository {
   void recordExpressionChecks(
       Source source, Expression expression, ExpressionChecksOrigin origin) {
     _addPotentialModification(source, origin.checks);
+    (_expressionChecks[source] ??=
+            {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
+        origin.checks;
   }
 
   @override
