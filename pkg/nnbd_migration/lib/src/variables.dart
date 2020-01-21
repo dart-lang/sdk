@@ -6,10 +6,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
@@ -66,8 +67,8 @@ class Variables implements VariableRecorder, VariableRepository {
       throw StateError('No declarated type annotations in ${source.fullName}; '
           'expected one for ${typeAnnotation.toSource()}');
     }
-    DecoratedType decoratedTypeAnnotation =
-        annotationsInSource[_uniqueOffsetForTypeAnnotation(typeAnnotation)];
+    DecoratedType decoratedTypeAnnotation = annotationsInSource[
+        uniqueIdentifierForSpan(typeAnnotation.offset, typeAnnotation.end)];
     if (decoratedTypeAnnotation == null) {
       throw StateError('Missing declarated type annotation'
           ' in ${source.fullName}; for ${typeAnnotation.toSource()}');
@@ -150,7 +151,7 @@ class Variables implements VariableRecorder, VariableRepository {
     if (potentialModification != null)
       _addPotentialModification(source, potentialModification);
     (_decoratedTypeAnnotations[source] ??=
-        {})[_uniqueOffsetForTypeAnnotation(node)] = type;
+        {})[uniqueIdentifierForSpan(node.offset, node.end)] = type;
   }
 
   @override
@@ -222,8 +223,27 @@ class Variables implements VariableRecorder, VariableRepository {
     return result;
   }
 
-  int _uniqueOffsetForTypeAnnotation(TypeAnnotation typeAnnotation) =>
-      typeAnnotation is GenericFunctionType
-          ? typeAnnotation.functionKeyword.offset
-          : typeAnnotation.offset;
+  /// Combine the given [offset] and [end] into a unique integer that depends
+  /// on both of them, taking advantage of the fact that `0 <= offset <= end`.
+  @visibleForTesting
+  static int uniqueIdentifierForSpan(int offset, int end) {
+    assert(0 <= offset && offset <= end);
+    // Our encoding is based on the observation that if you make a graph of the
+    // set of all possible (offset, end) pairs, marking those that satisfy
+    // `0 <= offset <= end` with an `x`, you get a triangle shape:
+    //
+    //       offset
+    //     +-------->
+    //     |x
+    //     |xx
+    // end |xxx
+    //     |xxxx
+    //     V
+    //
+    // If we assign integers to the `x`s in the order they appear in this graph,
+    // then the rows start with numbers 0, 1, 3, 6, 10, etc.  This can be
+    // computed from `end` as `end*(end + 1)/2`.  We use `~/` for integer
+    // division.
+    return end * (end + 1) ~/ 2 + offset;
+  }
 }
