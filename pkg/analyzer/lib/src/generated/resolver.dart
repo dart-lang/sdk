@@ -34,8 +34,10 @@ import 'package:analyzer/src/dart/resolver/prefix_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
+import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
+import 'package:analyzer/src/generated/collection_element_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
@@ -197,6 +199,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   final ElementTypeProvider _elementTypeProvider;
 
+  final CollectionElementProvider _collectionElementProvider;
+
+  /// Helper for checking expression that should have the `bool` type.
+  BoolExpressionVerifier boolExpressionVerifier;
+
   /// Helper for checking potentially nullable dereferences.
   NullableDereferenceVerifier nullableDereferenceVerifier;
 
@@ -307,7 +314,8 @@ class ResolverVisitor extends ScopedVisitor {
             propagateTypes,
             reportConstEvaluationErrors,
             flowAnalysisHelper,
-            const ElementTypeProvider());
+            const ElementTypeProvider(),
+            const CollectionElementProvider());
 
   ResolverVisitor._(
       this.inheritance,
@@ -321,7 +329,8 @@ class ResolverVisitor extends ScopedVisitor {
       bool propagateTypes,
       reportConstEvaluationErrors,
       this._flowAnalysis,
-      this._elementTypeProvider)
+      this._elementTypeProvider,
+      this._collectionElementProvider)
       : _featureSet = featureSet,
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
@@ -330,8 +339,14 @@ class ResolverVisitor extends ScopedVisitor {
       typeSystem: typeSystem,
       errorReporter: errorReporter,
     );
-    this._typedLiteralResolver =
-        TypedLiteralResolver(this, _featureSet, typeSystem, typeProvider);
+    this.boolExpressionVerifier = BoolExpressionVerifier(
+      typeSystem: typeSystem,
+      errorReporter: errorReporter,
+      nullableDereferenceVerifier: nullableDereferenceVerifier,
+    );
+    this._typedLiteralResolver = TypedLiteralResolver(
+        this, _featureSet, typeSystem, typeProvider,
+        collectionElementProvider: _collectionElementProvider);
     this.extensionResolver = ExtensionMemberResolver(this);
     this.typePropertyResolver = TypePropertyResolver(this);
     this.inferenceHelper = InvocationInferenceHelper(
@@ -625,6 +640,10 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(node.condition, typeProvider.boolType);
     _flowAnalysis?.flow?.assert_begin();
     node.condition?.accept(this);
+    boolExpressionVerifier.checkForNonBoolExpression(
+      node.condition,
+      errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION,
+    );
     _flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
     _flowAnalysis?.flow?.assert_end();
@@ -635,6 +654,10 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(node.condition, typeProvider.boolType);
     _flowAnalysis?.flow?.assert_begin();
     node.condition?.accept(this);
+    boolExpressionVerifier.checkForNonBoolExpression(
+      node.condition,
+      errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION,
+    );
     _flowAnalysis?.flow?.assert_afterCondition(node.condition);
     node.message?.accept(this);
     _flowAnalysis?.flow?.assert_end();
@@ -762,6 +785,8 @@ class ResolverVisitor extends ScopedVisitor {
 
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
+    condition = node.condition;
+    boolExpressionVerifier.checkForNonBoolCondition(condition);
 
     Expression thenExpression = node.thenExpression;
     InferenceContext.setTypeFromNode(thenExpression, node);
@@ -897,15 +922,16 @@ class ResolverVisitor extends ScopedVisitor {
     var body = node.body;
     var condition = node.condition;
 
-    InferenceContext.setType(node.condition, typeProvider.boolType);
-
     _flowAnalysis?.flow?.doStatement_bodyBegin(node);
     visitStatementInScope(body);
 
     _flowAnalysis?.flow?.doStatement_conditionBegin();
+    InferenceContext.setType(condition, typeProvider.boolType);
     condition.accept(this);
+    condition = node.condition;
+    boolExpressionVerifier.checkForNonBoolCondition(condition);
 
-    _flowAnalysis?.flow?.doStatement_end(node.condition);
+    _flowAnalysis?.flow?.doStatement_end(condition);
   }
 
   @override
@@ -1014,14 +1040,23 @@ class ResolverVisitor extends ScopedVisitor {
       } else if (forLoopParts is ForPartsWithExpression) {
         forLoopParts.initialization?.accept(this);
       }
+
       var condition = forLoopParts.condition;
-      InferenceContext.setType(condition, typeProvider.boolType);
-      _flowAnalysis?.for_conditionBegin(node, condition);
-      condition?.accept(this);
+
+      _flowAnalysis?.for_conditionBegin(node);
+      if (condition != null) {
+        InferenceContext.setType(condition, typeProvider.boolType);
+        condition.accept(this);
+        condition = forLoopParts.condition;
+        boolExpressionVerifier.checkForNonBoolCondition(condition);
+      }
+
       _flowAnalysis?.for_bodyBegin(node, condition);
       node.body?.accept(this);
+
       _flowAnalysis?.flow?.for_updaterBegin();
       forLoopParts.updaters.accept(this);
+
       _flowAnalysis?.flow?.for_end();
     } else if (forLoopParts is ForEachParts) {
       Expression iterable = forLoopParts.iterable;
@@ -1097,11 +1132,13 @@ class ResolverVisitor extends ScopedVisitor {
       }
 
       var condition = forLoopParts.condition;
-      InferenceContext.setType(condition, typeProvider.boolType);
 
-      _flowAnalysis?.for_conditionBegin(node, condition);
+      _flowAnalysis?.for_conditionBegin(node);
       if (condition != null) {
+        InferenceContext.setType(condition, typeProvider.boolType);
         condition.accept(this);
+        condition = forLoopParts.condition;
+        boolExpressionVerifier.checkForNonBoolCondition(condition);
       }
 
       _flowAnalysis?.for_bodyBegin(node, condition);
@@ -1151,9 +1188,11 @@ class ResolverVisitor extends ScopedVisitor {
       // cannot be in scope while visiting the iterator.
       //
       iterable?.accept(this);
-      // Note: the iterable could have been rewritten so grab it from
-      // forLoopParts again.
+      // Note: the iterable could have been rewritten so grab it again.
       iterable = forLoopParts.iterable;
+
+      nullableDereferenceVerifier.expression(iterable);
+
       loopVariable?.accept(this);
       var elementType = typeAnalyzer.computeForEachElementType(
           iterable, node.awaitKeyword != null);
@@ -1307,6 +1346,9 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(condition, typeProvider.boolType);
     // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
+    condition = node.condition;
+
+    boolExpressionVerifier.checkForNonBoolCondition(condition);
 
     CollectionElement thenElement = node.thenElement;
     if (_flowAnalysis != null) {
@@ -1341,7 +1383,11 @@ class ResolverVisitor extends ScopedVisitor {
     Expression condition = node.condition;
 
     InferenceContext.setType(condition, typeProvider.boolType);
+    // TODO(scheglov) Do we need these checks for null?
     condition?.accept(this);
+    condition = node.condition;
+
+    boolExpressionVerifier.checkForNonBoolCondition(condition);
 
     Statement thenStatement = node.thenStatement;
     if (_flowAnalysis != null) {
@@ -1614,6 +1660,15 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
+  void visitSpreadElement(SpreadElement node) {
+    super.visitSpreadElement(node);
+
+    if (!node.isNullAware) {
+      nullableDereferenceVerifier.expression(node.expression);
+    }
+  }
+
+  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     //
     // We visit the argument list, but do not visit the optional identifier
@@ -1651,18 +1706,19 @@ class ResolverVisitor extends ScopedVisitor {
 
         flow.switchStatement_expressionEnd(node);
 
-        var hasDefault = false;
+        var exhaustiveness = _SwitchExhaustiveness(
+          _enclosingSwitchStatementExpressionType,
+        );
+
         var members = node.members;
         for (var member in members) {
           flow.switchStatement_beginCase(member.labels.isNotEmpty, node);
           member.accept(this);
 
-          if (member is SwitchDefault) {
-            hasDefault = true;
-          }
+          exhaustiveness.visitSwitchMember(member);
         }
 
-        flow.switchStatement_end(hasDefault);
+        flow.switchStatement_end(exhaustiveness.isExhaustive);
       } else {
         node.members.accept(this);
       }
@@ -1674,6 +1730,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitThrowExpression(ThrowExpression node) {
     super.visitThrowExpression(node);
+    nullableDereferenceVerifier.expression(node.expression);
     _flowAnalysis?.flow?.handleExit();
   }
 
@@ -1723,13 +1780,7 @@ class ResolverVisitor extends ScopedVisitor {
   }
 
   @override
-  void visitTypeName(TypeName node) {
-    var elementTypeProvider = _elementTypeProvider;
-    if (elementTypeProvider is MigrationResolutionHooks) {
-      node.type =
-          elementTypeProvider.getMigratedTypeAnnotationType(source, node);
-    }
-  }
+  void visitTypeName(TypeName node) {}
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -1786,6 +1837,8 @@ class ResolverVisitor extends ScopedVisitor {
       _flowAnalysis?.flow?.whileStatement_conditionBegin(node);
       condition?.accept(this);
 
+      boolExpressionVerifier.checkForNonBoolCondition(node.condition);
+
       Statement body = node.body;
       if (body != null) {
         _flowAnalysis?.flow?.whileStatement_bodyBegin(node, condition);
@@ -1822,6 +1875,11 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.setType(e, type);
     }
     super.visitYieldStatement(node);
+
+    if (node.star != null) {
+      nullableDereferenceVerifier.expression(node.expression);
+    }
+
     DartType type = e?.staticType;
     if (type != null && isGenerator) {
       // If this just a yield, then we just pass on the element type
@@ -2097,7 +2155,22 @@ class ResolverVisitorForMigration extends ResolverVisitor {
             true,
             FlowAnalysisHelperForMigration(
                 typeSystem, migrationResolutionHooks),
+            migrationResolutionHooks,
             migrationResolutionHooks);
+
+  @override
+  void visitIfElement(IfElement node) {
+    var conditionalKnownValue =
+        (_elementTypeProvider as MigrationResolutionHooks)
+            .getConditionalKnownValue(node);
+    if (conditionalKnownValue == null) {
+      super.visitIfElement(node);
+      return;
+    } else {
+      (conditionalKnownValue ? node.thenElement : node.elseElement)
+          ?.accept(this);
+    }
+  }
 
   @override
   void visitIfStatement(IfStatement node) {
@@ -3032,4 +3105,51 @@ class VariableResolverVisitor extends ScopedVisitor {
 
   @override
   void visitTypeName(TypeName node) {}
+}
+
+/// Tracker for whether a `switch` statement has `default` or is on an
+/// enumeration, and all the enum constants are covered.
+class _SwitchExhaustiveness {
+  /// If the switch is on an enumeration, the set of all enum constants.
+  /// Otherwise `null`.
+  final Set<FieldElement> _enumConstants;
+
+  bool isExhaustive = false;
+
+  factory _SwitchExhaustiveness(DartType expressionType) {
+    if (expressionType is InterfaceType) {
+      var enum_ = expressionType.element;
+      if (enum_ is EnumElementImpl) {
+        return _SwitchExhaustiveness._(
+          enum_.constants.toSet(),
+        );
+      }
+    }
+    return _SwitchExhaustiveness._(null);
+  }
+
+  _SwitchExhaustiveness._(this._enumConstants);
+
+  void visitSwitchMember(SwitchMember node) {
+    if (_enumConstants != null && node is SwitchCase) {
+      var element = _referencedElement(node.expression);
+      if (element is PropertyAccessorElement) {
+        _enumConstants.remove(element.variable);
+        if (_enumConstants.isEmpty) {
+          isExhaustive = true;
+        }
+      }
+    } else if (node is SwitchDefault) {
+      isExhaustive = true;
+    }
+  }
+
+  static Element _referencedElement(Expression expression) {
+    if (expression is PrefixedIdentifier) {
+      return expression.staticElement;
+    } else if (expression is PropertyAccess) {
+      return expression.propertyName.staticElement;
+    }
+    return null;
+  }
 }

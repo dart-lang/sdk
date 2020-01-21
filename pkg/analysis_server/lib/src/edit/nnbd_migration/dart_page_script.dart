@@ -71,21 +71,31 @@ function navigate(path, offset, lineNumber, callback) {
   }
 }
 
-// Scroll [target] into view if it is not currently in view.
+// Scroll target with id [offset] into view if it is not currently in view.
+//
+// If [offset] is null, instead scroll the "unit-name" header, at the top of the
+// page, into view.
 //
 // Also add the "target" class, highlighting the target.
 function maybeScrollIntoView(offset, lineNumber) {
+  var target;
   if (offset !== null) {
-    const target = document.getElementById("o" + offset);
-    if (target != null) {
-      const rect = target.getBoundingClientRect();
-      // TODO(srawlins): Only scroll smoothly when on the same page.
-      if (rect.bottom > window.innerHeight) {
-        target.scrollIntoView({behavior: "smooth", block: "end"});
-      }
-      if (rect.top < 0) {
-        target.scrollIntoView({behavior: "smooth"});
-      }
+    target = document.getElementById("o" + offset);
+  } else {
+    // If no offset is given, this is likely a navigation link, and we need to
+    // scroll back to the top of the page.
+    target = document.getElementById("unit-name");
+  }
+  if (target != null) {
+    const rect = target.getBoundingClientRect();
+    // TODO(srawlins): Only scroll smoothly when on the same page.
+    if (rect.bottom > window.innerHeight) {
+      target.scrollIntoView({behavior: "smooth", block: "end"});
+    }
+    if (rect.top < 0) {
+      target.scrollIntoView({behavior: "smooth"});
+    }
+    if (target !== document.getElementById("unit-name")) {
       target.classList.add("target");
       if (lineNumber != null) {
         const line = document.querySelector(".line-" + lineNumber);
@@ -115,6 +125,9 @@ function loadFile(path, offset, lineNumber, callback) {
       alert("Request failed; status of " + xhr.status);
     }
   };
+  xhr.onerror = function(e) {
+    alert(`Could not load ${path}; preview server might be disconnected.`);
+  };
   xhr.send();
 }
 
@@ -138,7 +151,7 @@ function updatePage(path, offset) {
   const unitName = document.querySelector("#unit-name");
   unitName.textContent = path;
   // Update navigation styles.
-  document.querySelectorAll(".nav .nav-link").forEach((link) => {
+  document.querySelectorAll(".nav-panel .nav-link").forEach((link) => {
     const name = link.dataset.name;
     if (name == path) {
       link.classList.add("selected-file");
@@ -156,8 +169,8 @@ function highlightAllCode(_) {
 
 function addClickHandlers(parentSelector) {
   const parentElement = document.querySelector(parentSelector);
-  const links = parentElement.querySelectorAll(".nav-link");
-  links.forEach(function(link) {
+  const navLinks = parentElement.querySelectorAll(".nav-link");
+  navLinks.forEach((link) => {
     link.onclick = (event) => {
       const path = absolutePath(event.currentTarget.getAttribute("href"));
       const offset = getOffset(event.currentTarget.getAttribute("href"));
@@ -171,6 +184,42 @@ function addClickHandlers(parentSelector) {
       event.preventDefault();
     };
   });
+  const regions = parentElement.querySelectorAll(".region");
+  const infoPanel = document.querySelector(".info-panel-inner");
+  regions.forEach((region) => {
+    const tooltip = region.querySelector(".tooltip");
+    region.onclick = (event) => {
+      loadRegionExplanation(region);
+    };
+  });
+}
+
+// Load the explanation for [region], into the ".info" div.
+function loadRegionExplanation(region) {
+  // Request the region, then do work with the response.
+  const xhr = new XMLHttpRequest();
+  const path = window.location.pathname;
+  const offset = region.dataset.offset;
+  xhr.open("GET", path + `?region=region&offset=${offset}`);
+  xhr.setRequestHeader("Content-Type", "text/html");
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      const response = xhr.responseText;
+      const info = document.querySelector(".info-panel-inner .info");
+      info.innerHTML = response;
+      const line = region.dataset.line;
+      const regionLocation = info.querySelector(".region-location");
+      regionLocation.textContent =
+          regionLocation.textContent + ` line ${line}:`;
+      addClickHandlers(".info-panel .info");
+    } else {
+      alert(`Request failed; status of ${xhr.status}`);
+    }
+  };
+  xhr.onerror = function(e) {
+    alert(`Could not load ${path}; preview server might be disconnected.`);
+  };
+  xhr.send();
 }
 
 function debounce(fn, delay) {
@@ -186,13 +235,16 @@ function debounce(fn, delay) {
 	};
 };
 
-// Resize the fixed-size and fixed-position navigation panel.
-function resizeNav() {
+// Resize the fixed-size and fixed-position navigation and information panels.
+function resizePanels() {
   const navInner = document.querySelector(".nav-inner");
-  // TODO(srawlins): I'm honestly not sure where 30 comes from; but without
-  // `- 30`, the navigation is too tall and the bottom cannot be seen.
-  const height = window.innerHeight - 30;
+  // TODO(srawlins): I'm honestly not sure where 8 comes from; but without
+  // `- 8`, the navigation is too tall and the bottom cannot be seen.
+  const height = window.innerHeight - 8;
   navInner.style.height = height + "px";
+
+  const infoInner = document.querySelector(".info-panel-inner");
+  infoInner.style.height = height + "px";
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
@@ -205,8 +257,8 @@ document.addEventListener("DOMContentLoaded", (event) => {
     loadFile(path, offset, lineNumber,
         () => { pushState(path, offset, lineNumber) });
   }
-  resizeNav();
-  addClickHandlers(".nav");
+  resizePanels();
+  addClickHandlers(".nav-panel");
 });
 
 window.addEventListener("popstate", (event) => {
@@ -223,26 +275,42 @@ window.addEventListener("popstate", (event) => {
 });
 
 window.addEventListener("resize", (event) => {
-  debounce(resizeNav, 200)();
+  debounce(resizePanels, 200)();
 });
 
+// When scrolling the page, determine whether the navigation and information
+// panels need to be fixed in place, or allowed to scroll.
 window.addEventListener("scroll", (event) => {
-  const nav = document.querySelector(".nav");
-  const navInner = nav.querySelector(".nav-inner");
-  const navTip = nav.querySelector(".nav-tip");
-  const navTipMarginBottom = 14;
-  if (window.pageYOffset >
-          nav.offsetTop + navTip.offsetHeight + navTipMarginBottom) {
+  const navPanel = document.querySelector(".nav-panel");
+  const navInner = navPanel.querySelector(".nav-inner");
+  const infoPanel = document.querySelector(".info-panel");
+  const infoInner = infoPanel.querySelector(".info-panel-inner");
+  const innerTopOffset = navPanel.offsetTop;
+  if (window.pageYOffset > innerTopOffset) {
     if (!navInner.classList.contains("fixed")) {
-      nav.style.width = nav.offsetWidth + "px";
+      navPanel.style.width = navPanel.offsetWidth + "px";
+      // Subtract 6px for nav-inner's padding.
+      navInner.style.width = (navInner.offsetWidth - 6) + "px";
       navInner.classList.add("fixed");
+    }
+    if (!infoInner.classList.contains("fixed")) {
+      infoPanel.style.width = infoPanel.offsetWidth + "px";
+      // Subtract 6px for info-panel-inner's padding.
+      infoInner.style.width = (infoInner.offsetWidth - 6) + "px";
+      infoInner.classList.add("fixed");
     }
   } else {
     if (navInner.classList.contains("fixed")) {
-      nav.style.width = "";
+      navPanel.style.width = "";
+      navInner.style.width = "";
       navInner.classList.remove("fixed");
     }
+    if (infoInner.classList.contains("fixed")) {
+      infoPanel.style.width = "";
+      infoInner.style.width = "";
+      infoInner.classList.remove("fixed");
+    }
   }
-  debounce(resizeNav, 200)();
+  debounce(resizePanels, 200)();
 });
 ''';

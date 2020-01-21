@@ -40,11 +40,15 @@ main(List<String> args) async {
   if (bench == 'scan') {
     Set<Source> files = scanReachableFiles(entryUri);
     // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) scanFiles(files);
+    for (int i = 0; i < 10; i++) {
+      scanFiles(files);
+    }
   } else if (bench == 'parse') {
     Set<Source> files = scanReachableFiles(entryUri);
     // TODO(sigmund): consider replacing the warmup with instrumented snapshots.
-    for (int i = 0; i < 10; i++) parseFiles(files);
+    for (int i = 0; i < 10; i++) {
+      parseFiles(files);
+    }
   } else {
     print('unsupported bench-id: $bench. Please specify "scan" or "parse"');
     // TODO(sigmund): implement the remaining benchmarks.
@@ -52,7 +56,7 @@ main(List<String> args) async {
   }
 
   totalTimer.stop();
-  report("total", totalTimer.elapsedMicroseconds);
+  report('total', totalTimer.elapsedMicroseconds);
 }
 
 /// Cumulative time spent scanning.
@@ -102,10 +106,10 @@ void parseFiles(Set<Source> files) {
 
   // Report size and scanning time again. See discussion above.
   if (old != scanTotalChars) print('input size changed? $old chars');
-  report("scan", scanTimer.elapsedMicroseconds);
+  report('scan', scanTimer.elapsedMicroseconds);
 
   var pTime = parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("parse", pTime);
+  report('parse', pTime);
 }
 
 /// Parse the full body of [source] and return it's compilation unit.
@@ -141,7 +145,7 @@ void scanFiles(Set<Source> files) {
 
   // Report size and scanning time again. See discussion above.
   if (old != scanTotalChars) print('input size changed? $old chars');
-  report("scan", scanTimer.elapsedMicroseconds);
+  report('scan', scanTimer.elapsedMicroseconds);
 }
 
 /// Load and scans all files we need to process: files reachable from the
@@ -152,18 +156,18 @@ Set<Source> scanReachableFiles(Uri entryUri) {
   collectSources(sources.forUri2(entryUri), files);
 
   var libs = [
-    "dart:async",
-    "dart:cli",
-    "dart:collection",
-    "dart:convert",
-    "dart:core",
-    "dart:developer",
-    "dart:_internal",
-    "dart:isolate",
-    "dart:math",
-    "dart:mirrors",
-    "dart:typed_data",
-    "dart:io",
+    'dart:async',
+    'dart:cli',
+    'dart:collection',
+    'dart:convert',
+    'dart:core',
+    'dart:developer',
+    'dart:_internal',
+    'dart:isolate',
+    'dart:math',
+    'dart:mirrors',
+    'dart:typed_data',
+    'dart:io',
   ];
 
   for (var lib in libs) {
@@ -174,8 +178,8 @@ Set<Source> scanReachableFiles(Uri entryUri) {
 
   print('input size: $scanTotalChars chars');
   var loadTime = loadTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds;
-  report("load", loadTime);
-  report("scan", scanTimer.elapsedMicroseconds);
+  report('load', loadTime);
+  report('scan', scanTimer.elapsedMicroseconds);
   return files;
 }
 
@@ -197,7 +201,7 @@ Future setup(String path) async {
   sources = SourceFactory([
     ResourceUriResolver(provider),
     PackageMapUriResolver(provider, packageMap),
-    DartUriResolver(FolderBasedDartSdk(provider, provider.getFolder("sdk"))),
+    DartUriResolver(FolderBasedDartSdk(provider, provider.getFolder('sdk'))),
   ]);
 }
 

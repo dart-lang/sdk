@@ -15,10 +15,6 @@ class _GrowableList<T> extends ListBase<T> {
       return;
     }
     int oldLength = this.length;
-    // We are modifying the length just below the is-check. Without the check
-    // Array.copy could throw an exception, leaving the list in a bad state
-    // (with a length that has been increased, but without a new element).
-    if (index is! int) throw new ArgumentError(index);
     this.length++;
     Lists.copy(this, index, this, index + 1, oldLength - index);
     this[index] = element;
@@ -34,7 +30,7 @@ class _GrowableList<T> extends ListBase<T> {
     return result;
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
         removeAt(i);

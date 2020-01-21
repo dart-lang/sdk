@@ -54,79 +54,27 @@ class BinaryExpressionResolver {
   void resolve(BinaryExpressionImpl node) {
     var operator = node.operator.type;
 
+    if (operator == TokenType.AMPERSAND_AMPERSAND) {
+      _resolveLogicalAnd(node);
+      return;
+    }
+
+    if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
+      _resolveEqual(node, notEqual: operator == TokenType.BANG_EQ);
+      return;
+    }
+
+    if (operator == TokenType.BAR_BAR) {
+      _resolveLogicalOr(node);
+      return;
+    }
+
     if (operator == TokenType.QUESTION_QUESTION) {
       _resolveIfNull(node);
       return;
     }
 
-    Expression left = node.leftOperand;
-    Expression right = node.rightOperand;
-    var flow = _flowAnalysis?.flow;
-
-    if (operator == TokenType.AMPERSAND_AMPERSAND) {
-      InferenceContext.setType(left, _typeProvider.boolType);
-      InferenceContext.setType(right, _typeProvider.boolType);
-
-      // TODO(scheglov) Do we need these checks for null?
-      left?.accept(_resolver);
-
-      if (_flowAnalysis != null) {
-        flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
-        _flowAnalysis.checkUnreachableNode(right);
-        right.accept(_resolver);
-        flow?.logicalBinaryOp_end(node, right, isAnd: true);
-      } else {
-        _promoteManager.visitBinaryExpression_and_rhs(
-          left,
-          right,
-          () {
-            right.accept(_resolver);
-          },
-        );
-      }
-
-      _resolve1(node);
-    } else if (operator == TokenType.BAR_BAR) {
-      InferenceContext.setType(left, _typeProvider.boolType);
-      InferenceContext.setType(right, _typeProvider.boolType);
-
-      // TODO(scheglov) Do we need these checks for null?
-      left?.accept(_resolver);
-
-      flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
-      _flowAnalysis?.checkUnreachableNode(right);
-      right.accept(_resolver);
-      flow?.logicalBinaryOp_end(node, right, isAnd: false);
-
-      _resolve1(node);
-    } else if (operator == TokenType.BANG_EQ || operator == TokenType.EQ_EQ) {
-      left.accept(_resolver);
-      _flowAnalysis?.flow?.equalityOp_rightBegin(left);
-      right.accept(_resolver);
-      _resolve1(node);
-      _flowAnalysis?.flow?.equalityOp_end(node, right,
-          notEqual: operator == TokenType.BANG_EQ);
-    } else {
-      // TODO(scheglov) Do we need these checks for null?
-      left?.accept(_resolver);
-
-      // Call ElementResolver.visitBinaryExpression to resolve the user-defined
-      // operator method, if applicable.
-      _resolve1(node);
-
-      var invokeType = node.staticInvokeType;
-      if (invokeType != null && invokeType.parameters.isNotEmpty) {
-        // If this is a user-defined operator, set the right operand context
-        // using the operator method's parameter type.
-        var rightParam = invokeType.parameters[0];
-        InferenceContext.setType(
-            right, _elementTypeProvider.getVariableType(rightParam));
-      }
-
-      // TODO(scheglov) Do we need these checks for null?
-      right?.accept(_resolver);
-    }
-    _resolve2(node);
+    _resolveOtherOperator(node);
   }
 
   /// Set the static type of [node] to be the least upper bound of the static
@@ -152,6 +100,14 @@ class BinaryExpressionResolver {
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 
     _inferenceHelper.recordStaticType(node, staticType);
+  }
+
+  void _checkNonBoolOperand(Expression operand, String operator) {
+    _resolver.boolExpressionVerifier.checkForNonBoolExpression(
+      operand,
+      errorCode: StaticTypeWarningCode.NON_BOOL_OPERAND,
+      arguments: [operator],
+    );
   }
 
   /// Gets the definite type of expression, which can be used in cases where
@@ -263,6 +219,20 @@ class BinaryExpressionResolver {
     }
   }
 
+  void _resolveEqual(BinaryExpressionImpl node, {@required bool notEqual}) {
+    var left = node.leftOperand;
+    var right = node.rightOperand;
+    var flow = _flowAnalysis?.flow;
+
+    left.accept(_resolver);
+    flow?.equalityOp_rightBegin(left);
+    right.accept(_resolver);
+    _resolve1(node);
+    flow?.equalityOp_end(node, right, notEqual: notEqual);
+
+    _resolve2(node);
+  }
+
   void _resolveIfNull(BinaryExpressionImpl node) {
     var left = node.leftOperand;
     var right = node.rightOperand;
@@ -298,6 +268,97 @@ class BinaryExpressionResolver {
     } else {
       _analyzeLeastUpperBoundTypes(node, leftType, rightType);
     }
+  }
+
+  void _resolveLogicalAnd(BinaryExpressionImpl node) {
+    var left = node.leftOperand;
+    var right = node.rightOperand;
+    var flow = _flowAnalysis?.flow;
+
+    InferenceContext.setType(left, _typeProvider.boolType);
+    InferenceContext.setType(right, _typeProvider.boolType);
+
+    // TODO(scheglov) Do we need these checks for null?
+    left?.accept(_resolver);
+    left = node.leftOperand;
+
+    if (_flowAnalysis != null) {
+      flow?.logicalBinaryOp_rightBegin(left, isAnd: true);
+      _flowAnalysis.checkUnreachableNode(right);
+
+      right.accept(_resolver);
+      right = node.rightOperand;
+
+      flow?.logicalBinaryOp_end(node, right, isAnd: true);
+    } else {
+      _promoteManager.visitBinaryExpression_and_rhs(
+        left,
+        right,
+        () {
+          right.accept(_resolver);
+          right = node.rightOperand;
+        },
+      );
+    }
+
+    _checkNonBoolOperand(left, '&&');
+    _checkNonBoolOperand(right, '&&');
+
+    _resolve1(node);
+    _resolve2(node);
+  }
+
+  void _resolveLogicalOr(BinaryExpressionImpl node) {
+    var left = node.leftOperand;
+    Expression right = node.rightOperand;
+    var flow = _flowAnalysis?.flow;
+
+    InferenceContext.setType(left, _typeProvider.boolType);
+    InferenceContext.setType(right, _typeProvider.boolType);
+
+    // TODO(scheglov) Do we need these checks for null?
+    left?.accept(_resolver);
+    left = node.leftOperand;
+
+    flow?.logicalBinaryOp_rightBegin(left, isAnd: false);
+    _flowAnalysis?.checkUnreachableNode(right);
+
+    right.accept(_resolver);
+    right = node.rightOperand;
+
+    flow?.logicalBinaryOp_end(node, right, isAnd: false);
+
+    _checkNonBoolOperand(left, '||');
+    _checkNonBoolOperand(right, '||');
+
+    _resolve1(node);
+    _resolve2(node);
+  }
+
+  void _resolveOtherOperator(BinaryExpressionImpl node) {
+    Expression left = node.leftOperand;
+    Expression right = node.rightOperand;
+
+    // TODO(scheglov) Do we need these checks for null?
+    left?.accept(_resolver);
+
+    // Call ElementResolver.visitBinaryExpression to resolve the user-defined
+    // operator method, if applicable.
+    _resolve1(node);
+
+    var invokeType = node.staticInvokeType;
+    if (invokeType != null && invokeType.parameters.isNotEmpty) {
+      // If this is a user-defined operator, set the right operand context
+      // using the operator method's parameter type.
+      var rightParam = invokeType.parameters[0];
+      InferenceContext.setType(
+          right, _elementTypeProvider.getVariableType(rightParam));
+    }
+
+    // TODO(scheglov) Do we need these checks for null?
+    right?.accept(_resolver);
+
+    _resolve2(node);
   }
 
   /// If the given [type] is a type parameter, resolve it to the type that should

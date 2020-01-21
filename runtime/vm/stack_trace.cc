@@ -308,7 +308,8 @@ void StackTraceUtils::CollectFramesLazy(
     Thread* thread,
     const GrowableObjectArray& code_array,
     const GrowableObjectArray& pc_offset_array,
-    int skip_frames) {
+    int skip_frames,
+    std::function<void(StackFrame*)>* on_sync_frames) {
   Zone* zone = thread->zone();
   DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
@@ -322,33 +323,46 @@ void StackTraceUtils::CollectFramesLazy(
   CallerClosureFinder caller_closure_finder(zone);
   auto& pc_descs = PcDescriptors::Handle();
 
-  for (; frame != nullptr;) {
+  while (frame != nullptr) {
     if (skip_frames > 0) {
       skip_frames--;
       frame = frames.NextFrame();
       continue;
     }
 
-    function = frame->LookupDartFunction();
-
-    // Case 1: This is an async frame; Follow callbacks instead of stack.
-    if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-      // Start by adding the async function in the frame.
-      if (frame->is_interpreted()) {
-        bytecode = frame->LookupDartBytecode();
-        ASSERT(function.raw() == bytecode.function());
-        code_array.Add(bytecode);
-        const intptr_t pc_offset = frame->pc() - bytecode.PayloadStart();
-        ASSERT(pc_offset >= 0 && pc_offset < bytecode.Size());
-        offset = Smi::New(pc_offset);
-      } else {
-        code = frame->LookupDartCode();
-        ASSERT(function.raw() == code.function());
-        code_array.Add(code);
-        offset = Smi::New(frame->pc() - code.PayloadStart());
+    if (frame->is_interpreted()) {
+      bytecode = frame->LookupDartBytecode();
+      ASSERT(!bytecode.IsNull());
+      function = bytecode.function();
+      if (function.IsNull()) {
+        frame = frames.NextFrame();
+        continue;
       }
-      pc_offset_array.Add(offset);
+      RELEASE_ASSERT(function.raw() == frame->LookupDartFunction());
+    } else {
+      function = frame->LookupDartFunction();
+    }
 
+    // Add the current synchronous frame.
+    if (frame->is_interpreted()) {
+      code_array.Add(bytecode);
+      const intptr_t pc_offset = frame->pc() - bytecode.PayloadStart();
+      ASSERT(pc_offset >= 0 && pc_offset < bytecode.Size());
+      offset = Smi::New(pc_offset);
+    } else {
+      code = frame->LookupDartCode();
+      ASSERT(function.raw() == code.function());
+      code_array.Add(code);
+      offset = Smi::New(frame->pc() - code.PayloadStart());
+    }
+    pc_offset_array.Add(offset);
+    if (on_sync_frames != nullptr) {
+      (*on_sync_frames)(frame);
+    }
+
+    // Either continue the loop (sync-async case) or find all await'ers and
+    // return.
+    if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
       // Next, look up caller's closure on the stack and walk backwards through
       // the yields.
       frame = frames.NextFrame();
@@ -396,6 +410,7 @@ void StackTraceUtils::CollectFramesLazy(
         }
         ASSERT(offset.Value() >= 0);
         pc_offset_array.Add(offset);
+
         // Inject async suspension marker.
         code_array.Add(StubCode::AsynchronousGapMarker());
         offset = Smi::New(0);
@@ -404,22 +419,6 @@ void StackTraceUtils::CollectFramesLazy(
 
       // Ignore the rest of the stack; already unwound all async calls.
       return;
-    } else {
-      // Case 2: This is a sync frame; handle normally.
-
-      if (frame->is_interpreted()) {
-        bytecode = frame->LookupDartBytecode();
-        ASSERT(function.raw() == bytecode.function());
-        code_array.Add(bytecode);
-        offset = Smi::New(frame->pc() - bytecode.PayloadStart());
-        pc_offset_array.Add(offset);
-      } else {
-        code = frame->LookupDartCode();
-        ASSERT(function.raw() == code.function());
-        code_array.Add(code);
-        offset = Smi::New(frame->pc() - code.PayloadStart());
-        pc_offset_array.Add(offset);
-      }
     }
 
     frame = frames.NextFrame();

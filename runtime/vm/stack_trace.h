@@ -5,6 +5,8 @@
 #ifndef RUNTIME_VM_STACK_TRACE_H_
 #define RUNTIME_VM_STACK_TRACE_H_
 
+#include <functional>
+
 #include "vm/allocation.h"
 #include "vm/flag_list.h"
 #include "vm/object.h"
@@ -27,10 +29,15 @@ class StackTraceUtils : public AllStatic {
   ///       closure = closure.context[Context::kAsyncCompleterVarIndex]._future
   ///           ._resultOrListeners.callback;
   ///     }
-  static void CollectFramesLazy(Thread* thread,
-                                const GrowableObjectArray& code_array,
-                                const GrowableObjectArray& pc_offset_array,
-                                int skip_frames);
+  ///
+  /// If [on_sync_frames] is non-nullptr, it will be called for every
+  /// synchronous frame which is collected.
+  static void CollectFramesLazy(
+      Thread* thread,
+      const GrowableObjectArray& code_array,
+      const GrowableObjectArray& pc_offset_array,
+      int skip_frames,
+      std::function<void(StackFrame*)>* on_sync_frames = nullptr);
 
   /// Counts the number of stack frames.
   /// Skips over the first |skip_frames|.

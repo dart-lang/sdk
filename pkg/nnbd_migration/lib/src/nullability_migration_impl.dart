@@ -75,6 +75,37 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
   }
 
+  @visibleForTesting
+  void broadcast(Variables variables, NullabilityMigrationListener listener,
+      NullabilityMigrationInstrumentation instrumentation) {
+    assert(!useFixBuilder);
+    for (var entry in variables.getPotentialModifications().entries) {
+      var source = entry.key;
+      final lineInfo = LineInfo.fromContent(source.contents.data);
+      var changes = <int, List<AtomicEdit>>{};
+      for (var potentialModification in entry.value) {
+        var modifications = potentialModification.modifications;
+        if (modifications.isEmpty) {
+          continue;
+        }
+        var description = potentialModification.description;
+        var info =
+            AtomicEditInfo(description, potentialModification.reasons.toList());
+        var atomicEditsByLocation = _gatherAtomicEditsByLocation(
+            source, potentialModification, lineInfo, info);
+        for (var entry in atomicEditsByLocation) {
+          var location = entry.key;
+          listener.addSuggestion(description.appliedMessage, location);
+          changes[location.offset] = [entry.value];
+        }
+        for (var edit in modifications) {
+          listener.addEdit(source, edit);
+        }
+      }
+      instrumentation?.changes(source, changes);
+    }
+  }
+
   @override
   void finalizeInput(ResolvedUnitResult result) {
     if (!useFixBuilder) return;
@@ -96,18 +127,20 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     fixBuilder.visitAll(unit);
     var changes = FixAggregator.run(unit, result.content, fixBuilder.changes,
         removeViaComments: removeViaComments);
-    for (var entry in changes.entries) {
-      final lineInfo = LineInfo.fromContent(source.contents.data);
-      var fix = _SingleNullabilityFix(
-          source, const _DummyPotentialModification(), lineInfo);
-      listener.addFix(fix);
-      var edits = entry.value;
-      _instrumentation?.fix(
-          fix,
-          edits
-              .whereType<AtomicEditWithReason>()
-              .map((edit) => edit.fixReason));
-      listener.addEdit(fix, edits.toSourceEdit(entry.key));
+    _instrumentation?.changes(source, changes);
+    final lineInfo = LineInfo.fromContent(source.contents.data);
+    var offsets = changes.keys.toList();
+    offsets.sort();
+    for (var offset in offsets) {
+      var edits = changes[offset];
+      var descriptions = edits
+          .whereType<AtomicEditWithInfo>()
+          .map((edit) => edit.info.description.appliedMessage)
+          .join(', ');
+      var sourceEdit = edits.toSourceEdit(offset);
+      listener.addSuggestion(
+          descriptions, _computeLocation(lineInfo, sourceEdit, source));
+      listener.addEdit(source, sourceEdit);
     }
   }
 
@@ -153,83 +186,33 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         instrumentation: _instrumentation));
   }
 
-  @visibleForTesting
-  static void broadcast(
-      Variables variables,
-      NullabilityMigrationListener listener,
-      NullabilityMigrationInstrumentation instrumentation) {
-    for (var entry in variables.getPotentialModifications().entries) {
-      var source = entry.key;
-      final lineInfo = LineInfo.fromContent(source.contents.data);
-      for (var potentialModification in entry.value) {
-        var modifications = potentialModification.modifications;
-        if (modifications.isEmpty) {
-          continue;
-        }
-        var fix =
-            _SingleNullabilityFix(source, potentialModification, lineInfo);
-        listener.addFix(fix);
-        instrumentation?.fix(fix, potentialModification.reasons);
-        for (var edit in modifications) {
-          listener.addEdit(fix, edit);
-        }
-      }
-    }
+  static Location _computeLocation(
+      LineInfo lineInfo, SourceEdit edit, Source source) {
+    final locationInfo = lineInfo.getLocation(edit.offset);
+    var location = new Location(
+      source.fullName,
+      edit.offset,
+      edit.length,
+      locationInfo.lineNumber,
+      locationInfo.columnNumber,
+    );
+    return location;
   }
-}
 
-/// Dummy implementation of [PotentialModification] used as a temporary bridge
-/// between the old pre-FixBuilder logic and the new FixBuilder logic (which
-/// doesn't use [PotentialModification]).
-///
-/// TODO(paulberry): once we've fully migrated over to the new logic, this class
-/// should go away (as should [PotentialModification]).
-class _DummyPotentialModification implements PotentialModification {
-  const _DummyPotentialModification();
-
-  @override
-  NullabilityFixDescription get description => null;
-
-  @override
-  Iterable<SourceEdit> get modifications => const [];
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/// Implementation of [SingleNullabilityFix] used internally by
-/// [NullabilityMigration].
-class _SingleNullabilityFix extends SingleNullabilityFix {
-  @override
-  final Source source;
-
-  @override
-  final NullabilityFixDescription description;
-
-  List<Location> _locations;
-
-  factory _SingleNullabilityFix(Source source,
-      PotentialModification potentialModification, LineInfo lineInfo) {
-    List<Location> locations = [];
+  static List<MapEntry<Location, AtomicEditWithInfo>>
+      _gatherAtomicEditsByLocation(
+          Source source,
+          PotentialModification potentialModification,
+          LineInfo lineInfo,
+          AtomicEditInfo info) {
+    List<MapEntry<Location, AtomicEditWithInfo>> result = [];
 
     for (var modification in potentialModification.modifications) {
-      final locationInfo = lineInfo.getLocation(modification.offset);
-      locations.add(new Location(
-        source.fullName,
-        modification.offset,
-        modification.length,
-        locationInfo.lineNumber,
-        locationInfo.columnNumber,
-      ));
+      var atomicEditWithInfo = AtomicEditWithInfo.replace(
+          modification.length, modification.replacement, info);
+      result.add(MapEntry(_computeLocation(lineInfo, modification, source),
+          atomicEditWithInfo));
     }
-
-    return _SingleNullabilityFix._(source, potentialModification.description,
-        locations: locations);
+    return result;
   }
-
-  _SingleNullabilityFix._(this.source, this.description,
-      {List<Location> locations})
-      : this._locations = locations;
-
-  List<Location> get locations => _locations;
 }

@@ -38,6 +38,7 @@ main(List<String> args) async {
       help: 'Authorization token with a scope including pubsub publish.');
   parser.addOption('result_file',
       abbr: 'f', help: 'File containing the results to send');
+  parser.addOption('id', abbr: 'i', help: 'Buildbucket ID of this build');
 
   final options = parser.parse(args);
   if (options['help']) {
@@ -48,6 +49,7 @@ main(List<String> args) async {
 
   final lines = await File(options['result_file']).readAsLines();
   final token = await File(options['auth_token']).readAsString();
+  final buildbucketID = options['id'];
   // Construct pubsub messages.
   var line = 0;
   var numMessages = 0;
@@ -64,7 +66,8 @@ main(List<String> args) async {
     message.write(']');
     numMessages++;
     final attributes = {
-      if (line == lines.length) 'num_chunks': numMessages.toString()
+      if (line == lines.length) 'num_chunks': numMessages.toString(),
+      if (buildbucketID != null) 'buildbucket_id': buildbucketID
     };
     var base64data = base64Encode(utf8.encode(message.toString()));
     var messageObject = {

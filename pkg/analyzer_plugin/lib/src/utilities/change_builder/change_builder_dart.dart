@@ -26,19 +26,13 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:charcode/ascii.dart';
 import 'package:dart_style/dart_style.dart';
 
-/**
- * A [ChangeBuilder] used to build changes in Dart files.
- */
+/// A [ChangeBuilder] used to build changes in Dart files.
 class DartChangeBuilderImpl extends ChangeBuilderImpl
     implements DartChangeBuilder {
-  /**
-   * The analysis session in which the files are analyzed and edited.
-   */
+  /// The analysis session in which the files are analyzed and edited.
   final ChangeWorkspace workspace;
 
-  /**
-   * Initialize a newly created change builder.
-   */
+  /// Initialize a newly created change builder.
   DartChangeBuilderImpl(AnalysisSession session)
       : this.forWorkspace(_SingleSessionWorkspace(session));
 
@@ -46,7 +40,7 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
 
   @override
   Future<void> addFileEdit(
-      String path, void buildFileEdit(DartFileEditBuilder builder),
+      String path, void Function(DartFileEditBuilder builder) buildFileEdit,
       {ImportPrefixGenerator importPrefixGenerator}) {
     return super.addFileEdit(path, (builder) {
       DartFileEditBuilderImpl dartBuilder = builder as DartFileEditBuilderImpl;
@@ -90,37 +84,26 @@ class DartChangeBuilderImpl extends ChangeBuilderImpl
   }
 }
 
-/**
- * An [EditBuilder] used to build edits in Dart files.
- */
+/// An [EditBuilder] used to build edits in Dart files.
 class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   final List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 
-  /**
-   * Whether [_enclosingClass] and [_enclosingExecutable] have been initialized.
-   */
+  /// Whether [_enclosingClass] and [_enclosingExecutable] have been
+  /// initialized.
   bool _hasEnclosingElementsInitialized = false;
 
-  /**
-   * The enclosing class element, possibly `null`.
-   * This field is lazily initialized in [_initializeEnclosingElements].
-   */
+  /// The enclosing class element, possibly `null`.
+  /// This field is lazily initialized in [_initializeEnclosingElements].
   ClassElement _enclosingClass;
 
-  /**
-   * The enclosing executable element, possibly `null`.
-   * This field is lazily initialized in [_initializeEnclosingElements].
-   */
+  /// The enclosing executable element, possibly `null`.
+  /// This field is lazily initialized in [_initializeEnclosingElements].
   ExecutableElement _enclosingExecutable;
 
-  /**
-   * If not `null`, [write] will copy everything into this buffer.
-   */
+  /// If not `null`, [write] will copy everything into this buffer.
   StringBuffer _carbonCopyBuffer;
 
-  /**
-   * Initialize a newly created builder to build a source edit.
-   */
+  /// Initialize a newly created builder to build a source edit.
   DartEditBuilderImpl(
       DartFileEditBuilderImpl sourceFileEditBuilder, int offset, int length)
       : super(sourceFileEditBuilder, offset, length);
@@ -130,7 +113,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void addLinkedEdit(String groupName,
-          void buildLinkedEdit(DartLinkedEditBuilder builder)) =>
+          void Function(DartLinkedEditBuilder builder) buildLinkedEdit) =>
       super.addLinkedEdit(groupName,
           (builder) => buildLinkedEdit(builder as DartLinkedEditBuilder));
 
@@ -139,9 +122,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return DartLinkedEditBuilderImpl(this);
   }
 
-  /**
-   * Returns the indentation with the given [level].
-   */
+  /// Returns the indentation with the given [level].
   String getIndent(int level) => '  ' * level;
 
   @override
@@ -154,7 +135,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   void writeClassDeclaration(String name,
       {Iterable<DartType> interfaces,
       bool isAbstract = false,
-      void membersWriter(),
+      void Function() membersWriter,
       Iterable<DartType> mixins,
       String nameGroupName,
       DartType superclass,
@@ -191,13 +172,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeConstructorDeclaration(String className,
       {ArgumentList argumentList,
-      void bodyWriter(),
+      void Function() bodyWriter,
       SimpleIdentifier constructorName,
       String constructorNameGroupName,
       List<String> fieldNames,
-      void initializerWriter(),
+      void Function() initializerWriter,
       bool isConst = false,
-      void parameterWriter()}) {
+      void Function() parameterWriter}) {
     if (isConst) {
       write(Keyword.CONST.lexeme);
       write(' ');
@@ -241,7 +222,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeFieldDeclaration(String name,
-      {void initializerWriter(),
+      {void Function() initializerWriter,
       bool isConst = false,
       bool isFinal = false,
       bool isStatic = false,
@@ -283,10 +264,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeFunctionDeclaration(String name,
-      {void bodyWriter(),
+      {void Function() bodyWriter,
       bool isStatic = false,
       String nameGroupName,
-      void parameterWriter(),
+      void Function() parameterWriter,
       DartType returnType,
       String returnTypeGroupName}) {
     if (isStatic) {
@@ -322,7 +303,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeGetterDeclaration(String name,
-      {void bodyWriter(),
+      {void Function() bodyWriter,
       bool isStatic = false,
       String nameGroupName,
       DartType returnType,
@@ -353,7 +334,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeLocalVariableDeclaration(String name,
-      {void initializerWriter(),
+      {void Function() initializerWriter,
       bool isConst = false,
       bool isFinal = false,
       String nameGroupName,
@@ -392,7 +373,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeMixinDeclaration(String name,
       {Iterable<DartType> interfaces,
-      void membersWriter(),
+      void Function() membersWriter,
       String nameGroupName,
       Iterable<DartType> superclassConstraints}) {
     // TODO(brianwilkerson) Add support for type parameters, probably as a
@@ -419,7 +400,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     String returnTypeGroupName,
     bool invokeSuper = false,
   }) {
-    void withCarbonCopyBuffer(f()) {
+    void withCarbonCopyBuffer(Function() f) {
       _carbonCopyBuffer = displayTextBuffer;
       try {
         f();
@@ -667,7 +648,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeSetterDeclaration(String name,
-      {void bodyWriter(),
+      {void Function() bodyWriter,
       bool isStatic = false,
       String nameGroupName,
       DartType parameterType,
@@ -772,9 +753,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
-  /**
-   * Adds [toAdd] items which are not excluded.
-   */
+  /// Adds [toAdd] items which are not excluded.
   void _addAll(
       Set<String> excluded, Set<String> result, Iterable<String> toAdd) {
     for (String item in toAdd) {
@@ -794,9 +773,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
-  /**
-   * Adds to [result] either [c] or the first ASCII character after it.
-   */
+  /// Adds to [result] either [c] or the first ASCII character after it.
   void _addSingleCharacterName(
       Set<String> excluded, Set<String> result, int c) {
     while (c < $z) {
@@ -908,9 +885,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return name;
   }
 
-  /**
-   * Returns all variants of names by removing leading words one by one.
-   */
+  /// Returns all variants of names by removing leading words one by one.
   List<String> _getCamelWordCombinations(String name) {
     List<String> result = [];
     List<String> parts = getCamelWords(name);
@@ -923,13 +898,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return result;
   }
 
-  /**
-   * Return a list containing the suggested names for a parameter with the given
-   * [type] whose value in one location is computed by the given [expression].
-   * The list will not contain any names in the set of [excluded] names. The
-   * [index] is the index of the argument, used to create a name if no better
-   * name could be created. The first name in the list will be the best name.
-   */
+  /// Return a list containing the suggested names for a parameter with the
+  /// given [type] whose value in one location is computed by the given
+  /// [expression]. The list will not contain any names in the set of [excluded]
+  /// names. The [index] is the index of the argument, used to create a name if
+  /// no better name could be created. The first name in the list will be the
+  /// best name.
   List<String> _getParameterNameSuggestions(
       Set<String> usedNames, DartType type, Expression expression, int index) {
     List<String> suggestions =
@@ -941,10 +915,8 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return <String>['param$index'];
   }
 
-  /**
-   * Returns possible names for a variable with the given expected type and
-   * expression assigned.
-   */
+  /// Returns possible names for a variable with the given expected type and
+  /// expression assigned.
   List<String> _getVariableNameSuggestionsForExpression(DartType expectedType,
       Expression assignedExpression, Set<String> excluded) {
     Set<String> res = {};
@@ -979,12 +951,10 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return List.from(res);
   }
 
-  /**
-   * If the given [type] is visible in either the [_enclosingExecutable] or
-   * [_enclosingClass], or if there is a local equivalent to the type (such as
-   * in the case of a type parameter from a superclass), then return the type
-   * that is locally visible. Otherwise, return `null`.
-   */
+  /// If the given [type] is visible in either the [_enclosingExecutable] or
+  /// [_enclosingClass], or if there is a local equivalent to the type (such as
+  /// in the case of a type parameter from a superclass), then return the type
+  /// that is locally visible. Otherwise, return `null`.
   DartType _getVisibleType(DartType type,
       {ExecutableElement methodBeingCopied}) {
     Element element = type.element;
@@ -1011,9 +981,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     return type;
   }
 
-  /**
-   * Initialize the [_enclosingClass] and [_enclosingExecutable].
-   */
+  /// Initialize the [_enclosingClass] and [_enclosingExecutable].
   void _initializeEnclosingElements() {
     if (!_hasEnclosingElementsInitialized) {
       _EnclosingElementFinder finder = _EnclosingElementFinder();
@@ -1024,14 +992,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
   }
 
-  /**
-   * Write the import prefix to reference the [element], if needed.
-   *
-   * The prefix is not needed if the [element] is defined in the target library,
-   * or there is already an import without prefix that exports the [element].
-   * If there there are no existing import that exports the [element], a library
-   * that exports the [element] is scheduled for import, possibly with a prefix.
-   */
+  /// Write the import prefix to reference the [element], if needed.
+  ///
+  /// The prefix is not needed if the [element] is defined in the target
+  /// library, or there is already an import without prefix that exports the
+  /// [element]. If there there are no existing import that exports the
+  /// [element], a library that exports the [element] is scheduled for import,
+  /// possibly with a prefix.
   void _writeLibraryReference(Element element) {
     // If the element is defined in the library, then no prefix needed.
     if (dartFileEditBuilder._isDefinedLocally(element)) {
@@ -1075,15 +1042,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     write(isOperator ? ';' : ');');
   }
 
-  /**
-   * Write the code to reference [type] in this compilation unit.
-   *
-   * If a [methodBeingCopied] is provided, then the type parameters of that
-   * method will be duplicated in the copy and will therefore be visible.
-   *
-   * Causes any libraries whose elements are used by the generated code, to be
-   * imported.
-   */
+  /// Write the code to reference [type] in this compilation unit.
+  ///
+  /// If a [methodBeingCopied] is provided, then the type parameters of that
+  /// method will be duplicated in the copy and will therefore be visible.
+  ///
+  /// Causes any libraries whose elements are used by the generated code, to be
+  /// imported.
   bool _writeType(DartType type, {ExecutableElement methodBeingCopied}) {
     type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
@@ -1156,45 +1121,31 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }
 }
 
-/**
- * A [FileEditBuilder] used to build edits for Dart files.
- */
+/// A [FileEditBuilder] used to build edits for Dart files.
 class DartFileEditBuilderImpl extends FileEditBuilderImpl
     implements DartFileEditBuilder {
-  /**
-   * The resolved unit for the file.
-   */
+  /// The resolved unit for the file.
   final ResolvedUnitResult resolvedUnit;
 
-  /**
-   * The change builder for the library
-   * or `null` if the receiver is the builder for the library.
-   */
+  /// The change builder for the library
+  /// or `null` if the receiver is the builder for the library.
   final DartFileEditBuilderImpl libraryChangeBuilder;
 
-  /**
-   * The optional generator of prefixes for new imports.
-   */
+  /// The optional generator of prefixes for new imports.
   ImportPrefixGenerator importPrefixGenerator;
 
-  /**
-   * A mapping from libraries that need to be imported in order to make visible
-   * the names used in generated code, to information about these imports.
-   */
+  /// A mapping from libraries that need to be imported in order to make visible
+  /// the names used in generated code, to information about these imports.
   Map<Uri, _LibraryToImport> librariesToImport = {};
 
-  /**
-   * A mapping from libraries that need to be imported relatively in order to
-   * make visible the names used in generated code, to information about these
-   * imports.
-   */
+  /// A mapping from libraries that need to be imported relatively in order to
+  /// make visible the names used in generated code, to information about these
+  /// imports.
   Map<String, _LibraryToImport> librariesToRelativelyImport = {};
 
-  /**
-   * Initialize a newly created builder to build a source file edit within the
-   * change being built by the given [changeBuilder]. The file being edited has
-   * the given [resolvedUnit] and [timeStamp].
-   */
+  /// Initialize a newly created builder to build a source file edit within the
+  /// change being built by the given [changeBuilder]. The file being edited has
+  /// the given [resolvedUnit] and [timeStamp].
   DartFileEditBuilderImpl(DartChangeBuilderImpl changeBuilder,
       this.resolvedUnit, int timeStamp, this.libraryChangeBuilder)
       : super(changeBuilder, resolvedUnit.path, timeStamp);
@@ -1206,13 +1157,14 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       librariesToRelativelyImport.isNotEmpty;
 
   @override
-  void addInsertion(int offset, void buildEdit(DartEditBuilder builder)) =>
+  void addInsertion(
+          int offset, void Function(DartEditBuilder builder) buildEdit) =>
       super.addInsertion(
           offset, (builder) => buildEdit(builder as DartEditBuilder));
 
   @override
-  void addReplacement(
-          SourceRange range, void buildEdit(DartEditBuilder builder)) =>
+  void addReplacement(SourceRange range,
+          void Function(DartEditBuilder builder) buildEdit) =>
       super.addReplacement(
           range, (builder) => buildEdit(builder as DartEditBuilder));
 
@@ -1328,9 +1280,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     });
   }
 
-  /**
-   * Adds edits ensure that all the [imports] are imported into the library.
-   */
+  /// Adds edits ensure that all the [imports] are imported into the library.
   void _addLibraryImports(Iterable<_LibraryToImport> imports) {
     // Prepare information about existing imports.
     LibraryDirective libraryDirective;
@@ -1515,11 +1465,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     });
   }
 
-  /**
-   * Return the import element used to import the given [element] into the
-   * target library, or `null` if the element was not imported, such as when
-   * the element is declared in the same library.
-   */
+  /// Return the import element used to import the given [element] into the
+  /// target library, or `null` if the element was not imported, such as when
+  /// the element is declared in the same library.
   ImportElement _getImportElement(Element element) {
     for (ImportElement import in resolvedUnit.libraryElement.imports) {
       Map<String, Element> definedNames = import.namespace.definedNames;
@@ -1530,9 +1478,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return null;
   }
 
-  /**
-   * Computes the best URI to import [uri] into the target library.
-   */
+  /// Computes the best URI to import [uri] into the target library.
   String _getLibraryUriText(Uri uri) {
     if (uri.scheme == 'file') {
       var pathContext = resolvedUnit.session.resourceProvider.pathContext;
@@ -1545,9 +1491,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return uri.toString();
   }
 
-  /**
-   * Arrange to have an import added for the library with the given [uri].
-   */
+  /// Arrange to have an import added for the library with the given [uri].
   _LibraryToImport _importLibrary(Uri uri) {
     var import = (libraryChangeBuilder ?? this).librariesToImport[uri];
     if (import == null) {
@@ -1560,10 +1504,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return import;
   }
 
-  /**
-   * Arrange to have an import added for the library with the given relative
-   * [uriText].
-   */
+  /// Arrange to have an import added for the library with the given relative
+  /// [uriText].
   _LibraryToImport _importLibraryWithRelativeUri(String uriText,
       [String prefix]) {
     var import = librariesToRelativelyImport[uriText];
@@ -1574,19 +1516,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     return import;
   }
 
-  /**
-   * Return `true` if the [element] is defined in the target library.
-   */
+  /// Return `true` if the [element] is defined in the target library.
   bool _isDefinedLocally(Element element) {
     return element.library == resolvedUnit.libraryElement;
   }
 
-  /**
-   * Create an edit to replace the return type of the innermost function
-   * containing the given [node] with the type `Future`. The [typeProvider] is
-   * used to check the current return type, because if it is already `Future` no
-   * edit will be added.
-   */
+  /// Create an edit to replace the return type of the innermost function
+  /// containing the given [node] with the type `Future`. The [typeProvider] is
+  /// used to check the current return type, because if it is already `Future`
+  /// no edit will be added.
   void _replaceReturnTypeWithFuture(AstNode node, TypeProvider typeProvider) {
     while (node != null) {
       node = node.parent;
@@ -1609,16 +1547,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 }
 
-/**
- * A [LinkedEditBuilder] used to build linked edits for Dart files.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// A [LinkedEditBuilder] used to build linked edits for Dart files.
+///
+/// Clients may not extend, implement or mix-in this class.
 class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
     implements DartLinkedEditBuilder {
-  /**
-   * Initialize a newly created linked edit builder.
-   */
+  /// Initialize a newly created linked edit builder.
   DartLinkedEditBuilderImpl(EditBuilderImpl editBuilder) : super(editBuilder);
 
   @override
@@ -1626,10 +1560,8 @@ class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
     _addSuperTypesAsSuggestions(type, <DartType>{});
   }
 
-  /**
-   * Safely implement [addSuperTypesAsSuggestions] by using the set of
-   * [alreadyAdded] types to prevent infinite loops.
-   */
+  /// Safely implement [addSuperTypesAsSuggestions] by using the set of
+  /// [alreadyAdded] types to prevent infinite loops.
   void _addSuperTypesAsSuggestions(DartType type, Set<DartType> alreadyAdded) {
     if (type is InterfaceType && alreadyAdded.add(type)) {
       addSuggestion(
@@ -1675,9 +1607,7 @@ class _EnclosingElementFinder {
   }
 }
 
-/**
- * Information about a new library to import.
- */
+/// Information about a new library to import.
 class _LibraryToImport {
   final String uriText;
   final String prefix;

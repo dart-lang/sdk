@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Reducer<S extends core::Object> = (S, dynamic) → S;
+class A extends core::Object {
+  synthetic constructor •() → void
+    : super core::Object::•()
+    ;
+  method call(dynamic a, dynamic b) → dynamic {
+    return a;
+  }
+}
+static method foo<S extends core::Object>((self::foo::S, dynamic) → self::foo::S v) → void {}
+static method main() → void {
+  self::foo<core::String>(let final dynamic #t1 = let final self::A #t2 = new self::A::•() in #t2.==(null) ?{(dynamic, dynamic) → dynamic} null : #t2.{self::A::call} in let dynamic _ = null in invalid-expression "pkg/front_end/testcases/bug32629.dart:18:47: Error: A value of type '(dynamic, dynamic) \u8594 dynamic' can't be assigned to a variable of type '(dart.core::String, dynamic) \u8594 dart.core::String'.
+Try changing the type of the left hand side, or casting the right hand side to '(dart.core::String, dynamic) \u8594 dart.core::String'.
+  foo<String>(new /*@error=InvalidAssignment*/A());
+                                              ^");
+}

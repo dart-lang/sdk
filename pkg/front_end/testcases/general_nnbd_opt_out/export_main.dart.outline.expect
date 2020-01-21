@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "hello.dart" as hel;
+additionalExports = (hel::main)
+
+export "org-dartlang-testcase:///hello.dart";
+
+
+library;
+import self as hel;
+
+static method main() → dynamic
+  ;

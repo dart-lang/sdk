@@ -83,7 +83,7 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
     Map<String, List<String>> skipMap}) async {
   Map<String, TestResult<T>> results = {};
   for (TestConfig config in testedConfigs) {
-    if (skipForConfig(testData.name, config.name, skipMap)) {
+    if (skipForConfig(testData.name, config.marker, skipMap)) {
       continue;
     }
     results[config.marker] = await runTestForConfig(

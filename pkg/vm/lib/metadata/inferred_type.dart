@@ -20,6 +20,8 @@ class InferredType {
 
   static const int flagConstant = 1 << 3;
 
+  static const int flagReceiverNotInt = 1 << 4;
+
   // Entire list may be null if no type arguments were inferred.
   // Will always be null if `concreteClass` is null.
   //
@@ -32,14 +34,17 @@ class InferredType {
 
   InferredType(
       Class concreteClass, bool nullable, bool isInt, Constant constantValue,
-      {List<DartType> exactTypeArguments, bool skipCheck: false})
+      {List<DartType> exactTypeArguments,
+      bool skipCheck: false,
+      bool receiverNotInt: false})
       : this._byReference(
             getClassReference(concreteClass),
             constantValue,
             (nullable ? flagNullable : 0) |
                 (isInt ? flagInt : 0) |
                 (skipCheck ? flagSkipCheck : 0) |
-                (constantValue != null ? flagConstant : 0),
+                (constantValue != null ? flagConstant : 0) |
+                (receiverNotInt ? flagReceiverNotInt : 0),
             exactTypeArguments);
 
   InferredType._byReference(this._concreteClassReference, this._constantValue,
@@ -55,6 +60,7 @@ class InferredType {
   bool get nullable => (_flags & flagNullable) != 0;
   bool get isInt => (_flags & flagInt) != 0;
   bool get skipCheck => (_flags & flagSkipCheck) != 0;
+  bool get receiverNotInt => (_flags & flagReceiverNotInt) != 0;
 
   int get flags => _flags;
 
@@ -82,6 +88,9 @@ class InferredType {
     }
     if (_constantValue != null) {
       buf.write(' (value: $_constantValue)');
+    }
+    if (receiverNotInt) {
+      buf.write(' (receiver not int)');
     }
     return buf.toString();
   }

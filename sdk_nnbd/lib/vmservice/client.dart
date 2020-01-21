@@ -12,20 +12,19 @@ abstract class Client {
   final bool sendEvents;
 
   /// A set streamIds which describes the streams the client is connected to
-  final Set<String> streams = <String>{};
+  final streams = <String>{};
 
   /// Services registered and their aliases
   /// key: service
   /// value: alias
-  final Map<String, String> services = <String, String>{};
+  final services = <String, String>{};
 
   /// Callbacks registered for service invocations set to the client
   /// key: RPC id used for the request
   /// value: callback that should be invoked
-  final Map<String, ClientServiceHandle> serviceHandles =
-      <String, ClientServiceHandle>{};
+  final serviceHandles = <String, ClientServiceHandle>{};
 
-  Client(this.service, {bool sendEvents: true}) : this.sendEvents = sendEvents {
+  Client(this.service, {this.sendEvents = true}) {
     service._addClient(this);
   }
 
@@ -33,31 +32,28 @@ abstract class Client {
   disconnect();
 
   /// When implementing, call [close] when the network connection closes.
-  void close() {
-    service._removeClient(this);
-  }
+  void close() => service._removeClient(this);
 
   /// Call to process a request. Response will be posted with 'seq'.
-  void onRequest(Message message) {
-    // In JSON-RPC 2.0 messages with and id are Request and must be answered
-    // http://www.jsonrpc.org/specification#notification
-    service.routeRequest(service, message).then(post);
-  }
+  void onRequest(Message message) =>
+      // In JSON-RPC 2.0 messages with and id are Request and must be answered
+      // http://www.jsonrpc.org/specification#notification
+      service.routeRequest(service, message).then(post);
 
-  void onResponse(Message message) {
-    service.routeResponse(message);
-  }
+  void onResponse(Message message) => service.routeResponse(message);
 
   /// Call to process a notification. Response will not be posted.
-  void onNotification(Message message) {
-    // In JSON-RPC 2.0 messages without an id are Notification
-    // and should not be answered
-    // http://www.jsonrpc.org/specification#notification
-    service.routeRequest(service, message);
-  }
+  void onNotification(Message message) =>
+      // In JSON-RPC 2.0 messages without an id are Notification
+      // and should not be answered
+      // http://www.jsonrpc.org/specification#notification
+      service.routeRequest(service, message);
 
   // Sends a result to the client. Implemented in subclasses.
-  void post(Response result);
+  //
+  // Null can be passed as response to a JSON-RPC notification to close the
+  // connection.
+  void post(Response? result);
 
-  dynamic toJson() => {};
+  Map<String, dynamic> toJson() => {};
 }

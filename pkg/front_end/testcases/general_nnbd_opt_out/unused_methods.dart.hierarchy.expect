@@ -1,0 +1,164 @@
+Object:
+  superclasses:
+  interfaces:
+  classMembers:
+    Object._haveSameRuntimeType
+    Object.toString
+    Object.runtimeType
+    Object._toString
+    Object._simpleInstanceOf
+    Object._hashCodeRnd
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._objectHashCode
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+UnusedClass:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+UsedAsBaseClass:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    UsedAsBaseClass.calledFromSubclass
+    Object.toString
+    UsedAsBaseClass.usedInSubclass
+    UsedAsBaseClass.calledFromB
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+UsedAsInterface:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    UsedAsInterface.usedInSubclass
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+InstantiatedButMethodsUnused:
+  superclasses:
+    Object
+  interfaces:
+  classMembers:
+    Object.toString
+    InstantiatedButMethodsUnused.usedInSubclass
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+
+ClassA:
+  superclasses:
+    Object
+      -> UsedAsBaseClass
+  interfaces: UsedAsInterface, InstantiatedButMethodsUnused
+  classMembers:
+    UsedAsBaseClass.calledFromSubclass
+    Object.toString
+    ClassA.usedInSubclass
+    UsedAsBaseClass.calledFromB
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    UsedAsBaseClass.calledFromSubclass
+    Object.toString
+    ClassA.usedInSubclass
+    UsedAsBaseClass.calledFromB
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:
+
+ClassB:
+  superclasses:
+    Object
+      -> UsedAsBaseClass
+  interfaces: UsedAsInterface, InstantiatedButMethodsUnused
+  classMembers:
+    ClassB.calledFromSubclass
+    Object.toString
+    ClassB.usedInSubclass
+    UsedAsBaseClass.calledFromB
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  classSetters:
+  interfaceMembers:
+    ClassB.calledFromSubclass
+    Object.toString
+    ClassB.usedInSubclass
+    UsedAsBaseClass.calledFromB
+    Object.runtimeType
+    Object._simpleInstanceOf
+    Object._instanceOf
+    Object.noSuchMethod
+    Object._identityHashCode
+    Object.hashCode
+    Object._simpleInstanceOfFalse
+    Object._simpleInstanceOfTrue
+    Object.==
+  interfaceSetters:

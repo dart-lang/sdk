@@ -26,9 +26,9 @@ int get currentTimeMillis => DateTime.now().millisecondsSinceEpoch;
 /// Analyzes single library [File].
 class AnalyzerImpl {
   static final PerformanceTag _prepareErrorsTag =
-      PerformanceTag("AnalyzerImpl.prepareErrors");
+      PerformanceTag('AnalyzerImpl.prepareErrors');
   static final PerformanceTag _resolveLibraryTag =
-      PerformanceTag("AnalyzerImpl._resolveLibrary");
+      PerformanceTag('AnalyzerImpl._resolveLibrary');
 
   final CommandLineOptions options;
   final int startTime;
@@ -49,7 +49,7 @@ class AnalyzerImpl {
   final List<ErrorsResult> errorsResults = [];
 
   /// If the file specified on the command line is part of a package, the name
-  /// of that package.  Otherwise `null`.  This allows us to analyze the file
+  /// of that package. Otherwise `null`. This allows us to analyze the file
   /// specified on the command line as though it is reached via a "package:"
   /// URI, but avoid suppressing its output in the event that the user has not
   /// specified the "--package-warnings" option.
@@ -158,8 +158,8 @@ class AnalyzerImpl {
     // Don't try to analyze parts.
     if (libraryFile.isPart) {
       String libraryPath = libraryFile.path;
-      stderr.writeln("Only libraries can be analyzed.");
-      stderr.writeln("$libraryPath is a part and can not be analyzed.");
+      stderr.writeln('Only libraries can be analyzed.');
+      stderr.writeln('$libraryPath is a part and cannot be analyzed.');
       return ErrorSeverity.ERROR;
     }
 
@@ -227,7 +227,7 @@ class AnalyzerImpl {
       }
     }
     outSink.writeln('other-cold:$otherTime');
-    outSink.writeln("total-cold:$totalTime");
+    outSink.writeln('total-cold:$totalTime');
   }
 
   Future<LibraryElement> _resolveLibrary() async {

@@ -1707,11 +1707,12 @@ Fragment StreamingFlowGraphBuilder::InstanceCall(
     const Function& interface_target,
     const InferredTypeMetadata* result_type,
     bool use_unchecked_entry,
-    const CallSiteAttributesMetadata* call_site_attrs) {
+    const CallSiteAttributesMetadata* call_site_attrs,
+    bool receiver_is_not_smi) {
   return flow_graph_builder_->InstanceCall(
       position, name, kind, type_args_len, argument_count, argument_names,
       checked_argument_count, interface_target, result_type,
-      use_unchecked_entry, call_site_attrs);
+      use_unchecked_entry, call_site_attrs, receiver_is_not_smi);
 }
 
 Fragment StreamingFlowGraphBuilder::ThrowException(TokenPosition position) {
@@ -2803,6 +2804,7 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
       is_unchecked_closure_call =
           ReadNameAsMethodName().Equals(Symbols::Call());
     } else if (call_site_attributes.receiver_type->HasTypeClass() &&
+               !call_site_attributes.receiver_type->IsDynamicType() &&
                !Class::Handle(call_site_attributes.receiver_type->type_class())
                     .IsGeneric()) {
       is_unchecked_call = true;
@@ -2958,7 +2960,8 @@ Fragment StreamingFlowGraphBuilder::BuildMethodInvocation(TokenPosition* p) {
     instructions += InstanceCall(
         position, *mangled_name, token_kind, type_args_len, argument_count,
         argument_names, checked_argument_count, *interface_target, &result_type,
-        /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes);
+        /*use_unchecked_entry=*/is_unchecked_call, &call_site_attributes,
+        result_type.ReceiverNotInt());
   }
 
   // Drop temporaries preserving result on the top of the stack.
@@ -4921,7 +4924,7 @@ Fragment StreamingFlowGraphBuilder::BuildVariableDeclaration() {
 
   VariableDeclarationHelper helper(this);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
-  T.BuildType();        // read type.
+  T.BuildType();  // read type.
   bool has_initializer = (ReadTag() != kNothing);
 
   Fragment instructions;
@@ -5041,7 +5044,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
       function.set_is_generated_body(function_node_helper.async_marker_ ==
                                      FunctionNodeHelper::kSyncYielding);
       if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
-        function.set_is_inlinable(!FLAG_causal_async_stacks);
+        function.set_is_inlinable(!FLAG_causal_async_stacks &&
+                                  !FLAG_lazy_async_stacks);
       }
 
       function.set_end_token_pos(function_node_helper.end_position_);

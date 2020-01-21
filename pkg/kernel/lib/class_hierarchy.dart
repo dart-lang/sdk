@@ -9,7 +9,7 @@ import 'dart:typed_data';
 
 import 'package:kernel/src/nnbd_top_merge.dart';
 
-import 'ast.dart';
+import 'ast.dart' hide MapEntry;
 import 'core_types.dart';
 import 'type_algebra.dart';
 import 'src/future_or.dart';
@@ -841,6 +841,8 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     _initializeTopologicallySortedClasses(
         addedClassesSorted, expectedStartIndex);
 
+    assert(sanityChecks());
+
     return this;
   }
 
@@ -874,10 +876,6 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       }
     }
 
-    infos.sort((_ClassInfo a, _ClassInfo b) {
-      return a.topologicalIndex - b.topologicalIndex;
-    });
-
     for (_ClassInfo info in infos) {
       info.lazyDeclaredGettersAndCalls = null;
       info.lazyDeclaredSetters = null;
@@ -886,19 +884,34 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
       info.lazyInterfaceGettersAndCalls = null;
       info.lazyInterfaceSetters = null;
     }
-
-    assert(sanityCheckAlsoKnowsParentAndLibrary());
+    assert(sanityChecks());
 
     return this;
   }
 
-  bool sanityCheckAlsoKnowsParentAndLibrary() {
+  bool sanityChecks() {
+    Map<String, List<Class>> map = {};
+    for (Class c in _infoMap.keys) {
+      String className = "${c.enclosingLibrary.importUri}::${c.name}";
+      List<Class> list = map[className];
+      if (list == null) {
+        map[className] = list = [];
+      }
+      list.add(c);
+    }
+
+    StringBuffer sb;
+    for (MapEntry<String, List<Class>> entry in map.entries) {
+      if (entry.value.length != 1) {
+        sb ??= new StringBuffer();
+        sb.writeln("Found ${entry.value.length} entries for ${entry.key}");
+      }
+    }
+    if (sb != null) throw new StateError(sb.toString());
+
     for (Class c in _infoMap.keys) {
       if (!knownLibraries.contains(c.enclosingLibrary)) {
         throw new StateError("Didn't know library of $c (from ${c.fileUri})");
-      }
-      if (c.supertype != null && _infoMap[c.supertype.classNode] == null) {
-        throw new StateError("Didn't know parent of $c (from ${c.fileUri})");
       }
     }
     return true;

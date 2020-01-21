@@ -43,6 +43,9 @@ class FixBuilderTest extends EdgeBuilderTestBase {
 
   static const isMakeNullable = TypeMatcher<MakeNullable>();
 
+  static const isRequiredAnnotationToRequiredKeyword =
+      TypeMatcher<RequiredAnnotationToRequiredKeyword>();
+
   DartType get dynamicType => postMigrationTypeProvider.dynamicType;
 
   DartType get objectType => postMigrationTypeProvider.objectType;
@@ -998,6 +1001,16 @@ _f(int/*?*/ x) =>
   }
 
   Future<void>
+      test_defaultFormalParameter_add_required_ignore_decoy_annotation() async {
+    await analyze('''
+const foo = Object();
+int _f({@foo int x}) => x + 1;
+''');
+    visitAll(
+        changes: {findNode.defaultParameter('int x'): isAddRequiredKeyword});
+  }
+
+  Future<void>
       test_defaultFormalParameter_add_required_no_because_default() async {
     await analyze('''
 int _f({int x = 0}) => x + 1;
@@ -1025,6 +1038,20 @@ int _f([int/*!*/ x]) => x + 1;
     });
   }
 
+  Future<void>
+      test_defaultFormalParameter_add_required_replace_annotation() async {
+    // TODO(paulberry): it would be nice to remove the import of `meta` if it's
+    // no longer needed after the change.
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+int _f({@required int x}) => x + 1;
+''');
+    visitAll(changes: {
+      findNode.annotation('required'): isRequiredAnnotationToRequiredKeyword
+    });
+  }
+
   Future<void> test_defaultFormalParameter_add_required_yes() async {
     await analyze('''
 int _f({int x}) => x + 1;
@@ -1038,6 +1065,30 @@ int _f({int x}) => x + 1;
 f() => 1.0;
 ''');
     visitSubexpression(findNode.doubleLiteral('1.0'), 'double');
+  }
+
+  Future<void> test_enum_ref_index() async {
+    await analyze('''
+enum E { V }
+_f(E e) => e.index;
+''');
+    visitSubexpression(findNode.prefixed('e.index'), 'int');
+  }
+
+  Future<void> test_enum_ref_value() async {
+    await analyze('''
+enum E { V }
+_f() => E.V;
+''');
+    visitSubexpression(findNode.prefixed('E.V'), 'E');
+  }
+
+  Future<void> test_enum_ref_values() async {
+    await analyze('''
+enum E { V }
+_f() => E.values;
+''');
+    visitSubexpression(findNode.prefixed('E.values'), 'List<E>');
   }
 
   Future<void> test_expressionStatement() async {
@@ -1108,6 +1159,57 @@ _f(_C c) => c.f();
 ''');
     visitSubexpression(findNode.functionExpressionInvocation('c.f'), 'int',
         changes: {findNode.propertyAccess('c.f'): isNullCheck});
+  }
+
+  Future<void> test_genericFunctionType_nonNullable() async {
+    await analyze('''
+void _f() {
+  void Function() x = _f;
+}
+''');
+    visitTypeAnnotation(
+        findNode.genericFunctionType('Function'), 'void Function()');
+  }
+
+  Future<void> test_genericFunctionType_nullable() async {
+    await analyze('''
+void _f() {
+  void Function() x = null;
+}
+''');
+    var genericFunctionTypeAnnotation =
+        findNode.genericFunctionType('Function');
+    visitTypeAnnotation(genericFunctionTypeAnnotation, 'void Function()?',
+        changes: {genericFunctionTypeAnnotation: isMakeNullable});
+  }
+
+  Future<void> test_genericFunctionType_nullable_arg() async {
+    await analyze('''
+void Function(int/*?*/) _f() {
+  void Function(int) x = _g;
+  return x;
+}
+void _g(int/*?*/ x) {}
+''');
+    var intTypeAnnotation = findNode.typeName('int)');
+    var genericFunctionTypeAnnotation =
+        findNode.genericFunctionType('Function(int)');
+    visitTypeAnnotation(genericFunctionTypeAnnotation, 'void Function(int?)',
+        changes: {intTypeAnnotation: isMakeNullable});
+  }
+
+  Future<void> test_genericFunctionType_nullable_return() async {
+    await analyze('''
+void _f() {
+  int Function() x = _g;
+}
+int/*?*/ _g() => null;
+''');
+    var intTypeAnnotation = findNode.typeName('int Function');
+    var genericFunctionTypeAnnotation =
+        findNode.genericFunctionType('Function');
+    visitTypeAnnotation(genericFunctionTypeAnnotation, 'int? Function()',
+        changes: {intTypeAnnotation: isMakeNullable});
   }
 
   Future<void> test_ifStatement_dead_else() async {
@@ -1256,6 +1358,85 @@ f() => 1;
     visitSubexpression(findNode.integerLiteral('1'), 'int');
   }
 
+  Future<void> test_list_ifElement_alive() async {
+    await analyze('''
+_f(int x, bool b, int/*?*/ y) => [if (b) h(y) else g(y)];
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<num>', changes: {
+      findNode.simple('y) else'): isNullCheck,
+      findNode.simple('y)]'): isNullCheck
+    });
+  }
+
+  Future<void> test_list_ifElement_alive_with_null_check() async {
+    await analyze('''
+_f(int x, bool/*?*/ b, int/*?*/ y) => [if (b == null) h(y) else g(y)];
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<num>', changes: {
+      findNode.simple('y) else'): isNullCheck,
+      findNode.simple('y)]'): isNullCheck
+    });
+  }
+
+  Future<void> test_list_ifElement_dead_else() async {
+    await analyze('''
+_f(int x, int/*?*/ y) => [if (x != null) g(y) else h(y)];
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<int>', changes: {
+      findNode.ifElement('null'): isEliminateDeadIf(true),
+      findNode.simple('y) else'): isNullCheck
+    });
+  }
+
+  Future<void> test_list_ifElement_dead_else_no_else() async {
+    await analyze('''
+_f(int x, int/*?*/ y) => [if (x != null) g(y)];
+int/*!*/ g(int/*!*/ y) => y;
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<int>', changes: {
+      findNode.ifElement('null'): isEliminateDeadIf(true),
+      findNode.simple('y)]'): isNullCheck
+    });
+  }
+
+  Future<void> test_list_ifElement_dead_then() async {
+    await analyze('''
+_f(int x, int/*?*/ y) => [if (x == null) h(y) else g(y)];
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<int>', changes: {
+      findNode.ifElement('null'): isEliminateDeadIf(false),
+      findNode.simple('y)]'): isNullCheck
+    });
+  }
+
+  Future<void> test_list_ifElement_dead_then_no_else() async {
+    // TODO(paulberry): rather than infer the type to be List<dynamic>,
+    // FixBuilder should add an explicit type argument to ensure that it is
+    // still List<int>.
+    await analyze('''
+_f(int x, int/*?*/ y) => [if (x == null) h(y)];
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.listLiteral('['), 'List<dynamic>',
+        changes: {findNode.ifElement('null'): isEliminateDeadIf(false)});
+  }
+
+  Future<void> test_list_make_explicit_type_nullable() async {
+    await analyze('_f() => <int>[null];');
+    // The `null` should be analyzed with a context type of `int?`, so it should
+    // not be null-checked.
+    visitSubexpression(findNode.listLiteral('['), 'List<int?>',
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
+  }
+
   Future<void> test_list_unchanged() async {
     await analyze('_f(int x) => [x];');
     visitSubexpression(findNode.listLiteral('['), 'List<int>');
@@ -1274,6 +1455,98 @@ _f(int/*?*/ x) => <int/*!*/>[x];
 ''');
     visitSubexpression(findNode.listLiteral('['), 'List<int>',
         changes: {findNode.simple('x]'): isNullCheck});
+  }
+
+  Future<void> test_map_ifElement_alive() async {
+    await analyze('''
+_f(int x, bool b, int/*?*/ y) => {if (b) 0: h(y) else 0: g(y)};
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int, num>',
+        changes: {
+          findNode.simple('y) else'): isNullCheck,
+          findNode.simple('y)}'): isNullCheck
+        });
+  }
+
+  Future<void> test_map_ifElement_alive_with_null_check() async {
+    await analyze('''
+_f(int x, bool/*?*/ b, int/*?*/ y) => {if (b == null) 0: h(y) else 0: g(y)};
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int, num>',
+        changes: {
+          findNode.simple('y) else'): isNullCheck,
+          findNode.simple('y)}'): isNullCheck
+        });
+  }
+
+  Future<void> test_map_ifElement_dead_else() async {
+    await analyze('''
+_f(int x, int/*?*/ y) => {if (x != null) 0: g(y) else 0: h(y)};
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int, int>',
+        changes: {
+          findNode.ifElement('null'): isEliminateDeadIf(true),
+          findNode.simple('y) else'): isNullCheck
+        });
+  }
+
+  Future<void> test_map_ifElement_dead_else_no_else() async {
+    await analyze('''
+_f(int x, int/*?*/ y) => {if (x != null) 0: g(y)};
+int/*!*/ g(int/*!*/ y) => y;
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int, int>',
+        changes: {
+          findNode.ifElement('null'): isEliminateDeadIf(true),
+          findNode.simple('y)}'): isNullCheck
+        });
+  }
+
+  Future<void> test_map_ifElement_dead_then() async {
+    await analyze('''
+_f(int x, int/*?*/ y) => {if (x == null) 0: h(y) else 0: g(y)};
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int, int>',
+        changes: {
+          findNode.ifElement('null'): isEliminateDeadIf(false),
+          findNode.simple('y)}'): isNullCheck
+        });
+  }
+
+  Future<void> test_map_ifElement_dead_then_no_else() async {
+    // TODO(paulberry): rather than infer the type to be Map<dynamic, dynamic>,
+    // FixBuilder should add an explicit type argument to ensure that it is
+    // still Map<int, int>.
+    await analyze('''
+_f(int x, int/*?*/ y) => {if (x == null) 0: h(y)};
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<dynamic, dynamic>',
+        changes: {findNode.ifElement('null'): isEliminateDeadIf(false)});
+  }
+
+  Future<void> test_map_make_explicit_key_type_nullable() async {
+    await analyze('_f() => <int, double>{null: 0.0};');
+    // The `null` should be analyzed with a context type of `int?`, so it should
+    // not be null-checked.
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<int?, double>',
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
+  }
+
+  Future<void> test_map_make_explicit_value_type_nullable() async {
+    await analyze('_f() => <double, int>{0.0: null};');
+    // The `null` should be analyzed with a context type of `int?`, so it should
+    // not be null-checked.
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<double, int?>',
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
   }
 
   Future<void> test_methodInvocation_dynamic() async {
@@ -1977,6 +2250,85 @@ abstract class _C<T> {
 _f(_C<int> c) => (c).x;
 ''');
     visitSubexpression(findNode.propertyAccess('(c).x'), 'List<int>');
+  }
+
+  Future<void> test_set_ifElement_alive() async {
+    await analyze('''
+_f(int x, bool b, int/*?*/ y) => {if (b) h(y) else g(y)};
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<num>', changes: {
+      findNode.simple('y) else'): isNullCheck,
+      findNode.simple('y)}'): isNullCheck
+    });
+  }
+
+  Future<void> test_set_ifElement_alive_with_null_check() async {
+    await analyze('''
+_f(int x, bool/*?*/ b, int/*?*/ y) => {if (b == null) h(y) else g(y)};
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<num>', changes: {
+      findNode.simple('y) else'): isNullCheck,
+      findNode.simple('y)}'): isNullCheck
+    });
+  }
+
+  Future<void> test_set_ifElement_dead_else() async {
+    await analyze('''
+_f(int x, int/*?*/ y) => {if (x != null) g(y) else h(y)};
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<int>', changes: {
+      findNode.ifElement('null'): isEliminateDeadIf(true),
+      findNode.simple('y) else'): isNullCheck
+    });
+  }
+
+  Future<void> test_set_ifElement_dead_else_no_else() async {
+    await analyze('''
+_f(int x, int/*?*/ y) => {if (x != null) g(y)};
+int/*!*/ g(int/*!*/ y) => y;
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<int>', changes: {
+      findNode.ifElement('null'): isEliminateDeadIf(true),
+      findNode.simple('y)}'): isNullCheck
+    });
+  }
+
+  Future<void> test_set_ifElement_dead_then() async {
+    await analyze('''
+_f(int x, int/*?*/ y) => {if (x == null) h(y) else g(y)};
+int/*!*/ g(int/*!*/ y) => y;
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<int>', changes: {
+      findNode.ifElement('null'): isEliminateDeadIf(false),
+      findNode.simple('y)}'): isNullCheck
+    });
+  }
+
+  Future<void> test_set_ifElement_dead_then_no_else() async {
+    // TODO(paulberry): rather than infer the type to be Map<dynamic, dynamic>,
+    // FixBuilder should add an explicit type argument to ensure that it is
+    // still Set<int>.
+    await analyze('''
+_f(int x, int/*?*/ y) => {if (x == null) h(y)};
+double/*!*/ h(int/*!*/ y) => y.toDouble();
+''');
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Map<dynamic, dynamic>',
+        changes: {findNode.ifElement('null'): isEliminateDeadIf(false)});
+  }
+
+  Future<void> test_set_make_explicit_type_nullable() async {
+    await analyze('_f() => <int>{null};');
+    // The `null` should be analyzed with a context type of `int?`, so it should
+    // not be null-checked.
+    visitSubexpression(findNode.setOrMapLiteral('{'), 'Set<int?>',
+        changes: {findNode.typeAnnotation('int'): isMakeNullable});
   }
 
   Future<void> test_simpleIdentifier_className() async {

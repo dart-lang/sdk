@@ -12,6 +12,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 
 Map<int, List<AtomicEdit>> _removeCode(
     int offset, int end, _RemovalStyle removalStyle) {
@@ -100,23 +101,31 @@ class AtomicEdit {
   }
 }
 
-/// An atomic edit that has a reason associated with it.
-class AtomicEditWithReason extends AtomicEdit {
-  /// The reason for the edit.
-  final FixReasonInfo fixReason;
+/// Information stored along with an atomic edit indicating how it arose.
+class AtomicEditInfo {
+  /// A description of the change that was made.
+  final NullabilityFixDescription description;
+
+  /// The reasons for the edit.
+  final List<FixReasonInfo> fixReasons;
+
+  AtomicEditInfo(this.description, this.fixReasons);
+}
+
+/// An atomic edit that has additional information associated with it.
+class AtomicEditWithInfo extends AtomicEdit {
+  final AtomicEditInfo info;
 
   /// Initialize an edit to delete [length] characters.
-  const AtomicEditWithReason.delete(int length, this.fixReason)
-      : super.delete(length);
+  const AtomicEditWithInfo.delete(int length, this.info) : super.delete(length);
 
   /// Initialize an edit to insert the [replacement] characters.
-  const AtomicEditWithReason.insert(String replacement, this.fixReason)
+  const AtomicEditWithInfo.insert(String replacement, this.info)
       : super.insert(replacement);
 
   /// Initialize an edit to replace [length] characters with the [replacement]
   /// characters.
-  const AtomicEditWithReason.replace(
-      int length, String replacement, this.fixReason)
+  const AtomicEditWithInfo.replace(int length, String replacement, this.info)
       : super.replace(length, replacement);
 }
 
@@ -310,6 +319,23 @@ class EditPlanner {
     var lastIndex = sequenceNodes.indexOf(lastSourceNode, firstIndex);
     assert(lastIndex >= firstIndex);
     return _RemoveEditPlan(parent, firstIndex, lastIndex);
+  }
+
+  /// Creates a new edit plan that replaces the contents of [sourceNode] with
+  /// the given [replacement] text.
+  ///
+  /// If the edit plan is going to be used in a context where an expression is
+  /// expected, additional arguments should be provided to control the behavior
+  /// of parentheses insertion and deletion: [precedence] indicates the
+  /// precedence of the resulting expression.  [endsInCascade] indicates whether
+  /// the resulting plan will end in a cascade.
+  NodeProducingEditPlan replace(
+      AstNode sourceNode, List<AtomicEdit> replacement,
+      {Precedence precedence = Precedence.primary,
+      bool endsInCascade = false}) {
+    return _SimpleEditPlan(sourceNode, precedence, endsInCascade, {
+      sourceNode.offset: [AtomicEdit.delete(sourceNode.length), ...replacement]
+    });
   }
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
@@ -875,9 +901,6 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
   /// The set of changes aggregated together so far.
   Map<int, List<AtomicEdit>> changes;
 
-  /// Index into [innerPlans] of the plan to process next.
-  int planIndex = 0;
-
   /// If [node] is a sequence, the list of its child nodes.  Otherwise `null`.
   List<AstNode> sequenceNodes;
 
@@ -955,8 +978,7 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
     return lastRemovePlanIndex;
   }
 
-  /// Processes an inner plan of type [NodeProducingEditPlan], and updates
-  /// [planIndex] to point to the next inner plan.
+  /// Processes an inner plan of type [NodeProducingEditPlan].
   void _handleNodeProducingEditPlan(NodeProducingEditPlan innerPlan) {
     var parensNeeded = innerPlan.parensNeededFromContext(node);
     assert(_checkParenLogic(innerPlan, parensNeeded));
@@ -971,12 +993,14 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
     if (endsInCascade == null && innerPlan.sourceNode.end == node.end) {
       endsInCascade = !parensNeeded && innerPlan.endsInCascade;
     }
-    planIndex++;
   }
 
-  /// Processes one or more inner plans of type [_RemoveEditPlan], and updates
-  /// [planIndex] to point to the next inner plan.
-  void _handleRemoveEditPlans(_RemoveEditPlan firstPlan) {
+  /// Processes one or more inner plans of type [_RemoveEditPlan], and returns
+  /// an updated [planIndex] pointing to the next inner plan to be processed.
+  ///
+  /// [firstPlan] should be the plan located at index [planIndex].
+  int _handleRemoveEditPlans(_RemoveEditPlan firstPlan, int planIndex) {
+    assert(identical(innerPlans[planIndex], firstPlan));
     assert(identical(firstPlan.parentNode, node));
     var firstPlanIndex = planIndex;
     var lastPlanIndex = _findConsecutiveRemovals(firstPlanIndex, firstPlan);
@@ -1059,17 +1083,21 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
               ? _RemovalStyle.spaceInsideComment
               : _RemovalStyle.delete);
     }
+
+    return planIndex;
   }
 
   /// Walks through the plans in [innerPlans], adjusting them as necessary and
   /// collecting their changes in [changes].
   void _processPlans() {
+    int planIndex = 0;
     while (planIndex < innerPlans.length) {
       var innerPlan = innerPlans[planIndex];
       if (innerPlan is NodeProducingEditPlan) {
         _handleNodeProducingEditPlan(innerPlan);
+        planIndex++;
       } else if (innerPlan is _RemoveEditPlan) {
-        _handleRemoveEditPlans(innerPlan);
+        planIndex = _handleRemoveEditPlans(innerPlan, planIndex);
       } else {
         throw UnimplementedError('Unrecognized inner plan type');
       }

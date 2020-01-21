@@ -3,7 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show LocatedMessage, Message, templateInternalProblemUnsupported;
+    show
+        LocatedMessage,
+        Message,
+        templateExperimentNotEnabled,
+        templateInternalProblemUnsupported;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
@@ -606,6 +610,21 @@ class MiniAstBuilder extends StackListener {
   List popList(int n, List list) {
     if (n == 0) return null;
     return stack.popList(n, list, null);
+  }
+
+  void reportErrorIfNullableType(Token questionMark) {
+    if (questionMark != null) {
+      assert(optional('?', questionMark));
+      handleRecoverableError(
+          templateExperimentNotEnabled.withArguments('non-nullable'),
+          questionMark,
+          questionMark);
+    }
+  }
+
+  void reportNonNullAssertExpressionNotEnabled(Token bang) {
+    handleRecoverableError(
+        templateExperimentNotEnabled.withArguments('non-nullable'), bang, bang);
   }
 }
 

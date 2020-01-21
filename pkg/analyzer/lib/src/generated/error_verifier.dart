@@ -25,7 +25,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
-import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -34,7 +33,6 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
-import 'package:meta/meta.dart';
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -50,11 +48,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * The current library that is being analyzed.
    */
   final LibraryElement _currentLibrary;
-
-  /**
-   * The type representing the type 'bool'.
-   */
-  InterfaceType _boolType;
 
   /**
    * The type representing the type 'int'.
@@ -256,7 +249,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   final DuplicateDefinitionVerifier _duplicateDefinitionVerifier;
   TypeArgumentsVerifier _typeArgumentsVerifier;
   ConstructorFieldsVerifier _constructorFieldsVerifier;
-  NullableDereferenceVerifier _nullableDereferenceVerifier;
 
   /**
    * Initialize a newly created error verifier.
@@ -277,17 +269,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _isInStaticVariableDeclaration = false;
     _isInConstructorInitializer = false;
     _isInStaticMethod = false;
-    _boolType = _typeProvider.boolType;
     _intType = _typeProvider.intType;
     _typeSystem = _currentLibrary.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
     _typeArgumentsVerifier =
         TypeArgumentsVerifier(_options, _typeSystem, _errorReporter);
     _constructorFieldsVerifier = ConstructorFieldsVerifier(
-      typeSystem: _typeSystem,
-      errorReporter: _errorReporter,
-    );
-    _nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: _typeSystem,
       errorReporter: _errorReporter,
     );
@@ -343,20 +330,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAssertInitializer(AssertInitializer node) {
-    _checkForNonBoolExpression(node.condition,
-        errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION);
-    super.visitAssertInitializer(node);
-  }
-
-  @override
-  void visitAssertStatement(AssertStatement node) {
-    _checkForNonBoolExpression(node.condition,
-        errorCode: StaticTypeWarningCode.NON_BOOL_EXPRESSION);
-    super.visitAssertStatement(node);
-  }
-
-  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
@@ -366,7 +339,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
-      _nullableDereferenceVerifier.expression(lhs);
     }
     _checkForAssignmentToFinal(lhs);
     super.visitAssignmentExpression(node);
@@ -387,11 +359,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Token operator = node.operator;
     TokenType type = operator.type;
     if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
-      String lexeme = operator.lexeme;
-      _checkForAssignability(node.leftOperand, _boolType,
-          StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
-      _checkForAssignability(node.rightOperand, _boolType,
-          StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
       _checkForUseOfVoidResult(node.rightOperand);
     } else if (type == TokenType.EQ_EQ || type == TokenType.BANG_EQ) {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand,
@@ -537,12 +504,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitConditionalExpression(ConditionalExpression node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitConditionalExpression(node);
-  }
-
-  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -605,12 +566,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForInvalidAssignment(node.identifier, node.defaultValue);
     _checkForDefaultValueInFunctionTypedParameter(node);
     super.visitDefaultFormalParameter(node);
-  }
-
-  @override
-  void visitDoStatement(DoStatement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitDoStatement(node);
   }
 
   @override
@@ -751,21 +706,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    if (node.condition != null) {
-      _checkForNonBoolCondition(node.condition);
-    }
     if (node.variables != null) {
       _duplicateDefinitionVerifier.checkForVariables(node.variables);
     }
     super.visitForPartsWithDeclarations(node);
-  }
-
-  @override
-  void visitForPartsWithExpression(ForPartsWithExpression node) {
-    if (node.condition != null) {
-      _checkForNonBoolCondition(node.condition);
-    }
-    super.visitForPartsWithExpression(node);
   }
 
   @override
@@ -801,6 +745,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
       _checkForTypeAnnotationDeferredClass(returnType);
       _checkForIllegalReturnType(returnType);
+      _checkForImplicitDynamicReturn(node.name, node.declaredElement);
       super.visitFunctionDeclaration(node);
     } finally {
       _enclosingFunction = outerFunction;
@@ -835,8 +780,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
 
     DartType expressionType = functionExpression.staticType;
-    if (!_nullableDereferenceVerifier.expression(functionExpression) &&
-        !_checkForUseOfVoidResult(functionExpression) &&
+    if (!_checkForUseOfVoidResult(functionExpression) &&
         !_checkForUseOfNever(functionExpression) &&
         node.staticElement == null &&
         !_isFunctionType(expressionType)) {
@@ -846,7 +790,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else if (expressionType is FunctionType) {
       _typeArgumentsVerifier.checkFunctionExpressionInvocation(node);
     }
-    _nullableDereferenceVerifier.expression(functionExpression);
     _requiredParametersVerifier.visitFunctionExpressionInvocation(node);
     super.visitFunctionExpressionInvocation(node);
   }
@@ -865,6 +808,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _isInFunctionTypedFormalParameter = true;
     try {
       _checkForTypeAnnotationDeferredClass(node.returnType);
+
+      // TODO(jmesserly): ideally we'd use _checkForImplicitDynamicReturn, and
+      // we can get the function element via `node?.element?.type?.element` but
+      // it doesn't have hasImplicitReturnType set correctly.
+      if (!_options.implicitDynamic && node.returnType == null) {
+        DartType parameterType = node.declaredElement.type;
+        if (parameterType is FunctionType &&
+            parameterType.returnType.isDynamic) {
+          _errorReporter.reportErrorForNode(
+              StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+              node.identifier,
+              [node.identifier]);
+        }
+      }
+
       super.visitFunctionTypedFormalParameter(node);
     } finally {
       _isInFunctionTypedFormalParameter = old;
@@ -878,15 +836,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIfElement(IfElement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitIfElement(node);
-  }
-
-  @override
-  void visitIfStatement(IfStatement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitIfStatement(node);
+  void visitImplementsClause(ImplementsClause node) {
+    node.interfaces.forEach(_checkForImplicitDynamicType);
+    super.visitImplementsClause(node);
   }
 
   @override
@@ -941,6 +893,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         }
         _checkForListConstructor(node, type);
       }
+      _checkForImplicitDynamicType(typeName);
       super.visitInstanceCreationExpression(node);
     } finally {
       _isInConstInstanceCreation = wasInConstInstanceCreation;
@@ -994,6 +947,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForExtensionDeclaresMemberOfObject(node);
       _checkForTypeAnnotationDeferredClass(returnType);
       _checkForIllegalReturnType(returnType);
+      _checkForImplicitDynamicReturn(node, node.declaredElement);
       _checkForMustCallSuper(node);
       _checkForWrongTypeParameterVarianceInMethod(node);
       super.visitMethodDeclaration(node);
@@ -1015,7 +969,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForUnnecessaryNullAware(target, node.operator);
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
-      _nullableDereferenceVerifier.expression(node.function);
     }
     _typeArgumentsVerifier.checkMethodInvocation(node);
     _requiredParametersVerifier.visitMethodInvocation(node);
@@ -1100,9 +1053,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void visitPrefixExpression(PrefixExpression node) {
     TokenType operatorType = node.operator.type;
     Expression operand = node.operand;
-    if (operatorType == TokenType.BANG) {
-      _checkForNonBoolNegationExpression(operand);
-    } else {
+    if (operatorType != TokenType.BANG) {
       if (operatorType.isIncrementOperator) {
         _checkForAssignmentToFinal(operand);
       }
@@ -1171,6 +1122,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForConstFormalParameter(node);
     _checkForPrivateOptionalParameter(node);
     _checkForTypeAnnotationDeferredClass(node.type);
+
+    // Checks for an implicit dynamic parameter type.
+    //
+    // We can skip other parameter kinds besides simple formal, because:
+    // - DefaultFormalParameter contains a simple one, so it gets here,
+    // - FieldFormalParameter error should be reported on the field,
+    // - FunctionTypedFormalParameter is a function type, not dynamic.
+    _checkForImplicitDynamicIdentifier(node, node.identifier);
+
     super.visitSimpleFormalParameter(node);
   }
 
@@ -1188,9 +1148,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSpreadElement(SpreadElement node) {
-    if (!node.isNullAware) {
-      _nullableDereferenceVerifier.expression(node.expression);
-    } else {
+    if (node.isNullAware) {
       _checkForUnnecessaryNullAware(node.expression, node.spreadOperator);
     }
     super.visitSpreadElement(node);
@@ -1236,7 +1194,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitThrowExpression(ThrowExpression node) {
     _checkForConstEvalThrowsException(node);
-    _nullableDereferenceVerifier.expression(node.expression);
     _checkForUseOfVoidResult(node.expression);
     super.visitThrowExpression(node);
   }
@@ -1268,6 +1225,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _checkForBuiltInIdentifierAsName(node.name,
         CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME);
     _checkForTypeAnnotationDeferredClass(node.bound);
+    _checkForImplicitDynamicType(node.bound);
     _checkForGenericFunctionType(node.bound);
     node.bound?.accept(_uninstantiatedBoundChecker);
     super.visitTypeParameter(node);
@@ -1286,6 +1244,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     Expression initializerNode = node.initializer;
     // do checks
     _checkForInvalidAssignment(nameNode, initializerNode);
+    _checkForImplicitDynamicIdentifier(node, nameNode);
     // visit name
     nameNode.accept(this);
     // visit initializer
@@ -1328,18 +1287,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitWhileStatement(WhileStatement node) {
-    _checkForNonBoolCondition(node.condition);
-    super.visitWhileStatement(node);
+  void visitWithClause(WithClause node) {
+    node.mixinTypes.forEach(_checkForImplicitDynamicType);
+    super.visitWithClause(node);
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
     if (_inGenerator) {
       _checkForYieldOfInvalidType(node.expression, node.star != null);
-      if (node.star != null) {
-        _nullableDereferenceVerifier.expression(node.expression);
-      }
     } else {
       CompileTimeErrorCode errorCode;
       if (node.star != null) {
@@ -1368,6 +1324,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_checkForExtendsDisallowedClass(superclass) &&
         !_checkForImplementsClauseErrorCodes(implementsClause) &&
         !_checkForAllMixinErrorCodes(withClause)) {
+      _checkForImplicitDynamicType(superclass);
       _checkForExtendsDeferredClass(superclass);
       _checkForConflictingClassMembers();
       _checkForRepeatedType(implementsClause?.interfaces,
@@ -1719,33 +1676,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
 
     for (Expression argument in argumentList.arguments) {
       _checkForArgumentTypeNotAssignableForArgument(argument);
-    }
-  }
-
-  /**
-   * Check that the static type of the given expression is assignable to the
-   * given type. If it isn't, report an error with the given error code. The
-   * [type] is the type that the expression must be assignable to. The
-   * [errorCode] is the error code to be reported. The [arguments] are the
-   * arguments to pass in when creating the error.
-   */
-  void _checkForAssignability(Expression expression, InterfaceType type,
-      ErrorCode errorCode, List<Object> arguments) {
-    if (expression == null) {
-      return;
-    }
-    DartType expressionType = expression.staticType;
-    if (expressionType == null) {
-      return;
-    }
-    if (_typeSystem.isAssignableTo(expressionType, type)) {
-      return;
-    }
-    if (expressionType.element == type.element) {
-      _errorReporter.reportErrorForNode(
-          StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
-    } else {
-      _errorReporter.reportErrorForNode(errorCode, expression, arguments);
     }
   }
 
@@ -2428,10 +2358,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * information in the for-each part.
    */
   bool _checkForEachParts(ForEachParts node, SimpleIdentifier variable) {
-    if (_nullableDereferenceVerifier.expression(node.iterable)) {
-      return false;
-    }
-
     if (_checkForUseOfVoidResult(node.iterable)) {
       return false;
     }
@@ -2951,6 +2877,57 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       }
     }
     return foundError;
+  }
+
+  void _checkForImplicitDynamicIdentifier(AstNode node, Identifier id) {
+    if (_options.implicitDynamic) {
+      return;
+    }
+    VariableElement variable = getVariableElement(id);
+    if (variable != null &&
+        variable.hasImplicitType &&
+        variable.type.isDynamic) {
+      ErrorCode errorCode;
+      if (variable is FieldElement) {
+        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_FIELD;
+      } else if (variable is ParameterElement) {
+        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_PARAMETER;
+      } else {
+        errorCode = StrongModeCode.IMPLICIT_DYNAMIC_VARIABLE;
+      }
+      _errorReporter.reportErrorForNode(errorCode, node, [id]);
+    }
+  }
+
+  void _checkForImplicitDynamicReturn(
+      AstNode functionName, ExecutableElement element) {
+    if (_options.implicitDynamic) {
+      return;
+    }
+    if (element is PropertyAccessorElement && element.isSetter) {
+      return;
+    }
+    if (element != null &&
+        element.hasImplicitReturnType &&
+        element.returnType.isDynamic) {
+      _errorReporter.reportErrorForNode(StrongModeCode.IMPLICIT_DYNAMIC_RETURN,
+          functionName, [element.displayName]);
+    }
+  }
+
+  void _checkForImplicitDynamicType(TypeAnnotation node) {
+    if (_options.implicitDynamic ||
+        node == null ||
+        (node is TypeName && node.typeArguments != null)) {
+      return;
+    }
+    DartType type = node.type;
+    if (type is ParameterizedType &&
+        type.typeArguments.isNotEmpty &&
+        type.typeArguments.any((t) => t.isDynamic)) {
+      _errorReporter.reportErrorForNode(
+          StrongModeCode.IMPLICIT_DYNAMIC_TYPE, node, [type]);
+    }
   }
 
   /**
@@ -3862,43 +3839,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
         declaration.name,
         [superType, _enclosingClass.displayName]);
-  }
-
-  /**
-   * Check to ensure that the [condition] is of type bool, are. Otherwise an
-   * error is reported on the expression.
-   *
-   * See [StaticTypeWarningCode.NON_BOOL_CONDITION].
-   */
-  void _checkForNonBoolCondition(Expression condition) {
-    _checkForNonBoolExpression(condition,
-        errorCode: StaticTypeWarningCode.NON_BOOL_CONDITION);
-  }
-
-  /**
-   * Verify that the given [expression] is of type 'bool', and report
-   * [errorCode] if not, or a nullability error if its improperly nullable.
-   */
-  void _checkForNonBoolExpression(Expression expression,
-      {@required ErrorCode errorCode}) {
-    DartType type = getStaticType(expression);
-    if (!_checkForUseOfVoidResult(expression) &&
-        !_typeSystem.isAssignableTo(type, _boolType)) {
-      if (type.element == _boolType.element) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, expression);
-      } else {
-        _errorReporter.reportErrorForNode(errorCode, expression);
-      }
-    }
-  }
-
-  /**
-   * Checks to ensure that the given [expression] is assignable to bool.
-   */
-  void _checkForNonBoolNegationExpression(Expression expression) {
-    _checkForNonBoolExpression(expression,
-        errorCode: StaticTypeWarningCode.NON_BOOL_NEGATION_EXPRESSION);
   }
 
   /**

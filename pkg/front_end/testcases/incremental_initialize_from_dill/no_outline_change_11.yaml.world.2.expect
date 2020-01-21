@@ -1,0 +1,34 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  import "org-dartlang-test:///lib2.dart";
+
+  class Foo extends dart.core::Object {
+    static field dynamic _redirecting# = <dynamic>[lib1::Foo::•];
+    static factory •() → lib1::Foo*
+      let dynamic #redirecting_factory = lib2::Bar::• in invalid-expression;
+  }
+  static method libMethod() → void {
+    lib1::Foo* foo = new lib2::Bar::•();
+    lib2::Bar* bar = new lib2::Bar::•();
+    dart.core::print(foo.{dart.core::Object::==}(bar));
+  }
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  import "org-dartlang-test:///lib1.dart";
+
+  class Bar extends dart.core::Object implements lib1::Foo {
+    constructor •() → lib2::Bar*
+      : super dart.core::Object::•()
+      ;
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+
+  static method main() → dynamic {
+    lib1::libMethod();
+  }
+}

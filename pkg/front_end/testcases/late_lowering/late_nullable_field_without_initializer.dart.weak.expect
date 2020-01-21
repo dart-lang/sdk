@@ -8,10 +8,10 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::bool _#lateStaticField1#isSet = false;
   static field core::int? _#lateStaticField2 = null;
   static field core::bool _#lateStaticField2#isSet = false;
-  field core::int? _#lateInstanceField = null;
-  field core::bool _#lateInstanceField#isSet = false;
-  generic-covariant-impl field self::Class::T? _#lateGenericInstanceField = null;
-  field core::bool _#lateGenericInstanceField#isSet = false;
+  field core::int? _#Class#lateInstanceField = null;
+  field core::bool _#Class#lateInstanceField#isSet = false;
+  generic-covariant-impl field self::Class::T? _#Class#lateGenericInstanceField = null;
+  field core::bool _#Class#lateGenericInstanceField#isSet = false;
   synthetic constructor •() → self::Class<self::Class::T%>
     : super core::Object::•()
     ;
@@ -33,16 +33,16 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     self::expect(42, self::Class::lateStaticField2);
   }
   get lateInstanceField() → core::int?
-    return this.{self::Class::_#lateInstanceField#isSet} ?{core::int?} this.{self::Class::_#lateInstanceField} : throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has not been initialized.");
+    return this.{self::Class::_#Class#lateInstanceField#isSet} ?{core::int?} this.{self::Class::_#Class#lateInstanceField} : throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has not been initialized.");
   set lateInstanceField(core::int? #t3) → void {
-    this.{self::Class::_#lateInstanceField#isSet} = true;
-    this.{self::Class::_#lateInstanceField} = #t3;
+    this.{self::Class::_#Class#lateInstanceField#isSet} = true;
+    this.{self::Class::_#Class#lateInstanceField} = #t3;
   }
   get lateGenericInstanceField() → self::Class::T?
-    return this.{self::Class::_#lateGenericInstanceField#isSet} ?{self::Class::T?} this.{self::Class::_#lateGenericInstanceField} : throw new _in::LateInitializationErrorImpl::•("Field 'lateGenericInstanceField' has not been initialized.");
+    return this.{self::Class::_#Class#lateGenericInstanceField#isSet} ?{self::Class::T?} this.{self::Class::_#Class#lateGenericInstanceField} : throw new _in::LateInitializationErrorImpl::•("Field 'lateGenericInstanceField' has not been initialized.");
   set lateGenericInstanceField(self::Class::T? #t4) → void {
-    this.{self::Class::_#lateGenericInstanceField#isSet} = true;
-    this.{self::Class::_#lateGenericInstanceField} = #t4;
+    this.{self::Class::_#Class#lateGenericInstanceField#isSet} = true;
+    this.{self::Class::_#Class#lateGenericInstanceField} = #t4;
   }
   method instanceMethod(generic-covariant-impl self::Class::T? value) → dynamic {
     self::throws(() → core::int? => this.{self::Class::lateInstanceField}, "Read value from uninitialized Class.lateInstanceField");
@@ -119,7 +119,7 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   try {
     value = f.call();
   }
-  on dynamic catch(final dynamic e) {
+  on core::LateInitializationError catch(final core::LateInitializationError e) {
     core::print(e);
     return;
   }

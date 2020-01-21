@@ -510,10 +510,9 @@ class _Future<T> implements Future<T> {
         _chainForeignFuture(value, this);
       }
     } else {
-      if (value is! T)
-        throw "unreachable"; // TODO(lrn): Remove when type promotion works.
       _FutureListener? listeners = _removeListeners();
-      _setValue(value); // Value promoted to T.
+      // TODO(lrn): Remove cast when type promotion works.
+      _setValue(value as T); // Value promoted to T.
       _propagateToListeners(this, listeners);
     }
   }
@@ -552,11 +551,10 @@ class _Future<T> implements Future<T> {
       _chainFuture(value);
       return;
     }
-    if (value is! T)
-      throw "unreachable"; // TODO(lrn): Remove when type promotion works.
     _setPendingComplete();
     _zone.scheduleMicrotask(() {
-      _completeWithValue(value); // Value promoted to T.
+      // TODO(lrn): Remove cast when type promotion works.
+      _completeWithValue(value as T); // Value promoted to T.
     });
   }
 

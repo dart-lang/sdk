@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
@@ -29,6 +30,7 @@ class AssignmentExpressionResolver {
   final ElementTypeProvider _elementTypeProvider;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
+  final AssignmentExpressionShared _assignmentShared;
 
   AssignmentExpressionResolver({
     @required ResolverVisitor resolver,
@@ -38,11 +40,18 @@ class AssignmentExpressionResolver {
         _flowAnalysis = flowAnalysis,
         _elementTypeProvider = elementTypeProvider,
         _typePropertyResolver = resolver.typePropertyResolver,
-        _inferenceHelper = resolver.inferenceHelper;
+        _inferenceHelper = resolver.inferenceHelper,
+        _assignmentShared = AssignmentExpressionShared(
+          resolver: resolver,
+          flowAnalysis: flowAnalysis,
+        );
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
   bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
+
+  NullableDereferenceVerifier get _nullableDereferenceVerifier =>
+      _resolver.nullableDereferenceVerifier;
 
   TypeProvider get _typeProvider => _resolver.typeProvider;
 
@@ -61,6 +70,8 @@ class AssignmentExpressionResolver {
     if (operator == TokenType.EQ ||
         operator == TokenType.QUESTION_QUESTION_EQ) {
       InferenceContext.setType(right, left.staticType);
+    } else {
+      _nullableDereferenceVerifier.expression(left);
     }
 
     right?.accept(_resolver);
@@ -86,6 +97,8 @@ class AssignmentExpressionResolver {
     if (identical(staticType, NeverTypeImpl.instance)) {
       return;
     }
+
+    _assignmentShared.checkLateFinalAlreadyAssigned(leftHandSide);
 
     // For any compound assignments to a void or nullable variable, report it.
     // Example: `y += voidFn()`, not allowed.
@@ -324,5 +337,35 @@ class AssignmentExpressionResolver {
       return DynamicTypeImpl.instance;
     }
     return type;
+  }
+}
+
+class AssignmentExpressionShared {
+  final ResolverVisitor _resolver;
+  final FlowAnalysisHelper _flowAnalysis;
+
+  AssignmentExpressionShared({
+    @required ResolverVisitor resolver,
+    @required FlowAnalysisHelper flowAnalysis,
+  })  : _resolver = resolver,
+        _flowAnalysis = flowAnalysis;
+
+  ErrorReporter get _errorReporter => _resolver.errorReporter;
+
+  void checkLateFinalAlreadyAssigned(Expression left) {
+    var flow = _flowAnalysis?.flow;
+    if (flow != null && left is SimpleIdentifier) {
+      var element = left.staticElement;
+      if (element is LocalVariableElement &&
+          element.isLate &&
+          element.isFinal) {
+        if (flow.isAssigned(element)) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+            left,
+          );
+        }
+      }
+    }
   }
 }

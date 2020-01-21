@@ -366,6 +366,19 @@ class CompilerOptions implements DiagnosticOptions {
         _extractExperiments(options, onError: onError, onWarning: onWarning);
     if (equalMaps(languageExperiments, fe.defaultExperimentalFlags)) {
       platformBinaries ??= fe.computePlatformBinariesLocation();
+    } else {
+      // TODO(sigmund): change these defaults before we unfork the sdk.
+      // To unfork the plan is to accept the same platform files regardless of
+      // the experiment flag (it will be enabled in the sdk regardless).
+      if (_hasOption(options, Flags.testMode) &&
+          languageExperiments[fe.ExperimentalFlag.nonNullable]) {
+        var experimentWithoutNullability = Map.of(languageExperiments);
+        experimentWithoutNullability[fe.ExperimentalFlag.nonNullable] = false;
+        if (equalMaps(
+            experimentWithoutNullability, fe.defaultExperimentalFlags)) {
+          platformBinaries ??= fe.computePlatformBinariesLocation();
+        }
+      }
     }
     return new CompilerOptions()
       ..librariesSpecificationUri = librariesSpecificationUri
@@ -445,9 +458,11 @@ class CompilerOptions implements DiagnosticOptions {
       ..codegenShards = _extractIntOption(options, '${Flags.codegenShards}=')
       ..cfeOnly = _hasOption(options, Flags.cfeOnly)
       ..debugGlobalInference = _hasOption(options, Flags.debugGlobalInference)
-      ..useWeakNullSafetySemantics = _extractStringOption(
-              options, '${Flags.nonNullableMode}=', 'strong') ==
-          'weak';
+      // TODO(sigmund): if no flag is specified, the default should depend on
+      // whether the entry point library is opted-in (see
+      // https://github.com/dart-lang/language/pull/779)
+      ..useWeakNullSafetySemantics =
+          _hasOption(options, Flags.noRuntimeNullSafety);
   }
 
   void validate() {

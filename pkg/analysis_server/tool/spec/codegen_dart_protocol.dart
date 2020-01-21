@@ -364,7 +364,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         writeln();
       }
       writeln('@override');
-      writeln('String toString() => "$className.\$name";');
+      writeln("String toString() => '$className.\$name';");
       writeln();
       writeln('String toJson() => name;');
     });
@@ -684,7 +684,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             writeln('if ($fieldAccessor != $valueString) {');
             indent(() {
               writeln(
-                  'throw jsonDecoder.mismatch(jsonPath, "equal ${field.value}", json);');
+                  "throw jsonDecoder.mismatch(jsonPath, 'equal ${field.value}', json);");
             });
             writeln('}');
             continue;
@@ -1134,7 +1134,13 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
    * Create a string literal that evaluates to [s].
    */
   String literalString(String s) {
-    return json.encode(s);
+    if (s.contains("'")) {
+      if (s.contains('"')) {
+        return json.encode(s);
+      }
+      return '"$s"';
+    }
+    return "'$s'";
   }
 
   /**

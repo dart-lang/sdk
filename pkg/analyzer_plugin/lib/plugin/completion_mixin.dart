@@ -13,26 +13,20 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] to
- * provide most of the implementation for handling code completion requests.
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin].
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] to
+/// provide most of the implementation for handling code completion requests.
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin].
 mixin CompletionMixin implements ServerPlugin {
-  /**
-   * Return a list containing the completion contributors that should be used to
-   * create completion suggestions for the file with the given [path].
-   */
+  /// Return a list containing the completion contributors that should be used to
+  /// create completion suggestions for the file with the given [path].
   List<CompletionContributor> getCompletionContributors(String path);
 
-  /**
-   * Return the completion request that should be passes to the contributors
-   * returned from [getCompletionContributors].
-   *
-   * Throw a [RequestFailure] if the request could not be created.
-   */
+  /// Return the completion request that should be passes to the contributors
+  /// returned from [getCompletionContributors].
+  ///
+  /// Throw a [RequestFailure] if the request could not be created.
   Future<CompletionRequest> getCompletionRequest(
       CompletionGetSuggestionsParams parameters);
 
@@ -52,16 +46,14 @@ mixin CompletionMixin implements ServerPlugin {
   }
 }
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] and
- * mixing in [CompletionMixin]. This implements the creation of the completion
- * request based on the assumption that the driver being created is an
- * [AnalysisDriver].
- *
- * Clients may not extend or implement this class, but are allowed to use it as
- * a mix-in when creating a subclass of [ServerPlugin] that also uses
- * [CompletionMixin] as a mix-in.
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] and
+/// mixing in [CompletionMixin]. This implements the creation of the completion
+/// request based on the assumption that the driver being created is an
+/// [AnalysisDriver].
+///
+/// Clients may not extend or implement this class, but are allowed to use it as
+/// a mix-in when creating a subclass of [ServerPlugin] that also uses
+/// [CompletionMixin] as a mix-in.
 abstract class DartCompletionMixin implements CompletionMixin {
   @override
   Future<CompletionRequest> getCompletionRequest(

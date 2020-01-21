@@ -32,13 +32,11 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   DartCompletionRequest request;
   List<CompletionSuggestion> suggestions;
 
-  /**
-   * If `true` and `null` is specified as the suggestion's expected returnType
-   * then the actual suggestion is expected to have a `dynamic` returnType.
-   * Newer tests return `false` so that they can distinguish between
-   * `dynamic` and `null`.
-   * Eventually all tests should be converted and this getter removed.
-   */
+  /// If `true` and `null` is specified as the suggestion's expected returnType
+  /// then the actual suggestion is expected to have a `dynamic` returnType.
+  /// Newer tests return `false` so that they can distinguish between
+  /// `dynamic` and `null`.
+  /// Eventually all tests should be converted and this getter removed.
   bool get isNullExpectedReturnTypeConsideredDynamic => true;
 
   void addTestSource(String content) {
@@ -234,14 +232,14 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         elemKind: ElementKind.FIELD,
         isDeprecated: isDeprecated);
     // The returnType represents the type of a field
-    expect(cs.returnType, type != null ? type : 'dynamic');
+    expect(cs.returnType, type ?? 'dynamic');
     Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.FIELD));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     // The returnType represents the type of a field
-    expect(element.returnType, type != null ? type : 'dynamic');
+    expect(element.returnType, type ?? 'dynamic');
     assertHasNoParameterInfo(cs);
     return cs;
   }
@@ -305,8 +303,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     //    expect(param, isNotNull);
     //    expect(param[0], equals('('));
     //    expect(param[param.length - 1], equals(')'));
-    expect(element.returnType,
-        equals(returnType != null ? returnType : 'dynamic'));
+    expect(element.returnType, equals(returnType ?? 'dynamic'));
     // TODO (danrubel) Determine why param info is missing
     //    assertHasParameterInfo(cs);
     return cs;
@@ -321,14 +318,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         relevance: relevance,
         elemKind: ElementKind.GETTER,
         isDeprecated: isDeprecated);
-    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    expect(cs.returnType, returnType ?? 'dynamic');
     Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.GETTER));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
-    expect(element.returnType,
-        equals(returnType != null ? returnType : 'dynamic'));
+    expect(element.returnType, equals(returnType ?? 'dynamic'));
     assertHasNoParameterInfo(cs);
     return cs;
   }
@@ -347,7 +343,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
         defaultArgListString: defaultArgListString,
         defaultArgumentListTextRanges: defaultArgumentListTextRanges);
     expect(cs.declaringType, equals(declaringType));
-    expect(cs.returnType, returnType != null ? returnType : 'dynamic');
+    expect(cs.returnType, returnType ?? 'dynamic');
     Element element = cs.element;
     expect(element, isNotNull);
     expect(element.kind, equals(ElementKind.METHOD));
@@ -356,7 +352,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     expect(param, isNotNull);
     expect(param[0], equals('('));
     expect(param[param.length - 1], equals(')'));
-    expect(element.returnType, returnType != null ? returnType : 'dynamic');
+    expect(element.returnType, returnType ?? 'dynamic');
     assertHasParameterInfo(cs);
     return cs;
   }

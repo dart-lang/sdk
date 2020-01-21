@@ -530,7 +530,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Object> nodeCache;
-  final CloneVisitor cloner = new CloneVisitor();
+  final CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
 
   Map<Class, bool> primitiveEqualCache;
 

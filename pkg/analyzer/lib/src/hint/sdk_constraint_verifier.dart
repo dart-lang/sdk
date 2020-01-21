@@ -101,9 +101,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   /// Return `true` if references to the non-nullable features need to be
   /// checked.
-  // TODO(brianwilkerson) Implement this as a version check when a version has
-  //  been selected.
-  bool get checkNnbd => true;
+  bool get checkNnbd => !_containingLibrary.isNonNullableByDefault;
 
   /// Return `true` if references to set literals need to be checked.
   bool get checkSetLiterals =>

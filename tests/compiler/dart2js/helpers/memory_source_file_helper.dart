@@ -11,8 +11,6 @@ import 'package:compiler/compiler_new.dart';
 
 export 'package:compiler/src/apiimpl.dart' show CompilerImpl;
 
-export 'package:compiler/src/filenames.dart' show currentDirectory;
-
 import 'package:compiler/src/io/source_file.dart'
     show Binary, StringSourceFile, Utf8BytesSourceFile;
 

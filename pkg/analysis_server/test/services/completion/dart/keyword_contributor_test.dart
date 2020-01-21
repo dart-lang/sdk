@@ -2246,6 +2246,19 @@ extension E on int {
     await computeSuggestions();
     assertSuggestKeywords([Keyword.ON], relevance: DART_RELEVANCE_HIGH);
   }
+
+  test_method_type_params() async {
+    addTestSource('''
+void f<T>() {}
+
+void m() {
+  f<^>();
+}
+''');
+
+    await computeSuggestions();
+    assertSuggestKeywords([]);
+  }
 }
 
 @reflectiveTest

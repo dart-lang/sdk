@@ -18,10 +18,11 @@ import 'utils.dart';
 
 /// The directories that contain test suites which follow the conventions
 /// required by [StandardTestSuite]'s forDirectory constructor.
+///
 /// New test suites should follow this convention because it makes it much
-/// simpler to add them to test.dart.  Existing test suites should be
-/// moved to here, if possible.
-final TEST_SUITE_DIRECTORIES = [
+/// simpler to add them to test.dart. Existing test suites should be moved to
+/// here, if possible.
+final testSuiteDirectories = [
   Path('third_party/pkg/dartdoc'),
   Path('pkg'),
   Path('third_party/pkg_tested'),
@@ -120,7 +121,7 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       var suitePath = Path(configuration.suiteDirectory);
       testSuites.add(PackageTestSuite(configuration, suitePath));
     } else {
-      for (var testSuiteDir in TEST_SUITE_DIRECTORIES) {
+      for (var testSuiteDir in testSuiteDirectories) {
         var name = testSuiteDir.filename;
         if (configuration.selectors.containsKey(name)) {
           testSuites

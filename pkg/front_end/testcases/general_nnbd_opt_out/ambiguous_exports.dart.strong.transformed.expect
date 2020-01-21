@@ -1,0 +1,35 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/ambiguous_exports.dart:9:1: Error: 'main' is exported from both 'pkg/front_end/testcases/general_nnbd_opt_out/hello.dart' and 'pkg/front_end/testcases/general_nnbd_opt_out/map.dart'.
+// export 'map.dart' show main;
+// ^
+//
+import self as self;
+import "dart:core" as core;
+
+export "org-dartlang-testcase:///hello.dart";
+export "org-dartlang-testcase:///map.dart";
+
+static const field dynamic _exports# = #C1 /* from null */;
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print("Hello, World!");
+}
+
+library;
+import self as self3;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print(core::Map::•<dynamic, dynamic>());
+}
+
+constants  {
+  #C1 = "{\"main\":\"'main' is exported from both 'pkg/front_end/testcases/general_nnbd_opt_out/hello.dart' and 'pkg/front_end/testcases/general_nnbd_opt_out/map.dart'.\"}"
+}

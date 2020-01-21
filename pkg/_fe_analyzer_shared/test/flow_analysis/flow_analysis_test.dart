@@ -2308,7 +2308,6 @@ main() {
     var intType = _Type('int');
     var numType = _Type('num');
     var objectType = _Type('Object');
-    var neverType = _Type('Never');
 
     test('should handle nulls', () {
       var h = _Harness();
@@ -2345,12 +2344,80 @@ main() {
       expect(VariableModel.joinPromotedTypes(prefix, prefix, h), same(prefix));
     });
 
-    test('should not keep common types after the first difference', () {
+    test('should intersect', () {
       var h = _Harness();
-      expect(
-          VariableModel.joinPromotedTypes([objectType, intType, neverType],
-              [objectType, doubleType, neverType], h),
-          _matchPromotionChain(['Object']));
+
+      // F <: E <: D <: C <: B <: A
+      var A = _Type('A');
+      var B = _Type('B');
+      var C = _Type('C');
+      var D = _Type('D');
+      var E = _Type('E');
+      var F = _Type('F');
+      h.addSubtype(A, B, false);
+      h.addSubtype(B, A, true);
+      h.addSubtype(B, C, false);
+      h.addSubtype(B, D, false);
+      h.addSubtype(C, B, true);
+      h.addSubtype(C, D, false);
+      h.addSubtype(C, E, false);
+      h.addSubtype(D, B, true);
+      h.addSubtype(D, C, true);
+      h.addSubtype(D, E, false);
+      h.addSubtype(D, F, false);
+      h.addSubtype(E, C, true);
+      h.addSubtype(E, D, true);
+      h.addSubtype(E, F, false);
+      h.addSubtype(F, D, true);
+      h.addSubtype(F, E, true);
+
+      void check(List<_Type> chain1, List<_Type> chain2, Matcher matcher) {
+        expect(
+          VariableModel.joinPromotedTypes(chain1, chain2, h),
+          matcher,
+        );
+
+        expect(
+          VariableModel.joinPromotedTypes(chain2, chain1, h),
+          matcher,
+        );
+      }
+
+      {
+        var chain1 = [A, B, C];
+        var chain2 = [A, C];
+        check(chain1, chain2, same(chain2));
+      }
+
+      check(
+        [A, B, C, F],
+        [A, D, E, F],
+        _matchPromotionChain(['A', 'F']),
+      );
+
+      check(
+        [A, B, E, F],
+        [A, C, D, F],
+        _matchPromotionChain(['A', 'F']),
+      );
+
+      check(
+        [A, C, E],
+        [B, C, D],
+        _matchPromotionChain(['C']),
+      );
+
+      check(
+        [A, C, E, F],
+        [B, C, D, F],
+        _matchPromotionChain(['C', 'F']),
+      );
+
+      check(
+        [A, B, C],
+        [A, B, D],
+        _matchPromotionChain(['A', 'B']),
+      );
     });
   });
 
@@ -2679,6 +2746,53 @@ class _Expression {
 }
 
 class _Harness implements TypeOperations<_Var, _Type> {
+  static const Map<String, bool> _coreSubtypes = const {
+    'double <: int': false,
+    'int <: double': false,
+    'int <: int?': true,
+    'int <: Iterable': false,
+    'int <: List': false,
+    'int <: num': true,
+    'int <: num?': true,
+    'int <: num*': true,
+    'int <: Object': true,
+    'int <: Object?': true,
+    'int <: String': false,
+    'int? <: int': false,
+    'int? <: num?': true,
+    'int? <: Object?': true,
+    'num <: int': false,
+    'num <: Iterable': false,
+    'num <: List': false,
+    'num <: num?': true,
+    'num <: Object': true,
+    'num <: Object?': true,
+    'num? <: int?': false,
+    'num? <: num': false,
+    'num? <: num*': true,
+    'num? <: Object?': true,
+    'num* <: num?': true,
+    'num* <: Object?': true,
+    'Iterable <: int': false,
+    'Iterable <: num': false,
+    'Iterable <: Object': true,
+    'Iterable <: Object?': true,
+    'List <: int': false,
+    'List <: Iterable': true,
+    'List <: Object': true,
+    'Object <: int': false,
+    'Object <: List': false,
+    'Object <: num': false,
+    'Object <: Object?': true,
+    'Object? <: int': false,
+    'Object? <: int?': false,
+    'String <: int': false,
+    'String <: int?': false,
+    'String <: Object?': true,
+  };
+
+  final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
+
   FlowAnalysis<_Node, _Statement, _Expression, _Var, _Type> _flow;
 
   final _assignedVariables = AssignedVariables<_Node, _Var>();
@@ -2692,6 +2806,11 @@ class _Harness implements TypeOperations<_Var, _Type> {
         _flow.nullLiteral(expr);
         return expr;
       };
+
+  void addSubtype(_Type leftType, _Type rightType, bool isSubtype) {
+    var query = '$leftType <: $rightType';
+    _subtypes[query] = isSubtype;
+  }
 
   _Var addVar(String name, String type) {
     assert(_flow == null);
@@ -2791,49 +2910,6 @@ class _Harness implements TypeOperations<_Var, _Type> {
 
   @override
   bool isSubtypeOf(_Type leftType, _Type rightType) {
-    const Map<String, bool> _subtypes = const {
-      'int <: int?': true,
-      'int <: Iterable': false,
-      'int <: List': false,
-      'int <: num': true,
-      'int <: num?': true,
-      'int <: num*': true,
-      'int <: Object': true,
-      'int <: Object?': true,
-      'int <: String': false,
-      'int? <: int': false,
-      'int? <: num?': true,
-      'int? <: Object?': true,
-      'num <: int': false,
-      'num <: Iterable': false,
-      'num <: List': false,
-      'num <: num?': true,
-      'num <: Object': true,
-      'num <: Object?': true,
-      'num? <: int?': false,
-      'num? <: num': false,
-      'num? <: num*': true,
-      'num? <: Object?': true,
-      'num* <: num?': true,
-      'num* <: Object?': true,
-      'Iterable <: int': false,
-      'Iterable <: num': false,
-      'Iterable <: Object': true,
-      'Iterable <: Object?': true,
-      'List <: int': false,
-      'List <: Iterable': true,
-      'List <: Object': true,
-      'Object <: int': false,
-      'Object <: List': false,
-      'Object <: num': false,
-      'Object <: Object?': true,
-      'Object? <: int': false,
-      'Object? <: int?': false,
-      'String <: int': false,
-      'String <: int?': false,
-      'String <: Object?': true,
-    };
-
     if (leftType.type == rightType.type) return true;
     var query = '$leftType <: $rightType';
     return _subtypes[query] ?? fail('Unknown subtype query: $query');

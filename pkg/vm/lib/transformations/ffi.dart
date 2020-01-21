@@ -11,6 +11,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 
@@ -178,6 +179,7 @@ class FfiTransformer extends Transformer {
   final LibraryIndex index;
   final ClassHierarchy hierarchy;
   final DiagnosticReporter diagnosticReporter;
+  final ReferenceFromIndex referenceFromIndex;
 
   final Class intClass;
   final Class doubleClass;
@@ -212,8 +214,8 @@ class FfiTransformer extends Transformer {
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final List<Class> nativeTypesClasses;
 
-  FfiTransformer(
-      this.index, this.coreTypes, this.hierarchy, this.diagnosticReporter)
+  FfiTransformer(this.index, this.coreTypes, this.hierarchy,
+      this.diagnosticReporter, this.referenceFromIndex)
       : env = new TypeEnvironment(coreTypes, hierarchy),
         intClass = coreTypes.intClass,
         doubleClass = coreTypes.doubleClass,

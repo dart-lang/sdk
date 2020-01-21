@@ -964,6 +964,16 @@ class A {
     ]);
   }
 
+  test_fieldInitializerOutsideConstructor_closure() async {
+    await assertErrorsInCode(r'''
+class A {
+  dynamic field = ({this.field}) {};
+}
+''', [
+      error(CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR, 30, 10),
+    ]);
+  }
+
   test_fieldInitializerOutsideConstructor_defaultParameter() async {
     await assertErrorsInCode(r'''
 class A {

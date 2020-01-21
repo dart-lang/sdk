@@ -23,6 +23,7 @@ main(List<String> args) {
       if (a[i] != b[i]) {
         print("Data differs at byte ${i + 1}.");
         shouldCompare = true;
+        break;
       }
     }
   }

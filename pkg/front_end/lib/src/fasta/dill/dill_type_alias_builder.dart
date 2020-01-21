@@ -19,7 +19,7 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 class DillTypeAliasBuilder extends TypeAliasBuilder {
   DillTypeAliasBuilder(Typedef typedef, DillLibraryBuilder parent)
       : super(null, typedef.name, null, null, parent, typedef.fileOffset,
-            typedef);
+            typedef: typedef);
 
   List<MetadataBuilder> get metadata {
     return unimplemented("metadata", -1, null);

@@ -1,0 +1,21 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  static method foo() → dynamic {
+    dart.core::print("foo!");
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart" deferred as foo;
+
+  static method main() → dynamic {
+    () →* dart.async::Future<dynamic>* f = #C1;
+    f.call();
+  }
+  static method _#loadLibrary_foo() → dart.async::Future<dynamic>*
+    return LoadLibrary(foo);
+}
+constants  {
+  #C1 = tearoff main::_#loadLibrary_foo
+}

@@ -162,11 +162,6 @@ Pointer<Int64> store(Pointer<Int64> ptr) => ptr.elementAt(1)..value = 1337;
 typedef NullPointersType = Pointer<Int64> Function(Pointer<Int64>);
 Pointer<Int64> nullPointers(Pointer<Int64> ptr) => ptr.elementAt(1);
 
-typedef ReturnNullType = Int32 Function();
-int returnNull() {
-  return null;
-}
-
 typedef ReturnVoid = Void Function();
 void returnVoid() {}
 
@@ -189,6 +184,34 @@ Pointer<Void> throwExceptionPointer() {
   throw "Exception.";
 }
 
+typedef TakeMaxUint8x10Type = IntPtr Function(
+    Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8);
+int takeMaxUint8x10(
+    int a, int b, int c, int d, int e, int f, int g, int h, int i, int j) {
+  print("takeMaxUint8x10($a, $b, $c, $d, $e, $f, $g, $h, $i, $j)");
+  return a == 0xff &&
+          b == 0xff &&
+          c == 0xff &&
+          d == 0xff &&
+          e == 0xff &&
+          f == 0xff &&
+          g == 0xff &&
+          h == 0xff &&
+          i == 0xff &&
+          j == 0xff
+      ? 1
+      : 0;
+}
+
+typedef ReturnMaxUint8Type = Uint8 Function();
+int returnMaxUint8() {
+  return 0xff;
+}
+
+int returnMaxUint8v2() {
+  return 0xabcff;
+}
+
 final List<Test> testcases = [
   Test("SimpleAddition",
       Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0)),
@@ -205,7 +228,6 @@ final List<Test> testcases = [
   Test("ManyArgs", Pointer.fromFunction<ManyArgsType>(manyArgs, 0.0)),
   Test("Store", Pointer.fromFunction<StoreType>(store)),
   Test("NullPointers", Pointer.fromFunction<NullPointersType>(nullPointers)),
-  Test("ReturnNull", Pointer.fromFunction<ReturnNullType>(returnNull, 42)),
   Test("ReturnVoid", Pointer.fromFunction<ReturnVoid>(returnVoid)),
   Test("ThrowExceptionDouble",
       Pointer.fromFunction<ThrowExceptionDouble>(throwExceptionDouble, 42.0)),
@@ -213,6 +235,12 @@ final List<Test> testcases = [
       Pointer.fromFunction<ThrowExceptionPointer>(throwExceptionPointer)),
   Test("ThrowException",
       Pointer.fromFunction<ThrowExceptionInt>(throwExceptionInt, 42)),
+  Test("TakeMaxUint8x10",
+      Pointer.fromFunction<TakeMaxUint8x10Type>(takeMaxUint8x10, 0)),
+  Test("ReturnMaxUint8",
+      Pointer.fromFunction<ReturnMaxUint8Type>(returnMaxUint8, 0)),
+  Test("ReturnMaxUint8",
+      Pointer.fromFunction<ReturnMaxUint8Type>(returnMaxUint8v2, 0)),
 ];
 
 void main() {

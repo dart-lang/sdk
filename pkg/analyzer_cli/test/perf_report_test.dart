@@ -11,11 +11,11 @@ import 'package:test/test.dart';
 
 main() {
   test('makePerfReport', () {
-    var options = CommandLineOptions.parse(["somefile.dart"]);
+    var options = CommandLineOptions.parse(['somefile.dart']);
     var encoded = makePerfReport(1000, 1234, options, 0, AnalysisStats());
 
     var jsonData = json.decode(encoded);
     expect(jsonData['totalElapsedTime'], 234);
-    expect(jsonData['options']['sourceFiles'], ["somefile.dart"]);
+    expect(jsonData['options']['sourceFiles'], ['somefile.dart']);
   });
 }

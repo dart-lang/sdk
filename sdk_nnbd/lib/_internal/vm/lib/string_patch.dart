@@ -14,7 +14,9 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]) {
-    if (end != null) throw new ArgumentError.value(end, "end");
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (charCodes == null) throw new ArgumentError.notNull("charCodes");
+    if (start == null) throw new ArgumentError.notNull("start");
     return _StringBase.createFromCharCodes(charCodes, start, end, null);
   }
 
@@ -44,7 +46,7 @@ class String {
   }
 
   @patch
-  const factory String.fromEnvironment(String name, {String defaultValue})
+  const factory String.fromEnvironment(String name, {String defaultValue = ""})
       native "String_fromEnvironment";
 
   bool get _isOneByte;
@@ -164,7 +166,7 @@ abstract class _StringBase implements String {
   }
 
   static String _createStringFromIterable(
-      Iterable<int> charCodes, int start, int end) {
+      Iterable<int> charCodes, int start, int? end) {
     // Treat charCodes as Iterable.
     if (charCodes is EfficientLengthIterable) {
       int length = charCodes.length;
@@ -197,15 +199,17 @@ abstract class _StringBase implements String {
         throw new RangeError.range(end, start, charCodes.length);
       }
       int len = end - start;
-      charCodeList = new List<int>(len);
-      for (int i = 0; i < len; i++) {
-        if (!it.moveNext()) {
-          throw new RangeError.range(end, start, start + i);
+      charCodeList = new List<int>.generate(
+        len,
+        (int i) {
+          if (!it.moveNext()) {
+            throw new RangeError.range(end, start, start + i);
+          }
+          int code = it.current;
+          bits |= code;
+          return code;
         }
-        int code = it.current;
-        bits |= code;
-        charCodeList[i] = code;
-      }
+      );
     }
     int length = charCodeList.length;
     if (bits < 0) {
@@ -572,11 +576,15 @@ abstract class _StringBase implements String {
 
   String replaceFirst(Pattern pattern, String replacement,
       [int startIndex = 0]) {
-    if (replacement is! String) {
-      throw new ArgumentError("${replacement} is not a String");
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (pattern == null) {
+      throw new ArgumentError.notNull("pattern");
     }
-    if (startIndex is! int) {
-      throw new ArgumentError("${startIndex} is not an int");
+    if (replacement == null) {
+      throw new ArgumentError.notNull("replacement");
+    }
+    if (startIndex == null) {
+      throw new ArgumentError.notNull("startIndex");
     }
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
     Iterator iterator = startIndex == 0
@@ -587,7 +595,7 @@ abstract class _StringBase implements String {
     return replaceRange(match.start, match.end, replacement);
   }
 
-  String replaceRange(int start, int end, String replacement) {
+  String replaceRange(int start, int? end, String replacement) {
     int length = this.length;
     end = RangeError.checkValidRange(start, end, length);
     bool replacementIsOneByte = replacement._isOneByte;
@@ -791,8 +799,8 @@ abstract class _StringBase implements String {
 
   String splitMapJoin(Pattern pattern,
       {String onMatch(Match match)?, String onNonMatch(String nonMatch)?}) {
-    if (pattern is! Pattern) {
-      throw new ArgumentError("${pattern} is not a Pattern");
+    if (pattern == null) {
+      throw new ArgumentError.notNull("pattern");
     }
     onMatch ??= _matchString;
     onNonMatch ??= _stringIdentity;
@@ -882,10 +890,8 @@ abstract class _StringBase implements String {
 
   List<String> split(Pattern pattern) {
     if ((pattern is String) && pattern.isEmpty) {
-      List<String> result = new List<String>(this.length);
-      for (int i = 0; i < this.length; i++) {
-        result[i] = this[i];
-      }
+      List<String> result = new List<String>.generate(
+        this.length, (int i) => this[i]);
       return result;
     }
     int length = this.length;
@@ -1358,7 +1364,7 @@ class _StringAllMatchesIterator implements Iterator<Match> {
   final String _input;
   final String _pattern;
   int _index;
-  Match _current;
+  Match? _current;
 
   _StringAllMatchesIterator(this._input, this._pattern, this._index);
 
@@ -1381,5 +1387,5 @@ class _StringAllMatchesIterator implements Iterator<Match> {
     return true;
   }
 
-  Match get current => _current;
+  Match get current => _current as Match;
 }

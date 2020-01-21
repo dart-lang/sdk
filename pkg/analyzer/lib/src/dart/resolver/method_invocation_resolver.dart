@@ -422,8 +422,7 @@ class MethodInvocationResolver {
       InterfaceType receiverType, SimpleIdentifier nameNode, String name) {
     if (_isCoreFunction(receiverType) &&
         name == FunctionElement.CALL_METHOD_NAME) {
-      _resolver.nullableDereferenceVerifier
-          .methodInvocation(receiver, receiverType, name);
+      _resolver.nullableDereferenceVerifier.expression(receiver);
       _setDynamicResolution(node);
       return;
     }
@@ -458,10 +457,7 @@ class MethodInvocationResolver {
         );
       } else {
         _setDynamicResolution(node);
-        _resolver.errorReporter.reportErrorForNode(
-          StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE,
-          receiver,
-        );
+        _resolver.nullableDereferenceVerifier.report(receiver, receiverType);
       }
       return;
     }

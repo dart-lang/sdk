@@ -19,7 +19,6 @@ abstract class SimpleWorkspace extends Workspace {
   /// The [ResourceProvider] by which paths are converted into [Resource]s.
   final ResourceProvider provider;
 
-  @override
   Map<String, List<Folder>> packageMap;
 
   /// The absolute workspace root path.

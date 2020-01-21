@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:observatory/heap_snapshot.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/object_graph.dart';
 import 'package:observatory/service_io.dart';
@@ -36,10 +35,7 @@ void script() {
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var raw = await isolate.fetchHeapSnapshot().last;
-    HeapSnapshot snapshot = new HeapSnapshot();
-    await snapshot.loadProgress(isolate, raw).last;
-    var graph = snapshot.graph;
+    var graph = await isolate.fetchHeapSnapshot().done;
 
     Iterable<SnapshotObject> foos =
         graph.objects.where((SnapshotObject obj) => obj.klass.name == "Foo");

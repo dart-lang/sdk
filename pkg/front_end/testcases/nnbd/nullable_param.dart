@@ -15,5 +15,5 @@ main() {
 }
 
 int test_nullable_function_type_formal_param({int f()?: null}) {
-  return f() ?? -1;
+  return f?.call() ?? -1;
 }

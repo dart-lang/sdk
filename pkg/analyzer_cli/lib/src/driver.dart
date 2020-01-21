@@ -67,7 +67,7 @@ bool containsLintRuleEntry(YamlMap options) {
 
 class Driver with HasContextMixin implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
-      PerformanceTag("Driver._analyzeAll");
+      PerformanceTag('Driver._analyzeAll');
 
   static final ByteStore analysisDriverMemoryByteStore = MemoryByteStore();
 
@@ -89,9 +89,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// SDK instance.
   DartSdk sdk;
 
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   @override
   final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
 
@@ -106,9 +104,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   /// [isTesting] is true if we're running in a test environment.
   Driver({bool isTesting = false});
 
-  /**
-   * Converts the given [filePath] into absolute and normalized.
-   */
+  /// Converts the given [filePath] into absolute and normalized.
   String normalizePath(String filePath) {
     filePath = filePath.trim();
     filePath = resourceProvider.pathContext.absolute(filePath);
@@ -119,7 +115,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
   @override
   Future<void> start(List<String> args, {SendPort sendPort}) async {
     if (analysisDriver != null) {
-      throw StateError("start() can only be called once");
+      throw StateError('start() can only be called once');
     }
     int startTime = DateTime.now().millisecondsSinceEpoch;
 
@@ -239,8 +235,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
     ErrorSeverity allResult = ErrorSeverity.NONE;
 
     void reportPartError(String partPath) {
-      errorSink.writeln("$partPath is a part and cannot be analyzed.");
-      errorSink.writeln("Please pass in a library that contains this part.");
+      errorSink.writeln('$partPath is a part and cannot be analyzed.');
+      errorSink.writeln('Please pass in a library that contains this part.');
       io.exitCode = ErrorSeverity.ERROR.ordinal;
       allResult = allResult.max(ErrorSeverity.ERROR);
     }
@@ -629,7 +625,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
 
   /// Returns `true` if this relative path is a hidden directory.
   bool _isInHiddenDir(String relative) =>
-      path.split(relative).any((part) => part.startsWith("."));
+      path.split(relative).any((part) => part.startsWith('.'));
 
   /// Analyze a single source.
   Future<ErrorSeverity> _runAnalyzer(

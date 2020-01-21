@@ -6,8 +6,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/nullability_state.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// Information exposed to the migration client about the set of nullability
 /// nodes decorating a type in the program being migrated.
@@ -167,6 +167,12 @@ abstract class FixReasonInfo {}
 /// about the decisions made during migration, and how those decisions relate to
 /// the input source code.
 abstract class NullabilityMigrationInstrumentation {
+  /// Called whenever changes are decided upon for a given [source] file.
+  ///
+  /// The format of the changes is a map from source file offset to a list of
+  /// changes to be applied at that offset.
+  void changes(Source source, Map<int, List<AtomicEdit>> changes);
+
   /// Called whenever an explicit [typeAnnotation] is found in the source code,
   /// to report the nullability [node] that was associated with this type.  If
   /// the migration engine determines that the [node] should be nullable, a `?`
@@ -184,9 +190,6 @@ abstract class NullabilityMigrationInstrumentation {
   /// bound of the type parameter.
   void externalDecoratedTypeParameterBound(
       TypeParameterElement typeParameter, DecoratedTypeInfo decoratedType);
-
-  /// Called whenever a fix is decided upon, to report the reasons for the fix.
-  void fix(SingleNullabilityFix fix, Iterable<FixReasonInfo> reasons);
 
   /// Called whenever the migration engine creates a graph edge between
   /// nullability nodes, to report information about the edge that was created,

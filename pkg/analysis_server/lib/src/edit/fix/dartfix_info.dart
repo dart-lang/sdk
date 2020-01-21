@@ -22,33 +22,13 @@ final allFixes = <DartFixInfo>[
   //
   DartFixInfo(
     'fix-named-constructor-type-arguments',
-    '''
-Move named constructor type arguments from the name to the type.
-
-For example, this
-  new List.filled<String>(20, 'value');
-
-will be converted to
-  new List<String>.filled(20, 'value');''',
+    "Move named constructor type arguments from the name to the type.",
     FixErrorTask.fixNamedConstructorTypeArgs,
     isRequired: true,
   ),
   DartFixInfo(
     'use-mixin',
-    '''
-Convert classes used as a mixin to the new mixin syntax.
-
-For example, this
-  class C with M { }
-  class M { }
-
-will be converted to
-  class C with M { }
-  mixin M { }
-
-There are several situations where a class cannot be automatically converted
-to a mixin such as when the class contains a constructor. In that situation
-a message is displayed and the class is not converted to a mixin.''',
+    "Convert classes used as a mixin to the new mixin syntax.",
     PreferMixinFix.task,
     isRequired: true,
   ),
@@ -59,16 +39,25 @@ a message is displayed and the class is not converted to a mixin.''',
   //  non-local changes, so they can't currently be applied together. I have an
   //  idea for how to update FixProcessor to support these fixes.
 //  LintFixInfo.alwaysDeclareReturnTypes,
-//  LintFixInfo.alwaysRequireNonNullNamedParameters,
+//  LintFixInfo.alwaysRequireNonNullNamedParameters
+//  LintFixInfo.alwaysSpecifyTypes,
   LintFixInfo.annotateOverrides,
+  LintFixInfo.avoidAnnotatingWithDynamic,
   LintFixInfo.avoidEmptyElse,
   LintFixInfo.avoidInitToNull,
+  LintFixInfo.avoidRedundantArgumentValues,
   LintFixInfo.avoidRelativeLibImports,
   LintFixInfo.avoidReturnTypesOnSetters,
+  LintFixInfo.avoidTypesOnClosureParameters,
+  LintFixInfo.awaitOnlyFutures,
   LintFixInfo.curlyBracesInFlowControlStructures,
+  LintFixInfo.diagnosticDescribeAllProperties,
   LintFixInfo.emptyCatches,
   LintFixInfo.emptyConstructorBodies,
+  LintFixInfo.emptyStatements,
+  LintFixInfo.hashAndEquals,
   LintFixInfo.noDuplicateCaseValues,
+  LintFixInfo.nonConstantIdentifierNames,
   LintFixInfo.nullClosures,
   LintFixInfo.omitLocalVariableTypes,
   LintFixInfo.preferAdjacentStringConcatenation,
@@ -76,19 +65,29 @@ a message is displayed and the class is not converted to a mixin.''',
   LintFixInfo.preferConditionalAssignment,
   LintFixInfo.preferEqualForDefaultValues,
   LintFixInfo.preferFinalFields,
+  LintFixInfo.preferFinalLocals,
   LintFixInfo.preferForElementsToMapFromIterable,
   LintFixInfo.preferGenericFunctionTypeAliases,
   LintFixInfo.preferIfNullOperators,
+  LintFixInfo.preferInlinedAdds,
+  LintFixInfo.preferIntLiterals,
   LintFixInfo.preferIsEmpty,
   LintFixInfo.preferIsNotEmpty,
   LintFixInfo.preferIterableWhereType,
+  LintFixInfo.preferNullAwareOperators,
+  LintFixInfo.preferRelativeImports,
   LintFixInfo.preferSingleQuotes,
   LintFixInfo.preferSpreadCollections,
   LintFixInfo.slashForDocComments,
+  LintFixInfo.sortChildPropertiesLast,
+//  LintFixInfo.typeAnnotatePublicApis,
   LintFixInfo.typeInitFormals,
   LintFixInfo.unawaitedFutures,
+  LintFixInfo.unnecessaryBraceInStringInterps,
   LintFixInfo.unnecessaryConst,
+  LintFixInfo.unnecessaryLambdas,
   LintFixInfo.unnecessaryNew,
+  LintFixInfo.unnecessaryOverrides,
   LintFixInfo.unnecessaryThis,
   LintFixInfo.useFunctionTypeSyntaxForParameters,
   LintFixInfo.useRethrowWhenPossible,
@@ -96,57 +95,28 @@ a message is displayed and the class is not converted to a mixin.''',
   // Other fixes
   //
   DartFixInfo(
+    // TODO(brianwilkerson) This duplicates `LintFixInfo.preferIntLiterals` and
+    //  should be removed.
     'double-to-int',
-    '''
-Find double literals ending in .0 and remove the .0
-wherever double context can be inferred.
-
-For example, this
-  const double myDouble = 8.0;
-
-will be converted to
-  const double myDouble = 8;''',
+    "Find double literals ending in .0 and remove the .0 wherever double context can be inferred.",
     BasicFixLintAssistTask.preferIntLiterals,
     isDefault: false,
   ),
   DartFixInfo(
     'use-spread-collections',
-    '''
-Convert to using collection spread operators.
-
-For example, this
-  var l1 = ['b'];
-  var l2 = ['a']..addAll(l1);
-
-will be converted to
-  var l1 = ['b'];
-  var l2 = ['a', ...l1];''',
+    "Convert to using collection spread operators.",
     BasicFixLintAssistTask.preferSpreadCollections,
     isDefault: false,
   ),
   DartFixInfo(
     'collection-if-elements',
-    '''
-Convert to using if elements when building collections.
-
-For example, this
-  f(bool b) => ['a', b ? 'c' : 'd', 'e'];
-
-will be converted to
-  f(bool b) => ['a', if (b) 'c' else 'd', 'e'];''',
+    "Convert to using if elements when building collections.",
     BasicFixLintAssistTask.preferIfElementsToConditionalExpressions,
     isDefault: false,
   ),
   DartFixInfo(
     'map-for-elements',
-    '''
-Convert to for elements when building maps from iterables.
-
-For example, this
-  Map<int, int>.fromIterable([1, 2, 3], key: (i) => i, value: (i) => i * 2)
-
-will be converted to
-  <int, int>{ for(int i in [1, 2, 3]) i : i * 2, }''',
+    "Convert to for elements when building maps from iterables.",
     BasicFixLintAssistTask.preferForElementsToMapFromIterable,
     isDefault: false,
   ),
@@ -155,8 +125,6 @@ will be converted to
   //
   DartFixInfo(
     'non-nullable',
-    // TODO(danrubel) update description and make default/required
-    // when NNBD fix is ready
     '''
 EXPERIMENTAL: Update sources to be non-nullable by default.
 This requires the experimental non-nullable flag to be enabled
@@ -224,142 +192,261 @@ class LintFixInfo extends DartFixInfo {
   // valid_regexps
 
   static final alwaysDeclareReturnTypes = LintFixInfo(
-      'always_declare_return_types',
-      DartFixKind.ADD_RETURN_TYPE,
-      'Add a return type where possible.',
-      isPedantic: true);
+    'always_declare_return_types',
+    DartFixKind.ADD_RETURN_TYPE,
+    "Add a return type where possible.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final alwaysRequireNonNullNamedParameters = LintFixInfo(
-      'always_require_non_null_named_parameters',
-      DartFixKind.ADD_REQUIRED,
-      'Add an @required annotation.',
-      isPedantic: true);
+    'always_require_non_null_named_parameters',
+    DartFixKind.ADD_REQUIRED,
+    "Add an @required annotation.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
-  static final annotateOverrides = LintFixInfo('annotate_overrides',
-      DartFixKind.ADD_OVERRIDE, 'Add an @override annotation.',
-      isPedantic: true);
+  static final alwaysSpecifyTypes = LintFixInfo(
+    'always_specify_types',
+    DartFixKind.ADD_TYPE_ANNOTATION,
+    "Add a type annotation.",
+    isDefault: false,
+  );
 
-  static final avoidEmptyElse = LintFixInfo('avoid_empty_else',
-      DartFixKind.REMOVE_EMPTY_ELSE, 'Remove the empty else.',
-      isPedantic: true);
+  static final annotateOverrides = LintFixInfo(
+    'annotate_overrides',
+    DartFixKind.ADD_OVERRIDE,
+    "Add an @override annotation.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
-  static final avoidInitToNull = LintFixInfo('avoid_init_to_null',
-      DartFixKind.REMOVE_INITIALIZER, 'Remove the initializer.',
-      isPedantic: true);
+  static final avoidAnnotatingWithDynamic = LintFixInfo(
+    'avoid_annotating_with_dynamic',
+    DartFixKind.REMOVE_TYPE_ANNOTATION,
+    "Remove the type annotation.",
+    isDefault: false,
+  );
+
+  static final avoidEmptyElse = LintFixInfo(
+    'avoid_empty_else',
+    DartFixKind.REMOVE_EMPTY_ELSE,
+    "Remove the empty else.",
+    isDefault: false,
+    isPedantic: true,
+  );
+
+  static final avoidInitToNull = LintFixInfo(
+    'avoid_init_to_null',
+    DartFixKind.REMOVE_INITIALIZER,
+    "Remove the initializer.",
+    isDefault: false,
+    isPedantic: true,
+  );
+
+  static final avoidRedundantArgumentValues = LintFixInfo(
+    'avoid_redundant_argument_values',
+    DartFixKind.REMOVE_ARGUMENT,
+    "Remove the redundant argument.",
+    isDefault: false,
+  );
 
   static final avoidRelativeLibImports = LintFixInfo(
-      'avoid_relative_lib_imports',
-      DartFixKind.CONVERT_TO_PACKAGE_IMPORT,
-      'Convert the import to a package: import.',
-      isPedantic: true);
+    'avoid_relative_lib_imports',
+    DartFixKind.CONVERT_TO_PACKAGE_IMPORT,
+    "Convert the import to a package: import.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final avoidReturnTypesOnSetters = LintFixInfo(
-      'avoid_return_types_on_setters',
-      DartFixKind.REMOVE_TYPE_ANNOTATION,
-      'Remove the return type.',
-      isPedantic: true);
+    'avoid_return_types_on_setters',
+    DartFixKind.REMOVE_TYPE_ANNOTATION,
+    "Remove the return type.",
+    isDefault: false,
+    isPedantic: true,
+  );
+
+  static final avoidTypesOnClosureParameters = LintFixInfo(
+    'avoid_types_on_closure_parameters',
+    // Also sometimes fixed by DartFixKind.REPLACE_WITH_IDENTIFIER
+    DartFixKind.REMOVE_TYPE_ANNOTATION,
+    "Remove the type annotation.",
+    isDefault: false,
+  );
+
+  static final awaitOnlyFutures = LintFixInfo(
+    'await_only_futures',
+    DartFixKind.REMOVE_AWAIT,
+    "Remove the 'await'.",
+    isDefault: false,
+  );
 
   static final curlyBracesInFlowControlStructures = LintFixInfo(
-      'curly_braces_in_flow_control_structures',
-      DartFixKind.ADD_CURLY_BRACES,
-      'Add curly braces.',
-      isPedantic: true);
+    'curly_braces_in_flow_control_structures',
+    DartFixKind.ADD_CURLY_BRACES,
+    "Add curly braces.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
-  static final emptyCatches = LintFixInfo('empty_catches',
-      DartFixKind.REMOVE_EMPTY_CATCH, 'Remove the empty catch clause.',
-      isPedantic: true);
+  static final diagnosticDescribeAllProperties = LintFixInfo(
+    'diagnostic_describe_all_properties',
+    DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE,
+    "Add a debug reference to this property.",
+    isDefault: false,
+  );
+
+  static final emptyCatches = LintFixInfo(
+    'empty_catches',
+    DartFixKind.REMOVE_EMPTY_CATCH,
+    "Remove the empty catch clause.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final emptyConstructorBodies = LintFixInfo(
-      'empty_constructor_bodies',
-      DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY,
-      'Remove the empoty catch clause.',
-      isPedantic: true);
+    'empty_constructor_bodies',
+    DartFixKind.REMOVE_EMPTY_CONSTRUCTOR_BODY,
+    "Remove the empoty catch clause.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
-  static final noDuplicateCaseValues = LintFixInfo('no_duplicate_case_values',
-      DartFixKind.REMOVE_DUPLICATE_CASE, 'Remove the duplicate case clause.',
-      isPedantic: true);
+  static final emptyStatements = LintFixInfo(
+    'empty_statements',
+    // Also sometimes fixed by DartFixKind.REPLACE_WITH_BRACKETS
+    DartFixKind.REMOVE_EMPTY_STATEMENT,
+    "Remove the empty statement.",
+    isDefault: false,
+  );
+
+  static final hashAndEquals = LintFixInfo(
+    'hash_and_equals',
+    DartFixKind.CREATE_METHOD,
+    "Create the missing method.",
+    isDefault: false,
+  );
+
+  static final noDuplicateCaseValues = LintFixInfo(
+    'no_duplicate_case_values',
+    DartFixKind.REMOVE_DUPLICATE_CASE,
+    "Remove the duplicate case clause.",
+    isDefault: false,
+    isPedantic: true,
+  );
+
+  static final nonConstantIdentifierNames = LintFixInfo(
+    'non_constant_identifier_names',
+    DartFixKind.RENAME_TO_CAMEL_CASE,
+    "Change the name to be camelCase.",
+    isDefault: false,
+  );
 
   static final nullClosures = LintFixInfo(
     'null_closures',
     DartFixKind.REPLACE_NULL_WITH_CLOSURE,
-    '''
-Convert nulls to closures that return null where expected.
-
-For example, this
-  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: null);
-
-will be converted to
-  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: () => null);''',
+    "Convert nulls to closures that return null where expected.",
     isPedantic: true,
   );
 
-  static final omitLocalVariableTypes = LintFixInfo('omit_local_variable_types',
-      DartFixKind.REPLACE_WITH_VAR, "Replace the type annotation with 'var'",
-      isPedantic: true);
+  static final omitLocalVariableTypes = LintFixInfo(
+    'omit_local_variable_types',
+    DartFixKind.REPLACE_WITH_VAR,
+    "Replace the type annotation with 'var'",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final preferAdjacentStringConcatenation = LintFixInfo(
-      'prefer_adjacent_string_concatenation',
-      DartFixKind.REMOVE_OPERATOR,
-      "Remove the '+' operator.",
-      isPedantic: true);
+    'prefer_adjacent_string_concatenation',
+    DartFixKind.REMOVE_OPERATOR,
+    "Remove the '+' operator.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final preferCollectionLiterals = LintFixInfo(
-      'prefer_collection_literals',
-      DartFixKind.CONVERT_TO_LIST_LITERAL,
-      'Replace with a collection literal.',
-      isPedantic: true);
+    'prefer_collection_literals',
+    DartFixKind.CONVERT_TO_LIST_LITERAL,
+    "Replace with a collection literal.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final preferConditionalAssignment = LintFixInfo(
-      'prefer_conditional_assignment',
-      DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT,
-      'Replace with a conditional assignment.',
-      isPedantic: true);
+    'prefer_conditional_assignment',
+    DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT,
+    "Replace with a conditional assignment.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final preferEqualForDefaultValues = LintFixInfo(
     'prefer_equal_for_default_values',
     DartFixKind.REPLACE_COLON_WITH_EQUALS,
-    '''
-Convert declarations to use = to separate a named parameter from its default value.
-
-For example, this
-  f({a: 1}) { }
-
-will be converted to
-  f({a = 1}) { }''',
+    "Convert declarations to use = to separate a named parameter from its default value.",
     isPedantic: true,
   );
 
   static final preferFinalFields = LintFixInfo(
-      'prefer_final_fields', DartFixKind.MAKE_FINAL, 'Make the field final.',
-      isPedantic: true);
+    'prefer_final_fields',
+    DartFixKind.MAKE_FINAL,
+    "Make the field final.",
+    isDefault: false,
+    isPedantic: true,
+  );
+
+  static final preferFinalLocals = LintFixInfo(
+    'prefer_final_locals',
+    DartFixKind.MAKE_FINAL,
+    "Make the variable 'final'.",
+    isDefault: false,
+  );
 
   static final preferForElementsToMapFromIterable = LintFixInfo(
-      'prefer_for_elements_to_map_fromIterable',
-      DartFixKind.CONVERT_TO_FOR_ELEMENT,
-      'Convert to a for element.',
-      isPedantic: true);
+    'prefer_for_elements_to_map_fromIterable',
+    DartFixKind.CONVERT_TO_FOR_ELEMENT,
+    "Convert to a for element.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final preferGenericFunctionTypeAliases = LintFixInfo(
-      'prefer_generic_function_type_aliases',
-      DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX,
-      "Convert into 'Function' syntax",
-      isPedantic: true);
+    'prefer_generic_function_type_aliases',
+    DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX,
+    "Convert into 'Function' syntax",
+    isDefault: false,
+    isPedantic: true,
+  );
 
-  static final preferIfNullOperators = LintFixInfo('prefer_if_null_operators',
-      DartFixKind.CONVERT_TO_IF_NULL, "Convert to use '??'.",
-      isPedantic: true);
+  static final preferIfNullOperators = LintFixInfo(
+    'prefer_if_null_operators',
+    DartFixKind.CONVERT_TO_IF_NULL,
+    "Convert to use '??'.",
+    isDefault: false,
+    isPedantic: true,
+  );
+
+  static final preferInlinedAdds = LintFixInfo(
+    'prefer_inlined_adds',
+    DartFixKind.INLINE_INVOCATION,
+    "Inline the invocation.",
+    isDefault: false,
+  );
+
+  static final preferIntLiterals = LintFixInfo(
+    'prefer_int_literals',
+    DartFixKind.CONVERT_TO_INT_LITERAL,
+    "Convert to an int literal",
+    isDefault: false,
+  );
 
   static final preferIsEmpty = LintFixInfo(
     'prefer_is_empty',
     DartFixKind.REPLACE_WITH_IS_EMPTY,
-    '''
-Convert to using 'isEmpty' when checking if a collection or iterable is empty.
-
-For example, this
-  if (lunchBox.length == 0) return 'so hungry...';
-
-will be converted to
-  if (lunchBox.isEmpty) return 'so hungry...';''',
+    "Convert to using 'isEmpty' when checking if a collection or iterable is empty.",
     isDefault: false,
     isPedantic: true,
   );
@@ -367,102 +454,157 @@ will be converted to
   static final preferIsNotEmpty = LintFixInfo(
     'prefer_is_not_empty',
     DartFixKind.REPLACE_WITH_IS_NOT_EMPTY,
-    '''
-Convert to using 'isNotEmpty' when checking if a collection or iterable is not empty.
-
-For example, this
-  if (words.length != 0) return words.join(' ');
-
-will be converted to
-  if (words.isNotEmpty) return words.join(' ');''',
+    "Convert to using 'isNotEmpty' when checking if a collection or iterable is not empty.",
     isDefault: false,
     isPedantic: true,
   );
 
   static final preferIterableWhereType = LintFixInfo(
-      'prefer_iterable_whereType',
-      DartFixKind.CONVERT_TO_WHERE_TYPE,
-      'Add a return type where possible.',
-      isPedantic: true);
+    'prefer_iterable_whereType',
+    DartFixKind.CONVERT_TO_WHERE_TYPE,
+    "Add a return type where possible.",
+    isDefault: false,
+    isPedantic: true,
+  );
+
+  static final preferNullAwareOperators = LintFixInfo(
+    'prefer_null_aware_operators',
+    DartFixKind.CONVERT_TO_NULL_AWARE,
+    "Convert to use '?.'.",
+    isDefault: false,
+  );
+
+  static final preferRelativeImports = LintFixInfo(
+    'prefer_relative_imports',
+    DartFixKind.CONVERT_TO_RELATIVE_IMPORT,
+    "Convert to a relative import.",
+    isDefault: false,
+  );
 
   static final preferSingleQuotes = LintFixInfo(
     'prefer_single_quotes',
     DartFixKind.CONVERT_TO_SINGLE_QUOTED_STRING,
-    '''
-Convert strings using a dobule quote to use a single quote.''',
+    "Convert strings using a dobule quote to use a single quote.",
     isDefault: false,
     isPedantic: true,
   );
 
   static final preferSpreadCollections = LintFixInfo(
-      'prefer_spread_collections',
-      // TODO(brianwilkerson) There are two possible fixes here, but not under
-      //  user control.
-      DartFixKind.CONVERT_TO_SPREAD,
-      'Convert to a spread operator.',
-      isPedantic: true);
+    'prefer_spread_collections',
+    // TODO(brianwilkerson) There are two possible fixes here, but not under
+    //  user control.
+    DartFixKind.CONVERT_TO_SPREAD,
+    "Convert to a spread operator.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
-  static final slashForDocComments = LintFixInfo('slash_for_doc_comments',
-      DartFixKind.CONVERT_TO_LINE_COMMENT, 'Convert to a line comment.',
-      isPedantic: true);
+  static final slashForDocComments = LintFixInfo(
+    'slash_for_doc_comments',
+    DartFixKind.CONVERT_TO_LINE_COMMENT,
+    "Convert to a line comment.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
-  static final typeInitFormals = LintFixInfo('type_init_formals',
-      DartFixKind.REMOVE_TYPE_ANNOTATION, 'Remove the type annotation.',
-      isPedantic: true);
+  static final sortChildPropertiesLast = LintFixInfo(
+    'sort_child_properties_last',
+    DartFixKind.SORT_CHILD_PROPERTY_LAST,
+    "Move the 'child' argument to the end of the argument list.",
+    isDefault: false,
+  );
+
+  static final typeAnnotatePublicApis = LintFixInfo(
+    'type_annotate_public_apis',
+    DartFixKind.ADD_TYPE_ANNOTATION,
+    "Add a type annotation.",
+    isDefault: false,
+  );
+
+  static final typeInitFormals = LintFixInfo(
+    'type_init_formals',
+    DartFixKind.REMOVE_TYPE_ANNOTATION,
+    "Remove the type annotation.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final unawaitedFutures = LintFixInfo(
-      'unawaited_futures', DartFixKind.ADD_AWAIT, 'Add await.',
-      isPedantic: true);
+    'unawaited_futures',
+    DartFixKind.ADD_AWAIT,
+    "Add await.",
+    isDefault: false,
+    isPedantic: true,
+  );
+
+  static final unnecessaryBraceInStringInterps = LintFixInfo(
+    'unnecessary_brace_in_string_interps',
+    DartFixKind.REMOVE_INTERPOLATION_BRACES,
+    "Remove the unnecessary interpolation braces.",
+    isDefault: false,
+  );
 
   static final unnecessaryConst = LintFixInfo(
     'unnecessary_const',
     DartFixKind.REMOVE_UNNECESSARY_CONST,
-    '''
-Remove unnecessary `const` keywords.
-
-For example, this
-  static const digits = const ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-
-will be converted to
-  static const digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];''',
+    "Remove unnecessary 'const'' keywords.",
     isDefault: false,
     isPedantic: true,
+  );
+
+  static final unnecessaryLambdas = LintFixInfo(
+    'unnecessary_lambdas',
+    DartFixKind.REPLACE_WITH_TEAR_OFF,
+    "Replace the function literal with a tear-off.",
+    isDefault: false,
   );
 
   static final unnecessaryNew = LintFixInfo(
     'unnecessary_new',
     DartFixKind.REMOVE_UNNECESSARY_NEW,
-    '''
-Remove unnecessary `new` keywords.
-
-For example, this
-  var marker = new Object();
-
-will be converted to
-  var marker = Object();''',
+    "Remove unnecessary 'new' keywords.",
     isDefault: false,
     isPedantic: true,
   );
 
   static final unnecessaryNullInIfNullOperators = LintFixInfo(
-      'unnecessary_null_in_if_null_operators',
-      DartFixKind.REMOVE_IF_NULL_OPERATOR,
-      "Remove the '??' operator.",
-      isPedantic: true);
+    'unnecessary_null_in_if_null_operators',
+    DartFixKind.REMOVE_IF_NULL_OPERATOR,
+    "Remove the '??' operator.",
+    isDefault: false,
+    isPedantic: true,
+  );
+
+  static final unnecessaryOverrides = LintFixInfo(
+    'unnecessary_overrides',
+    DartFixKind.REMOVE_METHOD_DECLARATION,
+    "Remove the unnecessary override.",
+    isDefault: false,
+  );
 
   static final unnecessaryThis = LintFixInfo(
-      'unnecessary_this', DartFixKind.REMOVE_THIS_EXPRESSION, 'Remove this.',
-      isPedantic: true);
+    'unnecessary_this',
+    DartFixKind.REMOVE_THIS_EXPRESSION,
+    "Remove this.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   static final useFunctionTypeSyntaxForParameters = LintFixInfo(
-      'use_function_type_syntax_for_parameters',
-      DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX,
-      "Convert into 'Function' syntax",
-      isPedantic: true);
+    'use_function_type_syntax_for_parameters',
+    DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX,
+    "Convert into 'Function' syntax",
+    isDefault: false,
+    isPedantic: true,
+  );
 
-  static final useRethrowWhenPossible = LintFixInfo('use_rethrow_when_possible',
-      DartFixKind.USE_RETHROW, 'Replace with rethrow.',
-      isPedantic: true);
+  static final useRethrowWhenPossible = LintFixInfo(
+    'use_rethrow_when_possible',
+    DartFixKind.USE_RETHROW,
+    "Replace with rethrow.",
+    isDefault: false,
+    isPedantic: true,
+  );
 
   /// The name of the lint to be fixed.
   final String lintName;

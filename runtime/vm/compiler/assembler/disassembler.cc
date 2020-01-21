@@ -416,6 +416,7 @@ void Disassembler::DisassembleCode(const Function& function,
                                    const Code& code,
                                    bool optimized) {
   const char* function_fullname = function.ToFullyQualifiedCString();
+  LogBlock lb;
   DisassembleCodeHelper(function_fullname, code, optimized);
 }
 

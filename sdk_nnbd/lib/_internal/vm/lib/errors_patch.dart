@@ -111,9 +111,7 @@ class _CastError extends Error implements CastError {
 class FallThroughError {
   @patch
   @pragma("vm:entry-point")
-  FallThroughError._create(String url, int line)
-      : _url = url,
-        _line = line;
+  FallThroughError._create(this._url, this._line);
 
   static _throwNew(int caseClausePos) native "FallThroughError_throwNew";
 
@@ -124,8 +122,8 @@ class FallThroughError {
 
   // These new fields cannot be declared final, because a constructor exists
   // in the original version of this patched class.
-  String _url;
-  int _line;
+  String? _url;
+  int _line = 0;
 }
 
 class _InternalError {
@@ -167,20 +165,20 @@ class AbstractClassInstantiationError {
 
   // These new fields cannot be declared final, because a constructor exists
   // in the original version of this patched class.
-  String _url;
-  int _line;
+  String? _url;
+  int _line = 0;
 }
 
 @patch
 class NoSuchMethodError {
   // Deprecated members to be removed.
-  Symbol _memberName;
-  List _arguments;
-  Map<Symbol, dynamic> _namedArguments;
-  List _existingArgumentNames;
+  Symbol? _memberName;
+  List? _arguments;
+  Map<Symbol, dynamic>? _namedArguments;
+  List? _existingArgumentNames;
 
   final Object _receiver;
-  final _InvocationMirror _invocation;
+  final _InvocationMirror? _invocation;
 
   // Issue(dartbug.com/127160): Remove the cast to [_InvocationMirror].
   @patch
@@ -220,7 +218,7 @@ class NoSuchMethodError {
   // Remember the type from the invocation mirror or static compilation
   // analysis when thrown directly with _throwNew. A negative value means
   // that no information is available.
-  int _invocationType;
+  int _invocationType = -1;
 
   // TODO(regis): Deprecated constructor still used by dart2js to be removed.
   @patch

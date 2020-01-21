@@ -7,9 +7,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/utilities/kythe/entries.dart';
 
-/**
- * A concrete implementation of [EntryRequest].
- */
+/// A concrete implementation of [EntryRequest].
 class DartEntryRequestImpl implements DartEntryRequest {
   @override
   final ResourceProvider resourceProvider;
@@ -17,27 +15,19 @@ class DartEntryRequestImpl implements DartEntryRequest {
   @override
   final ResolvedUnitResult result;
 
-  /**
-   * Initialize a newly create request with the given data.
-   */
+  /// Initialize a newly create request with the given data.
   DartEntryRequestImpl(this.resourceProvider, this.result);
 
   @override
   String get path => result.path;
 }
 
-/**
- * A concrete implementation of [EntryCollector].
- */
+/// A concrete implementation of [EntryCollector].
 class EntryCollectorImpl implements EntryCollector {
-  /**
-   * A list of entries.
-   */
+  /// A list of entries.
   final List<KytheEntry> entries = <KytheEntry>[];
 
-  /**
-   * A list of paths to files.
-   */
+  /// A list of paths to files.
   final List<String> files = <String>[];
 
   @override

@@ -18,9 +18,7 @@ import 'package:analyzer/src/generated/testing/element_search.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
-/**
- * Finds an [Element] with the given [name].
- */
+/// Finds an [Element] with the given [name].
 Element findChildElement(Element root, String name, [ElementKind kind]) {
   Element result;
   root.accept(_ElementVisitorFunctionWrapper((Element element) {
@@ -35,9 +33,7 @@ Element findChildElement(Element root, String name, [ElementKind kind]) {
   return result;
 }
 
-/**
- * A function to be called for every [Element].
- */
+/// A function to be called for every [Element].
 typedef _ElementVisitorFunction = void Function(Element element);
 
 class AbstractContextTest with ResourceProviderMixin {
@@ -68,7 +64,7 @@ class Required {
   }
 
   /// Add a new file with the given [pathInLib] to the package with the
-  /// given [packageName].  Then ensure that the test package depends on the
+  /// given [packageName]. Then ensure that the test package depends on the
   /// [packageName].
   File addPackageFile(String packageName, String pathInLib, String content) {
     var packagePath = '/.pub-cache/$packageName';
@@ -160,10 +156,8 @@ test:${toUriStr('/home/test/lib')}
   }
 }
 
-/**
- * Wraps the given [_ElementVisitorFunction] into an instance of
- * [engine.GeneralizingElementVisitor].
- */
+/// Wraps the given [_ElementVisitorFunction] into an instance of
+/// [engine.GeneralizingElementVisitor].
 class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   final _ElementVisitorFunction function;
 

@@ -19,45 +19,46 @@ class Isolate {
   }
 
   @patch
-  String get debugName {
+  String? get debugName {
     throw new UnsupportedError("Isolate.debugName");
   }
 
   @patch
-  static Future<Uri> get packageRoot {
+  static Future<Uri?> get packageRoot {
     throw new UnsupportedError("Isolate.packageRoot");
   }
 
   @patch
-  static Future<Uri> get packageConfig {
+  static Future<Uri?> get packageConfig {
     throw new UnsupportedError("Isolate.packageConfig");
   }
 
   @patch
-  static Future<Uri> resolvePackageUri(Uri packageUri) {
+  static Future<Uri?> resolvePackageUri(Uri packageUri) {
     throw new UnsupportedError("Isolate.resolvePackageUri");
   }
 
   @patch
   static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
-      {bool paused: false,
-      bool errorsAreFatal,
-      SendPort onExit,
-      SendPort onError}) {
+      {bool paused = false,
+      bool errorsAreFatal = true,
+      SendPort? onExit,
+      SendPort? onError}) {
     throw new UnsupportedError("Isolate.spawn");
   }
 
   @patch
   static Future<Isolate> spawnUri(Uri uri, List<String> args, var message,
-      {bool paused: false,
-      SendPort onExit,
-      SendPort onError,
-      bool errorsAreFatal,
-      bool checked,
-      Map<String, String> environment,
+      {bool paused = false,
+      SendPort? onExit,
+      SendPort? onError,
+      bool errorsAreFatal = true,
+      bool? checked,
+      Map<String, String>? environment,
       Uri packageRoot,
-      Uri packageConfig,
-      bool automaticPackageResolution: false}) {
+      Uri? packageConfig,
+      bool automaticPackageResolution = false,
+      String? debugName}) {
     throw new UnsupportedError("Isolate.spawnUri");
   }
 
@@ -72,7 +73,7 @@ class Isolate {
   }
 
   @patch
-  void addOnExitListener(SendPort responsePort, {Object response}) {
+  void addOnExitListener(SendPort responsePort, {Object? response}) {
     throw new UnsupportedError("Isolate.addOnExitListener");
   }
 
@@ -87,12 +88,13 @@ class Isolate {
   }
 
   @patch
-  void kill({int priority: beforeNextEvent}) {
+  void kill({int priority = beforeNextEvent}) {
     throw new UnsupportedError("Isolate.kill");
   }
 
   @patch
-  void ping(SendPort responsePort, {Object response, int priority: immediate}) {
+  void ping(SendPort responsePort,
+      {Object response, int priority = immediate}) {
     throw new UnsupportedError("Isolate.ping");
   }
 
@@ -119,8 +121,8 @@ class ReceivePort {
 }
 
 class _ReceivePortImpl extends Stream implements ReceivePort {
-  StreamSubscription listen(void onData(var event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription listen(void onData(var event)?,
+      {Function? onError, void Function()? onDone, bool cancelOnError = true}) {
     throw new UnsupportedError("ReceivePort.listen");
   }
 
@@ -132,7 +134,7 @@ class _ReceivePortImpl extends Stream implements ReceivePort {
 @patch
 class RawReceivePort {
   @patch
-  factory RawReceivePort([Function handler]) {
+  factory RawReceivePort([Function? handler]) {
     throw new UnsupportedError('new RawReceivePort');
   }
 }

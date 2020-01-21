@@ -5,7 +5,7 @@
 part of dart._vmservice;
 
 class RunningIsolates implements MessageRouter {
-  final Map<int, RunningIsolate> isolates = <int, RunningIsolate>{};
+  final isolates = <int, RunningIsolate>{};
   int? _rootPortId;
 
   RunningIsolates();
@@ -46,11 +46,11 @@ class RunningIsolates implements MessageRouter {
         return message.response;
       }
     }
-    var isolate = isolates[isolateId];
+    final isolate = isolates[isolateId];
     if (isolate == null) {
       // There is some chance that this isolate may have lived before,
       // so return a sentinel rather than an error.
-      var result = {
+      final result = <String, String>{
         'type': 'Sentinel',
         'kind': 'Collected',
         'valueAsString': '<collected>',
@@ -75,8 +75,8 @@ class _Evaluator {
   _Evaluator(this._message, this._isolate, this._service);
 
   Future<Response> run() async {
-    Response buildScopeResponse = await _buildScope();
-    Map<String, dynamic> responseJson = buildScopeResponse.decodeJson();
+    final buildScopeResponse = await _buildScope();
+    final responseJson = buildScopeResponse.decodeJson();
 
     if (responseJson.containsKey('error')) {
       return Response.from(encodeCompilationError(
@@ -97,9 +97,9 @@ class _Evaluator {
   VMService _service;
 
   Future<Response> _buildScope() {
-    Map<String, dynamic> params = _setupParams();
+    final params = _setupParams();
     params['isolateId'] = _message.params['isolateId'];
-    Map buildScopeParams = {
+    final buildScopeParams = <String, dynamic>{
       'method': '_buildExpressionEvaluationScope',
       'id': _message.serial,
       'params': params,
@@ -107,7 +107,7 @@ class _Evaluator {
     if (_message.params['scope'] != null) {
       buildScopeParams['params']['scope'] = _message.params['scope'];
     }
-    var buildScope =
+    final buildScope =
         Message._fromJsonRpcRequest(_message.client!, buildScopeParams);
 
     // Decode the JSON and and insert it into the map. The map key
@@ -128,12 +128,12 @@ class _Evaluator {
       'libraryUri': buildScopeResponseResult['libraryUri']!,
       'isStatic': buildScopeResponseResult['isStatic']!,
     };
-    dynamic klass = buildScopeResponseResult['klass'];
+    final klass = buildScopeResponseResult['klass'];
     if (klass != null) {
       compileParams['klass'] = klass;
     }
     if (externalClient != null) {
-      var compileExpression = Message.forMethod('compileExpression');
+      final compileExpression = Message.forMethod('compileExpression');
       compileExpression.client = externalClient;
       compileExpression.params.addAll(compileParams);
 
@@ -149,10 +149,8 @@ class _Evaluator {
       };
       externalClient.post(Response.json(compileExpression
           .forwardToJson({'id': id, 'method': 'compileExpression'})));
-      return completer.future
-          .then((String s) => jsonDecode(s))
-          .then((dynamic json) {
-        Map<String, dynamic> jsonMap = json;
+      return completer.future.then((s) => jsonDecode(s)).then((json) {
+        final Map<String, dynamic> jsonMap = json;
         if (jsonMap.containsKey('error')) {
           throw jsonMap['error'];
         }
@@ -160,18 +158,18 @@ class _Evaluator {
       });
     } else {
       // fallback to compile using kernel service
-      Map compileExpressionParams = {
+      final compileExpressionParams = <String, dynamic>{
         'method': '_compileExpression',
         'id': _message.serial,
         'params': compileParams,
       };
-      var compileExpression = Message._fromJsonRpcRequest(
+      final compileExpression = Message._fromJsonRpcRequest(
           _message.client!, compileExpressionParams);
 
       return _isolate
           .routeRequest(_service, compileExpression)
-          .then((Response response) => response.decodeJson())
-          .then((dynamic json) {
+          .then((response) => response.decodeJson())
+          .then((json) {
         if (json['result'] != null) {
           return json['result']['kernelBytes'];
         }
@@ -182,11 +180,11 @@ class _Evaluator {
 
   Future<Response> _evaluateCompiledExpression(String kernelBase64) {
     if (kernelBase64.isNotEmpty) {
-      Map<String, dynamic> params = _setupParams();
+      final params = _setupParams();
       params['isolateId'] = _message.params['isolateId'];
       params['kernelBytes'] = kernelBase64;
       params['disableBreakpoints'] = _message.params['disableBreakpoints'];
-      Map runParams = {
+      final runParams = <String, dynamic>{
         'method': '_evaluateCompiledExpression',
         'id': _message.serial,
         'params': params,
@@ -194,7 +192,7 @@ class _Evaluator {
       if (_message.params['scope'] != null) {
         runParams['params']['scope'] = _message.params['scope'];
       }
-      var runExpression =
+      final runExpression =
           Message._fromJsonRpcRequest(_message.client!, runParams);
       return _isolate.routeRequest(_service, runExpression); // _message
     } else {

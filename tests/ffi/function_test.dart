@@ -35,14 +35,10 @@ void main() {
     testNativeFunctionManyArguments4();
     testNativeFunctionManyArguments5();
     testNativeFunctionPointer();
-    testNullInt();
-    testNullDouble();
-    testNullManyArgs();
     testNullPointers();
     testFloatRounding();
     testVoidReturn();
     testNoArgs();
-    testException();
   }
 }
 
@@ -87,10 +83,18 @@ int Function() returnMaxUint8 = ffiTestFunctions
     .lookup("ReturnMaxUint8")
     .cast<NativeFunction<NativeReturnMaxUint8>>()
     .asFunction();
+int Function() returnMaxUint8v2 = ffiTestFunctions
+    .lookup("ReturnMaxUint8v2")
+    .cast<NativeFunction<NativeReturnMaxUint8>>()
+    .asFunction();
 
 typedef NativeReturnMaxUint16 = Uint16 Function();
 int Function() returnMaxUint16 = ffiTestFunctions
     .lookup("ReturnMaxUint16")
+    .cast<NativeFunction<NativeReturnMaxUint16>>()
+    .asFunction();
+int Function() returnMaxUint16v2 = ffiTestFunctions
+    .lookup("ReturnMaxUint16v2")
     .cast<NativeFunction<NativeReturnMaxUint16>>()
     .asFunction();
 
@@ -99,10 +103,18 @@ int Function() returnMaxUint32 = ffiTestFunctions
     .lookup("ReturnMaxUint32")
     .cast<NativeFunction<NativeReturnMaxUint32>>()
     .asFunction();
+int Function() returnMaxUint32v2 = ffiTestFunctions
+    .lookup("ReturnMaxUint32v2")
+    .cast<NativeFunction<NativeReturnMaxUint32>>()
+    .asFunction();
 
 typedef NativeReturnMinInt8 = Int8 Function();
 int Function() returnMinInt8 = ffiTestFunctions
     .lookup("ReturnMinInt8")
+    .cast<NativeFunction<NativeReturnMinInt8>>()
+    .asFunction();
+int Function() returnMinInt8v2 = ffiTestFunctions
+    .lookup("ReturnMinInt8v2")
     .cast<NativeFunction<NativeReturnMinInt8>>()
     .asFunction();
 
@@ -111,10 +123,18 @@ int Function() returnMinInt16 = ffiTestFunctions
     .lookup("ReturnMinInt16")
     .cast<NativeFunction<NativeReturnMinInt16>>()
     .asFunction();
+int Function() returnMinInt16v2 = ffiTestFunctions
+    .lookup("ReturnMinInt16v2")
+    .cast<NativeFunction<NativeReturnMinInt16>>()
+    .asFunction();
 
 typedef NativeReturnMinInt32 = Int32 Function();
 int Function() returnMinInt32 = ffiTestFunctions
     .lookup("ReturnMinInt32")
+    .cast<NativeFunction<NativeReturnMinInt32>>()
+    .asFunction();
+int Function() returnMinInt32v2 = ffiTestFunctions
+    .lookup("ReturnMinInt32v2")
     .cast<NativeFunction<NativeReturnMinInt32>>()
     .asFunction();
 
@@ -154,20 +174,52 @@ int Function(int) takeMinInt32 = ffiTestFunctions
     .cast<NativeFunction<NativeTakeMinInt32>>()
     .asFunction();
 
-void testExtension() {
-  Expect.equals(returnMaxUint8(), 0xff);
-  Expect.equals(returnMaxUint16(), 0xffff);
-  Expect.equals(returnMaxUint32(), 0xffffffff);
-  Expect.equals(returnMinInt8(), -0x80);
-  Expect.equals(returnMinInt16(), -0x8000);
-  Expect.equals(returnMinInt32(), -0x80000000);
+typedef NativeTakeMaxUint8x10 = IntPtr Function(
+    Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8, Uint8);
+int Function(int, int, int, int, int, int, int, int, int, int) takeMaxUint8x10 =
+    ffiTestFunctions
+        .lookup("TakeMaxUint8x10")
+        .cast<NativeFunction<NativeTakeMaxUint8x10>>()
+        .asFunction();
 
-  Expect.equals(takeMaxUint8(0xff), 1);
-  Expect.equals(takeMaxUint16(0xffff), 1);
-  Expect.equals(takeMaxUint32(0xffffffff), 1);
-  Expect.equals(takeMinInt8(0x80), 1);
-  Expect.equals(takeMinInt16(0x8000), 1);
-  Expect.equals(takeMinInt32(0x80000000), 1);
+void testExtension() {
+  // Sign extension on the way back to Dart.
+  Expect.equals(0xff, returnMaxUint8());
+  Expect.equals(0xffff, returnMaxUint16());
+  Expect.equals(0xffffffff, returnMaxUint32());
+  Expect.equals(-0x80, returnMinInt8());
+  Expect.equals(-0x8000, returnMinInt16());
+  Expect.equals(-0x80000000, returnMinInt32());
+  // Truncation in C, and sign extension back to Dart.
+  Expect.equals(0xff, returnMaxUint8v2());
+  Expect.equals(0xffff, returnMaxUint16v2());
+  Expect.equals(0xffffffff, returnMaxUint32v2());
+  Expect.equals(-0x80, returnMinInt8v2());
+  Expect.equals(-0x8000, returnMinInt16v2());
+  Expect.equals(-0x80000000, returnMinInt32v2());
+
+  // Upper bits propper, should work without truncation.
+  Expect.equals(1, takeMaxUint8(0xff));
+  Expect.equals(1, takeMaxUint16(0xffff));
+  Expect.equals(1, takeMaxUint32(0xffffffff));
+  Expect.equals(1, takeMinInt8(-0x80));
+  Expect.equals(1, takeMinInt16(-0x8000));
+  Expect.equals(1, takeMinInt32(-0x80000000));
+  Expect.equals(
+      1,
+      takeMaxUint8x10(
+          0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff));
+  // Upper bits garbage, needs to truncate.
+  Expect.equals(1, takeMaxUint8(0xabcff));
+  Expect.equals(1, takeMaxUint16(0xabcffff));
+  Expect.equals(1, takeMaxUint32(0xabcffffffff));
+  Expect.equals(1, takeMinInt8(0x8abc80));
+  Expect.equals(1, takeMinInt16(0x8abc8000));
+  Expect.equals(1, takeMinInt32(0x8abc80000000));
+  Expect.equals(
+      1,
+      takeMaxUint8x10(0xabcff, 0xabcff, 0xabcff, 0xabcff, 0xabcff, 0xabcff,
+          0xabcff, 0xabcff, 0xabcff, 0xabcff));
 }
 
 QuadOp uintComputation = ffiTestFunctions
@@ -343,22 +395,6 @@ void testNativeFunctionPointer() {
   free(p2);
 }
 
-void testNullInt() {
-  BinaryOp sumPlus42 =
-      ffiTestFunctions.lookupFunction<NativeBinaryOp, BinaryOp>("SumPlus42");
-
-  Expect.throws(() => sumPlus42(43, null));
-}
-
-void testNullDouble() {
-  Expect.throws(() => times1_337Double(null));
-}
-
-void testNullManyArgs() {
-  Expect.throws(() => sumManyNumbers(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0,
-      11, 12.0, 13, 14.0, 15, 16.0, 17, 18.0, null, 20.0));
-}
-
 Int64PointerUnOp nullableInt64ElemAt1 = ffiTestFunctions
     .lookupFunction<Int64PointerUnOp, Int64PointerUnOp>("NullableInt64ElemAt1");
 
@@ -411,15 +447,4 @@ VoidToDouble inventFloatValue = ffiTestFunctions
 void testNoArgs() {
   double result = inventFloatValue();
   Expect.approxEquals(1337.0, result);
-}
-
-// Throw an exception from within the trampoline and collect a stacktrace
-// include its frame.
-void testException() {
-  try {
-    sumPlus42(null, null);
-  } catch (e, s) {
-    return;
-  }
-  throw "Didn't throw!";
 }

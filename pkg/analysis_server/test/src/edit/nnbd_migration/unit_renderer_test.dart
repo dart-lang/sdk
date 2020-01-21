@@ -22,8 +22,6 @@ main() {
 class UnitRendererTest extends NnbdMigrationTestBase {
   /// Render [libraryInfo], using a [MigrationInfo] which knows only about this
   /// library.
-  // TODO(srawlins): Add tests for navigation links, which use multiple
-  //  libraries.
   List<String> renderUnits() {
     String packageRoot = convertPath('/package');
     MigrationInfo migrationInfo =
@@ -59,39 +57,9 @@ class UnitRendererTest extends NnbdMigrationTestBase {
         migratedContent: 'int? a = null;');
     var outputJson = renderUnits()[0];
     var output = jsonDecode(outputJson);
-    // Strip out tooltips which are lengthy and are not being tested here.
-    var regions = output['regions']
-        .replaceAll(RegExp('<span class="tooltip">.*?</span>'), '');
+    var regions = _stripDataAttributes(output['regions']);
     expect(regions,
         contains('int<span class="region fix-region">?</span> a = null;'));
-  }
-
-  test_regionsContainsEscapedHtml_tooltip() async {
-    await buildInfoForSingleTestFile('List<String> a = null;',
-        migratedContent: 'List<String>? a = null;');
-    var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    expect(
-        output['regions'],
-        contains('<span class="tooltip">'
-            "<p>Changed type 'List&lt;String&gt;' to be nullable.</p>"
-            "<ul><li>This variable is initialized to an explicit 'null' "
-            '(<a href="test.dart?offset=17&line=1" '
-            'class="nav-link">test.dart</a>)</li></ul></span>'));
-  }
-
-  test_regionsContainsEscapedHtml() async {
-    await buildInfoForSingleTestFile('List<String> a = null;',
-        migratedContent: 'List<String>? a = null;');
-    var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    // Strip out tooltips which are lengthy and are not being tested here.
-    var regions = output['regions']
-        .replaceAll(RegExp('<span class="tooltip">.*?</span>'), '');
-    expect(
-        regions,
-        contains('List&lt;String&gt;'
-            '<span class="region fix-region">?</span> a = null;'));
   }
 
   test_regionsContainsEscapedHtml_ampersand() async {
@@ -102,9 +70,37 @@ class UnitRendererTest extends NnbdMigrationTestBase {
     expect(output['regions'], contains('bool a = true &amp;&amp; false;'));
   }
 
+  test_regionsContainsEscapedHtml_betweenRegions() async {
+    await buildInfoForSingleTestFile('List<String> a = null;',
+        migratedContent: 'List<String>? a = null;');
+    var outputJson = renderUnits()[0];
+    var output = jsonDecode(outputJson);
+    var regions = _stripDataAttributes(output['regions']);
+    expect(
+        regions,
+        contains('List&lt;String&gt;'
+            '<span class="region fix-region">?</span> a = null;'));
+  }
+
+  test_regionsContainsEscapedHtml_region() async {
+    await buildInfoForSingleTestFile('f(List<String> a) => a.join(",");',
+        migratedContent: 'f(List<String> a) => a.join(",");');
+    var outputJson = renderUnits()[0];
+    var output = jsonDecode(outputJson);
+    var regions = _stripDataAttributes(output['regions']);
+    expect(
+        regions,
+        contains('<span class="region non-nullable-type-region">'
+            'List&lt;String&gt;</span>'));
+  }
+
   UnitInfo unit(String path, String content, {List<RegionInfo> regions}) {
     return UnitInfo(convertPath(path))
       ..content = content
       ..regions.addAll(regions);
   }
+
+  /// Strip out data attributes which are not being tested here.
+  String _stripDataAttributes(String html) =>
+      html.replaceAll(RegExp(' data-[^=]+="[^"]+"'), '');
 }

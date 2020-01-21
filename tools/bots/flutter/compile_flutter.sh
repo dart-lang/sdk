@@ -7,12 +7,29 @@
 
 set -e
 
+prepareOnly=false
+if [ $# -eq 1 ]
+then
+  if [ $1 = "--prepareOnly" ]
+  then
+    prepareOnly=true
+  fi
+fi
+
+if $prepareOnly
+then
+  echo "Will prepare only!"
+fi
+
 checkout=$(pwd)
 dart=$checkout/out/ReleaseX64/dart-sdk/bin/dart
 sdk=$checkout/out/ReleaseX64/dart-sdk
 tmpdir=$(mktemp -d)
 cleanup() {
-  rm -rf "$tmpdir"
+  if ! $prepareOnly
+  then
+    rm -rf "$tmpdir"
+  fi
 }
 trap cleanup EXIT HUP INT QUIT TERM PIPE
 pushd "$tmpdir"
@@ -51,4 +68,10 @@ $checkout/tools/sdks/dart-sdk/bin/dart --packages=$checkout/.packages $checkout/
 
 popd
 
-$dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk
+if $prepareOnly
+then
+  echo "Preparations complete!"
+  echo "Flutter is now in $tmpdir/flutter and the patched sdk in $tmpdir/flutter_patched_sdk"
+else
+  $dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk
+fi

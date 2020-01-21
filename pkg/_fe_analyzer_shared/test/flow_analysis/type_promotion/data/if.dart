@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class A {}
+
+class B extends A {}
+
+class C extends B {}
+
 combine_empty(bool b, Object v) {
   if (b) {
     v is int || (throw 1);
@@ -61,6 +67,17 @@ isType_thenNonBoolean(Object x) {
   if ((x is String) != 3) {
     x;
   }
+}
+
+joinIntersectsPromotedTypes(Object a, bool b) {
+  if (b) {
+    a as A;
+    /*A*/ a as C;
+  } else {
+    a as B;
+    /*B*/ a as C;
+  }
+  /*C*/ a;
 }
 
 logicalNot_isType(v) {

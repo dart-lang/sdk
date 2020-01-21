@@ -63,7 +63,7 @@ class CommandLineParser {
       String help,
       bool defaultsTo = false,
       bool negatable = true,
-      void callback(bool value),
+      void Function(bool value) callback,
       bool hide = false}) {
     _knownFlags.add(name);
     _parser.addFlag(name,
@@ -84,7 +84,7 @@ class CommandLineParser {
       Iterable<String> allowed,
       Map<String, String> allowedHelp,
       Iterable<String> defaultsTo,
-      void callback(List<String> values),
+      void Function(List<String> values) callback,
       bool splitCommas = true,
       bool hide = false}) {
     _knownFlags.add(name);
@@ -700,8 +700,9 @@ class Driver implements ServerStarter {
    * instrumentation [service]. If a [print] function is provided, then also
    * capture any data printed by the callback and redirect it to the function.
    */
-  dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
-      {void print(String line)}) {
+  dynamic _captureExceptions(
+      InstrumentationService service, dynamic Function() callback,
+      {void Function(String line) print}) {
     void errorFunction(Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
       service.logException(exception, stackTrace);

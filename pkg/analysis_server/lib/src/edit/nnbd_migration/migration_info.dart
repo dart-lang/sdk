@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/edit/nnbd_migration/offset_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/unit_link.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
@@ -63,17 +64,12 @@ class MigrationInfo {
       pathContext.relative(unit.path, from: includedRoot);
 
   /// Generate mustache context for unit links.
-  List<Map<String, Object>> unitLinks() {
-    List<Map<String, Object>> links = [];
+  List<UnitLink> unitLinks() {
+    List<UnitLink> links = [];
     for (UnitInfo unit in units) {
       int count = unit.fixRegions.length;
-      String modificationCount =
-          count == 1 ? '(1 modification)' : '($count modifications)';
-      links.add({
-        'name': computeName(unit),
-        'modificationCount': modificationCount,
-        'path': _pathTo(target: unit),
-      });
+      links.add(
+          UnitLink(_pathTo(target: unit), computeName(unit).split('/'), count));
     }
     return links;
   }
@@ -220,4 +216,10 @@ class UnitInfo {
   /// determined to be non-null.
   List<RegionInfo> get nonNullableTypeRegions => List.of(regions
       .where((region) => region.regionType == RegionType.nonNullableType));
+
+  /// Returns the [RegionInfo] at offset [offset].
+  // TODO(srawlins): This is O(n), used each time the user clicks on a region.
+  //  Consider changing the type of [regions] to facilitate O(1) searching.
+  RegionInfo regionAt(int offset) =>
+      regions.firstWhere((region) => region.offset == offset);
 }

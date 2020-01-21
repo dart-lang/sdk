@@ -20,9 +20,7 @@ main() {
 
 typedef _TestWorkerLoopAnalyze = void Function(CommandLineOptions options);
 
-/**
- * [AnalyzerWorkerLoop] for testing.
- */
+/// [AnalyzerWorkerLoop] for testing.
 class TestAnalyzerWorkerLoop extends AnalyzerWorkerLoop {
   final _TestWorkerLoopAnalyze _analyze;
 

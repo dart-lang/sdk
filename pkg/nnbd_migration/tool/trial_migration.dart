@@ -253,7 +253,7 @@ class _Listener implements NullabilityMigrationListener {
   _Listener(this.categoryOfInterest, {this.printExceptionNodeOnly = false});
 
   @override
-  void addEdit(SingleNullabilityFix fix, SourceEdit edit) {
+  void addEdit(Source source, SourceEdit edit) {
     if (edit.replacement == '?' && edit.length == 0) {
       ++numTypesMadeNullable;
     } else if (edit.replacement == '!' && edit.length == 0) {
@@ -272,12 +272,12 @@ class _Listener implements NullabilityMigrationListener {
         edit.length == 0) {
       // Already counted
     } else {
-      print('addEdit($fix, $edit)');
+      print('addEdit($source, $edit)');
     }
   }
 
   @override
-  void addFix(SingleNullabilityFix fix) {}
+  void addSuggestion(String descriptions, Location location) {}
 
   @override
   void reportException(

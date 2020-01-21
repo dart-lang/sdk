@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
@@ -67,13 +68,13 @@ class EliminateDeadIf extends NodeChange {
           // It's not safe to eliminate the {} because it increases the scope of
           // the variable declarations
         } else {
-          return aggregator.planner.extract(node,
-              aggregator.planner.passThrough(nodeToKeep.statements.single));
+          return aggregator.planner.extract(
+              node, aggregator.innerPlanForNode(nodeToKeep.statements.single));
         }
       }
     }
     return aggregator.planner
-        .extract(node, aggregator.planner.passThrough(nodeToKeep));
+        .extract(node, aggregator.innerPlanForNode(nodeToKeep));
   }
 
   @override
@@ -180,8 +181,14 @@ class MakeNullable extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner.surround(innerPlan,
-        suffix: [AtomicEditWithReason.insert('?', decoratedType.node)]);
+    return aggregator.planner.surround(innerPlan, suffix: [
+      AtomicEditWithInfo.insert(
+          '?',
+          AtomicEditInfo(
+              NullabilityFixDescription.makeTypeNullable(
+                  decoratedType.type.toString()),
+              [decoratedType.node]))
+    ]);
   }
 }
 
@@ -247,6 +254,35 @@ class RemoveAs extends _NestableChange {
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     return aggregator.planner.extract(
         node, _inner.apply((node as AsExpression).expression, aggregator));
+  }
+}
+
+/// Implementation of [NodeChange] that changes an `@required` annotation into
+/// a `required` keyword.
+///
+/// TODO(paulberry): store additional information necessary to include in the
+/// preview.
+class RequiredAnnotationToRequiredKeyword extends _NestableChange {
+  const RequiredAnnotationToRequiredKeyword(
+      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
+      : super(inner);
+
+  @override
+  EditPlan apply(AstNode node, FixAggregator aggregator) {
+    var annotation = node as Annotation;
+    var name = annotation.name;
+    if (name is PrefixedIdentifier) {
+      name = (name as PrefixedIdentifier).identifier;
+    }
+    if (name != null &&
+        aggregator.planner.sourceText.substring(name.offset, name.end) ==
+            'required') {
+      // The text `required` already exists in the annotation; we can just
+      // extract it.
+      return aggregator.planner.extract(node, _inner.apply(name, aggregator));
+    } else {
+      return aggregator.planner.replace(node, [AtomicEdit.insert('required')]);
+    }
   }
 }
 

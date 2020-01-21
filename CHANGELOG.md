@@ -41,22 +41,39 @@ additional details see the [announcement].
 
 #### Linter
 
-The Linter was updated to `0.1.108`, which includes:
+The Linter was updated to `0.1.109`, which includes:
 
-* `always_put_required_parameters` updated for NNBD
-* updated to `package:analyzer` 0.39.3 APIs
-* miscellaneous doc cleanups (typos, etc)
-* new lint: `use_key_in_widget_constructors`
-* new lint: `avoid_redundant_argument_values`
-* updated `slash_for_doc_comments` to check mixin declarations
-* (internal) updates to use new `LinterContext.evaluateConstant` API
-* improved docs for `always_require_non_null_named_parameters`
+* an improved `prefer_single_quotes` lint message
+* `unnecessary_finals` fixed to not flag fields
+* `unnecessary_lambdas` fixed to work with type arguments
+* (internal) migration to use analyzer `LinterContext.resolveNameInScope()` API
 
 #### Pub
+
+* `pub get` and `pub upgrade` now fetches version information about hosted
+  dependencies in parallel, improving the time package resolution performance.
 
 * `pub get` and `pub upgrade` no longer precompiles executables from
   dependencies by default. Instead they are precompiled on first `pub run`.
   Use `pub get --precompile` to get the previous behavior.
+
+* Fixed missing retries of DNS failures during `pub get`.
+
+* Importing packages not in `pubspec.yaml` now causes `pub publish` to reject
+  the package.
+
+* Relative paths in `pubspec.lock` are now using `/` also on Windows to make
+  the file sharable between machines.
+
+* Fixed language version in [`.dart_tool/package_config.json`](https://github.com/dart-lang/language/blob/master/accepted/future-releases/language-versioning/package-config-file-v2.md)
+  for packages without an explicit sdk constraint.
+
+  Now writes an empty language-version while efore the language version of the
+  current sdk would be used.
+
+* `%LOCALAPPDATA%` is now preferred over `%APPDATA%` when creating a pub cache
+  directory on Windows. `%LOCALAPPDATA%` is not copied when users roam between
+  devices.
 
 #### dart2js
 

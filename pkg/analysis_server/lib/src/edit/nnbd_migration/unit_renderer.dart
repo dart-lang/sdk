@@ -12,9 +12,6 @@ import 'package:path/path.dart' as path;
 /// Instrumentation display output for a library that was migrated to use
 /// non-nullable types.
 class UnitRenderer {
-  /// A flag indicating whether the incremental workflow is currently supported.
-  static const bool supportsIncrementalWorkflow = false;
-
   /// A converter which only escapes "&", "<", and ">". Safe for use in HTML
   /// text, between HTML elements.
   static const HtmlEscape _htmlEscape =
@@ -41,8 +38,8 @@ class UnitRenderer {
   String render() {
     Map<String, dynamic> response = {
       'thisUnit': migrationInfo.computeName(unitInfo),
-      'navContent': _computeNavigationContent(unitInfo),
-      'regions': _computeRegionContent(unitInfo),
+      'navContent': _computeNavigationContent(),
+      'regions': _computeRegionContent(),
     };
     return jsonEncode(response);
   }
@@ -51,8 +48,8 @@ class UnitRenderer {
   ///
   /// The content of the file (not including added links and anchors) will be
   /// HTML-escaped.
-  String _computeNavigationContent(UnitInfo unitInfo) {
-    String unitDir = _directoryContaining(unitInfo);
+  String _computeNavigationContent() {
+    String unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
     String content = unitInfo.content;
     OffsetMapper mapper = unitInfo.offsetMapper;
     Map<int, String> openInsertions = {};
@@ -125,8 +122,7 @@ class UnitRenderer {
 
   /// Return the content of regions, based on the [unitInfo] for both
   /// unmodified and modified regions.
-  String _computeRegionContent(UnitInfo unitInfo) {
-    String unitDir = _directoryContaining(unitInfo);
+  String _computeRegionContent() {
     String content = unitInfo.content;
     StringBuffer regions = StringBuffer();
     int lineNumber = 1;
@@ -163,55 +159,11 @@ class UnitRenderer {
       String regionClass = region.regionType == RegionType.fix
           ? 'fix-region'
           : 'non-nullable-type-region';
-      regions.write('<span class="region $regionClass">'
-          '${content.substring(offset, offset + length)}'
-          '<span class="tooltip">'
-          '<p>${_htmlEscape.convert(region.explanation)}</p>');
-      //
-      // Write out any details.
-      //
-      if (region.details.isNotEmpty) {
-        regions.write('<ul>');
-        for (var detail in region.details) {
-          regions.write('<li>');
-          writeSplitLines(detail.description);
-          NavigationTarget target = detail.target;
-          if (target != null) {
-            String relativePath = _relativePathToTarget(target, unitDir);
-            String targetUri = _uriForRelativePath(relativePath, target);
-            regions.write(' (<a href="$targetUri" class="nav-link">');
-            regions.write(relativePath);
-            // TODO(brianwilkerson) Add the line number to the link text. This
-            //  will require that either the contents of all navigation targets
-            //  have been set or that line information has been saved.
-            regions.write('</a>)');
-          }
-          regions.write('</li>');
-        }
-        regions.write('</ul>');
-      }
-      //
-      // Write out any edits.
-      //
-      if (supportsIncrementalWorkflow && region.edits.isNotEmpty) {
-        for (EditDetail edit in region.edits) {
-          int offset = edit.offset;
-          String targetUri = Uri(
-              scheme: 'http',
-              path: pathContext.basename(unitInfo.path),
-              queryParameters: {
-                'offset': offset.toString(),
-                'end': (offset + edit.length).toString(),
-                'replacement': edit.replacement
-              }).toString();
-          regions.write('<p>');
-          regions.write('<a href="$targetUri" class="nav-link">');
-          regions.write(edit.description);
-          regions.write('</a>');
-          regions.write('</p>');
-        }
-      }
-      regions.write('</span></span>');
+      regions.write('<span class="region $regionClass" ');
+      regions.write('data-offset="$offset" data-line="$lineNumber">');
+      regions.write(
+          _htmlEscape.convert(content.substring(offset, offset + length)));
+      regions.write('</span>');
     }
     if (previousOffset < content.length) {
       // Last region of unmodified content.
@@ -219,22 +171,6 @@ class UnitRenderer {
     }
     regions.write('</td></tr></tbody></table>');
     return regions.toString();
-  }
-
-  /// Return the path to the directory containing the output generated from the
-  /// [unitInfo].
-  String _directoryContaining(UnitInfo unitInfo) {
-    return pathContext.dirname(pathMapper.map(unitInfo.path));
-  }
-
-  /// Return the URL that will navigate to the given [target].
-  String _relativePathToTarget(NavigationTarget target, String unitDir) {
-    if (target == null) {
-      // TODO(brianwilkerson) This is temporary support until we can get targets
-      //  for all nodes.
-      return '';
-    }
-    return pathContext.relative(pathMapper.map(target.filePath), from: unitDir);
   }
 
   /// Return the URL that will navigate to the given [target] in the file at the

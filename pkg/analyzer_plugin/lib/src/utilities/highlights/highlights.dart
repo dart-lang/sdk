@@ -9,9 +9,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/highlights/highlights.dart';
 
-/**
- * A concrete implementation of [DartHighlightsRequest].
- */
+/// A concrete implementation of [DartHighlightsRequest].
 class DartHighlightsRequestImpl implements DartHighlightsRequest {
   @override
   final ResourceProvider resourceProvider;
@@ -19,22 +17,16 @@ class DartHighlightsRequestImpl implements DartHighlightsRequest {
   @override
   final ResolvedUnitResult result;
 
-  /**
-   * Initialize a newly create request with the given data.
-   */
+  /// Initialize a newly create request with the given data.
   DartHighlightsRequestImpl(this.resourceProvider, this.result);
 
   @override
   String get path => result.path;
 }
 
-/**
- * A concrete implementation of [HighlightsCollector].
- */
+/// A concrete implementation of [HighlightsCollector].
 class HighlightsCollectorImpl implements HighlightsCollector {
-  /**
-   * The regions that have been collected.
-   */
+  /// The regions that have been collected.
   List<HighlightRegion> regions = <HighlightRegion>[];
 
   @override

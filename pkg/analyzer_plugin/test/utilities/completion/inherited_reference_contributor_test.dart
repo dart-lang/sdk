@@ -26,7 +26,7 @@ class InheritedReferenceContributorTest extends DartCompletionContributorTest {
     return InheritedReferenceContributor();
   }
 
-  /// Sanity check.  Permutations tested in local_ref_contributor.
+  /// Sanity check. Permutations tested in local_ref_contributor.
   test_ArgDefaults_inherited_method_with_required_named() async {
     addMetaPackage();
     resolveSource('/home/test/lib/b.dart', '''

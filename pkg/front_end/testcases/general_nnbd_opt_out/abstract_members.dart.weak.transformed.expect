@@ -1,0 +1,52 @@
+// Unhandled errors:
+//
+// pkg/front_end/testcases/abstract_members.dart:19:7: Error: The non-abstract class 'MyClass' is missing implementations for these members:
+//  - 'abstractMethod'
+//  - 'property3='
+//  - 'property1='
+// Try to either
+//  - provide an implementation,
+//  - inherit an implementation from a superclass or mixin,
+//  - mark the class as abstract, or
+//  - provide a 'noSuchMethod' implementation.
+// 
+// class MyClass extends B {
+//       ^^^^^^^
+
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method aMethod() → dynamic {}
+  abstract method abstractMethod() → dynamic;
+  abstract set property1(dynamic _) → void;
+  abstract set property2(dynamic _) → void;
+  abstract set property3(dynamic _) → void;
+}
+abstract class B extends self::A {
+  final field dynamic property1 = null;
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  method aMethod() → dynamic {}
+  method bMethod() → dynamic {}
+}
+class MyClass extends self::B {
+  field dynamic property2 = null;
+  synthetic constructor •() → self::MyClass
+    : super self::B::•()
+    ;
+  method aaMethod() → dynamic {}
+  method aMethod() → dynamic {}
+  method bMethod() → dynamic {}
+  method cMethod() → dynamic {}
+  no-such-method-forwarder set property3(dynamic _) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#property3=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+  no-such-method-forwarder set property1(dynamic _) → void
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#property1=, 2, const <core::Type>[], core::List::unmodifiable<dynamic>(<dynamic>[_]), core::Map::unmodifiable<core::Symbol, dynamic>(const <core::Symbol, dynamic>{})));
+}
+static method main() → dynamic {}

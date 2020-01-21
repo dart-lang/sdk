@@ -161,7 +161,7 @@ class _RegExpMatch implements RegExpMatch {
     return _match[(groupIdx * _MATCH_PAIR) + 1];
   }
 
-  String group(int groupIdx) {
+  String? group(int groupIdx) {
     if (groupIdx < 0 || groupIdx > _regexp._groupCount) {
       throw new RangeError.value(groupIdx);
     }
@@ -174,12 +174,12 @@ class _RegExpMatch implements RegExpMatch {
     return input._substringUnchecked(startIndex, endIndex);
   }
 
-  String operator [](int groupIdx) {
+  String? operator [](int groupIdx) {
     return this.group(groupIdx);
   }
 
-  List<String> groups(List<int> groupsSpec) {
-    var groupsList = new List<String>(groupsSpec.length);
+  List<String?> groups(List<int> groupsSpec) {
+    var groupsList = new List<String?>.filled(groupsSpec.length, null);
     for (int i = 0; i < groupsSpec.length; i++) {
       groupsList[i] = group(groupsSpec[i]);
     }
@@ -190,7 +190,7 @@ class _RegExpMatch implements RegExpMatch {
 
   Pattern get pattern => _regexp;
 
-  String namedGroup(String name) {
+  String? namedGroup(String name) {
     var idx = _regexp._groupNameIndex(name);
     if (idx < 0) {
       throw ArgumentError("Not a capture group name: ${name}");
@@ -216,18 +216,20 @@ class _RegExp implements RegExp {
       bool unicode: false,
       bool dotAll: false}) native "RegExp_factory";
 
-  RegExpMatch? firstMatch(String str) {
-    if (str is! String) throw new ArgumentError(str);
-    List match = _ExecuteMatch(str, 0);
+  RegExpMatch? firstMatch(String input) {
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (input == null) throw new ArgumentError.notNull('input');
+    List<int> match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
     }
-    return new _RegExpMatch._(this, str, match);
+    return new _RegExpMatch._(this, input, match);
   }
 
   Iterable<RegExpMatch> allMatches(String string, [int start = 0]) {
-    if (string is! String) throw new ArgumentError(string);
-    if (start is! int) throw new ArgumentError(start);
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (string == null) throw new ArgumentError.notNull('string');
+    if (start == null) throw new ArgumentError.notNull('start');
     if (0 > start || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
@@ -235,8 +237,9 @@ class _RegExp implements RegExp {
   }
 
   RegExpMatch matchAsPrefix(String string, [int start = 0]) {
-    if (string is! String) throw new ArgumentError(string);
-    if (start is! int) throw new ArgumentError(start);
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (string == null) throw new ArgumentError.notNull('string');
+    if (start == null) throw new ArgumentError.notNull('start');
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
@@ -245,19 +248,21 @@ class _RegExp implements RegExp {
     return new _RegExpMatch._(this, string, list);
   }
 
-  bool hasMatch(String str) {
-    if (str is! String) throw new ArgumentError(str);
-    List match = _ExecuteMatch(str, 0);
+  bool hasMatch(String input) {
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (input == null) throw new ArgumentError.notNull('input');
+    List match = _ExecuteMatch(input, 0);
     return (match == null) ? false : true;
   }
 
-  String stringMatch(String str) {
-    if (str is! String) throw new ArgumentError(str);
-    List match = _ExecuteMatch(str, 0);
+  String stringMatch(String input) {
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (input == null) throw new ArgumentError.notNull('input');
+    List match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
     }
-    return str._substringUnchecked(match[0], match[1]);
+    return input._substringUnchecked(match[0], match[1]);
   }
 
   String get pattern native "RegExp_getPattern";

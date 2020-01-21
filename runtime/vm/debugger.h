@@ -747,6 +747,7 @@ class Debugger {
                                Array* deopt_frame);
   static DebuggerStackTrace* CollectStackTrace();
   static DebuggerStackTrace* CollectAsyncCausalStackTrace();
+  static DebuggerStackTrace* CollectAsyncLazyStackTrace();
   void SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt);
 
   intptr_t nextId() { return next_id_++; }

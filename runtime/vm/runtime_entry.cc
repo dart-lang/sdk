@@ -1601,13 +1601,11 @@ static RawUnlinkedCall* LoadUnlinkedCall(Zone* zone,
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if !defined(TARGET_ARCH_DBC)
 #if defined(PRODUCT)
 const bool kInstructionsCanBeDeduped = true;
 #else
 const bool kInstructionsCanBeDeduped = false;
 #endif  // defined(PRODUCT)
-#endif  // !defined(TARGET_ARCH_DBC)
 
 // Handle the first use of an instance call
 //   Arg2: UnlinkedCall.
@@ -1696,8 +1694,16 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
     const Code& target_code = Code::Handle(zone, target_function.CurrentCode());
     const Smi& expected_cid =
         Smi::Handle(zone, Smi::New(receiver.GetClassId()));
-    CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code,
-                                       expected_cid, target_code);
+
+    if (unlinked.can_patch_to_monomorphic()) {
+      CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code,
+                                         expected_cid, target_code);
+    } else {
+      const MonomorphicSmiableCall& call = MonomorphicSmiableCall::Handle(
+          zone, MonomorphicSmiableCall::New(expected_cid.Value(), target_code));
+      CodePatcher::PatchSwitchableCallAt(caller_frame->pc(), caller_code, call,
+                                         StubCode::MonomorphicSmiableCheck());
+    }
 
     // Return the ICData. The miss stub will jump to continue in the IC call
     // stub.
@@ -1754,31 +1760,37 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
   const Function& caller_function =
       Function::Handle(zone, caller_frame->LookupDartFunction());
 
-  Smi& old_expected_cid = Smi::Handle(zone);
-  old_expected_cid ^=
-      CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(), caller_code);
+  Object& old_data = Object::Handle(
+      CodePatcher::GetSwitchableCallDataAt(caller_frame->pc(), caller_code));
+  classid_t old_expected_cid;
+  Function& old_target = Function::Handle(zone);
+  if (old_data.IsSmi()) {
+    old_expected_cid = Smi::Cast(old_data).Value();
+  } else if (old_data.IsMonomorphicSmiableCall()) {
+    old_expected_cid = MonomorphicSmiableCall::Cast(old_data).expected_cid();
+    old_target ^=
+        Code::Handle(zone, MonomorphicSmiableCall::Cast(old_data).target())
+            .owner();
+  } else {
+    UNREACHABLE();
+  }
 
   String& name = String::Handle(zone);
   Array& descriptor = Array::Handle(zone);
-  Function& old_target = Function::Handle(zone);
   if (FLAG_use_bare_instructions && kInstructionsCanBeDeduped) {
-#if defined(DART_PRECOMPILED_RUNTIME)
     const auto& unlinked_call = UnlinkedCall::Handle(
         zone, LoadUnlinkedCall(zone, isolate, caller_frame->pc()));
     name = unlinked_call.target_name();
     descriptor = unlinked_call.args_descriptor();
 
     ArgumentsDescriptor args_desc(descriptor);
-    const auto& old_receiver_class = Class::Handle(
-        zone, isolate->class_table()->At(old_expected_cid.Value()));
+    const auto& old_receiver_class =
+        Class::Handle(zone, isolate->class_table()->At(old_expected_cid));
     old_target = Resolver::ResolveDynamicForReceiverClass(old_receiver_class,
                                                           name, args_desc);
     if (old_target.IsNull()) {
       old_target = InlineCacheMissHelper(old_receiver_class, descriptor, name);
     }
-#else
-    UNREACHABLE();
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
   } else {
     // We lost the original UnlinkedCall (and the name + arg descriptor inside
     // it) when the call site transitioned from unlinked to monomorphic.
@@ -1786,10 +1798,12 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
     // Though we can deduce name + arg descriptor based on the first
     // monomorphic callee (we are guaranteed it is not generic and does not have
     // optional parameters, see DEFINE_RUNTIME_ENTRY(UnlinkedCall) above).
-    const Code& old_target_code =
-        Code::Handle(zone, CodePatcher::GetSwitchableCallTargetAt(
-                               caller_frame->pc(), caller_code));
-    old_target ^= old_target_code.owner();
+    if (old_target.IsNull()) {
+      const Code& old_target_code =
+          Code::Handle(zone, CodePatcher::GetSwitchableCallTargetAt(
+                                 caller_frame->pc(), caller_code));
+      old_target ^= old_target_code.owner();
+    }
 
     const int kTypeArgsLen = 0;
     name = old_target.name();
@@ -1804,7 +1818,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
 
   // Add the first target.
   if (!old_target.IsNull()) {
-    ic_data.AddReceiverCheck(old_expected_cid.Value(), old_target);
+    ic_data.AddReceiverCheck(old_expected_cid, old_target);
   }
 
   // Maybe add the new target.
@@ -1823,12 +1837,12 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
 
   if (old_target.raw() == target_function.raw()) {
     intptr_t lower, upper;
-    if (old_expected_cid.Value() < receiver.GetClassId()) {
-      lower = old_expected_cid.Value();
+    if (old_expected_cid < receiver.GetClassId()) {
+      lower = old_expected_cid;
       upper = receiver.GetClassId();
     } else {
       lower = receiver.GetClassId();
-      upper = old_expected_cid.Value();
+      upper = old_expected_cid;
     }
 
     if (IsSingleTarget(isolate, zone, lower, upper, target_function, name)) {
@@ -1941,7 +1955,9 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
     const ICData& ic_data = ICData::Cast(ic_data_or_cache);
     const intptr_t number_of_checks = ic_data.NumberOfChecks();
 
-    if ((number_of_checks == 0) && !target_function.HasOptionalParameters() &&
+    if ((number_of_checks == 0) &&
+        (!FLAG_precompiled_mode || ic_data.receiver_cannot_be_smi()) &&
+        !target_function.HasOptionalParameters() &&
         !target_function.IsGeneric() &&
         !Isolate::Current()->compilation_allowed()) {
       // This call site is unlinked: transition to a monomorphic direct call.

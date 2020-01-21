@@ -25,7 +25,7 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
   _AsyncAwaitCompleter() : isSync = false;
 
-  void complete([FutureOr<T> value]) {
+  void complete([FutureOr<T>? value]) {
     if (!isSync || value is Future<T>) {
       _future._asyncComplete(value);
     } else {

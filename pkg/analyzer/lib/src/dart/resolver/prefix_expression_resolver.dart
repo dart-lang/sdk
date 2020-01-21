@@ -10,6 +10,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
@@ -28,6 +29,7 @@ class PrefixExpressionResolver {
   final ElementTypeProvider _elementTypeProvider;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
+  final AssignmentExpressionShared _assignmentShared;
 
   PrefixExpressionResolver({
     @required ResolverVisitor resolver,
@@ -37,7 +39,11 @@ class PrefixExpressionResolver {
         _flowAnalysis = flowAnalysis,
         _elementTypeProvider = elementTypeProvider,
         _typePropertyResolver = resolver.typePropertyResolver,
-        _inferenceHelper = resolver.inferenceHelper;
+        _inferenceHelper = resolver.inferenceHelper,
+        _assignmentShared = AssignmentExpressionShared(
+          resolver: resolver,
+          flowAnalysis: flowAnalysis,
+        );
 
   ErrorReporter get _errorReporter => _resolver.errorReporter;
 
@@ -49,14 +55,14 @@ class PrefixExpressionResolver {
 
   void resolve(PrefixExpressionImpl node) {
     var operator = node.operator.type;
-    var operand = node.operand;
-
     if (operator == TokenType.BANG) {
-      _resolveNegation(node, operand);
+      _resolveNegation(node);
       return;
     }
 
-    operand.accept(_resolver);
+    node.operand.accept(_resolver);
+
+    _assignmentShared.checkLateFinalAlreadyAssigned(node.operand);
 
     _resolve1(node);
     _resolve2(node);
@@ -251,10 +257,14 @@ class PrefixExpressionResolver {
     }
   }
 
-  void _resolveNegation(PrefixExpressionImpl node, Expression operand) {
+  void _resolveNegation(PrefixExpressionImpl node) {
+    var operand = node.operand;
     InferenceContext.setType(operand, _typeProvider.boolType);
 
     operand.accept(_resolver);
+    operand = node.operand;
+
+    _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(operand);
 
     _recordStaticType(node, _nonNullable(_typeProvider.boolType));
 

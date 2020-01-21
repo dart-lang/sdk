@@ -786,6 +786,21 @@ const AbstractType* CompileType::ToAbstractType() {
   return type_;
 }
 
+bool CompileType::IsNotSmi() {
+  if (cid_ != kIllegalCid && cid_ != kDynamicCid && cid_ != kSmiCid) {
+    return true;
+  }
+  const AbstractType* type = ToAbstractType();
+  if (type->IsTypeParameter()) {
+    type = &AbstractType::Handle(TypeParameter::Cast(*type).bound());
+  }
+
+  // TODO(sjindel): Use instantiate-to-bounds instead.
+  if (!type->IsInstantiated()) return false;
+  const AbstractType& smi = AbstractType::Handle(Type::SmiType());
+  return !smi.IsSubtypeOf(NNBDMode::kLegacyLib, *type, Heap::Space::kNew);
+}
+
 bool CompileType::CanComputeIsInstanceOf(NNBDMode mode,
                                          const AbstractType& type,
                                          bool is_nullable,

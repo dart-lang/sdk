@@ -45,3 +45,26 @@ worlds:
         }
     expectedLibraryCount: 1
     expectsRebuildBodiesOnly: true
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        part 'myPart.dart';
+
+        class Foo {
+          const Foo();
+          @override
+          toString() => 'Foo!';
+        }
+
+        main() async {
+          await whatever();
+          print(const Foo());
+          print("Done!");
+        }
+    expectedLibraryCount: 1
+    expectsRebuildBodiesOnly: true

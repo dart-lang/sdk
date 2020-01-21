@@ -25,9 +25,9 @@ AssertExtraneousArgument/analyzerCode: Fail
 AssertExtraneousArgument/example: Fail
 AsyncAsIdentifier/example: Fail
 AwaitAsIdentifier/example: Fail
-AwaitNotAsync/example: Fail
 AwaitInLateLocalInitializer/analyzerCode: Fail
 AwaitInLateLocalInitializer/example: Fail
+AwaitNotAsync/example: Fail
 BuiltInIdentifierAsType/example: Fail
 BuiltInIdentifierInDeclaration/example: Fail
 BytecodeLimitExceededTooManyArguments/analyzerCode: Fail
@@ -389,6 +389,8 @@ LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionInvalidInDotPackages/part_wrapped_script: Fail # Importing file in the (now) part.
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
+LanguageVersionMismatchInPatch/analyzerCode: Fail
+LanguageVersionMismatchInPatch/example: Fail
 LanguageVersionTooHigh/analyzerCode: Fail
 LanguageVersionTooHigh/part_wrapped_script: Fail # Content comes after "part of [...]" meaning it's not actually a language version specification.
 LibraryDirectiveNotFirst/part_wrapped_script1: Fail # Defining library name in the (now) part.
@@ -443,6 +445,9 @@ NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
+NonNullableOptOut/analyzerCode: Fail
+NonNullableOptOut/example: Fail
+NonNullableOptOutComment/spelling: Fail
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail
 NonPartOfDirectiveInPart/script1: Fail
 NotAConstantExpression/example: Fail
@@ -451,10 +456,18 @@ NotAnLvalue/example: Fail
 NotBinaryOperator/analyzerCode: Fail
 NotConstantExpression/example: Fail
 NullAwareCascadeOutOfOrder/example: Fail
-NullablePropertyGetError/analyzerCode: Fail
-NullablePropertyGetError/example: Fail
-NullablePropertyGetWarning/analyzerCode: Fail
-NullablePropertyGetWarning/example: Fail
+NullableExpressionCallError/analyzerCode: Fail
+NullableExpressionCallError/example: Fail
+NullableExpressionCallWarning/analyzerCode: Fail
+NullableExpressionCallWarning/example: Fail
+NullableMethodCallError/analyzerCode: Fail
+NullableMethodCallError/example: Fail
+NullableMethodCallWarning/analyzerCode: Fail
+NullableMethodCallWarning/example: Fail
+NullablePropertyAccessError/analyzerCode: Fail
+NullablePropertyAccessError/example: Fail
+NullablePropertyAccessWarning/analyzerCode: Fail
+NullablePropertyAccessWarning/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail

@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+import "dart:async";
+
+class C extends core::Object {
+  synthetic constructor •() → self::C*
+    : super core::Object::•()
+    ;
+  method m() → asy::Future<core::List<core::int*>*>* async 
+    return let final core::List<core::int*>* #t1 = <core::int*>[] in let final void #t2 = #t1.{core::List::add}(await this.{self::C::_m}()) in #t1;
+  method _m() → asy::Future<core::int*>* async 
+    return 42;
+}
+static method main() → dynamic async {
+  self::expect(42, (await new self::C::•().{self::C::m}()).{core::Iterable::first});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}

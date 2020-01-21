@@ -1595,9 +1595,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   String fileAndLine;
 
   DartError error;
-  StreamController _snapshotFetch;
-
-  List<Uint8List> _chunksInProgress;
+  SnapshotReader _snapshotFetch;
 
   List<Thread> get threads => _threads;
   final List<Thread> _threads = new List<Thread>();
@@ -1611,22 +1609,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
   int get numScopedHandles => _numScopedHandles;
   int _numScopedHandles;
 
-  static Uint8List _flatten(List<Uint8List> chunks) {
-    var length = 0;
-    for (var chunk in chunks) {
-      length += chunk.length;
-    }
-    var flattened = new Uint8List(length);
-    var position = 0;
-    for (var chunk in chunks) {
-      flattened.setRange(position, position + chunk.length, chunk);
-      position += chunk.length;
-    }
-    return flattened;
-  }
-
   void _loadHeapSnapshot(ServiceEvent event) {
-    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
+    if (_snapshotFetch == null) {
       // No outstanding snapshot request. Presumably another client asked for a
       // snapshot.
       Logger.root.info("Dropping unsolicited heap snapshot chunk");
@@ -1634,32 +1618,20 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     }
 
     // Occasionally these actually arrive out of order.
-    if (_chunksInProgress == null) {
-      _chunksInProgress = new List();
-    }
-
-    _chunksInProgress.add(event.data);
-    _snapshotFetch.add([_chunksInProgress.length, _chunksInProgress.length]);
-    if (!event.lastChunk) {
-      return;
-    }
-
-    var flattened = _flatten(_chunksInProgress);
-    _chunksInProgress = null; // Make chunks GC'able.
-
-    if (_snapshotFetch != null) {
-      _snapshotFetch.add(flattened);
+    _snapshotFetch.add(event.data);
+    if (event.lastChunk) {
       _snapshotFetch.close();
+      _snapshotFetch = null;
     }
   }
 
-  Stream fetchHeapSnapshot() {
-    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
-      _snapshotFetch = new StreamController.broadcast();
+  SnapshotReader fetchHeapSnapshot() {
+    if (_snapshotFetch == null) {
+      _snapshotFetch = new SnapshotReader();
       // isolate.vm.streamListen('HeapSnapshot');
       isolate.invokeRpcNoUpgrade('requestHeapSnapshot', {});
     }
-    return _snapshotFetch.stream;
+    return _snapshotFetch;
   }
 
   void updateHeapsFromMap(Map map) {

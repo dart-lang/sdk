@@ -1,0 +1,47 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Have a part in an imported file.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        import "lib.dart";
+
+        main() {
+          libMethod();
+          libPartMethod();
+        }
+      lib.dart: |
+        part "libpart.dart";
+
+        libMethod() {
+          print("libMethod");
+        }
+      libpart.dart: |
+        part of "lib.dart";
+
+        libPartMethod() {
+          print("libPartMethod");
+        }
+    expectedLibraryCount: 2
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - lib.dart
+    sources:
+      lib.dart: |
+        part "libpart.dart";
+
+        libMethod() {
+          print("libMethod!");
+        }
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: true

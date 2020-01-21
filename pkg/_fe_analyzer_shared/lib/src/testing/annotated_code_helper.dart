@@ -37,7 +37,8 @@ class Annotation {
 
   Annotation(this.index, this.lineNo, this.columnNo, this.offset, this.prefix,
       this.text, this.suffix)
-      : assert(offset != null);
+      : assert(offset != null),
+        assert(offset >= 0);
 
   String toString() =>
       'Annotation(index=$index,lineNo=$lineNo,columnNo=$columnNo,'

@@ -690,7 +690,7 @@ abstract class VmServiceInterface {
   /// `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
   ///
   /// If `getVMTimeline` is invoked while the current recorder is one of Fuchsia
-  /// or Systrace, the `114` error code, invalid timeline request, will be
+  /// or Macos or Systrace, the `114` error code, invalid timeline request, will be
   /// returned as timeline events are handled by the OS in these modes.
   Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros});
 
@@ -6098,7 +6098,7 @@ class TimelineFlags extends Response {
       json == null ? null : TimelineFlags._fromJson(json);
 
   /// The name of the recorder currently in use. Recorder types include, but are
-  /// not limited to: Callback, Endless, Fuchsia, Ring, Startup, and Systrace.
+  /// not limited to: Callback, Endless, Fuchsia, Macos, Ring, Startup, and Systrace.
   /// Set to "null" if no recorder is currently set.
   String recorderName;
 

@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class _B&Object&M1 = core::Object with self::M1 {
+  const synthetic constructor •() → self::_B&Object&M1*
+    : super core::Object::•()
+    ;
+}
+abstract class _B&Object&M1&M2 = self::_B&Object&M1 with self::M2 {
+  const synthetic constructor •() → self::_B&Object&M1&M2*
+    : super self::_B&Object&M1::•()
+    ;
+}
+class B extends self::_B&Object&M1&M2 {
+  constructor •(dynamic value) → self::B*
+    ;
+}
+abstract class M1 extends core::Object {
+  synthetic constructor •() → self::M1*
+    ;
+  method m() → dynamic
+    ;
+}
+abstract class M2 extends core::Object {
+  synthetic constructor •() → self::M2*
+    ;
+  method m() → dynamic
+    ;
+}
+abstract class _C&Object&M1 = core::Object with self::M1 {
+  const synthetic constructor •() → self::_C&Object&M1*
+    : super core::Object::•()
+    ;
+}
+abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 {
+  const synthetic constructor •() → self::_C&Object&M1&M2*
+    : super self::_C&Object&M1::•()
+    ;
+}
+class C extends self::_C&Object&M1&M2 {
+  constructor •(dynamic value) → self::C*
+    ;
+}
+abstract class G1<T extends core::Object* = dynamic> extends core::Object {
+  synthetic constructor •() → self::G1<self::G1::T*>*
+    ;
+  method m() → dynamic
+    ;
+}
+abstract class _D&Object&G1<S extends core::Object* = dynamic> = core::Object with self::G1<self::_D&Object&G1::S*> {
+  const synthetic constructor •() → self::_D&Object&G1<self::_D&Object&G1::S*>*
+    : super core::Object::•()
+    ;
+}
+class D<S extends core::Object* = dynamic> extends self::_D&Object&G1<self::D::S*> {
+  synthetic constructor •() → self::D<self::D::S*>*
+    ;
+}
+static method main() → dynamic
+  ;

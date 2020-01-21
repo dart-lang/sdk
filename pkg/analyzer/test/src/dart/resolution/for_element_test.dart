@@ -77,4 +77,20 @@ main() {
       findNode.simple('i = 1.1;').staticElement,
     );
   }
+
+  test_condition_rewrite() async {
+    await assertNoErrorsInCode(r'''
+main(bool Function() b) {
+  <int>[for (; b(); ) 0];
+}
+''');
+
+    assertFunctionExpressionInvocation(
+      findNode.functionExpressionInvocation('b()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'bool Function()',
+      type: 'bool',
+    );
+  }
 }

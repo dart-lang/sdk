@@ -5,14 +5,6 @@
 #ifndef RUNTIME_PLATFORM_ASSERT_H_
 #define RUNTIME_PLATFORM_ASSERT_H_
 
-// TODO(5411406): include sstream for now, once we have a Utils::toString()
-// implemented for all the primitive types we can replace the usage of
-// sstream by Utils::toString()
-#if defined(TESTING)
-#include <sstream>
-#include <string>
-#endif
-
 #include "platform/globals.h"
 #include "platform/memory_sanitizer.h"
 
@@ -20,6 +12,14 @@
 #error neither DEBUG nor NDEBUG defined
 #elif defined(DEBUG) && defined(NDEBUG)
 #error both DEBUG and NDEBUG defined
+#endif
+
+// TODO(5411406): include sstream for now, once we have a Utils::toString()
+// implemented for all the primitive types we can replace the usage of
+// sstream by Utils::toString()
+#if defined(DEBUG) || defined(TESTING)
+#include <sstream>
+#include <string>
 #endif
 
 namespace dart {
@@ -258,6 +258,17 @@ void Expect::Null(const T p) {
     if (!(cond)) dart::Assert(__FILE__, __LINE__).Fail("expected: %s", #cond); \
   } while (false)
 
+#define ASSERT_EQUAL(actual, expected)                                         \
+  do {                                                                         \
+    if ((expected) != (actual)) {                                              \
+      const std::string actual_str = std::to_string(actual);                   \
+      const std::string expected_str = std::to_string(expected);               \
+      dart::Assert(__FILE__, __LINE__)                                         \
+          .Fail("expected \"%s\" = %s, actual \"%s\" = %s", #expected,         \
+                expected_str.c_str(), #actual, actual_str.c_str());            \
+    }                                                                          \
+  } while (false)
+
 // DEBUG_ASSERT allows identifiers in condition to be undeclared in release
 // mode.
 #define DEBUG_ASSERT(cond) ASSERT(cond)
@@ -274,6 +285,10 @@ void Expect::Null(const T p) {
 #define ASSERT(condition)                                                      \
   do {                                                                         \
   } while (false && (condition))
+
+#define ASSERT_EQUAL(expected, actual)                                         \
+  do {                                                                         \
+  } while (false && (expected) != (actual))
 
 #define DEBUG_ASSERT(cond)
 

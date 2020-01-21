@@ -2025,7 +2025,7 @@ class Procedure extends Member {
       Reference reference,
       Member forwardingStubSuperTarget,
       Member forwardingStubInterfaceTarget})
-      : this.byReference(name, kind, function,
+      : this._byReferenceRenamed(name, kind, function,
             isAbstract: isAbstract,
             isStatic: isStatic,
             isExternal: isExternal,
@@ -2042,7 +2042,7 @@ class Procedure extends Member {
             forwardingStubInterfaceTargetReference:
                 getMemberReference(forwardingStubInterfaceTarget));
 
-  Procedure.byReference(Name name, this.kind, this.function,
+  Procedure._byReferenceRenamed(Name name, this.kind, this.function,
       {bool isAbstract: false,
       bool isStatic: false,
       bool isExternal: false,

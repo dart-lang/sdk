@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -22,7 +23,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
-import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
@@ -125,8 +125,8 @@ class FixBuilder {
   /// Visits the entire compilation [unit] using the analyzer's resolver and
   /// makes note of changes that need to be made.
   void visitAll(CompilationUnit unit) {
-    unit.accept(_resolver);
     unit.accept(_AdditionalMigrationsVisitor(this));
+    unit.accept(_resolver);
   }
 
   /// Called whenever an AST node is found that needs to be changed.
@@ -150,7 +150,9 @@ class FixBuilder {
     element = element.declaration;
     if (element is ClassElement || element is TypeParameterElement) {
       return typeProvider.typeType;
-    } else if (element is PropertyAccessorElement && element.isSynthetic) {
+    } else if (element is PropertyAccessorElement &&
+        element.isSynthetic &&
+        !element.variable.isSynthetic) {
       var variableType = _variables
           .decoratedElementType(element.variable)
           .toFinalType(typeProvider);
@@ -192,6 +194,8 @@ class FixBuilder {
 class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   final FixBuilder _fixBuilder;
 
+  final Expando<List<CollectionElement>> _collectionElements = Expando();
+
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
 
@@ -199,7 +203,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   @override
   bool getConditionalKnownValue(AstNode node) {
-    // TODO(paulberry): handle things other than IfStatement.
+    // TODO(paulberry): handle conditional expressions.
     var conditionalDiscard =
         _fixBuilder._variables.getConditionalDiscard(_fixBuilder.source, node);
     if (conditionalDiscard == null) {
@@ -239,9 +243,15 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   @override
-  DartType getMigratedTypeAnnotationType(Source source, TypeAnnotation node) {
-    return _fixTypeAnnotation(source, node)
-        .toFinalType(_fixBuilder.typeProvider);
+  List<CollectionElement> getListElements(ListLiteral node) {
+    return _collectionElements[node] ??=
+        _transformCollectionElements(node.elements, node.typeArguments);
+  }
+
+  @override
+  List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) {
+    return _collectionElements[node] ??=
+        _transformCollectionElements(node.elements, node.typeArguments);
   }
 
   @override
@@ -297,28 +307,6 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     }
   }
 
-  DecoratedType _fixTypeAnnotation(Source source, TypeAnnotation node) {
-    var decoratedType =
-        _fixBuilder._variables.decoratedTypeAnnotation(source, node);
-    var type = decoratedType.type;
-    if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
-      var decoratedType =
-          _fixBuilder._variables.decoratedTypeAnnotation(source, node);
-      _fixBuilder._addChange(node, MakeNullable(decoratedType));
-    }
-    if (node is TypeName) {
-      var typeArguments = node.typeArguments;
-      if (typeArguments != null) {
-        for (var arg in typeArguments.arguments) {
-          _fixTypeAnnotation(source, arg);
-        }
-      }
-    } else {
-      throw UnimplementedError('TODO(paulberry)');
-    }
-    return decoratedType;
-  }
-
   bool _needsNullCheckDueToStructure(Expression node) {
     var parent = node.parent;
     if (parent is BinaryExpression) {
@@ -360,6 +348,29 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
     }
     return false;
   }
+
+  CollectionElement _transformCollectionElement(CollectionElement node) {
+    while (node is IfElement) {
+      var conditionalDiscard = _fixBuilder._variables
+          .getConditionalDiscard(_fixBuilder.source, node);
+      if (conditionalDiscard == null ||
+          conditionalDiscard.keepTrue && conditionalDiscard.keepFalse) {
+        return node;
+      }
+      var conditionValue = conditionalDiscard.keepTrue;
+      var ifElement = node as IfElement;
+      node = conditionValue ? ifElement.thenElement : ifElement.elseElement;
+    }
+    return node;
+  }
+
+  List<CollectionElement> _transformCollectionElements(
+      NodeList<CollectionElement> elements, TypeArgumentList typeArguments) {
+    return elements
+        .map(_transformCollectionElement)
+        .where((e) => e != null)
+        .toList();
+  }
 }
 
 /// Problem reported by [FixBuilder] when encountering a non-nullable unnamed
@@ -384,11 +395,53 @@ class _AdditionalMigrationsVisitor extends RecursiveAstVisitor<void> {
     if (node.defaultValue == null &&
         !_fixBuilder._variables.decoratedElementType(element).node.isNullable) {
       if (element.isNamed) {
-        _fixBuilder._addChange(node, const AddRequiredKeyword());
+        _addRequiredKeyword(node);
       } else {
         _fixBuilder._addProblem(
             node, const NonNullableUnnamedOptionalParameter());
       }
     }
+    super.visitDefaultFormalParameter(node);
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    var decoratedType = _fixBuilder._variables
+        .decoratedTypeAnnotation(_fixBuilder.source, node);
+    if (decoratedType.node.isNullable) {
+      _fixBuilder._addChange(node, MakeNullable(decoratedType));
+    }
+    (node as GenericFunctionTypeImpl).type =
+        decoratedType.toFinalType(_fixBuilder.typeProvider);
+    super.visitGenericFunctionType(node);
+  }
+
+  @override
+  void visitTypeName(TypeName node) {
+    var decoratedType = _fixBuilder._variables
+        .decoratedTypeAnnotation(_fixBuilder.source, node);
+    var type = decoratedType.type;
+    if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
+      _fixBuilder._addChange(node, MakeNullable(decoratedType));
+    }
+    node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
+    super.visitTypeName(node);
+  }
+
+  void _addRequiredKeyword(DefaultFormalParameter node) {
+    // Change an existing `@required` annotation into a `required` keyword if
+    // possible.
+    var metadata = node.metadata;
+    for (var annotation in metadata) {
+      if (annotation.elementAnnotation.isRequired) {
+        // TODO(paulberry): what if `@required` isn't the first annotation?
+        // Will we produce something that isn't grammatical?
+        _fixBuilder._addChange(
+            annotation, const RequiredAnnotationToRequiredKeyword());
+        return;
+      }
+    }
+    // Otherwise create a new `required` keyword.
+    _fixBuilder._addChange(node, const AddRequiredKeyword());
   }
 }

@@ -40,7 +40,7 @@ class OptionsTest {
           'analysis_options_user.yaml');
       expect(FileSystemEntity.isFileSync(expectedPath), isTrue);
       await runner.run2([
-        "--packages",
+        '--packages',
         path.join(tempDirPath, 'packagelist'),
         path.join(tempDirPath, 'lib', 'main.dart')
       ]);
@@ -78,7 +78,7 @@ class _Runner {
   Future<void> run2(List<String> args) async {
     await Driver(isTesting: true).start(args);
     if (stderr.isNotEmpty) {
-      fail("Unexpected output to stderr:\n$stderr");
+      fail('Unexpected output to stderr:\n$stderr');
     }
   }
 

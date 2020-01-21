@@ -1491,8 +1491,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
-    listener?.handleStringJuxtaposition(literalCount);
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
+    listener?.handleStringJuxtaposition(startToken, literalCount);
   }
 
   @override
@@ -1564,21 +1564,6 @@ class ForwardingListener implements Listener {
   @override
   void logEvent(String name) {
     listener?.logEvent(name);
-  }
-
-  @override
-  void reportErrorIfNullableType(Token questionMark) {
-    listener?.reportErrorIfNullableType(questionMark);
-  }
-
-  @override
-  void reportNonNullableModifierError(Token modifierToken) {
-    listener?.reportNonNullableModifierError(modifierToken);
-  }
-
-  @override
-  void reportNonNullAssertExpressionNotEnabled(Token bang) {
-    listener?.reportNonNullAssertExpressionNotEnabled(bang);
   }
 
   @override

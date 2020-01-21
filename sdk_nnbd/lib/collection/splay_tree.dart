@@ -222,6 +222,10 @@ abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
   }
 }
 
+class _TypeTest<T> {
+  bool test(v) => v is T;
+}
+
 int _dynamicCompare(dynamic a, dynamic b) =>
     Comparable.compare(a as Comparable, b as Comparable);
 

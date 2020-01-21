@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
@@ -37,6 +38,42 @@ class FixAggregatorTest extends FixAggregatorTestBase {
       findNode.binary('a + b'): const NullCheck()
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
+  }
+
+  Future<void> test_eliminateDeadIf_changesInKeptCode() async {
+    await analyze('''
+f(int i, int/*?*/ j) {
+  if (i != null) j.isEven;
+}
+''');
+    var previewInfo = run({
+      findNode.statement('if'): EliminateDeadIf(true),
+      findNode.simple('j.isEven'): const NullCheck()
+    });
+    expect(previewInfo.applyTo(code), '''
+f(int i, int/*?*/ j) {
+  j!.isEven;
+}
+''');
+  }
+
+  Future<void> test_eliminateDeadIf_changesInKeptCode_expandBlock() async {
+    await analyze('''
+f(int i, int/*?*/ j) {
+  if (i != null) {
+    j.isEven;
+  }
+}
+''');
+    var previewInfo = run({
+      findNode.statement('if'): EliminateDeadIf(true),
+      findNode.simple('j.isEven'): const NullCheck()
+    });
+    expect(previewInfo.applyTo(code), '''
+f(int i, int/*?*/ j) {
+  j!.isEven;
+}
+''');
   }
 
   Future<void> test_eliminateDeadIf_element_delete_drop_completely() async {
@@ -282,7 +319,8 @@ void f(int i, String callback()) {
   Future<void> test_makeNullable() async {
     await analyze('f(int x) {}');
     var typeName = findNode.typeName('int');
-    var previewInfo = run({typeName: MakeNullable(MockDecoratedType())});
+    var previewInfo =
+        run({typeName: MakeNullable(MockDecoratedType(MockDartType()))});
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
   }
 
@@ -408,6 +446,55 @@ void f(int i, String callback()) {
     var previewInfo = run({expr.parent: const RemoveAs()});
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a < b | c;');
   }
+
+  Future<void> test_requiredAnnotationToRequiredKeyword_prefixed() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart' as meta;
+f({@meta.required int x}) {}
+''');
+    var annotation = findNode.annotation('required');
+    var previewInfo =
+        run({annotation: const RequiredAnnotationToRequiredKeyword()});
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart' as meta;
+f({required int x}) {}
+''');
+    expect(previewInfo.values.single.single.isDeletion, true);
+  }
+
+  Future<void> test_requiredAnnotationToRequiredKeyword_renamed() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+const foo = required;
+f({@foo int x}) {}
+''');
+    var annotation = findNode.annotation('@foo');
+    var previewInfo =
+        run({annotation: const RequiredAnnotationToRequiredKeyword()});
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+const foo = required;
+f({required int x}) {}
+''');
+  }
+
+  Future<void> test_requiredAnnotationToRequiredKeyword_simple() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+f({@required int x}) {}
+''');
+    var annotation = findNode.annotation('required');
+    var previewInfo =
+        run({annotation: const RequiredAnnotationToRequiredKeyword()});
+    expect(previewInfo.applyTo(code), '''
+import 'package:meta/meta.dart';
+f({required int x}) {}
+''');
+    expect(previewInfo.values.single.single.isDeletion, true);
+  }
 }
 
 class FixAggregatorTestBase extends AbstractSingleUnitTest {
@@ -425,7 +512,19 @@ class FixAggregatorTestBase extends AbstractSingleUnitTest {
   }
 }
 
+class MockDartType implements DartType {
+  @override
+  noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
 class MockDecoratedType implements DecoratedType {
+  @override
+  final DartType type;
+
+  MockDecoratedType(this.type);
+
   @override
   NullabilityNode get node => NullabilityNode.forTypeAnnotation(0);
 

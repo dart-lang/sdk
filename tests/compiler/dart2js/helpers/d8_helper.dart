@@ -12,7 +12,7 @@ import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/dart2js.dart' as dart2js;
-import 'package:compiler/src/filenames.dart';
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
 import '../helpers/memory_compiler.dart';

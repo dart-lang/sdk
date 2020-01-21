@@ -9,6 +9,7 @@ library compiler.src.kernel.dart2js_target;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart';
 import 'invocation_mirror_constants.dart';
 
@@ -86,6 +87,7 @@ class Dart2jsTarget extends Target {
       List<ir.Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex,
       {void logger(String msg)}) {}
 
   @override

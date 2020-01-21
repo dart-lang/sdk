@@ -2324,6 +2324,7 @@ class UnlinkedCallSerializationCluster : public SerializationCluster {
       RawUnlinkedCall* unlinked = objects_[i];
       AutoTraceObjectName(unlinked, unlinked->ptr()->target_name_);
       WriteFromTo(unlinked);
+      s->Write<bool>(unlinked->ptr()->can_patch_to_monomorphic_);
     }
   }
 
@@ -2355,6 +2356,7 @@ class UnlinkedCallDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(unlinked, kUnlinkedCallCid,
                                      UnlinkedCall::InstanceSize());
       ReadFromTo(unlinked);
+      unlinked->ptr()->can_patch_to_monomorphic_ = d->Read<bool>();
     }
   }
 };

@@ -72,7 +72,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       K key = JS('', '#[#]', entries, i);
       V value = JS('', '#[#]', entries, i + 1);
       if (key == null) {
-        JS('', '# = null', key);
+        key = JS('', 'null');
       } else if (JS<bool>('!', '#[#] !== #', key,
           dart.extensionSymbol('_equals'), dart.identityEquals)) {
         key = putLinkedMapKey(key, keyMap);
@@ -96,7 +96,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
   @notNull
   bool containsKey(Object? key) {
     if (key == null) {
-      JS('', '# = null', key);
+      key = JS('', 'null');
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull
@@ -124,7 +124,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
     int length = JS('', '#.size', map);
     other.forEach((K key, V value) {
       if (key == null) {
-        JS('', '# = null', key);
+        key = JS('', 'null');
       } else if (JS<bool>('!', '#[#] !== #', key,
           dart.extensionSymbol('_equals'), dart.identityEquals)) {
         key = putLinkedMapKey(key, _keyMap);
@@ -138,7 +138,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
 
   V? operator [](Object? key) {
     if (key == null) {
-      JS('', '# = null', key);
+      key = JS('', 'null');
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull
@@ -157,7 +157,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
 
   void operator []=(K key, V value) {
     if (key == null) {
-      JS('', '# = null', key);
+      key = JS('', 'null');
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       key = putLinkedMapKey(key, _keyMap);
@@ -173,7 +173,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
   V putIfAbsent(K key, V ifAbsent()) {
     var map = _map;
     if (key == null) {
-      JS('', '# = null', key);
+      key = JS('', 'null');
       if (JS<bool>('!', '#.has(null)', map)) return JS('', '#.get(null)', map);
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
@@ -194,7 +194,9 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       return JS('', '#.get(#)', map, key);
     }
     V value = ifAbsent();
-    if (value == null) JS('', '# = null', value);
+    if (value == null) {
+      value = JS('', 'null');
+    }
     JS('', '#.set(#, #)', map, key, value);
     _modifications = (_modifications + 1) & 0x3ffffff;
     return value;
@@ -202,7 +204,7 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
 
   V? remove(Object? key) {
     if (key == null) {
-      JS('', '# = null', key);
+      key = JS('', 'null');
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
       @notNull

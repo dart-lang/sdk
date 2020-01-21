@@ -140,8 +140,12 @@ void ClassTable::Register(const Class& cls) {
 
   // During the transition period we would like [SharedClassTable] to operate in
   // parallel to [ClassTable].
+
+  const intptr_t instance_size =
+      cls.is_abstract() ? 0 : Class::instance_size(cls.raw());
+
   const intptr_t expected_cid =
-      shared_class_table_->Register(index, Class::instance_size(cls.raw()));
+      shared_class_table_->Register(index, instance_size);
 
   if (index != kIllegalCid) {
     ASSERT(index > 0 && index < kNumPredefinedCids && index < top_);
@@ -173,6 +177,7 @@ intptr_t SharedClassTable::Register(intptr_t index, intptr_t size) {
     SetSizeAt(index, size);
     return index;
   } else {
+    ASSERT(size == 0);
     if (top_ == capacity_) {
       const intptr_t new_capacity = capacity_ + kCapacityIncrement;
       Grow(new_capacity);

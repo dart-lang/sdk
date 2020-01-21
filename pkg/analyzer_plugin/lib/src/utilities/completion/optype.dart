@@ -16,128 +16,85 @@ import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
 typedef SuggestionsFilter = int Function(DartType dartType, int relevance);
 
-/**
- * An [AstVisitor] for determining whether top level suggestions or invocation
- * suggestions should be made based upon the type of node in which the
- * suggestions were requested.
- */
+/// An [AstVisitor] for determining whether top level suggestions or invocation
+/// suggestions should be made based upon the type of node in which the
+/// suggestions were requested.
 class OpType {
-  /**
-   * The [TypeSystem] used during resolution of the current unit.
-   */
+  /// The [TypeSystem] used during resolution of the current unit.
   TypeSystem _typeSystem;
 
-  /**
-   * Indicates whether constructor suggestions should be included.
-   */
+  /// Indicates whether constructor suggestions should be included.
   bool includeConstructorSuggestions = false;
 
-  /**
-   * Indicates whether type names should be suggested.
-   */
+  /// Indicates whether type names should be suggested.
   bool includeTypeNameSuggestions = false;
 
-  /**
-   * If [includeTypeNameSuggestions] is set to true, then this function may
-   * be set to a non-default function to filter out potential suggestions (null)
-   * based on their static [DartType], or change the relative relevance by
-   * returning a higher or lower relevance.
-   */
+  /// If [includeTypeNameSuggestions] is set to true, then this function may
+  /// be set to a non-default function to filter out potential suggestions
+  /// (null) based on their static [DartType], or change the relative relevance
+  /// by returning a higher or lower relevance.
   SuggestionsFilter typeNameSuggestionsFilter =
       (DartType _, int relevance) => relevance;
 
-  /**
-   * Indicates whether setters along with methods and functions that
-   * have a [void] return type should be suggested.
-   */
+  /// Indicates whether setters along with methods and functions that
+  /// have a [void] return type should be suggested.
   bool includeVoidReturnSuggestions = false;
 
-  /**
-   * Indicates whether fields and getters along with methods and functions that
-   * have a non-[void] return type should be suggested.
-   */
+  /// Indicates whether fields and getters along with methods and functions that
+  /// have a non-[void] return type should be suggested.
   bool includeReturnValueSuggestions = false;
 
-  /**
-   * If [includeReturnValueSuggestions] is set to true, then this function may
-   * be set to a non-default function to filter out potential suggestions (null)
-   * based on their static [DartType], or change the relative relevance by
-   * returning a higher or lower relevance.
-   */
+  /// If [includeReturnValueSuggestions] is set to true, then this function may
+  /// be set to a non-default function to filter out potential suggestions
+  /// (null) based on their static [DartType], or change the relative relevance
+  /// by returning a higher or lower relevance.
   SuggestionsFilter returnValueSuggestionsFilter =
       (DartType _, int relevance) => relevance;
 
-  /**
-   * Indicates whether named arguments should be suggested.
-   */
+  /// Indicates whether named arguments should be suggested.
   bool includeNamedArgumentSuggestions = false;
 
-  /**
-   * Indicates whether statement labels should be suggested.
-   */
+  /// Indicates whether statement labels should be suggested.
   bool includeStatementLabelSuggestions = false;
 
-  /**
-   * Indicates whether case labels should be suggested.
-   */
+  /// Indicates whether case labels should be suggested.
   bool includeCaseLabelSuggestions = false;
 
-  /**
-   * Indicates whether variable names should be suggested.
-   */
+  /// Indicates whether variable names should be suggested.
   bool includeVarNameSuggestions = false;
 
-  /**
-   * Indicates whether the completion location is in a field declaration.
-   */
+  /// Indicates whether the completion location is in a field declaration.
   bool inFieldDeclaration = false;
 
-  /**
-   * Indicates whether the completion location is in a top-level variable
-   * declaration.
-   */
+  /// Indicates whether the completion location is in a top-level variable
+  /// declaration.
   bool inTopLevelVariableDeclaration = false;
 
-  /**
-   * Indicates whether the completion location is in the body of a static method.
-   */
+  /// Indicates whether the completion location is in the body of a static
+  /// method.
   bool inStaticMethodBody = false;
 
-  /**
-   * Indicates whether the completion location is in the body of a method.
-   */
+  /// Indicates whether the completion location is in the body of a method.
   bool inMethodBody = false;
 
-  /**
-   * Indicates whether the completion location is in the body of a function.
-   */
+  /// Indicates whether the completion location is in the body of a function.
   bool inFunctionBody = false;
 
-  /**
-   * Indicates whether the completion location is in the body of a constructor.
-   */
+  /// Indicates whether the completion location is in the body of a constructor.
   bool inConstructorBody = false;
 
-  /**
-   * Indicates whether the completion target is prefixed.
-   */
+  /// Indicates whether the completion target is prefixed.
   bool isPrefixed = false;
 
-  /**
-   * The suggested completion kind.
-   */
+  /// The suggested completion kind.
   CompletionSuggestionKind suggestKind = CompletionSuggestionKind.INVOCATION;
 
-  /**
-   * The type that is required by the context in which the completion was
-   * activated, or `null` if there is no such type, or it cannot be determined.
-   */
+  /// The type that is required by the context in which the completion was
+  /// activated, or `null` if there is no such type, or it cannot be determined.
   DartType _requiredType;
 
-  /**
-   * Determine the suggestions that should be made based upon the given
-   * [CompletionTarget] and [offset].
-   */
+  /// Determine the suggestions that should be made based upon the given
+  /// [CompletionTarget] and [offset].
   factory OpType.forCompletion(CompletionTarget target, int offset) {
     OpType optype = OpType._();
 
@@ -191,9 +148,7 @@ class OpType {
 
   OpType._();
 
-  /**
-   * Return `true` if free standing identifiers should be suggested
-   */
+  /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers {
     return !isPrefixed &&
         (includeReturnValueSuggestions ||
@@ -202,27 +157,21 @@ class OpType {
             includeConstructorSuggestions);
   }
 
-  /**
-   * Indicate whether only type names should be suggested
-   */
+  /// Indicate whether only type names should be suggested
   bool get includeOnlyNamedArgumentSuggestions =>
       includeNamedArgumentSuggestions &&
       !includeTypeNameSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
 
-  /**
-   * Indicate whether only type names should be suggested
-   */
+  /// Indicate whether only type names should be suggested
   bool get includeOnlyTypeNameSuggestions =>
       includeTypeNameSuggestions &&
       !includeNamedArgumentSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
 
-  /**
-   * Try to determine the required context type, and configure filters.
-   */
+  /// Try to determine the required context type, and configure filters.
   void _computeRequiredTypeAndFilters(CompletionTarget target) {
     Object entity = target.entity;
     AstNode node = target.containingNode;
@@ -302,20 +251,14 @@ class OpType {
 }
 
 class _OpTypeAstVisitor extends GeneralizingAstVisitor {
-  /**
-   * The entity (AstNode or Token) which will be replaced or displaced by the
-   * added text.
-   */
+  /// The entity (AstNode or Token) which will be replaced or displaced by the
+  /// added text.
   final Object entity;
 
-  /**
-   * The offset within the source at which the completion is requested.
-   */
+  /// The offset within the source at which the completion is requested.
   final int offset;
 
-  /**
-   * The [OpType] being initialized
-   */
+  /// The [OpType] being initialized
   final OpType optype;
 
   _OpTypeAstVisitor(this.optype, this.entity, this.offset);
@@ -881,6 +824,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
       optype.includeTypeNameSuggestions = !isThis;
       optype.includeVoidReturnSuggestions = true;
       optype.isPrefixed = true;
+    } else if (identical(entity, node.argumentList)) {
+      // Note that when the cursor is in a type argument list (f<^>()), the
+      // entity is (surprisingly) the invocation's argumentList (and not it's
+      // typeArgumentList as you'd expect).
+      optype.includeTypeNameSuggestions = true;
     }
   }
 
@@ -1154,9 +1102,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   @override
   void visitTypeName(TypeName node) {
     // The entity won't be the first child entity (node.name), since
-    // CompletionTarget would have chosen an edge higher in the parse tree.  So
+    // CompletionTarget would have chosen an edge higher in the parse tree. So
     // it must be node.typeArguments, meaning that the cursor is between the
-    // type name and the "<" that starts the type arguments.  In this case,
+    // type name and the "<" that starts the type arguments. In this case,
     // we have no completions to offer.
     assert(identical(entity, node.typeArguments));
   }
@@ -1221,10 +1169,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     return false;
   }
 
-  /**
-   * A filter used to disable everything except classes (such as functions and
-   * mixins).
-   */
+  /// A filter used to disable everything except classes (such as functions and
+  /// mixins).
   int _nonMixinClasses(DartType type, int relevance) {
     if (type is InterfaceType) {
       if (type.element.isMixin) {

@@ -21,16 +21,20 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// not yet completed.
   Set<UnitInfo> infos;
 
-  /// Use the InfoBuilder to build information. The information will be stored
-  /// in [infos].
+  /// Uses the InfoBuilder to build information for [testFile].
+  ///
+  /// The information is stored in [infos].
   Future<void> buildInfo() async {
+    var includedRoot = resourceProvider.pathContext.dirname(testFile);
+    await _buildMigrationInfo([testFile], includedRoot: includedRoot);
+  }
+
+  /// Uses the InfoBuilder to build information for files at [testPaths], which
+  /// should all share a common parent directory, [includedRoot].
+  Future<void> _buildMigrationInfo(List<String> testPaths,
+      {String includedRoot}) async {
     // Compute the analysis results.
-    String includedRoot = resourceProvider.pathContext.dirname(testFile);
     server.setAnalysisRoots('0', [includedRoot], [], {});
-    var result = await server
-        .getAnalysisDriver(testFile)
-        .currentSession
-        .getResolvedUnit(testFile);
     // Run the migration engine.
     DartFixListener listener = DartFixListener(server);
     InstrumentationListener instrumentationListener = InstrumentationListener();
@@ -38,9 +42,15 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         NullabilityMigrationAdapter(listener),
         permissive: false,
         instrumentation: instrumentationListener);
-    migration.prepareInput(result);
-    migration.processInput(result);
-    migration.finalizeInput(result);
+    for (var testPath in testPaths) {
+      var result = await server
+          .getAnalysisDriver(testPath)
+          .currentSession
+          .getResolvedUnit(testPath);
+      migration.prepareInput(result);
+      migration.processInput(result);
+      migration.finalizeInput(result);
+    }
     migration.finish();
     // Build the migration info.
     InstrumentationInformation info = instrumentationListener.data;
@@ -48,6 +58,25 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         resourceProvider, includedRoot, info, listener,
         explainNonNullableTypes: true);
     infos = await builder.explainMigration();
+  }
+
+  /// Uses the InfoBuilder to build information for test files.
+  ///
+  /// Returns
+  /// the singular UnitInfo which was built.
+  Future<List<UnitInfo>> buildInfoForTestFiles(Map<String, String> files,
+      {String includedRoot}) async {
+    var testPaths = <String>[];
+    files.forEach((String path, String content) {
+      newFile(path, content: content);
+      testPaths.add(path);
+    });
+    await _buildMigrationInfo(testPaths, includedRoot: includedRoot);
+    // Ignore info for dart:core.
+    var filteredInfos = [
+      for (var info in infos) if (info.path.indexOf('core.dart') == -1) info
+    ];
+    return filteredInfos;
   }
 
   /// Uses the InfoBuilder to build information for a single test file.

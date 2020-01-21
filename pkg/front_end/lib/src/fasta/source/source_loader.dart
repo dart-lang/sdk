@@ -47,6 +47,8 @@ import 'package:kernel/class_hierarchy.dart'
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
+import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+
 import '../../api_prototype/file_system.dart';
 
 import '../../base/common.dart';
@@ -142,6 +144,8 @@ class SourceLoader extends Loader {
   final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
 
   ClassHierarchyBuilder builderHierarchy;
+
+  ReferenceFromIndex referenceFromIndex;
 
   /// Used when building directly to kernel.
   ClassHierarchy hierarchy;
@@ -323,10 +327,7 @@ class SourceLoader extends Loader {
       // We tokenize source files twice to keep memory usage low. This is the
       // second time, and the first time was in [buildOutline] above. So this
       // time we suppress lexical errors.
-      bool suppressLexicalErrors = true;
-      if (library.issueLexicalErrorsOnBodyBuild) suppressLexicalErrors = false;
-      Token tokens =
-          await tokenize(library, suppressLexicalErrors: suppressLexicalErrors);
+      Token tokens = await tokenize(library, suppressLexicalErrors: true);
       if (tokens == null) return;
       DietListener listener = createDietListener(library);
       DietParser parser = new DietParser(listener);
@@ -367,8 +368,21 @@ class SourceLoader extends Loader {
               "debugExpression in $enclosingClass");
       }
     }
-    ProcedureBuilder builder = new ProcedureBuilderImpl(null, 0, null,
-        "debugExpr", null, null, ProcedureKind.Method, library, 0, 0, -1, -1)
+    ProcedureBuilder builder = new ProcedureBuilderImpl(
+        null,
+        0,
+        null,
+        "debugExpr",
+        null,
+        null,
+        ProcedureKind.Method,
+        library,
+        0,
+        0,
+        -1,
+        -1,
+        null,
+        null)
       ..parent = parent;
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
@@ -847,6 +861,11 @@ class SourceLoader extends Loader {
         SourceLibraryBuilder sourceLibrary = library;
         Library target = sourceLibrary.build(coreLibrary);
         if (!library.isPatch) {
+          if (sourceLibrary.referencesFrom != null) {
+            referenceFromIndex ??= new ReferenceFromIndex();
+            referenceFromIndex.addIndexedLibrary(
+                target, sourceLibrary.referencesFromIndexed);
+          }
           libraries.add(target);
         }
       }

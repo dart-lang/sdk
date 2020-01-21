@@ -13,7 +13,6 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_new.dart' as api;
 import 'commandline_options.dart';
-import 'filenames.dart';
 import 'options.dart' show CompilerOptions;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
@@ -63,7 +62,7 @@ String extractParameter(String argument, {bool isOptionalArgument: false}) {
 }
 
 String extractPath(String argument, {bool isDirectory: true}) {
-  String path = nativeToUriPath(extractParameter(argument));
+  String path = fe.nativeToUriPath(extractParameter(argument));
   return !path.endsWith("/") && isDirectory ? "$path/" : path;
 }
 
@@ -101,9 +100,8 @@ FormattingDiagnosticHandler diagnosticHandler;
 Future<api.CompilationResult> compile(List<String> argv,
     {fe.InitializedCompilerState kernelInitializedCompilerState}) {
   Stopwatch wallclock = new Stopwatch()..start();
-  stackTraceFilePrefix = '$currentDirectory';
-  Uri librariesSpecificationUri =
-      currentDirectory.resolve('lib/libraries.json');
+  stackTraceFilePrefix = '${Uri.base}';
+  Uri librariesSpecificationUri = Uri.base.resolve('lib/libraries.json');
   bool outputSpecified = false;
   Uri out;
   Uri sourceMapOut;
@@ -144,16 +142,15 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setLibrarySpecificationUri(String argument) {
     librariesSpecificationUri =
-        currentDirectory.resolve(extractPath(argument, isDirectory: false));
+        Uri.base.resolve(extractPath(argument, isDirectory: false));
   }
 
   void setPackageRoot(String argument) {
-    packageRoot = currentDirectory.resolve(extractPath(argument));
+    packageRoot = Uri.base.resolve(extractPath(argument));
   }
 
   void setPackageConfig(String argument) {
-    packageConfig =
-        currentDirectory.resolve(extractPath(argument, isDirectory: false));
+    packageConfig = Uri.base.resolve(extractPath(argument, isDirectory: false));
   }
 
   void setOutput(Iterator<String> arguments) {
@@ -167,7 +164,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     } else {
       path = extractParameter(arguments.current);
     }
-    out = currentDirectory.resolve(nativeToUriPath(path));
+    out = Uri.base.resolve(fe.nativeToUriPath(path));
   }
 
   void setOptimizationLevel(String argument) {
@@ -246,12 +243,12 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setPlatformBinaries(String argument) {
     platformBinaries =
-        currentDirectory.resolve(extractPath(argument, isDirectory: true));
+        Uri.base.resolve(extractPath(argument, isDirectory: true));
   }
 
   void setReadData(String argument) {
     if (argument != Flags.readData) {
-      readDataUri = nativeToUri(extractPath(argument, isDirectory: false));
+      readDataUri = fe.nativeToUri(extractPath(argument, isDirectory: false));
     }
     if (readStrategy != ReadStrategy.fromCodegen) {
       readStrategy = ReadStrategy.fromData;
@@ -261,7 +258,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   void setDillDependencies(String argument) {
     String dependencies = extractParameter(argument);
     String uriDependencies = dependencies.splitMapJoin(',',
-        onMatch: (_) => ',', onNonMatch: (p) => '${nativeToUri(p)}');
+        onMatch: (_) => ',', onNonMatch: (p) => '${fe.nativeToUri(p)}');
     options.add('${Flags.dillDependencies}=${uriDependencies}');
   }
 
@@ -279,7 +276,8 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   void setReadCodegen(String argument) {
     if (argument != Flags.readCodegen) {
-      readCodegenUri = nativeToUri(extractPath(argument, isDirectory: false));
+      readCodegenUri =
+          fe.nativeToUri(extractPath(argument, isDirectory: false));
     }
     readStrategy = ReadStrategy.fromCodegen;
   }
@@ -293,7 +291,7 @@ Future<api.CompilationResult> compile(List<String> argv,
       fail("Cannot write serialized data and codegen simultaneously.");
     }
     if (argument != Flags.writeData) {
-      writeDataUri = nativeToUri(extractPath(argument, isDirectory: false));
+      writeDataUri = fe.nativeToUri(extractPath(argument, isDirectory: false));
     }
     writeStrategy = WriteStrategy.toData;
   }
@@ -307,7 +305,8 @@ Future<api.CompilationResult> compile(List<String> argv,
       fail("Cannot write serialized data and codegen data simultaneously.");
     }
     if (argument != Flags.writeCodegen) {
-      writeCodegenUri = nativeToUri(extractPath(argument, isDirectory: false));
+      writeCodegenUri =
+          fe.nativeToUri(extractPath(argument, isDirectory: false));
     }
     writeStrategy = WriteStrategy.toCodegen;
   }
@@ -333,14 +332,13 @@ Future<api.CompilationResult> compile(List<String> argv,
         "supported formats are: json or binary");
   }
 
-  void setNonNullableMode(String argument) {
-    if (argument == "${Flags.nonNullableMode}=strong" ||
-        argument == "${Flags.nonNullableMode}=weak") {
-      passThrough(argument);
-      return;
+  String nullSafetyMode = null;
+  void setNullSafetyMode(String argument) {
+    if (nullSafetyMode != null && nullSafetyMode != argument) {
+      helpAndFail("Error: cannot specify both $nullSafetyMode and $argument.");
     }
-    helpAndFail("Error: Unsupported '$argument', "
-        "supported modes are: strong (default) or weak");
+    nullSafetyMode = argument;
+    passThrough(argument);
   }
 
   void handleThrowOnError(String argument) {
@@ -466,7 +464,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     new OptionHandler(Flags.laxRuntimeTypeToString, passThrough),
     new OptionHandler(Flags.benchmarkingProduction, passThrough),
     new OptionHandler(Flags.benchmarkingExperiment, passThrough),
-    new OptionHandler('${Flags.nonNullableMode}=.+', setNonNullableMode),
+    new OptionHandler(Flags.runtimeNullSafety, setNullSafetyMode),
+    new OptionHandler(Flags.noRuntimeNullSafety, setNullSafetyMode),
 
     // TODO(floitsch): remove conditional directives flag.
     // We don't provide the info-message yet, since we haven't publicly
@@ -502,7 +501,7 @@ Future<api.CompilationResult> compile(List<String> argv,
       helpAndFail("Unknown option '$argument'.");
     }),
     new OptionHandler('.*', (String argument) {
-      arguments.add(nativeToUriPath(argument));
+      arguments.add(fe.nativeToUriPath(argument));
     })
   ];
 
@@ -576,10 +575,10 @@ Future<api.CompilationResult> compile(List<String> argv,
 
   switch (writeStrategy) {
     case WriteStrategy.toJs:
-      out ??= currentDirectory.resolve('out.js');
+      out ??= Uri.base.resolve('out.js');
       break;
     case WriteStrategy.toKernel:
-      out ??= currentDirectory.resolve('out.dill');
+      out ??= Uri.base.resolve('out.dill');
       options.add(Flags.cfeOnly);
       if (readStrategy == ReadStrategy.fromData) {
         fail("Cannot use ${Flags.cfeOnly} "
@@ -590,8 +589,8 @@ Future<api.CompilationResult> compile(List<String> argv,
       }
       break;
     case WriteStrategy.toData:
-      out ??= currentDirectory.resolve('out.dill');
-      writeDataUri ??= currentDirectory.resolve('$out.data');
+      out ??= Uri.base.resolve('out.dill');
+      writeDataUri ??= Uri.base.resolve('$out.data');
       options.add('${Flags.writeData}=${writeDataUri}');
       if (readStrategy == ReadStrategy.fromData) {
         fail("Cannot read and write serialized data simultaneously.");
@@ -603,8 +602,8 @@ Future<api.CompilationResult> compile(List<String> argv,
     case WriteStrategy.toCodegen:
       // TODO(johnniwinther): Avoid the need for an [out] value in this case or
       // use [out] to pass [writeCodegenUri].
-      out ??= currentDirectory.resolve('out');
-      writeCodegenUri ??= currentDirectory.resolve('$out.code');
+      out ??= Uri.base.resolve('out');
+      writeCodegenUri ??= Uri.base.resolve('$out.code');
       options.add('${Flags.writeCodegen}=${writeCodegenUri}');
       if (readStrategy == ReadStrategy.fromCodegen) {
         fail("Cannot read and write serialized codegen simultaneously.");
@@ -633,13 +632,13 @@ Future<api.CompilationResult> compile(List<String> argv,
     case ReadStrategy.fromDart:
       break;
     case ReadStrategy.fromData:
-      readDataUri ??= currentDirectory.resolve('$scriptName.data');
+      readDataUri ??= Uri.base.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
       break;
     case ReadStrategy.fromCodegen:
-      readDataUri ??= currentDirectory.resolve('$scriptName.data');
+      readDataUri ??= Uri.base.resolve('$scriptName.data');
       options.add('${Flags.readData}=${readDataUri}');
-      readCodegenUri ??= currentDirectory.resolve('$scriptName.code');
+      readCodegenUri ??= Uri.base.resolve('$scriptName.code');
       options.add('${Flags.readCodegen}=${readCodegenUri}');
       if (codegenShards == null) {
         fail("Cannot write serialized codegen without setting "
@@ -666,7 +665,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     writeString(
         Uri.parse('$out.deps'), getDepsOutput(inputProvider.getSourceUris()));
 
-    String input = uriPathToNative(scriptName);
+    String input = fe.uriPathToNative(scriptName);
     int inputSize;
     String processName;
     String inputName;
@@ -686,16 +685,16 @@ Future<api.CompilationResult> compile(List<String> argv,
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
         String dataInput =
-            fe.relativizeUri(currentDirectory, readDataUri, Platform.isWindows);
+            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
         summary = 'Data files $input and $dataInput ';
         break;
       case ReadStrategy.fromCodegen:
         inputName = 'bytes data';
         inputSize = inputProvider.dartCharactersRead;
         String dataInput =
-            fe.relativizeUri(currentDirectory, readDataUri, Platform.isWindows);
-        String codeInput = fe.relativizeUri(
-            currentDirectory, readCodegenUri, Platform.isWindows);
+            fe.relativizeUri(Uri.base, readDataUri, Platform.isWindows);
+        String codeInput =
+            fe.relativizeUri(Uri.base, readCodegenUri, Platform.isWindows);
         summary = 'Data files $input, $dataInput and '
             '${codeInput}[0-${codegenShards - 1}] ';
         break;
@@ -707,34 +706,31 @@ Future<api.CompilationResult> compile(List<String> argv,
         outputName = 'characters JavaScript';
         outputSize = outputProvider.totalCharactersWrittenJavaScript;
         primaryOutputSize = outputProvider.totalCharactersWrittenPrimary;
-        String output =
-            fe.relativizeUri(currentDirectory, out, Platform.isWindows);
+        String output = fe.relativizeUri(Uri.base, out, Platform.isWindows);
         summary += 'compiled to JavaScript: ${output}';
         break;
       case WriteStrategy.toKernel:
         processName = 'Compiled';
         outputName = 'kernel bytes';
         outputSize = outputProvider.totalDataWritten;
-        String output =
-            fe.relativizeUri(currentDirectory, out, Platform.isWindows);
+        String output = fe.relativizeUri(Uri.base, out, Platform.isWindows);
         summary += 'compiled to dill: ${output}.';
         break;
       case WriteStrategy.toData:
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
-        String output =
-            fe.relativizeUri(currentDirectory, out, Platform.isWindows);
-        String dataOutput = fe.relativizeUri(
-            currentDirectory, writeDataUri, Platform.isWindows);
+        String output = fe.relativizeUri(Uri.base, out, Platform.isWindows);
+        String dataOutput =
+            fe.relativizeUri(Uri.base, writeDataUri, Platform.isWindows);
         summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
         break;
       case WriteStrategy.toCodegen:
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
-        String codeOutput = fe.relativizeUri(
-            currentDirectory, writeCodegenUri, Platform.isWindows);
+        String codeOutput =
+            fe.relativizeUri(Uri.base, writeCodegenUri, Platform.isWindows);
         summary += 'serialized to codegen data: '
             '${codeOutput}${codegenShard}.';
         break;
@@ -745,9 +741,9 @@ Future<api.CompilationResult> compile(List<String> argv,
         '${_formatCharacterCount(outputSize)} $outputName in '
         '${_formatDurationAsSeconds(wallclock.elapsed)} seconds');
     if (primaryOutputSize != null) {
-      diagnosticHandler.info(
-          '${_formatCharacterCount(primaryOutputSize)} $outputName '
-          'in ${fe.relativizeUri(currentDirectory, out, Platform.isWindows)}');
+      diagnosticHandler
+          .info('${_formatCharacterCount(primaryOutputSize)} $outputName '
+              'in ${fe.relativizeUri(Uri.base, out, Platform.isWindows)}');
     }
     if (writeStrategy == WriteStrategy.toJs) {
       if (outputSpecified || diagnosticHandler.verbose) {
@@ -765,7 +761,7 @@ Future<api.CompilationResult> compile(List<String> argv,
     return result;
   }
 
-  Uri script = currentDirectory.resolve(scriptName);
+  Uri script = Uri.base.resolve(scriptName);
 
   diagnosticHandler.autoReadFileUri = true;
   CompilerOptions compilerOptions = CompilerOptions.parse(options,

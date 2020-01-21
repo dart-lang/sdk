@@ -25,7 +25,6 @@ void main() {
 
 void testOpen() {
   DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
-  Expect.notEquals(null, l);
 }
 
 void testOpenError() {
@@ -74,8 +73,6 @@ void testEquality() {
   DynamicLibrary l2 = dlopenPlatformSpecific("ffi_test_dynamic_library");
   Expect.equals(l, l2);
   Expect.equals(l.hashCode, l2.hashCode);
-  Expect.notEquals(l, null);
-  Expect.notEquals(null, l);
   DynamicLibrary l3 = dlopenPlatformSpecific("ffi_test_functions");
   Expect.notEquals(l, l3);
 }

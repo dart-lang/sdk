@@ -356,9 +356,11 @@ class ContextBuilder {
       }
     } else {
       // Search for the default analysis options.
-      Source source = sourceFactory.forUri(flutterAnalysisOptionsPath);
-      if (source == null || !source.exists()) {
+      Source source;
+      if (workspace is BazelWorkspace) {
         source = sourceFactory.forUri(bazelAnalysisOptionsPath);
+      } else {
+        source = sourceFactory.forUri(flutterAnalysisOptionsPath);
       }
 
       if (source != null && source.exists()) {

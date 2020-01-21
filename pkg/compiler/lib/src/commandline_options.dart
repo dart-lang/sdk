@@ -94,7 +94,8 @@ class Flags {
 
   static const String serverMode = '--server-mode';
 
-  static const String nonNullableMode = '--non-nullable-mode';
+  static const String runtimeNullSafety = '--runtime-null-safety';
+  static const String noRuntimeNullSafety = '--no-runtime-null-safety';
 
   static const String newDeferredSplit = '--new-deferred-split';
   static const String reportInvalidInferredDeferredTypes =

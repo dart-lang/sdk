@@ -50,7 +50,10 @@ import 'package:kernel/ast.dart'
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
-import 'package:kernel/clone.dart' show CloneVisitor;
+import 'package:kernel/clone.dart' show CloneVisitorNotMembers;
+
+import 'package:kernel/reference_from_index.dart'
+    show IndexedClass, IndexedLibrary;
 
 import 'package:kernel/src/bounds_checks.dart'
     show
@@ -99,69 +102,13 @@ import '../configuration.dart' show Configuration;
 
 import '../export.dart' show Export;
 
-import '../fasta_codes.dart'
-    show
-        FormattedMessage,
-        LocatedMessage,
-        Message,
-        messageConflictsWithTypeVariableCause,
-        messageConstructorWithWrongName,
-        messageExpectedUri,
-        messageMemberWithSameNameAsClass,
-        messageGenericFunctionTypeInBound,
-        messageGenericFunctionTypeUsedAsActualTypeArgument,
-        messageIncorrectTypeArgumentVariable,
-        messageLanguageVersionInvalidInDotPackages,
-        messageLanguageVersionMismatchInPart,
-        messagePartExport,
-        messagePartExportContext,
-        messagePartInPart,
-        messagePartInPartLibraryContext,
-        messagePartOfSelf,
-        messagePartOfTwoLibraries,
-        messagePartOfTwoLibrariesContext,
-        messageTypeVariableDuplicatedName,
-        messageTypeVariableSameNameAsEnclosing,
-        noLength,
-        Template,
-        templateConflictsWithMember,
-        templateConflictsWithSetter,
-        templateConflictsWithTypeVariable,
-        templateConstructorWithWrongNameContext,
-        templateCouldNotParseUri,
-        templateDeferredPrefixDuplicated,
-        templateDeferredPrefixDuplicatedCause,
-        templateDuplicatedDeclaration,
-        templateDuplicatedDeclarationCause,
-        templateDuplicatedExport,
-        templateDuplicatedExportInType,
-        templateDuplicatedImport,
-        templateDuplicatedImportInType,
-        templateExportHidesExport,
-        templateGenericFunctionTypeInferredAsActualTypeArgument,
-        templateImportHidesImport,
-        templateIncorrectTypeArgument,
-        templateIncorrectTypeArgumentInReturnType,
-        templateIncorrectTypeArgumentInferred,
-        templateIncorrectTypeArgumentQualified,
-        templateIncorrectTypeArgumentQualifiedInferred,
-        templateLanguageVersionTooHigh,
-        templateLoadLibraryHidesMember,
-        templateLocalDefinitionHidesExport,
-        templateLocalDefinitionHidesImport,
-        templateMissingPartOf,
-        templateNotAPrefixInTypeAnnotation,
-        templatePartOfInLibrary,
-        templatePartOfLibraryNameMismatch,
-        templatePartOfUriMismatch,
-        templatePartOfUseUri,
-        templatePartTwice,
-        templatePatchInjectionFailed,
-        templateTypeVariableDuplicatedNameCause;
+import '../fasta_codes.dart';
 
 import '../identifiers.dart' show QualifiedName, flattenName;
 
 import '../import.dart' show Import;
+
+import '../kernel/internal_ast.dart';
 
 import '../kernel/kernel_builder.dart'
     show
@@ -169,8 +116,6 @@ import '../kernel/kernel_builder.dart'
         LoadLibraryBuilder,
         compareProcedures,
         toKernelCombinators;
-
-import '../kernel/internal_ast.dart';
 
 import '../kernel/metadata_collector.dart';
 
@@ -193,6 +138,7 @@ import '../modifier.dart'
         hasConstConstructorMask,
         hasInitializerMask,
         initializingFormalMask,
+        lateMask,
         mixinDeclarationMask,
         namedMixinApplicationMask,
         staticMask;
@@ -218,9 +164,7 @@ const int enableNonNullableDefaultMinorVersion = 7;
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
 
-  SourceLoader loader;
-
-  bool issueLexicalErrorsOnBodyBuild = false;
+  final SourceLoader loader;
 
   final TypeParameterScopeBuilder libraryDeclaration;
 
@@ -301,6 +245,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   Library get nameOrigin => _nameOrigin ?? library;
   final Library _nameOrigin;
 
+  final Library referencesFrom;
+  final IndexedLibrary referencesFromIndexed;
+  IndexedClass _currentClassReferencesFromIndexed;
+
   /// Exports that can't be serialized.
   ///
   /// The key is the name of the exported member.
@@ -314,7 +262,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   List<FieldBuilder> implicitlyTypedFields;
 
-  bool languageVersionExplicitlySet = false;
+  LanguageVersion _languageVersion = const ImplicitLanguageVersion();
 
   bool postponedProblemsIssued = false;
   List<PostponedProblem> postponedProblems;
@@ -326,8 +274,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// [forEachExtensionInScope].
   Set<ExtensionBuilder> _extensionsInScope;
 
-  SourceLibraryBuilder.internal(SourceLoader loader, Uri fileUri, Scope scope,
-      SourceLibraryBuilder actualOrigin, Library library, Library nameOrigin)
+  SourceLibraryBuilder.internal(
+      SourceLoader loader,
+      Uri fileUri,
+      Scope scope,
+      SourceLibraryBuilder actualOrigin,
+      Library library,
+      Library nameOrigin,
+      Library referencesFrom,
+      bool referenceIsPartOwner)
       : this.fromScopes(
             loader,
             fileUri,
@@ -335,7 +290,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             scope ?? new Scope.top(),
             actualOrigin,
             library,
-            nameOrigin);
+            nameOrigin,
+            referencesFrom);
 
   SourceLibraryBuilder.fromScopes(
       this.loader,
@@ -344,8 +300,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       this.importScope,
       this.actualOrigin,
       this.library,
-      this._nameOrigin)
+      this._nameOrigin,
+      this.referencesFrom)
       : currentTypeParameterScopeBuilder = libraryDeclaration,
+        referencesFromIndexed =
+            referencesFrom == null ? null : new IndexedLibrary(referencesFrom),
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top()) {
     library.isNonNullableByDefault = isNonNullableByDefault;
@@ -353,17 +312,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   SourceLibraryBuilder(
       Uri uri, Uri fileUri, Loader loader, SourceLibraryBuilder actualOrigin,
-      {Scope scope, Library target, Library nameOrigin})
+      {Scope scope,
+      Library target,
+      Library nameOrigin,
+      Library referencesFrom,
+      bool referenceIsPartOwner})
       : this.internal(
             loader,
             fileUri,
             scope,
             actualOrigin,
             target ??
-                (actualOrigin?.library ?? new Library(uri, fileUri: fileUri)
+                (actualOrigin?.library ??
+                    new Library(uri,
+                        fileUri: fileUri,
+                        reference: referenceIsPartOwner == true
+                            ? null
+                            : referencesFrom?.reference)
                   ..setLanguageVersion(loader.target.currentSdkVersionMajor,
                       loader.target.currentSdkVersionMinor)),
-            nameOrigin);
+            nameOrigin,
+            referencesFrom,
+            referenceIsPartOwner);
 
   @override
   bool get isPart => partOfName != null || partOfUri != null;
@@ -382,8 +352,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool get isNonNullableByDefault =>
       loader.target.enableNonNullable &&
-      library.languageVersionMajor >= enableNonNullableDefaultMajorVersion &&
-      library.languageVersionMinor >= enableNonNullableDefaultMinorVersion &&
+      languageVersion.major >= enableNonNullableDefaultMajorVersion &&
+      languageVersion.minor >= enableNonNullableDefaultMinorVersion &&
       !isOptOutPackage(library.importUri) &&
       !isOptOutTest(library.importUri);
 
@@ -523,11 +493,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     '/tests/standalone_2',
   };
 
+  LanguageVersion get languageVersion => _languageVersion;
+
   @override
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length: noLength, bool explicit: false}) {
-    if (languageVersionExplicitlySet) return;
-    if (explicit) languageVersionExplicitlySet = true;
+    if (languageVersion.isExplicit) return;
+    _languageVersion =
+        new LanguageVersion(major, minor, fileUri, offset, length, explicit);
 
     if (major == null || minor == null) {
       addPostponedProblem(
@@ -821,6 +794,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             ? currentTypeParameterScopeBuilder.setters
             : currentTypeParameterScopeBuilder.members);
     Builder existing = members[name];
+
+    if (existing == declaration) return existing;
+
     if (declaration.next != null && declaration.next != existing) {
       unexpected(
           "${declaration.next.fileUri}@${declaration.next.charOffset}",
@@ -954,10 +930,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     library.procedures.sort(compareProcedures);
 
     if (unserializableExports != null) {
+      Field referenceFrom = referencesFromIndexed?.lookupField("_exports#");
       library.addMember(new Field(new Name("_exports#", library),
           initializer: new StringLiteral(jsonEncode(unserializableExports)),
           isStatic: true,
-          isConst: true));
+          isConst: true,
+          reference: referenceFrom?.reference));
     }
 
     library.isNonNullableByDefault = isNonNullableByDefault;
@@ -1086,16 +1064,25 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     // Language versions have to match.
-    if ((this.languageVersionExplicitlySet !=
-            part.languageVersionExplicitlySet) ||
-        (this.library.languageVersionMajor !=
-                part.library.languageVersionMajor ||
-            this.library.languageVersionMinor !=
-                part.library.languageVersionMinor)) {
+    if (languageVersion != part.languageVersion) {
       // This is an error, but the part is not removed from the list of
       // parts, so that metadata annotations can be associated with it.
+      List<LocatedMessage> context = <LocatedMessage>[];
+      if (languageVersion.isExplicit) {
+        context.add(messageLanguageVersionLibraryContext.withLocation(
+            languageVersion.fileUri,
+            languageVersion.charOffset,
+            languageVersion.charCount));
+      }
+      if (part.languageVersion.isExplicit) {
+        context.add(messageLanguageVersionPartContext.withLocation(
+            part.languageVersion.fileUri,
+            part.languageVersion.charOffset,
+            part.languageVersion.charCount));
+      }
       addProblem(
-          messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri);
+          messageLanguageVersionMismatchInPart, partOffset, noLength, fileUri,
+          context: context);
     }
 
     part.validatePart(this, usedParts);
@@ -1492,6 +1479,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (declaration.hasConstConstructor) {
       modifiers |= hasConstConstructorMask;
     }
+    Class referencesFromClass;
+    if (referencesFrom != null) {
+      referencesFromClass = referencesFromIndexed.lookupClass(className);
+      assert(referencesFromClass == null ||
+          _currentClassReferencesFromIndexed != null);
+    }
     ClassBuilder classBuilder = new SourceClassBuilder(
         metadata,
         modifiers,
@@ -1511,6 +1504,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         startOffset,
         nameOffset,
         endOffset,
+        referencesFromClass,
+        _currentClassReferencesFromIndexed,
         isMixinDeclaration: isMixinDeclaration);
     loader.target.metadataCollector
         ?.setDocumentationComment(classBuilder.cls, documentationComment);
@@ -1612,6 +1607,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         debugName: "extension $extensionName",
         isModifiable: false);
 
+    Extension referenceFrom =
+        referencesFromIndexed?.lookupExtension(extensionName);
+
     ExtensionBuilder extensionBuilder = new SourceExtensionBuilder(
         metadata,
         modifiers,
@@ -1622,7 +1620,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         this,
         startOffset,
         nameOffset,
-        endOffset);
+        endOffset,
+        referenceFrom);
     loader.target.metadataCollector?.setDocumentationComment(
         extensionBuilder.extension, documentationComment);
 
@@ -1849,31 +1848,43 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             (isNamedMixinApplication ? metadata : null) == null
                 ? startCharOffset
                 : metadata.first.charOffset;
+
+        Class referencesFromClass;
+        IndexedClass referencesFromIndexedClass;
+        if (referencesFrom != null) {
+          referencesFromClass = referencesFromIndexed.lookupClass(fullname);
+          referencesFromIndexedClass =
+              referencesFromIndexed.lookupIndexedClass(fullname);
+        }
+
         SourceClassBuilder application = new SourceClassBuilder(
-            isNamedMixinApplication ? metadata : null,
-            isNamedMixinApplication
-                ? modifiers | namedMixinApplicationMask
-                : abstractMask,
-            fullname,
-            applicationTypeVariables,
-            isMixinDeclaration ? null : supertype,
-            isNamedMixinApplication
-                ? interfaces
-                : isMixinDeclaration ? [supertype, mixin] : null,
-            null, // No `on` clause types.
-            new Scope(
-                local: <String, MemberBuilder>{},
-                setters: <String, MemberBuilder>{},
-                parent: scope.withTypeVariables(typeVariables),
-                debugName: "mixin $fullname ",
-                isModifiable: false),
-            new ConstructorScope(fullname, <String, MemberBuilder>{}),
-            this,
-            <ConstructorReferenceBuilder>[],
-            computedStartCharOffset,
-            charOffset,
-            charEndOffset,
-            mixedInType: isMixinDeclaration ? null : mixin);
+          isNamedMixinApplication ? metadata : null,
+          isNamedMixinApplication
+              ? modifiers | namedMixinApplicationMask
+              : abstractMask,
+          fullname,
+          applicationTypeVariables,
+          isMixinDeclaration ? null : supertype,
+          isNamedMixinApplication
+              ? interfaces
+              : isMixinDeclaration ? [supertype, mixin] : null,
+          null, // No `on` clause types.
+          new Scope(
+              local: <String, MemberBuilder>{},
+              setters: <String, MemberBuilder>{},
+              parent: scope.withTypeVariables(typeVariables),
+              debugName: "mixin $fullname ",
+              isModifiable: false),
+          new ConstructorScope(fullname, <String, MemberBuilder>{}),
+          this,
+          <ConstructorReferenceBuilder>[],
+          computedStartCharOffset,
+          charOffset,
+          charEndOffset,
+          referencesFromClass,
+          referencesFromIndexedClass,
+          mixedInType: isMixinDeclaration ? null : mixin,
+        );
         if (isNamedMixinApplication) {
           loader.target.metadataCollector
               ?.setDocumentationComment(application.cls, documentationComment);
@@ -1931,8 +1942,112 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (hasInitializer) {
       modifiers |= hasInitializerMask;
     }
+    Field referenceFrom;
+    Field lateIsSetReferenceFrom;
+    Procedure getterReferenceFrom;
+    Procedure setterReferenceFrom;
+    final bool fieldIsLateWithLowering = (modifiers & lateMask) != 0 &&
+        !loader.target.backendTarget.supportsLateFields;
+    final bool isInstanceMember = currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.classDeclaration &&
+        (modifiers & staticMask) == 0;
+    String className;
+    if (isInstanceMember) {
+      className = currentTypeParameterScopeBuilder.name;
+    }
+    final bool isExtension = currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.extensionDeclaration;
+    String extensionName;
+    if (isExtension) {
+      extensionName = currentTypeParameterScopeBuilder.name;
+    }
+    if (referencesFrom != null) {
+      String nameToLookup = SourceFieldBuilder.createFieldName(
+          isInstanceMember,
+          className,
+          isExtension,
+          extensionName,
+          name,
+          fieldIsLateWithLowering,
+          FieldNameType.Field);
+
+      if (_currentClassReferencesFromIndexed != null) {
+        referenceFrom =
+            _currentClassReferencesFromIndexed.lookupField(nameToLookup);
+        if (fieldIsLateWithLowering) {
+          lateIsSetReferenceFrom = _currentClassReferencesFromIndexed
+              .lookupField(SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
+                  isExtension,
+                  extensionName,
+                  name,
+                  fieldIsLateWithLowering,
+                  FieldNameType.IsSetField));
+          getterReferenceFrom = _currentClassReferencesFromIndexed
+              .lookupProcedureNotSetter(SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
+                  isExtension,
+                  extensionName,
+                  name,
+                  fieldIsLateWithLowering,
+                  FieldNameType.Getter));
+          setterReferenceFrom = _currentClassReferencesFromIndexed
+              .lookupProcedureSetter(SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
+                  isExtension,
+                  extensionName,
+                  name,
+                  fieldIsLateWithLowering,
+                  FieldNameType.Setter));
+        }
+      } else {
+        referenceFrom = referencesFromIndexed.lookupField(nameToLookup);
+        if (fieldIsLateWithLowering) {
+          lateIsSetReferenceFrom = referencesFromIndexed.lookupField(
+              SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
+                  isExtension,
+                  extensionName,
+                  name,
+                  fieldIsLateWithLowering,
+                  FieldNameType.IsSetField));
+          getterReferenceFrom = referencesFromIndexed.lookupProcedureNotSetter(
+              SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
+                  isExtension,
+                  extensionName,
+                  name,
+                  fieldIsLateWithLowering,
+                  FieldNameType.Getter));
+          setterReferenceFrom = referencesFromIndexed.lookupProcedureSetter(
+              SourceFieldBuilder.createFieldName(
+                  isInstanceMember,
+                  className,
+                  isExtension,
+                  extensionName,
+                  name,
+                  fieldIsLateWithLowering,
+                  FieldNameType.Setter));
+        }
+      }
+    }
     SourceFieldBuilder fieldBuilder = new SourceFieldBuilder(
-        metadata, type, name, modifiers, this, charOffset, charEndOffset);
+        metadata,
+        type,
+        name,
+        modifiers,
+        this,
+        charOffset,
+        charEndOffset,
+        referenceFrom,
+        lateIsSetReferenceFrom,
+        getterReferenceFrom,
+        setterReferenceFrom);
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset);
     if (type == null && initializerToken != null && fieldBuilder.next == null) {
@@ -1962,6 +2077,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       String nativeMethodName,
       {Token beginInitializers}) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
+    Constructor referenceFrom;
+    if (_currentClassReferencesFromIndexed != null) {
+      referenceFrom =
+          _currentClassReferencesFromIndexed.lookupConstructor(constructorName);
+    }
     ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         metadata,
         modifiers & ~abstractMask,
@@ -1974,6 +2094,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charOffset,
         charOpenParenOffset,
         charEndOffset,
+        referenceFrom,
         nativeMethodName);
     metadataCollector?.setDocumentationComment(
         constructorBuilder.constructor, documentationComment);
@@ -2017,6 +2138,55 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         returnType = addVoidType(charOffset);
       }
     }
+    Procedure referenceFrom;
+    Procedure tearOffReferenceFrom;
+    if (referencesFrom != null) {
+      if (_currentClassReferencesFromIndexed != null) {
+        if (kind == ProcedureKind.Setter) {
+          referenceFrom =
+              _currentClassReferencesFromIndexed.lookupProcedureSetter(name);
+        } else {
+          referenceFrom =
+              _currentClassReferencesFromIndexed.lookupProcedureNotSetter(name);
+        }
+      } else {
+        if (currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.extensionDeclaration) {
+          bool extensionIsStatic = (modifiers & staticMask) != 0;
+          String nameToLookup = ProcedureBuilderImpl.createProcedureName(
+              true,
+              extensionIsStatic,
+              kind,
+              currentTypeParameterScopeBuilder.name,
+              name);
+          if (extensionIsStatic && kind == ProcedureKind.Setter) {
+            referenceFrom =
+                referencesFromIndexed.lookupProcedureSetter(nameToLookup);
+          } else {
+            referenceFrom =
+                referencesFromIndexed.lookupProcedureNotSetter(nameToLookup);
+          }
+          if (kind == ProcedureKind.Method) {
+            String tearOffNameToLookup =
+                ProcedureBuilderImpl.createProcedureName(
+                    true,
+                    false,
+                    ProcedureKind.Getter,
+                    currentTypeParameterScopeBuilder.name,
+                    name);
+            tearOffReferenceFrom = referencesFromIndexed
+                .lookupProcedureNotSetter(tearOffNameToLookup);
+          }
+        } else {
+          if (kind == ProcedureKind.Setter) {
+            referenceFrom = referencesFromIndexed.lookupProcedureSetter(name);
+          } else {
+            referenceFrom =
+                referencesFromIndexed.lookupProcedureNotSetter(name);
+          }
+        }
+      }
+    }
     ProcedureBuilder procedureBuilder = new ProcedureBuilderImpl(
         metadata,
         modifiers,
@@ -2030,6 +2200,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charOffset,
         charOpenParenOffset,
         charEndOffset,
+        referenceFrom,
+        tearOffReferenceFrom,
         nativeMethodName);
     metadataCollector?.setDocumentationComment(
         procedureBuilder.procedure, documentationComment);
@@ -2071,6 +2243,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       procedureName = name;
     }
 
+    Procedure referenceFrom = _currentClassReferencesFromIndexed
+        ?.lookupProcedureNotSetter(procedureName);
+
     ProcedureBuilder procedureBuilder;
     if (redirectionTarget != null) {
       procedureBuilder = new RedirectingFactoryBuilder(
@@ -2088,6 +2263,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOffset,
           charOpenParenOffset,
           charEndOffset,
+          referenceFrom,
+          null,
           nativeMethodName,
           redirectionTarget);
     } else {
@@ -2107,6 +2284,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           charOffset,
           charOpenParenOffset,
           charEndOffset,
+          referenceFrom,
+          null,
           nativeMethodName);
     }
 
@@ -2142,8 +2321,24 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charOffset,
       int charEndOffset) {
     MetadataCollector metadataCollector = loader.target.metadataCollector;
-    EnumBuilder builder = new EnumBuilder(metadataCollector, metadata, name,
-        enumConstantInfos, this, startCharOffset, charOffset, charEndOffset);
+    Class referencesFromClass;
+    IndexedClass referencesFromIndexedClass;
+    if (referencesFrom != null) {
+      referencesFromClass = referencesFromIndexed.lookupClass(name);
+      referencesFromIndexedClass =
+          referencesFromIndexed.lookupIndexedClass(name);
+    }
+    EnumBuilder builder = new EnumBuilder(
+        metadataCollector,
+        metadata,
+        name,
+        enumConstantInfos,
+        this,
+        startCharOffset,
+        charOffset,
+        charEndOffset,
+        referencesFromClass,
+        referencesFromIndexedClass);
     addBuilder(name, builder, charOffset);
     metadataCollector?.setDocumentationComment(
         builder.cls, documentationComment);
@@ -2161,8 +2356,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeVariable.variance = pendingVariance;
       }
     }
+    Typedef referenceFrom = referencesFromIndexed?.lookupTypedef(name);
     TypeAliasBuilder typedefBuilder = new TypeAliasBuilder(
-        metadata, name, typeVariables, type, this, charOffset);
+        metadata, name, typeVariables, type, this, charOffset,
+        referenceFrom: referenceFrom);
     loader.target.metadataCollector
         ?.setDocumentationComment(typedefBuilder.typedef, documentationComment);
     checkTypeVariables(typeVariables, typedefBuilder);
@@ -2458,7 +2655,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   int finishForwarders() {
     int count = 0;
-    CloneVisitor cloner = new CloneVisitor();
+    CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (int i = 0; i < forwardersOrigins.length; i += 2) {
       Procedure forwarder = forwardersOrigins[i];
       Procedure origin = forwardersOrigins[i + 1];
@@ -2667,6 +2864,29 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   void applyPatches() {
     if (!isPatch) return;
+
+    if (languageVersion != origin.languageVersion) {
+      List<LocatedMessage> context = <LocatedMessage>[];
+      if (origin.languageVersion.isExplicit) {
+        context.add(messageLanguageVersionLibraryContext.withLocation(
+            origin.languageVersion.fileUri,
+            origin.languageVersion.charOffset,
+            origin.languageVersion.charCount));
+      }
+
+      if (languageVersion.isExplicit) {
+        addProblem(
+            messageLanguageVersionMismatchInPatch,
+            languageVersion.charOffset,
+            languageVersion.charCount,
+            languageVersion.fileUri,
+            context: context);
+      } else {
+        addProblem(messageLanguageVersionMismatchInPatch, -1, noLength, fileUri,
+            context: context);
+      }
+    }
+
     NameIterator originDeclarations = origin.nameIterator;
     while (originDeclarations.moveNext()) {
       String name = originDeclarations.name;
@@ -3099,6 +3319,35 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     _extensionsInScope.forEach(f);
   }
+
+  void clearExtensionsInScopeCache() {
+    _extensionsInScope = null;
+  }
+
+  /// Set to some non-null name when entering a class; set to null when leaving
+  /// the class.
+  ///
+  /// Called in OutlineBuilder.beginClassDeclaration,
+  /// OutlineBuilder.endClassDeclaration,
+  /// OutlineBuilder.beginMixinDeclaration,
+  /// OutlineBuilder.endMixinDeclaration.
+  void setCurrentClassName(String name) {
+    if (name == null) {
+      _currentClassReferencesFromIndexed = null;
+    } else if (referencesFrom != null) {
+      _currentClassReferencesFromIndexed =
+          referencesFromIndexed.lookupIndexedClass(name);
+    }
+  }
+
+  Procedure lookupLibraryReferenceProcedure(String name, bool setter) {
+    if (referencesFrom == null) return null;
+    if (setter) {
+      return referencesFromIndexed.lookupProcedureSetter(name);
+    } else {
+      return referencesFromIndexed.lookupProcedureNotSetter(name);
+    }
+  }
 }
 
 // The kind of type parameter scope built by a [TypeParameterScopeBuilder]
@@ -3402,4 +3651,57 @@ class PostponedProblem {
   final Uri fileUri;
 
   PostponedProblem(this.message, this.charOffset, this.length, this.fileUri);
+}
+
+class LanguageVersion {
+  final int major;
+  final int minor;
+  final Uri fileUri;
+  final int charOffset;
+  final int charCount;
+  final bool isExplicit;
+
+  LanguageVersion(this.major, this.minor, this.fileUri, this.charOffset,
+      this.charCount, this.isExplicit);
+
+  int get hashCode =>
+      major.hashCode * 13 + minor.hashCode * 17 + isExplicit.hashCode * 19;
+
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is LanguageVersion &&
+        major == other.major &&
+        minor == other.minor &&
+        isExplicit == other.isExplicit;
+  }
+
+  String toString() {
+    return 'LanguageVersion(major=$major,minor=$minor,isExplicit=$isExplicit,'
+        'fileUri=$fileUri,charOffset=$charOffset,charCount=$charCount)';
+  }
+}
+
+class ImplicitLanguageVersion implements LanguageVersion {
+  const ImplicitLanguageVersion();
+
+  @override
+  int get major => Library.defaultLanguageVersionMajor;
+
+  @override
+  int get minor => Library.defaultLanguageVersionMinor;
+
+  @override
+  Uri get fileUri => null;
+
+  @override
+  int get charOffset => -1;
+
+  @override
+  int get charCount => noLength;
+
+  @override
+  bool get isExplicit => false;
+
+  @override
+  String toString() => 'ImplicitLanguageVersion()';
 }

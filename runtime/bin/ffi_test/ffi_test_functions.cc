@@ -49,8 +49,7 @@ DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   return retval;
 }
 
-//// Tests for sign and zero extension of arguments and results.
-
+// Tests for sign and zero extension return values when passed to Dart.
 DART_EXPORT uint8_t ReturnMaxUint8() {
   return 0xff;
 }
@@ -75,34 +74,98 @@ DART_EXPORT int32_t ReturnMinInt32() {
   return 0x80000000;
 }
 
+// Test that return values are truncated by callee before passed to Dart.
+DART_EXPORT uint8_t ReturnMaxUint8v2() {
+  uint64_t v = 0xabcff;
+  // Truncated to 8 bits and zero extended, or truncated to 32 bits, depending
+  // on ABI.
+  return v;
+}
+
+DART_EXPORT uint16_t ReturnMaxUint16v2() {
+  uint64_t v = 0xabcffff;
+  return v;
+}
+
+DART_EXPORT uint32_t ReturnMaxUint32v2() {
+  uint64_t v = 0xabcffffffff;
+  return v;
+}
+
+DART_EXPORT int8_t ReturnMinInt8v2() {
+  int64_t v = 0x8abc80;
+  return v;
+}
+
+DART_EXPORT int16_t ReturnMinInt16v2() {
+  int64_t v = 0x8abc8000;
+  return v;
+}
+
+DART_EXPORT int32_t ReturnMinInt32v2() {
+  int64_t v = 0x8abc80000000;
+  return v;
+}
+
+// Test that arguments are truncated correctly.
 DART_EXPORT intptr_t TakeMaxUint8(uint8_t x) {
+  std::cout << "TakeMaxUint8(" << static_cast<int>(x) << ")\n";
   return x == 0xff ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMaxUint16(uint16_t x) {
+  std::cout << "TakeMaxUint16(" << x << ")\n";
   return x == 0xffff ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMaxUint32(uint32_t x) {
+  std::cout << "TakeMaxUint32(" << x << ")\n";
   return x == 0xffffffff ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMinInt8(int8_t x) {
+  std::cout << "TakeMinInt8(" << static_cast<int>(x) << ")\n";
   const int64_t expected = -0x80;
   const int64_t received = x;
   return expected == received ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMinInt16(int16_t x) {
+  std::cout << "TakeMinInt16(" << x << ")\n";
   const int64_t expected = -0x8000;
   const int64_t received = x;
   return expected == received ? 1 : 0;
 }
 
 DART_EXPORT intptr_t TakeMinInt32(int32_t x) {
+  std::cout << "TakeMinInt32(" << x << ")\n";
   const int64_t expected = INT32_MIN;
   const int64_t received = x;
   return expected == received ? 1 : 0;
+}
+
+// Test that arguments are truncated correctly, including stack arguments
+DART_EXPORT intptr_t TakeMaxUint8x10(uint8_t a,
+                                     uint8_t b,
+                                     uint8_t c,
+                                     uint8_t d,
+                                     uint8_t e,
+                                     uint8_t f,
+                                     uint8_t g,
+                                     uint8_t h,
+                                     uint8_t i,
+                                     uint8_t j) {
+  std::cout << "TakeMaxUint8x10(" << static_cast<int>(a) << ", "
+            << static_cast<int>(b) << ", " << static_cast<int>(c) << ", "
+            << static_cast<int>(d) << ", " << static_cast<int>(e) << ", "
+            << static_cast<int>(f) << ", " << static_cast<int>(g) << ", "
+            << static_cast<int>(h) << ", " << static_cast<int>(i) << ", "
+            << static_cast<int>(j) << ", "
+            << ")\n";
+  return (a == 0xff && b == 0xff && c == 0xff && d == 0xff && e == 0xff &&
+          f == 0xff && g == 0xff && h == 0xff && i == 0xff && j == 0xff)
+             ? 1
+             : 0;
 }
 
 // Performs some computation on various sized signed ints.
@@ -653,6 +716,29 @@ DART_EXPORT int TestThrowExceptionPointer(void* (*fn)()) {
 
 DART_EXPORT int TestThrowException(int (*fn)()) {
   CHECK_EQ(fn(), 42);
+  return 0;
+}
+
+DART_EXPORT int TestTakeMaxUint8x10(intptr_t (*fn)(uint8_t,
+                                                   uint8_t,
+                                                   uint8_t,
+                                                   uint8_t,
+                                                   uint8_t,
+                                                   uint8_t,
+                                                   uint8_t,
+                                                   uint8_t,
+                                                   uint8_t,
+                                                   uint8_t)) {
+  CHECK_EQ(1, fn(0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF));
+  // Check the argument values are properly truncated.
+  uint64_t v = 0xabcFF;
+  CHECK_EQ(1, fn(v, v, v, v, v, v, v, v, v, v));
+  return 0;
+}
+
+DART_EXPORT int TestReturnMaxUint8(uint8_t (*fn)()) {
+  std::cout << "TestReturnMaxUint8(fn): " << static_cast<int>(fn()) << "\n";
+  CHECK_EQ(0xFF, fn());
   return 0;
 }
 

@@ -60,9 +60,43 @@ void addDefaultArgDetails(
       sb.write(', ');
     }
     offset = sb.length;
-    String name = param.name;
-    sb.write(name);
-    ranges.addAll([offset, name.length]);
+
+    if (param.type is FunctionType) {
+      FunctionType type = param.type;
+
+      var rangeStart = offset;
+      var rangeLength;
+
+      // todo (pq): consider adding ranges for params
+      // pending: https://github.com/dart-lang/sdk/issues/40207
+      // (types in closure param completions make this UX awkward)
+      final parametersString = buildClosureParameters(type);
+      final blockBuffer = StringBuffer(parametersString);
+
+      blockBuffer.write(' ');
+
+      // todo (pq): consider refactoring to share common logic w/ ArgListContributor.buildClosureSuggestions
+      final returnType = type.returnType;
+      if (returnType.isVoid) {
+        blockBuffer.write('{');
+        rangeStart = sb.length + blockBuffer.length;
+        blockBuffer.write(' }');
+        rangeLength = 1;
+      } else {
+        final returnValue = returnType.isDartCoreBool ? 'false' : 'null';
+        blockBuffer.write('=> ');
+        rangeStart = sb.length + blockBuffer.length;
+        blockBuffer.write(returnValue);
+        rangeLength = returnValue.length;
+      }
+
+      sb.write(blockBuffer);
+      ranges.addAll([rangeStart, rangeLength]);
+    } else {
+      String name = param.name;
+      sb.write(name);
+      ranges.addAll([offset, name.length]);
+    }
   }
 
   for (ParameterElement param in namedParams) {
@@ -81,6 +115,39 @@ void addDefaultArgDetails(
 
   suggestion.defaultArgumentListString = sb.isNotEmpty ? sb.toString() : null;
   suggestion.defaultArgumentListTextRanges = ranges.isNotEmpty ? ranges : null;
+}
+
+String buildClosureParameters(FunctionType type) {
+  var buffer = StringBuffer();
+  buffer.write('(');
+
+  var hasNamed = false;
+  var hasOptionalPositional = false;
+  var parameters = type.parameters;
+  for (var i = 0; i < parameters.length; ++i) {
+    var parameter = parameters[i];
+    if (i != 0) {
+      buffer.write(', ');
+    }
+    if (parameter.isNamed && !hasNamed) {
+      hasNamed = true;
+      buffer.write('{');
+    } else if (parameter.isOptionalPositional && !hasOptionalPositional) {
+      hasOptionalPositional = true;
+      buffer.write('[');
+    }
+    // todo (pq): consider abbreviating names
+    buffer.write(parameter.name);
+  }
+
+  if (hasNamed) {
+    buffer.write('}');
+  } else if (hasOptionalPositional) {
+    buffer.write(']');
+  }
+
+  buffer.write(')');
+  return buffer.toString();
 }
 
 /**
@@ -268,7 +335,7 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
   return type.toString();
 }
 
-// TODO(pq): fix to use getDefaultStringParameterValue()
+/// TODO(pq): fix to use getDefaultStringParameterValue()
 String _getDefaultValue(ParameterElement param) => 'null';
 
 /**

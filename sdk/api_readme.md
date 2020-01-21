@@ -1,5 +1,5 @@
-Welcome to the Dart API reference documentation, covering the core Dart API
-libraries. Some of the most fundamental Dart libraries include:
+Welcome to the [Dart](https://dart.dev/) API reference documentation, covering
+the [Dart core libraries](https://dart.dev/guides/libraries). These include:
    
   * [dart:core](dart-core/dart-core-library.html): Core functionality such as
     strings, numbers, collections, errors, dates, and URIs.
@@ -15,17 +15,16 @@ import 'dart:async';
 import 'dart:math';
 ```
 
-You can install more libraries using the
-[pub package manager](https://dart.dev/guides/packages).
-  
+You can find more libraries using the [pub.dev site](https://pub.dev).
+
 The main site for learning and using Dart is
 [dart.dev](https://dart.dev). Check out these pages:
-  
+
   * [Platforms](https://dart.dev/platforms)
   * [Language tour](https://dart.dev/guides/language/language-tour)
   * [Library tour](https://dart.dev/guides/libraries/library-tour)
   * [Sample code](https://dart.dev/samples)
-  
+
 This API reference is automatically generated from source code in the [Dart
 SDK project](https://github.com/dart-lang/sdk).
 If you'd like to give feedback or edit this documentation, see

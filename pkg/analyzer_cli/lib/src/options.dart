@@ -69,8 +69,8 @@ class CommandLineOptions {
   /// The path to the dart SDK summary file.
   final String dartSdkSummaryPath;
 
-  /// Whether to disable cache flushing.  This option can improve analysis
-  /// speed at the expense of memory usage.  It may also be useful for working
+  /// Whether to disable cache flushing. This option can improve analysis
+  /// speed at the expense of memory usage. It may also be useful for working
   /// around bugs.
   final bool disableCacheFlushing;
 
@@ -214,7 +214,7 @@ class CommandLineOptions {
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
   static CommandLineOptions parse(List<String> args,
-      {printAndFail(String msg) = printAndFail}) {
+      {Function(String msg) printAndFail = printAndFail}) {
     CommandLineOptions options = _parse(args);
 
     /// Only happens in testing.
@@ -269,7 +269,7 @@ class CommandLineOptions {
       return versionFile.readAsStringSync().trim();
     } catch (_) {
       // This happens when the script is not running in the context of an SDK.
-      return "<unknown>";
+      return '<unknown>';
     }
   }
 
@@ -470,8 +470,8 @@ class CommandLineOptions {
           hide: hide,
           negatable: true)
       ..addFlag('train-snapshot',
-          help: "Analyze the given source for the purposes of training a "
-              "dartanalyzer snapshot.",
+          help: 'Analyze the given source for the purposes of training a '
+              'dartanalyzer snapshot.',
           hide: hide,
           negatable: false);
 

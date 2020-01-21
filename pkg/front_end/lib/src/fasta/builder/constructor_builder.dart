@@ -116,8 +116,11 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       int charOffset,
       this.charOpenParenOffset,
       int charEndOffset,
+      Constructor referenceFrom,
       [String nativeMethodName])
-      : _constructor = new Constructor(null, fileUri: compilationUnit?.fileUri)
+      : _constructor = new Constructor(null,
+            fileUri: compilationUnit?.fileUri,
+            reference: referenceFrom?.reference)
           ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
           ..fileEndOffset = charEndOffset,

@@ -294,7 +294,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
   Scope switchScope;
 
-  CloneVisitor cloner;
+  CloneVisitorNotMembers cloner;
 
   ConstantContext constantContext = ConstantContext.none;
 
@@ -929,7 +929,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           VariableDeclaration extensionTearOffParameter =
               builder.getExtensionTearOffParameter(i);
           if (extensionTearOffParameter != null) {
-            cloner ??= new CloneVisitor();
+            cloner ??= new CloneVisitorNotMembers();
             Expression tearOffInitializer = cloner.clone(initializer);
             extensionTearOffParameter.initializer = tearOffInitializer
               ..parent = extensionTearOffParameter;
@@ -1221,7 +1221,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         List<Expression> annotations = variables.first.annotations;
         inferAnnotations(variables.first, annotations);
         for (int i = 1; i < variables.length; i++) {
-          cloner ??= new CloneVisitor();
+          cloner ??= new CloneVisitorNotMembers();
           VariableDeclaration variable = variables[i];
           for (int i = 0; i < annotations.length; i++) {
             variable.addAnnotation(cloner.clone(annotations[i]));
@@ -1556,10 +1556,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else {
       bool isNullAware = optional('?..', token);
       if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
-        addProblem(
-            fasta.templateExperimentNotEnabled.withArguments('non-nullable'),
-            offsetForToken(token),
-            token.charCount);
+        reportMissingNonNullableSupport(token);
       }
       VariableDeclaration variable =
           forest.createVariableDeclarationForValue(expression);
@@ -2174,7 +2171,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
     List<Expression> parts = popListForValue(literalCount);
     List<Expression> expressions;
@@ -2194,7 +2191,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         }
       }
     }
-    push(forest.createStringConcatenation(noLocation, expressions ?? parts));
+    push(forest.createStringConcatenation(
+        offsetForToken(startToken), expressions ?? parts));
   }
 
   @override
@@ -3573,10 +3571,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     Object receiver = pop();
     bool isNullAware = optional('?.[', openSquareBracket);
     if (isNullAware && !libraryBuilder.isNonNullableByDefault) {
-      addProblem(
-          fasta.templateExperimentNotEnabled.withArguments('non-nullable'),
-          offsetForToken(openSquareBracket),
-          openSquareBracket.charCount);
+      reportMissingNonNullableSupport(openSquareBracket);
     }
     if (receiver is Generator) {
       push(receiver.buildIndexedAccess(index, openSquareBracket,

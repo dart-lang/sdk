@@ -17,6 +17,7 @@ import 'package:kernel/ast.dart'
         IntLiteral,
         InterfaceType,
         ListLiteral,
+        Procedure,
         ProcedureKind,
         ReturnStatement,
         StaticGet,
@@ -24,6 +25,8 @@ import 'package:kernel/ast.dart'
         SuperInitializer,
         ThisExpression,
         VariableGet;
+
+import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
 import '../fasta_codes.dart'
     show
@@ -45,7 +48,9 @@ import '../modifier.dart'
         staticMask;
 
 import '../scope.dart';
+
 import '../source/source_class_builder.dart' show SourceClassBuilder;
+
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 import 'builder.dart';
@@ -86,9 +91,26 @@ class EnumBuilder extends SourceClassBuilder {
       LibraryBuilder parent,
       int startCharOffset,
       int charOffset,
-      int charEndOffset)
-      : super(metadata, 0, name, null, null, null, null, scope, constructors,
-            parent, null, startCharOffset, charOffset, charEndOffset,
+      int charEndOffset,
+      Class referencesFrom,
+      IndexedClass referencesFromIndexed)
+      : super(
+            metadata,
+            0,
+            name,
+            null,
+            null,
+            null,
+            null,
+            scope,
+            constructors,
+            parent,
+            null,
+            startCharOffset,
+            charOffset,
+            charEndOffset,
+            referencesFrom,
+            referencesFromIndexed,
             cls: cls);
 
   factory EnumBuilder(
@@ -99,7 +121,9 @@ class EnumBuilder extends SourceClassBuilder {
       SourceLibraryBuilder parent,
       int startCharOffset,
       int charOffset,
-      int charEndOffset) {
+      int charEndOffset,
+      Class referencesFrom,
+      IndexedClass referencesFromIndexed) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
@@ -109,7 +133,7 @@ class EnumBuilder extends SourceClassBuilder {
         "String", const NullabilityBuilder.omitted(), null);
     NamedTypeBuilder objectType = new NamedTypeBuilder(
         "Object", const NullabilityBuilder.omitted(), null);
-    Class cls = new Class(name: name);
+    Class cls = new Class(name: name, reference: referencesFrom?.reference);
     Map<String, MemberBuilder> members = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     NamedTypeBuilder selfType =
@@ -127,11 +151,44 @@ class EnumBuilder extends SourceClassBuilder {
     ///   static const List<E> values = const <E>[id0, ..., idn-1];
     ///   String toString() => _name;
     /// }
+    Constructor constructorReference;
+    Procedure toStringReference;
+    Field indexReference;
+    Field _nameReference;
+    Field valuesReference;
+    if (referencesFrom != null) {
+      constructorReference = referencesFromIndexed.lookupConstructor("");
+      toStringReference =
+          referencesFromIndexed.lookupProcedureNotSetter("toString");
+      indexReference = referencesFromIndexed.lookupField("index");
+      _nameReference = referencesFromIndexed.lookupField("_name");
+      valuesReference = referencesFromIndexed.lookupField("values");
+    }
 
-    members["index"] = new SourceFieldBuilder(null, intType, "index",
-        finalMask | hasInitializerMask, parent, charOffset, charOffset);
-    members["_name"] = new SourceFieldBuilder(null, stringType, "_name",
-        finalMask | hasInitializerMask, parent, charOffset, charOffset);
+    members["index"] = new SourceFieldBuilder(
+        null,
+        intType,
+        "index",
+        finalMask | hasInitializerMask,
+        parent,
+        charOffset,
+        charOffset,
+        indexReference,
+        null,
+        null,
+        null);
+    members["_name"] = new SourceFieldBuilder(
+        null,
+        stringType,
+        "_name",
+        finalMask | hasInitializerMask,
+        parent,
+        charOffset,
+        charOffset,
+        _nameReference,
+        null,
+        null,
+        null);
     ConstructorBuilder constructorBuilder = new ConstructorBuilderImpl(
         null,
         constMask,
@@ -148,7 +205,8 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charOffset,
         charOffset,
-        charEndOffset);
+        charEndOffset,
+        constructorReference);
     constructors[""] = constructorBuilder;
     FieldBuilder valuesBuilder = new SourceFieldBuilder(
         null,
@@ -157,7 +215,11 @@ class EnumBuilder extends SourceClassBuilder {
         constMask | staticMask | hasInitializerMask,
         parent,
         charOffset,
-        charOffset);
+        charOffset,
+        valuesReference,
+        null,
+        null,
+        null);
     members["values"] = valuesBuilder;
     ProcedureBuilder toStringBuilder = new ProcedureBuilderImpl(
         null,
@@ -171,7 +233,9 @@ class EnumBuilder extends SourceClassBuilder {
         charOffset,
         charOffset,
         charOffset,
-        charEndOffset);
+        charEndOffset,
+        toStringReference,
+        null);
     members["toString"] = toStringBuilder;
     String className = name;
     if (enumConstantInfos != null) {
@@ -209,6 +273,10 @@ class EnumBuilder extends SourceClassBuilder {
               name.length,
               parent.fileUri);
         }
+        Field fieldReference;
+        if (referencesFrom != null) {
+          fieldReference = referencesFromIndexed.lookupField(name);
+        }
         FieldBuilder fieldBuilder = new SourceFieldBuilder(
             metadata,
             selfType,
@@ -216,7 +284,11 @@ class EnumBuilder extends SourceClassBuilder {
             constMask | staticMask | hasInitializerMask,
             parent,
             enumConstantInfo.charOffset,
-            enumConstantInfo.charOffset);
+            enumConstantInfo.charOffset,
+            fieldReference,
+            null,
+            null,
+            null);
         metadataCollector?.setDocumentationComment(
             fieldBuilder.field, documentationComment);
         members[name] = fieldBuilder..next = existing;
@@ -242,7 +314,9 @@ class EnumBuilder extends SourceClassBuilder {
         parent,
         startCharOffsetComputed,
         charOffset,
-        charEndOffset);
+        charEndOffset,
+        referencesFrom,
+        referencesFromIndexed);
     void setParent(String name, MemberBuilder builder) {
       do {
         builder.parent = enumBuilder;

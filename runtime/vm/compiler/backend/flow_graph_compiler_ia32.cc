@@ -1013,7 +1013,8 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                                             intptr_t deopt_id,
                                             TokenPosition token_pos,
                                             LocationSummary* locs,
-                                            Code::EntryKind entry_kind) {
+                                            Code::EntryKind entry_kind,
+                                            bool receiver_can_be_smi) {
   // Only generated with precompilation.
   UNREACHABLE();
 }

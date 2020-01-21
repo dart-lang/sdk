@@ -119,6 +119,14 @@ f(int? x) {
     );
   }
 
+  test_nullCheck_functionExpressionInvocation_rewrite() async {
+    await assertNoErrorsInCode(r'''
+main(Function f2) {
+  f2(42)!;
+}
+''');
+  }
+
   test_nullCheck_null() async {
     await assertNoErrorsInCode('''
 main(Null x) {
@@ -127,6 +135,28 @@ main(Null x) {
 ''');
 
     assertType(findNode.postfix('x!'), 'Never');
+  }
+
+  test_nullCheck_nullableContext() async {
+    await assertNoErrorsInCode(r'''
+T f<T>(T t) => t;
+
+int g() => f(null)!;
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('f(null)'),
+      element: findElement.topFunction('f'),
+      typeArgumentTypes: ['int?'],
+      invokeType: 'int? Function(int?)',
+      type: 'int?',
+    );
+
+    assertPostfixExpression(
+      findNode.postfix('f(null)!'),
+      element: null,
+      type: 'int',
+    );
   }
 
   test_nullCheck_typeParameter() async {

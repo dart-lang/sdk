@@ -22,7 +22,7 @@ void main(List<String> argv) {
         '${_parser.usage}');
     return;
   }
-  String baseDir = args['out'] as String;
+  var baseDir = args['out'] as String;
   if (baseDir == null) {
     var tmp = Directory.systemTemp.createTempSync('check_sdk-');
     baseDir = tmp.path;
@@ -34,11 +34,12 @@ void main(List<String> argv) {
   Uri librariesJson = args['libraries'] != null
       ? resolveInputUri(args['libraries'] as String)
       : Platform.script.resolve('../../../sdk_nnbd/lib/libraries.json');
+  var target = args['target'] as String;
   patch.main([
     '--libraries',
     librariesJson.toFilePath(),
     '--target',
-    args['target'] as String,
+    target,
     '--out',
     sdkDir,
     '--merge-parts',
@@ -46,14 +47,17 @@ void main(List<String> argv) {
   ]);
 
   var emptyProgramUri = baseUri.resolve('empty_program.dart');
-  File.fromUri(emptyProgramUri).writeAsStringSync('main() {}');
+  File.fromUri(emptyProgramUri).writeAsStringSync('''
+import 'dart:js';
+import 'dart:js_util';
+
+main() {}
+''');
 
   print('Running dartanalyzer');
-  var dart = Uri.base.resolve(Platform.resolvedExecutable);
-  var analyzerSnapshot = Uri.base
-      .resolve(Platform.resolvedExecutable)
-      .resolve('snapshots/dartanalyzer.dart.snapshot')
-      .toFilePath();
+  var dart = resolveInputUri(Platform.resolvedExecutable);
+  var analyzerSnapshot =
+      dart.resolve('snapshots/dartanalyzer.dart.snapshot').toFilePath();
   var result = Process.runSync(dart.toFilePath(), [
     // The NNBD dart binaries / snapshots require this flag to be enabled at
     // VM level.
@@ -85,7 +89,8 @@ void main(List<String> argv) {
   File.fromUri(errorFile).writeAsStringSync(errors, flush: true);
 
   // Check against golden file.
-  var goldenFile = Platform.script.resolve('nnbd_sdk_error_golden.txt');
+  var goldenFile =
+      Platform.script.resolve('${target}_nnbd_sdk_error_golden.txt');
   var golden = File.fromUri(goldenFile).readAsStringSync();
   if (errors != golden) {
     if (args['update-golden'] as bool) {
@@ -98,11 +103,9 @@ void main(List<String> argv) {
       print('Golden file does not match.');
       var diff = Process.runSync('diff', [goldenFile.path, errorFile.path]);
       print(diff.stdout);
-      print('''
-
-To update the golden file, run:
-> <path-to-newly-built-dart-sdk>/bin/dart pkg/dev_compiler/tool/check_nnbd_sdk.dart --update-golden
-''');
+      print('\nTo update the golden file, run:'
+          '\n  ${Platform.executable} ${Platform.script} '
+          '${argv.join(' ')} --update-golden');
       exit(1);
     }
   }

@@ -77,8 +77,8 @@ class MockChannel implements PluginCommunicationChannel {
   }
 
   @override
-  void listen(void onRequest(Request request),
-      {void onDone(),
+  void listen(void Function(Request request) onRequest,
+      {void Function() onDone,
       Function onError,
       Function(Notification) onNotification}) {
     _onDone = onDone;
@@ -149,9 +149,7 @@ class MockResourceProvider implements ResourceProvider {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-/**
- * A concrete implementation of a server plugin that is suitable for testing.
- */
+/// A concrete implementation of a server plugin that is suitable for testing.
 class MockServerPlugin extends ServerPlugin {
   MockServerPlugin(ResourceProvider resourceProvider) : super(resourceProvider);
 

@@ -144,7 +144,7 @@ class _List<E> extends FixedLengthListBase<E> {
       return unsafeCast<_List<E>>(result);
     }
     // _GrowableList._withData must not be called with empty list.
-    return growable ? <E>[] : new List<E>(0);
+    return growable ? <E>[] : new _List<E>(0);
   }
 }
 

@@ -19,23 +19,13 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    show Location, SourceEdit, SourceFileEdit;
+    show SourceEdit, SourceFileEdit;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-
-class FixInfo {
-  /// The fix being described.
-  SingleNullabilityFix fix;
-
-  /// The reasons why the fix was made.
-  List<FixReasonInfo> reasons;
-
-  /// Initialize information about a fix from the given map [entry].
-  FixInfo(this.fix, this.reasons);
-}
+import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// A builder used to build the migration information for a library.
 class InfoBuilder {
@@ -61,7 +51,7 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      {this.explainNonNullableTypes = false});
+      {this.explainNonNullableTypes = true});
 
   /// The analysis server used to get information about libraries.
   AnalysisServer get server => listener.server;
@@ -331,11 +321,17 @@ class InfoBuilder {
     }
   }
 
-  /// Compute the details for the fix with the given [fixInfo].
-  List<RegionDetail> _computeDetails(FixInfo fixInfo) {
+  /// Compute the details for the fix with the given [edit].
+  List<RegionDetail> _computeDetails(AtomicEditWithInfo edit) {
     List<RegionDetail> details = [];
-    for (FixReasonInfo reason in fixInfo.reasons) {
-      if (reason is NullabilityNodeInfo) {
+    var fixInfo = edit.info;
+    for (FixReasonInfo reason in fixInfo.fixReasons) {
+      if (reason == null) {
+        // Sometimes reasons are null, so just ignore them (see for example the
+        // test case InfoBuilderTest.test_discardCondition.  If only we had
+        // NNBD, we could have prevented this!
+        // TODO(paulberry): fix this so that it will never happen.
+      } else if (reason is NullabilityNodeInfo) {
         if (reason.isExactNullable) {
           // When the node is exact nullable, that nullability propagated from
           // downstream.
@@ -364,8 +360,8 @@ class InfoBuilder {
         for (EdgeInfo edge in upstreamTriggeredEdges(reason)) {
           EdgeOriginInfo origin = info.edgeOrigin[edge];
           if (origin != null) {
-            details.add(_buildDetailForOrigin(
-                origin, edge, fixInfo.fix.description.kind));
+            details.add(
+                _buildDetailForOrigin(origin, edge, fixInfo.description.kind));
           } else {
             details.add(
                 RegionDetail('upstream edge with no origin ($edge)', null));
@@ -393,16 +389,33 @@ class InfoBuilder {
     return details;
   }
 
-  /// Return a list of edits that can be applied.
-  List<EditDetail> _computeEdits(FixInfo fixInfo) {
-    // TODO(brianwilkerson) Add other kinds of edits, such as adding an assert.
+  /// Return an edit that can be applied.
+  List<EditDetail> _computeEdits(AtomicEditInfo fixInfo, int offset) {
     List<EditDetail> edits = [];
-    SingleNullabilityFix fix = fixInfo.fix;
-    if (fix.description.kind == NullabilityFixKind.makeTypeNullable) {
-      for (Location location in fix.locations) {
-        edits.add(EditDetail(
-            'Force type to be non-nullable.', location.offset, 0, '/*!*/'));
-      }
+    var fixKind = fixInfo.description.kind;
+    switch (fixKind) {
+      case NullabilityFixKind.addRequired:
+        // TODO(brianwilkerson) This doesn't verify that the meta package has
+        //  been imported.
+        edits
+            .add(EditDetail("Mark with '@required'.", offset, 0, '@required '));
+        break;
+      case NullabilityFixKind.checkExpression:
+        // TODO(brianwilkerson) Determine whether we can know that the fix is
+        //  associated with a parameter and insert an assert if it is.
+        edits.add(EditDetail('Force null check.', offset, 0, '/*!*/'));
+        break;
+      case NullabilityFixKind.discardCondition:
+      case NullabilityFixKind.discardElse:
+      case NullabilityFixKind.discardThen:
+        // There's no need for hints around code that is being removed.
+        break;
+      case NullabilityFixKind.makeTypeNullable:
+      case NullabilityFixKind.noModification:
+        edits.add(
+            EditDetail('Force type to be non-nullable.', offset, 0, '/*!*/'));
+        edits.add(EditDetail('Force type to be nullable.', offset, 0, '/*?*/'));
+        break;
     }
     return edits;
   }
@@ -441,8 +454,8 @@ class InfoBuilder {
     for (var edge in edgeInfos) {
       EdgeOriginInfo origin = info.edgeOrigin[edge];
       if (origin == null) {
-        // TODO(https://github.com/dart-lang/sdk/issues/39203): I think this
-        //  shouldn't happen? But it does on the path package.
+        // TODO(srawlins): I think this shouldn't happen? But it does on the
+        //  collection and path packages.
         continue;
       }
       NavigationTarget target =
@@ -497,13 +510,15 @@ class InfoBuilder {
       if (upstreamTriggeredEdgeInfos.isNotEmpty) {
         List<RegionDetail> details =
             _computeUpstreamTriggeredDetails(upstreamTriggeredEdgeInfos);
-        TypeAnnotation node = nonNullableType.key;
-        regions.add(RegionInfo(
-            RegionType.nonNullableType,
-            mapper.map(node.offset),
-            node.length,
-            "This type is not changed; it is determined to be non-nullable",
-            details));
+        if (details.isNotEmpty) {
+          TypeAnnotation node = nonNullableType.key;
+          regions.add(RegionInfo(
+              RegionType.nonNullableType,
+              mapper.map(node.offset),
+              node.length,
+              "This type is not changed; it is determined to be non-nullable",
+              details));
+        }
       }
     }
   }
@@ -522,27 +537,43 @@ class InfoBuilder {
     edits.sort((first, second) => first.offset.compareTo(second.offset));
     OffsetMapper mapper = OffsetMapper.forEdits(edits);
 
-    // Apply edits in reverse order and build the regions.
-    for (SourceEdit edit in edits.reversed) {
-      int offset = edit.offset;
-      int length = edit.length;
-      String replacement = edit.replacement;
-      int end = offset + length;
-      // Insert the replacement text without deleting the replaced text.
-      content = content.replaceRange(end, end, replacement);
-      FixInfo fixInfo = _findFixInfo(sourceInfo, offset);
-      if (fixInfo != null) {
-        String explanation = '${fixInfo.fix.description.appliedMessage}.';
-        List<RegionDetail> details = _computeDetails(fixInfo);
-        List<EditDetail> edits = _computeEdits(fixInfo);
+    // Apply edits and build the regions.
+    var changes = sourceInfo.changes ?? {};
+    var sourceOffsets = changes.keys.toList();
+    sourceOffsets.sort();
+    int offset = 0;
+    int lastSourceOffset = 0;
+    for (var sourceOffset in sourceOffsets) {
+      offset += sourceOffset - lastSourceOffset;
+      lastSourceOffset = sourceOffset;
+      var changesForSourceOffset = changes[sourceOffset];
+      for (var edit in changesForSourceOffset) {
+        int length = edit.length;
+        String replacement = edit.replacement;
+        int end = offset + length;
+        // Insert the replacement text without deleting the replaced text.
+        content = content.replaceRange(end, end, replacement);
+        String explanation = edit is AtomicEditWithInfo
+            ? '${edit.info.description.appliedMessage}.'
+            : null;
+        List<EditDetail> edits = edit is AtomicEditWithInfo
+            ? _computeEdits(edit.info, sourceOffset)
+            : [];
+        List<RegionDetail> details = _computeDetails(edit);
         if (length > 0) {
+          if (explanation != null) {
+            regions.add(RegionInfo(
+                RegionType.fix, offset, length, explanation, details,
+                edits: edits));
+          }
+          offset += length;
+        }
+        if (explanation != null) {
           regions.add(RegionInfo(
-              RegionType.fix, mapper.map(offset), length, explanation, details,
+              RegionType.fix, offset, replacement.length, explanation, details,
               edits: edits));
         }
-        regions.add(RegionInfo(RegionType.fix, mapper.map(end),
-            replacement.length, explanation, details,
-            edits: edits));
+        offset += replacement.length;
       }
     }
     if (explainNonNullableTypes) {
@@ -552,21 +583,6 @@ class InfoBuilder {
     unitInfo.offsetMapper = mapper;
     unitInfo.content = content;
     return unitInfo;
-  }
-
-  /// Return information about the fix that was applied at the given [offset],
-  /// or `null` if the information could not be found. The information is
-  /// extracted from the [sourceInfo].
-  FixInfo _findFixInfo(SourceInformation sourceInfo, int offset) {
-    for (MapEntry<SingleNullabilityFix, List<FixReasonInfo>> entry
-        in sourceInfo.fixes.entries) {
-      for (Location location in entry.key.locations) {
-        if (location.offset == offset) {
-          return FixInfo(entry.key, entry.value);
-        }
-      }
-    }
-    return null;
   }
 
   /// Return `true` if the given [node] is from a compilation unit within the

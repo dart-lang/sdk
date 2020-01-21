@@ -695,7 +695,10 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   }
 
   bool isSubclassOf(ClassMirror other) {
-    if (other is! ClassMirror) throw new ArgumentError(other);
+    // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
+    if (other == null) {
+      throw new ArgumentError.notNull('other');
+    }
     ClassMirror otherDeclaration = other.originalDeclaration as ClassMirror;
     ClassMirror c = this;
     while (c != null) {

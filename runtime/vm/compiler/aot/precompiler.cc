@@ -549,11 +549,16 @@ void Precompiler::Iterate() {
       ProcessFunction(function);
     }
 
-    FieldSet::Iterator it = pending_static_fields_to_retain_.GetIterator();
-    for (const Field** field = it.Next(); field != nullptr; field = it.Next()) {
-      AddField(**field);
+    // AddField might retain more static fields.
+    while (!pending_static_fields_to_retain_.IsEmpty()) {
+      FieldSet copy = pending_static_fields_to_retain_;
+      pending_static_fields_to_retain_.Clear();
+      FieldSet::Iterator it = copy.GetIterator();
+      for (const Field** field = it.Next(); field != nullptr;
+           field = it.Next()) {
+        AddField(**field);
+      }
     }
-    pending_static_fields_to_retain_.Clear();
 
     CheckForNewDynamicFunctions();
     CollectCallbackFields();

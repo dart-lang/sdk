@@ -121,7 +121,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       const Function& interface_target,
       const InferredTypeMetadata* result_type = nullptr,
       bool use_unchecked_entry = false,
-      const CallSiteAttributesMetadata* call_site_attrs = nullptr);
+      const CallSiteAttributesMetadata* call_site_attrs = nullptr,
+      bool receiver_is_not_smi = false);
 
   Fragment FfiCall(const Function& signature,
                    const ZoneGrowableArray<Representation>& arg_reps,

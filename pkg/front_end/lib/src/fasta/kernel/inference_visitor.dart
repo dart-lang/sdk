@@ -1066,8 +1066,9 @@ class InferenceVisitor
       IfNullExpression node, DartType typeContext) {
     // To infer `e0 ?? e1` in context K:
     // - Infer e0 in context K to get T0
-    ExpressionInferenceResult lhsResult = inferrer
-        .inferExpression(node.left, typeContext, true, isVoidAllowed: false);
+    ExpressionInferenceResult lhsResult = inferrer.inferExpression(
+        node.left, typeContext.withNullability(inferrer.library.nullable), true,
+        isVoidAllowed: false);
 
     Member equalsMember = inferrer
         .findInterfaceMember(
@@ -1091,8 +1092,8 @@ class InferenceVisitor
     // - Let T = greatest closure of K with respect to `?` if K is not `_`, else
     //   UP(t0, t1)
     // - Then the inferred type is T.
-    DartType nonNullableLhsType =
-        inferrer.computeNonNullable(lhsResult.inferredType);
+    DartType originalLhsType = lhsResult.inferredType;
+    DartType nonNullableLhsType = inferrer.computeNonNullable(originalLhsType);
     DartType inferredType = inferrer.typeSchemaEnvironment
         .getStandardUpperBound(nonNullableLhsType, rhsResult.inferredType,
             inferrer.library.library);
@@ -1104,7 +1105,7 @@ class InferenceVisitor
         equalsMember);
     VariableGet variableGet = createVariableGet(variable);
     if (inferrer.library.isNonNullableByDefault &&
-        nonNullableLhsType.nullability != lhsResult.inferredType.nullability) {
+        !identical(nonNullableLhsType, originalLhsType)) {
       variableGet.promotedType = nonNullableLhsType;
     }
     ConditionalExpression conditional = new ConditionalExpression(
@@ -2274,9 +2275,36 @@ class InferenceVisitor
       receiver = result.expression;
     }
     DartType receiverType = result.inferredType;
-    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
-        receiver, receiverType, node.name, node.arguments, typeContext,
+    ExpressionInferenceResult invocationResult = inferrer.inferMethodInvocation(
+        node.fileOffset,
+        nullAwareGuards,
+        receiver,
+        receiverType,
+        node.name,
+        node.arguments,
+        typeContext,
         isExpressionInvocation: false);
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+        if (inferrer.nnbdStrongMode) {
+          return new ExpressionInferenceResult.nullAware(
+              invocationResult.inferredType,
+              inferrer.helper.wrapInProblem(
+                  invocationResult.expression..fileOffset = node.fileOffset,
+                  templateNullableMethodCallError.withArguments(node.name.name,
+                      receiverType, inferrer.isNonNullableByDefault),
+                  node.name.name.length),
+              null);
+        } else {
+          inferrer.helper.addProblem(
+              templateNullableMethodCallWarning.withArguments(node.name.name,
+                  receiverType, inferrer.isNonNullableByDefault),
+              node.fileOffset,
+              node.name.name.length);
+        }
+      }
+    }
+    return invocationResult;
   }
 
   ExpressionInferenceResult visitExpressionInvocation(
@@ -2292,9 +2320,35 @@ class InferenceVisitor
       receiver = result.expression;
     }
     DartType receiverType = result.inferredType;
-    return inferrer.inferMethodInvocation(node.fileOffset, nullAwareGuards,
-        receiver, receiverType, callName, node.arguments, typeContext,
+    ExpressionInferenceResult invocationResult = inferrer.inferMethodInvocation(
+        node.fileOffset,
+        nullAwareGuards,
+        receiver,
+        receiverType,
+        callName,
+        node.arguments,
+        typeContext,
         isExpressionInvocation: true);
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+        if (inferrer.nnbdStrongMode) {
+          return new ExpressionInferenceResult.nullAware(
+              invocationResult.inferredType,
+              inferrer.helper.wrapInProblem(
+                  invocationResult.expression..fileOffset = node.fileOffset,
+                  templateNullableExpressionCallError.withArguments(
+                      receiverType, inferrer.isNonNullableByDefault),
+                  noLength));
+        } else {
+          inferrer.helper.addProblem(
+              templateNullableExpressionCallWarning.withArguments(
+                  receiverType, inferrer.isNonNullableByDefault),
+              node.fileOffset,
+              noLength);
+        }
+      }
+    }
+    return invocationResult;
   }
 
   ExpressionInferenceResult visitNamedFunctionExpressionJudgment(
@@ -2531,9 +2585,10 @@ class InferenceVisitor
         .findInterfaceMember(readType, equalsName, node.fileOffset)
         .member;
 
+    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(
-            readType, writeResult.inferredType, inferrer.library.library);
+        .getStandardUpperBound(nonNullableReadType, writeResult.inferredType,
+            inferrer.library.library);
 
     Expression replacement;
     if (node.forEffect) {
@@ -2559,8 +2614,13 @@ class InferenceVisitor
       VariableDeclaration readVariable = createVariable(read, readType);
       MethodInvocation equalsNull = createEqualsNull(
           node.fileOffset, createVariableGet(readVariable), equalsMember);
-      ConditionalExpression conditional = new ConditionalExpression(equalsNull,
-          writeResult.expression, createVariableGet(readVariable), inferredType)
+      VariableGet variableGet = createVariableGet(readVariable);
+      if (inferrer.library.isNonNullableByDefault &&
+          !identical(nonNullableReadType, readType)) {
+        variableGet.promotedType = nonNullableReadType;
+      }
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull, writeResult.expression, variableGet, inferredType)
         ..fileOffset = node.fileOffset;
       replacement = new Let(node.variable, createLet(readVariable, conditional))
         ..fileOffset = node.fileOffset;
@@ -2592,9 +2652,12 @@ class InferenceVisitor
             readResult.inferredType, equalsName, node.fileOffset)
         .member;
 
+    DartType originalReadType = readResult.inferredType;
+    DartType nonNullableReadType =
+        inferrer.computeNonNullable(originalReadType);
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(readResult.inferredType,
-            writeResult.inferredType, inferrer.library.library);
+        .getStandardUpperBound(nonNullableReadType, writeResult.inferredType,
+            inferrer.library.library);
 
     Expression replacement;
     if (node.forEffect) {
@@ -2619,8 +2682,13 @@ class InferenceVisitor
           createVariable(read, readResult.inferredType);
       MethodInvocation equalsNull = createEqualsNull(
           node.fileOffset, createVariableGet(readVariable), equalsMember);
-      ConditionalExpression conditional = new ConditionalExpression(equalsNull,
-          writeResult.expression, createVariableGet(readVariable), inferredType)
+      VariableGet variableGet = createVariableGet(readVariable);
+      if (inferrer.library.isNonNullableByDefault &&
+          !identical(nonNullableReadType, originalReadType)) {
+        variableGet.promotedType = nonNullableReadType;
+      }
+      ConditionalExpression conditional = new ConditionalExpression(
+          equalsNull, writeResult.expression, variableGet, inferredType)
         ..fileOffset = node.fileOffset;
       replacement = new Let(readVariable, conditional)
         ..fileOffset = node.fileOffset;
@@ -2938,9 +3006,10 @@ class InferenceVisitor
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
     inferrer.flowAnalysis.ifNullExpression_end();
 
+    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(
-            readType, valueResult.inferredType, inferrer.library.library);
+        .getStandardUpperBound(nonNullableReadType, valueResult.inferredType,
+            inferrer.library.library);
 
     VariableDeclaration valueVariable;
     if (node.forEffect) {
@@ -3006,11 +3075,16 @@ class InferenceVisitor
           node.testOffset, createVariableGet(readVariable), equalsMember);
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
+      VariableGet variableGet = createVariableGet(readVariable);
+      if (inferrer.library.isNonNullableByDefault &&
+          !identical(nonNullableReadType, readType)) {
+        variableGet.promotedType = nonNullableReadType;
+      }
       ConditionalExpression conditional = new ConditionalExpression(
           equalsNull,
           createLet(valueVariable,
               createLet(writeVariable, createVariableGet(valueVariable))),
-          createVariableGet(readVariable),
+          variableGet,
           inferredType)
         ..fileOffset = node.fileOffset;
       inner = createLet(indexVariable, createLet(readVariable, conditional));
@@ -3090,9 +3164,10 @@ class InferenceVisitor
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
     inferrer.flowAnalysis.ifNullExpression_end();
 
+    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(
-            readType, valueResult.inferredType, inferrer.library.library);
+        .getStandardUpperBound(nonNullableReadType, valueResult.inferredType,
+            inferrer.library.library);
 
     VariableDeclaration valueVariable;
     if (node.forEffect) {
@@ -3153,11 +3228,16 @@ class InferenceVisitor
           node.testOffset, createVariableGet(readVariable), equalsMember);
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
+      VariableGet variableGet = createVariableGet(readVariable);
+      if (inferrer.library.isNonNullableByDefault &&
+          !identical(nonNullableReadType, readType)) {
+        variableGet.promotedType = nonNullableReadType;
+      }
       ConditionalExpression conditional = new ConditionalExpression(
           equalsNull,
           createLet(valueVariable,
               createLet(writeVariable, createVariableGet(valueVariable))),
-          createVariableGet(readVariable),
+          variableGet,
           inferredType)
         ..fileOffset = node.fileOffset;
       replacement =
@@ -3245,9 +3325,10 @@ class InferenceVisitor
     Expression value = inferrer.ensureAssignableResult(valueType, valueResult);
     inferrer.flowAnalysis.ifNullExpression_end();
 
+    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(
-            readType, valueResult.inferredType, inferrer.library.library);
+        .getStandardUpperBound(nonNullableReadType, valueResult.inferredType,
+            inferrer.library.library);
 
     VariableDeclaration valueVariable;
     if (node.forEffect) {
@@ -3295,11 +3376,16 @@ class InferenceVisitor
           node.testOffset, createVariableGet(readVariable), equalsMember);
       VariableDeclaration writeVariable =
           createVariable(write, const VoidType());
+      VariableGet variableGet = createVariableGet(readVariable);
+      if (inferrer.library.isNonNullableByDefault &&
+          !identical(nonNullableReadType, readType)) {
+        variableGet.promotedType = nonNullableReadType;
+      }
       ConditionalExpression conditional = new ConditionalExpression(
           equalsNull,
           createLet(valueVariable,
               createLet(writeVariable, createVariableGet(valueVariable))),
-          createVariableGet(readVariable),
+          variableGet,
           inferredType)
         ..fileOffset = node.fileOffset;
       replacement =
@@ -4409,6 +4495,25 @@ class InferenceVisitor
     Expression replacement = _computePropertySet(
         node.fileOffset, receiver, receiverType, node.name, target, rhs,
         valueType: rhsType, forEffect: node.forEffect);
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+        if (inferrer.nnbdStrongMode) {
+          replacement = inferrer.helper.wrapInProblem(
+              replacement,
+              templateNullablePropertyAccessError.withArguments(node.name.name,
+                  receiverType, inferrer.isNonNullableByDefault),
+              node.name.name.length);
+        } else {
+          inferrer.helper.addProblem(
+              templateNullablePropertyAccessWarning.withArguments(
+                  node.name.name,
+                  receiverType,
+                  inferrer.isNonNullableByDefault),
+              replacement.fileOffset,
+              node.name.name.length);
+        }
+      }
+    }
 
     return new ExpressionInferenceResult.nullAware(
         rhsType, replacement, nullAwareGuards);
@@ -4469,9 +4574,10 @@ class InferenceVisitor
 
     inferrer.flowAnalysis.ifNullExpression_end();
 
+    DartType nonNullableReadType = inferrer.computeNonNullable(readType);
     DartType inferredType = inferrer.typeSchemaEnvironment
-        .getStandardUpperBound(
-            readType, valueResult.inferredType, inferrer.library.library);
+        .getStandardUpperBound(nonNullableReadType, valueResult.inferredType,
+            inferrer.library.library);
 
     Expression replacement;
     if (node.forEffect) {
@@ -4501,8 +4607,13 @@ class InferenceVisitor
 
       MethodInvocation readEqualsNull =
           createEqualsNull(receiverVariable.fileOffset, read, readEqualsMember);
+      VariableGet variableGet = createVariableGet(readVariable);
+      if (inferrer.library.isNonNullableByDefault &&
+          !identical(nonNullableReadType, readType)) {
+        variableGet.promotedType = nonNullableReadType;
+      }
       ConditionalExpression condition = new ConditionalExpression(
-          readEqualsNull, write, createVariableGet(readVariable), inferredType);
+          readEqualsNull, write, variableGet, inferredType);
       replacement = createLet(readVariable, condition);
     }
 
@@ -4534,15 +4645,17 @@ class InferenceVisitor
         if (inferrer.nnbdStrongMode) {
           resultExpression = inferrer.helper.wrapInProblem(
               resultExpression,
-              templateNullablePropertyGetError.withArguments(node.name.name,
+              templateNullablePropertyAccessError.withArguments(node.name.name,
                   receiverType, inferrer.isNonNullableByDefault),
-              noLength);
+              node.name.name.length);
         } else {
           inferrer.helper.addProblem(
-              templateNullablePropertyGetWarning.withArguments(node.name.name,
-                  receiverType, inferrer.isNonNullableByDefault),
+              templateNullablePropertyAccessWarning.withArguments(
+                  node.name.name,
+                  receiverType,
+                  inferrer.isNonNullableByDefault),
               resultExpression.fileOffset,
-              noLength);
+              node.name.name.length);
         }
       }
     }

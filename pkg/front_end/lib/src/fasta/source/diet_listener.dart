@@ -442,7 +442,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void handleStringJuxtaposition(int literalCount) {
+  void handleStringJuxtaposition(Token startToken, int literalCount) {
     debugEvent("StringJuxtaposition");
   }
 

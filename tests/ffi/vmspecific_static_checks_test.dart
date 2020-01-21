@@ -240,10 +240,8 @@ class X {
   double tearoff(double d) => d / 27.0;
 }
 
-DoubleUnOp fld = null;
-
 void testFromFunctionTearOff() {
-  fld = X().tearoff;
+  DoubleUnOp fld = X().tearoff;
   Pointer<NativeFunction<NativeDoubleUnOp>> p;
   p = Pointer.fromFunction(fld); //# 75: compile-time error
 }

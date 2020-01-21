@@ -1,0 +1,9 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test() → void {
+  core::List<dynamic>* l = <dynamic>[1, "hello"];
+  core::List<core::String*>* l2 = l.{core::Iterable::map}<core::String*>((dynamic element) → core::String* => element.{core::Object::toString}()).{core::Iterable::toList}();
+}
+static method main() → void {}

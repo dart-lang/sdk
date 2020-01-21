@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,6 +27,51 @@ var v = (bool b) {
 ''');
     var element = findNode.functionExpression('(bool').declaredElement;
     assertType(element.returnType, 'num');
+  }
+
+  test_returnType_blockBody_notNullable_switch_onEnum() async {
+    await assertErrorsInCode('''
+enum E { a, b }
+
+main() {
+  (E e) {
+    switch (e) {
+      case E.a:
+        return 0;
+      case E.b:
+        return 1;
+    }
+  };
+}
+''', [
+      error(HintCode.MISSING_RETURN, 28, 102),
+    ]);
+    var element = findNode.functionExpression('(E e)').declaredElement;
+    assertType(element.returnType, 'int');
+  }
+
+  test_returnType_blockBody_notNullable_switch_onEnum_imported() async {
+    newFile('/test/lib/a.dart', content: r'''
+enum E { a, b }
+''');
+    await assertErrorsInCode('''
+import 'a.dart' as p;
+
+main() {
+  (p.E e) {
+    switch (e) {
+      case p.E.a:
+        return 0;
+      case p.E.b:
+        return 1;
+    }
+  };
+}
+''', [
+      error(HintCode.MISSING_RETURN, 34, 108),
+    ]);
+    var element = findNode.functionExpression('(p.E e)').declaredElement;
+    assertType(element.returnType, 'int');
   }
 
   test_returnType_blockBody_null_hasReturn() async {
@@ -53,6 +99,27 @@ var v = (bool b) {
 };
 ''');
     var element = findNode.functionExpression('(bool').declaredElement;
+    if (typeToStringWithNullability) {
+      assertType(element.returnType, 'int?');
+    } else {
+      assertType(element.returnType, 'int');
+    }
+  }
+
+  test_returnType_blockBody_nullable_switch() async {
+    await assertErrorsInCode('''
+main() {
+  (int a) {
+    switch (a) {
+      case 0:
+        return 0;
+    }
+  };
+}
+''', [
+      error(HintCode.MISSING_RETURN, 11, 68),
+    ]);
+    var element = findNode.functionExpression('(int a)').declaredElement;
     if (typeToStringWithNullability) {
       assertType(element.returnType, 'int?');
     } else {

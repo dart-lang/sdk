@@ -114,8 +114,8 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void listen(void onRequest(Request request),
-      {Function onError, void onDone()}) {
+  void listen(void Function(Request request) onRequest,
+      {Function onError, void Function() onDone}) {
     _input.transform(const Utf8Decoder()).transform(LineSplitter()).listen(
         (String data) => _readRequest(data, onRequest),
         onError: onError, onDone: () {
@@ -171,7 +171,7 @@ class ByteStreamServerChannel implements ServerCommunicationChannel {
    * Read a request from the given [data] and use the given function to handle
    * the request.
    */
-  void _readRequest(Object data, void onRequest(Request request)) {
+  void _readRequest(Object data, void Function(Request request) onRequest) {
     // Ignore any further requests after the communication channel is closed.
     if (_closed.isCompleted) {
       return;

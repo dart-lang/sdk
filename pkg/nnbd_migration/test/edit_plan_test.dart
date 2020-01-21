@@ -209,6 +209,16 @@ void f() {
 ''');
   }
 
+  Future<void> test_remove_all_list_elements_with_trailing_separator() async {
+    await analyze('var x = [ 1, 2, ];');
+    var i1 = findNode.integerLiteral('1');
+    var i2 = findNode.integerLiteral('2');
+    checkPlan(
+        planner.passThrough(i1.parent,
+            innerPlans: [planner.removeNode(i1), planner.removeNode(i2)]),
+        'var x = [];');
+  }
+
   Future<void> test_remove_argument() async {
     await analyze('f(dynamic d) => d(1, 2, 3);');
     var i2 = findNode.integerLiteral('2');
@@ -752,6 +762,28 @@ C<int, String> c;
     var declaration = findNode.simple('y').parent;
     var changes = checkPlan(planner.removeNode(declaration), 'int x, z;');
     expect(changes.keys, [declaration.offset]);
+  }
+
+  Future<void> test_replace_expression() async {
+    await analyze('var x = 1 + 2 * 3;');
+    checkPlan(planner.replace(findNode.binary('*'), [AtomicEdit.insert('6')]),
+        'var x = 1 + 6;');
+  }
+
+  Future<void> test_replace_expression_add_parens_due_to_cascade() async {
+    await analyze('var x = 1 + 2 * 3;');
+    checkPlan(
+        planner.replace(findNode.binary('*'), [AtomicEdit.insert('4..isEven')],
+            endsInCascade: true),
+        'var x = 1 + (4..isEven);');
+  }
+
+  Future<void> test_replace_expression_add_parens_due_to_precedence() async {
+    await analyze('var x = 1 + 2 * 3;');
+    checkPlan(
+        planner.replace(findNode.binary('*'), [AtomicEdit.insert('y = z')],
+            precedence: Precedence.assignment),
+        'var x = 1 + (y = z);');
   }
 
   Future<void> test_surround_allowCascade() async {

@@ -104,7 +104,11 @@ abstract class Loader {
   /// directive. If [accessor] isn't allowed to access [uri], it's a
   /// compile-time error.
   LibraryBuilder read(Uri uri, int charOffset,
-      {Uri fileUri, LibraryBuilder accessor, LibraryBuilder origin}) {
+      {Uri fileUri,
+      LibraryBuilder accessor,
+      LibraryBuilder origin,
+      Library referencesFrom,
+      bool referenceIsPartOwner}) {
     LibraryBuilder builder = builders.putIfAbsent(uri, () {
       if (fileUri != null &&
           (fileUri.scheme == "dart" ||
@@ -164,8 +168,8 @@ abstract class Loader {
           }
         }
       }
-      LibraryBuilder library =
-          target.createLibraryBuilder(uri, fileUri, origin);
+      LibraryBuilder library = target.createLibraryBuilder(
+          uri, fileUri, origin, referencesFrom, referenceIsPartOwner);
       if (library == null) {
         throw new StateError("createLibraryBuilder for uri $uri, "
             "fileUri $fileUri returned null.");

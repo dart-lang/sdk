@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F = (core::int*) →* core::int*;
+static const field core::int* app = 0;
+static method main() → dynamic
+  ;

@@ -3714,6 +3714,21 @@ LanguageVersionMismatchInPart:
 
       part of 'main.dart';
 
+LanguageVersionMismatchInPatch:
+  template: "The language version override has to be the same in the library and its patch(es)."
+
+LanguageVersionLibraryContext:
+  template: "This is language version annotation in the library."
+  severity: CONTEXT
+
+LanguageVersionPartContext:
+  template: "This is language version annotation in the part."
+  severity: CONTEXT
+
+LanguageVersionPatchContext:
+  template: "This is language version annotation in the patch."
+  severity: CONTEXT
+
 ExplicitExtensionArgumentMismatch:
   template: "Explicit extension application requires exactly 1 positional argument."
 
@@ -3739,13 +3754,31 @@ MultipleVarianceModifiers:
   tip: "Use at most one of the 'in', 'out', or 'inout' modifiers."
   analyzerCode: ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS
 
-NullablePropertyGetError:
+NullablePropertyAccessError:
   template: "Property '#name' cannot be accessed on '#type' because it is potentially null."
   tip: "Try accessing using ?. instead."
 
-NullablePropertyGetWarning:
+NullablePropertyAccessWarning:
   template: "Property '#name' is accessed on '#type' which is potentially null."
   tip: "Try accessing using ?. instead."
+  severity: WARNING
+
+NullableMethodCallError:
+  template: "Method '#name' cannot be called on '#type' because it is potentially null."
+  tip: "Try calling using ?. instead."
+
+NullableMethodCallWarning:
+  template: "Method '#name' is called on '#type' which is potentially null."
+  tip: "Try calling using ?. instead."
+  severity: WARNING
+
+NullableExpressionCallError:
+  template: "Can't use an expression of type '#type' as a function because it's potentially null."
+  tip: "Try calling using ?.call instead."
+
+NullableExpressionCallWarning:
+  template: "Expression of type '#type' is used as a function, but it's potentially null."
+  tip: "Try calling using ?.call instead."
   severity: WARNING
 
 ThrowingNotAssignableToObjectError:
@@ -3768,6 +3801,14 @@ ValueForRequiredParameterNotProvidedError:
 ValueForRequiredParameterNotProvidedWarning:
   template: "Missing required named parameter '#name'."
   severity: WARNING
+
+NonNullableOptOut:
+  template: "Null safety features are disabled for this library."
+  tip: "Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`."
+
+NonNullableOptOutComment:
+  template: "This is the annotation that opts out this library from null safety features."
+  severity: CONTEXT
 
 AwaitInLateLocalInitializer:
   template: "`await` expressions are not supported in late local initializers."

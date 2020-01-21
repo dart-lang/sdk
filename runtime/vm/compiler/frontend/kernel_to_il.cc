@@ -334,7 +334,8 @@ Fragment FlowGraphBuilder::InstanceCall(
     const Function& interface_target,
     const InferredTypeMetadata* result_type,
     bool use_unchecked_entry,
-    const CallSiteAttributesMetadata* call_site_attrs) {
+    const CallSiteAttributesMetadata* call_site_attrs,
+    bool receiver_is_not_smi) {
   const intptr_t total_count = argument_count + (type_args_len > 0 ? 1 : 0);
   InputsArray* arguments = GetArguments(total_count);
   InstanceCallInstr* call = new (Z)
@@ -356,6 +357,7 @@ Fragment FlowGraphBuilder::InstanceCall(
         AbstractType::ZoneHandle(Z, owner.DeclarationType());
     call->set_receivers_static_type(&type);
   }
+  call->set_receiver_is_not_smi(receiver_is_not_smi);
   Push(call);
   if (result_type != nullptr && result_type->IsConstant()) {
     Fragment instructions(call);
@@ -2618,14 +2620,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
         body += Drop();
       }
       body += Drop();
-      if (field.is_final() && field.has_initializer()) {
-        body += ThrowLateInitializationError(
-            field.token_pos(), String::ZoneHandle(Z, field.name()));
-      } else {
-        body += StoreLateField(
-            field, is_method ? parsed_function_->ParameterVariable(0) : nullptr,
-            setter_value);
-      }
+      body += StoreLateField(
+          field, is_method ? parsed_function_->ParameterVariable(0) : nullptr,
+          setter_value);
     } else {
       if (is_method) {
         body += StoreInstanceFieldGuarded(

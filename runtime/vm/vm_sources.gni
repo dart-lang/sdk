@@ -330,6 +330,7 @@ vm_sources = [
   "timeline_android.cc",
   "timeline_fuchsia.cc",
   "timeline_linux.cc",
+  "timeline_macos.cc",
   "timer.cc",
   "timer.h",
   "token.cc",

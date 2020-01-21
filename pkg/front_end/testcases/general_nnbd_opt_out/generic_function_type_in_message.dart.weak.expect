@@ -1,0 +1,26 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/generic_function_type_in_message.dart:10:11: Error: A value of type 'num Function<A extends num, B extends num>(A, B)' can't be assigned to a variable of type 'int'.
+//   int x = add;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method add<A extends core::num* = core::num*, B extends core::num* = core::num*>(self::add::A* a, self::add::B* b) → core::num*
+  return a.{core::num::+}(b);
+static method test() → dynamic {
+  core::int* x = let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/generic_function_type_in_message.dart:10:11: Error: A value of type 'num Function<A extends num, B extends num>(A, B)' can't be assigned to a variable of type 'int'.
+  int x = add;
+          ^" in (#C1) as{TypeError} core::int*;
+}
+static method main() → dynamic {
+  if(self::add<core::int*, core::int*>(1, 2).{core::num::<}(3))
+    self::test();
+}
+
+constants  {
+  #C1 = tearoff self::add
+}

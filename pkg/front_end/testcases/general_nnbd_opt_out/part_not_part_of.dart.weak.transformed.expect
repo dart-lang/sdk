@@ -1,0 +1,35 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general_nnbd_opt_out/part_not_part_of.dart:10:6: Error: Can't use 'pkg/front_end/testcases/general_nnbd_opt_out/part_not_part_of_lib1.dart' as a part, because it has no 'part of' declaration.
+// part 'part_not_part_of_lib1.dart';
+//      ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///part_not_part_of_lib2.dart";
+
+@#C1
+part part_not_part_of_lib1.dart;
+static method main() → dynamic {}
+
+library;
+import self as self2;
+import "part_not_part_of_lib1.dart" as par;
+
+import "org-dartlang-testcase:///part_not_part_of_lib1.dart";
+
+static method methodFromLib2() → dynamic {
+  par::methodFromLib1();
+}
+
+library;
+import self as par;
+
+static method methodFromLib1() → dynamic {}
+
+constants  {
+  #C1 = core::_Override {}
+}

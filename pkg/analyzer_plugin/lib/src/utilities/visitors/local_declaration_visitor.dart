@@ -8,11 +8,9 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 
-/**
- * A visitor that visits an [AstNode] and its parent recursively along with any
- * declarations in those nodes. Consumers typically call [visit] which catches
- * the exception thrown by [finished].
- */
+/// A visitor that visits an [AstNode] and its parent recursively along with any
+/// declarations in those nodes. Consumers typically call [visit] which catches
+/// the exception thrown by [finished].
 abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   static final TypeName STACKTRACE_TYPE = astFactory.typeName(
       astFactory
@@ -54,19 +52,15 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredTypeParameter(TypeParameter node) {}
 
-  /**
-   * Throw an exception indicating that [LocalDeclarationVisitor] should
-   * stop visiting. This is caught in [visit] which then exits normally.
-   */
+  /// Throw an exception indicating that [LocalDeclarationVisitor] should
+  /// stop visiting. This is caught in [visit] which then exits normally.
   void finished() {
     throw _LocalDeclarationVisitorFinished();
   }
 
-  /**
-   * Visit the given [AstNode] and its parent recursively along with any
-   * declarations in those nodes. Return `true` if [finished] is called
-   * while visiting, else `false`.
-   */
+  /// Visit the given [AstNode] and its parent recursively along with any
+  /// declarations in those nodes. Return `true` if [finished] is called
+  /// while visiting, else `false`.
   bool visit(AstNode node) {
     try {
       node.accept(this);
@@ -97,7 +91,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _visitClassDeclarationMembers(node);
+    _visitClassOrMixinMembers(node);
     visitNode(node);
   }
 
@@ -146,13 +140,13 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     _visitParamList(node.parameters);
     visitNode(node);
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     if (forLoopParts is ForEachPartsWithDeclaration) {
       DeclaredIdentifier loopVariable = forLoopParts.loopVariable;
@@ -200,6 +194,12 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitMixinDeclaration(MixinDeclaration node) {
+    _visitClassOrMixinMembers(node);
+    visitNode(node);
+  }
+
+  @override
   void visitNode(AstNode node) {
     // Support the case of searching partial ASTs by aborting on nodes with no
     // parents. This is useful for the angular plugin.
@@ -227,7 +227,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     visitNode(node);
   }
 
-  void _visitClassDeclarationMembers(ClassDeclaration node) {
+  void _visitClassOrMixinMembers(ClassOrMixinDeclaration node) {
     for (ClassMember member in node.members) {
       if (member is FieldDeclaration) {
         member.fields.variables.forEach((VariableDeclaration varDecl) {
@@ -263,7 +263,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
     }
   }
 
-  _visitStatements(NodeList<Statement> statements) {
+  void _visitStatements(NodeList<Statement> statements) {
     for (Statement stmt in statements) {
       if (stmt.offset < offset) {
         if (stmt is VariableDeclarationStatement) {
@@ -306,8 +306,6 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
   }
 }
 
-/**
- * Internal exception used to indicate that [LocalDeclarationVisitor]
- * should stop visiting.
- */
+/// Internal exception used to indicate that [LocalDeclarationVisitor]
+/// should stop visiting.
 class _LocalDeclarationVisitorFinished {}

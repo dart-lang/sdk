@@ -158,7 +158,7 @@ class _ImmutableMapEntryIterable<K, V>
 class _ImmutableMapKeyIterator<E> implements Iterator<E> {
   _ImmutableMap _map;
   int _nextIndex = 0;
-  E _current;
+  E? _current;
 
   _ImmutableMapKeyIterator(this._map);
 
@@ -173,13 +173,13 @@ class _ImmutableMapKeyIterator<E> implements Iterator<E> {
     return false;
   }
 
-  E get current => _current;
+  E get current => _current as E;
 }
 
 class _ImmutableMapValueIterator<E> implements Iterator<E> {
   _ImmutableMap _map;
   int _nextIndex = 0;
-  E _current;
+  E? _current;
 
   _ImmutableMapValueIterator(this._map);
 
@@ -194,13 +194,13 @@ class _ImmutableMapValueIterator<E> implements Iterator<E> {
     return false;
   }
 
-  E get current => _current;
+  E get current => _current as E;
 }
 
 class _ImmutableMapEntryIterator<K, V> implements Iterator<MapEntry<K, V>> {
   _ImmutableMap _map;
   int _nextIndex = 0;
-  MapEntry<K, V> _current;
+  MapEntry<K, V>? _current;
 
   _ImmutableMapEntryIterator(this._map);
 
@@ -216,5 +216,5 @@ class _ImmutableMapEntryIterator<K, V> implements Iterator<MapEntry<K, V>> {
     return false;
   }
 
-  MapEntry<K, V> get current => _current;
+  MapEntry<K, V> get current => _current as MapEntry<K, V>;
 }

@@ -1254,6 +1254,17 @@ String f(dynamic x) => x.toString();
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40174')
+  Future<void> test_eliminate_dead_if_inside_for_element() async {
+    var content = '''
+List<int> _f(List<int/*!*/> xs) => [for(var x in xs) if (x == null) 1];
+''';
+    var expected = '''
+List<int> _f(List<int/*!*/> xs) => [];
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_enum() async {
     var content = '''
 enum E {
@@ -2091,6 +2102,24 @@ int f(int x) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_implicit_type_parameter_bound_nullable() async {
+    var content = '''
+class C<T> {
+  f(T t) {
+    Object o = t;
+  }
+}
+''';
+    var expected = '''
+class C<T> {
+  f(T t) {
+    Object? o = t;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39376')
   Future<void> test_infer_required() async {
     var content = '''
@@ -2613,6 +2642,7 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38462')
   Future<void> test_named_parameter_no_default_unused_required() async {
     // The `@required` annotation overrides the assumption of nullability.
     // The call at `f()` is presumed to be in error.
@@ -2626,7 +2656,7 @@ main() {
 ''';
     var expected = '''
 import 'package:meta/meta.dart';
-void f({@required String s}) {}
+void f({required String s}) {}
 main() {
   f();
 }
@@ -2940,6 +2970,28 @@ class C {
   operator==(Object other) {
     return other is C;
   }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_override_object_from_type_parameter() async {
+    var content = '''
+class C<T> {
+  f(T t) {}
+}
+class D<T> extends C<T> {
+  @override
+  f(Object t) {}
+}
+''';
+    var expected = '''
+class C<T> {
+  f(T t) {}
+}
+class D<T> extends C<T> {
+  @override
+  f(Object? t) {}
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -3307,8 +3359,8 @@ main() {
 
   @failingTest
   Future<void> test_removed_if_element_doesnt_introduce_nullability() async {
-    // Failing for two reasons: 1. we don't add ! to recover(), and 2. we get
-    // an unimplemented error.
+    // Failing because we don't yet remove the dead list element
+    // `if (x == null) recover()`.
     var content = '''
 f(int x) {
   <int>[if (x == null) recover(), 0];
@@ -3320,7 +3372,7 @@ int recover() {
 ''';
     var expected = '''
 f(int x) {
-  <int>[if (x == null) recover()!, 0];
+  <int>[0];
 }
 int? recover() {
   assert(false);
@@ -3852,79 +3904,24 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   @override
   bool get _usePermissiveMode => false;
 
+  /// Test fails under the pre-FixBuilder implementation; passes now.
   @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_downcast_dynamic_function_to_functionType() =>
-      super.test_downcast_dynamic_function_to_functionType();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_downcast_dynamic_to_functionType() =>
-      super.test_downcast_dynamic_to_functionType();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_downcast_dynamic_type_argument() =>
-      super.test_downcast_dynamic_type_argument();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_downcast_type_argument_preserve_nullability() =>
-      super.test_downcast_type_argument_preserve_nullability();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_enum() => super.test_enum();
+  Future<void> test_convert_required() => super.test_convert_required();
 
   @override
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() =>
       super.test_extension_nullableOnType_viaImplicitInvocation();
 
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_field_initializer_typed_list_literal() =>
-      super.test_field_initializer_typed_list_literal();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_generic_exact_propagation() =>
-      super.test_generic_exact_propagation();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_generic_exact_propagation_premigratedListClass() =>
-      super.test_generic_exact_propagation_premigratedListClass();
-
   /// Test fails under the pre-FixBuilder implementation; passes now.
   @override
   Future<void> test_ifStatement_nullCheck_noElse() =>
       super.test_ifStatement_nullCheck_noElse();
 
+  /// Test fails under the pre-FixBuilder implementation; passes now.
   @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_instance_creation_generic() =>
-      super.test_instance_creation_generic();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_methodInvocation_typeArguments_inferred() =>
-      super.test_methodInvocation_typeArguments_inferred();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_named_parameter_no_default_unused_required() =>
       super.test_named_parameter_no_default_unused_required();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_override_return_type_nullable_substitution_complex() =>
-      super.test_override_return_type_nullable_substitution_complex();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_postdominating_usage_after_cfg_altered() =>
-      super.test_postdominating_usage_after_cfg_altered();
 
   /// Test fails under the pre-FixBuilder implementation; passes now.
   @override

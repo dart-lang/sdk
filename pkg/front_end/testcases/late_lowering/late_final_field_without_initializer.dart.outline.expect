@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Class extends core::Object {
   static field core::int? _#lateStaticField1;
   static field core::int? _#lateStaticField2;
-  field core::int? _#lateInstanceField;
+  field core::int? _#Class#lateInstanceField;
   synthetic constructor •() → self::Class
     ;
   static get lateStaticField1() → core::int;

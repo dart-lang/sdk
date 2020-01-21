@@ -424,15 +424,23 @@ class LibraryImportScope extends Scope {
 
   @override
   Element internalLookup(String name) {
-    Element element = localLookup(name);
+    return localLookup(name);
+  }
+
+  @override
+  Element localLookup(String name) {
+    var element = super.localLookup(name);
     if (element != null) {
       return element;
     }
-    element = _lookupInImportedNamespaces(
-        (Namespace namespace) => namespace.get(name));
+
+    element = _lookupInImportedNamespaces((namespace) {
+      return namespace.get(name);
+    });
     if (element != null) {
       defineNameWithoutChecking(name, element);
     }
+
     return element;
   }
 

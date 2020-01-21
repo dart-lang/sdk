@@ -25,8 +25,5 @@ class UnresolvedType {
     return builder.check(library, charOffset, fileUri);
   }
 
-  /// Normalizes the type arguments in accordance with Dart 1 semantics.
-  void normalizeType() => builder.normalize(charOffset, fileUri);
-
   String toString() => "UnresolvedType(@$charOffset, $builder)";
 }

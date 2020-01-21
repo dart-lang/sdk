@@ -12,17 +12,13 @@ import 'package:analysis_server_client/src/protocol/protocol_generated.dart';
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     HashMap<String, RefactoringKind>();
 
-/**
- * Adds the given [sourceEdits] to the list in [sourceFileEdit].
- */
+/// Adds the given [sourceEdits] to the list in [sourceFileEdit].
 void addAllEditsForSource(
     SourceFileEdit sourceFileEdit, Iterable<SourceEdit> edits) {
   edits.forEach(sourceFileEdit.add);
 }
 
-/**
- * Adds the given [sourceEdit] to the list in [sourceFileEdit].
- */
+/// Adds the given [sourceEdit] to the list in [sourceFileEdit].
 void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
   List<SourceEdit> edits = sourceFileEdit.edits;
   int index = 0;
@@ -32,9 +28,7 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
   edits.insert(index, sourceEdit);
 }
 
-/**
- * Adds [edit] to the [FileEdit] for the given [file].
- */
+/// Adds [edit] to the [FileEdit] for the given [file].
 void addEditToSourceChange(
     SourceChange change, String file, int fileStamp, SourceEdit edit) {
   SourceFileEdit fileEdit = change.getFileEdit(file);
@@ -45,10 +39,8 @@ void addEditToSourceChange(
   fileEdit.add(edit);
 }
 
-/**
- * Get the result of applying the edit to the given [code].  Access via
- * SourceEdit.apply().
- */
+/// Get the result of applying the edit to the given [code]. Access via
+/// SourceEdit.apply().
 String applyEdit(String code, SourceEdit edit) {
   if (edit.length < 0) {
     throw RangeError('length is negative');
@@ -56,11 +48,9 @@ String applyEdit(String code, SourceEdit edit) {
   return code.replaceRange(edit.offset, edit.end, edit.replacement);
 }
 
-/**
- * Get the result of applying a set of [edits] to the given [code].  Edits
- * are applied in the order they appear in [edits].  Access via
- * SourceEdit.applySequence().
- */
+/// Get the result of applying a set of [edits] to the given [code]. Edits
+/// are applied in the order they appear in [edits]. Access via
+/// SourceEdit.applySequence().
 String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
   edits.forEach((SourceEdit edit) {
     code = edit.apply(code);
@@ -68,9 +58,7 @@ String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
   return code;
 }
 
-/**
- * Returns the [FileEdit] for the given [file], maybe `null`.
- */
+/// Returns the [FileEdit] for the given [file], maybe `null`.
 SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
   for (SourceFileEdit fileEdit in change.edits) {
     if (fileEdit.file == file) {
@@ -80,12 +68,10 @@ SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
   return null;
 }
 
-/**
- * Compare the lists [listA] and [listB], using [itemEqual] to compare
- * list elements.
- */
+/// Compare the lists [listA] and [listB], using [itemEqual] to compare
+/// list elements.
 bool listEqual<T1, T2>(
-    List<T1> listA, List<T2> listB, bool itemEqual(T1 a, T2 b)) {
+    List<T1> listA, List<T2> listB, bool Function(T1 a, T2 b) itemEqual) {
   if (listA == null) {
     return listB == null;
   }
@@ -103,11 +89,10 @@ bool listEqual<T1, T2>(
   return true;
 }
 
-/**
- * Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
- * values.
- */
-bool mapEqual<K, V>(Map<K, V> mapA, Map<K, V> mapB, bool valueEqual(V a, V b)) {
+/// Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
+/// values.
+bool mapEqual<K, V>(
+    Map<K, V> mapA, Map<K, V> mapB, bool Function(V a, V b) valueEqual) {
   if (mapA == null) {
     return mapB == null;
   }
@@ -128,12 +113,10 @@ bool mapEqual<K, V>(Map<K, V> mapA, Map<K, V> mapB, bool valueEqual(V a, V b)) {
   return true;
 }
 
-/**
- * Translate the input [map], applying [keyCallback] to all its keys, and
- * [valueCallback] to all its values.
- */
+/// Translate the input [map], applying [keyCallback] to all its keys, and
+/// [valueCallback] to all its values.
 Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
-    {KR keyCallback(KP key), VR valueCallback(VP value)}) {
+    {KR Function(KP key) keyCallback, VR Function(VP value) valueCallback}) {
   Map<KR, VR> result = HashMap<KR, VR>();
   map.forEach((key, value) {
     KR resultKey;
@@ -175,9 +158,7 @@ RefactoringProblemSeverity maxRefactoringProblemSeverity(
   return a;
 }
 
-/**
- * Create a [RefactoringFeedback] corresponding the given [kind].
- */
+/// Create a [RefactoringFeedback] corresponding the given [kind].
 RefactoringFeedback refactoringFeedbackFromJson(
     JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
   RefactoringKind kind = jsonDecoder.refactoringKind;
@@ -202,9 +183,7 @@ RefactoringFeedback refactoringFeedbackFromJson(
   return null;
 }
 
-/**
- * Create a [RefactoringOptions] corresponding the given [kind].
- */
+/// Create a [RefactoringOptions] corresponding the given [kind].
 RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
     String jsonPath, Object json, RefactoringKind kind) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
@@ -228,40 +207,28 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   return null;
 }
 
-/**
- * Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
- * string describing the part of the JSON object being decoded, and [value] is
- * the part to decode.
- */
+/// Type of callbacks used to decode parts of JSON objects. [jsonPath] is a
+/// string describing the part of the JSON object being decoded, and [value] is
+/// the part to decode.
 typedef JsonDecoderCallback<E> = E Function(String jsonPath, Object value);
 
-/**
- * Instances of the class [HasToJson] implement [toJson] method that returns
- * a JSON presentation.
- */
+/// Instances of the class [HasToJson] implement [toJson] method that returns
+/// a JSON presentation.
 abstract class HasToJson {
-  /**
-   * Returns a JSON presentation of the object.
-   */
+  /// Returns a JSON presentation of the object.
   Map<String, Object> toJson();
 }
 
-/**
- * Base class for decoding JSON objects.  The derived class must implement
- * error reporting logic.
- */
+/// Base class for decoding JSON objects. The derived class must implement
+/// error reporting logic.
 abstract class JsonDecoder {
-  /**
-   * Retrieve the RefactoringKind that should be assumed when decoding
-   * refactoring feedback objects, or null if no refactoring feedback object is
-   * expected to be encountered.
-   */
+  /// Retrieve the RefactoringKind that should be assumed when decoding
+  /// refactoring feedback objects, or null if no refactoring feedback object is
+  /// expected to be encountered.
   RefactoringKind get refactoringKind;
 
-  /**
-   * Decode a JSON object that is expected to be a boolean.  The strings "true"
-   * and "false" are also accepted.
-   */
+  /// Decode a JSON object that is expected to be a boolean. The strings "true"
+  /// and "false" are also accepted.
   bool decodeBool(String jsonPath, Object json) {
     if (json is bool) {
       return json;
@@ -273,10 +240,8 @@ abstract class JsonDecoder {
     throw mismatch(jsonPath, 'bool', json);
   }
 
-  /**
-   * Decode a JSON object that is expected to be a double.  A string
-   * representation of a double is also accepted.
-   */
+  /// Decode a JSON object that is expected to be a double. A string
+  /// representation of a double is also accepted.
   double decodeDouble(String jsonPath, Object json) {
     if (json is double) {
       return json;
@@ -292,10 +257,8 @@ abstract class JsonDecoder {
     throw mismatch(jsonPath, 'double', json);
   }
 
-  /**
-   * Decode a JSON object that is expected to be an integer.  A string
-   * representation of an integer is also accepted.
-   */
+  /// Decode a JSON object that is expected to be an integer. A string
+  /// representation of an integer is also accepted.
   int decodeInt(String jsonPath, Object json) {
     if (json is int) {
       return json;
@@ -309,12 +272,10 @@ abstract class JsonDecoder {
     throw mismatch(jsonPath, 'int', json);
   }
 
-  /**
-   * Decode a JSON object that is expected to be a List. The [decoder] is used
-   * to decode the items in the list.
-   *
-   * The type parameter [E] is the expected type of the elements in the list.
-   */
+  /// Decode a JSON object that is expected to be a List. The [decoder] is used
+  /// to decode the items in the list.
+  ///
+  /// The type parameter [E] is the expected type of the elements in the list.
   List<E> decodeList<E>(String jsonPath, Object json,
       [JsonDecoderCallback<E> decoder]) {
     if (json == null) {
@@ -330,10 +291,8 @@ abstract class JsonDecoder {
     }
   }
 
-  /**
-   * Decode a JSON object that is expected to be a Map.  [keyDecoder] is used
-   * to decode the keys, and [valueDecoder] is used to decode the values.
-   */
+  /// Decode a JSON object that is expected to be a Map. [keyDecoder] is used
+  /// to decode the keys, and [valueDecoder] is used to decode the values.
   Map<K, V> decodeMap<K, V>(String jsonPath, Object jsonData,
       {JsonDecoderCallback<K> keyDecoder,
       JsonDecoderCallback<V> valueDecoder}) {
@@ -359,9 +318,7 @@ abstract class JsonDecoder {
     }
   }
 
-  /**
-   * Decode a JSON object that is expected to be a string.
-   */
+  /// Decode a JSON object that is expected to be a string.
   String decodeString(String jsonPath, Object json) {
     if (json is String) {
       return json;
@@ -370,12 +327,10 @@ abstract class JsonDecoder {
     }
   }
 
-  /**
-   * Decode a JSON object that is expected to be one of several choices,
-   * where the choices are disambiguated by the contents of the field [field].
-   * [decoders] is a map from each possible string in the field to the decoder
-   * that should be used to decode the JSON object.
-   */
+  /// Decode a JSON object that is expected to be one of several choices,
+  /// where the choices are disambiguated by the contents of the field [field].
+  /// [decoders] is a map from each possible string in the field to the decoder
+  /// that should be used to decode the JSON object.
   Object decodeUnion(String jsonPath, Map jsonData, String field,
       Map<String, JsonDecoderCallback> decoders) {
     if (jsonData is Map) {
@@ -394,27 +349,19 @@ abstract class JsonDecoder {
     }
   }
 
-  /**
-   * Create an exception to throw if the JSON object at [jsonPath] fails to
-   * match the API definition of [expected].
-   */
+  /// Create an exception to throw if the JSON object at [jsonPath] fails to
+  /// match the API definition of [expected].
   dynamic mismatch(String jsonPath, String expected, [Object actual]);
 
-  /**
-   * Create an exception to throw if the JSON object at [jsonPath] is missing
-   * the key [key].
-   */
+  /// Create an exception to throw if the JSON object at [jsonPath] is missing
+  /// the key [key].
   dynamic missingKey(String jsonPath, String key);
 }
 
-/**
- * JsonDecoder for decoding requests.  Errors are reporting by throwing a
- * [RequestFailure].
- */
+/// JsonDecoder for decoding requests. Errors are reporting by throwing a
+/// [RequestFailure].
 class RequestDecoder extends JsonDecoder {
-  /**
-   * The request being deserialized.
-   */
+  /// The request being deserialized.
   final Request _request;
 
   RequestDecoder(this._request);
@@ -447,17 +394,13 @@ class RequestDecoder extends JsonDecoder {
 }
 
 abstract class RequestParams implements HasToJson {
-  /**
-   * Return a request whose parameters are taken from this object and that has
-   * the given [id].
-   */
+  /// Return a request whose parameters are taken from this object and that has
+  /// the given [id].
   Request toRequest(String id);
 }
 
-/**
- * JsonDecoder for decoding responses from the server.  This is intended to be
- * used only for testing.  Errors are reported using bare [Exception] objects.
- */
+/// JsonDecoder for decoding responses from the server. This is intended to be
+/// used only for testing. Errors are reported using bare [Exception] objects.
 class ResponseDecoder extends JsonDecoder {
   @override
   final RefactoringKind refactoringKind;
@@ -485,13 +428,9 @@ class ResponseDecoder extends JsonDecoder {
   }
 }
 
-/**
- * The result data associated with a response.
- */
+/// The result data associated with a response.
 abstract class ResponseResult implements HasToJson {
-  /**
-   * Return a response whose result data is this object for the request with the
-   * given [id].
-   */
+  /// Return a response whose result data is this object for the request with the
+  /// given [id].
   Response toResponse(String id);
 }

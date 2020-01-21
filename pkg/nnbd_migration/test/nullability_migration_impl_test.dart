@@ -23,6 +23,8 @@ main() {
 @reflectiveTest
 class NullabilityMigrationImplTest {
   VariablesMock variables;
+  NullabilityMigrationImpl nullabilityMigrationImpl =
+      NullabilityMigrationImpl(null);
 
   void setUp() {
     variables = VariablesMock();
@@ -42,13 +44,14 @@ class NullabilityMigrationImplTest {
       source: [potentialModification]
     });
 
-    NullabilityMigrationImpl.broadcast(variables, listener, null);
+    nullabilityMigrationImpl.broadcast(variables, listener, null);
 
-    final fix = verify(listener.addFix(captureAny)).captured.single
-        as SingleNullabilityFix;
-    expect(fix.description.appliedMessage, 'Add ?');
-    expect(fix.source, source);
-    Location location = fix.locations.single;
+    final capturedSuggestions =
+        verify(listener.addSuggestion(captureAny, captureAny)).captured;
+    expect(capturedSuggestions, hasLength(2));
+    var descriptions = capturedSuggestions[0];
+    var location = capturedSuggestions[1] as Location;
+    expect(descriptions, 'Add ?');
     expect(location.offset, offset);
     expect(location.length, 0);
     expect(location.file, '/test.dart');
@@ -56,7 +59,7 @@ class NullabilityMigrationImplTest {
     expect(location.startColumn, 4);
     verifyNever(listener.reportException(any, any, any, any));
     final edit =
-        verify(listener.addEdit(fix, captureAny)).captured.single as SourceEdit;
+        verify(listener.addEdit(any, captureAny)).captured.single as SourceEdit;
     expect(edit.offset, offset);
     expect(edit.length, 0);
     expect(edit.replacement, '?');
@@ -72,9 +75,9 @@ class NullabilityMigrationImplTest {
       source: [potentialModification]
     });
 
-    NullabilityMigrationImpl.broadcast(variables, listener, null);
+    nullabilityMigrationImpl.broadcast(variables, listener, null);
 
-    verifyNever(listener.addFix(any));
+    verifyNever(listener.addSuggestion(any, any));
     verifyNever(listener.reportException(any, any, any, any));
     verifyNever(listener.addEdit(any, any));
   }
@@ -84,9 +87,9 @@ class NullabilityMigrationImplTest {
     final source = SourceMock('');
     when(variables.getPotentialModifications()).thenReturn({source: []});
 
-    NullabilityMigrationImpl.broadcast(variables, listener, null);
+    nullabilityMigrationImpl.broadcast(variables, listener, null);
 
-    verifyNever(listener.addFix(any));
+    verifyNever(listener.addSuggestion(any, any));
     verifyNever(listener.reportException(any, any, any, any));
     verifyNever(listener.addEdit(any, any));
   }
@@ -132,5 +135,5 @@ class _PotentialModificationMock extends PotentialModification {
         modifications = [];
 
   @override
-  Iterable<FixReasonInfo> get reasons => throw UnimplementedError();
+  Iterable<FixReasonInfo> get reasons => const [];
 }

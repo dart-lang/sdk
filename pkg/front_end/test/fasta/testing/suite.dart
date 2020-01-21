@@ -65,6 +65,8 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import 'package:kernel/kernel.dart' show loadComponentFromBytes;
 
+import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
+
 import 'package:kernel/target/targets.dart'
     show TargetFlags, DiagnosticReporter;
 
@@ -572,10 +574,17 @@ class TestVmTarget extends VmTarget {
       List<Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex,
       {void logger(String msg)}) {
     if (enabled) {
-      super.performModularTransformationsOnLibraries(component, coreTypes,
-          hierarchy, libraries, environmentDefines, diagnosticReporter,
+      super.performModularTransformationsOnLibraries(
+          component,
+          coreTypes,
+          hierarchy,
+          libraries,
+          environmentDefines,
+          diagnosticReporter,
+          referenceFromIndex,
           logger: logger);
     }
   }

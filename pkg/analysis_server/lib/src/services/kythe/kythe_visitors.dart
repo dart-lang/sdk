@@ -1075,7 +1075,7 @@ class KytheDartVisitor extends GeneralizingAstVisitor with OutputUtils {
     }
   }
 
-  _withEnclosingElement(Element element, f()) {
+  _withEnclosingElement(Element element, Function() f) {
     Element outerEnclosingElement = _enclosingElement;
     Element outerEnclosingClassElement = _enclosingClassElement;
     var outerEnclosingVName = _enclosingVName;

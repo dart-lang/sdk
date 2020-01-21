@@ -44,9 +44,10 @@ class DynamicLibrary {
   int getHandle() native "Ffi_dl_getHandle";
 
   @patch
-  bool operator ==(other) {
-    if (other == null) return false;
-    return getHandle() == other.getHandle();
+  bool operator ==(Object other) {
+    if (other is! DynamicLibrary) return false;
+    DynamicLibrary otherLib = other;
+    return getHandle() == otherLib.getHandle();
   }
 
   @patch

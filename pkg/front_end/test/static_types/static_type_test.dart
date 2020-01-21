@@ -27,6 +27,7 @@ main(List<String> args) async {
           // NNBD-only tests.
           'from_opt_in',
           'from_opt_out',
+          'if_null.dart',
         ]
       });
 }

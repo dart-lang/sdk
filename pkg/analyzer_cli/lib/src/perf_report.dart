@@ -10,19 +10,19 @@ import 'package:analyzer/src/generated/utilities_general.dart'
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart' show CommandLineOptions;
 
-const _JSON = JsonEncoder.withIndent("  ");
+const _JSON = JsonEncoder.withIndent('  ');
 
 final String _osType = () {
   if (Platform.isLinux) {
-    return "linux";
+    return 'linux';
   } else if (Platform.isMacOS) {
-    return "mac";
+    return 'mac';
   } else if (Platform.isWindows) {
-    return "windows";
+    return 'windows';
   } else if (Platform.isAndroid) {
-    return "android";
+    return 'android';
   } else {
-    return "unknown";
+    return 'unknown';
   }
 }();
 

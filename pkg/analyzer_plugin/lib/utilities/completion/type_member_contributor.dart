@@ -17,17 +17,13 @@ import 'package:analyzer_plugin/utilities/completion/completion_core.dart';
 import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 import 'package:analyzer_plugin/utilities/completion/suggestion_builder.dart';
 
-/**
- * A completion contributor that will generate suggestions for instance
- * invocations and accesses.
- */
+/// A completion contributor that will generate suggestions for instance
+/// invocations and accesses.
 class TypeMemberContributor implements CompletionContributor {
-  /**
-   * Plugin contributors should primarily overload this function.
-   * Should more parameters be needed for autocompletion needs, the
-   * overloaded function should define those parameters and
-   * call on `computeSuggestionsWithEntryPoint`.
-   */
+  /// Plugin contributors should primarily overload this function.
+  /// Should more parameters be needed for autocompletion needs, the
+  /// overloaded function should define those parameters and
+  /// call on `computeSuggestionsWithEntryPoint`.
   @override
   Future<void> computeSuggestions(
       DartCompletionRequest request, CompletionCollector collector) async {
@@ -48,9 +44,7 @@ class TypeMemberContributor implements CompletionContributor {
     _computeSuggestions(request, collector, containingLibrary, expression);
   }
 
-  /**
-   * Clients should not overload this function.
-   */
+  /// Clients should not overload this function.
   Future<void> computeSuggestionsWithEntryPoint(DartCompletionRequest request,
       CompletionCollector collector, AstNode entryPoint) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -70,9 +64,7 @@ class TypeMemberContributor implements CompletionContributor {
     _computeSuggestions(request, collector, containingLibrary, expression);
   }
 
-  /**
-   * Update the completion [target] and [dotTarget] based on the given [unit].
-   */
+  /// Update the completion [target] and [dotTarget] based on the given [unit].
   Expression _computeDotTarget(
       DartCompletionRequest request, AstNode entryPoint) {
     CompletionTarget target = CompletionTarget.forOffset(
@@ -173,25 +165,17 @@ class TypeMemberContributor implements CompletionContributor {
   }
 }
 
-/**
- * An [AstVisitor] which looks for a declaration with the given name
- * and if found, tries to determine a type for that declaration.
- */
+/// An [AstVisitor] which looks for a declaration with the given name
+/// and if found, tries to determine a type for that declaration.
 class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
-  /**
-   * The name for the declaration to be found.
-   */
+  /// The name for the declaration to be found.
   final String targetName;
 
-  /**
-   * The best type for the found declaration,
-   * or `null` if no declaration found or failed to determine a type.
-   */
+  /// The best type for the found declaration,
+  /// or `null` if no declaration found or failed to determine a type.
   DartType typeFound;
 
-  /**
-   * Construct a new instance to search for a declaration
-   */
+  /// Construct a new instance to search for a declaration
   _LocalBestTypeVisitor(this.targetName, int offset) : super(offset);
 
   @override
@@ -300,70 +284,48 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 }
 
-/**
- * This class provides suggestions based upon the visible instance members in
- * an interface type.
- */
+/// This class provides suggestions based upon the visible instance members in
+/// an interface type.
 class _SuggestionBuilder {
-  /**
-   * Enumerated value indicating that we have not generated any completions for
-   * a given identifier yet.
-   */
+  /// Enumerated value indicating that we have not generated any completions for
+  /// a given identifier yet.
   static const int _COMPLETION_TYPE_NONE = 0;
 
-  /**
-   * Enumerated value indicating that we have generated a completion for a
-   * getter.
-   */
+  /// Enumerated value indicating that we have generated a completion for a
+  /// getter.
   static const int _COMPLETION_TYPE_GETTER = 1;
 
-  /**
-   * Enumerated value indicating that we have generated a completion for a
-   * setter.
-   */
+  /// Enumerated value indicating that we have generated a completion for a
+  /// setter.
   static const int _COMPLETION_TYPE_SETTER = 2;
 
-  /**
-   * Enumerated value indicating that we have generated a completion for a
-   * field, a method, or a getter/setter pair.
-   */
+  /// Enumerated value indicating that we have generated a completion for a
+  /// field, a method, or a getter/setter pair.
   static const int _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET = 3;
 
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /**
-   * The collector being used to collect completion suggestions.
-   */
+  /// The collector being used to collect completion suggestions.
   final CompletionCollector collector;
 
-  /**
-   * The library containing the unit in which the completion is requested.
-   */
+  /// The library containing the unit in which the completion is requested.
   final LibraryElement containingLibrary;
 
-  /**
-   * Map indicating, for each possible completion identifier, whether we have
-   * already generated completions for a getter, setter, or both.  The "both"
-   * case also handles the case where have generated a completion for a method
-   * or a field.
-   *
-   * Note: the enumerated values stored in this map are intended to be bitwise
-   * compared.
-   */
+  /// Map indicating, for each possible completion identifier, whether we have
+  /// already generated completions for a getter, setter, or both. The "both"
+  /// case also handles the case where have generated a completion for a method
+  /// or a field.
+  ///
+  /// Note: the enumerated values stored in this map are intended to be bitwise
+  /// compared.
   final Map<String, int> _completionTypesGenerated = HashMap<String, int>();
 
-  /**
-   * Map from completion identifier to completion suggestion
-   */
+  /// Map from completion identifier to completion suggestion
   final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
 
-  /**
-   * The builder used to build suggestions.
-   */
+  /// The builder used to build suggestions.
   final SuggestionBuilder builder;
 
   _SuggestionBuilder(
@@ -372,14 +334,12 @@ class _SuggestionBuilder {
 
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 
-  /**
-   * Create completion suggestions for 'dot' completions on the given [type].
-   * If the 'dot' completion is a super expression, then [containingMethodName]
-   * is the name of the method in which the completion is requested.
-   */
+  /// Create completion suggestions for 'dot' completions on the given [type].
+  /// If the 'dot' completion is a super expression, then [containingMethodName]
+  /// is the name of the method in which the completion is requested.
   void buildSuggestions(InterfaceType type, String containingMethodName) {
     // Visit all of the types in the class hierarchy, collecting possible
-    // completions.  If multiple elements are found that complete to the same
+    // completions. If multiple elements are found that complete to the same
     // identifier, addSuggestion will discard all but the first (with a few
     // exceptions to handle getter/setter pairs).
     List<InterfaceType> types = _getTypeOrdering(type);
@@ -413,10 +373,8 @@ class _SuggestionBuilder {
     }
   }
 
-  /**
-   * Add a suggestion based upon the given element, provided that it is not
-   * shadowed by a previously added suggestion.
-   */
+  /// Add a suggestion based upon the given element, provided that it is not
+  /// shadowed by a previously added suggestion.
   void _addSuggestion(Element element, {int relevance}) {
     if (element.isPrivate) {
       if (element.library != containingLibrary) {
@@ -460,7 +418,7 @@ class _SuggestionBuilder {
         _completionTypesGenerated[identifier] |= _COMPLETION_TYPE_SETTER;
       }
     } else if (element is FieldElement) {
-      // Fields and methods shadow a field.  A getter/setter pair shadows a
+      // Fields and methods shadow a field. A getter/setter pair shadows a
       // field, but a getter or setter by itself doesn't.
       if (alreadyGenerated == _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET) {
         return;
@@ -479,10 +437,8 @@ class _SuggestionBuilder {
     }
   }
 
-  /**
-   * Get a list of [InterfaceType]s that should be searched to find the
-   * possible completions for an object having type [type].
-   */
+  /// Get a list of [InterfaceType]s that should be searched to find the
+  /// possible completions for an object having type [type].
   List<InterfaceType> _getTypeOrdering(InterfaceType type) {
     // Candidate completions can come from [type] as well as any types above it
     // in the class hierarchy (including mixins, superclasses, and interfaces).
@@ -505,7 +461,7 @@ class _SuggestionBuilder {
       }
       result.add(nextType);
       // typesToVisit is a stack, so push on the interfaces first, then the
-      // superclass, then the mixins.  This will ensure that they are visited
+      // superclass, then the mixins. This will ensure that they are visited
       // in the reverse order.
       typesToVisit.addAll(nextType.interfaces);
       if (nextType.superclass != null) {

@@ -23,22 +23,27 @@ h1 {
 h2#unit-name {
   font-size: 1.2em;
   font-weight: 600;
-  margin: 0;
+  margin-bottom: 0;
 }
 
 .horizontal {
   display: flex;
-  flex-wrap: wrap;
 }
 
-.nav-link {
+.panel-heading {
+  font-size: 18px;
+  font-weight: 600;
+  margin-top: 0;
+  padding: 7px 7px 0 7px;
+}
+
+.nav-link, .region {
   cursor: pointer;
 }
 
-.nav {
+.nav-panel {
   background-color: #282b2e;
-  flex-basis: 0;
-  flex: 0 1 auto;
+  flex: 1 1 270px;
   font-size: 14px;
   /* 10px to match exact top margin of .content.
    * 0.8em to pair with the -0.5em margin of .content, producing a net margin
@@ -47,23 +52,41 @@ h2#unit-name {
   margin: 10px 0.8em 0 0;
 }
 
-.nav :first-child {
-  margin-top: 0;
-}
-
 .nav-inner {
   background-color: #282b2e;
   overflow: auto;
-  padding: 7px 0 7px 7px;
+  padding: 0 0 7px 7px;
 }
 
-.nav-inner.fixed {
+.fixed {
   position: fixed;
   top: 0;
 }
 
 .nav-inner .root {
   margin: 0;
+}
+
+.nav-inner ul {
+  padding-left: 12px;
+}
+.nav-inner > ul {
+  padding-left: 0;
+  margin-top: 0;
+}
+
+.nav-inner li {
+  list-style-type: none;
+}
+
+.nav-inner li.dir::before {
+  content: "▼";
+  font-size: 8px;
+  padding-right: 5px;
+}
+
+.nav-inner li:not(.dir) {
+  padding-left: 5px;
 }
 
 .nav-inner .nav-link {
@@ -79,12 +102,13 @@ h2#unit-name {
 }
 
 .content {
-  flex: 1 1 700px;
+  flex: 0 1 auto;
   font-family: monospace;
-  /* Vertical margin around content. */
-  margin: 10px 0;
-  /* Offset the margin introduced by the absolutely positioned child div. */
-  margin-left: -0.5em;
+  /**
+   * Left margin offsets the margin introduced by the absolutely positioned
+   * child div.
+   */
+  margin: 10px 10px 10px -0.5em;
   position: relative;
   white-space: pre;
 }
@@ -103,6 +127,12 @@ h2#unit-name {
 
 .code.hljs {
   background-color: inherit;
+}
+
+.code .welcome {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 18px;
+  margin-right: 62px;
 }
 
 .code .nav-link {
@@ -165,7 +195,6 @@ h2#unit-name {
 }
 
 .region {
-  cursor: default;
   display: inline-block;
   position: relative;
   visibility: visible;
@@ -187,34 +216,12 @@ h2#unit-name {
   line-height: 1;
 }
 
+/**
+  * TODO(srawlins): Stop shipping tooltips as hidden DOM. Instead, request them
+  * on each click.
+  */
 .region .tooltip {
-  background-color: #EEE;
-  border: solid 2px #999;
-  color: #333;
-  cursor: auto;
-  font-family: sans-serif;
-  font-size: 0.8em;
-  left: 0;
-  margin-left: 0;
-  opacity: 0%;
-  padding: 1px;
-  position: absolute;
-  top: 100%;
-  transition: visibility 0s linear 500ms, opacity 200ms ease 300ms;
-  visibility: hidden;
-  white-space: normal;
-  width: 400px;
-  z-index: 1;
-}
-
-.region .tooltip > * {
-  margin: 1em;
-}
-
-.region:hover .tooltip {
-  opacity: 100%;
-  transition: opacity 150ms;
-  visibility: visible;
+  display: none;
 }
 
 .target {
@@ -222,6 +229,30 @@ h2#unit-name {
   color: black;
   position: relative;
   visibility: visible;
+}
+
+.info-panel {
+  background-color: #282b2e;
+  flex: 1 1 270px;
+  font-size: 14px;
+  margin: 10px 0;
+}
+
+.info-panel .info {
+  font-size: 13px;
+  padding: 7px;
+}
+
+.info-panel .info > :first-child {
+  margin-top: 0;
+}
+
+.info-panel ul {
+  padding-left: 18px;
+}
+
+.info-panel .nav-link {
+  color: #33ccff;
 }
 
 .footer {

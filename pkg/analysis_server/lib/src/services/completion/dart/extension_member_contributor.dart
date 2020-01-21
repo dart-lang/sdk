@@ -32,9 +32,22 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       return const <CompletionSuggestion>[];
     }
 
+    builder = MemberSuggestionBuilder(containingLibrary);
+
     // Recompute the target since resolution may have changed it.
     Expression expression = request.dotTarget;
-    if (expression == null || expression.isSynthetic) {
+
+    if (expression == null) {
+      var classOrMixin = request.target.containingNode
+          .thisOrAncestorOfType<ClassOrMixinDeclaration>();
+      if (classOrMixin != null) {
+        var type = classOrMixin.declaredElement.thisType;
+        _addExtensionMembers(containingLibrary, type);
+      }
+      return builder.suggestions.toList();
+    }
+
+    if (expression.isSynthetic) {
       return const <CompletionSuggestion>[];
     }
     if (expression is Identifier) {
@@ -50,7 +63,6 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         return const <CompletionSuggestion>[];
       }
     }
-    builder = MemberSuggestionBuilder(containingLibrary);
     if (expression is ExtensionOverride) {
       _addInstanceMembers(expression.staticElement);
     } else {
@@ -62,21 +74,25 @@ class ExtensionMemberContributor extends DartCompletionContributor {
         // to ensure that we can return the suggestions from other providers.
         return const <CompletionSuggestion>[];
       }
-      var typeSystem = containingLibrary.typeSystem;
-      LibraryScope nameScope = LibraryScope(containingLibrary);
-      for (var extension in nameScope.extensions) {
-        var extendedType =
-            _resolveExtendedType(containingLibrary, extension, type);
-        if (extendedType != null &&
-            typeSystem.isSubtypeOf(type, extendedType)) {
-          // TODO(brianwilkerson) We might want to apply the substitution to the
-          //  members of the extension for display purposes.
-          _addInstanceMembers(extension);
-        }
-      }
+
+      _addExtensionMembers(containingLibrary, type);
       expression.staticType;
     }
     return builder.suggestions.toList();
+  }
+
+  void _addExtensionMembers(LibraryElement containingLibrary, DartType type) {
+    var typeSystem = containingLibrary.typeSystem;
+    var nameScope = LibraryScope(containingLibrary);
+    for (var extension in nameScope.extensions) {
+      var extendedType =
+          _resolveExtendedType(containingLibrary, extension, type);
+      if (extendedType != null && typeSystem.isSubtypeOf(type, extendedType)) {
+        // TODO(brianwilkerson) We might want to apply the substitution to the
+        //  members of the extension for display purposes.
+        _addInstanceMembers(extension);
+      }
+    }
   }
 
   void _addInstanceMembers(ExtensionElement extension) {

@@ -9,9 +9,12 @@ import 'dart:_internal';
 class PatchedClass {
   final int _privateField;
 
-  /*member: PatchedClass.:initializers=[
-   FieldInitializer(_privateField),
-   FieldInitializer(publicField),SuperInitializer]
+  /*member: PatchedClass.:
+   initializers=[
+    FieldInitializer(_privateField),
+    FieldInitializer(publicField),
+    SuperInitializer],
+   patch
   */
   @patch
   PatchedClass(this.publicField, this._privateField);

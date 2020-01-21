@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  field core::int? _#field;
-  field core::bool _#field#isSet;
+  field core::int? _#Class#field;
+  field core::bool _#Class#field#isSet;
   constructor constructor1() → self::Class
     ;
   constructor constructor2(core::int? field) → self::Class

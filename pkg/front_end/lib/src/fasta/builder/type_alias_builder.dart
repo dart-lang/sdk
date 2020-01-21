@@ -50,12 +50,13 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
 
   TypeAliasBuilder(List<MetadataBuilder> metadata, String name,
       this.typeVariables, this.type, LibraryBuilder parent, int charOffset,
-      [Typedef typedef])
+      {Typedef typedef, Typedef referenceFrom})
       : typedef = typedef ??
             (new Typedef(name, null,
                 typeParameters: TypeVariableBuilder.typeParametersFromBuilders(
                     typeVariables),
-                fileUri: parent.library.fileUri)
+                fileUri: parent.library.fileUri,
+                reference: referenceFrom?.reference)
               ..fileOffset = charOffset),
         super(metadata, 0, name, parent, charOffset);
 

@@ -21,6 +21,9 @@
 #elif defined(HOST_OS_FUCHSIA)
 #include <trace-engine/context.h>
 #include <trace-engine/instrumentation.h>
+#elif defined(HOST_OS_MACOS)
+#include <os/availability.h>
+#include <os/signpost.h>
 #endif
 
 namespace dart {
@@ -43,6 +46,7 @@ class Zone;
 #define CALLBACK_RECORDER_NAME "Callback"
 #define ENDLESS_RECORDER_NAME "Endless"
 #define FUCHSIA_RECORDER_NAME "Fuchsia"
+#define MACOS_RECORDER_NAME "Macos"
 #define RING_RECORDER_NAME "Ring"
 #define STARTUP_RECORDER_NAME "Startup"
 #define SYSTRACE_RECORDER_NAME "Systrace"
@@ -94,6 +98,8 @@ class TimelineStream {
 
 #if defined(HOST_OS_FUCHSIA)
   trace_site_t* trace_site() { return &trace_site_; }
+#elif defined(HOST_OS_MACOS)
+  os_log_t macos_log() { return macos_log_; }
 #endif
 
  private:
@@ -106,6 +112,8 @@ class TimelineStream {
 
 #if defined(HOST_OS_FUCHSIA)
   trace_site_t trace_site_ = {};
+#elif defined(HOST_OS_MACOS)
+  os_log_t macos_log_ = {};
 #endif
 };
 
@@ -459,6 +467,7 @@ class TimelineEvent {
   friend class TimelineEventStartupRecorder;
   friend class TimelineEventPlatformRecorder;
   friend class TimelineEventFuchsiaRecorder;
+  friend class TimelineEventMacosRecorder;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
@@ -946,6 +955,22 @@ class TimelineEventSystraceRecorder : public TimelineEventPlatformRecorder {
   int systrace_fd_;
 };
 #endif  // defined(HOST_OS_ANDROID) || defined(HOST_OS_LINUX)
+
+#if defined(HOST_OS_MACOS)
+// A recorder that sends events to Macos's tracing app. See:
+// https://developer.apple.com/documentation/os/logging?language=objc
+class TimelineEventMacosRecorder : public TimelineEventPlatformRecorder {
+ public:
+  TimelineEventMacosRecorder() API_AVAILABLE(ios(12.0), macos(10.14));
+  virtual ~TimelineEventMacosRecorder() API_AVAILABLE(ios(12.0), macos(10.14));
+
+  const char* name() const { return MACOS_RECORDER_NAME; }
+  intptr_t Size() { return 0; }
+
+ private:
+  void OnEvent(TimelineEvent* event) API_AVAILABLE(ios(12.0), macos(10.14));
+};
+#endif  // defined(HOST_OS_MACOS)
 
 class DartTimelineEventHelpers : public AllStatic {
  public:

@@ -154,6 +154,7 @@ extern
 fac
 falling
 favors
+fetched
 fibonacci
 filesystem
 finder
@@ -386,6 +387,7 @@ versioning
 waiting
 walt
 warmup
+wherever
 whitelist
 whitelisting
 wins

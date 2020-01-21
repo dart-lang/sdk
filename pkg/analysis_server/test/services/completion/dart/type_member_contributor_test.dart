@@ -2578,6 +2578,86 @@ g(F.^
     assertNotSuggested('T2');
   }
 
+  test_method_parameter_function_in_param_list() async {
+    addTestSource('''
+class C {
+  void f(int x, void Function(int a, int b) closure, int y) {}
+}
+
+void main() {
+  new C().^
+}
+''');
+    await computeSuggestions();
+
+    final suggestion = assertSuggestMethod('f', 'C', 'void');
+    expect(suggestion.defaultArgumentListString, 'x, (a, b) { }, y');
+
+    // Select 'x', ' ', 'y'
+    expect(suggestion.defaultArgumentListTextRanges,
+        containsAllInOrder([0, 1, 11, 1, 15, 1]));
+  }
+
+  test_method_parameter_function_return_bool() async {
+    addTestSource('''
+class C {
+  void f(bool Function(int a, int b) closure) {}
+}
+
+void main() {
+  new C().^
+}
+''');
+    await computeSuggestions();
+
+    final suggestion = assertSuggestMethod('f', 'C', 'void');
+    expect(suggestion.defaultArgumentListString, '(a, b) => false');
+
+    // Select 'false'
+    expect(
+        suggestion.defaultArgumentListTextRanges, containsAllInOrder([10, 5]));
+  }
+
+  test_method_parameter_function_return_object() async {
+    addTestSource('''
+class C {
+  void f(Object Function(int a, int b) closure) {}
+}
+
+void main() {
+  new C().^
+}
+''');
+    await computeSuggestions();
+
+    final suggestion = assertSuggestMethod('f', 'C', 'void');
+    expect(suggestion.defaultArgumentListString, '(a, b) => null');
+
+    // Select 'null'
+    expect(
+        suggestion.defaultArgumentListTextRanges, containsAllInOrder([10, 4]));
+  }
+
+  test_method_parameter_function_return_void() async {
+    addTestSource('''
+class C {
+  void f(void Function(int a, int b) closure) {}
+}
+
+void main() {
+  new C().^
+}
+''');
+    await computeSuggestions();
+
+    final suggestion = assertSuggestMethod('f', 'C', 'void');
+    expect(suggestion.defaultArgumentListString, '(a, b) { }');
+
+    // Select ' '
+    expect(
+        suggestion.defaultArgumentListTextRanges, containsAllInOrder([8, 1]));
+  }
+
   test_method_parameters_mixed_required_and_named() async {
     addTestSource('''
 class C {

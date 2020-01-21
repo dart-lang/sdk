@@ -237,6 +237,7 @@ class Server {
     }
     _listener?.startingServer(dartBinary, arguments);
     _process = await Process.start(dartBinary, arguments);
+    // ignore: unawaited_futures
     _process.exitCode.then((int code) {
       if (code != 0 && _process != null) {
         // Report an error if server abruptly terminated

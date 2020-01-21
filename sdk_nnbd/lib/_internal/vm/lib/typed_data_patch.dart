@@ -85,7 +85,7 @@ abstract class _TypedListBase {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
@@ -157,7 +157,7 @@ mixin _IntListMixin implements List<int> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -254,7 +254,7 @@ mixin _IntListMixin implements List<int> {
     return false;
   }
 
-  int firstWhere(bool test(int element), {int orElse()}) {
+  int firstWhere(bool test(int element), {int orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -264,7 +264,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int lastWhere(bool test(int element), {int orElse()}) {
+  int lastWhere(bool test(int element), {int orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -276,7 +276,7 @@ mixin _IntListMixin implements List<int> {
     throw IterableElementError.noElement();
   }
 
-  int singleWhere(bool test(int element), {int orElse()}) {
+  int singleWhere(bool test(int element), {int orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -510,7 +510,7 @@ mixin _DoubleListMixin implements List<double> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -609,7 +609,7 @@ mixin _DoubleListMixin implements List<double> {
     return false;
   }
 
-  double firstWhere(bool test(double element), {double orElse()}) {
+  double firstWhere(bool test(double element), {double orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -619,7 +619,7 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double lastWhere(bool test(double element), {double orElse()}) {
+  double lastWhere(bool test(double element), {double orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -631,7 +631,7 @@ mixin _DoubleListMixin implements List<double> {
     throw IterableElementError.noElement();
   }
 
-  double singleWhere(bool test(double element), {double orElse()}) {
+  double singleWhere(bool test(double element), {double orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -869,7 +869,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1035,7 +1035,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     return false;
   }
 
-  Float32x4 firstWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+  Float32x4 firstWhere(bool test(Float32x4 element), {Float32x4 orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -1045,7 +1045,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     throw IterableElementError.noElement();
   }
 
-  Float32x4 lastWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+  Float32x4 lastWhere(bool test(Float32x4 element), {Float32x4 orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1057,7 +1057,7 @@ abstract class _Float32x4ListMixin implements List<Float32x4> {
     throw IterableElementError.noElement();
   }
 
-  Float32x4 singleWhere(bool test(Float32x4 element), {Float32x4 orElse()}) {
+  Float32x4 singleWhere(bool test(Float32x4 element), {Float32x4 orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1226,7 +1226,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1391,7 +1391,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     return false;
   }
 
-  Int32x4 firstWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+  Int32x4 firstWhere(bool test(Int32x4 element), {Int32x4 orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -1401,7 +1401,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     throw IterableElementError.noElement();
   }
 
-  Int32x4 lastWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+  Int32x4 lastWhere(bool test(Int32x4 element), {Int32x4 orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1413,7 +1413,7 @@ abstract class _Int32x4ListMixin implements List<Int32x4> {
     throw IterableElementError.noElement();
   }
 
-  Int32x4 singleWhere(bool test(Int32x4 element), {Int32x4 orElse()}) {
+  Int32x4 singleWhere(bool test(Int32x4 element), {Int32x4 orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -1582,7 +1582,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
       ..setRange(this.length, totalLength, other);
   }
 
-  bool contains(Object element) {
+  bool contains(Object? element) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       if (this[i] == element) return true;
@@ -1748,7 +1748,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     return false;
   }
 
-  Float64x2 firstWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+  Float64x2 firstWhere(bool test(Float64x2 element), {Float64x2 orElse()?}) {
     var len = this.length;
     for (var i = 0; i < len; ++i) {
       var element = this[i];
@@ -1758,7 +1758,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     throw IterableElementError.noElement();
   }
 
-  Float64x2 lastWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+  Float64x2 lastWhere(bool test(Float64x2 element), {Float64x2 orElse()?}) {
     var len = this.length;
     for (var i = len - 1; i >= 0; --i) {
       var element = this[i];
@@ -1770,7 +1770,7 @@ abstract class _Float64x2ListMixin implements List<Float64x2> {
     throw IterableElementError.noElement();
   }
 
-  Float64x2 singleWhere(bool test(Float64x2 element), {Float64x2 orElse()}) {
+  Float64x2 singleWhere(bool test(Float64x2 element), {Float64x2 orElse()?}) {
     var result = null;
     bool foundMatching = false;
     var len = this.length;
@@ -2308,7 +2308,8 @@ class _Int16List extends _TypedList
     _setIndexedInt16(index, _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -2375,7 +2376,8 @@ class _Uint16List extends _TypedList
     _setIndexedUint16(index, _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -3692,7 +3694,7 @@ class _TypedListIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length;
   int _position;
-  E _current;
+  E? _current;
 
   _TypedListIterator(List array)
       : _array = array,
@@ -3713,7 +3715,7 @@ class _TypedListIterator<E> implements Iterator<E> {
     return false;
   }
 
-  E get current => _current;
+  E get current => _current as E;
 }
 
 abstract class _TypedListView extends _TypedListBase implements TypedData {
@@ -3885,7 +3887,8 @@ class _Int16ArrayView extends _TypedListView
         offsetInBytes + (index * Int16List.bytesPerElement), _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -3936,7 +3939,8 @@ class _Uint16ArrayView extends _TypedListView
         offsetInBytes + (index * Uint16List.bytesPerElement), _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<int> iterable,
+      [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;

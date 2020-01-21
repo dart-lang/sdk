@@ -1,0 +1,46 @@
+# Copyright (c) 2019, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Compile an application, change a file, but don't change the outline.
+# Force the creating of forwarding stubs.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        abstract class C extends B implements A<int> {}
+        main() {
+          print("#1");
+        }
+      lib1.dart: |
+        class A<T> {
+          foo(T t) {
+            print("foo T $t");
+          }
+        }
+
+        class B {
+          foo(int t) {
+            print("foo int $t");
+          }
+        }
+    expectedLibraryCount: 2
+  - entry: main.dart
+    useExperimentalInvalidation: true
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "lib1.dart";
+        abstract class C extends B implements A<int> {}
+        main() {
+          print("#2");
+        }
+    expectedLibraryCount: 2
+    expectsRebuildBodiesOnly: true

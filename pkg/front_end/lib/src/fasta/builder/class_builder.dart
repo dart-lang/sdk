@@ -18,7 +18,6 @@ import 'package:kernel/ast.dart'
         FunctionType,
         InterfaceType,
         InvalidType,
-        ListLiteral,
         Member,
         MethodInvocation,
         Name,
@@ -27,7 +26,6 @@ import 'package:kernel/ast.dart'
         ProcedureKind,
         RedirectingFactoryConstructor,
         ReturnStatement,
-        StaticGet,
         Supertype,
         ThisExpression,
         TypeParameter,
@@ -101,8 +99,7 @@ import '../fasta_codes.dart'
         templateRedirectingFactoryIncompatibleTypeArgument,
         templateTypeArgumentMismatch;
 
-import '../kernel/redirecting_factory_body.dart'
-    show getRedirectingFactoryBody, redirectingName;
+import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
 
 import '../kernel/kernel_target.dart' show KernelTarget;
 
@@ -234,9 +231,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
       Supertype supertype, TypeEnvironment typeEnvironment);
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment);
-
-  void addRedirectingConstructor(
-      ProcedureBuilder constructorBuilder, SourceLibraryBuilder library);
 
   void handleSeenCovariant(
       Types types,
@@ -948,40 +942,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       library.reportTypeArgumentIssue(
           message, fileUri, fileOffset, typeParameter);
     }
-  }
-
-  @override
-  void addRedirectingConstructor(
-      ProcedureBuilder constructorBuilder, SourceLibraryBuilder library) {
-    // Add a new synthetic field to this class for representing factory
-    // constructors. This is used to support resolving such constructors in
-    // source code.
-    //
-    // The synthetic field looks like this:
-    //
-    //     final _redirecting# = [c1, ..., cn];
-    //
-    // Where each c1 ... cn are an instance of [StaticGet] whose target is
-    // [constructor.target].
-    //
-    // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
-    DillMemberBuilder constructorsField =
-        origin.scope.lookupLocalMember(redirectingName, setter: false);
-    if (constructorsField == null) {
-      ListLiteral literal = new ListLiteral(<Expression>[]);
-      Name name = new Name(redirectingName, library.library);
-      Field field = new Field(name,
-          isStatic: true, initializer: literal, fileUri: cls.fileUri)
-        ..fileOffset = cls.fileOffset;
-      cls.addMember(field);
-      constructorsField = new DillMemberBuilder(field, this);
-      origin.scope
-          .addLocalMember(redirectingName, constructorsField, setter: false);
-    }
-    Field field = constructorsField.member;
-    ListLiteral literal = field.initializer;
-    literal.expressions
-        .add(new StaticGet(constructorBuilder.procedure)..parent = literal);
   }
 
   @override

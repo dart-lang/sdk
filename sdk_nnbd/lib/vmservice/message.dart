@@ -7,7 +7,7 @@ part of dart._vmservice;
 enum MessageType { Request, Notification, Response }
 
 class Message {
-  final Completer<Response> _completer = Completer<Response>.sync();
+  final _completer = Completer<Response>.sync();
   bool get completed => _completer.isCompleted;
 
   /// Future of response.
@@ -22,15 +22,15 @@ class Message {
 
   final String? method;
 
-  final Map<String, dynamic> params = {};
-  final Map result = {};
-  final Map error = {};
+  final params = <String, dynamic>{};
+  final result = {};
+  final error = {};
 
   factory Message.fromJsonRpc(Client? client, Map map) {
     if (map.containsKey('id')) {
       final id = map['id'];
       if (id != null && id is! num && id is! String) {
-        throw Exception('"id" must be a number, string, or null.');
+        throw Exception("'id' must be a number, string, or null.");
       }
       if (map.containsKey('method')) {
         return Message._fromJsonRpcRequest(client, map);
@@ -88,10 +88,7 @@ class Message {
   }
 
   static String _methodNameFromUri(Uri uri) {
-    if (uri == null) {
-      return '';
-    }
-    if (uri.pathSegments.length == 0) {
+    if (uri == null || uri.pathSegments.length == 0) {
       return '';
     }
     return uri.pathSegments[0];
@@ -120,12 +117,10 @@ class Message {
 
   Uri toUri() => Uri(path: method!, queryParameters: params);
 
-  dynamic toJson() {
-    throw 'unsupported';
-  }
+  dynamic toJson() => throw 'unsupported';
 
-  dynamic forwardToJson([Map? overloads]) {
-    Map<dynamic, dynamic> json = {'jsonrpc': '2.0', 'id': serial};
+  Map<String, dynamic> forwardToJson([Map<String, dynamic>? overloads]) {
+    final json = <String, dynamic>{'jsonrpc': '2.0', 'id': serial};
     switch (type) {
       case MessageType.Request:
       case MessageType.Notification:
@@ -152,12 +147,9 @@ class Message {
   // elements in the list are strings, making consumption by C++ simpler.
   // This has a side effect that boolean literal values like true become 'true'
   // and thus indistinguishable from the string literal 'true'.
-  List<String> _makeAllString(List list) {
-    var newList = <String>[
-      for (final e in list) e.toString(),
-    ];
-    return newList;
-  }
+  List<String> _makeAllString(List list) => <String>[
+        for (final e in list) e.toString(),
+      ];
 
   Future<Response> sendToIsolate(SendPort sendPort) {
     final receivePort = RawReceivePort();
@@ -165,9 +157,9 @@ class Message {
       receivePort.close();
       _setResponseFromPort(value);
     };
-    var keys = _makeAllString(params.keys.toList(growable: false));
-    var values = _makeAllString(params.values.toList(growable: false));
-    var request = List(6)
+    final keys = _makeAllString(params.keys.toList(growable: false));
+    final values = _makeAllString(params.values.toList(growable: false));
+    final request = List.filled(6, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = receivePort.sendPort
       ..[2] = serial
@@ -215,8 +207,7 @@ class Message {
       keys = _makeAllString(keys);
       values = _makeAllString(values);
     }
-
-    final request = List(6)
+    final request = List.filled(6, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = receivePort.sendPort
       ..[2] = serial
@@ -243,19 +234,17 @@ class Message {
     _completer.complete(Response.from(response));
   }
 
-  void setResponse(String response) {
-    _completer.complete(Response(ResponsePayloadKind.String, response));
-  }
+  void setResponse(String response) =>
+      _completer.complete(Response(ResponsePayloadKind.String, response));
 
-  void setErrorResponse(int code, String details) {
-    setResponse(encodeRpcError(this, code, details: '$method: $details'));
-  }
+  void setErrorResponse(int code, String details) =>
+      setResponse(encodeRpcError(this, code, details: '$method: $details'));
 }
 
 bool sendIsolateServiceMessage(SendPort sp, List m)
-    native "VMService_SendIsolateServiceMessage";
+    native 'VMService_SendIsolateServiceMessage';
 
-void sendRootServiceMessage(List m) native "VMService_SendRootServiceMessage";
+void sendRootServiceMessage(List m) native 'VMService_SendRootServiceMessage';
 
 void sendObjectRootServiceMessage(List m)
-    native "VMService_SendObjectRootServiceMessage";
+    native 'VMService_SendObjectRootServiceMessage';

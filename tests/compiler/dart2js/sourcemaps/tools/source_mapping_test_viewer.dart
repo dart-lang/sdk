@@ -8,7 +8,7 @@
 library source_mapping.test.viewer;
 
 import 'dart:async';
-import 'package:compiler/src/filenames.dart';
+import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:compiler/src/util/util.dart';
 import 'source_mapping_tester.dart';
 import '../helpers/sourcemap_helper.dart';

@@ -6,6 +6,7 @@ library kernel.target.targets;
 import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
+import '../reference_from_index.dart';
 
 final List<String> targetNames = targets.keys.toList();
 
@@ -170,6 +171,7 @@ abstract class Target {
       // transformations.
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex,
       {void logger(String msg)});
 
   /// Perform target-specific modular transformations on the given program.
@@ -294,6 +296,7 @@ class NoneTarget extends Target {
       List<Library> libraries,
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
+      ReferenceFromIndex referenceFromIndex,
       {void logger(String msg)}) {}
 
   @override

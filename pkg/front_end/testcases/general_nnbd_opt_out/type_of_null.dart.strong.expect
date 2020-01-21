@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method map<T extends core::Object* = dynamic>(() →* self::map::T* f1, () →* self::map::T* f2) → self::map::T* {}
+static method id<T extends core::Object* = dynamic>(self::id::T* t) → dynamic
+  return t;
+static method foo() → core::Null?
+  return null;
+static method main() → dynamic {
+  self::map<core::Null?>(() → core::Null? {}, () → <BottomType>=> throw "hello");
+  self::map<core::Null?>(() → <BottomType>=> throw "hello", () → core::Null? {});
+  () →* core::Null? f = () → core::Null? {};
+  self::map<core::Null?>(#C1, () → <BottomType>=> throw "hello");
+  self::map<core::Null?>(() → <BottomType>=> throw "hello", #C1);
+  self::map<core::Null?>(() → core::Null? {
+    return null;
+  }, () → <BottomType>=> throw "hello");
+  self::map<core::Null?>(() → <BottomType>=> throw "hello", () → core::Null? {
+    return null;
+  });
+  self::id<() →* core::Null?>(() → core::Null? {});
+}
+
+constants  {
+  #C1 = tearoff self::foo
+}

@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method main() → dynamic
+  ;
+static method returnsString() → asy::FutureOr<core::String*>*
+  ;

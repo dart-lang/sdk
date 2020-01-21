@@ -33,7 +33,7 @@ import "package:kernel/type_algebra.dart" show Substitution;
 import "package:kernel/src/legacy_erasure.dart";
 import "package:kernel/src/nnbd_top_merge.dart";
 
-import "../builder/class_builder.dart";
+import "../source/source_class_builder.dart";
 
 import "../problems.dart" show unhandled;
 
@@ -47,7 +47,7 @@ import 'class_hierarchy_builder.dart';
 class ForwardingNode {
   final ClassHierarchyBuilder hierarchy;
 
-  final ClassBuilder parent;
+  final SourceClassBuilder parent;
 
   final ClassMember combinedMemberSignatureResult;
 
@@ -446,12 +446,23 @@ class ForwardingNode {
     } else {
       finalTarget = target;
     }
+    Procedure referenceFrom;
+    if (parent.referencesFromIndexed != null) {
+      if (kind == ProcedureKind.Setter) {
+        referenceFrom =
+            parent.referencesFromIndexed.lookupProcedureSetter(name.name);
+      } else {
+        referenceFrom =
+            parent.referencesFromIndexed.lookupProcedureNotSetter(name.name);
+      }
+    }
     return new Procedure(name, kind, function,
         isAbstract: true,
         isForwardingStub: !forMemberSignature,
         isMemberSignature: forMemberSignature,
         fileUri: enclosingClass.fileUri,
-        forwardingStubInterfaceTarget: finalTarget)
+        forwardingStubInterfaceTarget: finalTarget,
+        reference: referenceFrom?.reference)
       ..startFileOffset = enclosingClass.fileOffset
       ..fileOffset = enclosingClass.fileOffset
       ..parent = enclosingClass;

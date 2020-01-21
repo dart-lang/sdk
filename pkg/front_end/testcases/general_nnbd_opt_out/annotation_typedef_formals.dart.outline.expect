@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef F = (core::int*, core::num*, {w: core::Object*, z: core::String*}) →* void;
+typedef G = (core::int*, core::num*, [core::String*, core::Object*]) →* void;
+static const field core::int* foo = 21;
+static const field core::int* bar = 42;
+static const field core::int* baz = 84;
+static method main() → dynamic
+  ;

@@ -1,0 +1,54 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "package:ffi/src/allocation.dart" as all;
+
+import "dart:ffi";
+import "package:ffi/ffi.dart";
+
+@#C3
+class Coordinate extends ffi::Struct {
+  @#C3
+  static final field core::int* #sizeOf = (#C6).{core::List::[]}(ffi::_abi());
+  @#C3
+  constructor #fromPointer(dynamic #pointer) → dynamic
+    : super ffi::Struct::_fromPointer(#pointer)
+    ;
+  static factory allocate(core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
+    return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(all::allocate<self::Coordinate*>()) in let final void #t2 = #t1.{self::Coordinate::x} = x in let final void #t3 = #t1.{self::Coordinate::y} = y in let final void #t4 = #t1.{self::Coordinate::next} = next in #t1;
+  }
+  get #_ptr_x() → ffi::Pointer<ffi::Double*>*
+    return this.{ffi::Struct::_addressOf}.{ffi::Pointer::cast}<ffi::Double*>();
+  get x() → core::double*
+    return ffi::_loadDouble(this.{self::Coordinate::#_ptr_x}, #C7);
+  set x(core::double* #v) → void
+    return ffi::_storeDouble(this.{self::Coordinate::#_ptr_x}, #C7, #v);
+  get #_ptr_y() → ffi::Pointer<ffi::Double*>*
+    return this.{ffi::Struct::_addressOf}.{ffi::Pointer::_offsetBy}((#C9).{core::List::[]}(ffi::_abi())).{ffi::Pointer::cast}<ffi::Double*>();
+  get y() → core::double*
+    return ffi::_loadDouble(this.{self::Coordinate::#_ptr_y}, #C7);
+  set y(core::double* #v) → void
+    return ffi::_storeDouble(this.{self::Coordinate::#_ptr_y}, #C7, #v);
+  get #_ptr_next() → ffi::Pointer<ffi::Pointer<self::Coordinate*>*>*
+    return this.{ffi::Struct::_addressOf}.{ffi::Pointer::_offsetBy}((#C11).{core::List::[]}(ffi::_abi())).{ffi::Pointer::cast}<ffi::Pointer<self::Coordinate*>*>();
+  get next() → ffi::Pointer<self::Coordinate*>*
+    return ffi::_loadPointer<ffi::Pointer<self::Coordinate*>*>(this.{self::Coordinate::#_ptr_next}, #C7);
+  set next(ffi::Pointer<self::Coordinate*>* #v) → void
+    return ffi::_storePointer<ffi::Pointer<self::Coordinate*>*>(this.{self::Coordinate::#_ptr_next}, #C7, #v);
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = 24
+  #C5 = 20
+  #C6 = <core::int*>[#C4, #C5, #C4]
+  #C7 = 0
+  #C8 = 8
+  #C9 = <core::int*>[#C8, #C8, #C8]
+  #C10 = 16
+  #C11 = <core::int*>[#C10, #C10, #C10]
+}

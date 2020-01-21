@@ -75,7 +75,7 @@ abstract class IntegrationTestMixin {
       String byteStorePath, String sdkPath, String version) async {
     var params =
         PluginVersionCheckParams(byteStorePath, sdkPath, version).toJson();
-    var result = await server.send("plugin.versionCheck", params);
+    var result = await server.send('plugin.versionCheck', params);
     ResponseDecoder decoder = ResponseDecoder(null);
     return PluginVersionCheckResult.fromJson(decoder, 'result', result);
   }
@@ -84,7 +84,7 @@ abstract class IntegrationTestMixin {
   /// requests after this request. The plugin should not send any responses or
   /// notifications after sending the response to this request.
   Future sendPluginShutdown() async {
-    var result = await server.send("plugin.shutdown", null);
+    var result = await server.send('plugin.shutdown', null);
     outOfTestExpect(result, isNull);
     return null;
   }
@@ -167,7 +167,7 @@ abstract class IntegrationTestMixin {
   Future<AnalysisGetNavigationResult> sendAnalysisGetNavigation(
       String file, int offset, int length) async {
     var params = AnalysisGetNavigationParams(file, offset, length).toJson();
-    var result = await server.send("analysis.getNavigation", params);
+    var result = await server.send('analysis.getNavigation', params);
     ResponseDecoder decoder = ResponseDecoder(null);
     return AnalysisGetNavigationResult.fromJson(decoder, 'result', result);
   }
@@ -183,7 +183,7 @@ abstract class IntegrationTestMixin {
   ///   The watch events that the plugin should handle.
   Future sendAnalysisHandleWatchEvents(List<WatchEvent> events) async {
     var params = AnalysisHandleWatchEventsParams(events).toJson();
-    var result = await server.send("analysis.handleWatchEvents", params);
+    var result = await server.send('analysis.handleWatchEvents', params);
     outOfTestExpect(result, isNull);
     return null;
   }
@@ -197,7 +197,7 @@ abstract class IntegrationTestMixin {
   ///   A list of the context roots that should be analyzed.
   Future sendAnalysisSetContextRoots(List<ContextRoot> roots) async {
     var params = AnalysisSetContextRootsParams(roots).toJson();
-    var result = await server.send("analysis.setContextRoots", params);
+    var result = await server.send('analysis.setContextRoots', params);
     outOfTestExpect(result, isNull);
     return null;
   }
@@ -217,7 +217,7 @@ abstract class IntegrationTestMixin {
   ///   The files that are to be a priority for analysis.
   Future sendAnalysisSetPriorityFiles(List<String> files) async {
     var params = AnalysisSetPriorityFilesParams(files).toJson();
-    var result = await server.send("analysis.setPriorityFiles", params);
+    var result = await server.send('analysis.setPriorityFiles', params);
     outOfTestExpect(result, isNull);
     return null;
   }
@@ -238,7 +238,7 @@ abstract class IntegrationTestMixin {
   Future sendAnalysisSetSubscriptions(
       Map<AnalysisService, List<String>> subscriptions) async {
     var params = AnalysisSetSubscriptionsParams(subscriptions).toJson();
-    var result = await server.send("analysis.setSubscriptions", params);
+    var result = await server.send('analysis.setSubscriptions', params);
     outOfTestExpect(result, isNull);
     return null;
   }
@@ -259,7 +259,7 @@ abstract class IntegrationTestMixin {
   ///   the content change.
   Future sendAnalysisUpdateContent(Map<String, dynamic> files) async {
     var params = AnalysisUpdateContentParams(files).toJson();
-    var result = await server.send("analysis.updateContent", params);
+    var result = await server.send('analysis.updateContent', params);
     outOfTestExpect(result, isNull);
     return null;
   }
@@ -464,7 +464,7 @@ abstract class IntegrationTestMixin {
   Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
       String file, int offset) async {
     var params = CompletionGetSuggestionsParams(file, offset).toJson();
-    var result = await server.send("completion.getSuggestions", params);
+    var result = await server.send('completion.getSuggestions', params);
     ResponseDecoder decoder = ResponseDecoder(null);
     return CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
   }
@@ -496,7 +496,7 @@ abstract class IntegrationTestMixin {
   Future<EditGetAssistsResult> sendEditGetAssists(
       String file, int offset, int length) async {
     var params = EditGetAssistsParams(file, offset, length).toJson();
-    var result = await server.send("edit.getAssists", params);
+    var result = await server.send('edit.getAssists', params);
     ResponseDecoder decoder = ResponseDecoder(null);
     return EditGetAssistsResult.fromJson(decoder, 'result', result);
   }
@@ -532,7 +532,7 @@ abstract class IntegrationTestMixin {
       String file, int offset, int length) async {
     var params =
         EditGetAvailableRefactoringsParams(file, offset, length).toJson();
-    var result = await server.send("edit.getAvailableRefactorings", params);
+    var result = await server.send('edit.getAvailableRefactorings', params);
     ResponseDecoder decoder = ResponseDecoder(null);
     return EditGetAvailableRefactoringsResult.fromJson(
         decoder, 'result', result);
@@ -558,7 +558,7 @@ abstract class IntegrationTestMixin {
   ///   The fixes that are available for the errors at the given offset.
   Future<EditGetFixesResult> sendEditGetFixes(String file, int offset) async {
     var params = EditGetFixesParams(file, offset).toJson();
-    var result = await server.send("edit.getFixes", params);
+    var result = await server.send('edit.getFixes', params);
     ResponseDecoder decoder = ResponseDecoder(null);
     return EditGetFixesResult.fromJson(decoder, 'result', result);
   }
@@ -647,7 +647,7 @@ abstract class IntegrationTestMixin {
             kind, file, offset, length, validateOnly,
             options: options)
         .toJson();
-    var result = await server.send("edit.getRefactoring", params);
+    var result = await server.send('edit.getRefactoring', params);
     ResponseDecoder decoder = ResponseDecoder(kind);
     return EditGetRefactoringResult.fromJson(decoder, 'result', result);
   }
@@ -677,7 +677,7 @@ abstract class IntegrationTestMixin {
   Future<KytheGetKytheEntriesResult> sendKytheGetKytheEntries(
       String file) async {
     var params = KytheGetKytheEntriesParams(file).toJson();
-    var result = await server.send("kythe.getKytheEntries", params);
+    var result = await server.send('kythe.getKytheEntries', params);
     ResponseDecoder decoder = ResponseDecoder(null);
     return KytheGetKytheEntriesResult.fromJson(decoder, 'result', result);
   }
@@ -709,37 +709,37 @@ abstract class IntegrationTestMixin {
   void dispatchNotification(String event, params) {
     ResponseDecoder decoder = ResponseDecoder(null);
     switch (event) {
-      case "plugin.error":
+      case 'plugin.error':
         outOfTestExpect(params, isPluginErrorParams);
         _onPluginError
             .add(PluginErrorParams.fromJson(decoder, 'params', params));
         break;
-      case "analysis.errors":
+      case 'analysis.errors':
         outOfTestExpect(params, isAnalysisErrorsParams);
         _onAnalysisErrors
             .add(AnalysisErrorsParams.fromJson(decoder, 'params', params));
         break;
-      case "analysis.folding":
+      case 'analysis.folding':
         outOfTestExpect(params, isAnalysisFoldingParams);
         _onAnalysisFolding
             .add(AnalysisFoldingParams.fromJson(decoder, 'params', params));
         break;
-      case "analysis.highlights":
+      case 'analysis.highlights':
         outOfTestExpect(params, isAnalysisHighlightsParams);
         _onAnalysisHighlights
             .add(AnalysisHighlightsParams.fromJson(decoder, 'params', params));
         break;
-      case "analysis.navigation":
+      case 'analysis.navigation':
         outOfTestExpect(params, isAnalysisNavigationParams);
         _onAnalysisNavigation
             .add(AnalysisNavigationParams.fromJson(decoder, 'params', params));
         break;
-      case "analysis.occurrences":
+      case 'analysis.occurrences':
         outOfTestExpect(params, isAnalysisOccurrencesParams);
         _onAnalysisOccurrences
             .add(AnalysisOccurrencesParams.fromJson(decoder, 'params', params));
         break;
-      case "analysis.outline":
+      case 'analysis.outline':
         outOfTestExpect(params, isAnalysisOutlineParams);
         _onAnalysisOutline
             .add(AnalysisOutlineParams.fromJson(decoder, 'params', params));

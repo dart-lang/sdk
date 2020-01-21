@@ -431,6 +431,11 @@ class List<E> {
   }
 
   @patch
+  factory List.empty({bool growable = false}) {
+    return growable ? new JSArray<E>.growable(0) : new JSArray<E>.fixed(0);
+  }
+
+  @patch
   factory List.from(Iterable elements, {bool growable: true}) {
     List<E> list = <E>[];
     for (E e in elements) {

@@ -10,7 +10,7 @@ import 'dart:html';
 import 'dart:typed_data';
 import 'package:observatory/allocation_profile.dart';
 import 'package:observatory/sample_profile.dart';
-import 'package:observatory/heap_snapshot.dart';
+import 'package:observatory/object_graph.dart';
 import 'package:observatory/models.dart' as M;
 import 'package:observatory/service.dart' as S;
 import 'package:observatory/service_common.dart' as SC;

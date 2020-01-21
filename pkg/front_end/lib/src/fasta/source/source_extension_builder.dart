@@ -48,12 +48,14 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl {
       LibraryBuilder parent,
       int startOffset,
       int nameOffset,
-      int endOffset)
+      int endOffset,
+      Extension referenceFrom)
       : _extension = new Extension(
             name: name,
             fileUri: parent.fileUri,
             typeParameters:
-                TypeVariableBuilder.typeParametersFromBuilders(typeParameters))
+                TypeVariableBuilder.typeParametersFromBuilders(typeParameters),
+            reference: referenceFrom?.reference)
           ..fileOffset = nameOffset,
         super(metadata, modifiers, name, parent, nameOffset, scope,
             typeParameters, onType);

@@ -81,18 +81,18 @@ vm:
         - "../../sdk/lib/_internal/vm/lib/weak_property.dart"
 
     developer:
-      uri: "../../sdk/lib/developer/developer.dart"
+      uri: "developer/developer.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/developer.dart"
-        - "../../sdk/lib/_internal/vm/lib/profiler.dart"
-        - "../../sdk/lib/_internal/vm/lib/timeline.dart"
+        - "_internal/vm/lib/developer.dart"
+        - "_internal/vm/lib/profiler.dart"
+        - "_internal/vm/lib/timeline.dart"
 
     ffi:
-      uri: "../../sdk/lib/ffi/ffi.dart"
+      uri: "ffi/ffi.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/ffi_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/ffi_dynamic_library_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/ffi_native_type_patch.dart"
+        - "_internal/vm/lib/ffi_patch.dart"
+        - "_internal/vm/lib/ffi_dynamic_library_patch.dart"
+        - "_internal/vm/lib/ffi_native_type_patch.dart"
 
     wasm:
       uri: "wasm/wasm.dart"
@@ -121,10 +121,10 @@ vm:
         - "../../sdk/lib/_internal/vm/bin/sync_socket_patch.dart"
 
     isolate:
-      uri: "../../sdk/lib/isolate/isolate.dart"
+      uri: "isolate/isolate.dart"
       patches:
-        - "../../sdk/lib/_internal/vm/lib/isolate_patch.dart"
-        - "../../sdk/lib/_internal/vm/lib/timer_impl.dart"
+        - "_internal/vm/lib/isolate_patch.dart"
+        - "_internal/vm/lib/timer_impl.dart"
 
     math:
       uri: "../../sdk/lib/math/math.dart"
@@ -138,7 +138,7 @@ vm:
         - "_internal/vm/lib/mirror_reference.dart"
 
     nativewrappers:
-      uri: "../../sdk/lib/html/dartium/nativewrappers.dart"
+      uri: "html/dartium/nativewrappers.dart"
 
     cli:
       uri: "cli/cli.dart"

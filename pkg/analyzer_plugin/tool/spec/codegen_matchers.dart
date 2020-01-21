@@ -2,11 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code generation for the file "matchers.dart".
- */
-import 'dart:convert';
-
+/// Code generation for the file "matchers.dart".
 import 'package:analysis_tool/tools.dart';
 
 import 'api.dart';
@@ -21,15 +17,11 @@ final GeneratedFile target = GeneratedFile(
 });
 
 class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
-  /**
-   * Visitor used to produce doc comments.
-   */
+  /// Visitor used to produce doc comments.
   final ToHtmlVisitor toHtmlVisitor;
 
-  /**
-   * Short human-readable string describing the context of the matcher being
-   * created.
-   */
+  /// Short human-readable string describing the context of the matcher being
+  /// created.
   String context;
 
   CodegenMatchersVisitor(Api api)
@@ -42,11 +34,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     codeGeneratorSettings.languageName = 'dart';
   }
 
-  /**
-   * Create a matcher for the part of the API called [name], optionally
-   * clarified by [nameSuffix].  The matcher should verify that its input
-   * matches the given [type].
-   */
+  /// Create a matcher for the part of the API called [name], optionally
+  /// clarified by [nameSuffix]. The matcher should verify that its input
+  /// matches the given [type].
   void makeMatcher(ImpliedType impliedType) {
     context = impliedType.humanReadableName;
     docComment(toHtmlVisitor.collectHtml(() {
@@ -67,11 +57,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln();
   }
 
-  /**
-   * Generate a map describing the given set of fields, for use as the
-   * 'requiredFields' or 'optionalFields' argument to the [MatchesJsonObject]
-   * constructor.
-   */
+  /// Generate a map describing the given set of fields, for use as the
+  /// 'requiredFields' or 'optionalFields' argument to the [MatchesJsonObject]
+  /// constructor.
   void outputObjectFields(Iterable<TypeObjectField> fields) {
     if (fields.isEmpty) {
       write('null');
@@ -84,9 +72,9 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
         if (commaNeeded) {
           writeln(',');
         }
-        write('${json.encode(field.name)}: ');
+        write("'${field.name}': ");
         if (field.value != null) {
-          write('equals(${json.encode(field.value)})');
+          write("equals('${field.value}')");
         } else {
           visitTypeDecl(field.type);
         }
@@ -116,14 +104,14 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
 
   @override
   visitTypeEnum(TypeEnum typeEnum) {
-    writeln('MatchesEnum(${json.encode(context)}, [');
+    writeln("MatchesEnum('$context', [");
     indent(() {
       bool commaNeeded = false;
       for (TypeEnumValue value in typeEnum.values) {
         if (commaNeeded) {
           writeln(',');
         }
-        write('${json.encode(value.value)}');
+        write("'${value.value}'");
         commaNeeded = true;
       }
       writeln();
@@ -151,7 +139,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   void visitTypeObject(TypeObject typeObject) {
     writeln('LazyMatcher(() => MatchesJsonObject(');
     indent(() {
-      write('${json.encode(context)}, ');
+      write("'$context', ");
       Iterable<TypeObjectField> requiredFields =
           typeObject.fields.where((TypeObjectField field) => !field.optional);
       outputObjectFields(requiredFields);

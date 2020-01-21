@@ -23,9 +23,6 @@ abstract class TypeBuilder {
   /// See `UnresolvedType.checkType`.
   void check(LibraryBuilder library, int charOffset, Uri fileUri) {}
 
-  /// See `UnresolvedType.normalizeType`.
-  void normalize(int charOffset, Uri fileUri) {}
-
   void bind(TypeDeclarationBuilder builder) {}
 
   /// May return null, for example, for mixin applications.

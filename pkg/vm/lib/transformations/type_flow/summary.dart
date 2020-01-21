@@ -206,7 +206,7 @@ class Call extends Statement {
     }
     setReachable();
     if (selector is! DirectSelector) {
-      _observeReceiverType(argTypes[0]);
+      _observeReceiverType(argTypes[0], typeHierarchy);
     }
     Type result = callHandler.applyCall(
         this, selector, new Args<Type>(argTypes, names: args.names),
@@ -232,6 +232,7 @@ class Call extends Statement {
   static const int kResultUsed = (1 << 3);
   static const int kReachable = (1 << 4);
   static const int kUseCheckedEntry = (1 << 5);
+  static const int kReceiverMayBeInt = (1 << 6);
 
   Member _monomorphicTarget;
 
@@ -246,6 +247,8 @@ class Call extends Statement {
   bool get isResultUsed => (_flags & kResultUsed) != 0;
 
   bool get isReachable => (_flags & kReachable) != 0;
+
+  bool get receiverMayBeInt => (_flags & kReceiverMayBeInt) != 0;
 
   bool get useCheckedEntry => (_flags & kUseCheckedEntry) != 0;
 
@@ -281,9 +284,15 @@ class Call extends Statement {
     }
   }
 
-  void _observeReceiverType(Type receiver) {
+  void _observeReceiverType(Type receiver, TypeHierarchy typeHierarchy) {
     if (receiver is NullableType) {
       _flags |= kNullableReceiver;
+    }
+    final receiverIntIntersect =
+        receiver.intersection(typeHierarchy.intType, typeHierarchy);
+    if (receiverIntIntersect != EmptyType() &&
+        receiverIntIntersect != NullableType(EmptyType())) {
+      _flags |= kReceiverMayBeInt;
     }
   }
 

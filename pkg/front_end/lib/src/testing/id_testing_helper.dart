@@ -217,7 +217,7 @@ Future<Map<String, TestResult<T>>> runTest<T>(TestData testData,
     Map<String, List<String>> skipMap}) async {
   Map<String, TestResult<T>> results = {};
   for (TestConfig config in testedConfigs) {
-    if (skipForConfig(testData.name, config.name, skipMap)) {
+    if (skipForConfig(testData.name, config.marker, skipMap)) {
       continue;
     }
     results[config.marker] = await runTestForConfig(
@@ -294,6 +294,10 @@ Future<TestResult<T>> runTestForConfig<T>(
 
     errorMap.forEach((Uri uri, Map<int, List<FormattedMessage>> map) {
       map.forEach((int offset, List<DiagnosticMessage> list) {
+        if (offset < 0) {
+          // Position errors without offset in the begin of the file.
+          offset = 0;
+        }
         NodeId id = new NodeId(offset, IdKind.error);
         T data = dataComputer.computeErrorData(compilerResult, id, list);
         if (data != null) {
@@ -439,7 +443,7 @@ void printMessageInLocation(
     if (source == null) {
       print('$uri@$offset: $message');
     } else {
-      if (offset != null) {
+      if (offset != null && offset >= 1) {
         Location location = source.getLocation(uri, offset);
         print('$location: $message');
         if (!succinct) {

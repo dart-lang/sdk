@@ -5,7 +5,7 @@
 import 'dart:io' show Platform;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_unstable/bazel_worker.dart';
+import 'package:front_end/src/fasta/kernel/utils.dart';
 
 import 'package:kernel/kernel.dart'
     show Component, Library, LibraryPart, Reference;
@@ -29,7 +29,7 @@ main(List<String> args) async {
 
   Stopwatch stopwatch = new Stopwatch()..start();
   Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
-  CompilerOptions options = helper.getOptions(targetName: "None");
+  CompilerOptions options = helper.getOptions(targetName: "VM");
   helper.TestIncrementalCompiler compiler =
       new helper.TestIncrementalCompiler(options, input);
   compiler.useExperimentalInvalidation = useExperimentalInvalidation;
@@ -74,6 +74,7 @@ main(List<String> args) async {
   c = null;
 
   List<Uri> diffs = new List<Uri>();
+  Set<Uri> componentUris = new Set<Uri>();
 
   Stopwatch localStopwatch = new Stopwatch()..start();
   for (int i = 0; i < uris.length; i++) {
@@ -87,8 +88,20 @@ main(List<String> args) async {
         "${compiler.invalidatedImportUrisForTesting}");
     print("rebuildBodiesCount: ${compiler.rebuildBodiesCount}");
     localStopwatch.reset();
+    Set<Uri> thisUris = new Set<Uri>.from(c2.libraries.map((l) => l.importUri));
+    if (componentUris.isNotEmpty) {
+      Set<Uri> diffUris = {};
+      diffUris.addAll(thisUris.difference(componentUris));
+      diffUris.addAll(componentUris.difference(thisUris));
+      if (diffUris.isNotEmpty) {
+        print("Diffs for this compile: $diffUris");
+      }
+    }
+    componentUris.clear();
+    componentUris.addAll(thisUris);
 
     if (fast) {
+      print("Got ${c2.libraries.length} libraries");
       c2.libraries.sort((l1, l2) {
         return "${l1.fileUri}".compareTo("${l2.fileUri}");
       });

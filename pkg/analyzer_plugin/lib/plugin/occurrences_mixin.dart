@@ -12,16 +12,14 @@ import 'package:analyzer_plugin/src/utilities/occurrences/occurrences.dart';
 import 'package:analyzer_plugin/utilities/generator.dart';
 import 'package:analyzer_plugin/utilities/occurrences/occurrences.dart';
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] and
- * mixing in [OccurrencesMixin]. This implements the creation of the occurrences
- * request based on the assumption that the driver being created is an
- * [AnalysisDriver].
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin] that also uses [OccurrencesMixin]
- * as a mix-in.
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] and
+/// mixing in [OccurrencesMixin]. This implements the creation of the occurrences
+/// request based on the assumption that the driver being created is an
+/// [AnalysisDriver].
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin] that also uses [OccurrencesMixin]
+/// as a mix-in.
 mixin DartOccurrencesMixin implements OccurrencesMixin {
   @override
   Future<OccurrencesRequest> getOccurrencesRequest(String path) async {
@@ -32,26 +30,20 @@ mixin DartOccurrencesMixin implements OccurrencesMixin {
   }
 }
 
-/**
- * A mixin that can be used when creating a subclass of [ServerPlugin] to
- * provide most of the implementation for producing occurrences notifications.
- *
- * Clients may not implement this mixin, but are allowed to use it as a mix-in
- * when creating a subclass of [ServerPlugin].
- */
+/// A mixin that can be used when creating a subclass of [ServerPlugin] to
+/// provide most of the implementation for producing occurrences notifications.
+///
+/// Clients may not implement this mixin, but are allowed to use it as a mix-in
+/// when creating a subclass of [ServerPlugin].
 mixin OccurrencesMixin implements ServerPlugin {
-  /**
-   * Return a list containing the occurrences contributors that should be used
-   * to create occurrences information for the file with the given [path].
-   */
+  /// Return a list containing the occurrences contributors that should be used
+  /// to create occurrences information for the file with the given [path].
   List<OccurrencesContributor> getOccurrencesContributors(String path);
 
-  /**
-   * Return the occurrences request that should be passes to the contributors
-   * returned from [getOccurrencesContributors].
-   *
-   * Throw a [RequestFailure] if the request could not be created.
-   */
+  /// Return the occurrences request that should be passes to the contributors
+  /// returned from [getOccurrencesContributors].
+  ///
+  /// Throw a [RequestFailure] if the request could not be created.
   Future<OccurrencesRequest> getOccurrencesRequest(String path);
 
   @override

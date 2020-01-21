@@ -236,8 +236,7 @@ abstract class ListMixin<E> implements List<E> {
   }
 
   List<E> toList({bool growable = true}) {
-    // TODO(rnystrom): Use List.empty() instead once that lands.
-    if (this.isEmpty) return List<E>.of([], growable: growable);
+    if (this.isEmpty) return List<E>.empty(growable: growable);
     var first = this[0];
     var result = List<E>.filled(this.length, first, growable: growable);
     for (int i = 1; i < this.length; i++) {

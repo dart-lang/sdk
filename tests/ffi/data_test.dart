@@ -39,7 +39,6 @@ void main() {
   testVoid();
   testPointerPointer();
   testPointerPointerNull();
-  testPointerStoreNull();
   testSizeOf();
   testPointerChain(100);
   testTypeTest();
@@ -345,21 +344,6 @@ void testPointerPointerNull() {
   free(pointerToPointer);
 }
 
-void testPointerStoreNull() {
-  int i = null;
-  Pointer<Int8> p = allocate();
-  Expect.throws(() => p.value = i);
-  free(p);
-  double d = null;
-  Pointer<Float> p2 = allocate();
-  Expect.throws(() => p2.value = d);
-  free(p2);
-  Pointer<Void> x = null;
-  Pointer<Pointer<Void>> p3 = allocate();
-  Expect.throws(() => p3.value = x);
-  free(p3);
-}
-
 void testSizeOf() {
   Expect.equals(1, sizeOf<Int8>());
   Expect.equals(2, sizeOf<Int16>());
@@ -433,8 +417,6 @@ void testEquality() {
   Pointer<Int16> p3 = p.cast();
   Expect.equals(p, p3);
   Expect.equals(p.hashCode, p3.hashCode);
-  Expect.notEquals(p, null);
-  Expect.notEquals(null, p);
   Pointer<Int8> p4 = p.offsetBy(1337);
   Expect.notEquals(p, p4);
 }
