@@ -169,6 +169,84 @@ class EditPlanner {
 
   EditPlanner(this.lineInfo, this.sourceText, {this.removeViaComments = false});
 
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending the given [operand], with an intervening binary [operator].
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan addBinaryPostfix(
+      NodeProducingEditPlan innerPlan, TokenType operator, String operand,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is Expression);
+    var precedence = Precedence.forTokenType(operator);
+    var isAssociative = precedence != Precedence.relational &&
+        precedence != Precedence.equality &&
+        precedence != Precedence.assignment;
+    return surround(innerPlan,
+        suffix: [AtomicEdit.insert(' ${operator.lexeme} $operand', info: info)],
+        outerPrecedence: precedence,
+        innerPrecedence: precedence,
+        associative: isAssociative);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// prepending the given [operand], with an intervening binary [operator].
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  ///
+  /// If the expression represented by [operand] is known not to end in a
+  /// cascade expression, caller may optionally set [allowCascade] to `true` to
+  /// prevent a rare corner case where parentheses would be added unnecessarily.
+  /// Note that it is always safe to leave [allowCascade] at its default value
+  /// of `false`.
+  NodeProducingEditPlan addBinaryPrefix(
+      String operand, TokenType operator, NodeProducingEditPlan innerPlan,
+      {AtomicEditInfo info, bool allowCascade = false}) {
+    assert(innerPlan.sourceNode is Expression);
+    var precedence = Precedence.forTokenType(operator);
+    var isAssociative = precedence == Precedence.assignment;
+    return surround(innerPlan,
+        prefix: [AtomicEdit.insert('$operand ${operator.lexeme} ', info: info)],
+        outerPrecedence: precedence,
+        innerPrecedence: precedence,
+        associative: isAssociative,
+        allowCascade: allowCascade);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending the given postfix [operator].  This could be used, for example,
+  /// to add a null check.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan addUnaryPostfix(
+      NodeProducingEditPlan innerPlan, TokenType operator,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is Expression);
+    return surround(innerPlan,
+        suffix: [AtomicEdit.insert(operator.lexeme, info: info)],
+        outerPrecedence: Precedence.postfix,
+        innerPrecedence: Precedence.postfix,
+        associative: true);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// prepending the given prefix [operator].
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan addUnaryPrefix(
+      TokenType operator, NodeProducingEditPlan innerPlan,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is Expression);
+    return surround(innerPlan,
+        prefix: [AtomicEdit.insert(operator.lexeme, info: info)],
+        outerPrecedence: Precedence.prefix,
+        innerPrecedence: Precedence.prefix,
+        associative: true);
+  }
+
   /// Creates a [_PassThroughBuilder] object based around [node].
   ///
   /// Exposed so that we can substitute a mock class in unit tests.
@@ -216,6 +294,17 @@ class EditPlanner {
     // The plan for a compilation unit should always be a NodeProducingEditPlan.
     // So we can just ask it for its changes.
     return (plan as NodeProducingEditPlan)._getChanges(false);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending a `?`, to make a type nullable.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan makeNullable(NodeProducingEditPlan innerPlan,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is TypeAnnotation);
+    return surround(innerPlan, suffix: [AtomicEdit.insert('?', info: info)]);
   }
 
   /// Creates a new edit plan that makes no changes to [node], but may make
@@ -355,6 +444,10 @@ class EditPlanner {
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// surrounding it with [prefix] and [suffix] text.  This could be used, for
   /// example, to add a cast.
+  ///
+  /// Note that it's tricky to get precedence correct.  When possible, use one
+  /// of the other methods in this class, such as [addBinaryPostfix],
+  /// [addBinaryPrefix], [addUnaryPostfix], or [addUnaryPrefix].
   ///
   /// If the edit plan is going to be used in a context where an expression is
   /// expected, additional arguments should be provided to control the behavior

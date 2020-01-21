@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -181,10 +181,7 @@ class IntroduceAs extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner.surround(innerPlan,
-        suffix: [AtomicEdit.insert(' as $type', info: info)],
-        outerPrecedence: Precedence.relational,
-        innerPrecedence: Precedence.relational);
+    return aggregator.planner.addBinaryPostfix(innerPlan, TokenType.AS, type);
   }
 }
 
@@ -201,13 +198,11 @@ class MakeNullable extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner.surround(innerPlan, suffix: [
-      AtomicEdit.insert('?',
-          info: AtomicEditInfo(
-              NullabilityFixDescription.makeTypeNullable(
-                  decoratedType.type.toString()),
-              [decoratedType.node]))
-    ]);
+    return aggregator.planner.makeNullable(innerPlan,
+        info: AtomicEditInfo(
+            NullabilityFixDescription.makeTypeNullable(
+                decoratedType.type.toString()),
+            [decoratedType.node]));
   }
 }
 
@@ -253,11 +248,8 @@ class NullCheck extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner.surround(innerPlan,
-        suffix: [AtomicEdit.insert('!', info: info)],
-        outerPrecedence: Precedence.postfix,
-        innerPrecedence: Precedence.postfix,
-        associative: true);
+    return aggregator.planner
+        .addUnaryPostfix(innerPlan, TokenType.BANG, info: info);
   }
 }
 
