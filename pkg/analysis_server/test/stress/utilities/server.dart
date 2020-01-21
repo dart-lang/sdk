@@ -884,7 +884,8 @@ class Server {
      * Install the given [handler] to listen to transformed output from the
      * given [stream].
      */
-    void installHandler(Stream<List<int>> stream, handler(String line)) {
+    void installHandler(
+        Stream<List<int>> stream, void Function(String) handler) {
       stream
           .transform((Utf8Codec()).decoder)
           .transform(LineSplitter())
@@ -899,7 +900,7 @@ class Server {
    * Send a command to the server. An 'id' will be automatically assigned.
    */
   RequestData _send(String method, Map<String, dynamic> params,
-      {void onResponse(Response response)}) {
+      {void Function(Response) onResponse}) {
     String id = '${_nextId++}';
     RequestData requestData = RequestData(id, method, params, currentTime);
     _requestDataMap[id] = requestData;

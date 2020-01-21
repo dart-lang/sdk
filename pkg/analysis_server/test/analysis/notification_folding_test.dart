@@ -91,7 +91,7 @@ main async() {}
     expect(lastRegions, expectedResults);
   }
 
-  Future waitForFolding(action()) {
+  Future waitForFolding(void Function() action) {
     _regionsReceived = Completer();
     action();
     return _regionsReceived.future;

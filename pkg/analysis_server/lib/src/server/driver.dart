@@ -108,7 +108,7 @@ class CommandLineParser {
       List<String> allowed,
       Map<String, String> allowedHelp,
       String defaultsTo,
-      void callback(value)}) {
+      void Function(Object) callback}) {
     _knownFlags.add(name);
     _parser.addOption(name,
         abbr: abbr,

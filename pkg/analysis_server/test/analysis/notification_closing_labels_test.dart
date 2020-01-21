@@ -93,7 +93,7 @@ Widget build(BuildContext context) {
     expect(lastLabels, expectedResults);
   }
 
-  Future waitForLabels(action()) {
+  Future waitForLabels(void Function() action) {
     _labelsReceived = Completer();
     action();
     return _labelsReceived.future;

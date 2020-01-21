@@ -725,7 +725,7 @@ abstract class PluginTestSupport {
   Future<void> withPlugin(
       {String content,
       String pluginName,
-      Future<void> test(String pluginPath)}) async {
+      Future<void> Function(String) test}) async {
     io.Directory tempDirectory =
         io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
     try {
@@ -773,7 +773,7 @@ abstract class PluginTestSupport {
   Future<void> withPubspecPlugin(
       {String content,
       String pluginName,
-      Future<void> test(String pluginPath)}) async {
+      Future<void> Function(String) test}) async {
     io.Directory tempDirectory =
         io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
     try {
@@ -955,9 +955,9 @@ class TestServerCommunicationChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void listen(void onResponse(Response response),
-      void onNotification(Notification notification),
-      {void onError(dynamic error), void onDone()}) {
+  void listen(void Function(Response) onResponse,
+      void Function(Notification) onNotification,
+      {void Function(dynamic) onError, void Function() onDone}) {
     fail('Unexpected invocation of listen');
   }
 

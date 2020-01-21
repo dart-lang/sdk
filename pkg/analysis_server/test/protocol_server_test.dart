@@ -256,7 +256,7 @@ class EnumTester<EngineEnum, ApiEnum> {
    * If the corresponding value is an [ApiEnum], then we check that converting
    * the given key results in the given value.
    */
-  void run(ApiEnum convert(EngineEnum value),
+  void run(ApiEnum Function(EngineEnum) convert,
       {Map<EngineEnum, ApiEnum> exceptions = const {}}) {
     ClassMirror engineClass = reflectClass(EngineEnum);
     engineClass.staticMembers.forEach((Symbol symbol, MethodMirror method) {
