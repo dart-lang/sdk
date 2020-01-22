@@ -388,15 +388,12 @@ class _Type extends Type {
   Type get runtimeType => Type;
 }
 
-/// Given an internal runtime type object, wraps it in a `_Type` object
+/// Given an internal runtime type object [type], wraps it in a `_Type` object
 /// that implements the dart:core Type interface.
-Type wrapType(type) => _wrapType(type, false);
-
-/// Helper function to wrap a type.
 ///
-/// When isNormalized is true, the parameter is known to be in a canonicalized
+/// [isNormalized] is true when [type] is known to be in a canonicalized
 /// normal form, so the algorithm can directly wrap and return the value.
-Type _wrapType(type, isNormalized) {
+Type wrapType(type, {isNormalized = false}) {
   // If we've already wrapped this type once, use the previous wrapper. This
   // way, multiple references to the same type return an identical Type.
   if (JS('!', '#.hasOwnProperty(#)', type, _typeObject)) {
@@ -405,7 +402,7 @@ Type _wrapType(type, isNormalized) {
   var result = isNormalized
       ? _Type(type)
       : (type is LegacyType
-          ? _wrapType(type.type, false)
+          ? wrapType(type.type)
           : _canonicalizeNormalizedTypeObject(type));
   JS('', '#[#] = #', type, _typeObject, result);
   return result;
@@ -413,25 +410,57 @@ Type _wrapType(type, isNormalized) {
 
 /// Constructs a normalized version of a type.
 ///
-/// Used for type object identity. Currently only removes legacy wrappers,
-/// ignoring other normalization operations.
+/// Used for type object identity. Normalization requires us to return a
+/// canonicalized version of the input with all legacy wrappers removed.
 Type _canonicalizeNormalizedTypeObject(type) {
   assert(type is! LegacyType);
+  // We don't call _canonicalizeNormalizedTypeObject recursively but call wrap
+  // + unwrap to handle legacy types automatically and force caching the
+  // canonicalized type under the _typeObject cache property directly. This
+  // way we ensure we always use the canonical normalized instance for each
+  // type term.
+  Object normalizeHelper(a) => unwrapType(wrapType(a));
+
+  if (type is FunctionType) {
+    var normReturnType = normalizeHelper(type.returnType);
+    var normArgs = type.args.map(normalizeHelper).toList();
+    if (JS<bool>('!', '#.Object.keys(#).length === 0', global_, type.named) &&
+        JS<bool>('!', '#.Object.keys(#).length === 0', global_,
+            type.requiredNamed)) {
+      if (type.optionals.isEmpty) {
+        var normType = fnType(normReturnType, normArgs);
+        return wrapType(normType, isNormalized: true);
+      }
+      var normOptionals = type.optionals.map(normalizeHelper).toList();
+      var normType = fnType(normReturnType, normArgs, normOptionals);
+      return wrapType(normType, isNormalized: true);
+    }
+    var normNamed = JS('', '{}');
+    _transformJSObject(type.named, normNamed, normalizeHelper);
+    var normRequiredNamed = JS('', '{}');
+    _transformJSObject(type.requiredNamed, normRequiredNamed, normalizeHelper);
+    var normType =
+        fnType(normReturnType, normArgs, normNamed, normRequiredNamed);
+    return wrapType(normType, isNormalized: true);
+  }
   var args = getGenericArgs(type);
   var normType;
   if (args == null || args.isEmpty) {
     normType = type;
   } else {
     var genericClass = getGenericClass(type);
-    // We don't call _canonicalizeNormalizedTypeObject recursively but call wrap
-    // + unwrap to handle legacy types automatically and force caching the
-    // canonicalized type under the _typeObject cache property directly. This
-    // way we ensure we always use the canonical normalized instance for each
-    // type parameter.
-    var normArgs = args.map((a) => unwrapType(wrapType(a))).toList();
+    var normArgs = args.map(normalizeHelper).toList();
     normType = JS('!', '#(...#)', genericClass, normArgs);
   }
-  return _wrapType(normType, true);
+  return wrapType(normType, isNormalized: true);
+}
+
+/// Generates new values by applying [transform] to the keys of [srcObject],
+/// storing them in [dstObject].
+void _transformJSObject(srcObject, dstObject, Function transform) {
+  for (Object key in JS('!', '#.Object.keys(#)', global_, srcObject)) {
+    JS('', '#[#] = #', dstObject, key, transform(key));
+  }
 }
 
 /// The symbol used to store the cached `Type` object associated with a class.
@@ -488,8 +517,10 @@ T _memoizeArray<T>(map, arr, T create()) => JS('', '''(() => {
 List _canonicalizeArray(List array, map) =>
     _memoizeArray(map, array, () => array);
 
-// TODO(leafp): This only canonicalizes of the names are
-// emitted in a consistent order.
+// TODO(leafp): This only canonicalizes if the names are emitted
+// in a consistent order.
+// TODO(markzipan): Update this to differentiate named
+// from required named parameters.
 _canonicalizeNamed(named, map) => JS('', '''(() => {
   let key = [];
   let names = $getOwnPropertyNames($named);
@@ -828,6 +859,10 @@ class GenericFunctionType extends AbstractFunctionType {
     }
 
     bool hasFreeFormal(t) {
+      // Ignore nullability wrappers.
+      if (_isLegacy(t) || _isNullable(t)) {
+        return hasFreeFormal(JS<Type>('', '#.type', t));
+      }
       if (partials.containsKey(t)) return true;
       // Generic classes and typedefs.
       var typeArgs = getGenericArgs(t);
