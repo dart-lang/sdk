@@ -46,10 +46,10 @@ def get_shard_links(uri):
     resp = requests.get(uri)
     soup = BeautifulSoup(resp.text, "html.parser")
     for a in soup.findAll("a"):
-        if a.text == "raw":
+        if "stdout" in a.text:
             href = a["href"]
             if ("make_a_fuzz_shard" in href and "__trigger__" not in href):
-                links.append(href)
+                links.append(href + "?format=raw")
     return links
 
 
