@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -1939,7 +1940,7 @@ include: package:boo/other_options.yaml
     var synchronousSession = SynchronousSession(analysisOptions, null);
     List<int> bytes =
         SummaryBuilder([], AnalysisContextImpl(synchronousSession, null))
-            .build();
+            .build(featureSet: FeatureSet.fromEnableFlags([]));
     newFileWithBytes('$projPath/sdk.ds', bytes);
     // Setup _embedder.yaml.
     newFile('$libPath/_embedder.yaml', content: r'''

@@ -46,9 +46,17 @@ prebuilt_dart_action("generate_summary_strong") {
   outputs = [
     output,
   ]
-  args = [
-    "build-strong",
-    rebase_path(output),
-    rebase_path("../../sdk"),
-  ]
+  if (use_nnbd) {
+    args = [
+      "build-non-nullable",
+      rebase_path(output),
+      rebase_path("../../sdk_nnbd"),
+    ]
+  } else {
+    args = [
+      "build-legacy",
+      rebase_path(output),
+      rebase_path("../../sdk"),
+    ]
+  }
 }
