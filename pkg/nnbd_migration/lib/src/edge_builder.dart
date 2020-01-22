@@ -1629,17 +1629,43 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _decorateUpperOrLowerBound(AstNode astNode, DartType type,
       DecoratedType left, DecoratedType right, bool isLUB,
       {NullabilityNode node}) {
+    var leftType = left.type;
+    var rightType = right.type;
+    if (leftType is TypeParameterType && leftType != type) {
+      // We are "unwrapping" a type parameter type to its bound.
+      final typeParam = leftType.element;
+      return _decorateUpperOrLowerBound(
+          astNode,
+          type,
+          left.substitute(
+              {typeParam: _variables.decoratedTypeParameterBound(typeParam)}),
+          right,
+          isLUB,
+          node: node);
+    }
+    if (rightType is TypeParameterType && rightType != type) {
+      // We are "unwrapping" a type parameter type to its bound.
+      final typeParam = rightType.element;
+      return _decorateUpperOrLowerBound(
+          astNode,
+          type,
+          left,
+          right.substitute(
+              {typeParam: _variables.decoratedTypeParameterBound(typeParam)}),
+          isLUB,
+          node: node);
+    }
+
     node ??= isLUB
         ? NullabilityNode.forLUB(left.node, right.node)
         : _nullabilityNodeForGLB(astNode, left.node, right.node);
+
     if (type.isDynamic || type.isVoid) {
       return DecoratedType(type, node);
     } else if (type is InterfaceType) {
       if (type.typeArguments.isEmpty) {
         return DecoratedType(type, node);
       } else {
-        var leftType = left.type;
-        var rightType = right.type;
         if (leftType.isDartCoreNull) {
           assert(isLUB, "shouldn't be possible to get C<T> from GLB(null, S)");
           return DecoratedType(type, node, typeArguments: right.typeArguments);
@@ -1746,12 +1772,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         return DecoratedType(type, node);
       }
 
-      if (leftType.element == type.element &&
-          rightType.element == type.element) {
-        return DecoratedType(type, node);
-      }
-
-      _unimplemented(astNode, 'LUB/GLB with unequal type parameter types');
+      assert(leftType.element == type.element &&
+          rightType.element == type.element);
+      return DecoratedType(type, node);
     }
     _unimplemented(astNode, '_decorateUpperOrLowerBound');
   }

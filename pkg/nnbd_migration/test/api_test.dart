@@ -438,6 +438,36 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_conditionalExpression_typeParameter_bound() async {
+    var content = '''
+num f1<T extends num>(bool b, num x, T y) => b ? x : y;
+num f2<T extends num>(bool b, num x, T y) => b ? x : y;
+num f3<T extends num>(bool b, num x, T y) => b ? x : y;
+num f4<T extends num>(bool b, num x, T y) => b ? x : y;
+
+void main() {
+  int x1 = f1<int/*?*/>(true, 0, null);
+  int x2 = f2<int/*!*/>(true, 0, null);
+  int x3 = f3<int>(true, null, 0);
+  int x4 = f4<int>(true, 0, 0);
+}
+''';
+    var expected = '''
+num? f1<T extends num?>(bool b, num x, T y) => b ? x : y;
+num? f2<T extends num>(bool b, num x, T? y) => b ? x : y;
+num? f3<T extends num>(bool b, num? x, T y) => b ? x : y;
+num f4<T extends num>(bool b, num x, T y) => b ? x : y;
+
+void main() {
+  int? x1 = f1<int?/*?*/>(true, 0, null);
+  int? x2 = f2<int/*!*/>(true, 0, null);
+  int? x3 = f3<int>(true, null, 0);
+  int x4 = f4<int>(true, 0, 0);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_constructorDeclaration_factory_non_null_return() async {
     var content = '''
 class C {

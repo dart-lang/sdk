@@ -1777,6 +1777,22 @@ A<num> f(bool b, A<num> x, B<num> y) {
         substitutionNode(bType.typeArguments[0].node, bInA.node));
   }
 
+  Future<void> test_conditionalExpression_generic_typeParameter_bound() async {
+    await analyze('''
+List<num> f<T extends List<num>>(bool b, List<num> x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('List<num> x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('List<num>>');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+    assertLUB(resultType.typeArguments[0].node, aType.typeArguments[0].node,
+        bBound.typeArguments[0].node);
+  }
+
   Future<void> test_conditionalExpression_left_non_null() async {
     await analyze('''
 int f(bool b, int i) {
@@ -1934,6 +1950,83 @@ T f<T>(bool b, T t) {
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
     assertLUB(nullable_conditional, nullable_t, inSet(alwaysPlus));
+  }
+
+  Future<void> test_conditionalExpression_typeParameter_bound() async {
+    await analyze('''
+num f<T extends num>(bool b, num x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('num x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('num>');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+  }
+
+  Future<void> test_conditionalExpression_typeParameter_bound_bound() async {
+    await analyze('''
+num f<T extends R, R extends num>(bool b, num x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('num x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('R,');
+    var bBoundBound = decoratedTypeAnnotation('num>');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node,
+        aType.node,
+        substitutionNode(
+            bBoundBound.node, substitutionNode(bBound.node, bType.node)));
+  }
+
+  Future<void> test_conditionalExpression_typeParameter_dynamic() async {
+    // "dynamic" can short circuit LUB, incorrectly we may lose nullabilities.
+    await analyze('''
+dynamic f<T extends num>(bool b, dynamic x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('dynamic x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('num>');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+  }
+
+  Future<void> test_conditionalExpression_typeParameters_bound() async {
+    await analyze('''
+num f<T extends num, R extends num>(bool b, R x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('R x');
+    var bType = decoratedTypeAnnotation('T y');
+    var aBound = decoratedTypeAnnotation('num>');
+    var bBound = decoratedTypeAnnotation('num,');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, substitutionNode(aBound.node, aType.node),
+        substitutionNode(bBound.node, bType.node));
+  }
+
+  Future<void>
+      test_conditionalExpression_typeParameters_bound_left_to_right() async {
+    await analyze('''
+R f<T extends R, R>(bool b, R x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('R x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('R,');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
   }
 
   Future<void> test_constructor_default_parameter_value_bool() async {
