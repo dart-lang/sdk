@@ -309,7 +309,11 @@ void StackTraceUtils::CollectFramesLazy(
     const GrowableObjectArray& code_array,
     const GrowableObjectArray& pc_offset_array,
     int skip_frames,
-    std::function<void(StackFrame*)>* on_sync_frames) {
+    std::function<void(StackFrame*)>* on_sync_frames,
+    bool* has_async) {
+  if (has_async != nullptr) {
+    *has_async = false;
+  }
   Zone* zone = thread->zone();
   DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
@@ -363,6 +367,10 @@ void StackTraceUtils::CollectFramesLazy(
     // Either continue the loop (sync-async case) or find all await'ers and
     // return.
     if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+      if (has_async != nullptr) {
+        *has_async = true;
+      }
+
       // Next, look up caller's closure on the stack and walk backwards through
       // the yields.
       frame = frames.NextFrame();

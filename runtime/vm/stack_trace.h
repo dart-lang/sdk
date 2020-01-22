@@ -37,7 +37,8 @@ class StackTraceUtils : public AllStatic {
       const GrowableObjectArray& code_array,
       const GrowableObjectArray& pc_offset_array,
       int skip_frames,
-      std::function<void(StackFrame*)>* on_sync_frames = nullptr);
+      std::function<void(StackFrame*)>* on_sync_frames = nullptr,
+      bool* has_async = nullptr);
 
   /// Counts the number of stack frames.
   /// Skips over the first |skip_frames|.

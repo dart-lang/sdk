@@ -38,12 +38,7 @@ var tests = <IsolateTest>[
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
     // No causal frames because we are in a completely synchronous stack.
-    if (useCausalAsyncStacks) {
-      expect(stack['asyncCausalFrames'], isNull);
-    } else {
-      // TODO(dartbug.com/37668): Implement suport for this in the debugger.
-      expect(stack['asyncCausalFrames'], isNotNull);
-    }
+    expect(stack['asyncCausalFrames'], isNull);
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,

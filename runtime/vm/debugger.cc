@@ -2348,8 +2348,14 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
   const auto& pc_offset_array = GrowableObjectArray::ZoneHandle(
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
+  bool has_async = false;
   StackTraceUtils::CollectFramesLazy(thread, code_array, pc_offset_array,
-                                     /*skip_frames=*/0, &on_sync_frame);
+                                     /*skip_frames=*/0, &on_sync_frame,
+                                     &has_async);
+
+  if (!has_async) {
+    return nullptr;
+  }
 
   const intptr_t length = code_array.Length();
   for (intptr_t i = stack_trace->Length(); i < length; ++i) {
