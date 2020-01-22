@@ -2591,11 +2591,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression visitVoidType(VoidType type) => runtimeCall('void');
 
   @override
-  js_ast.Expression visitBottomType(BottomType type) => runtimeCall('bottom');
+  js_ast.Expression visitBottomType(BottomType type) =>
+      _emitNullabilityWrapper(runtimeCall('bottom'), type.nullability);
 
   @override
-  js_ast.Expression visitNeverType(NeverType type) => runtimeCall('Never');
-
+  js_ast.Expression visitNeverType(NeverType type) =>
+      _emitNullabilityWrapper(runtimeCall('Never'), type.nullability);
   @override
   js_ast.Expression visitInterfaceType(InterfaceType type) =>
       _emitInterfaceType(type);
@@ -2653,29 +2654,43 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     typeRep ??= _emitTopLevelNameNoInterop(type.classNode);
-    if (!emitNullability ||
-        !_options.enableNullSafety ||
-        type == _coreTypes.nullType) {
-      // Avoid emitting the null safety wrapper types when:
-      // * The non-nullable experiment is not enabled.
-      // * This specific InterfaceType is known to be from a context where
-      //   the nullability is meaningless (ie. class A extends B) where B is the
-      //   InterfaceType.
-      // * The InterfaceType is the Null type.
-      // * Emitting non-null constructor calls.
-      return typeRep;
-    }
 
-    switch (type.nullability) {
+    // Avoid emitting the null safety wrapper types when:
+    // * This specific InterfaceType is known to be from a context where
+    //   the nullability is meaningless:
+    //   * `class A extends B {...}` where B is the InterfaceType.
+    //   * Emitting non-null constructor calls.
+    // * The InterfaceType is the Null type.
+    if (!emitNullability || type == _coreTypes.nullType) return typeRep;
+
+    if (type.nullability == Nullability.undetermined) {
+      throw UnsupportedError('Undetermined Nullability');
+    }
+    return _emitNullabilityWrapper(typeRep, type.nullability);
+  }
+
+  /// Wraps [typeRep] in the appropriate wrapper for the given [nullability].
+  ///
+  /// NOTE: This is currently a no-op if the null safety experiment is not
+  /// enabled.
+  ///
+  /// Non-nullable and undetermined nullability will not cause any wrappers to
+  /// be emitted.
+  js_ast.Expression _emitNullabilityWrapper(
+      js_ast.Expression typeRep, Nullability nullability) {
+    // TODO(nshahan) Cleanup this check once it is safe to always emit the
+    // legacy wrapper.
+    if (!_options.enableNullSafety) return typeRep;
+
+    switch (nullability) {
       case Nullability.legacy:
         return runtimeCall('legacy(#)', [typeRep]);
-      case Nullability.nonNullable:
-        // No wrapper for types that are non-nullable.
-        return typeRep;
       case Nullability.nullable:
         return runtimeCall('nullable(#)', [typeRep]);
       default:
-        throw UnsupportedError('Undetermined Nullability');
+        // Do not wrap types that are known to be non-nullable or those that do
+        // not yet have the nullability determined.
+        return typeRep;
     }
   }
 
@@ -2874,20 +2889,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitTypeParameterType(TypeParameterType type,
       {bool emitNullability = true}) {
     var typeParam = _emitTypeParameter(type.parameter);
+    if (!emitNullability) return typeParam;
 
-    // Nullability rules should be synced with _emitInterfaceType.
-    if (!emitNullability || !_options.enableNullSafety) {
-      return typeParam;
-    }
-
-    switch (type.nullability) {
-      case Nullability.legacy:
-        return runtimeCall('legacy(#)', [typeParam]);
-      case Nullability.nullable:
-        return runtimeCall('nullable(#)', [typeParam]);
-      default:
-        return typeParam;
-    }
+    return _emitNullabilityWrapper(typeParam, type.nullability);
   }
 
   js_ast.Identifier _emitTypeParameter(TypeParameter t) =>
