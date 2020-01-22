@@ -17,15 +17,17 @@ class ConstructorFieldsVerifier {
 
   bool _isInNativeClass = false;
 
-  /**
-   * When a new class or mixin is entered, [_initFieldsMap] initializes this
-   * map, and [leaveClassOrMixin] resets it.
-   *
-   * [_InitState.notInit] or [_InitState.initInDeclaration] is set for each
-   * field. Later [verify] is called to verify each constructor of the class.
-   */
+  /// When a new class or mixin is entered, [_initFieldsMap] initializes this
+  /// map, and [leaveClassOrMixin] resets it.
+  ///
+  /// [_InitState.notInit] or [_InitState.initInDeclaration] is set for each
+  /// field. Later [verify] is called to verify each constructor of the class.
   Map<FieldElement, _InitState> _initialFieldMap;
 
+  /// The state of fields in the current constructor.
+  Map<FieldElement, _InitState> _fieldMap = {};
+
+  /// Set to `true` if the current constructor redirects.
   bool _hasRedirectingConstructorInvocation = false;
 
   ConstructorFieldsVerifier({
@@ -62,9 +64,11 @@ class ConstructorFieldsVerifier {
       return;
     }
 
-    var fieldMap = Map.of(_initialFieldMap);
-    _updateWithParameters(node, fieldMap);
-    _updateWithInitializers(node, fieldMap);
+    _fieldMap = Map.of(_initialFieldMap);
+    _hasRedirectingConstructorInvocation = false;
+
+    _updateWithParameters(node);
+    _updateWithInitializers(node);
 
     if (_hasRedirectingConstructorInvocation) {
       return;
@@ -73,7 +77,7 @@ class ConstructorFieldsVerifier {
     // Prepare lists of not initialized fields.
     List<FieldElement> notInitFinalFields = <FieldElement>[];
     List<FieldElement> notInitNonNullableFields = <FieldElement>[];
-    fieldMap.forEach((FieldElement field, _InitState state) {
+    _fieldMap.forEach((FieldElement field, _InitState state) {
       if (state != _InitState.notInit) return;
       if (field.isLate) return;
 
@@ -153,10 +157,7 @@ class ConstructorFieldsVerifier {
     }
   }
 
-  void _updateWithInitializers(
-    ConstructorDeclaration node,
-    Map<FieldElement, _InitState> fieldMap,
-  ) {
+  void _updateWithInitializers(ConstructorDeclaration node) {
     for (var initializer in node.initializers) {
       if (initializer is RedirectingConstructorInvocation) {
         _hasRedirectingConstructorInvocation = true;
@@ -165,9 +166,9 @@ class ConstructorFieldsVerifier {
         SimpleIdentifier fieldName = initializer.fieldName;
         Element element = fieldName.staticElement;
         if (element is FieldElement) {
-          _InitState state = fieldMap[element];
+          _InitState state = _fieldMap[element];
           if (state == _InitState.notInit) {
-            fieldMap[element] = _InitState.initInInitializer;
+            _fieldMap[element] = _InitState.initInInitializer;
           } else if (state == _InitState.initInDeclaration) {
             if (element.isFinal || element.isConst) {
               _errorReporter.reportErrorForNode(
@@ -194,10 +195,7 @@ class ConstructorFieldsVerifier {
     }
   }
 
-  void _updateWithParameters(
-    ConstructorDeclaration node,
-    Map<FieldElement, _InitState> fieldMap,
-  ) {
+  void _updateWithParameters(ConstructorDeclaration node) {
     var formalParameters = node.parameters.parameters;
     for (FormalParameter parameter in formalParameters) {
       parameter = _baseParameter(parameter);
@@ -205,9 +203,9 @@ class ConstructorFieldsVerifier {
         FieldElement fieldElement =
             (parameter.declaredElement as FieldFormalParameterElementImpl)
                 .field;
-        _InitState state = fieldMap[fieldElement];
+        _InitState state = _fieldMap[fieldElement];
         if (state == _InitState.notInit) {
-          fieldMap[fieldElement] = _InitState.initInFieldFormal;
+          _fieldMap[fieldElement] = _InitState.initInFieldFormal;
         } else if (state == _InitState.initInDeclaration) {
           if (fieldElement.isFinal || fieldElement.isConst) {
             _errorReporter.reportErrorForNode(
