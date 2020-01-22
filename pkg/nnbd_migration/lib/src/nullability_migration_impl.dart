@@ -75,6 +75,11 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
   }
 
+  @override
+  void update() {
+    _graph.update();
+  }
+
   @visibleForTesting
   void broadcast(Variables variables, NullabilityMigrationListener listener,
       NullabilityMigrationInstrumentation instrumentation) {

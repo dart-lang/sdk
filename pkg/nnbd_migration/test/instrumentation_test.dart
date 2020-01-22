@@ -94,6 +94,12 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   }
 
   @override
+  void prepareForUpdate() {
+    test.changes = null;
+    test.propagationSteps.clear();
+  }
+
+  @override
   void propagationStep(PropagationInfo info) {
     test.propagationSteps.add(info);
   }

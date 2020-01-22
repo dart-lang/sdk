@@ -148,6 +148,9 @@ abstract class NullabilityMigration {
   void prepareInput(ResolvedUnitResult result);
 
   void processInput(ResolvedUnitResult result);
+
+  /// Update the migration after an edge has been added or removed.
+  void update();
 }
 
 /// [NullabilityMigrationListener] is used by [NullabilityMigration]

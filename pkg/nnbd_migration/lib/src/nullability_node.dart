@@ -111,6 +111,9 @@ class NullabilityGraph {
   /// Set containing all sources being migrated.
   final _sourcesBeingMigrated = <Source>{};
 
+  /// A set containing all of the nodes in the graph.
+  final Set<NullabilityNode> nodes = {};
+
   /// After execution of [_propagateAlways], a list of all nodes reachable from
   /// [always] via zero or more edges of kind [_NullabilityEdgeKind.union].
   final List<NullabilityNode> _unionedWithAlways = [];
@@ -200,6 +203,29 @@ class NullabilityGraph {
     _connect([y], x, _NullabilityEdgeKind.union, origin);
   }
 
+  /// Update the graph after an edge has been added or removed.
+  void update() {
+    //
+    // Reset the state of the nodes.
+    //
+    // This is inefficient because we reset the state of some nodes more than
+    // once, but not all nodes are reachable from both `never` and `always`, so
+    // we need to traverse the graph from both directions.
+    //
+    for (var node in nodes) {
+      node.resetState();
+    }
+    _unionedWithAlways.clear();
+    //
+    // Reset the state of the listener.
+    //
+    instrumentation.prepareForUpdate();
+    //
+    // Re-run the propagation step.
+    //
+    propagate();
+  }
+
   NullabilityEdge _connect(
       List<NullabilityNode> upstreamNodes,
       NullabilityNode destinationNode,
@@ -211,6 +237,8 @@ class NullabilityGraph {
       _connectDownstream(upstreamNode, edge);
     }
     destinationNode._upstreamEdges.add(edge);
+    nodes.addAll(upstreamNodes);
+    nodes.add(destinationNode);
     return edge;
   }
 
@@ -558,6 +586,9 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
     }
   }
 
+  /// Reset the state of this node to what it was before the graph was solved.
+  void resetState();
+
   String toString() {
     if (_debugName == null) {
       var prefix = _debugPrefix;
@@ -606,6 +637,12 @@ class NullabilityNodeForLUB extends _NullabilityNodeCompound {
 
   @override
   String get _debugPrefix => 'LUB($left, $right)';
+
+  @override
+  void resetState() {
+    left.resetState();
+    right.resetState();
+  }
 }
 
 /// Derived class for nullability nodes that arise from type variable
@@ -628,6 +665,12 @@ class NullabilityNodeForSubstitution extends _NullabilityNodeCompound
 
   @override
   String get _debugPrefix => 'Substituted($innerNode, $outerNode)';
+
+  @override
+  void resetState() {
+    innerNode.resetState();
+    outerNode.resetState();
+  }
 }
 
 /// Base class for nullability nodes whose state can be mutated safely.
@@ -650,6 +693,11 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
 
   @override
   bool get isNullable => _state.isNullable;
+
+  @override
+  void resetState() {
+    _state = NullabilityState.undetermined;
+  }
 }
 
 /// Kinds of nullability edges
@@ -704,6 +752,11 @@ class _NullabilityNodeImmutable extends NullabilityNode {
   NullabilityState get _state => isNullable
       ? NullabilityState.ordinaryNullable
       : NullabilityState.nonNullable;
+
+  @override
+  void resetState() {
+    // There is no state to reset.
+  }
 }
 
 class _NullabilityNodeSimple extends NullabilityNodeMutable {
