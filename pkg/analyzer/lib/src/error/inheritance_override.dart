@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -736,6 +735,6 @@ class _ClassVerifier {
     // corresponding DartObject will be `null`.  Since an error has already been
     // reported, there's no need to report another.
     if (x == null || y == null) return true;
-    return (x as DartObjectImpl).isEqualIgnoringTypesRecursively(y);
+    return x == y;
   }
 }

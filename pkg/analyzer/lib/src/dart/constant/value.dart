@@ -146,12 +146,6 @@ class ConstructorInvocation {
 
 /// A representation of an instance of a Dart class.
 class DartObjectImpl implements DartObject {
-  /// When `true`, `operator==` only compares constant values, ignoring types.
-  ///
-  /// This is a temporary hack to work around dartbug.com/35908.
-  // TODO(paulberry): when #35908 is fixed, remove this hack.
-  static bool _ignoreTypesInEqualityComparison = false;
-
   @override
   final ParameterizedType type;
 
@@ -208,8 +202,7 @@ class DartObjectImpl implements DartObject {
   @override
   bool operator ==(Object object) {
     if (object is DartObjectImpl) {
-      return (_ignoreTypesInEqualityComparison || type == object.type) &&
-          _state == object._state;
+      return type == object.type && _state == object._state;
     }
     return false;
   }
@@ -446,21 +439,6 @@ class DartObjectImpl implements DartObject {
           TypeProvider typeProvider, DartObjectImpl rightOperand) =>
       DartObjectImpl(
           typeProvider.intType, _state.integerDivide(rightOperand._state));
-
-  /// Indicates whether `this` is equal to [other], ignoring types both in this
-  /// object and sub-objects.
-  ///
-  /// This is a temporary hack to work around dartbug.com/35908.
-  // TODO(paulberry): when #35908 is fixed, remove this hack.
-  bool isEqualIgnoringTypesRecursively(Object other) {
-    bool oldIgnoreTypesInEqualityComparison = _ignoreTypesInEqualityComparison;
-    _ignoreTypesInEqualityComparison = true;
-    try {
-      return this == other;
-    } finally {
-      _ignoreTypesInEqualityComparison = oldIgnoreTypesInEqualityComparison;
-    }
-  }
 
   /// Return the result of invoking the identical function on this object with
   /// the [rightOperand]. The [typeProvider] is the type provider used to find
