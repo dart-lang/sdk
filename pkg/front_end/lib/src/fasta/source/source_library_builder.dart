@@ -365,11 +365,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   bool isOptOutTest(Uri uri) {
     String path = uri.path;
-    int start = path.indexOf('/tests/');
-    if (start == -1) return false;
-    int end = path.indexOf('/', start + '/tests/'.length + 1);
-    if (end == -1) return false;
-    return optOutTestPaths.contains(path.substring(start, end));
+    for (String testDir in ['/tests/', '/generated_tests/']) {
+      int start = path.indexOf(testDir);
+      if (start == -1) continue;
+      int end = path.indexOf('/', start + testDir.length + 1);
+      if (end == -1) continue;
+      return optOutTestPaths.contains(path.substring(start, end));
+    }
+    return false;
   }
 
   // TODO(johnniwinther): remove this logic. Opted out packages should be
@@ -491,6 +494,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     '/tests/language_2',
     '/tests/lib_2',
     '/tests/standalone_2',
+    '/generated_tests/co19_2',
+    '/generated_tests/corelib_2',
+    '/generated_tests/language_2',
+    '/generated_tests/lib_2',
+    '/generated_tests/standalone_2',
   };
 
   LanguageVersion get languageVersion => _languageVersion;
