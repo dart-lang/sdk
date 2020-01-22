@@ -37,12 +37,10 @@ class LegacyClass4a extends Class4a {}
 /*class: LegacyClass4b:GenericInterface<num*>,LegacyClass4b,Object*/
 class LegacyClass4b implements GenericInterface<num> {}
 
-/*cfe.class: LegacyClass4c:Class4a,GenericInterface<num*>,LegacyClass4c,Object*/
-/*cfe:builder.class: LegacyClass4c:Class4a,GenericInterface<num!>,LegacyClass4c,Object*/
+/*class: LegacyClass4c:Class4a,GenericInterface<num*>,LegacyClass4c,Object*/
 class LegacyClass4c extends Class4a implements GenericInterface<num> {}
 
-/*cfe.class: LegacyClass4d:Class4a,Class4b,GenericInterface<num*>,LegacyClass4d,Object*/
-/*cfe:builder.class: LegacyClass4d:Class4a,Class4b,GenericInterface<num!>,LegacyClass4d,Object*/
+/*class: LegacyClass4d:Class4a,Class4b,GenericInterface<num*>,LegacyClass4d,Object*/
 class LegacyClass4d implements Class4a, Class4b {}
 
 /*class: LegacyClass5:Class5,GenericInterface<dynamic>,LegacyClass5,Object*/

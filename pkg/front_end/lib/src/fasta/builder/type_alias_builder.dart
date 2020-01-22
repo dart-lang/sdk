@@ -196,11 +196,11 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
       return result;
     }
 
-    if (arguments != null && arguments.length != (typeVariables?.length ?? 0)) {
+    if (arguments != null && arguments.length != typeVariablesCount) {
       // That should be caught and reported as a compile-time error earlier.
       return unhandled(
           templateTypeArgumentMismatch
-              .withArguments(typeVariables.length)
+              .withArguments(typeVariablesCount)
               .message,
           "buildTypeArguments",
           -1,

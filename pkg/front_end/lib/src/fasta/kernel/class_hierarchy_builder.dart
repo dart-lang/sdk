@@ -14,6 +14,8 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/future_or.dart';
+import 'package:kernel/src/legacy_erasure.dart';
+import 'package:kernel/src/nnbd_top_merge.dart';
 
 import '../../testing/id_testing_utils.dart' show typeToText;
 
@@ -1497,24 +1499,55 @@ class ClassHierarchyNodeBuilder {
 
   DartType addInterface(
       List<DartType> interfaces, List<DartType> superclasses, DartType type) {
+    if (hierarchy.loader.target.enableNonNullable &&
+        !classBuilder.library.isNonNullableByDefault) {
+      type = legacyErasure(hierarchy.coreTypes, type);
+    }
     if (type is InterfaceType) {
       ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
       if (node == null) return null;
       int depth = node.depth;
       int myDepth = superclasses.length;
-      if (depth < myDepth &&
-          superclasses[depth] is InterfaceType &&
-          (superclasses[depth] as InterfaceType).classNode == type.classNode) {
-        // This is a potential conflict.
-        return superclasses[depth];
+      DartType superclass = depth < myDepth ? superclasses[depth] : null;
+      if (superclass is InterfaceType &&
+          superclass.classNode == type.classNode) {
+        if (hierarchy.loader.target.enableNonNullable) {
+          // This is a potential conflict.
+          if (classBuilder.library.isNonNullableByDefault) {
+            superclass = nnbdTopMerge(hierarchy.coreTypes, superclass, type);
+            if (superclass == null) {
+              // This is a conflict.
+              // TODO(johnniwinther): Report errors here instead of through
+              // the computation of the [ClassHierarchy].
+              superclass = superclasses[depth];
+            } else {
+              superclasses[depth] = superclass;
+            }
+          }
+        }
+        return superclass;
       } else {
         for (int i = 0; i < interfaces.length; i++) {
           // This is a quadratic algorithm, but normally, the number of
           // interfaces is really small.
-          if (interfaces[i] is InterfaceType &&
-              (interfaces[i] as InterfaceType).classNode == type.classNode) {
-            // This is a potential conflict.
-            return interfaces[i];
+          DartType interface = interfaces[i];
+          if (interface is InterfaceType &&
+              interface.classNode == type.classNode) {
+            if (hierarchy.loader.target.enableNonNullable) {
+              // This is a potential conflict.
+              if (classBuilder.library.isNonNullableByDefault) {
+                interface = nnbdTopMerge(hierarchy.coreTypes, interface, type);
+                if (interface == null) {
+                  // This is a conflict.
+                  // TODO(johnniwinther): Report errors here instead of through
+                  // the computation of the [ClassHierarchy].
+                  interface = interfaces[i];
+                } else {
+                  interfaces[i] = interface;
+                }
+              }
+            }
+            return interface;
           }
         }
       }

@@ -15,8 +15,7 @@ class Class2<T> extends LegacyClass2<T> {}
 /*class: Class3a:Class3a<T>,GenericInterface<T*>,LegacyClass3<T>,Object*/
 class Class3a<T> extends LegacyClass3<T> {}
 
-/*cfe.class: Class3b:Class3b<T>,GenericInterface<T>,LegacyClass3<T>,Object*/
-/*cfe:builder.class: Class3b:Class3b<T>,GenericInterface<T*>,LegacyClass3<T>,Object*/
+/*class: Class3b:Class3b<T>,GenericInterface<T>,LegacyClass3<T>,Object*/
 class Class3b<T> extends LegacyClass3<T> implements GenericInterface<T> {}
 
 /*class: Class4a:Class4a,GenericInterface<num*>,LegacyClass4,Object*/
@@ -28,6 +27,5 @@ class Class4b implements GenericInterface<num> {}
 /*class: Class4c:Class4c,GenericInterface<num?>,Object*/
 class Class4c implements GenericInterface<num?> {}
 
-/*cfe.class: Class4d:Class4d,GenericInterface<num!>,LegacyClass4,Object*/
-/*cfe:builder.class: Class4d:Class4d,GenericInterface<num*>,LegacyClass4,Object*/
+/*class: Class4d:Class4d,GenericInterface<num!>,LegacyClass4,Object*/
 class Class4d extends LegacyClass4 implements GenericInterface<num> {}

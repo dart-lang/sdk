@@ -1208,6 +1208,7 @@ nnbd/inheritance_from_opt_out: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
 nnbd/issue39659: TextSerializationFailure
 nnbd/issue39822: TextSerializationFailure
+nnbd/issue40134: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure
