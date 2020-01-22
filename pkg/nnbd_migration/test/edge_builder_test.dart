@@ -482,6 +482,18 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('int').node, never, hard: false);
   }
 
+  Future<void> test_as_int_null_ok() async {
+    await analyze('''
+void f(Object o) {
+  (o as int)?.gcd(1);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('Object o').node,
+        decoratedTypeAnnotation('int').node,
+        hard: true);
+    assertNoEdge(decoratedTypeAnnotation('int').node, never);
+  }
+
   Future<void> test_as_side_cast() async {
     await analyze('''
 class A {}

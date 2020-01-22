@@ -107,6 +107,22 @@ int f({required String s}) => s.length;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_as_allows_null() async {
+    var content = '''
+int f(Object o) => (o as int)?.gcd(1);
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int? f(Object? o) => (o as int?)?.gcd(1);
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_assign_null_to_generic_type() async {
     var content = '''
 main() {
