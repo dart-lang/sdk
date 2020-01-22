@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:io' as io;
-import 'dart:math';
 
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -83,7 +82,7 @@ Future _computeCompletionMetrics(
               var fraction =
                   _placementInSuggestionList(suggestions, expectedCompletion);
 
-              if (fraction.y != 0) {
+              if (fraction.denominator != 0) {
                 includedCount++;
               } else {
                 notIncludedCount++;
@@ -130,16 +129,16 @@ Future _computeCompletionMetrics(
   completionElementKindCounter.clear();
 }
 
-Point<int> _placementInSuggestionList(List<CompletionSuggestion> suggestions,
+Place _placementInSuggestionList(List<CompletionSuggestion> suggestions,
     ExpectedCompletion expectedCompletion) {
-  var i = 1;
+  var placeCounter = 1;
   for (var completionSuggestion in suggestions) {
     if (expectedCompletion.matches(completionSuggestion)) {
-      return Point(i, suggestions.length);
+      return Place(placeCounter, suggestions.length);
     }
-    i++;
+    placeCounter++;
   }
-  return Point(0, 0);
+  return Place.none();
 }
 
 Future<List<CompletionSuggestion>> computeCompletionSuggestions(

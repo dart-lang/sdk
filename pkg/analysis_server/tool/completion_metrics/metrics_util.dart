@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/status/pages.dart';
+import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// A simple counter class.  A [String] name is passed to name the counter. Each
 /// time something is counted, a non-null, non-empty [String] key is passed to
@@ -53,4 +54,35 @@ class Counter {
         print('[$id] $count (${printPercentage(count / _totalCount, 2)})'));
     print('');
   }
+}
+
+/// An immutable class to represent the placement in some list, for example '2nd
+/// place out of 5'.
+class Place {
+  /// A 1-indexed place in a list
+  final int _numerator;
+
+  /// The total number of possible places.
+  final int _denominator;
+
+  Place(this._numerator, this._denominator) {
+    assert(_numerator > 0 && _denominator > 0);
+  }
+
+  Place.none()
+      : _numerator = 0,
+        _denominator = 0;
+
+  int get denominator => _denominator;
+
+  @override
+  int get hashCode => JenkinsSmiHash.hash2(_numerator, _denominator);
+
+  int get numerator => _numerator;
+
+  @override
+  bool operator ==(dynamic other) =>
+      other is Place &&
+      _numerator == other._numerator &&
+      _denominator == other._denominator;
 }
