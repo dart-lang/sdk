@@ -16,33 +16,7 @@
 
 import 'dart:ffi';
 
-import "package:expect/expect.dart";
-
-import 'dylib_utils.dart';
-
-typedef NativeCallbackTest = Int32 Function(Pointer);
-typedef NativeCallbackTestFn = int Function(Pointer);
-
-final DynamicLibrary testLibrary = dlopenPlatformSpecific("ffi_test_functions");
-
-class Test {
-  final String name;
-  final Pointer callback;
-  final bool skip;
-
-  Test(this.name, this.callback, {bool skipIf: false}) : skip = skipIf {}
-
-  void run() {
-    if (skip) return;
-
-    final NativeCallbackTestFn tester = testLibrary
-        .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>("Test$name");
-    final int testCode = tester(callback);
-    if (testCode != 0) {
-      Expect.fail("Test $name failed.");
-    }
-  }
-}
+import 'callback_tests_utils.dart';
 
 typedef SimpleAdditionType = Int32 Function(Int32, Int32);
 int simpleAddition(int x, int y) {
@@ -212,34 +186,36 @@ int returnMaxUint8v2() {
   return 0xabcff;
 }
 
-final List<Test> testcases = [
-  Test("SimpleAddition",
+final testcases = [
+  CallbackTest("SimpleAddition",
       Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 0)),
-  Test("IntComputation",
+  CallbackTest("IntComputation",
       Pointer.fromFunction<IntComputationType>(intComputation, 0)),
-  Test("UintComputation",
+  CallbackTest("UintComputation",
       Pointer.fromFunction<UintComputationType>(uintComputation, 0)),
-  Test("SimpleMultiply",
+  CallbackTest("SimpleMultiply",
       Pointer.fromFunction<SimpleMultiplyType>(simpleMultiply, 0.0)),
-  Test("SimpleMultiplyFloat",
+  CallbackTest("SimpleMultiplyFloat",
       Pointer.fromFunction<SimpleMultiplyFloatType>(simpleMultiplyFloat, 0.0)),
-  Test("ManyInts", Pointer.fromFunction<ManyIntsType>(manyInts, 0)),
-  Test("ManyDoubles", Pointer.fromFunction<ManyDoublesType>(manyDoubles, 0.0)),
-  Test("ManyArgs", Pointer.fromFunction<ManyArgsType>(manyArgs, 0.0)),
-  Test("Store", Pointer.fromFunction<StoreType>(store)),
-  Test("NullPointers", Pointer.fromFunction<NullPointersType>(nullPointers)),
-  Test("ReturnVoid", Pointer.fromFunction<ReturnVoid>(returnVoid)),
-  Test("ThrowExceptionDouble",
+  CallbackTest("ManyInts", Pointer.fromFunction<ManyIntsType>(manyInts, 0)),
+  CallbackTest(
+      "ManyDoubles", Pointer.fromFunction<ManyDoublesType>(manyDoubles, 0.0)),
+  CallbackTest("ManyArgs", Pointer.fromFunction<ManyArgsType>(manyArgs, 0.0)),
+  CallbackTest("Store", Pointer.fromFunction<StoreType>(store)),
+  CallbackTest(
+      "NullPointers", Pointer.fromFunction<NullPointersType>(nullPointers)),
+  CallbackTest("ReturnVoid", Pointer.fromFunction<ReturnVoid>(returnVoid)),
+  CallbackTest("ThrowExceptionDouble",
       Pointer.fromFunction<ThrowExceptionDouble>(throwExceptionDouble, 42.0)),
-  Test("ThrowExceptionPointer",
+  CallbackTest("ThrowExceptionPointer",
       Pointer.fromFunction<ThrowExceptionPointer>(throwExceptionPointer)),
-  Test("ThrowException",
+  CallbackTest("ThrowException",
       Pointer.fromFunction<ThrowExceptionInt>(throwExceptionInt, 42)),
-  Test("TakeMaxUint8x10",
+  CallbackTest("TakeMaxUint8x10",
       Pointer.fromFunction<TakeMaxUint8x10Type>(takeMaxUint8x10, 0)),
-  Test("ReturnMaxUint8",
+  CallbackTest("ReturnMaxUint8",
       Pointer.fromFunction<ReturnMaxUint8Type>(returnMaxUint8, 0)),
-  Test("ReturnMaxUint8",
+  CallbackTest("ReturnMaxUint8",
       Pointer.fromFunction<ReturnMaxUint8Type>(returnMaxUint8v2, 0)),
 ];
 
