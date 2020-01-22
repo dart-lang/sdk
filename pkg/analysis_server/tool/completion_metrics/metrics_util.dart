@@ -19,10 +19,10 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 /// ```
 class Counter {
   final String name;
-  final Map<String, int> _buckets;
+  final Map<String, int> _buckets = {};
   int _totalCount = 0;
 
-  Counter(this.name) : _buckets = {};
+  Counter(this.name);
 
   /// Return a copy of all the current count data, this getter copies and
   /// returns the data to ensure that the data is only modified with the public
@@ -65,11 +65,11 @@ class Place {
   /// The total number of possible places.
   final int _denominator;
 
-  Place(this._numerator, this._denominator) {
-    assert(_numerator > 0 && _denominator > 0);
-  }
+  const Place(this._numerator, this._denominator)
+      : assert(_numerator > 0),
+        assert(_denominator >= _numerator);
 
-  Place.none()
+  const Place.none()
       : _numerator = 0,
         _denominator = 0;
 
