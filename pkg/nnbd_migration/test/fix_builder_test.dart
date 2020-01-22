@@ -2622,7 +2622,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
     var fixBuilder = _createFixBuilder(testUnit);
-    fixBuilder.visitAll(testUnit);
+    fixBuilder.visitAll();
     expect(scopedChanges(fixBuilder, testUnit), changes);
     expect(scopedProblems(fixBuilder, testUnit), problems);
   }
@@ -2632,7 +2632,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
     var fixBuilder = _createFixBuilder(node);
-    fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
+    fixBuilder.visitAll();
     var targetInfo = _computeAssignmentTargetInfo(node, fixBuilder);
     if (expectedReadType == null) {
       expect(targetInfo.readType, null);
@@ -2650,7 +2650,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
     var fixBuilder = _createFixBuilder(node);
-    fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
+    fixBuilder.visitAll();
     expect(scopedChanges(fixBuilder, node), changes);
     expect(scopedProblems(fixBuilder, node), problems);
   }
@@ -2659,7 +2659,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       {Map<AstNode, Matcher> changes = const <Expression, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
     var fixBuilder = _createFixBuilder(node);
-    fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
+    fixBuilder.visitAll();
     var type = node.staticType;
     expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
@@ -2670,7 +2670,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
       {Map<AstNode, Matcher> changes = const <AstNode, Matcher>{},
       Map<AstNode, Set<Problem>> problems = const <AstNode, Set<Problem>>{}}) {
     var fixBuilder = _createFixBuilder(node);
-    fixBuilder.visitAll(node.thisOrAncestorOfType<CompilationUnit>());
+    fixBuilder.visitAll();
     var type = node.type;
     expect(type.getDisplayString(withNullability: true), expectedType);
     expect(scopedChanges(fixBuilder, node), changes);
@@ -2694,8 +2694,15 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
   FixBuilder _createFixBuilder(AstNode scope) {
     var unit = scope.thisOrAncestorOfType<CompilationUnit>();
     var definingLibrary = unit.declaredElement.library;
-    return FixBuilder(testSource, decoratedClassHierarchy, typeProvider,
-        typeSystem, variables, definingLibrary);
+    return FixBuilder(
+        testSource,
+        decoratedClassHierarchy,
+        typeProvider,
+        typeSystem,
+        variables,
+        definingLibrary,
+        null,
+        scope.thisOrAncestorOfType<CompilationUnit>());
   }
 
   bool _isInScope(AstNode node, AstNode scope) {

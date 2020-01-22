@@ -128,8 +128,10 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         result.typeProvider,
         library.typeSystem as Dart2TypeSystem,
         _variables,
-        library);
-    fixBuilder.visitAll(unit);
+        library,
+        listener,
+        unit);
+    fixBuilder.visitAll();
     var changes = FixAggregator.run(unit, result.content, fixBuilder.changes,
         removeViaComments: removeViaComments);
     _instrumentation?.changes(source, changes);
