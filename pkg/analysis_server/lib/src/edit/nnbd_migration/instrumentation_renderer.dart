@@ -39,7 +39,7 @@ mustache.Template _template = mustache.Template(r'''
     '{{! Compilation unit content is written here. }}'
     '<p class="welcome">'
     '{{! TODO(srawlins): More welcome text! }}'
-    'Select a source file on the left to preview the modifications.'
+    'Select a source file on the left to preview the edits.'
     '</p>'
     '</div>'
     '<div class="regions">'
@@ -50,16 +50,22 @@ mustache.Template _template = mustache.Template(r'''
     '</div><!-- /content -->'
     '''
     <div class="info-panel">
-      <div class="info-panel-inner">
-        <p class="panel-heading">Modification info</p>
-        <div class="info">
-          <p>
-          Hover over modified regions to see why the migration tool chose to
-          make the modification.
-          </p>
-        </div><!-- /info -->
-      </div><!-- /info-panel-inner -->
-    </div><!-- info-panel -->
+      <div class="panel-container">
+        <div class="edit-panel">
+          <p class="panel-heading">Edit info</p>
+          <div class="panel-content">
+            <p>
+            Click a modified region of code to see why the migration tool chose
+            to make the edit.
+            </p>
+          </div><!-- /panel-content -->
+        </div><!-- /edit-panel -->
+        <div class="edit-list">
+          <p class="panel-heading">Edits</p>
+          <div class="panel-content"></div>
+        </div><!-- /edit-list -->
+      </div><!-- /panel-container -->
+    </div><!-- /info-panel -->
     </div><!-- /horizontal -->
     </div><!-- /panels -->
   </body>

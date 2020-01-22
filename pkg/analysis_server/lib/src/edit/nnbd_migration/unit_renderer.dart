@@ -40,8 +40,35 @@ class UnitRenderer {
       'thisUnit': migrationInfo.computeName(unitInfo),
       'navContent': _computeNavigationContent(),
       'regions': _computeRegionContent(),
+      'editList': _computeEditList(),
     };
     return jsonEncode(response);
+  }
+
+  String _computeEditList() {
+    var content = StringBuffer();
+    var editCount = unitInfo.fixRegions.length;
+    // TODO(srawlins): Change the edit count to be badge-like (number in a
+    //  circle).
+    if (editCount == 1) {
+      content
+          .write('<p><strong>$editCount</strong> edit was made to this file. '
+              "Click the edit's checkbox to toggle its reviewed state.</p>");
+    } else {
+      content
+          .write('<p><strong>$editCount</strong> edits were made to this file. '
+              "Click an edit's checkbox to toggle its reviewed state.</p>");
+    }
+    for (var region in unitInfo.fixRegions) {
+      content.write('<p class="edit">');
+      // TODO(srawlins): Make checkboxes functional.
+      content.write('<input type="checkbox" title="Click to mark reviewed" '
+          'disabled="disabled"> ');
+      content.write('line ${region.lineNumber}: ');
+      content.write(_htmlEscape.convert(region.explanation));
+      content.write('</p>');
+    }
+    return content.toString();
   }
 
   /// Return the content of the file with navigation links and anchors added.

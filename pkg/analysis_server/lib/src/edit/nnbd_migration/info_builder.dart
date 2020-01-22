@@ -498,7 +498,7 @@ class InfoBuilder {
   /// Explain the type annotations that were not changed because they were
   /// determined to be non-nullable.
   void _explainNonNullableTypes(SourceInformation sourceInfo,
-      List<RegionInfo> regions, OffsetMapper mapper) {
+      List<RegionInfo> regions, OffsetMapper mapper, LineInfo lineInfo) {
     Iterable<MapEntry<TypeAnnotation, NullabilityNodeInfo>> nonNullableTypes =
         sourceInfo.explicitTypeNullability.entries
             .where((entry) => !entry.value.isNullable);
@@ -518,6 +518,7 @@ class InfoBuilder {
               RegionType.nonNullableType,
               mapper.map(node.offset),
               node.length,
+              lineInfo.getLocation(node.offset).lineNumber,
               'This type is not changed; it is determined to be non-nullable',
               details));
         }
@@ -533,6 +534,7 @@ class InfoBuilder {
     unitInfo.sources ??= _computeNavigationSources(result);
     String content = result.content;
     List<RegionInfo> regions = unitInfo.regions;
+    var lineInfo = result.unit.lineInfo;
 
     // [fileEdit] is null when a file has no edits.
     List<SourceEdit> edits = fileEdit == null ? [] : List.of(fileEdit.edits);
@@ -561,24 +563,26 @@ class InfoBuilder {
         List<EditDetail> edits =
             info != null ? _computeEdits(info, sourceOffset) : [];
         List<RegionDetail> details = _computeDetails(edit);
+        var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
         if (length > 0) {
           if (explanation != null) {
-            regions.add(RegionInfo(
-                RegionType.fix, offset, length, explanation, details,
+            regions.add(RegionInfo(RegionType.fix, offset, length, lineNumber,
+                explanation, details,
                 edits: edits));
           }
           offset += length;
         }
         if (explanation != null) {
-          regions.add(RegionInfo(
-              RegionType.fix, offset, replacement.length, explanation, details,
+          regions.add(RegionInfo(RegionType.fix, offset, replacement.length,
+              lineNumber, explanation, details,
               edits: edits));
         }
         offset += replacement.length;
       }
     }
     if (explainNonNullableTypes) {
-      _explainNonNullableTypes(sourceInfo, regions, mapper);
+      _explainNonNullableTypes(
+          sourceInfo, regions, mapper, result.unit.lineInfo);
     }
     regions.sort((first, second) => first.offset.compareTo(second.offset));
     unitInfo.offsetMapper = mapper;

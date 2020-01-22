@@ -50,8 +50,10 @@ function relativePath(path) {
 function writeCodeAndRegions(data) {
   const regions = document.querySelector(".regions");
   const code = document.querySelector(".code");
+  const editList = document.querySelector(".edit-list .panel-content");
   regions.innerHTML = data["regions"];
   code.innerHTML = data["navContent"];
+  editList.innerHTML = data["editList"];
   highlightAllCode();
   addClickHandlers(".code");
   addClickHandlers(".regions");
@@ -185,16 +187,14 @@ function addClickHandlers(parentSelector) {
     };
   });
   const regions = parentElement.querySelectorAll(".region");
-  const infoPanel = document.querySelector(".info-panel-inner");
   regions.forEach((region) => {
-    const tooltip = region.querySelector(".tooltip");
     region.onclick = (event) => {
       loadRegionExplanation(region);
     };
   });
 }
 
-// Load the explanation for [region], into the ".info" div.
+// Load the explanation for [region], into the ".panel-content" div.
 function loadRegionExplanation(region) {
   // Request the region, then do work with the response.
   const xhr = new XMLHttpRequest();
@@ -205,13 +205,10 @@ function loadRegionExplanation(region) {
   xhr.onload = function() {
     if (xhr.status === 200) {
       const response = xhr.responseText;
-      const info = document.querySelector(".info-panel-inner .info");
-      info.innerHTML = response;
-      const line = region.dataset.line;
-      const regionLocation = info.querySelector(".region-location");
-      regionLocation.textContent =
-          regionLocation.textContent + ` line ${line}:`;
-      addClickHandlers(".info-panel .info");
+      const editPanelContent =
+          document.querySelector(".edit-panel .panel-content");
+      editPanelContent.innerHTML = response;
+      addClickHandlers(".edit-panel .panel-content");
     } else {
       alert(`Request failed; status of ${xhr.status}`);
     }
@@ -243,8 +240,13 @@ function resizePanels() {
   const height = window.innerHeight - 8;
   navInner.style.height = height + "px";
 
-  const infoInner = document.querySelector(".info-panel-inner");
-  infoInner.style.height = height + "px";
+  const infoPanelHeight = height / 2 - 8;
+  const editPanel = document.querySelector(".edit-panel");
+  editPanel.style.height = infoPanelHeight + "px";
+
+  const editListHeight = height / 2 - 8;
+  const editList = document.querySelector(".edit-list");
+  editList.style.height = editListHeight + "px";
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
@@ -284,7 +286,7 @@ window.addEventListener("scroll", (event) => {
   const navPanel = document.querySelector(".nav-panel");
   const navInner = navPanel.querySelector(".nav-inner");
   const infoPanel = document.querySelector(".info-panel");
-  const infoInner = infoPanel.querySelector(".info-panel-inner");
+  const panelContainer = document.querySelector(".panel-container");
   const innerTopOffset = navPanel.offsetTop;
   if (window.pageYOffset > innerTopOffset) {
     if (!navInner.classList.contains("fixed")) {
@@ -293,11 +295,11 @@ window.addEventListener("scroll", (event) => {
       navInner.style.width = (navInner.offsetWidth - 6) + "px";
       navInner.classList.add("fixed");
     }
-    if (!infoInner.classList.contains("fixed")) {
+    if (!panelContainer.classList.contains("fixed")) {
       infoPanel.style.width = infoPanel.offsetWidth + "px";
-      // Subtract 6px for info-panel-inner's padding.
-      infoInner.style.width = (infoInner.offsetWidth - 6) + "px";
-      infoInner.classList.add("fixed");
+      // Subtract 6px for edit-panel's padding.
+      panelContainer.style.width = (panelContainer.offsetWidth - 6) + "px";
+      panelContainer.classList.add("fixed");
     }
   } else {
     if (navInner.classList.contains("fixed")) {
@@ -305,10 +307,10 @@ window.addEventListener("scroll", (event) => {
       navInner.style.width = "";
       navInner.classList.remove("fixed");
     }
-    if (infoInner.classList.contains("fixed")) {
+    if (panelContainer.classList.contains("fixed")) {
       infoPanel.style.width = "";
-      infoInner.style.width = "";
-      infoInner.classList.remove("fixed");
+      panelContainer.style.width = "";
+      panelContainer.classList.remove("fixed");
     }
   }
   debounce(resizePanels, 200)();

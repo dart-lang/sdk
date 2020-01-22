@@ -36,6 +36,71 @@ class UnitRendererTest extends NnbdMigrationTestBase {
     return contents;
   }
 
+  test_editList_containsEdit() async {
+    await buildInfoForSingleTestFile('int a = null;',
+        migratedContent: 'int? a = null;');
+    var outputJson = renderUnits()[0];
+    var output = jsonDecode(outputJson);
+    var editList = output['editList'];
+    expect(
+        editList,
+        contains('<p class="edit">'
+            '<input type="checkbox" title="Click to mark reviewed" '
+            'disabled="disabled">'
+            " line 1: Changed type 'int' to be nullable.</p>"));
+  }
+
+  test_editList_containsEdit_htmlEscaped() async {
+    await buildInfoForSingleTestFile('List<String> a = null;',
+        migratedContent: 'List<String>? a = null;');
+    var outputJson = renderUnits()[0];
+    var output = jsonDecode(outputJson);
+    var editList = output['editList'];
+    expect(editList,
+        contains("line 1: Changed type 'List&lt;String&gt;' to be nullable."));
+  }
+
+  test_editList_containsEdit_twoEdits() async {
+    await buildInfoForSingleTestFile('''
+int a = null;
+bool b = a.isEven;
+''', migratedContent: '''
+int? a = null;
+bool b = a!.isEven;
+''');
+    var outputJson = renderUnits()[0];
+    var output = jsonDecode(outputJson);
+    var editList = output['editList'];
+    expect(editList, contains("line 1: Changed type 'int' to be nullable."));
+    expect(editList,
+        contains("line 2: Added a non-null assertion to nullable expression."));
+  }
+
+  test_editList_containsSummary() async {
+    await buildInfoForSingleTestFile('int a = null;',
+        migratedContent: 'int? a = null;');
+    var outputJson = renderUnits()[0];
+    var output = jsonDecode(outputJson);
+    var editList = output['editList'];
+    expect(editList,
+        contains('<p><strong>1</strong> edit was made to this file.'));
+  }
+
+  test_editList_containsSummary_twoEdits() async {
+    await buildInfoForSingleTestFile('''
+int a = null;
+bool b = a.isEven;
+''', migratedContent: '''
+int? a = null;
+bool b = a!.isEven;
+''');
+    var outputJson = renderUnits()[0];
+    var output = jsonDecode(outputJson);
+    var editList = output['editList'];
+    expect(editList,
+        contains('<p><strong>2</strong> edits were made to this file.'));
+  }
+
   test_navContentContainsEscapedHtml() async {
     await buildInfoForSingleTestFile('List<String> a = null;',
         migratedContent: 'List<String>? a = null;');

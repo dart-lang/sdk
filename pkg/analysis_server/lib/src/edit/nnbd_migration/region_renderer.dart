@@ -42,9 +42,7 @@ class RegionRenderer {
     var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
     var buffer = StringBuffer();
     buffer.write('<p class="region-location">');
-    // The line number is hard to compute here, but is known in the browser.
-    // The browser will write the line number at the end of this paragraph.
-    buffer.write(unitDir);
+    buffer.write('${pathMapper.map(unitInfo.path)} line ${region.lineNumber}');
     buffer.write('</p>');
     buffer.write('<p>${_htmlEscape.convert(region.explanation)}</p>');
     //

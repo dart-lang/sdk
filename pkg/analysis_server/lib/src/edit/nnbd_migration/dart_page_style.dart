@@ -232,18 +232,22 @@ h2#unit-name {
 }
 
 .info-panel {
-  background-color: #282b2e;
   flex: 1 1 270px;
   font-size: 14px;
   margin: 10px 0;
 }
 
-.info-panel .info {
+.info-panel .edit-panel {
+  background-color: #282b2e;
+  overflow: auto;
+}
+
+.info-panel .panel-content {
   font-size: 13px;
   padding: 7px;
 }
 
-.info-panel .info > :first-child {
+.info-panel .panel-content > :first-child {
   margin-top: 0;
 }
 
@@ -253,6 +257,18 @@ h2#unit-name {
 
 .info-panel .nav-link {
   color: #33ccff;
+}
+
+.info-panel .edit-list {
+  background-color: #282b2e;
+  margin-top: 12px;
+  overflow: auto;
+}
+
+.edit-list .edit {
+  margin: 3px 0;
+  padding-left: 21px;
+  text-indent: -21px;
 }
 
 .footer {
