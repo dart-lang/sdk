@@ -5,22 +5,30 @@
 import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
+import 'package:front_end/src/fasta/kernel/class_hierarchy_builder.dart';
 import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:kernel/ast.dart';
 
+const String cfeFromBuilderMarker = 'cfe:builder';
+
+const TestConfig cfeFromBuilder = const TestConfig(
+    cfeFromBuilderMarker, 'cfe from builder',
+    experimentalFlags: const {ExperimentalFlag.nonNullable: true});
+
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
   await runTests<String>(dataDir,
       args: args,
-      supportedMarkers: [cfeMarker],
+      supportedMarkers: [cfeMarker, cfeFromBuilderMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const InheritanceDataComputer(), [cfeNonNullableOnlyConfig]));
+      runTest: runTestFor(const InheritanceDataComputer(),
+          [cfeNonNullableOnlyConfig, cfeFromBuilder]));
 }
 
 class InheritanceDataComputer extends DataComputer<String> {
@@ -29,18 +37,24 @@ class InheritanceDataComputer extends DataComputer<String> {
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
-  void computeLibraryData(InternalCompilerResult compilerResult,
-      Library library, Map<Id, ActualData<String>> actualMap,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
-    new InheritanceDataExtractor(compilerResult, actualMap)
+    new InheritanceDataExtractor(config, compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeClassData(InternalCompilerResult compilerResult, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
-    new InheritanceDataExtractor(compilerResult, actualMap)
+    new InheritanceDataExtractor(config, compilerResult, actualMap)
         .computeForClass(cls);
   }
 
@@ -48,8 +62,8 @@ class InheritanceDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   @override
-  String computeErrorData(
-      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
+  String computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     return errorsToText(errors, useCodes: true);
   }
 
@@ -58,14 +72,17 @@ class InheritanceDataComputer extends DataComputer<String> {
 }
 
 class InheritanceDataExtractor extends CfeDataExtractor<String> {
-  final ClassHierarchy _hierarchy;
-  final CoreTypes _coreTypes;
+  final TestConfig _config;
+  final InternalCompilerResult _compilerResult;
 
-  InheritanceDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap)
-      : _hierarchy = compilerResult.classHierarchy,
-        _coreTypes = compilerResult.coreTypes,
-        super(compilerResult, actualMap);
+  InheritanceDataExtractor(
+      this._config, this._compilerResult, Map<Id, ActualData<String>> actualMap)
+      : super(_compilerResult, actualMap);
+
+  ClassHierarchy get _hierarchy => _compilerResult.classHierarchy;
+  CoreTypes get _coreTypes => _compilerResult.coreTypes;
+  ClassHierarchyBuilder get _classHierarchyBuilder =>
+      _compilerResult.kernelTargetForTesting.loader.builderHierarchy;
 
   @override
   String computeLibraryValue(Id id, Library node) {
@@ -75,7 +92,7 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
   @override
   void computeForClass(Class node) {
     super.computeForClass(node);
-
+    // TODO(johnniwinther): Also compute member data from builders.
     Set<Name> getters = _hierarchy
         .getInterfaceMembers(node)
         .map((Member member) => member.name)
@@ -148,14 +165,38 @@ class InheritanceDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String computeClassValue(Id id, Class node) {
-    List<String> supertypes = <String>[];
-    for (Class superclass in computeAllSuperclasses(node)) {
-      Supertype supertype = _hierarchy.getClassAsInstanceOf(node, superclass);
-      assert(supertype != null, "No instance of $superclass found for $node.");
-      supertypes.add(
-          supertypeToText(supertype, TypeRepresentation.implicitUndetermined));
+    if (_config.marker == cfeMarker) {
+      List<String> supertypes = <String>[];
+      for (Class superclass in computeAllSuperclasses(node)) {
+        Supertype supertype = _hierarchy.getClassAsInstanceOf(node, superclass);
+        assert(
+            supertype != null, "No instance of $superclass found for $node.");
+        supertypes.add(supertypeToText(
+            supertype, TypeRepresentation.implicitUndetermined));
+      }
+      supertypes.sort();
+      return supertypes.join(',');
+    } else if (_config.marker == cfeFromBuilderMarker) {
+      ClassHierarchyNode classHierarchyNode =
+          _classHierarchyBuilder.getNodeFromClass(node);
+      Set<String> supertypes = <String>{};
+      void addDartType(DartType type) {
+        if (type is InterfaceType) {
+          Supertype supertype =
+              new Supertype(type.classNode, type.typeArguments);
+          supertypes.add(supertypeToText(
+              supertype, TypeRepresentation.implicitUndetermined));
+        }
+      }
+
+      addDartType(_coreTypes.thisInterfaceType(
+          classHierarchyNode.classBuilder.cls,
+          classHierarchyNode.classBuilder.cls.enclosingLibrary.nonNullable));
+      classHierarchyNode.superclasses.forEach(addDartType);
+      classHierarchyNode.interfaces.forEach(addDartType);
+      List<String> sorted = supertypes.toList()..sort();
+      return sorted.join(',');
     }
-    supertypes.sort();
-    return supertypes.join(',');
+    return null;
   }
 }

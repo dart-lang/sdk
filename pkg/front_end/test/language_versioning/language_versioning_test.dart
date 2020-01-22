@@ -48,8 +48,11 @@ class TestConfigWithLanguageVersion extends TestConfig {
 class LanguageVersioningDataComputer extends DataComputer<String> {
   const LanguageVersioningDataComputer();
 
-  void computeLibraryData(InternalCompilerResult compilerResult,
-      Library library, Map<Id, ActualData<String>> actualMap,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new LanguageVersioningDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
@@ -58,8 +61,8 @@ class LanguageVersioningDataComputer extends DataComputer<String> {
   @override
   bool get supportsErrors => true;
 
-  String computeErrorData(
-      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
+  String computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     return errors.map((m) => m.code.name).join(',');
   }
 

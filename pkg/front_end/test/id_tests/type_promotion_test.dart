@@ -34,7 +34,10 @@ class TypePromotionDataComputer extends DataComputer<DartType> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<DartType>> actualMap,
       {bool verbose}) {
     member.accept(new TypePromotionDataExtractor(compilerResult, actualMap));

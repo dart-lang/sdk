@@ -13,6 +13,7 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         InternalCompilerResult,
         DataComputer,
         FormattedMessage,
+        TestConfig,
         createUriForFileName,
         defaultCfeConfig,
         onFailure,
@@ -36,14 +37,20 @@ class ConstantsDataComputer extends DataComputer<String> {
   const ConstantsDataComputer();
 
   @override
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     member.accept(new ConstantsDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(InternalCompilerResult compilerResult, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new ConstantsDataExtractor(compilerResult, actualMap).computeForClass(cls);
@@ -53,8 +60,8 @@ class ConstantsDataComputer extends DataComputer<String> {
   bool get supportsErrors => true;
 
   /// Returns data corresponding to [error].
-  String computeErrorData(
-      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
+  String computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);
   }
 

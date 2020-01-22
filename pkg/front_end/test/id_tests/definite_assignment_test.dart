@@ -36,7 +36,10 @@ class DefiniteAssignmentDataComputer extends DataComputer<String> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     MemberBuilderImpl memberBuilder =
@@ -53,7 +56,7 @@ class DefiniteAssignmentDataExtractor extends CfeDataExtractor<String> {
   DefiniteAssignmentDataExtractor(InternalCompilerResult compilerResult,
       Map<Id, ActualData<String>> actualMap, this._flowResult)
       : _sourceLoaderDataForTesting =
-      compilerResult.kernelTargetForTesting.loader.dataForTesting,
+            compilerResult.kernelTargetForTesting.loader.dataForTesting,
         super(compilerResult, actualMap);
 
   @override
