@@ -62,39 +62,39 @@ class EliminateDeadIf extends NodeChange {
           "EliminateDeadIf applied to an AST node that's not an if");
     }
     AstNode nodeToKeep;
-    NullabilityFixDescription description;
+    NullabilityFixDescription descriptionBefore, descriptionAfter;
     if (conditionValue) {
       nodeToKeep = thenNode;
+      descriptionBefore = NullabilityFixDescription.discardCondition;
       if (elseNode == null) {
-        description = NullabilityFixDescription.discardCondition;
+        descriptionAfter = descriptionBefore;
       } else {
-        description = NullabilityFixDescription.discardElse;
+        descriptionAfter = NullabilityFixDescription.discardElse;
       }
     } else {
       nodeToKeep = elseNode;
-      description = NullabilityFixDescription.discardThen;
+      descriptionBefore =
+          descriptionAfter = NullabilityFixDescription.discardThen;
     }
-    var info = AtomicEditInfo(description, reasons);
-    if (nodeToKeep == null) {
+    if (nodeToKeep == null ||
+        nodeToKeep is Block && nodeToKeep.statements.isEmpty) {
+      var info = AtomicEditInfo(NullabilityFixDescription.discardIf, reasons);
       return aggregator.planner.removeNode(node, info: info);
     }
-    if (nodeToKeep is Block) {
-      if (nodeToKeep.statements.isEmpty) {
-        return aggregator.planner.removeNode(node, info: info);
-      } else if (nodeToKeep.statements.length == 1) {
-        var singleStatement = nodeToKeep.statements[0];
-        if (singleStatement is VariableDeclarationStatement) {
-          // It's not safe to eliminate the {} because it increases the scope of
-          // the variable declarations
-        } else {
-          return aggregator.planner.extract(
-              node, aggregator.innerPlanForNode(nodeToKeep.statements.single),
-              info: info);
-        }
+    var infoBefore = AtomicEditInfo(descriptionBefore, reasons);
+    var infoAfter = AtomicEditInfo(descriptionAfter, reasons);
+    if (nodeToKeep is Block && nodeToKeep.statements.length == 1) {
+      var singleStatement = (nodeToKeep as Block).statements[0];
+      if (singleStatement is VariableDeclarationStatement) {
+        // It's not safe to eliminate the {} because it increases the scope of
+        // the variable declarations
+      } else {
+        nodeToKeep = singleStatement;
       }
     }
-    return aggregator.planner
-        .extract(node, aggregator.innerPlanForNode(nodeToKeep), info: info);
+    return aggregator.planner.extract(
+        node, aggregator.innerPlanForNode(nodeToKeep),
+        infoBefore: infoBefore, infoAfter: infoAfter);
   }
 
   @override
@@ -263,7 +263,8 @@ class RemoveAs extends _NestableChange {
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     return aggregator.planner.extract(
         node, _inner.apply((node as AsExpression).expression, aggregator),
-        info: AtomicEditInfo(NullabilityFixDescription.removeAs, const []));
+        infoAfter:
+            AtomicEditInfo(NullabilityFixDescription.removeAs, const []));
   }
 }
 
@@ -290,7 +291,7 @@ class RequiredAnnotationToRequiredKeyword extends _NestableChange {
       // The text `required` already exists in the annotation; we can just
       // extract it.
       return aggregator.planner
-          .extract(node, _inner.apply(name, aggregator), info: info);
+          .extract(node, _inner.apply(name, aggregator), infoBefore: info);
     } else {
       return aggregator.planner
           .replace(node, [AtomicEdit.insert('required', info: info)]);

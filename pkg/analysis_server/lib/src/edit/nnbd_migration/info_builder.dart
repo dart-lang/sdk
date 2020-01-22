@@ -407,6 +407,7 @@ class InfoBuilder {
         break;
       case NullabilityFixKind.discardCondition:
       case NullabilityFixKind.discardElse:
+      case NullabilityFixKind.discardIf:
       case NullabilityFixKind.discardThen:
       case NullabilityFixKind.removeAs:
         // There's no need for hints around code that is being removed.

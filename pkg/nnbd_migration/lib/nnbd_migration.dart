@@ -18,7 +18,9 @@ class NullabilityFixDescription {
   /// An if-test or conditional expression needs to have its condition and
   /// "then" branch discarded.
   static const discardThen = const NullabilityFixDescription._(
-    appliedMessage: 'Discarded an unreachable conditional then branch',
+    appliedMessage:
+        'Discarded a condition which is always false, and the "then" branch '
+        'that follows',
     kind: NullabilityFixKind.discardThen,
   );
 
@@ -34,6 +36,12 @@ class NullabilityFixDescription {
   static const discardElse = const NullabilityFixDescription._(
     appliedMessage: 'Discarded an unreachable conditional else branch',
     kind: NullabilityFixKind.discardElse,
+  );
+
+  /// An if-test needs to be discarded completely.
+  static const discardIf = const NullabilityFixDescription._(
+    appliedMessage: 'Discarded an if-test with no effect',
+    kind: NullabilityFixKind.discardIf,
   );
 
   /// An expression's value needs to be null-checked.
@@ -99,6 +107,7 @@ enum NullabilityFixKind {
   checkExpression,
   discardCondition,
   discardElse,
+  discardIf,
   discardThen,
   makeTypeNullable,
   noModification,

@@ -1000,7 +1000,7 @@ String f(bool b) {
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_discard_simple_condition() async {
+  Future<void> test_discard_simple_condition_keep_else() async {
     var content = '''
 int f(int i) {
   if (i == null) {
@@ -1017,6 +1017,29 @@ int f(int i) {
     return null;
   } else {
     */ return i + 1; /*
+  } */
+}
+''';
+    await _checkSingleFileChanges(content, expected, removeViaComments: true);
+  }
+
+  Future<void> test_discard_simple_condition_keep_then() async {
+    var content = '''
+int f(int i) {
+  if (i != null) {
+    return i + 1;
+  } else {
+    return null;
+  }
+}
+''';
+
+    var expected = '''
+int f(int i) {
+  /* if (i != null) {
+    */ return i + 1; /*
+  } else {
+    return null;
   } */
 }
 ''';
