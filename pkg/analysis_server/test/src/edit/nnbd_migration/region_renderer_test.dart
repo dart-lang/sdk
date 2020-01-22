@@ -53,10 +53,8 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var output = renderRegion(3);
-    expect(
-        output,
-        contains(
-            '<p class="region-location">/project/bin/test.dart line 1</p>'));
+    var path = convertPath('/project/bin/test.dart');
+    expect(output, contains('<p class="region-location">$path line 1</p>'));
   }
 
   test_unmodifiedOutput_containsDetail() async {
@@ -85,9 +83,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int a) => a.isEven;');
     var output = renderRegion(2);
-    expect(
-        output,
-        contains(
-            '<p class="region-location">/project/bin/test.dart line 1</p>'));
+    var path = convertPath('/project/bin/test.dart');
+    expect(output, contains('<p class="region-location">$path line 1</p>'));
   }
 }
