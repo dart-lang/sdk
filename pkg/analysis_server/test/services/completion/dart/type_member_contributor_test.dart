@@ -2225,6 +2225,53 @@ g(F.^
     assertNotSuggested('Foo');
   }
 
+  test_InterfaceType_Function_call() async {
+    addTestSource('''
+void f() {
+  Function fun;
+  fun.^
+}
+''');
+
+    await computeSuggestions();
+    assertSuggest(
+      'call()',
+      selectionOffset: 6,
+    );
+  }
+
+  test_InterfaceType_Function_extended_call() async {
+    addTestSource('''
+class MyFun extends Function { }
+void f() {
+  MyFun fun;
+  fun.^
+}
+''');
+
+    await computeSuggestions();
+    assertSuggest(
+      'call()',
+      selectionOffset: 6,
+    );
+  }
+
+  test_InterfaceType_Function_implemented_call() async {
+    addTestSource('''
+class MyFun implements Function { }
+void f() {
+  MyFun fun;
+  fun.^
+}
+''');
+
+    await computeSuggestions();
+    assertSuggest(
+      'call()',
+      selectionOffset: 6,
+    );
+  }
+
   test_InterpolationExpression() async {
     // SimpleIdentifier  InterpolationExpression  StringInterpolation
     addSource('/home/test/lib/a.dart', '''

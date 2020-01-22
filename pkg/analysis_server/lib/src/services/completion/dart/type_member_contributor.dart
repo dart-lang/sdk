@@ -12,7 +12,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 
-import '../../../protocol_server.dart' show CompletionSuggestion;
+import '../../../protocol_server.dart'
+    show CompletionSuggestion, CompletionSuggestionKind;
 
 /**
  * A contributor for calculating instance invocation / access suggestions
@@ -288,7 +289,25 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
           }
         }
       }
+      if (targetType.isDartCoreFunction) {
+        _addFunctionCallSuggestion();
+      }
     }
+  }
+
+  void _addFunctionCallSuggestion() {
+    const callString = 'call()';
+    addCompletionSuggestion(CompletionSuggestion(
+      CompletionSuggestionKind.INVOCATION,
+      DART_RELEVANCE_HIGH,
+      callString,
+      callString.length,
+      0,
+      false,
+      false,
+      displayText: callString,
+      returnType: 'void',
+    ));
   }
 
   /**
