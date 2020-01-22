@@ -171,6 +171,12 @@ even when imported with a prefix.
 * **Breaking change**: Added `IOOverrides.serverSocketBind` to aid in writing
   tests that wish to mock `ServerSocket.bind`.
 
+#### `dart:typed_data`
+
+* Added new constructors, `.sublistView(TypedData, [start, end])` to all
+  `TypedData` classes. The constructor makes it easier, and less error-prone,
+  to create a view of (a slice of) another `TypedData` object.
+
 ### Dart VM
 
 * New fields added to existing instances by a reload will now be initialized
