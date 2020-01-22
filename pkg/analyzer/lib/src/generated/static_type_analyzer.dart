@@ -949,6 +949,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     if (inferred != null &&
         inferred != _elementTypeProvider.getExecutableType(originalElement)) {
+      inferred = _resolver.toLegacyTypeIfOptOut(inferred);
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters =
           ResolverVisitor.resolveArgumentsToParameters(

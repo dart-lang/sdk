@@ -108,15 +108,23 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
     if (constructor == null || definingType.typeArguments.isEmpty) {
       return constructor;
     }
+
     FunctionType baseType = constructor.type;
     if (baseType == null) {
       // TODO(brianwilkerson) We need to understand when this can happen.
       return constructor;
     }
+
+    var isLegacy = false;
+    if (constructor is ConstructorMember) {
+      isLegacy = (constructor as ConstructorMember).isLegacy;
+      constructor = constructor.declaration;
+    }
+
     return ConstructorMember(
       constructor,
       Substitution.fromInterfaceType(definingType),
-      false,
+      isLegacy,
     );
   }
 }
@@ -175,7 +183,7 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   List<ParameterElement> get parameters {
-    return declaration.parameters.map((p) {
+    return declaration.parameters.map<ParameterElement>((p) {
       if (p is FieldFormalParameterElement) {
         return FieldFormalParameterMember(p, _substitution, isLegacy);
       }

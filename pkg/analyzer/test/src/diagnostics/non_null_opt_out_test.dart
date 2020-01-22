@@ -488,6 +488,21 @@ main() {
     );
   }
 
+  test_instanceCreation_generic_instantiateToBounds() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A<T extends num> {}
+''');
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'a.dart';
+
+var v = A();
+''');
+
+    var v = findElement.topVar('v');
+    assertType(v.type, 'A<num*>*');
+  }
+
   test_methodInvocation_extension_functionTarget() async {
     newFile('/test/lib/a.dart', content: r'''
 extension E on void Function() {
