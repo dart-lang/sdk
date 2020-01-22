@@ -23,6 +23,10 @@ class FindNode {
     return _node(search, (n) => true);
   }
 
+  AsExpression as_(String search) {
+    return _node(search, (n) => n is AsExpression);
+  }
+
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
   }

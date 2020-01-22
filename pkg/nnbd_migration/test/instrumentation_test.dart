@@ -422,6 +422,35 @@ int x = null;
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_fix_reason_remove_unnecessary_cast() async {
+    await analyze('''
+_f(Object x) {
+  if (x is! int) return;
+  print((x as int) + 1);
+}
+''');
+    var xRef = findNode.simple('x as');
+    var asExpression = xRef.parent as Expression;
+    expect(changes, hasLength(3));
+    // Change #1: drop the `(` before the cast
+    var dropLeadingParen = changes[asExpression.offset - 1].single;
+    expect(dropLeadingParen.isDeletion, true);
+    expect(dropLeadingParen.length, 1);
+    expect(dropLeadingParen.info, null);
+    // Change #2: drop the text ` as int`
+    var dropAsInt = changes[xRef.end].single;
+    expect(dropAsInt.isDeletion, true);
+    expect(dropAsInt.length, 7);
+    expect(dropAsInt.info.description, NullabilityFixDescription.removeAs);
+    expect(dropAsInt.info.fixReasons, isEmpty);
+    // Change #3: drop the `)` after the cast
+    var dropTrailingParen = changes[asExpression.end].single;
+    expect(dropTrailingParen.isDeletion, true);
+    expect(dropTrailingParen.length, 1);
+    expect(dropTrailingParen.info, null);
+  }
+
   @FailingTest(reason: 'Produces no changes')
   Future<void> test_fix_reason_rewrite_required() async {
     addMetaPackage();
@@ -1212,6 +1241,11 @@ class _InstrumentationTestWithFixBuilder extends _InstrumentationTestBase {
   @override
   Future<void> test_fix_reason_discard_then_no_else() =>
       super.test_fix_reason_discard_then_no_else();
+
+  /// Test fails under the pre-FixBuilder implementation; passes now.
+  @override
+  Future<void> test_fix_reason_remove_unnecessary_cast() =>
+      super.test_fix_reason_remove_unnecessary_cast();
 
   /// Test fails under the pre-FixBuilder implementation; passes now.
   @override

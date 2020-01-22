@@ -2,12 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
@@ -480,6 +482,8 @@ void f(Object o) {
         hard: true);
     // TODO(mfairhurst): these should probably be hard edges.
     assertEdge(decoratedTypeAnnotation('int').node, never, hard: false);
+    expect(
+        variables.wasUnnecessaryCast(testSource, findNode.as_('o as')), false);
   }
 
   Future<void> test_as_int_null_ok() async {
@@ -492,6 +496,24 @@ void f(Object o) {
         decoratedTypeAnnotation('int').node,
         hard: true);
     assertNoEdge(decoratedTypeAnnotation('int').node, never);
+  }
+
+  Future<void> test_as_int_unnecessary() async {
+    verifyNoTestUnitErrors = false;
+    await analyze('''
+void f(int i) {
+  (i as int).gcd(1);
+}
+''');
+    expect(
+        testAnalysisResult.errors.single.errorCode, HintCode.UNNECESSARY_CAST);
+    assertEdge(decoratedTypeAnnotation('int i').node,
+        decoratedTypeAnnotation('int)').node,
+        hard: true);
+    // TODO(mfairhurst): these should probably be hard edges.
+    assertEdge(decoratedTypeAnnotation('int)').node, never, hard: false);
+    expect(
+        variables.wasUnnecessaryCast(testSource, findNode.as_('i as')), true);
   }
 
   Future<void> test_as_side_cast() async {

@@ -9,11 +9,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -264,6 +265,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitAsExpression(AsExpression node) {
+    if (BestPracticesVerifier.isUnnecessaryCast(node, _typeSystem)) {
+      _variables.recordUnnecessaryCast(source, node);
+    }
     final typeNode = _variables.decoratedTypeAnnotation(source, node.type);
     _handleAssignment(node.expression, destinationType: typeNode);
     _flowAnalysis.asExpression_end(node.expression, typeNode);

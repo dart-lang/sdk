@@ -4043,6 +4043,23 @@ class C {
 ''';
     await _checkSingleFileChanges(content, expected);
   }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_unnecessary_cast_remove() async {
+    var content = '''
+_f(Object x) {
+  if (x is! int) return;
+  print((x as int) + 1);
+}
+''';
+    var expected = '''
+_f(Object x) {
+  if (x is! int) return;
+  print(x + 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
 }
 
 @reflectiveTest
@@ -4093,6 +4110,11 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   @override
   Future<void> test_removed_if_element_doesnt_introduce_nullability() =>
       super.test_removed_if_element_doesnt_introduce_nullability();
+
+  /// Test fails under the pre-FixBuilder implementation; passes now.
+  @override
+  Future<void> test_unnecessary_cast_remove() =>
+      super.test_unnecessary_cast_remove();
 }
 
 /// Tests of the provisional API, where the driver is reset between calls to

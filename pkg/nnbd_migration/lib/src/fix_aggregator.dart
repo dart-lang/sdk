@@ -255,9 +255,6 @@ class NullCheck extends _NestableChange {
 
 /// Implementation of [NodeChange] representing the removal of an unnecessary
 /// cast.
-///
-/// TODO(paulberry): store additional information necessary to include in the
-/// preview.
 class RemoveAs extends _NestableChange {
   const RemoveAs([NodeChange<NodeProducingEditPlan> inner = const NoChange()])
       : super(inner);
@@ -265,7 +262,8 @@ class RemoveAs extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     return aggregator.planner.extract(
-        node, _inner.apply((node as AsExpression).expression, aggregator));
+        node, _inner.apply((node as AsExpression).expression, aggregator),
+        info: AtomicEditInfo(NullabilityFixDescription.removeAs, const []));
   }
 }
 

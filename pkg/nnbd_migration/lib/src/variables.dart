@@ -50,6 +50,8 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _potentialModifications = <Source, List<PotentialModification>>{};
 
+  final _unnecessaryCasts = <Source, Set<int>>{};
+
   final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
 
   final NullabilityMigrationInstrumentation /*?*/ instrumentation;
@@ -200,6 +202,19 @@ class Variables implements VariableRecorder, VariableRepository {
     var modification = PotentiallyAddRequired(parameter, node);
     _addPotentialModification(source, modification);
   }
+
+  @override
+  void recordUnnecessaryCast(Source source, AsExpression node) {
+    bool newlyAdded = (_unnecessaryCasts[source] ??= {})
+        .add(uniqueIdentifierForSpan(node.offset, node.end));
+    assert(newlyAdded);
+  }
+
+  /// Queries whether, prior to migration, an unnecessary cast existed at
+  /// [node].
+  bool wasUnnecessaryCast(Source source, AsExpression node) =>
+      (_unnecessaryCasts[source] ?? const {})
+          .contains(uniqueIdentifierForSpan(node.offset, node.end));
 
   void _addPotentialModification(
       Source source, PotentialModification potentialModification) {

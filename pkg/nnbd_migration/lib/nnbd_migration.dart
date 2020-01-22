@@ -42,6 +42,12 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.checkExpression,
   );
 
+  /// An unnecessary downcast has been discarded.
+  static const removeAs = const NullabilityFixDescription._(
+    appliedMessage: 'Discarded a downcast that is now unnecessary',
+    kind: NullabilityFixKind.removeAs,
+  );
+
   /// A message used by dartfix to indicate a fix has been applied.
   final String appliedMessage;
 
@@ -96,6 +102,7 @@ enum NullabilityFixKind {
   discardThen,
   makeTypeNullable,
   noModification,
+  removeAs,
 }
 
 /// Provisional API for DartFix to perform nullability migration.

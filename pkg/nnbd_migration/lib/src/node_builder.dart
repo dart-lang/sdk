@@ -790,6 +790,10 @@ abstract class VariableRepository {
   /// Associates a set of nullability checks with the given expression [node].
   void recordExpressionChecks(
       Source source, Expression expression, ExpressionChecksOrigin origin);
+
+  /// Records the fact that prior to migration, an unnecessary cast existed at
+  /// [node].
+  void recordUnnecessaryCast(Source source, AsExpression node);
 }
 
 /// Types of comments that can influence nullability

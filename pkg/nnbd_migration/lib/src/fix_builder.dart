@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -128,8 +129,9 @@ class FixBuilder {
   /// Visits the entire compilation [unit] using the analyzer's resolver and
   /// makes note of changes that need to be made.
   void visitAll(CompilationUnit unit) {
-    unit.accept(_AdditionalMigrationsVisitor(this));
+    unit.accept(_FixBuilderPreVisitor(this));
     unit.accept(_resolver);
+    unit.accept(_FixBuilderPostVisitor(this));
   }
 
   /// Called whenever an AST node is found that needs to be changed.
@@ -395,11 +397,29 @@ class NonNullableUnnamedOptionalParameter implements Problem {
 abstract class Problem {}
 
 /// Visitor that computes additional migrations on behalf of [FixBuilder] that
-/// don't need to be integrated into the resolver itself.
-class _AdditionalMigrationsVisitor extends RecursiveAstVisitor<void> {
+/// should be run after resolution
+class _FixBuilderPostVisitor extends RecursiveAstVisitor<void> {
   final FixBuilder _fixBuilder;
 
-  _AdditionalMigrationsVisitor(this._fixBuilder);
+  _FixBuilderPostVisitor(this._fixBuilder);
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    if (!_fixBuilder._variables.wasUnnecessaryCast(_fixBuilder.source, node) &&
+        BestPracticesVerifier.isUnnecessaryCast(
+            node, _fixBuilder._typeSystem)) {
+      _fixBuilder._addChange(node, const RemoveAs());
+    }
+  }
+}
+
+/// Visitor that computes additional migrations on behalf of [FixBuilder] that
+/// don't need to be integrated into the resolver itself, and should be run
+/// prior to resolution
+class _FixBuilderPreVisitor extends RecursiveAstVisitor<void> {
+  final FixBuilder _fixBuilder;
+
+  _FixBuilderPreVisitor(this._fixBuilder);
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
