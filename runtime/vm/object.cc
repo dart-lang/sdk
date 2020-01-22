@@ -7439,7 +7439,10 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
       ASSERT(bound.IsFinalized());
       other_bound = other_type_param.bound();
       ASSERT(other_bound.IsFinalized());
-      if (!bound.Equals(other_bound)) {
+      // TODO(dartbug.com/40259): Treat top types as equivalent and disregard
+      // nullability in weak mode.
+      const bool syntactically = !FLAG_strong_non_nullable_type_checks;
+      if (!bound.IsEquivalent(other_bound, syntactically)) {
         return false;
       }
     }
