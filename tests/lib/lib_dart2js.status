@@ -23,6 +23,9 @@ html/xhr_test: Slow
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
 profiler/metrics_num_test: Skip # Because of an int / double type test.
+typed_data/int64_list_load_store_test: SkipByDesign # dart2js does not support Int64List
+typed_data/typed_data_hierarchy_int64_test: SkipByDesign # dart2js does not support Int64List
+typed_data/unmodifiable_typed_data_test: SkipByDesign # dart2js does not support Int64List
 wasm/*: SkipByDesign # dart:wasm not currently supported on web.
 
 [ $compiler != dart2js ]
