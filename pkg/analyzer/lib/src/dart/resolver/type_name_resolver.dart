@@ -358,13 +358,15 @@ class TypeNameResolver {
         return _inferRedirectedConstructor(element);
       }
 
-      return element.instantiateToBounds(
+      return typeSystem.instantiateToBounds2(
+        classElement: element,
         nullabilitySuffix: nullability,
       );
     } else if (element is DynamicElementImpl) {
       return DynamicTypeImpl.instance;
     } else if (element is FunctionTypeAliasElement) {
-      return element.instantiateToBounds(
+      return typeSystem.instantiateToBounds2(
+        functionTypeAliasElement: element,
         nullabilitySuffix: nullability,
       );
     } else if (element is NeverElementImpl) {

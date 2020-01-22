@@ -207,6 +207,7 @@ abstract class AbstractClassElementImpl extends ElementImpl
     );
   }
 
+  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
   @override
   InterfaceType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
@@ -4785,6 +4786,7 @@ class GenericTypeAliasElementImpl extends ElementImpl
     );
   }
 
+  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
   @override
   FunctionType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,

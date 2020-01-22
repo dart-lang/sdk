@@ -232,6 +232,7 @@ abstract class ClassElement
   /// Create the [InterfaceType] for this class with type arguments that
   /// correspond to the bounds of the type parameters, and the given
   /// [nullabilitySuffix].
+  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
   InterfaceType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
   });
@@ -1191,6 +1192,7 @@ abstract class FunctionTypeAliasElement
   /// generic function, with type formals. For example, if the typedef is:
   ///     typedef F<T> = void Function<U>(T, U);
   /// then `F<int>` will produce `void Function<U>(int, U)`.
+  @Deprecated('Use TypeSystem.instantiateToBounds2() instead')
   FunctionType instantiateToBounds({
     @required NullabilitySuffix nullabilitySuffix,
   });

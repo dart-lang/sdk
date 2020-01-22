@@ -715,6 +715,31 @@ class Dart2TypeSystem extends TypeSystem {
     return instantiateType(type, arguments);
   }
 
+  @override
+  DartType instantiateToBounds2({
+    ClassElement classElement,
+    FunctionTypeAliasElement functionTypeAliasElement,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    if (classElement != null) {
+      var typeParameters = classElement.typeParameters;
+      var typeArguments = _defaultTypeArguments(typeParameters);
+      return classElement.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
+    } else if (functionTypeAliasElement != null) {
+      var typeParameters = functionTypeAliasElement.typeParameters;
+      var typeArguments = _defaultTypeArguments(typeParameters);
+      return functionTypeAliasElement.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
+    } else {
+      throw ArgumentError('Missing element');
+    }
+  }
+
   /**
    * Given uninstantiated [typeFormals], instantiate them to their bounds.
    * See the issue for the algorithm description.
@@ -1761,6 +1786,17 @@ class Dart2TypeSystem extends TypeSystem {
     return null;
   }
 
+  List<DartType> _defaultTypeArguments(
+    List<TypeParameterElement> typeParameters,
+  ) {
+    return typeParameters.map((typeParameter) {
+      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
+      var typeArgument = typeParameterImpl.defaultType;
+      typeArgument = _toLegacyType(typeArgument);
+      return typeArgument;
+    }).toList();
+  }
+
   /**
    * Eliminates type variables from the context [type], replacing them with
    * `Null` or `Object` as appropriate.
@@ -2253,6 +2289,11 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     return false;
+  }
+
+  DartType _toLegacyType(DartType type) {
+    if (isNonNullableByDefault) return type;
+    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   DartType _typeParameterResolveToObjectBounds(DartType type) {
