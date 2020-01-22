@@ -4,7 +4,6 @@
 
 library test.relation_assignable;
 
-@MirrorsUsed(targets: "test.relation_assignable")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";

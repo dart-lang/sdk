@@ -4,7 +4,6 @@
 
 library test.to_string_test;
 
-@MirrorsUsed(targets: "test.to_string_test")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

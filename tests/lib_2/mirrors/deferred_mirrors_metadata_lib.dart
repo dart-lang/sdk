@@ -1,8 +1,6 @@
 library lib;
 
 import "deferred_mirrors_metadata_test.dart";
-@MirrorsUsed(
-    targets: const ["main", "main.A", "main.B", "main.C", "main.D", "lib.E"])
 import "dart:mirrors";
 
 class H {

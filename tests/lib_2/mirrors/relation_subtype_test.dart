@@ -4,7 +4,6 @@
 
 library test.relation_subtype;
 
-@MirrorsUsed(targets: "test.relation_subtype")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";

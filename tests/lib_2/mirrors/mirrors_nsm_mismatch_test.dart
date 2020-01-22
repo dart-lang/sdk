@@ -4,7 +4,6 @@
 
 library test.mirrors_nsm_mismatch;
 
-@MirrorsUsed(targets: "test.mirrors_nsm_mismatch")
 import 'dart:mirrors';
 import 'mirrors_nsm_test.dart';
 

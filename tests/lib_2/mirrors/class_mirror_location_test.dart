@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 library test.class_location;
 
-@MirrorsUsed(targets: "test.class_location")
 import "dart:mirrors";
 import "package:expect/expect.dart";
 

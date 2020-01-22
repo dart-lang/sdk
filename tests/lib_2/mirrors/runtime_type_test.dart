@@ -4,7 +4,6 @@
 
 library test.runtime_type_test;
 
-@MirrorsUsed(targets: 'test.runtime_type_test', override: '*')
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

@@ -1,6 +1,5 @@
 library lib;
 
-@MirrorsUsed(targets: "lib.C")
 import "dart:mirrors";
 
 class C {}

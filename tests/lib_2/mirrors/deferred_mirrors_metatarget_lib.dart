@@ -4,7 +4,6 @@
 
 library lib;
 
-@MirrorsUsed(metaTargets: "MetaTarget")
 import "dart:mirrors";
 
 class MetaTarget {

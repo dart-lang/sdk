@@ -7,7 +7,6 @@
 
 library lib;
 
-@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class MD {

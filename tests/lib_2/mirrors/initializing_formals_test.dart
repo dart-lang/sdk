@@ -4,7 +4,6 @@
 
 library test.initializing_formals;
 
-@MirrorsUsed(targets: "test.initializing_formals")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 

@@ -4,7 +4,6 @@
 
 library test.variable_is_const;
 
-@MirrorsUsed(targets: "test.variable_is_const")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

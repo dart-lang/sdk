@@ -4,7 +4,6 @@
 
 library test.typedef_in_signature_test;
 
-@MirrorsUsed(targets: 'test.typedef_in_signature_test')
 import 'dart:mirrors';
 
 import "package:expect/expect.dart";

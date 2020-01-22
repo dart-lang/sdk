@@ -11,8 +11,6 @@
 /** Test of [ParameterMirror]. */
 library test.parameter_test;
 
-@MirrorsUsed(
-    targets: const ['test.parameter_test', 'dart.core.int'], override: '*')
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';

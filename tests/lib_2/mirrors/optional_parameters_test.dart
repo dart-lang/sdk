@@ -8,7 +8,6 @@
 
 library optional_parameter_test;
 
-@MirrorsUsed(targets: 'optional_parameter_test')
 import "dart:mirrors";
 import 'package:expect/expect.dart';
 
