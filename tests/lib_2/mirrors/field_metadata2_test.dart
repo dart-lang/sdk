@@ -18,9 +18,11 @@ void main() {
   // Check that we can now reflect on the annotations.
   dynamic f = new Foo();
   var members = reflect(f).type.declarations;
-  var bar = members[#x].metadata.first.reflectee as Bar;
+  var x = members[#x] as VariableMirror;
+  var bar = x.metadata.first.reflectee as Bar;
   Expect.equals(bar.name, 'bar');
 
-  var baz = members[#y].metadata.first.reflectee as Bar;
+  var y = members[#y] as VariableMirror;
+  var baz = y.metadata.first.reflectee as Bar;
   Expect.equals(baz.name, 'baz');
 }

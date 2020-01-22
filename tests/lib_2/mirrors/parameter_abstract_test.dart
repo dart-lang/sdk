@@ -18,7 +18,7 @@ abstract class C {
 main() {
   ClassMirror cm = reflectClass(C);
 
-  MethodMirror foo1 = cm.declarations[#foo1];
+  MethodMirror foo1 = cm.declarations[#foo1] as MethodMirror;
   expect('Method(s(foo1) in s(C), abstract)', foo1);
   expect(
       'Parameter(s(x) in s(foo1), optional, named, type = Class(s(int) in s(dart.core), top-level))',

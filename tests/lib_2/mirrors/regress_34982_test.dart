@@ -15,12 +15,13 @@ class B implements A {
 }
 
 void main() {
-  MethodMirror method1 = reflectClass(B).declarations[#c];
+  MethodMirror method1 = reflectClass(B).declarations[#c] as MethodMirror;
   Expect.isTrue(method1.isSynthetic);
 
-  MethodMirror method2 = reflectClass(B).declarations[#noSuchMethod];
+  MethodMirror method2 =
+      reflectClass(B).declarations[#noSuchMethod] as MethodMirror;
   Expect.isFalse(method2.isSynthetic);
 
-  MethodMirror method3 = reflectClass(A).declarations[#c];
+  MethodMirror method3 = reflectClass(A).declarations[#c] as MethodMirror;
   Expect.isFalse(method3.isSynthetic);
 }

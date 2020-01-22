@@ -32,6 +32,5 @@ main() {
       collectedParents.add(MirrorSystem.getName(c.superclass.simpleName));
     }
   }
-  ;
   Expect.listEquals(["Object"], collectedParents); //  //# 00: ok
 }

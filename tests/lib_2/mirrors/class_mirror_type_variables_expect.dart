@@ -45,8 +45,8 @@ void testA(Env env) {
 
   TypeVariableMirror aT = a.typeVariables[0];
   TypeVariableMirror aS = a.typeVariables[1];
-  ClassMirror aTBound = aT.upperBound;
-  ClassMirror aSBound = aS.upperBound;
+  ClassMirror aTBound = aT.upperBound as ClassMirror;
+  ClassMirror aSBound = aS.upperBound as ClassMirror;
 
   Expect.isTrue(aTBound.isOriginalDeclaration);
   Expect.isTrue(aSBound.isOriginalDeclaration);
@@ -64,8 +64,8 @@ void testBAndC(Env env) {
 
   TypeVariableMirror bZ = b.typeVariables[0];
   TypeVariableMirror cZ = c.typeVariables[0];
-  ClassMirror bZBound = bZ.upperBound;
-  ClassMirror cZBound = cZ.upperBound;
+  ClassMirror bZBound = bZ.upperBound as ClassMirror;
+  ClassMirror cZBound = cZ.upperBound as ClassMirror;
 
   Expect.isFalse(bZBound.isOriginalDeclaration);
   Expect.isFalse(cZBound.isOriginalDeclaration);
@@ -108,7 +108,7 @@ testD(Env env) {
 void testE(Env env) {
   ClassMirror e = env.getE();
   TypeVariableMirror eR = e.typeVariables.single;
-  ClassMirror mapRAndHelperOfString = eR.upperBound;
+  ClassMirror mapRAndHelperOfString = eR.upperBound as ClassMirror;
 
   Expect.isFalse(mapRAndHelperOfString.isOriginalDeclaration);
   Expect.equals(eR, mapRAndHelperOfString.typeArguments.first);
@@ -119,8 +119,8 @@ void testE(Env env) {
 void testF(Env env) {
   ClassMirror f = env.getF();
   TypeVariableMirror fZ = f.typeVariables[0];
-  ClassMirror fZBound = fZ.upperBound;
-  ClassMirror fZBoundTypeArgument = fZBound.typeArguments.single;
+  ClassMirror fZBound = fZ.upperBound as ClassMirror;
+  ClassMirror fZBoundTypeArgument = fZBound.typeArguments.single as ClassMirror;
 
   Expect.equals(1, f.typeVariables.length);
   Expect.isFalse(fZBound.isOriginalDeclaration);

@@ -30,7 +30,7 @@ main() {
   Expect.throwsNoSuchMethodError(() => cm.setField(#_staticField, 'sbar'));
   Expect.throwsNoSuchMethodError(() => cm.newInstance(#_named, ['my value']));
 
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
   Expect.throwsNoSuchMethodError(
       () => lm.invoke(#_libraryFunction, [':', ')']));
   Expect.throwsNoSuchMethodError(() => lm.getField(#_libraryGetter));

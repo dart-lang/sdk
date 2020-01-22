@@ -16,7 +16,7 @@ class A {
 const A anA = const A();
 
 main() {
-  ClassMirror typeMirror = reflectType(A);
+  ClassMirror typeMirror = reflectType(A) as ClassMirror;
   var decs = typeMirror.declarations;
   print(decs.length);
 }

@@ -16,6 +16,7 @@ class U {
 }
 
 main() {
-  final metadata = reflectClass(U).declarations[#field].metadata;
+  final field = reflectClass(U).declarations[#field] as VariableMirror;
+  final metadata = field.metadata;
   Expect.identical((metadata.first.reflectee as T).symbol, const Symbol('x'));
 }

@@ -16,7 +16,7 @@ selectKeys(map, predicate) {
 
 main() {
   ClassMirror cm = reflectClass(declarations_model.Class);
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
 
   Expect.setEquals([
     #staticVariable,

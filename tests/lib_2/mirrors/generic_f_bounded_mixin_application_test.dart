@@ -80,7 +80,7 @@ main() {
       collectionWithSerializableOfOrderedCollection.isOriginalDeclaration);
 
   TypeVariableMirror rFromSerializer = serializerDecl.typeVariables.single;
-  ClassMirror serializableOfR = rFromSerializer.upperBound;
+  ClassMirror serializableOfR = rFromSerializer.upperBound as ClassMirror;
   Expect.isFalse(serializableOfR.isOriginalDeclaration);
   Expect.equals(serializableDecl, serializableOfR.originalDeclaration);
   Expect.equals(rFromSerializer, serializableOfR.typeArguments.single);

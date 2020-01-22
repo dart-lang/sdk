@@ -34,11 +34,12 @@ enum AnnotatedEnum { SALT, PEPPER }
 // any number of absolute paths.
 expectLocation(
     DeclarationMirror mirror, String uriSuffix, int line, int column) {
-  Uri uri = mirror.location.sourceUri;
+  final location = mirror.location;
+  final uri = location.sourceUri;
   Expect.isTrue(
       uri.toString().endsWith(uriSuffix), "Expected suffix $uriSuffix in $uri");
-  Expect.equals(line, mirror.location.line, "line");
-  Expect.equals(column, mirror.location.column, "column");
+  Expect.equals(line, location.line, "line");
+  Expect.equals(column, location.column, "column");
 }
 
 main() {

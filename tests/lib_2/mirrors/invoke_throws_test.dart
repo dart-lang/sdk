@@ -80,7 +80,7 @@ main() {
   Expect.throws(() => cm.newInstance(#faktory, []), isMyException);
   Expect.throws(() => cm.newInstance(#redirectingFactory, []), isMyException);
 
-  LibraryMirror lm = reflectClass(Class).owner;
+  LibraryMirror lm = reflectClass(Class).owner as LibraryMirror;
   Expect.throws(() => lm.getField(#libraryGetter), isMyException);
   Expect.throws(() => lm.setField(#librarySetter, ['arg']), isMyException);
   Expect.throws(() => lm.invoke(#libraryFunction, []), isMyException);

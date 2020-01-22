@@ -16,7 +16,7 @@ class Class {}
 testLibraryUri(var value, Uri expectedUri) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
-  LibraryMirror valueLibrary = valueClass.owner;
+  LibraryMirror valueLibrary = valueClass.owner as LibraryMirror;
   expect(valueLibrary.uri, equals(expectedUri));
 }
 

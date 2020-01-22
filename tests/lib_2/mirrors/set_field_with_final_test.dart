@@ -26,7 +26,7 @@ main() {
   Expect.throwsNoSuchMethodError(() => cm.setField(#staticFinal, 9));
   Expect.throwsNoSuchMethodError(() => cm.setField(#staticGetter, 10));
 
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
   Expect.throwsNoSuchMethodError(() => lm.setField(#toplevelFinal, 11));
   Expect.throwsNoSuchMethodError(() => lm.setField(#toplevelGetter, 12));
 }

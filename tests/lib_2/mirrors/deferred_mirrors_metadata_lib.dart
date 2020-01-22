@@ -9,13 +9,13 @@ class H {
 
 class F {
   @H()
-  int f;
+  int f = 0;
 }
 
 @C()
 class E {
   @D()
-  var f;
+  dynamic f;
 }
 
 String foo() {

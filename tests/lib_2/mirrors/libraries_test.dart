@@ -27,7 +27,7 @@ main() {
     Expect.equals("/dart2js-stripped-uri", uri.path);
   }
 
-  ClassMirror cls = mirrorsLibrary.declarations[#LibraryMirror];
+  ClassMirror cls = mirrorsLibrary.declarations[#LibraryMirror] as ClassMirror;
   Expect.isNotNull(cls, 'cls is null');
 
   Expect.equals(#dart.mirrors.LibraryMirror, cls.qualifiedName);

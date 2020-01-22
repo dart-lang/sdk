@@ -15,6 +15,6 @@ class Class {
 }
 
 main() {
-  MethodMirror mm = reflectClass(Class).declarations[#foo];
+  MethodMirror mm = reflectClass(Class).declarations[#foo] as MethodMirror;
   Expect.isFalse(mm.parameters.single.isConst);
 }

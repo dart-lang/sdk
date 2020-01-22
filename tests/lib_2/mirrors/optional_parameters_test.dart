@@ -16,7 +16,7 @@ class A {
 }
 
 class B {
-  foo([int x]) => x + 1;
+  foo([int x = -1]) => x + 1;
 }
 
 main() {

@@ -29,7 +29,7 @@ class Foo {
 
 expectAnnotations(
     Type type, Symbol method, int parameterIndex, List<String> expectedValues) {
-  MethodMirror mirror = reflectClass(type).declarations[method];
+  MethodMirror mirror = reflectClass(type).declarations[method] as MethodMirror;
   ParameterMirror parameter = mirror.parameters[parameterIndex];
   List<InstanceMirror> annotations = parameter.metadata;
   Expect.equals(annotations.length, expectedValues.length,
