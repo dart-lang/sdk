@@ -46,6 +46,17 @@ f() {
     ]);
   }
 
+  test_generic_function_call() async {
+    // Referencing `.call` on a `Function` type works similarly to referencing
+    // it on `dynamic`--the reference is accepted at compile time, and all type
+    // checking is deferred until runtime.
+    await assertErrorsInCode('''
+f(Function f) {
+  return f.call;
+}
+''', []);
+  }
+
   test_ifElement_inList_notPromoted() async {
     await assertErrorsInCode('''
 f(int x) {
@@ -122,6 +133,15 @@ f(Object x) {
 ''');
   }
 
+  test_instance_undefined() async {
+    await assertErrorsInCode(r'''
+class T {}
+f(T e) { return e.m; }
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 29, 1),
+    ]);
+  }
+
   test_nullMember_undefined() async {
     await assertErrorsInCode(r'''
 m() {
@@ -130,6 +150,16 @@ m() {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 28, 3),
+    ]);
+  }
+
+  test_object_call() async {
+    await assertErrorsInCode('''
+f(Object o) {
+  return o.call;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 25, 4),
     ]);
   }
 
@@ -142,6 +172,22 @@ void f<X extends num, Y extends X>(Y y) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 66, 6),
+    ]);
+  }
+
+  test_proxy_annotation_fakeProxy() async {
+    await assertErrorsInCode(r'''
+library L;
+class Fake {
+  const Fake();
+}
+const proxy = const Fake();
+@proxy class PrefixProxy {}
+main() {
+  new PrefixProxy().foo;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 127, 3),
     ]);
   }
 
@@ -176,6 +222,30 @@ f(var p) {
   f(C.m);
 }''', [
       error(StaticTypeWarningCode.UNDEFINED_GETTER, 28, 1),
+    ]);
+  }
+
+  test_typeLiteral_cascadeTarget() async {
+    await assertErrorsInCode(r'''
+class T {
+  static int get foo => 42;
+}
+main() {
+  T..foo;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 54, 3),
+    ]);
+  }
+
+  test_typeLiteral_conditionalAccess() async {
+    // When applied to a type literal, the conditional access operator '?.'
+    // cannot be used to access instance getters of Type.
+    await assertErrorsInCode('''
+class A {}
+f() => A?.hashCode;
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 21, 8),
     ]);
   }
 

@@ -31,6 +31,15 @@ main() {
 ''');
   }
 
+  test_instance_undefined() async {
+    await assertErrorsInCode(r'''
+class T {}
+f(T e1) { e1.m = 0; }
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SETTER, 24, 1),
+    ]);
+  }
+
   test_inSubtype() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -81,6 +90,28 @@ f(var p) {
   f(C.s = 1);
 }''', [
       error(StaticTypeWarningCode.UNDEFINED_SETTER, 75, 1),
+    ]);
+  }
+
+  test_static_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f() { A.B = 0;}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SETTER, 19, 1),
+    ]);
+  }
+
+  test_typeLiteral_cascadeTarget() async {
+    await assertErrorsInCode(r'''
+class T {
+  static void set foo(_) {}
+}
+main() {
+  T..foo = 42;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SETTER, 54, 3),
     ]);
   }
 }
