@@ -245,7 +245,7 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
     return reflect(this._invokeGetter(_reflectee, _n(memberName)));
   }
 
-  InstanceMirror setField(Symbol memberName, Object value) {
+  InstanceMirror setField(Symbol memberName, dynamic value) {
     this._invokeSetter(_reflectee, _n(memberName), value);
     return reflect(value);
   }
@@ -305,7 +305,7 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
     return reflect(_invokeGetter(_reflectee, _n(memberName)));
   }
 
-  InstanceMirror setField(Symbol memberName, arg) {
+  InstanceMirror setField(Symbol memberName, dynamic arg) {
     _invokeSetter(_reflectee, _n(memberName), arg);
     return reflect(arg);
   }
@@ -1441,7 +1441,7 @@ class _Mirrors {
   }
 
   // Creates a new local mirror for some Object.
-  static InstanceMirror reflect(Object reflectee) {
+  static InstanceMirror reflect(dynamic reflectee) {
     return reflectee is Function
         ? new _ClosureMirror._(reflectee)
         : new _InstanceMirror._(reflectee);

@@ -13,7 +13,7 @@ const String _message = 'dart:mirrors is no longer supported for web apps';
 MirrorSystem currentMirrorSystem() => throw new UnsupportedError(_message);
 
 @patch
-InstanceMirror reflect(Object reflectee) =>
+InstanceMirror reflect(dynamic reflectee) =>
     throw new UnsupportedError(_message);
 
 @patch

@@ -31,7 +31,7 @@ class MirrorSystem {
 MirrorSystem currentMirrorSystem() => js.currentJsMirrorSystem;
 
 @patch
-InstanceMirror reflect(Object reflectee) => js.reflect(reflectee);
+InstanceMirror reflect(dynamic reflectee) => js.reflect(reflectee);
 
 @patch
 ClassMirror reflectClass(Type key) {
