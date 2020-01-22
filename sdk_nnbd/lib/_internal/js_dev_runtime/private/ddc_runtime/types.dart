@@ -455,11 +455,12 @@ Type _canonicalizeNormalizedTypeObject(type) {
   return wrapType(normType, isNormalized: true);
 }
 
-/// Generates new values by applying [transform] to the keys of [srcObject],
-/// storing them in [dstObject].
+/// Generates new values by applying [transform] to the values of [srcObject],
+/// storing them in [dstObject] with the same key.
 void _transformJSObject(srcObject, dstObject, Function transform) {
   for (Object key in JS('!', '#.Object.keys(#)', global_, srcObject)) {
-    JS('', '#[#] = #', dstObject, key, transform(key));
+    JS('', '#[#] = #', dstObject, key,
+        transform(JS('', '#[#]', srcObject, key)));
   }
 }
 
@@ -696,7 +697,7 @@ class FunctionType extends AbstractFunctionType {
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
         buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
-      if (JS('!', '#.length > 0', names)) buffer += ', ';
+      if (JS('!', '#.length > 0', requiredNamed)) buffer += ', ';
       names = getOwnPropertyNames(requiredNamed);
       JS('', '#.sort()', names);
       for (var i = 0; JS<bool>('!', '# < #.length', i, names); i++) {
