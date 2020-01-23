@@ -596,6 +596,35 @@ class C {
     // regions[2] is the `level!` fix.
   }
 
+  test_insertParens() async {
+    var originalContent = '''
+class C {
+  C operator+(C c) => null;
+}
+C/*!*/ _f(C c) => c + c;
+''';
+    var migratedContent = '''
+class C {
+  C? operator+(C c) => null;
+}
+C/*!*/ _f(C c) => (c + c)!;
+''';
+    UnitInfo unit = await buildInfoForSingleTestFile(originalContent,
+        migratedContent: migratedContent);
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: migratedContent.indexOf('? operator'),
+        length: 1,
+        details: ["This method returns an explicit 'null' on line 2"]);
+    assertRegion(
+        region: regions[1],
+        offset: migratedContent.indexOf('!;'),
+        length: 1,
+        details: ['This value must be null-checked before use here.']);
+  }
+
   test_listAndSetLiteralTypeArgument() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
@@ -1133,6 +1162,45 @@ void f([String? s]) {}
         region: regions[0],
         offset: 14,
         details: ["This parameter has an implicit default value of 'null'"]);
+  }
+
+  test_removal_handles_offsets_correctly() async {
+    var originalContent = '''
+void f(num n, int/*?*/ i) {
+  if (n is! int) return;
+  print((n as int).isEven);
+  print(i + 1);
+}
+''';
+    // Note: even though `as int` is removed, it still shows up in the
+    // preview, since we show deleted text.
+    var migratedContent = '''
+void f(num n, int?/*?*/ i) {
+  if (n is! int) return;
+  print((n as int).isEven);
+  print(i! + 1);
+}
+''';
+    UnitInfo unit = await buildInfoForSingleTestFile(originalContent,
+        migratedContent: migratedContent, removeViaComments: false);
+    List<RegionInfo> regions = unit.regions;
+    expect(regions, hasLength(4));
+    // regions[0] is the addition of `?` to the type of `i`.
+    // TODO(paulberry): why does the discarded downcast appear twice?
+    assertRegion(
+        region: regions[1],
+        offset: migratedContent.indexOf(' as int'),
+        length: ' as int'.length,
+        details: []);
+    assertRegion(
+        region: regions[2],
+        offset: migratedContent.indexOf(' as int'),
+        length: 0,
+        details: []);
+    assertRegion(
+        region: regions[3],
+        offset: migratedContent.indexOf('! + 1'),
+        details: ['node with no info (never)']);
   }
 
   test_return_fromOverriden() async {

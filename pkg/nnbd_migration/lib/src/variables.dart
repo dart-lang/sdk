@@ -81,7 +81,8 @@ class Variables implements VariableRecorder, VariableRepository {
     var annotationsInSource = _decoratedTypeAnnotations[source];
     if (annotationsInSource == null) {
       throw StateError('No declarated type annotations in ${source.fullName}; '
-          'expected one for ${typeAnnotation.toSource()}');
+          'expected one for ${typeAnnotation.toSource()} '
+          '(offset ${typeAnnotation.offset})');
     }
     DecoratedType decoratedTypeAnnotation = annotationsInSource[
         uniqueIdentifierForSpan(typeAnnotation.offset, typeAnnotation.end)];

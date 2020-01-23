@@ -325,7 +325,7 @@ class InfoBuilder {
   List<RegionDetail> _computeDetails(AtomicEdit edit) {
     List<RegionDetail> details = [];
     var fixInfo = edit.info;
-    for (FixReasonInfo reason in fixInfo.fixReasons) {
+    for (FixReasonInfo reason in fixInfo?.fixReasons ?? []) {
       if (reason == null) {
         // Sometimes reasons are null, so just ignore them (see for example the
         // test case InfoBuilderTest.test_discardCondition.  If only we had
@@ -570,7 +570,6 @@ class InfoBuilder {
                 explanation, details,
                 edits: edits));
           }
-          offset += length;
         }
         if (explanation != null) {
           regions.add(RegionInfo(RegionType.fix, offset, replacement.length,

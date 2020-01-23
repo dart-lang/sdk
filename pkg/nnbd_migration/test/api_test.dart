@@ -15,7 +15,6 @@ main() {
     defineReflectiveTests(_ProvisionalApiTest);
     defineReflectiveTests(_ProvisionalApiTestPermissive);
     defineReflectiveTests(_ProvisionalApiTestWithReset);
-    defineReflectiveTests(_ProvisionalApiTestWithFixBuilder);
   });
 }
 
@@ -24,16 +23,11 @@ main() {
 class _ProvisionalApiTest extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
   @override
-  bool get _useFixBuilder => false;
-
-  @override
   bool get _usePermissiveMode => false;
 }
 
 /// Base class for provisional API tests.
 abstract class _ProvisionalApiTestBase extends AbstractContextTest {
-  bool get _useFixBuilder;
-
   bool get _usePermissiveMode;
 
   /// Hook invoked between stages of processing inputs.
@@ -52,9 +46,7 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
     }
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener,
-        permissive: _usePermissiveMode,
-        useFixBuilder: _useFixBuilder,
-        removeViaComments: removeViaComments);
+        permissive: _usePermissiveMode, removeViaComments: removeViaComments);
     for (var path in input.keys) {
       migration.prepareInput(await session.getResolvedUnit(path));
     }
@@ -550,7 +542,6 @@ class Key {}
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38462')
   Future<void> test_convert_required() async {
     addMetaPackage();
     var content = '''
@@ -1457,6 +1448,7 @@ void f() => E(null).m();
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
   Future<void> test_extension_nullableOnType_viaImplicitInvocation() async {
     var content = '''
 class C {}
@@ -2155,7 +2147,6 @@ int get g => 0;
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_ifStatement_nullCheck_noElse() async {
     var content = '''
 int f(int x) {
@@ -2861,7 +2852,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38462')
   Future<void> test_named_parameter_no_default_unused_required() async {
     // The `@required` annotation overrides the assumption of nullability.
     // The call at `f()` is presumed to be in error.
@@ -3576,7 +3566,6 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @failingTest
   Future<void> test_removed_if_element_doesnt_introduce_nullability() async {
     // Failing because we don't yet remove the dead list element
     // `if (x == null) recover()`.
@@ -4097,7 +4086,6 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_unnecessary_cast_remove() async {
     var content = '''
 _f(Object x) {
@@ -4119,9 +4107,6 @@ _f(Object x) {
 class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
   @override
-  bool get _useFixBuilder => false;
-
-  @override
   bool get _usePermissiveMode => true;
 
   // TODO(danrubel): Remove this once the superclass test has been fixed.
@@ -4131,54 +4116,12 @@ class _ProvisionalApiTestPermissive extends _ProvisionalApiTestBase
   }
 }
 
-@reflectiveTest
-class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
-    with _ProvisionalApiTestCases {
-  @override
-  bool get _useFixBuilder => true;
-
-  @override
-  bool get _usePermissiveMode => false;
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_convert_required() => super.test_convert_required();
-
-  @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40023')
-  Future<void> test_extension_nullableOnType_viaImplicitInvocation() =>
-      super.test_extension_nullableOnType_viaImplicitInvocation();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_ifStatement_nullCheck_noElse() =>
-      super.test_ifStatement_nullCheck_noElse();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_named_parameter_no_default_unused_required() =>
-      super.test_named_parameter_no_default_unused_required();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_removed_if_element_doesnt_introduce_nullability() =>
-      super.test_removed_if_element_doesnt_introduce_nullability();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_unnecessary_cast_remove() =>
-      super.test_unnecessary_cast_remove();
-}
-
 /// Tests of the provisional API, where the driver is reset between calls to
 /// `prepareInput` and `processInput`, ensuring that the migration algorithm
 /// sees different AST and element objects during different phases.
 @reflectiveTest
 class _ProvisionalApiTestWithReset extends _ProvisionalApiTestBase
     with _ProvisionalApiTestCases {
-  @override
-  bool get _useFixBuilder => false;
-
   @override
   bool get _usePermissiveMode => false;
 

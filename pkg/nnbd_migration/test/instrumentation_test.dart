@@ -19,7 +19,6 @@ import 'api_test_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_InstrumentationTest);
-    defineReflectiveTests(_InstrumentationTestWithFixBuilder);
   });
 }
 
@@ -106,10 +105,7 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
 }
 
 @reflectiveTest
-class _InstrumentationTest extends _InstrumentationTestBase {
-  @override
-  bool get useFixBuilder => false;
-}
+class _InstrumentationTest extends _InstrumentationTestBase {}
 
 abstract class _InstrumentationTestBase extends AbstractContextTest {
   NullabilityNodeInfo always;
@@ -141,15 +137,12 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   Source source;
 
-  bool get useFixBuilder;
-
   Future<void> analyze(String content) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     newFile(sourcePath, content: content);
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener,
-        instrumentation: _InstrumentationClient(this),
-        useFixBuilder: useFixBuilder);
+        instrumentation: _InstrumentationClient(this));
     var result = await session.getResolvedUnit(sourcePath);
     source = result.unit.declaredElement.source;
     findNode = FindNode(content, result.unit);
@@ -290,7 +283,6 @@ _f(int/*!*/ i) {
     }
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_fix_reason_discard_else() async {
     await analyze('''
 _f(int/*!*/ i) {
@@ -318,7 +310,6 @@ _f(int/*!*/ i) {
         same(explicitTypeNullability[intAnnotation]));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_fix_reason_discard_else_empty_then() async {
     await analyze('''
 _f(int/*!*/ i) {
@@ -363,7 +354,6 @@ _f(int/*!*/ i) {
     }
   }
 
-  @FailingTest(reason: 'Produces no changes')
   Future<void> test_fix_reason_discard_then_no_else() async {
     await analyze('''
 _f(int/*!*/ i) {
@@ -434,7 +424,6 @@ int x = null;
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
   Future<void> test_fix_reason_remove_unnecessary_cast() async {
     await analyze('''
 _f(Object x) {
@@ -463,7 +452,6 @@ _f(Object x) {
     expect(dropTrailingParen.info, null);
   }
 
-  @FailingTest(reason: 'Produces no changes')
   Future<void> test_fix_reason_rewrite_required() async {
     addMetaPackage();
     await analyze('''
@@ -1242,35 +1230,4 @@ voig g(C<int> x, int y) {
     return edges.any(
         (e) => e.sourceNode == node && e.destinationNode == never && e.isHard);
   }
-}
-
-@reflectiveTest
-class _InstrumentationTestWithFixBuilder extends _InstrumentationTestBase {
-  @override
-  bool get useFixBuilder => true;
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_fix_reason_discard_else() =>
-      super.test_fix_reason_discard_else();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_fix_reason_discard_else_empty_then() =>
-      super.test_fix_reason_discard_else_empty_then();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_fix_reason_discard_then_no_else() =>
-      super.test_fix_reason_discard_then_no_else();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_fix_reason_remove_unnecessary_cast() =>
-      super.test_fix_reason_remove_unnecessary_cast();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_fix_reason_rewrite_required() =>
-      super.test_fix_reason_rewrite_required();
 }

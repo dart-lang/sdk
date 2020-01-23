@@ -6,7 +6,6 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
@@ -16,7 +15,6 @@ import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/potential_modification.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 /// Implementation of the [NullabilityMigration] public API.
@@ -35,14 +33,6 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   bool _propagated = false;
 
-  /// Indicates whether migration should use the new [FixBuilder]
-  /// infrastructure.  Once FixBuilder is at feature parity with the old
-  /// implementation, this option will be removed and FixBuilder will be used
-  /// unconditionally.
-  ///
-  /// Currently defaults to `false`.
-  final bool useFixBuilder;
-
   /// Indicates whether code removed by the migration engine should be removed
   /// by commenting it out.  A value of `false` means to actually delete the
   /// code that is removed.
@@ -55,23 +45,17 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
   ///
-  /// [useFixBuilder] indicates whether migration should use the new
-  /// [FixBuilder] infrastructure.  Once FixBuilder is at feature parity with
-  /// the old implementation, this option will be removed and FixBuilder will
-  /// be used unconditionally.
-  ///
   /// Optional parameter [removeViaComments] indicates whether dead code should
   /// be removed in its entirety (the default) or removed by commenting it out.
   NullabilityMigrationImpl(NullabilityMigrationListener listener,
       {bool permissive: false,
       NullabilityMigrationInstrumentation instrumentation,
-      bool useFixBuilder: false,
       bool removeViaComments = false})
       : this._(listener, NullabilityGraph(instrumentation: instrumentation),
-            permissive, instrumentation, useFixBuilder, removeViaComments);
+            permissive, instrumentation, removeViaComments);
 
   NullabilityMigrationImpl._(this.listener, this._graph, this._permissive,
-      this._instrumentation, this.useFixBuilder, this.removeViaComments) {
+      this._instrumentation, this.removeViaComments) {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
   }
 
@@ -80,40 +64,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     _graph.update();
   }
 
-  @visibleForTesting
-  void broadcast(Variables variables, NullabilityMigrationListener listener,
-      NullabilityMigrationInstrumentation instrumentation) {
-    assert(!useFixBuilder);
-    for (var entry in variables.getPotentialModifications().entries) {
-      var source = entry.key;
-      final lineInfo = LineInfo.fromContent(source.contents.data);
-      var changes = <int, List<AtomicEdit>>{};
-      for (var potentialModification in entry.value) {
-        var modifications = potentialModification.modifications;
-        if (modifications.isEmpty) {
-          continue;
-        }
-        var description = potentialModification.description;
-        var info =
-            AtomicEditInfo(description, potentialModification.reasons.toList());
-        var atomicEditsByLocation = _gatherAtomicEditsByLocation(
-            source, potentialModification, lineInfo, info);
-        for (var entry in atomicEditsByLocation) {
-          var location = entry.key;
-          listener.addSuggestion(description.appliedMessage, location);
-          changes[location.offset] = [entry.value];
-        }
-        for (var edit in modifications) {
-          listener.addEdit(source, edit);
-        }
-      }
-      instrumentation?.changes(source, changes);
-    }
-  }
-
   @override
   void finalizeInput(ResolvedUnitResult result) {
-    if (!useFixBuilder) return;
     if (!_propagated) {
       _propagated = true;
       _graph.propagate();
@@ -152,22 +104,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     }
   }
 
-  void finish() {
-    if (useFixBuilder) return;
-    _graph.propagate();
-    if (_graph.unsatisfiedSubstitutions.isNotEmpty) {
-      // TODO(paulberry): for now we just ignore unsatisfied substitutions, to
-      // work around https://github.com/dart-lang/sdk/issues/38257
-      // throw new UnimplementedError('Need to report unsatisfied substitutions');
-    }
-    // TODO(paulberry): it would be nice to report on unsatisfied edges as well,
-    // however, since every `!` we add has an unsatisfied edge associated with
-    // it, we can't report on every unsatisfied edge.  We need to figure out a
-    // way to report unsatisfied edges that isn't too overwhelming.
-    if (_variables != null) {
-      broadcast(_variables, listener, _instrumentation);
-    }
-  }
+  /// TODO(paulberry): eliminate?
+  void finish() {}
 
   void prepareInput(ResolvedUnitResult result) {
     if (_variables == null) {
@@ -205,22 +143,5 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       locationInfo.columnNumber,
     );
     return location;
-  }
-
-  static List<MapEntry<Location, AtomicEdit>> _gatherAtomicEditsByLocation(
-      Source source,
-      PotentialModification potentialModification,
-      LineInfo lineInfo,
-      AtomicEditInfo info) {
-    List<MapEntry<Location, AtomicEdit>> result = [];
-
-    for (var modification in potentialModification.modifications) {
-      var atomicEdit = AtomicEdit.replace(
-          modification.length, modification.replacement,
-          info: info);
-      result.add(MapEntry(
-          _computeLocation(lineInfo, modification, source), atomicEdit));
-    }
-    return result;
   }
 }
