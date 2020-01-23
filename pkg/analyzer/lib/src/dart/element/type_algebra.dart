@@ -524,7 +524,7 @@ abstract class _TypeSubstitutor extends DartTypeVisitor<DartType> {
     }
 
     return NamedTypeBuilder(
-      type.isNNBD,
+      type.typeSystem,
       type.element,
       arguments,
       type.nullabilitySuffix,

@@ -325,10 +325,12 @@ class TypeNameResolver {
           node,
           element.typeParameters.length,
         );
-        return element.instantiate(
+        var type = element.instantiate(
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
+        type = typeSystem.toLegacyType(type);
+        return type;
       } else if (element is NeverElementImpl) {
         _buildTypeArguments(node, 0);
         return element.instantiate(

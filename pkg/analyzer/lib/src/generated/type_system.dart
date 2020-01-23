@@ -724,17 +724,21 @@ class Dart2TypeSystem extends TypeSystem {
     if (classElement != null) {
       var typeParameters = classElement.typeParameters;
       var typeArguments = _defaultTypeArguments(typeParameters);
-      return classElement.instantiate(
+      var type = classElement.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix,
       );
+      type = toLegacyType(type);
+      return type;
     } else if (functionTypeAliasElement != null) {
       var typeParameters = functionTypeAliasElement.typeParameters;
       var typeArguments = _defaultTypeArguments(typeParameters);
-      return functionTypeAliasElement.instantiate(
+      var type = functionTypeAliasElement.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: nullabilitySuffix,
       );
+      type = toLegacyType(type);
+      return type;
     } else {
       throw ArgumentError('Missing element');
     }
@@ -1744,6 +1748,11 @@ class Dart2TypeSystem extends TypeSystem {
         .refineBinaryExpressionType(leftType, operator, rightType, currentType);
   }
 
+  DartType toLegacyType(DartType type) {
+    if (isNonNullableByDefault) return type;
+    return NullabilityEliminator.perform(typeProvider, type);
+  }
+
   /**
    * Merges two types into a single type.
    * Compute the canonical representation of [T].
@@ -1791,9 +1800,7 @@ class Dart2TypeSystem extends TypeSystem {
   ) {
     return typeParameters.map((typeParameter) {
       var typeParameterImpl = typeParameter as TypeParameterElementImpl;
-      var typeArgument = typeParameterImpl.defaultType;
-      typeArgument = _toLegacyType(typeArgument);
-      return typeArgument;
+      return typeParameterImpl.defaultType;
     }).toList();
   }
 
@@ -2289,11 +2296,6 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     return false;
-  }
-
-  DartType _toLegacyType(DartType type) {
-    if (isNonNullableByDefault) return type;
-    return NullabilityEliminator.perform(typeProvider, type);
   }
 
   DartType _typeParameterResolveToObjectBounds(DartType type) {

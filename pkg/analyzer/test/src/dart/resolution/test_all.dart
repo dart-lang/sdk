@@ -49,6 +49,7 @@ import 'property_access_test.dart' as property_access;
 import 'simple_identifier_test.dart' as simple_identifier;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'type_inference/test_all.dart' as type_inference;
+import 'type_name_test.dart' as type_name;
 
 main() {
   defineReflectiveSuite(() {
@@ -93,6 +94,7 @@ main() {
     property_access.main();
     simple_identifier.main();
     top_type_inference.main();
+    type_name.main();
     type_inference.main();
   }, name: 'resolution');
 }
