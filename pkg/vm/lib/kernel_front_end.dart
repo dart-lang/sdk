@@ -46,7 +46,7 @@ import 'bytecode/bytecode_serialization.dart' show BytecodeSizeStatistics;
 import 'bytecode/gen_bytecode.dart'
     show generateBytecode, createFreshComponentWithBytecode;
 import 'bytecode/options.dart' show BytecodeOptions;
-
+import 'http_filesystem.dart' show HttpAwareFileSystem;
 import 'target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
@@ -556,10 +556,17 @@ Target createFrontEndTarget(String targetName,
 }
 
 /// Create a front-end file system.
-/// If requested, create a virtual mutli-root file system.
+///
+/// If requested, create a virtual mutli-root file system and/or an http aware
+/// file system.
 FileSystem createFrontEndFileSystem(
-    String multiRootFileSystemScheme, List<String> multiRootFileSystemRoots) {
+    String multiRootFileSystemScheme, List<String> multiRootFileSystemRoots,
+    {bool allowHttp}) {
+  allowHttp ??= false;
   FileSystem fileSystem = StandardFileSystem.instance;
+  if (allowHttp) {
+    fileSystem = HttpAwareFileSystem(fileSystem);
+  }
   if (multiRootFileSystemRoots != null &&
       multiRootFileSystemRoots.isNotEmpty &&
       multiRootFileSystemScheme != null) {
@@ -577,8 +584,8 @@ FileSystem createFrontEndFileSystem(
 /// absolute URI.
 ///
 /// If virtual multi-root file system is used, or [input] can be parsed to a
-/// URI with 'package' or 'file' scheme, then [input] is interpreted as URI.
-/// Otherwise [input] is interpreted as a file path.
+/// URI with 'package', 'file', or 'http' scheme, then [input] is interpreted
+/// as URI. Otherwise [input] is interpreted as a file path.
 Uri convertFileOrUriArgumentToUri(FileSystem fileSystem, String input) {
   if (input == null) {
     return null;
@@ -590,7 +597,9 @@ Uri convertFileOrUriArgumentToUri(FileSystem fileSystem, String input) {
   }
   try {
     Uri uri = Uri.parse(input);
-    if (uri.scheme == 'package' || uri.scheme == 'file') {
+    if (uri.scheme == 'package' ||
+        uri.scheme == 'file' ||
+        uri.scheme == 'http') {
       return uri;
     }
   } on FormatException {

@@ -99,6 +99,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
           ' option',
       defaultsTo: 'org-dartlang-root',
       hide: true)
+  ..addFlag('enable-http-uris',
+      defaultsTo: false, hide: true, help: 'Enables support for http uris.')
   ..addFlag('verbose', help: 'Enables verbose output from the compiler.')
   ..addOption('initialize-from-dill',
       help: 'Normally the output dill is used to specify which dill to '
@@ -299,7 +301,8 @@ class FrontendCompiler implements CompilerInterface {
   }) async {
     _options = options;
     _fileSystem = createFrontEndFileSystem(
-        options['filesystem-scheme'], options['filesystem-root']);
+        options['filesystem-scheme'], options['filesystem-root'],
+        allowHttp: options['enable-http-uris']);
     _mainSource = _getFileOrUri(entryPoint);
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$entryPoint.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??

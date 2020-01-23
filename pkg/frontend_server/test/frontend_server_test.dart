@@ -1235,6 +1235,46 @@ true
       expect(await starter(args), 0);
     });
 
+    test('compile with http uris', () async {
+      var host = 'localhost';
+      var server = await HttpServer.bind(host, 0);
+      addTearDown(server.close);
+      var port = server.port;
+      server.listen((request) {
+        var path = request.uri.path;
+        var file = File('${tempDir.path}$path');
+        var response = request.response;
+        if (!file.existsSync()) {
+          response.statusCode = 404;
+        } else {
+          response.statusCode = 200;
+          response.add(file.readAsBytesSync());
+        }
+        response.close();
+      });
+      var main = File('${tempDir.path}/foo.dart')..createSync();
+      main.writeAsStringSync(
+          "import 'package:foo/foo.dart'; main() {print(foo);}\n");
+      File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("\nfoo:http://$host:$port/packages/foo");
+      File('${tempDir.path}/packages/foo/foo.dart')
+        ..createSync(recursive: true)
+        ..writeAsStringSync("var foo = 'hello';");
+      var dillFile = File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--enable-http-uris',
+        '--packages=http://$host:$port/.packages',
+        'http://$host:$port/foo.dart',
+      ];
+      expect(await starter(args), 0);
+    });
+
     test('compile to JavaScript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");

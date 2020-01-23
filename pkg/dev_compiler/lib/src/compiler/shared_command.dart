@@ -352,6 +352,8 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
       return sourcePath;
     }
 
+    if (uri.scheme == 'http') return sourcePath;
+
     // Convert to a local file path if it's not.
     sourcePath = sourcePathToUri(p.absolute(p.fromUri(uri))).path;
 
