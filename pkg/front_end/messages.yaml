@@ -3796,10 +3796,10 @@ ThrowingNotAssignableToObjectWarning:
   severity: WARNING
 
 RequiredNamedParameterHasDefaultValueError:
-  template: "Required named parameter '#name' can't have a default value."
+  template: "Named parameter '#name' is required and can't have a default value."
 
 RequiredNamedParameterHasDefaultValueWarning:
-  template: "Required named parameter '#name' has a default value."
+  template: "Named parameter '#name' is required and has a default value."
   severity: WARNING
 
 ValueForRequiredParameterNotProvidedError:
@@ -3807,6 +3807,13 @@ ValueForRequiredParameterNotProvidedError:
 
 ValueForRequiredParameterNotProvidedWarning:
   template: "Missing required named parameter '#name'."
+  severity: WARNING
+
+OptionalNonNullableWithoutInitializerError:
+  template: "Optional parameter '#name' should have a default value because its type '#type' doesn't allow null."
+
+OptionalNonNullableWithoutInitializerWarning:
+  template: "Optional parameter '#name' doensn't have a default value and its type '#type' doesn't allow null."
   severity: WARNING
 
 NonNullableOptOut:

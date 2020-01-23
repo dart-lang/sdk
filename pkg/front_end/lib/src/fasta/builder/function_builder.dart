@@ -390,6 +390,7 @@ abstract class FunctionBuilderImpl extends MemberBuilderImpl
 
         if (library.isNonNullableByDefault &&
             library.loader.target.performNnbdChecks) {
+          // Required named parameters can't have default values.
           if (formal.isNamedRequired && formal.initializerToken != null) {
             if (library.loader.nnbdStrongMode) {
               library.addProblem(

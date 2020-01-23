@@ -94,9 +94,9 @@ class Class2b extends opt::LegacyClass implements self::Interface {
     ;
   method method3a(core::int a, core::int b) → core::int
     ;
-  method method3b(core::int a, [core::int b]) → core::int
+  method method3b(core::int a, [core::int b = 42]) → core::int
     ;
-  method method3c([core::int a, core::int b]) → core::int
+  method method3c([core::int a = 42, core::int b = 42]) → core::int
     ;
   method method4a(core::int? a, core::int? b) → core::int?
     ;

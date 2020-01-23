@@ -568,7 +568,8 @@ class Forest {
         isConst: isConst,
         isFieldFormal: isFieldFormal,
         isCovariant: isCovariant,
-        isLocalFunction: isLocalFunction);
+        isLocalFunction: isLocalFunction,
+        hasDeclaredInitializer: initializer != null);
   }
 
   VariableDeclaration createVariableDeclarationForValue(Expression initializer,

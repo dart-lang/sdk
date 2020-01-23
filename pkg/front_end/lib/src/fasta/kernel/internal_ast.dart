@@ -1052,6 +1052,9 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// the kernel.
   final bool isImplicitlyTyped;
 
+  /// True if the initializer was specified by the programmer.
+  final bool hasDeclaredInitializer;
+
   // TODO(ahe): Remove this field. We can get rid of it by recording closure
   // mutation in [BodyBuilder].
   final int functionNestingLevel;
@@ -1075,6 +1078,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
   VariableDeclarationImpl(String name, this.functionNestingLevel,
       {this.forSyntheticToken: false,
+      this.hasDeclaredInitializer: false,
       Expression initializer,
       DartType type,
       bool isFinal: false,
@@ -1101,6 +1105,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = false,
         isLocalFunction = false,
+        hasDeclaredInitializer = true,
         super.forValue(initializer);
 
   VariableDeclarationImpl.forValue(Expression initializer)
@@ -1108,6 +1113,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = true,
         isLocalFunction = false,
+        hasDeclaredInitializer = true,
         super.forValue(initializer);
 
   VariableDeclaration lateGetter;

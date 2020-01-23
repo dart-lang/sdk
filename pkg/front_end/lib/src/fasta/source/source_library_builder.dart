@@ -3063,12 +3063,45 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         allowSuperBounded: true);
   }
 
+  void checkInitializersInFormals(List<FormalParameterBuilder> formals) {
+    bool performInitializerChecks =
+        isNonNullableByDefault && loader.performNnbdChecks;
+    if (!performInitializerChecks) return;
+
+    for (FormalParameterBuilder formal in formals) {
+      bool isOptionalPositional = formal.isOptional && formal.isPositional;
+      bool isOptionalNamed = !formal.isNamedRequired && formal.isNamed;
+      bool isOptional = isOptionalPositional || isOptionalNamed;
+      if (isOptional &&
+          formal.variable.type.isPotentiallyNonNullable &&
+          !formal.hasDeclaredInitializer) {
+        if (loader.nnbdStrongMode) {
+          addProblem(
+              templateOptionalNonNullableWithoutInitializerError.withArguments(
+                  formal.name, formal.variable.type, isNonNullableByDefault),
+              formal.charOffset,
+              formal.name.length,
+              uri);
+        } else {
+          addProblem(
+              templateOptionalNonNullableWithoutInitializerWarning
+                  .withArguments(formal.name, formal.variable.type,
+                      isNonNullableByDefault),
+              formal.charOffset,
+              formal.name.length,
+              uri);
+        }
+      }
+    }
+  }
+
   void checkBoundsInFunctionNodeParts(
       TypeEnvironment typeEnvironment, Uri fileUri, int fileOffset,
       {List<TypeParameter> typeParameters,
       List<VariableDeclaration> positionalParameters,
       List<VariableDeclaration> namedParameters,
-      DartType returnType}) {
+      DartType returnType,
+      int requiredParameterCount}) {
     if (typeParameters != null) {
       for (TypeParameter parameter in typeParameters) {
         checkBoundsInType(
@@ -3077,14 +3110,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
     if (positionalParameters != null) {
-      for (VariableDeclaration formal in positionalParameters) {
+      for (int i = 0; i < positionalParameters.length; ++i) {
+        VariableDeclaration parameter = positionalParameters[i];
         checkBoundsInType(
-            formal.type, typeEnvironment, fileUri, formal.fileOffset,
+            parameter.type, typeEnvironment, fileUri, parameter.fileOffset,
             allowSuperBounded: true);
       }
     }
     if (namedParameters != null) {
-      for (VariableDeclaration named in namedParameters) {
+      for (int i = 0; i < namedParameters.length; ++i) {
+        VariableDeclaration named = namedParameters[i];
         checkBoundsInType(
             named.type, typeEnvironment, fileUri, named.fileOffset,
             allowSuperBounded: true);
@@ -3129,7 +3164,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         typeParameters: function.typeParameters,
         positionalParameters: function.positionalParameters,
         namedParameters: function.namedParameters,
-        returnType: function.returnType);
+        returnType: function.returnType,
+        requiredParameterCount: function.requiredParameterCount);
   }
 
   void checkBoundsInListLiteral(
@@ -3293,7 +3329,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void checkBoundsInOutline(TypeEnvironment typeEnvironment) {
+  void checkTypesInOutline(TypeEnvironment typeEnvironment) {
     Iterator<Builder> iterator = this.iterator;
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
@@ -3302,6 +3338,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (declaration is ProcedureBuilder) {
         checkBoundsInFunctionNode(declaration.procedure.function,
             typeEnvironment, declaration.fileUri);
+        if (declaration.formals != null) {
+          checkInitializersInFormals(declaration.formals);
+        }
       } else if (declaration is ClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
       }

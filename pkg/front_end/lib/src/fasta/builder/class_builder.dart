@@ -852,6 +852,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           positionalParameters: redirecting.positionalParameters,
           namedParameters: redirecting.namedParameters);
     }
+
+    // Check initializers.
+    forEach((String name, Builder builder) {
+      if (builder is FunctionBuilder &&
+          !builder.isAbstract &&
+          builder.formals != null) {
+        library.checkInitializersInFormals(builder.formals);
+      }
+    });
   }
 
   void checkVarianceInField(Field field, TypeEnvironment typeEnvironment,

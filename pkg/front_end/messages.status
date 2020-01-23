@@ -479,6 +479,11 @@ OperatorParameterMismatch1/example: Fail
 OperatorParameterMismatch2/example: Fail
 OperatorWithOptionalFormals/analyzerCode: Fail
 OperatorWithOptionalFormals/example: Fail
+OptionalNonNullableWithoutInitializerError/analyzerCode: Fail
+OptionalNonNullableWithoutInitializerError/example: Fail
+OptionalNonNullableWithoutInitializerWarning/analyzerCode: Fail
+OptionalNonNullableWithoutInitializerWarning/example: Fail
+OptionalNonNullableWithoutInitializerWarning/spelling: Fail
 OverrideFewerNamedArguments/example: Fail
 OverrideFewerPositionalArguments/example: Fail
 OverrideMismatchNamedParameter/example: Fail

@@ -2426,6 +2426,59 @@ class TypeInferrerImpl implements TypeInferrer {
             'type', new InstrumentationValueForType(inferredType));
         formal.type = inferredType;
       }
+
+      if (isNonNullableByDefault && performNnbdChecks) {
+        // If a parameter is a positional or named optional parameter and its
+        // type is potentially non-nullable, it should have an initializer.
+        bool isOptionalPositional = function.requiredParameterCount <= i &&
+            i < function.positionalParameters.length;
+        bool isOptionalNamed =
+            i >= function.positionalParameters.length && !formal.isRequired;
+        if ((isOptionalPositional || isOptionalNamed) &&
+            formal.type.isPotentiallyNonNullable &&
+            !formal.hasDeclaredInitializer) {
+          if (nnbdStrongMode) {
+            library.addProblem(
+                templateOptionalNonNullableWithoutInitializerError
+                    .withArguments(
+                        formal.name, formal.type, isNonNullableByDefault),
+                formal.fileOffset,
+                formal.name.length,
+                library.uri);
+          } else {
+            library.addProblem(
+                templateOptionalNonNullableWithoutInitializerWarning
+                    .withArguments(
+                        formal.name, formal.type, isNonNullableByDefault),
+                formal.fileOffset,
+                formal.name.length,
+                library.uri);
+          }
+        }
+      }
+    }
+
+    if (isNonNullableByDefault && performNnbdChecks) {
+      for (VariableDeclarationImpl formal in function.namedParameters) {
+        // Required named parameters shouldn't have initializers.
+        if (formal.isRequired && formal.hasDeclaredInitializer) {
+          if (nnbdStrongMode) {
+            library.addProblem(
+                templateRequiredNamedParameterHasDefaultValueError
+                    .withArguments(formal.name),
+                formal.fileOffset,
+                formal.name.length,
+                library.uri);
+          } else {
+            library.addProblem(
+                templateRequiredNamedParameterHasDefaultValueWarning
+                    .withArguments(formal.name),
+                formal.fileOffset,
+                formal.name.length,
+                library.uri);
+          }
+        }
+      }
     }
 
     // Let `N'` be `N[T/S]`.  The [ClosureContext] constructor will adjust

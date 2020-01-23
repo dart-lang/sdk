@@ -88,7 +88,7 @@ import '../identifiers.dart'
 import '../messages.dart' as messages show getLocationFromUri;
 
 import '../modifier.dart'
-    show Modifier, constMask, covariantMask, finalMask, lateMask;
+    show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
 
 import '../names.dart' show emptyName, minusName, plusName;
 
@@ -1011,6 +1011,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..fileOffset = body.fileOffset;
       }
     }
+
     resolveRedirectingFactoryTargets();
     finishVariableMetadata();
   }
@@ -2307,6 +2308,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
+    bool isRequired = (currentLocalVariableModifiers & requiredMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
     VariableDeclaration variable = new VariableDeclarationImpl(
         identifier.name, functionNestingLevel,
@@ -2315,7 +2317,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         type: buildDartType(currentLocalVariableType),
         isFinal: isFinal,
         isConst: isConst,
-        isLate: isLate)
+        isLate: isLate,
+        isRequired: isRequired,
+        hasDeclaredInitializer: initializer != null)
       ..fileOffset = identifier.charOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     typeInferrer?.assignedVariables?.declare(variable);
@@ -3238,6 +3242,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       reportNonNullableModifierError(requiredToken);
     }
     push((covariantToken != null ? covariantMask : 0) |
+        (requiredToken != null ? requiredMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }
 
@@ -3294,7 +3299,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       parameter = new FormalParameterBuilder(null, modifiers, type?.builder,
-          name?.name, libraryBuilder, offsetForToken(nameToken), uri);
+          name?.name, libraryBuilder, offsetForToken(nameToken), uri)
+        ..hasDeclaredInitializer = (initializerStart != null);
     }
     VariableDeclaration variable =
         parameter.build(libraryBuilder, functionNestingLevel);

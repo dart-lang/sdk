@@ -7040,7 +7040,7 @@ const Template<Message Function(String name)>
     templateRequiredNamedParameterHasDefaultValueError =
     const Template<Message Function(String name)>(
         messageTemplate:
-            r"""Required named parameter '#name' can't have a default value.""",
+            r"""Named parameter '#name' is required and can't have a default value.""",
         withArguments:
             _withArgumentsRequiredNamedParameterHasDefaultValueError);
 
@@ -7058,7 +7058,7 @@ Message _withArgumentsRequiredNamedParameterHasDefaultValueError(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeRequiredNamedParameterHasDefaultValueError,
       message:
-          """Required named parameter '${name}' can't have a default value.""",
+          """Named parameter '${name}' is required and can't have a default value.""",
       arguments: {'name': name});
 }
 
@@ -7067,7 +7067,7 @@ const Template<Message Function(String name)>
     templateRequiredNamedParameterHasDefaultValueWarning =
     const Template<Message Function(String name)>(
         messageTemplate:
-            r"""Required named parameter '#name' has a default value.""",
+            r"""Named parameter '#name' is required and has a default value.""",
         withArguments:
             _withArgumentsRequiredNamedParameterHasDefaultValueWarning);
 
@@ -7085,7 +7085,8 @@ Message _withArgumentsRequiredNamedParameterHasDefaultValueWarning(
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   return new Message(codeRequiredNamedParameterHasDefaultValueWarning,
-      message: """Required named parameter '${name}' has a default value.""",
+      message:
+          """Named parameter '${name}' is required and has a default value.""",
       arguments: {'name': name});
 }
 

@@ -959,12 +959,12 @@ class SourceLoader extends Loader {
     ticker.logMs("Checked supertypes");
   }
 
-  void checkBounds() {
+  void checkTypes() {
     builders.forEach((Uri uri, LibraryBuilder library) {
       if (library is SourceLibraryBuilder) {
         if (library.loader == this) {
           library
-              .checkBoundsInOutline(typeInferenceEngine.typeSchemaEnvironment);
+              .checkTypesInOutline(typeInferenceEngine.typeSchemaEnvironment);
         }
       }
     });

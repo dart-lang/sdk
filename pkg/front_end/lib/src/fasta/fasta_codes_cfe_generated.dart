@@ -2149,6 +2149,82 @@ Message _withArgumentsNullablePropertyAccessWarning(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateOptionalNonNullableWithoutInitializerError = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Optional parameter '#name' should have a default value because its type '#type' doesn't allow null.""",
+        withArguments:
+            _withArgumentsOptionalNonNullableWithoutInitializerError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeOptionalNonNullableWithoutInitializerError = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "OptionalNonNullableWithoutInitializerError",
+  templateOptionalNonNullableWithoutInitializerError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOptionalNonNullableWithoutInitializerError(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeOptionalNonNullableWithoutInitializerError,
+      message:
+          """Optional parameter '${name}' should have a default value because its type '${type}' doesn't allow null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateOptionalNonNullableWithoutInitializerWarning = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Optional parameter '#name' doensn't have a default value and its type '#type' doesn't allow null.""",
+        withArguments:
+            _withArgumentsOptionalNonNullableWithoutInitializerWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeOptionalNonNullableWithoutInitializerWarning = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "OptionalNonNullableWithoutInitializerWarning",
+        templateOptionalNonNullableWithoutInitializerWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOptionalNonNullableWithoutInitializerWarning(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeOptionalNonNullableWithoutInitializerWarning,
+      message:
+          """Optional parameter '${name}' doensn't have a default value and its type '${type}' doesn't allow null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(String name, String name2, DartType _type,
             DartType _type2, String name3, bool isNonNullableByDefault)>
     templateOverrideTypeMismatchParameter = const Template<
