@@ -162,6 +162,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, isNull);
   }
 
+  void assertElementString(Element element, String expected) {
+    var str = element.getDisplayString(
+      withNullability: typeToStringWithNullability,
+    );
+    expect(str, expected);
+  }
+
   void assertElementTypes(List<DartType> types, List<DartType> expected,
       {bool ordered = false}) {
     if (ordered) {

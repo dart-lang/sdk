@@ -97,6 +97,14 @@ class Dart2TypeSystem extends TypeSystem {
     @required this.typeProvider,
   }) : super(isNonNullableByDefault: isNonNullableByDefault);
 
+  InterfaceTypeImpl get objectNone =>
+      _objectNoneCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.none);
+
+  InterfaceTypeImpl get objectQuestion =>
+      _objectQuestionCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.question);
+
   InterfaceType get _interfaceTypeFunctionNone {
     return typeProvider.functionType.element.instantiate(
       typeArguments: const [],
@@ -107,14 +115,6 @@ class Dart2TypeSystem extends TypeSystem {
   InterfaceTypeImpl get _nullNone =>
       _nullNoneCached ??= (typeProvider.nullType as TypeImpl)
           .withNullability(NullabilitySuffix.none);
-
-  InterfaceTypeImpl get _objectNone =>
-      _objectNoneCached ??= (typeProvider.objectType as TypeImpl)
-          .withNullability(NullabilitySuffix.none);
-
-  InterfaceTypeImpl get _objectQuestion =>
-      _objectQuestionCached ??= (typeProvider.objectType as TypeImpl)
-          .withNullability(NullabilitySuffix.question);
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -580,7 +580,7 @@ class Dart2TypeSystem extends TypeSystem {
     // UP(T Function<...>(...), T2) = Object
     // UP(T1, T Function<...>(...)) = Object
     if (T1 is FunctionType || T2 is FunctionType) {
-      return _objectNone;
+      return objectNone;
     }
 
     // UP(T1, T2) = T2 if T1 <: T2
@@ -1230,7 +1230,7 @@ class Dart2TypeSystem extends TypeSystem {
     //   then `T0 <: T1` if `Object? <: T1`.
     if (identical(T0, DynamicTypeImpl.instance) ||
         identical(T0, VoidTypeImpl.instance)) {
-      if (isSubtypeOf(_objectQuestion, T1)) {
+      if (isSubtypeOf(objectQuestion, T1)) {
         return true;
       }
     }
@@ -1250,8 +1250,8 @@ class Dart2TypeSystem extends TypeSystem {
       //   then `T0 <: T1`iff `S <: Object`.
       if (T0_nullability == NullabilitySuffix.none &&
           T0 is TypeParameterTypeImpl) {
-        var bound = T0.element.bound ?? _objectQuestion;
-        return isSubtypeOf(bound, _objectNone);
+        var bound = T0.element.bound ?? objectQuestion;
+        return isSubtypeOf(bound, objectNone);
       }
       // * if `T0` is `FutureOr<S>` for some `S`,
       //   then `T0 <: T1` iff `S <: Object`
@@ -1345,8 +1345,8 @@ class Dart2TypeSystem extends TypeSystem {
     //   * `T0 <: T1` iff `T0 <: X1` and `T0 <: S1`
     if (T0 is TypeParameterTypeImpl) {
       if (T1 is TypeParameterTypeImpl && T0.definition == T1.definition) {
-        var S0 = T0.element.bound ?? _objectQuestion;
-        var S1 = T1.element.bound ?? _objectQuestion;
+        var S0 = T0.element.bound ?? objectQuestion;
+        var S1 = T1.element.bound ?? objectQuestion;
         if (isSubtypeOf(S0, S1)) {
           return true;
         }
@@ -1379,7 +1379,7 @@ class Dart2TypeSystem extends TypeSystem {
       // * or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
       // * or `T0` is `X0 & S0` and `S0 <: T1`
       if (T0 is TypeParameterTypeImpl) {
-        var S0 = T0.element.bound ?? _objectQuestion;
+        var S0 = T0.element.bound ?? objectQuestion;
         if (isSubtypeOf(S0, T1)) {
           return true;
         }
@@ -1403,7 +1403,7 @@ class Dart2TypeSystem extends TypeSystem {
       // or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
       // or `T0` is `X0 & S0` and `S0 <: T1`
       if (T0 is TypeParameterTypeImpl) {
-        var S0 = T0.element.bound ?? _objectQuestion;
+        var S0 = T0.element.bound ?? objectQuestion;
         return isSubtypeOf(S0, T1);
       }
       // iff
@@ -1422,7 +1422,7 @@ class Dart2TypeSystem extends TypeSystem {
     // Left Type Variable Bound: `T0` is a type variable `X0` with bound `B0`
     //   * and `B0 <: T1`
     if (T0 is TypeParameterTypeImpl) {
-      var S0 = T0.element.bound ?? _objectQuestion;
+      var S0 = T0.element.bound ?? objectQuestion;
       if (isSubtypeOf(S0, T1)) {
         return true;
       }
@@ -1706,7 +1706,7 @@ class Dart2TypeSystem extends TypeSystem {
           normalize(e.type),
           // ignore: deprecated_member_use_from_same_package
           e.parameterKind,
-        );
+        )..isExplicitlyCovariant = e.isCovariant;
       }).toList(),
       returnType: normalize(functionType.returnType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -1762,7 +1762,7 @@ class Dart2TypeSystem extends TypeSystem {
    * See `#classes-defined-in-opted-in-libraries`
    */
   DartType topMerge(DartType T, DartType S) {
-    return TopMergeHelper.topMerge(T, S);
+    return TopMergeHelper(this).topMerge(T, S);
   }
 
   @override

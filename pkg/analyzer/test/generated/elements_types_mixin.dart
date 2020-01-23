@@ -425,27 +425,36 @@ mixin ElementsTypesMixin {
   ParameterElement namedParameter({
     @required String name,
     @required DartType type,
+    bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED;
     parameter.type = type;
+    parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
   }
 
   ParameterElement namedRequiredParameter({
     @required String name,
     @required DartType type,
+    bool isCovariant = false,
   }) {
     var parameter = ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.NAMED_REQUIRED;
     parameter.type = type;
+    parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
   }
 
-  ParameterElement positionalParameter({String name, @required DartType type}) {
+  ParameterElement positionalParameter({
+    String name,
+    @required DartType type,
+    bool isCovariant = false,
+  }) {
     var parameter = ParameterElementImpl(name ?? '', 0);
     parameter.parameterKind = ParameterKind.POSITIONAL;
     parameter.type = type;
+    parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
   }
 
@@ -457,10 +466,15 @@ mixin ElementsTypesMixin {
     return TypeParameterMember(element, null, bound);
   }
 
-  ParameterElement requiredParameter({String name, @required DartType type}) {
+  ParameterElement requiredParameter({
+    String name,
+    @required DartType type,
+    bool isCovariant = false,
+  }) {
     var parameter = ParameterElementImpl(name ?? '', 0);
     parameter.parameterKind = ParameterKind.REQUIRED;
     parameter.type = type;
+    parameter.isExplicitlyCovariant = isCovariant;
     return parameter;
   }
 
