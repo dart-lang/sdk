@@ -72,6 +72,6 @@ linter:
     expect(error.location.startLine, 1);
     expect(error.location.startColumn, 1);
     expect(error.message,
-        "The name of the analysis options file .analysis_options is deprecated; consider renaming it to analysis_options.yaml.");
+        'The name of the analysis options file .analysis_options is deprecated; consider renaming it to analysis_options.yaml.');
   }
 }

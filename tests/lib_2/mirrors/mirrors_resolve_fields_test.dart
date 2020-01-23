@@ -9,7 +9,6 @@ library lib;
 
 import "package:expect/expect.dart";
 
-@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 class A {

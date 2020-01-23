@@ -22,7 +22,7 @@ class D {
 f() {}
 
 main() {
-  ClosureMirror closureMirror = reflect(f);
+  ClosureMirror closureMirror = reflect(f) as ClosureMirror;
   List<InstanceMirror> metadata = closureMirror.function.metadata;
   Expect.equals(1, metadata.length);
   Expect.equals(metadata[0].reflectee.c.s, 'foo');

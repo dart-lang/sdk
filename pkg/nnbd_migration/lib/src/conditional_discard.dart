@@ -54,7 +54,7 @@ class ConditionalDiscard {
   bool get keepTrue => trueGuard == null || trueGuard.isNullable;
 
   Iterable<FixReasonInfo> get reasons sync* {
-    if (!keepTrue) yield falseGuard;
-    if (!keepFalse) yield trueGuard;
+    if (!keepTrue) yield trueGuard;
+    if (!keepFalse) yield falseGuard;
   }
 }

@@ -303,7 +303,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // public static final "EMPTY_ARRAY" field
       //
-      publicField(javaName("EMPTY_ARRAY"), () {
+      publicField(javaName('EMPTY_ARRAY'), () {
         writeln(
             'public static final $className[] EMPTY_ARRAY = new $className[0];');
       });
@@ -311,7 +311,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       //
       // public static final "EMPTY_LIST" field
       //
-      publicField(javaName("EMPTY_LIST"), () {
+      publicField(javaName('EMPTY_LIST'), () {
         writeln(
             'public static final List<$className> EMPTY_LIST = Lists.newArrayList();');
       });
@@ -691,7 +691,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
         indent(() {
           writeln('HashCodeBuilder builder = new HashCodeBuilder();');
           for (int i = 0; i < fields.length; i++) {
-            writeln("builder.append(${javaName(fields[i].name)});");
+            writeln('builder.append(${javaName(fields[i].name)});');
           }
           writeln('return builder.toHashCode();');
         });
@@ -708,8 +708,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
           writeln('StringBuilder builder = new StringBuilder();');
           writeln('builder.append(\"[\");');
           for (int i = 0; i < fields.length; i++) {
-            writeln("builder.append(\"${javaName(fields[i].name)}=\");");
-            write("builder.append(${_getToStringForField(fields[i])}");
+            writeln('builder.append(\"${javaName(fields[i].name)}=\");');
+            write('builder.append(${_getToStringForField(fields[i])}');
             if (i + 1 != fields.length) {
               // this is not the last field
               write(' + \", \"');

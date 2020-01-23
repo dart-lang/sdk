@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
@@ -43,6 +44,8 @@ class FixBuilderTest extends EdgeBuilderTestBase {
 
   static const isMakeNullable = TypeMatcher<MakeNullable>();
 
+  static const isRemoveAs = TypeMatcher<RemoveAs>();
+
   static const isRequiredAnnotationToRequiredKeyword =
       TypeMatcher<RequiredAnnotationToRequiredKeyword>();
 
@@ -73,6 +76,41 @@ class FixBuilderTest extends EdgeBuilderTestBase {
         for (var entry in fixBuilder.problems.entries)
           if (_isInScope(entry.key, scope)) entry.key: entry.value
       };
+
+  Future<void> test_asExpression_keep() async {
+    await analyze('''
+_f(Object x) {
+  print((x as int) + 1);
+}
+''');
+    var asExpression = findNode.simple('x as').parent as Expression;
+    visitSubexpression(asExpression, 'int');
+  }
+
+  Future<void> test_asExpression_keep_previously_unnecessary() async {
+    verifyNoTestUnitErrors = false;
+    await analyze('''
+f(int i) {
+  print((i as int) + 1);
+}
+''');
+    expect(
+        testAnalysisResult.errors.single.errorCode, HintCode.UNNECESSARY_CAST);
+    var asExpression = findNode.simple('i as').parent as Expression;
+    visitSubexpression(asExpression, 'int');
+  }
+
+  Future<void> test_asExpression_remove() async {
+    await analyze('''
+_f(Object x) {
+  if (x is! int) return;
+  print((x as int) + 1);
+}
+''');
+    var asExpression = findNode.simple('x as').parent as Expression;
+    visitSubexpression(asExpression, 'int',
+        changes: {asExpression: isRemoveAs});
+  }
 
   Future<void>
       test_assignmentExpression_compound_combined_nullable_noProblem() async {

@@ -4,7 +4,6 @@
 
 library lib;
 
-@MirrorsUsed(metaTargets: "MetaTarget")
 import "dart:mirrors";
 
 class MetaTarget {
@@ -17,6 +16,7 @@ class A {
 }
 
 String foo() {
-  ClassMirror a = currentMirrorSystem().findLibrary(#lib).declarations[#A];
+  final a =
+      currentMirrorSystem().findLibrary(#lib).declarations[#A] as ClassMirror;
   return a.newInstance(Symbol.empty, []).invoke(#toString, []).reflectee;
 }

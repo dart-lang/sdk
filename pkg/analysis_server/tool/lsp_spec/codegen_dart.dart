@@ -399,15 +399,15 @@ void _writeFromJsonCode(
   type = resolveTypeAlias(type);
 
   if (_isSimpleType(type)) {
-    buffer.write("$valueCode");
+    buffer.write('$valueCode');
   } else if (_isSpecType(type)) {
     // Our own types have fromJson() constructors we can call.
     buffer.write(
-        "$valueCode != null ? ${type.dartType}.fromJson${type.typeArgsString}($valueCode) : null");
+        '$valueCode != null ? ${type.dartType}.fromJson${type.typeArgsString}($valueCode) : null');
   } else if (type is ArrayType) {
     // Lists need to be map()'d so we can recursively call writeFromJsonCode
     // as they may need fromJson on each element.
-    buffer.write("$valueCode?.map((item) => ");
+    buffer.write('$valueCode?.map((item) => ');
     _writeFromJsonCode(buffer, type.elementType, 'item',
         allowsNull: allowsNull);
     buffer
@@ -424,7 +424,7 @@ void _writeFromJsonCode(
   } else if (type is UnionType) {
     _writeFromJsonCodeForUnion(buffer, type, valueCode, allowsNull: allowsNull);
   } else {
-    buffer.write("$valueCode");
+    buffer.write('$valueCode');
   }
 }
 
@@ -603,7 +603,7 @@ void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
   // ResponseMessage must confirm to JSON-RPC which says only one of
   // result/error can be included. Since this isn't encoded in the types we
   // need to special-case it's toJson generation.
-  if (interface.name == "ResponseMessage") {
+  if (interface.name == 'ResponseMessage') {
     _writeToJsonFieldsForResponseMessage(buffer, interface);
   } else {
     for (var field in _getAllFields(interface)) {

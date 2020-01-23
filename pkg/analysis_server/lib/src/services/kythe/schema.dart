@@ -65,18 +65,18 @@ const ORDINAL = '/kythe/ordinal';
 const EDGE_PREFIX = '/kythe/edge/';
 
 /// Kythe edge kinds
-const ANNOTATED_BY_EDGE = EDGE_PREFIX + "annotatedby";
-const CHILD_OF_EDGE = EDGE_PREFIX + "childof";
-const EXTENDS_EDGE = EDGE_PREFIX + "extends";
-const INSTANTIATES_EDGE = EDGE_PREFIX + "instantiates";
-const OVERRIDES_EDGE = EDGE_PREFIX + "overrides";
-const PARAM_EDGE = EDGE_PREFIX + "param";
-const TYPED_EDGE = EDGE_PREFIX + "typed";
+const ANNOTATED_BY_EDGE = EDGE_PREFIX + 'annotatedby';
+const CHILD_OF_EDGE = EDGE_PREFIX + 'childof';
+const EXTENDS_EDGE = EDGE_PREFIX + 'extends';
+const INSTANTIATES_EDGE = EDGE_PREFIX + 'instantiates';
+const OVERRIDES_EDGE = EDGE_PREFIX + 'overrides';
+const PARAM_EDGE = EDGE_PREFIX + 'param';
+const TYPED_EDGE = EDGE_PREFIX + 'typed';
 
 /// Kythe edge kinds associated with anchors
-const DEFINES_EDGE = EDGE_PREFIX + "defines";
-const DEFINES_BINDING_EDGE = EDGE_PREFIX + "defines/binding";
-const DOCUMENTS_EDGE = EDGE_PREFIX + "documents";
-const REF_EDGE = EDGE_PREFIX + "ref";
-const REF_CALL_EDGE = EDGE_PREFIX + "ref/call";
-const REF_IMPORTS_EDGE = EDGE_PREFIX + "ref/imports";
+const DEFINES_EDGE = EDGE_PREFIX + 'defines';
+const DEFINES_BINDING_EDGE = EDGE_PREFIX + 'defines/binding';
+const DOCUMENTS_EDGE = EDGE_PREFIX + 'documents';
+const REF_EDGE = EDGE_PREFIX + 'ref';
+const REF_CALL_EDGE = EDGE_PREFIX + 'ref/call';
+const REF_IMPORTS_EDGE = EDGE_PREFIX + 'ref/imports';

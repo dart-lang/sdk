@@ -120,7 +120,7 @@ main() {
       }
       return;
     }
-    fail("Expected to find |$message| but got: " + change.message);
+    fail('Expected to find |$message| but got: ' + change.message);
   }
 
   _prepareCompletion(String search,

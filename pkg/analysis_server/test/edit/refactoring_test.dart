@@ -439,7 +439,7 @@ main() {
 }
 ''');
 
-    Future<void> checkUpdate(doUpdate()) async {
+    Future<void> checkUpdate(void Function() doUpdate) async {
       await getRefactoringResult(() {
         return sendStringRequest('1 + 2', 'res', true);
       });
@@ -2183,7 +2183,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future assertSuccessfulRefactoring(
-      Future<Response> requestSender(), String expectedCode,
+      Future<Response> Function() requestSender, String expectedCode,
       {void Function(RefactoringFeedback) feedbackValidator}) async {
     EditGetRefactoringResult result = await getRefactoringResult(requestSender);
     assertResultProblemsOK(result);
@@ -2212,7 +2212,7 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future<EditGetRefactoringResult> getRefactoringResult(
-      Future<Response> requestSender()) async {
+      Future<Response> Function() requestSender) async {
     if (shouldWaitForFullAnalysis) {
       await waitForTasksFinished();
     }

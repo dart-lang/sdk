@@ -5,7 +5,6 @@
 /// Test of [MethodMirror.returnType].
 library test.return_type_test;
 
-@MirrorsUsed(targets: 'test.return_type_test', override: '*')
 import 'dart:mirrors';
 
 import 'stringify.dart';

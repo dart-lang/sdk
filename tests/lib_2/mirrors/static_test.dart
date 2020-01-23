@@ -6,7 +6,6 @@
 
 library lib;
 
-@MirrorsUsed(targets: "lib")
 import 'dart:mirrors';
 
 import 'stringify.dart';

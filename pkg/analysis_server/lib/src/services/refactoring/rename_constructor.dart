@@ -37,7 +37,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   String get refactoringName {
-    return "Rename Constructor";
+    return 'Rename Constructor';
   }
 
   @override

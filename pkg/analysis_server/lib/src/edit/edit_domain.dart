@@ -324,7 +324,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       PostfixCompletion completion = await processor.compute();
       change = completion?.change;
     }
-    change ??= SourceChange("", edits: []);
+    change ??= SourceChange('', edits: []);
 
     Response response =
         EditGetPostfixCompletionResult(change).toResponse(request.id);
@@ -352,7 +352,7 @@ class EditDomainHandler extends AbstractRequestHandler {
       StatementCompletion completion = await processor.compute();
       change = completion.change;
     }
-    change ??= SourceChange("", edits: []);
+    change ??= SourceChange('', edits: []);
 
     Response response =
         EditGetStatementCompletionResult(change, false).toResponse(request.id);

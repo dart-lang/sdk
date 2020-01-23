@@ -96,7 +96,7 @@ main() {
   );
 }
 ''');
-    assertExitPosition(after: "],");
+    assertExitPosition(after: '],');
   }
 
   test_sort_noAssistWithLint() async {

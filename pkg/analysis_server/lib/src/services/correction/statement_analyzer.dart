@@ -81,10 +81,10 @@ class StatementAnalyzer extends SelectionAnalyzer {
       List<SourceRange> commentRanges = getCommentRanges(resolveResult.unit);
       for (SourceRange commentRange in commentRanges) {
         if (commentRange.contains(selectionStart)) {
-          invalidSelection("Selection begins inside a comment.");
+          invalidSelection('Selection begins inside a comment.');
         }
         if (commentRange.containsExclusive(selectionEnd)) {
-          invalidSelection("Selection ends inside a comment.");
+          invalidSelection('Selection ends inside a comment.');
         }
       }
     }
@@ -146,7 +146,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
     for (AstNode selectedNode in selectedNodes) {
       if (switchMembers.contains(selectedNode)) {
         invalidSelection(
-            "Selection must either cover whole switch statement or parts of a single case block.");
+            'Selection must either cover whole switch statement or parts of a single case block.');
         break;
       }
     }
@@ -161,7 +161,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
       if (firstSelectedNode == node.body ||
           firstSelectedNode == node.finallyBlock) {
         invalidSelection(
-            "Selection must either cover whole try statement or parts of try, catch, or finally block.");
+            'Selection must either cover whole try statement or parts of try, catch, or finally block.');
       } else {
         List<CatchClause> catchClauses = node.catchClauses;
         for (CatchClause catchClause in catchClauses) {
@@ -169,7 +169,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
               firstSelectedNode == catchClause.body ||
               firstSelectedNode == catchClause.exceptionParameter) {
             invalidSelection(
-                "Selection must either cover whole try statement or parts of try, catch, or finally block.");
+                'Selection must either cover whole try statement or parts of try, catch, or finally block.');
           }
         }
       }
@@ -201,8 +201,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
           range.startOffsetEndOffset(selection.offset, firstNode.offset);
       if (_hasTokens(rangeBeforeFirstNode)) {
         invalidSelection(
-            "The beginning of the selection contains characters that "
-            "do not belong to a statement.",
+            'The beginning of the selection contains characters that '
+            'do not belong to a statement.',
             newLocation_fromUnit(unit, rangeBeforeFirstNode));
       }
     }
@@ -213,8 +213,8 @@ class StatementAnalyzer extends SelectionAnalyzer {
           range.startOffsetEndOffset(lastNode.end, selection.end);
       if (_hasTokens(rangeAfterLastNode)) {
         invalidSelection(
-            "The end of the selection contains characters that "
-            "do not belong to a statement.",
+            'The end of the selection contains characters that '
+            'do not belong to a statement.',
             newLocation_fromUnit(unit, rangeAfterLastNode));
       }
     }

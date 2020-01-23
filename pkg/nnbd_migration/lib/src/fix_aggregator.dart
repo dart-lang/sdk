@@ -3,27 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// Implementation of [NodeChange] representing the addition of the keyword
 /// `required` to a named parameter.
-///
-/// TODO(paulberry): store additional information necessary to include in the
-/// preview.
 class AddRequiredKeyword extends _NestableChange {
-  const AddRequiredKeyword(
+  /// Information about why the change should be made.
+  final AtomicEditInfo info;
+
+  const AddRequiredKeyword(this.info,
       [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
       : super(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner
-        .surround(innerPlan, prefix: [const AtomicEdit.insert('required ')]);
+    return aggregator.planner.surround(innerPlan,
+        prefix: [AtomicEdit.insert('required ', info: info)]);
   }
 }
 
@@ -31,37 +32,55 @@ class AddRequiredKeyword extends _NestableChange {
 /// because the conditional expression in an if statement, if element, or
 /// conditional expression has been determined to always evaluate to either
 /// `true` or `false`.
-///
-/// TODO(paulberry): store additional information necessary to include in the
-/// preview.
 class EliminateDeadIf extends NodeChange {
   /// The value that the conditional expression has been determined to always
   /// evaluate to
   final bool conditionValue;
 
-  const EliminateDeadIf(this.conditionValue);
+  /// Reasons for the change.
+  final List<FixReasonInfo> reasons;
+
+  const EliminateDeadIf(this.conditionValue, {this.reasons = const []});
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     // TODO(paulberry): do we need to detect whether the condition has side
     // effects?  For now, assuming no.
-    AstNode nodeToKeep;
+    AstNode thenNode;
+    AstNode elseNode;
     if (node is IfStatement) {
-      nodeToKeep = conditionValue ? node.thenStatement : node.elseStatement;
+      thenNode = node.thenStatement;
+      elseNode = node.elseStatement;
     } else if (node is ConditionalExpression) {
-      nodeToKeep = conditionValue ? node.thenExpression : node.elseExpression;
+      thenNode = node.thenExpression;
+      elseNode = node.elseExpression;
     } else if (node is IfElement) {
-      nodeToKeep = conditionValue ? node.thenElement : node.elseElement;
+      thenNode = node.thenElement;
+      elseNode = node.elseElement;
     } else {
       throw StateError(
           "EliminateDeadIf applied to an AST node that's not an if");
     }
+    AstNode nodeToKeep;
+    NullabilityFixDescription description;
+    if (conditionValue) {
+      nodeToKeep = thenNode;
+      if (elseNode == null) {
+        description = NullabilityFixDescription.discardCondition;
+      } else {
+        description = NullabilityFixDescription.discardElse;
+      }
+    } else {
+      nodeToKeep = elseNode;
+      description = NullabilityFixDescription.discardThen;
+    }
+    var info = AtomicEditInfo(description, reasons);
     if (nodeToKeep == null) {
-      return aggregator.planner.removeNode(node);
+      return aggregator.planner.removeNode(node, info: info);
     }
     if (nodeToKeep is Block) {
       if (nodeToKeep.statements.isEmpty) {
-        return aggregator.planner.removeNode(node);
+        return aggregator.planner.removeNode(node, info: info);
       } else if (nodeToKeep.statements.length == 1) {
         var singleStatement = nodeToKeep.statements[0];
         if (singleStatement is VariableDeclarationStatement) {
@@ -69,12 +88,13 @@ class EliminateDeadIf extends NodeChange {
           // the variable declarations
         } else {
           return aggregator.planner.extract(
-              node, aggregator.innerPlanForNode(nodeToKeep.statements.single));
+              node, aggregator.innerPlanForNode(nodeToKeep.statements.single),
+              info: info);
         }
       }
     }
     return aggregator.planner
-        .extract(node, aggregator.innerPlanForNode(nodeToKeep));
+        .extract(node, aggregator.innerPlanForNode(nodeToKeep), info: info);
   }
 
   @override
@@ -147,24 +167,21 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
 /// Implementation of [NodeChange] representing introduction of an explicit
 /// downcast.
-///
-/// TODO(paulberry): store additional information necessary to include in the
-/// preview.
 class IntroduceAs extends _NestableChange {
   /// TODO(paulberry): shouldn't be a String
   final String type;
 
-  const IntroduceAs(this.type,
+  /// Information about why the change should be made.
+  final AtomicEditInfo info;
+
+  const IntroduceAs(this.type, this.info,
       [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
       : super(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner.surround(innerPlan,
-        suffix: [AtomicEdit.insert(' as $type')],
-        outerPrecedence: Precedence.relational,
-        innerPrecedence: Precedence.relational);
+    return aggregator.planner.addBinaryPostfix(innerPlan, TokenType.AS, type);
   }
 }
 
@@ -181,14 +198,11 @@ class MakeNullable extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner.surround(innerPlan, suffix: [
-      AtomicEditWithInfo.insert(
-          '?',
-          AtomicEditInfo(
-              NullabilityFixDescription.makeTypeNullable(
-                  decoratedType.type.toString()),
-              [decoratedType.node]))
-    ]);
+    return aggregator.planner.makeNullable(innerPlan,
+        info: AtomicEditInfo(
+            NullabilityFixDescription.makeTypeNullable(
+                decoratedType.type.toString()),
+            [decoratedType.node]));
   }
 }
 
@@ -223,29 +237,24 @@ abstract class NodeChange<P extends EditPlan> {
 
 /// Implementation of [NodeChange] representing the addition of a null check to
 /// an expression.
-///
-/// TODO(paulberry): store additional information necessary to include in the
-/// preview.
 class NullCheck extends _NestableChange {
-  const NullCheck([NodeChange<NodeProducingEditPlan> inner = const NoChange()])
+  /// Information about why the change should be made.
+  final AtomicEditInfo info;
+
+  const NullCheck(this.info,
+      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
       : super(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     var innerPlan = _inner.apply(node, aggregator);
-    return aggregator.planner.surround(innerPlan,
-        suffix: [const AtomicEdit.insert('!')],
-        outerPrecedence: Precedence.postfix,
-        innerPrecedence: Precedence.postfix,
-        associative: true);
+    return aggregator.planner
+        .addUnaryPostfix(innerPlan, TokenType.BANG, info: info);
   }
 }
 
 /// Implementation of [NodeChange] representing the removal of an unnecessary
 /// cast.
-///
-/// TODO(paulberry): store additional information necessary to include in the
-/// preview.
 class RemoveAs extends _NestableChange {
   const RemoveAs([NodeChange<NodeProducingEditPlan> inner = const NoChange()])
       : super(inner);
@@ -253,17 +262,18 @@ class RemoveAs extends _NestableChange {
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     return aggregator.planner.extract(
-        node, _inner.apply((node as AsExpression).expression, aggregator));
+        node, _inner.apply((node as AsExpression).expression, aggregator),
+        info: AtomicEditInfo(NullabilityFixDescription.removeAs, const []));
   }
 }
 
 /// Implementation of [NodeChange] that changes an `@required` annotation into
 /// a `required` keyword.
-///
-/// TODO(paulberry): store additional information necessary to include in the
-/// preview.
 class RequiredAnnotationToRequiredKeyword extends _NestableChange {
-  const RequiredAnnotationToRequiredKeyword(
+  /// Information about why the change should be made.
+  final AtomicEditInfo info;
+
+  const RequiredAnnotationToRequiredKeyword(this.info,
       [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
       : super(inner);
 
@@ -279,9 +289,11 @@ class RequiredAnnotationToRequiredKeyword extends _NestableChange {
             'required') {
       // The text `required` already exists in the annotation; we can just
       // extract it.
-      return aggregator.planner.extract(node, _inner.apply(name, aggregator));
+      return aggregator.planner
+          .extract(node, _inner.apply(name, aggregator), info: info);
     } else {
-      return aggregator.planner.replace(node, [AtomicEdit.insert('required')]);
+      return aggregator.planner
+          .replace(node, [AtomicEdit.insert('required', info: info)]);
     }
   }
 }

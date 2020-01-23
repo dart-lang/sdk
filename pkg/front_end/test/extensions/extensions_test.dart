@@ -37,29 +37,41 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   const ExtensionsDataComputer();
 
   @override
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     member.accept(new ExtensionsDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(InternalCompilerResult compilerResult, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
-  void computeLibraryData(InternalCompilerResult compilerResult,
-      Library library, Map<Id, ActualData<Features>> actualMap,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
   }
 
   @override
-  void computeExtensionData(InternalCompilerResult compilerResult,
-      Extension extension, Map<Id, ActualData<Features>> actualMap,
+  void computeExtensionData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Extension extension,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new ExtensionsDataExtractor(compilerResult, actualMap)
         .computeForExtension(extension);
@@ -69,8 +81,8 @@ class ExtensionsDataComputer extends DataComputer<Features> {
   bool get supportsErrors => true;
 
   @override
-  Features computeErrorData(
-      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
+  Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     for (FormattedMessage error in errors) {
       if (error.message.contains(',')) {

@@ -289,6 +289,189 @@ class _FallthroughDetector extends ast.StatementVisitor<bool> {
   bool visitFunctionDeclaration(FunctionDeclaration node) => true;
 }
 
+/// Collects sets of captured variables, as well as variables
+/// modified in loops and try blocks.
+class _VariablesInfoCollector extends RecursiveVisitor<Null> {
+  /// Maps declared variables to their declaration index.
+  final Map<VariableDeclaration, int> varIndex = <VariableDeclaration, int>{};
+
+  /// Variable declarations.
+  final List<VariableDeclaration> varDeclarations = <VariableDeclaration>[];
+
+  /// Set of captured variables.
+  Set<VariableDeclaration> captured;
+
+  /// Set of variables which were modified for each loop, switch statement
+  /// and try block statement. Doesn't include captured variables and
+  /// variables declared inside the statement's body.
+  final Map<ast.Statement, Set<int>> modifiedSets = <ast.Statement, Set<int>>{};
+
+  /// Number of variables at function entry.
+  int numVariablesAtFunctionEntry = 0;
+
+  /// Active loops, switch statements and try blocks.
+  List<ast.Statement> activeStatements;
+
+  /// Number of variables at entry of active statements.
+  List<int> numVariablesAtActiveStatements;
+
+  _VariablesInfoCollector(Member member) {
+    member.accept(this);
+  }
+
+  int get numVariables => varDeclarations.length;
+
+  bool isCaptured(VariableDeclaration variable) =>
+      captured != null && captured.contains(variable);
+
+  Set<int> getModifiedVariables(ast.Statement st) {
+    return modifiedSets[st] ?? const <int>{};
+  }
+
+  void _visitFunction(LocalFunction node) {
+    final savedActiveStatements = activeStatements;
+    activeStatements = null;
+    final savedNumVariablesAtActiveStatements = numVariablesAtActiveStatements;
+    numVariablesAtActiveStatements = null;
+    final savedNumVariablesAtFunctionEntry = numVariablesAtFunctionEntry;
+    numVariablesAtFunctionEntry = numVariables;
+
+    node.function.accept(this);
+
+    activeStatements = savedActiveStatements;
+    numVariablesAtActiveStatements = savedNumVariablesAtActiveStatements;
+    numVariablesAtFunctionEntry = savedNumVariablesAtFunctionEntry;
+  }
+
+  bool _isDeclaredBefore(int variableIndex, int entryDeclarationCounter) =>
+      variableIndex < entryDeclarationCounter;
+
+  void _useVariable(VariableDeclaration variable, bool isVarAssignment) {
+    final index = varIndex[variable];
+    if (_isDeclaredBefore(index, numVariablesAtFunctionEntry)) {
+      (captured ??= <VariableDeclaration>{}).add(variable);
+      return;
+    }
+    if (isVarAssignment && activeStatements != null) {
+      for (int i = activeStatements.length - 1; i >= 0; --i) {
+        if (_isDeclaredBefore(index, numVariablesAtActiveStatements[i])) {
+          final st = activeStatements[i];
+          (modifiedSets[st] ??= <int>{}).add(index);
+        } else {
+          break;
+        }
+      }
+    }
+  }
+
+  void _startCollectingModifiedVariables(ast.Statement node) {
+    (activeStatements ??= <ast.Statement>[]).add(node);
+    (numVariablesAtActiveStatements ??= <int>[]).add(numVariables);
+  }
+
+  void _endCollectingModifiedVariables() {
+    activeStatements.removeLast();
+    numVariablesAtActiveStatements.removeLast();
+  }
+
+  @override
+  visitConstructor(Constructor node) {
+    // Need to visit parameters before initializers.
+    visitList(node.function.positionalParameters, this);
+    visitList(node.function.namedParameters, this);
+    visitList(node.initializers, this);
+    node.function.body?.accept(this);
+  }
+
+  @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
+    node.variable.accept(this);
+    _visitFunction(node);
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    _visitFunction(node);
+  }
+
+  @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    final int index = numVariables;
+    varDeclarations.add(node);
+    varIndex[node] = index;
+    node.visitChildren(this);
+  }
+
+  @override
+  visitVariableGet(VariableGet node) {
+    node.visitChildren(this);
+    _useVariable(node.variable, false);
+  }
+
+  @override
+  visitVariableSet(VariableSet node) {
+    node.visitChildren(this);
+    _useVariable(node.variable, true);
+  }
+
+  @override
+  visitTryCatch(TryCatch node) {
+    _startCollectingModifiedVariables(node);
+    node.body?.accept(this);
+    _endCollectingModifiedVariables();
+    visitList(node.catches, this);
+  }
+
+  @override
+  visitTryFinally(TryFinally node) {
+    _startCollectingModifiedVariables(node);
+    node.body?.accept(this);
+    _endCollectingModifiedVariables();
+    node.finalizer?.accept(this);
+  }
+
+  @override
+  visitWhileStatement(WhileStatement node) {
+    _startCollectingModifiedVariables(node);
+    node.visitChildren(this);
+    _endCollectingModifiedVariables();
+  }
+
+  @override
+  visitDoStatement(DoStatement node) {
+    _startCollectingModifiedVariables(node);
+    node.visitChildren(this);
+    _endCollectingModifiedVariables();
+  }
+
+  @override
+  visitForStatement(ForStatement node) {
+    visitList(node.variables, this);
+    _startCollectingModifiedVariables(node);
+    node.condition?.accept(this);
+    node.body?.accept(this);
+    visitList(node.updates, this);
+    _endCollectingModifiedVariables();
+  }
+
+  @override
+  visitForInStatement(ForInStatement node) {
+    node.iterable.accept(this);
+    _startCollectingModifiedVariables(node);
+    node.variable.accept(this);
+    node.body.accept(this);
+    _endCollectingModifiedVariables();
+  }
+
+  @override
+  visitSwitchStatement(SwitchStatement node) {
+    node.expression.accept(this);
+    _startCollectingModifiedVariables(node);
+    visitList(node.cases, this);
+    _endCollectingModifiedVariables();
+  }
+}
+
 enum FieldSummaryType { kFieldGuard, kInitializer }
 
 /// Create a type flow summary for a member from the kernel AST.
@@ -307,8 +490,40 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
 
   Summary _summary;
-  Map<VariableDeclaration, Join> _variables;
+  _VariablesInfoCollector _variablesInfo;
+
+  // Current value of each variable. May contain null if variable is not
+  // declared yet, or EmptyType if current location is unreachable
+  // (e.g. after return or throw).
+  List<TypeExpr> _variableValues;
+
+  // Contains Joins which accumulate all values of certain variables.
+  // Used only when all variable values should be merged regardless of control
+  // flow. Such accumulating joins are used for
+  // 1. captured variables, as closures may potentially see any value;
+  // 2. variables modified inside try blocks (while in the try block), as
+  // catch can potentially see any value assigned to a variable inside try
+  // block.
+  // If _variableCells[i] != null, then all values are accumulated in the
+  // _variableCells[i]. _variableValues[i] does not change and remains equal
+  // to _variableCells[i].
+  List<Join> _variableCells;
+
+  // Counts number of Joins inserted for each variable. Only used to set
+  // readable names for such joins (foo_0, foo_1 etc.)
+  List<int> _variableVersions;
+
+  // State of variables after corresponding LabeledStatement.
+  // Used to collect states from BreakStatements.
+  Map<LabeledStatement, List<TypeExpr>> _variableValuesAfterLabeledStatements;
+
+  // Joins corresponding to variables on entry to switch cases.
+  // Used to propagate state from ContinueSwitchStatement to a target case.
+  Map<SwitchCase, List<Join>> _joinsAtSwitchCases;
+
+  // Join which accumulates all return values.
   Join _returnValue;
+
   Parameter _receiver;
   ConstantAllocationCollector constantAllocationCollector;
   RuntimeTypeTranslatorImpl _translator;
@@ -335,7 +550,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     assertx(!member.isAbstract);
 
     _staticTypeContext = new StaticTypeContext(member, _environment);
-    _variables = <VariableDeclaration, Join>{};
+    _variablesInfo = new _VariablesInfoCollector(member);
+    _variableValues = new List<TypeExpr>(_variablesInfo.numVariables);
+    _variableCells = new List<Join>(_variablesInfo.numVariables);
+    _variableVersions = new List<int>.filled(_variablesInfo.numVariables, 0);
+    _variableValuesAfterLabeledStatements = null;
+    _joinsAtSwitchCases = null;
     _returnValue = null;
     _receiver = null;
 
@@ -422,7 +642,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
             _useTypeCheckForParameter(decl)
                 ? null
                 : useTypesFrom.positionalParameters[i].type,
-            function.positionalParameters[i].initializer);
+            decl.initializer);
       }
       for (int i = 0; i < function.namedParameters.length; ++i) {
         final decl = function.namedParameters[i];
@@ -431,7 +651,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
             _useTypeCheckForParameter(decl)
                 ? null
                 : useTypesFrom.namedParameters[i].type,
-            function.namedParameters[i].initializer);
+            decl.initializer);
       }
 
       int count = firstParamIndex;
@@ -442,8 +662,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         if (_useTypeCheckForParameter(decl)) {
           param = _typeCheck(param, type, decl);
         }
-        final Join v = _declareVariable(decl, type: type);
-        v.values.add(param);
+        _declareVariable(decl, param);
       }
       for (int i = 0; i < function.namedParameters.length; ++i) {
         final decl = function.namedParameters[i];
@@ -452,8 +671,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         if (_useTypeCheckForParameter(decl)) {
           param = _typeCheck(param, type, decl);
         }
-        final Join v = _declareVariable(decl, type: type);
-        v.values.add(param);
+        _declareVariable(decl, param);
       }
       assertx(count == _summary.parameterCount);
 
@@ -635,21 +853,113 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     return param;
   }
 
-  Join _declareVariable(VariableDeclaration decl,
-      {bool addInitType: false, DartType type}) {
-    type ??= decl.type;
-    Join join = new Join(decl.name, type);
-    _summary.add(join);
-    _variables[decl] = join;
+  void _declareVariable(VariableDeclaration decl, TypeExpr initialValue) {
+    final int varIndex = _variablesInfo.varIndex[decl];
+    assertx(varIndex != null);
+    assertx(_variablesInfo.varDeclarations[varIndex] == decl);
+    assertx(_variableValues[varIndex] == null);
+    if (_variablesInfo.isCaptured(decl)) {
+      final join = _makeJoin(varIndex, initialValue);
+      _variableCells[varIndex] = join;
+      _variableValues[varIndex] = join;
+    } else {
+      _variableValues[varIndex] = initialValue;
+    }
+  }
 
-    if (decl.initializer != null) {
-      TypeExpr initType = _visit(decl.initializer);
-      if (addInitType) {
-        join.values.add(initType);
+  void _writeVariable(VariableDeclaration variable, TypeExpr value) {
+    final int varIndex = _variablesInfo.varIndex[variable];
+    final Join join = _variableCells[varIndex];
+    if (join != null) {
+      join.values.add(value);
+    } else {
+      _variableValues[varIndex] = value;
+    }
+  }
+
+  List<TypeExpr> _cloneVariableValues(List<TypeExpr> values) =>
+      new List<TypeExpr>.from(values);
+
+  List<TypeExpr> _makeEmptyVariableValues() {
+    final values = new List<TypeExpr>(_variablesInfo.numVariables);
+    for (int i = 0; i < values.length; ++i) {
+      if (_variableCells[i] != null) {
+        values[i] = _variableValues[i];
+      } else if (_variableValues[i] != null) {
+        values[i] = const EmptyType();
       }
     }
+    return values;
+  }
 
+  Join _makeJoin(int varIndex, TypeExpr value) {
+    final VariableDeclaration variable =
+        _variablesInfo.varDeclarations[varIndex];
+    final name = '${variable.name}_${_variableVersions[varIndex]++}';
+    final Join join = new Join(name, variable.type);
+    _summary.add(join);
+    join.values.add(value);
     return join;
+  }
+
+  void _mergeVariableValues(List<TypeExpr> dst, List<TypeExpr> src) {
+    assertx(dst.length == src.length);
+    for (int i = 0; i < dst.length; ++i) {
+      if (!identical(dst[i], src[i])) {
+        if (dst[i] == null || src[i] == null) {
+          dst[i] = null;
+        } else if (dst[i] is EmptyType) {
+          dst[i] = src[i];
+        } else if (src[i] is! EmptyType) {
+          final Join join = _makeJoin(i, dst[i]);
+          join.values.add(src[i]);
+          dst[i] = join;
+        }
+      }
+    }
+  }
+
+  List<Join> _insertJoinsForModifiedVariables(TreeNode node, bool isTry) {
+    final List<Join> joins = new List<Join>(_variablesInfo.numVariables);
+    for (var i in _variablesInfo.getModifiedVariables(node)) {
+      if (_variableCells[i] != null) {
+        assertx(_variableCells[i] == _variableValues[i]);
+      } else {
+        final join = _makeJoin(i, _variableValues[i]);
+        joins[i] = join;
+        _variableValues[i] = join;
+        if (isTry) {
+          // Inside try blocks all values of modified variables are merged,
+          // as catch can potentially see any value (in case exception
+          // is thrown after each assignment).
+          _variableCells[i] = join;
+        }
+      }
+    }
+    return joins;
+  }
+
+  /// Stops accumulating values in [joins] by removing them from
+  /// _variableCells.
+  void _restoreVariableCellsAfterTry(List<Join> joins) {
+    for (int i = 0; i < joins.length; ++i) {
+      if (joins[i] != null) {
+        assertx(_variableCells[i] == joins[i]);
+        _variableCells[i] = null;
+      }
+    }
+  }
+
+  void _mergeVariableValuesToJoins(List<TypeExpr> values, List<Join> joins) {
+    for (int i = 0; i < joins.length; ++i) {
+      final join = joins[i];
+      final value = values[i];
+      if (join != null &&
+          !identical(join, value) &&
+          !identical(join.values.first, value)) {
+        join.values.add(value);
+      }
+    }
   }
 
   TypeCheck _typeCheck(TypeExpr value, DartType type, TreeNode node) {
@@ -662,8 +972,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   // TODO(alexmarkov): Avoid declaring variables with static types.
   void _declareVariableWithStaticType(VariableDeclaration decl) {
-    Join v = _declareVariable(decl);
-    v.values.add(_typesBuilder.fromStaticType(v.staticType, true));
+    if (decl.initializer != null) {
+      _visit(decl.initializer);
+    }
+    _declareVariable(decl, _typesBuilder.fromStaticType(decl.type, true));
   }
 
   Call _makeCall(TreeNode node, Selector selector, Args<TypeExpr> args) {
@@ -798,11 +1110,10 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   void _handleNestedFunctionNode(FunctionNode node) {
-    final oldReturn = _returnValue;
-    final oldVariables = _variables;
+    final savedReturn = _returnValue;
     _returnValue = null;
-    _variables = <VariableDeclaration, Join>{};
-    _variables.addAll(oldVariables);
+    final savedVariableValues = _variableValues;
+    _variableValues = _makeEmptyVariableValues();
 
     // Approximate parameters of nested functions with static types.
     // TODO(sjindel/tfa): Use TypeCheck for closure parameters.
@@ -811,8 +1122,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
     _visit(node.body);
 
-    _returnValue = oldReturn;
-    _variables = oldVariables;
+    _variableValues = savedVariableValues;
+    _returnValue = savedReturn;
   }
 
   @override
@@ -845,11 +1156,15 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   @override
   TypeExpr visitConditionalExpression(ConditionalExpression node) {
     _addUse(_visit(node.condition));
-
+    final stateBefore = _cloneVariableValues(_variableValues);
     Join v = new Join(null, _staticDartType(node));
     _summary.add(v);
     v.values.add(_visit(node.then));
+    final stateAfter = _variableValues;
+    _variableValues = stateBefore;
     v.values.add(_visit(node.otherwise));
+    _mergeVariableValues(stateAfter, _variableValues);
+    _variableValues = stateAfter;
     return _makeNarrow(v, _staticType(node));
   }
 
@@ -939,7 +1254,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitLet(Let node) {
-    _declareVariable(node.variable, addInitType: true);
+    _declareVariable(node.variable, _visit(node.variable.initializer));
     return _visit(node.body);
   }
 
@@ -965,7 +1280,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   @override
   TypeExpr visitLogicalExpression(LogicalExpression node) {
     _addUse(_visit(node.left));
+    final stateAfterShortCircuit = _cloneVariableValues(_variableValues);
     _addUse(_visit(node.right));
+    _mergeVariableValues(_variableValues, stateAfterShortCircuit);
     return _boolType;
   }
 
@@ -1172,6 +1489,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitRethrow(Rethrow node) {
+    _variableValues = _makeEmptyVariableValues();
     return const EmptyType();
   }
 
@@ -1228,6 +1546,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   @override
   TypeExpr visitThrow(Throw node) {
     _visit(node.expression);
+    _variableValues = _makeEmptyVariableValues();
     return const EmptyType();
   }
 
@@ -1238,9 +1557,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitVariableGet(VariableGet node) {
-    final v = _variables[node.variable];
+    final v = _variableValues[_variablesInfo.varIndex[node.variable]];
     if (v == null) {
-      throw 'Unable to find variable ${node.variable}';
+      throw 'Unable to find variable ${node.variable} at ${node.location}';
     }
 
     if ((node.promotedType != null) &&
@@ -1254,11 +1573,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitVariableSet(VariableSet node) {
-    final Join v = _variables[node.variable];
-    assertx(v != null, details: node);
-
     final TypeExpr value = _visit(node.value);
-    v.values.add(value);
+    _writeVariable(node.variable, value);
     return value;
   }
 
@@ -1298,15 +1614,33 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   @override
-  TypeExpr visitBreakStatement(BreakStatement node) => null;
+  TypeExpr visitBreakStatement(BreakStatement node) {
+    _variableValuesAfterLabeledStatements ??=
+        <LabeledStatement, List<TypeExpr>>{};
+    final state = _variableValuesAfterLabeledStatements[node.target];
+    if (state != null) {
+      _mergeVariableValues(state, _variableValues);
+    } else {
+      _variableValuesAfterLabeledStatements[node.target] = _variableValues;
+    }
+    _variableValues = _makeEmptyVariableValues();
+    return null;
+  }
 
   @override
-  TypeExpr visitContinueSwitchStatement(ContinueSwitchStatement node) => null;
+  TypeExpr visitContinueSwitchStatement(ContinueSwitchStatement node) {
+    _mergeVariableValuesToJoins(
+        _variableValues, _joinsAtSwitchCases[node.target]);
+    _variableValues = _makeEmptyVariableValues();
+    return null;
+  }
 
   @override
   TypeExpr visitDoStatement(DoStatement node) {
+    final List<Join> joins = _insertJoinsForModifiedVariables(node, false);
     _visit(node.body);
     _visit(node.condition);
+    _mergeVariableValuesToJoins(_variableValues, joins);
     return null;
   }
 
@@ -1324,27 +1658,34 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     _visit(node.iterable);
     // TODO(alexmarkov): try to infer more precise type from 'iterable'
     _declareVariableWithStaticType(node.variable);
+
+    final List<Join> joins = _insertJoinsForModifiedVariables(node, false);
+    final stateAfterLoop = _cloneVariableValues(_variableValues);
     _visit(node.body);
+    _mergeVariableValuesToJoins(_variableValues, joins);
+    _variableValues = stateAfterLoop;
     return null;
   }
 
   @override
   TypeExpr visitForStatement(ForStatement node) {
     node.variables.forEach(visitVariableDeclaration);
+    final List<Join> joins = _insertJoinsForModifiedVariables(node, false);
     if (node.condition != null) {
       _addUse(_visit(node.condition));
     }
-    node.updates.forEach(_visit);
+    final stateAfterLoop = _cloneVariableValues(_variableValues);
     _visit(node.body);
+    node.updates.forEach(_visit);
+    _mergeVariableValuesToJoins(_variableValues, joins);
+    _variableValues = stateAfterLoop;
     return null;
   }
 
   @override
   TypeExpr visitFunctionDeclaration(FunctionDeclaration node) {
-    Join v = _declareVariable(node.variable);
     // TODO(alexmarkov): support function types.
-    // v.values.add(_concreteType(node.function.functionType));
-    v.values.add(_typesBuilder.fromStaticType(v.staticType, true));
+    _declareVariableWithStaticType(node.variable);
     _handleNestedFunctionNode(node.function);
     return null;
   }
@@ -1352,16 +1693,26 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   @override
   TypeExpr visitIfStatement(IfStatement node) {
     _addUse(_visit(node.condition));
+
+    final stateBefore = _cloneVariableValues(_variableValues);
     _visit(node.then);
+    final stateAfter = _variableValues;
+    _variableValues = stateBefore;
     if (node.otherwise != null) {
       _visit(node.otherwise);
     }
+    _mergeVariableValues(stateAfter, _variableValues);
+    _variableValues = stateAfter;
     return null;
   }
 
   @override
   TypeExpr visitLabeledStatement(LabeledStatement node) {
     _visit(node.body);
+    final state = _variableValuesAfterLabeledStatements?.remove(node);
+    if (state != null) {
+      _mergeVariableValues(_variableValues, state);
+    }
     return null;
   }
 
@@ -1372,23 +1723,45 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     if (_returnValue != null) {
       _returnValue.values.add(ret);
     }
+    _variableValues = _makeEmptyVariableValues();
     return null;
   }
 
   @override
   TypeExpr visitSwitchStatement(SwitchStatement node) {
     _visit(node.expression);
+    // Insert joins at each case in case there are 'continue' statements.
+    final stateOnEntry = _variableValues;
+    final variableValuesAtCaseEntry = <SwitchCase, List<TypeExpr>>{};
+    _joinsAtSwitchCases ??= <SwitchCase, List<Join>>{};
     for (var switchCase in node.cases) {
+      _variableValues = _cloneVariableValues(stateOnEntry);
+      _joinsAtSwitchCases[switchCase] =
+          _insertJoinsForModifiedVariables(node, false);
+      variableValuesAtCaseEntry[switchCase] = _variableValues;
+    }
+    bool hasDefault = false;
+    for (var switchCase in node.cases) {
+      _variableValues = variableValuesAtCaseEntry[switchCase];
       switchCase.expressions.forEach(_visit);
       _visit(switchCase.body);
+      hasDefault = hasDefault || switchCase.isDefault;
+    }
+    if (!hasDefault) {
+      _mergeVariableValues(_variableValues, stateOnEntry);
     }
     return null;
   }
 
   @override
   TypeExpr visitTryCatch(TryCatch node) {
+    final joins = _insertJoinsForModifiedVariables(node, true);
+    final stateAfterTry = _cloneVariableValues(_variableValues);
     _visit(node.body);
+    _restoreVariableCellsAfterTry(joins);
+    List<TypeExpr> stateAfterCatch;
     for (var catchClause in node.catches) {
+      _variableValues = _cloneVariableValues(stateAfterTry);
       if (catchClause.exception != null) {
         _declareVariableWithStaticType(catchClause.exception);
       }
@@ -1396,30 +1769,44 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         _declareVariableWithStaticType(catchClause.stackTrace);
       }
       _visit(catchClause.body);
+      if (stateAfterCatch == null) {
+        stateAfterCatch = _variableValues;
+      } else {
+        _mergeVariableValues(stateAfterCatch, _variableValues);
+      }
     }
+    _variableValues = stateAfterTry;
+    _mergeVariableValues(_variableValues, stateAfterCatch);
     return null;
   }
 
   @override
   TypeExpr visitTryFinally(TryFinally node) {
+    final joins = _insertJoinsForModifiedVariables(node, true);
+    final stateAfterTry = _cloneVariableValues(_variableValues);
     _visit(node.body);
+    _restoreVariableCellsAfterTry(joins);
+    _variableValues = stateAfterTry;
     _visit(node.finalizer);
     return null;
   }
 
   @override
   TypeExpr visitVariableDeclaration(VariableDeclaration node) {
-    final v = _declareVariable(node, addInitType: true);
-    if (node.initializer == null) {
-      v.values.add(_nullType);
-    }
+    final TypeExpr initialValue =
+        node.initializer == null ? _nullType : _visit(node.initializer);
+    _declareVariable(node, initialValue);
     return null;
   }
 
   @override
   TypeExpr visitWhileStatement(WhileStatement node) {
+    final List<Join> joins = _insertJoinsForModifiedVariables(node, false);
     _addUse(_visit(node.condition));
+    final stateAfterLoop = _cloneVariableValues(_variableValues);
     _visit(node.body);
+    _mergeVariableValuesToJoins(_variableValues, joins);
+    _variableValues = stateAfterLoop;
     return null;
   }
 

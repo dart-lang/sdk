@@ -217,7 +217,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    _checkForUnnecessaryCast(node);
+    if (isUnnecessaryCast(node, _typeSystem)) {
+      _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
+    }
     super.visitAsExpression(node);
   }
 
@@ -1160,54 +1162,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Check for the passed as expression for the [HintCode.UNNECESSARY_CAST]
-  /// hint code.
-  ///
-  /// @param node the as expression to check
-  /// @return `true` if and only if a hint code is generated on the passed node
-  /// See [HintCode.UNNECESSARY_CAST].
-  bool _checkForUnnecessaryCast(AsExpression node) {
-    // TODO(jwren) After dartbug.com/13732, revisit this, we should be able to
-    // remove the (x is! TypeParameterType) checks.
-    AstNode parent = node.parent;
-    if (parent is ConditionalExpression &&
-        (node == parent.thenExpression || node == parent.elseExpression)) {
-      Expression thenExpression = parent.thenExpression;
-      DartType thenType;
-      if (thenExpression is AsExpression) {
-        thenType = thenExpression.expression.staticType;
-      } else {
-        thenType = thenExpression.staticType;
-      }
-      Expression elseExpression = parent.elseExpression;
-      DartType elseType;
-      if (elseExpression is AsExpression) {
-        elseType = elseExpression.expression.staticType;
-      } else {
-        elseType = elseExpression.staticType;
-      }
-      if (thenType != null &&
-          elseType != null &&
-          !thenType.isDynamic &&
-          !elseType.isDynamic &&
-          !_typeSystem.isSubtypeOf(thenType, elseType) &&
-          !_typeSystem.isSubtypeOf(elseType, thenType)) {
-        return false;
-      }
-    }
-    DartType lhsType = node.expression.staticType;
-    DartType rhsType = node.type.type;
-    if (lhsType != null &&
-        rhsType != null &&
-        !lhsType.isDynamic &&
-        !rhsType.isDynamic &&
-        _typeSystem.isSubtypeOf(lhsType, rhsType)) {
-      _errorReporter.reportErrorForNode(HintCode.UNNECESSARY_CAST, node);
-      return true;
-    }
-    return false;
-  }
-
   /// Generate a hint for `noSuchMethod` methods that do nothing except of
   /// calling another `noSuchMethod` that is not defined by `Object`.
   ///
@@ -1344,6 +1298,52 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       return false;
     }
     return _workspacePackage.contains(library.source);
+  }
+
+  /// Checks for the passed as expression for the [HintCode.UNNECESSARY_CAST]
+  /// hint code.
+  ///
+  /// Returns `true` if and only if an unnecessary cast hint should be generated
+  /// on [node].  See [HintCode.UNNECESSARY_CAST].
+  static bool isUnnecessaryCast(AsExpression node, TypeSystem typeSystem) {
+    // TODO(jwren) After dartbug.com/13732, revisit this, we should be able to
+    // remove the (x is! TypeParameterType) checks.
+    AstNode parent = node.parent;
+    if (parent is ConditionalExpression &&
+        (node == parent.thenExpression || node == parent.elseExpression)) {
+      Expression thenExpression = parent.thenExpression;
+      DartType thenType;
+      if (thenExpression is AsExpression) {
+        thenType = thenExpression.expression.staticType;
+      } else {
+        thenType = thenExpression.staticType;
+      }
+      Expression elseExpression = parent.elseExpression;
+      DartType elseType;
+      if (elseExpression is AsExpression) {
+        elseType = elseExpression.expression.staticType;
+      } else {
+        elseType = elseExpression.staticType;
+      }
+      if (thenType != null &&
+          elseType != null &&
+          !thenType.isDynamic &&
+          !elseType.isDynamic &&
+          !typeSystem.isSubtypeOf(thenType, elseType) &&
+          !typeSystem.isSubtypeOf(elseType, thenType)) {
+        return false;
+      }
+    }
+    DartType lhsType = node.expression.staticType;
+    DartType rhsType = node.type.type;
+    if (lhsType != null &&
+        rhsType != null &&
+        !lhsType.isDynamic &&
+        !rhsType.isDynamic &&
+        typeSystem.isSubtypeOf(lhsType, rhsType)) {
+      return true;
+    }
+    return false;
   }
 
   /// Return the message in the deprecated annotation on the given [element], or

@@ -29,7 +29,7 @@ int bar;
     EditSortMembersResult result = await sendEditSortMembers(pathname);
     SourceFileEdit edit = result.edit;
     expect(edit.edits, hasLength(1));
-    expect(edit.edits.first.replacement, "bar;\nint foo");
+    expect(edit.edits.first.replacement, 'bar;\nint foo');
   }
 
   test_sort_no_changes() async {

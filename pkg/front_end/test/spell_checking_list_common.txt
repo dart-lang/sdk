@@ -350,6 +350,7 @@ calculates
 calculation
 calculator
 call
+callable
 callback
 called
 caller
@@ -1473,6 +1474,7 @@ instructions
 instrumentation
 instrumented
 int
+intact
 integer
 integers
 integrated
@@ -2931,6 +2933,7 @@ transformation
 transformations
 transformed
 transformer
+transforms
 transient
 transition
 transitional
@@ -3071,6 +3074,7 @@ updates
 updating
 upon
 upper
+uppercase
 upwards
 uri
 uris

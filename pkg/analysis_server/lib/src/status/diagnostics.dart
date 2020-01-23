@@ -288,7 +288,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
   @override
   Future generateContent(Map<String, String> params) async {
     void writeRow(List<String> data, {List<String> classes}) {
-      buf.write("<tr>");
+      buf.write('<tr>');
       for (int i = 0; i < data.length; i++) {
         String c = classes == null ? null : classes[i];
         if (c != null) {
@@ -297,7 +297,7 @@ class CommunicationsPage extends DiagnosticPageWithNav {
           buf.write('<td>${escape(data[i])}</td>');
         }
       }
-      buf.writeln("</tr>");
+      buf.writeln('</tr>');
     }
 
     buf.writeln('<div class="columns">');
@@ -346,16 +346,16 @@ class CommunicationsPage extends DiagnosticPageWithNav {
 
     buf.write('<table>');
     writeRow([printInteger(requestCount), 'requests'],
-        classes: ["right", null]);
+        classes: ['right', null]);
     writeRow([printInteger(latencyCount), 'requests with latency information'],
-        classes: ["right", null]);
+        classes: ['right', null]);
     if (latencyCount > 0) {
       writeRow([printMilliseconds(averageLatency), 'average latency'],
-          classes: ["right", null]);
+          classes: ['right', null]);
       writeRow([printMilliseconds(maximumLatency), 'maximum latency'],
-          classes: ["right", null]);
+          classes: ['right', null]);
       writeRow([printPercentage(slowRequestPercent), '> 150 ms latency'],
-          classes: ["right", null]);
+          classes: ['right', null]);
     }
     buf.write('</table>');
   }
@@ -512,11 +512,14 @@ class ContextsPage extends DiagnosticPageWithNav {
     void writeFile(String file) {
       String astPath = '/ast?file=${Uri.encodeQueryComponent(file)}';
       String elementPath = '/element?file=${Uri.encodeQueryComponent(file)}';
+      String contentsPath = '/contents?file=${Uri.encodeQueryComponent(file)}';
+      bool hasOverlay = server.resourceProvider.hasOverlay(file);
 
       buf.write(file);
       buf.writeln(' <a href="$astPath">ast</a>');
-      buf.write(' ');
-      buf.writeln('<a href="$elementPath">element</a>');
+      buf.writeln(' <a href="$elementPath">element</a>');
+      buf.writeln(
+          ' <a href="$contentsPath">contents${hasOverlay ? '*' : ''}</a>');
     }
 
     h4('Priority files ${lenCounter(priorityFiles)}', raw: true);
@@ -588,6 +591,62 @@ class ContextsPage extends DiagnosticPageWithNav {
       buf.write(',');
     }
     buf.write('<br>}');
+  }
+}
+
+class ContentsPage extends DiagnosticPageWithNav {
+  String _description;
+
+  ContentsPage(DiagnosticsSite site)
+      : super(site, 'contents', 'Contents',
+            description: 'The Contents/Overlay of a file.');
+
+  @override
+  String get description => _description ?? super.description;
+
+  @override
+  bool get showInNav => false;
+
+  @override
+  Future<void> generateContent(Map<String, String> params) async {
+    String filePath = params['file'];
+    if (filePath == null) {
+      p('No file path provided.');
+      return;
+    }
+    AnalysisDriver driver = server.getAnalysisDriver(filePath);
+    if (driver == null) {
+      p('The file <code>${escape(filePath)}</code> is not being analyzed.',
+          raw: true);
+      return;
+    }
+    File file = await server.resourceProvider.getFile(filePath);
+    if (!file.exists) {
+      p('The file <code>${escape(filePath)}</code> does not exist.', raw: true);
+      return;
+    }
+
+    if (server.resourceProvider.hasOverlay(filePath)) {
+      p('Showing overlay for file.');
+    } else {
+      p('Showing file system contents for file.');
+    }
+
+    pre(() {
+      buf.write('<code>');
+      buf.write(escape(file.readAsStringSync()));
+      buf.writeln('</code>');
+    });
+  }
+
+  @override
+  Future<void> generatePage(Map<String, String> params) async {
+    try {
+      _description = params['file'];
+      await super.generatePage(params);
+    } finally {
+      _description = null;
+    }
   }
 }
 
@@ -764,6 +823,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
     pages.add(FeedbackPage(this));
     pages.add(AstPage(this));
     pages.add(ElementModelPage(this));
+    pages.add(ContentsPage(this));
   }
 
   @override
@@ -878,7 +938,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
             raw: true);
         pre(() {
           buf.writeln('<code>${escape(ex.stackTrace.toString())}</code>');
-        }, classes: "scroll-table");
+        }, classes: 'scroll-table');
       }
     }
   }

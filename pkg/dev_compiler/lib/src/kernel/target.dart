@@ -36,11 +36,9 @@ class DevCompilerTarget extends Target {
           'dart:async',
           'dart:collection',
           'dart:convert',
-          if (!flags.enableNullSafety) ...[
-            'dart:developer',
-            'dart:io',
-            'dart:isolate'
-          ],
+          'dart:developer',
+          if (!flags.enableNullSafety) 'dart:io',
+          'dart:isolate',
           'dart:js',
           'dart:js_util',
           'dart:math',

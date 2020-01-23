@@ -6,11 +6,11 @@ import 'package:_fe_analyzer_shared/src/parser/async_modifier.dart';
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     as fasta;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' as fasta;
+import 'package:_fe_analyzer_shared/src/scanner/error_token.dart'
+    show ErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show LanguageVersionToken, ScannerConfiguration, ScannerResult, scanString;
-import 'package:_fe_analyzer_shared/src/scanner/error_token.dart'
-    show ErrorToken;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' as analyzer;
@@ -2442,6 +2442,73 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     expect(functionParameter.question, isNotNull);
   }
 
+  void test_functionTyped_named_nullable() {
+    ParameterKind kind = ParameterKind.NAMED;
+    var defaultParameter =
+        parseNNBDFormalParameter('a()? : null', kind) as DefaultFormalParameter;
+    var functionParameter =
+        defaultParameter.parameter as FunctionTypedFormalParameter;
+    assertNoErrors();
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.isNamed, isTrue);
+    expect(functionParameter.question, isNotNull);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_functionTyped_named_nullable_disabled() {
+    ParameterKind kind = ParameterKind.NAMED;
+    var defaultParameter = parseFormalParameter('a()? : null', kind,
+            errorCodes: [ParserErrorCode.EXPERIMENT_NOT_ENABLED])
+        as DefaultFormalParameter;
+    var functionParameter =
+        defaultParameter.parameter as FunctionTypedFormalParameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.isNamed, isTrue);
+    expect(functionParameter.question, isNotNull);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isNamed, isTrue);
+  }
+
+  void test_functionTyped_positional_nullable_disabled() {
+    ParameterKind kind = ParameterKind.POSITIONAL;
+    var defaultParameter = parseFormalParameter('a()? = null', kind,
+            errorCodes: [ParserErrorCode.EXPERIMENT_NOT_ENABLED])
+        as DefaultFormalParameter;
+    var functionParameter =
+        defaultParameter.parameter as FunctionTypedFormalParameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.isOptionalPositional, isTrue);
+    expect(functionParameter.question, isNotNull);
+    expect(defaultParameter.separator, isNotNull);
+    expect(defaultParameter.defaultValue, isNotNull);
+    expect(defaultParameter.isOptionalPositional, isTrue);
+  }
+
+  void test_functionTyped_required_nullable_disabled() {
+    ParameterKind kind = ParameterKind.REQUIRED;
+    var functionParameter = parseFormalParameter('a()?', kind,
+            errorCodes: [ParserErrorCode.EXPERIMENT_NOT_ENABLED])
+        as FunctionTypedFormalParameter;
+    expect(functionParameter.returnType, isNull);
+    expect(functionParameter.identifier, isNotNull);
+    expect(functionParameter.typeParameters, isNull);
+    expect(functionParameter.parameters, isNotNull);
+    expect(functionParameter.isRequiredPositional, isTrue);
+    expect(functionParameter.question, isNotNull);
+  }
+
   void test_parseFormalParameter_covariant_required_named() {
     ParameterKind kind = ParameterKind.NAMED;
     FormalParameter parameter = parseNNBDFormalParameter(
@@ -2580,24 +2647,6 @@ class FormalParameterParserTest_Fasta extends FastaParserTestCase
     expect(simpleParameter.keyword, isNotNull);
     expect(simpleParameter.type, isNull);
     expect(simpleParameter.isNamed, isTrue);
-    expect(defaultParameter.separator, isNotNull);
-    expect(defaultParameter.defaultValue, isNotNull);
-    expect(defaultParameter.isNamed, isTrue);
-  }
-
-  void test_parseNormalFormalParameter_function_named_nullable() {
-    ParameterKind kind = ParameterKind.NAMED;
-    var defaultParameter =
-        parseFormalParameter('a()? : null', kind) as DefaultFormalParameter;
-    var functionParameter =
-        defaultParameter.parameter as FunctionTypedFormalParameter;
-    assertNoErrors();
-    expect(functionParameter.returnType, isNull);
-    expect(functionParameter.identifier, isNotNull);
-    expect(functionParameter.typeParameters, isNull);
-    expect(functionParameter.parameters, isNotNull);
-    expect(functionParameter.isNamed, isTrue);
-    expect(functionParameter.question, isNotNull);
     expect(defaultParameter.separator, isNotNull);
     expect(defaultParameter.defaultValue, isNotNull);
     expect(defaultParameter.isNamed, isTrue);
@@ -2746,6 +2795,12 @@ main() {
 
   void test_foreach_nullable() {
     parseCompilationUnit('main() { for(int? x in [7, null]) { } }');
+  }
+
+  void test_functionTypedFormalParameter_nullable_disabled() {
+    parseCompilationUnit('void f(void p()?) {}',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
+        featureSet: preNonNullable);
   }
 
   test_fuzz_38113() async {
@@ -3220,6 +3275,12 @@ main() {
     expect(outerExpression.operator.type, TokenType.BANG);
     var innerExpression = outerExpression.operand as PostfixExpression;
     expect(innerExpression.operator.type, TokenType.PLUS_PLUS);
+  }
+
+  void test_typeName_nullable_disabled() {
+    parseCompilationUnit('int? x;',
+        errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 3, 1)],
+        featureSet: preNonNullable);
   }
 }
 
@@ -4358,6 +4419,14 @@ class VarianceParserTest_Fasta extends FastaParserTestCase {
         featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
   }
 
+  void test_class_disabled_single() {
+    parseCompilationUnit('class A<out T> { }',
+        errors: [
+          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 3),
+        ],
+        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
+  }
+
   void test_class_enabled_multiple() {
     var unit = parseCompilationUnit('class A<in T, inout U, out V, W> { }');
     expect(unit.declarations, hasLength(1));
@@ -4388,14 +4457,6 @@ class VarianceParserTest_Fasta extends FastaParserTestCase {
         "out");
     expect((typeParameterImplList[3] as TypeParameterImpl).varianceKeyword,
         isNull);
-  }
-
-  void test_class_disabled_single() {
-    parseCompilationUnit('class A<out T> { }',
-        errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 3),
-        ],
-        featureSet: FeatureSet.forTesting(sdkVersion: '2.5.0'));
   }
 
   void test_class_enabled_multipleVariances() {

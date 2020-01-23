@@ -9,7 +9,6 @@
 
 import "dart:isolate";
 import "package:unittest/unittest.dart";
-@MirrorsUsed(symbols: "main", targets: "main", override: "*")
 import "dart:mirrors";
 
 /**

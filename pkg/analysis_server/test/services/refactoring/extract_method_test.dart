@@ -197,7 +197,7 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Can only extract a single expression or a set of statements.");
+        'Can only extract a single expression or a set of statements.');
   }
 
   test_bad_forLoop_conditionAndUpdaters() async {
@@ -282,7 +282,7 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Not all selected statements are enclosed by the same parent statement.");
+        'Not all selected statements are enclosed by the same parent statement.');
   }
 
   test_bad_methodName_reference() async {
@@ -292,7 +292,7 @@ main() {
 }
 ''');
     _createRefactoringWithSuffix('main', '();');
-    return _assertConditionsFatal("Cannot extract a single method name.");
+    return _assertConditionsFatal('Cannot extract a single method name.');
   }
 
   test_bad_namePartOfDeclaration_function() async {
@@ -302,7 +302,7 @@ void main() {
 ''');
     _createRefactoringForString('main');
     return _assertConditionsFatal(
-        "Cannot extract the name part of a declaration.");
+        'Cannot extract the name part of a declaration.');
   }
 
   test_bad_namePartOfDeclaration_variable() async {
@@ -313,7 +313,7 @@ main() {
 ''');
     _createRefactoringForString('vvv');
     return _assertConditionsFatal(
-        "Cannot extract the name part of a declaration.");
+        'Cannot extract the name part of a declaration.');
   }
 
   test_bad_namePartOfQualified() async {
@@ -328,7 +328,7 @@ main() {
 ''');
     _createRefactoringWithSuffix('fff', ' = 1');
     return _assertConditionsFatal(
-        "Can not extract name part of a property access.");
+        'Can not extract name part of a property access.');
   }
 
   test_bad_newMethodName_notIdentifier() async {
@@ -468,8 +468,8 @@ main() {
 ''');
     _createRefactoringForStartEndString('print(0', 'rint(1)');
     return _assertConditionsFatal(
-        "The selection does not cover a set of statements or an expression. "
-        "Extend selection to a valid range.");
+        'The selection does not cover a set of statements or an expression. '
+        'Extend selection to a valid range.');
   }
 
   test_bad_statements_exit_notAllExecutionFlows() async {
@@ -499,8 +499,8 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Ambiguous return value: Selected block contains assignment(s) to "
-        "local variables and return statement.");
+        'Ambiguous return value: Selected block contains assignment(s) to '
+        'local variables and return statement.');
   }
 
   test_bad_switchCase() async {
@@ -515,8 +515,8 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Selection must either cover whole switch statement "
-        "or parts of a single case block.");
+        'Selection must either cover whole switch statement '
+        'or parts of a single case block.');
   }
 
   test_bad_tokensBetweenLastNodeAndSelectionEnd() async {
@@ -530,7 +530,7 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "The end of the selection contains characters that do not belong to a statement.");
+        'The end of the selection contains characters that do not belong to a statement.');
   }
 
   test_bad_tokensBetweenSelectionStartAndFirstNode() async {
@@ -544,7 +544,7 @@ main() {
 ''');
     _createRefactoringForStartEndString('); // marker', '// end');
     return _assertConditionsFatal(
-        "The beginning of the selection contains characters that do not belong to a statement.");
+        'The beginning of the selection contains characters that do not belong to a statement.');
   }
 
   test_bad_try_catchBlock_block() async {
@@ -560,8 +560,8 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Selection must either cover whole try statement or "
-        "parts of try, catch, or finally block.");
+        'Selection must either cover whole try statement or '
+        'parts of try, catch, or finally block.');
   }
 
   test_bad_try_catchBlock_complete() async {
@@ -577,8 +577,8 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Selection must either cover whole try statement or "
-        "parts of try, catch, or finally block.");
+        'Selection must either cover whole try statement or '
+        'parts of try, catch, or finally block.');
   }
 
   test_bad_try_catchBlock_exception() async {
@@ -611,8 +611,8 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Selection must either cover whole try statement or "
-        "parts of try, catch, or finally block.");
+        'Selection must either cover whole try statement or '
+        'parts of try, catch, or finally block.');
   }
 
   test_bad_try_tryBlock() async {
@@ -628,8 +628,8 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Selection must either cover whole try statement or "
-        "parts of try, catch, or finally block.");
+        'Selection must either cover whole try statement or '
+        'parts of try, catch, or finally block.');
   }
 
   test_bad_typeReference() async {
@@ -638,8 +638,8 @@ main() {
   int a = 0;
 }
 ''');
-    _createRefactoringForString("int");
-    return _assertConditionsFatal("Cannot extract a single type reference.");
+    _createRefactoringForString('int');
+    return _assertConditionsFatal('Cannot extract a single type reference.');
   }
 
   test_bad_variableDeclarationFragment() async {
@@ -654,7 +654,7 @@ main() {
 ''');
     _createRefactoringForStartEndComments();
     return _assertConditionsFatal(
-        "Cannot extract a variable declaration fragment. Select whole declaration statement.");
+        'Cannot extract a variable declaration fragment. Select whole declaration statement.');
   }
 
   test_bad_while_conditionAndBody() async {
@@ -796,23 +796,23 @@ main() {
     refactoring.name = null;
     assertRefactoringStatus(
         refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Method name must not be null.");
+        expectedMessage: 'Method name must not be null.');
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
         refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Method name must not be empty.");
+        expectedMessage: 'Method name must not be empty.');
     // incorrect casing
     refactoring.name = 'Aaa';
     assertRefactoringStatus(
         refactoring.checkName(), RefactoringProblemSeverity.WARNING,
-        expectedMessage: "Method name should start with a lowercase letter.");
+        expectedMessage: 'Method name should start with a lowercase letter.');
     // starts with digit
     refactoring.name = '0aa';
     assertRefactoringStatus(
         refactoring.checkName(), RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            "Method name must begin with a lowercase letter or underscore.");
+            'Method name must begin with a lowercase letter or underscore.');
     // invalid name (quote)
     refactoring.name = '"';
     assertRefactoringStatus(

@@ -38,12 +38,12 @@ class RenameExtensionMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   String get refactoringName {
     if (element is TypeParameterElement) {
-      return "Rename Type Parameter";
+      return 'Rename Type Parameter';
     }
     if (element is FieldElement) {
-      return "Rename Field";
+      return 'Rename Field';
     }
-    return "Rename Method";
+    return 'Rename Method';
   }
 
   @override

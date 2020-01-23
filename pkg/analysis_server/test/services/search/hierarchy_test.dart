@@ -63,8 +63,8 @@ class B extends A {
   B() {}
 }
 ''');
-    ClassElement classA = findElement("A");
-    ClassElement classB = findElement("B");
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
     ClassMemberElement memberA = classA.constructors[0];
     ClassMemberElement memberB = classB.constructors[0];
     var futureA = getHierarchyMembers(searchEngine, memberA).then((members) {
@@ -91,10 +91,10 @@ class D {
   int foo;
 }
 ''');
-    ClassElement classA = findElement("A");
-    ClassElement classB = findElement("B");
-    ClassElement classC = findElement("C");
-    ClassElement classD = findElement("D");
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
+    ClassElement classC = findElement('C');
+    ClassElement classD = findElement('D');
     ClassMemberElement memberA = classA.fields[0];
     ClassMemberElement memberB = classB.fields[0];
     ClassMemberElement memberC = classC.fields[0];
@@ -167,11 +167,11 @@ class E extends D {
   foo() {}
 }
 ''');
-    ClassElement classA = findElement("A");
-    ClassElement classB = findElement("B");
-    ClassElement classC = findElement("C");
-    ClassElement classD = findElement("D");
-    ClassElement classE = findElement("E");
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
+    ClassElement classC = findElement('C');
+    ClassElement classD = findElement('D');
+    ClassElement classE = findElement('E');
     ClassMemberElement memberA = classA.methods[0];
     ClassMemberElement memberB = classB.methods[0];
     ClassMemberElement memberC = classC.methods[0];
@@ -237,9 +237,9 @@ class E {
   foo() {}
 }
 ''');
-    ClassElement classA = findElement("A");
-    ClassElement classB = findElement("B");
-    ClassElement classD = findElement("D");
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
+    ClassElement classD = findElement('D');
     ClassMemberElement memberA = classA.methods[0];
     ClassMemberElement memberB = classB.methods[0];
     ClassMemberElement memberD = classD.methods[0];
@@ -402,12 +402,12 @@ class M {}
 class E extends A with M {}
 class F implements A {}
 ''');
-    ClassElement classA = findElement("A");
-    ClassElement classB = findElement("B");
-    ClassElement classC = findElement("C");
-    ClassElement classD = findElement("D");
-    ClassElement classE = findElement("E");
-    ClassElement classF = findElement("F");
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
+    ClassElement classC = findElement('C');
+    ClassElement classD = findElement('D');
+    ClassElement classE = findElement('E');
+    ClassElement classF = findElement('F');
     ClassElement objectElement = classA.supertype.element;
     // Object
     {

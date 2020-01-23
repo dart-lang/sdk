@@ -107,6 +107,22 @@ int f({required String s}) => s.length;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_as_allows_null() async {
+    var content = '''
+int f(Object o) => (o as int)?.gcd(1);
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int? f(Object? o) => (o as int?)?.gcd(1);
+main() {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_assign_null_to_generic_type() async {
     var content = '''
 main() {
@@ -2311,6 +2327,88 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_instance_creation_generic_explicit_nonNullable() async {
+    var content = '''
+class C<T extends Object/*!*/> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C<int>(null);
+}
+''';
+    var expected = '''
+class C<T extends Object/*!*/> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C<int>(null!);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_instance_creation_generic_explicit_nonNullableParam() async {
+    var content = '''
+class C<T> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C<int>(null);
+}
+''';
+    var expected = '''
+class C<T> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int?> c = C<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_instance_creation_generic_implicit_nonNullable() async {
+    var content = '''
+class C<T extends Object/*!*/> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C(null);
+}
+''';
+    var expected = '''
+class C<T extends Object/*!*/> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C(null!);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_instance_creation_generic_implicit_nonNullableParam() async {
+    var content = '''
+class C<T> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int> c = C(null);
+}
+''';
+    var expected = '''
+class C<T> {
+  C(T/*!*/ t);
+}
+main() {
+  C<int?> c = C(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_instanceCreation_noTypeArguments_noParameters() async {
     var content = '''
 void main() {
@@ -2511,6 +2609,40 @@ void g() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void>
+      test_methodInvocation_typeArguments_explicit_nonNullable() async {
+    var content = '''
+T f<T extends Object/*!*/>(T/*!*/ t) => t;
+void g() {
+  int x = f<int>(null);
+}
+''';
+    var expected = '''
+T f<T extends Object/*!*/>(T/*!*/ t) => t;
+void g() {
+  int x = f<int>(null!);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_methodInvocation_typeArguments_explicit_nonNullableParam() async {
+    var content = '''
+T f<T>(T/*!*/ t) => t;
+void g() {
+  int x = f<int>(null);
+}
+''';
+    var expected = '''
+T f<T>(T/*!*/ t) => t;
+void g() {
+  int? x = f<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_methodInvocation_typeArguments_inferred() async {
     var content = '''
 T f<T>(T t) => t;
@@ -2520,6 +2652,40 @@ void g() {
 ''';
     var expected = '''
 T f<T>(T t) => t;
+void g() {
+  int? x = f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_methodInvocation_typeArguments_inferred_nonNullable() async {
+    var content = '''
+T f<T extends Object/*!*/>(T/*!*/ t) => t;
+void g() {
+  int x = f(null);
+}
+''';
+    var expected = '''
+T f<T extends Object/*!*/>(T/*!*/ t) => t;
+void g() {
+  int x = f(null!);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_methodInvocation_typeArguments_inferred_nonNullableParam() async {
+    var content = '''
+T f<T>(T/*!*/ t) => t;
+void g() {
+  int x = f(null);
+}
+''';
+    var expected = '''
+T f<T>(T/*!*/ t) => t;
 void g() {
   int? x = f(null);
 }
@@ -3877,6 +4043,23 @@ class C {
 ''';
     await _checkSingleFileChanges(content, expected);
   }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_unnecessary_cast_remove() async {
+    var content = '''
+_f(Object x) {
+  if (x is! int) return;
+  print((x as int) + 1);
+}
+''';
+    var expected = '''
+_f(Object x) {
+  if (x is! int) return;
+  print(x + 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
 }
 
 @reflectiveTest
@@ -3927,6 +4110,11 @@ class _ProvisionalApiTestWithFixBuilder extends _ProvisionalApiTestBase
   @override
   Future<void> test_removed_if_element_doesnt_introduce_nullability() =>
       super.test_removed_if_element_doesnt_introduce_nullability();
+
+  /// Test fails under the pre-FixBuilder implementation; passes now.
+  @override
+  Future<void> test_unnecessary_cast_remove() =>
+      super.test_unnecessary_cast_remove();
 }
 
 /// Tests of the provisional API, where the driver is reset between calls to

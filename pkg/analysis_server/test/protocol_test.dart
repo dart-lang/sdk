@@ -62,8 +62,8 @@ class RequestErrorTest {
   void test_create() {
     RequestError error = RequestError(RequestErrorCode.INVALID_REQUEST, 'msg');
     expect(error.code, RequestErrorCode.INVALID_REQUEST);
-    expect(error.message, "msg");
-    expect(error.toJson(), equals({CODE: 'INVALID_REQUEST', MESSAGE: "msg"}));
+    expect(error.message, 'msg');
+    expect(error.toJson(), equals({CODE: 'INVALID_REQUEST', MESSAGE: 'msg'}));
   }
 
   void test_fromJson() {
@@ -75,7 +75,7 @@ class RequestErrorTest {
     };
     RequestError error = RequestError.fromJson(ResponseDecoder(null), '', json);
     expect(error.code, RequestErrorCode.INVALID_PARAMETER);
-    expect(error.message, "foo");
+    expect(error.message, 'foo');
     expect(error.stackTrace, trace);
   }
 

@@ -43,53 +43,53 @@ String cleanComment(String comment) {
 ///   of code in `EitherX<Y,Z>.tX()` and simplifies the testing of them.
 String getImprovedType(String interfaceName, String fieldName) {
   const Map<String, Map<String, String>> _improvedTypeMappings = {
-    "Diagnostic": {
-      "severity": "DiagnosticSeverity",
-      "code": "String",
+    'Diagnostic': {
+      'severity': 'DiagnosticSeverity',
+      'code': 'String',
     },
-    "TextDocumentSyncOptions": {
-      "change": "TextDocumentSyncKind",
+    'TextDocumentSyncOptions': {
+      'change': 'TextDocumentSyncKind',
     },
-    "TextDocumentChangeRegistrationOptions": {
-      "syncKind": "TextDocumentSyncKind",
+    'TextDocumentChangeRegistrationOptions': {
+      'syncKind': 'TextDocumentSyncKind',
     },
-    "FileSystemWatcher": {
-      "kind": "WatchKind",
+    'FileSystemWatcher': {
+      'kind': 'WatchKind',
     },
-    "CompletionItem": {
-      "kind": "CompletionItemKind",
-      "data": "CompletionItemResolutionInfo",
+    'CompletionItem': {
+      'kind': 'CompletionItemKind',
+      'data': 'CompletionItemResolutionInfo',
     },
-    "DocumentHighlight": {
-      "kind": "DocumentHighlightKind",
+    'DocumentHighlight': {
+      'kind': 'DocumentHighlightKind',
     },
-    "FoldingRange": {
-      "kind": "FoldingRangeKind",
+    'FoldingRange': {
+      'kind': 'FoldingRangeKind',
     },
-    "ResponseError": {
-      "code": "ErrorCodes",
+    'ResponseError': {
+      'code': 'ErrorCodes',
       // This is dynamic normally, but since this class can be serialised
       // we will crash if it data is set to something that can't be converted to
       // JSON (for ex. Uri) so this forces anyone setting this to convert to a
       // String.
-      "data": "String",
+      'data': 'String',
     },
-    "NotificationMessage": {
-      "method": "Method",
-      "params": "object",
+    'NotificationMessage': {
+      'method': 'Method',
+      'params': 'object',
     },
-    "RequestMessage": {
-      "method": "Method",
-      "params": "object",
+    'RequestMessage': {
+      'method': 'Method',
+      'params': 'object',
     },
-    "SymbolInformation": {
-      "kind": "SymbolKind",
+    'SymbolInformation': {
+      'kind': 'SymbolKind',
     },
-    "ParameterInformation": {
-      "label": "String",
+    'ParameterInformation': {
+      'label': 'String',
     },
-    "ServerCapabilities": {
-      "changeNotifications": "bool",
+    'ServerCapabilities': {
+      'changeNotifications': 'bool',
     }
   };
 
@@ -102,9 +102,9 @@ String getImprovedType(String interfaceName, String fieldName) {
 /// altered (for ex. with [getImprovedType] above).
 String getImprovedComment(String interfaceName, String fieldName) {
   const Map<String, Map<String, String>> _improvedComments = {
-    "ResponseError": {
-      "data":
-          "// A string that contains additional information about the error. Can be omitted.",
+    'ResponseError': {
+      'data':
+          '// A string that contains additional information about the error. Can be omitted.',
     },
   };
 

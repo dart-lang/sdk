@@ -23,8 +23,8 @@ main() {
 class FixAggregatorTest extends FixAggregatorTestBase {
   Future<void> test_addRequired() async {
     await analyze('f({int x}) => 0;');
-    var previewInfo =
-        run({findNode.defaultParameter('int x'): const AddRequiredKeyword()});
+    var previewInfo = run(
+        {findNode.defaultParameter('int x'): const AddRequiredKeyword(null)});
     expect(previewInfo.applyTo(code), 'f({required int x}) => 0;');
   }
 
@@ -33,9 +33,9 @@ class FixAggregatorTest extends FixAggregatorTestBase {
     var aRef = findNode.simple('a +');
     var bRef = findNode.simple('b;');
     var previewInfo = run({
-      aRef: const NullCheck(),
-      bRef: const NullCheck(),
-      findNode.binary('a + b'): const NullCheck()
+      aRef: const NullCheck(null),
+      bRef: const NullCheck(null),
+      findNode.binary('a + b'): const NullCheck(null)
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
   }
@@ -48,7 +48,7 @@ f(int i, int/*?*/ j) {
 ''');
     var previewInfo = run({
       findNode.statement('if'): EliminateDeadIf(true),
-      findNode.simple('j.isEven'): const NullCheck()
+      findNode.simple('j.isEven'): const NullCheck(null)
     });
     expect(previewInfo.applyTo(code), '''
 f(int i, int/*?*/ j) {
@@ -67,7 +67,7 @@ f(int i, int/*?*/ j) {
 ''');
     var previewInfo = run({
       findNode.statement('if'): EliminateDeadIf(true),
-      findNode.simple('j.isEven'): const NullCheck()
+      findNode.simple('j.isEven'): const NullCheck(null)
     });
     expect(previewInfo.applyTo(code), '''
 f(int i, int/*?*/ j) {
@@ -291,7 +291,7 @@ void f(int i, String callback()) {
     // leave them.
     await analyze('f(a, c) => a..b = (throw c..d);');
     var cd = findNode.cascade('c..d');
-    var previewInfo = run({cd: const IntroduceAs('int')});
+    var previewInfo = run({cd: const IntroduceAs('int', null)});
     expect(
         previewInfo.applyTo(code), 'f(a, c) => a..b = (throw (c..d) as int);');
   }
@@ -299,14 +299,14 @@ void f(int i, String callback()) {
   Future<void> test_introduceAs_no_parens() async {
     await analyze('f(a, b) => a | b;');
     var expr = findNode.binary('a | b');
-    var previewInfo = run({expr: const IntroduceAs('int')});
+    var previewInfo = run({expr: const IntroduceAs('int', null)});
     expect(previewInfo.applyTo(code), 'f(a, b) => a | b as int;');
   }
 
   Future<void> test_introduceAs_parens() async {
     await analyze('f(a, b) => a < b;');
     var expr = findNode.binary('a < b');
-    var previewInfo = run({expr: const IntroduceAs('bool')});
+    var previewInfo = run({expr: const IntroduceAs('bool', null)});
     expect(previewInfo.applyTo(code), 'f(a, b) => (a < b) as bool;');
   }
 
@@ -327,14 +327,14 @@ void f(int i, String callback()) {
   Future<void> test_nullCheck_no_parens() async {
     await analyze('f(a) => a++;');
     var expr = findNode.postfix('a++');
-    var previewInfo = run({expr: const NullCheck()});
+    var previewInfo = run({expr: const NullCheck(null)});
     expect(previewInfo.applyTo(code), 'f(a) => a++!;');
   }
 
   Future<void> test_nullCheck_parens() async {
     await analyze('f(a) => -a;');
     var expr = findNode.prefix('-a');
-    var previewInfo = run({expr: const NullCheck()});
+    var previewInfo = run({expr: const NullCheck(null)});
     expect(previewInfo.applyTo(code), 'f(a) => (-a)!;');
   }
 
@@ -455,7 +455,7 @@ f({@meta.required int x}) {}
 ''');
     var annotation = findNode.annotation('required');
     var previewInfo =
-        run({annotation: const RequiredAnnotationToRequiredKeyword()});
+        run({annotation: const RequiredAnnotationToRequiredKeyword(null)});
     expect(previewInfo.applyTo(code), '''
 import 'package:meta/meta.dart' as meta;
 f({required int x}) {}
@@ -472,7 +472,7 @@ f({@foo int x}) {}
 ''');
     var annotation = findNode.annotation('@foo');
     var previewInfo =
-        run({annotation: const RequiredAnnotationToRequiredKeyword()});
+        run({annotation: const RequiredAnnotationToRequiredKeyword(null)});
     expect(previewInfo.applyTo(code), '''
 import 'package:meta/meta.dart';
 const foo = required;
@@ -488,7 +488,7 @@ f({@required int x}) {}
 ''');
     var annotation = findNode.annotation('required');
     var previewInfo =
-        run({annotation: const RequiredAnnotationToRequiredKeyword()});
+        run({annotation: const RequiredAnnotationToRequiredKeyword(null)});
     expect(previewInfo.applyTo(code), '''
 import 'package:meta/meta.dart';
 f({required int x}) {}

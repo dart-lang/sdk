@@ -13,6 +13,7 @@ import 'package:front_end/src/testing/id_testing_helper.dart'
         CfeDataExtractor,
         InternalCompilerResult,
         DataComputer,
+        TestConfig,
         defaultCfeConfig,
         createUriForFileName,
         onFailure,
@@ -41,21 +42,30 @@ class IdTestingDataComputer extends DataComputer<String> {
   const IdTestingDataComputer();
 
   @override
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     member.accept(new IdTestingDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(InternalCompilerResult compilerResult, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new IdTestingDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
-  void computeLibraryData(InternalCompilerResult compilerResult,
-      Library library, Map<Id, ActualData<String>> actualMap,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
+      Map<Id, ActualData<String>> actualMap,
       {bool verbose}) {
     new IdTestingDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
@@ -64,8 +74,8 @@ class IdTestingDataComputer extends DataComputer<String> {
   @override
   bool get supportsErrors => true;
 
-  String computeErrorData(
-      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
+  String computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);
   }
 

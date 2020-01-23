@@ -18,12 +18,16 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
+import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
+import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
+import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 /// Problem reported by [FixBuilder] when encountering a compound assignment
@@ -125,8 +129,9 @@ class FixBuilder {
   /// Visits the entire compilation [unit] using the analyzer's resolver and
   /// makes note of changes that need to be made.
   void visitAll(CompilationUnit unit) {
-    unit.accept(_AdditionalMigrationsVisitor(this));
+    unit.accept(_FixBuilderPreVisitor(this));
     unit.accept(_resolver);
+    unit.accept(_FixBuilderPostVisitor(this));
   }
 
   /// Called whenever an AST node is found that needs to be changed.
@@ -213,7 +218,10 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         return null;
       }
       var conditionValue = conditionalDiscard.keepTrue;
-      _fixBuilder._addChange(node, EliminateDeadIf(conditionValue));
+      _fixBuilder._addChange(
+          node,
+          EliminateDeadIf(conditionValue,
+              reasons: conditionalDiscard.reasons.toList()));
       return conditionValue;
     }
   }
@@ -289,7 +297,13 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   }
 
   DartType _addNullCheck(Expression node, DartType type) {
-    _fixBuilder._addChange(node, NullCheck());
+    var checks =
+        _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
+    var info = checks != null
+        ? AtomicEditInfo(
+            NullabilityFixDescription.checkExpression, checks.edges)
+        : null;
+    _fixBuilder._addChange(node, NullCheck(info));
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }
@@ -383,22 +397,43 @@ class NonNullableUnnamedOptionalParameter implements Problem {
 abstract class Problem {}
 
 /// Visitor that computes additional migrations on behalf of [FixBuilder] that
-/// don't need to be integrated into the resolver itself.
-class _AdditionalMigrationsVisitor extends RecursiveAstVisitor<void> {
+/// should be run after resolution
+class _FixBuilderPostVisitor extends RecursiveAstVisitor<void> {
   final FixBuilder _fixBuilder;
 
-  _AdditionalMigrationsVisitor(this._fixBuilder);
+  _FixBuilderPostVisitor(this._fixBuilder);
+
+  @override
+  void visitAsExpression(AsExpression node) {
+    if (!_fixBuilder._variables.wasUnnecessaryCast(_fixBuilder.source, node) &&
+        BestPracticesVerifier.isUnnecessaryCast(
+            node, _fixBuilder._typeSystem)) {
+      _fixBuilder._addChange(node, const RemoveAs());
+    }
+  }
+}
+
+/// Visitor that computes additional migrations on behalf of [FixBuilder] that
+/// don't need to be integrated into the resolver itself, and should be run
+/// prior to resolution
+class _FixBuilderPreVisitor extends RecursiveAstVisitor<void> {
+  final FixBuilder _fixBuilder;
+
+  _FixBuilderPreVisitor(this._fixBuilder);
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     var element = node.declaredElement;
-    if (node.defaultValue == null &&
-        !_fixBuilder._variables.decoratedElementType(element).node.isNullable) {
-      if (element.isNamed) {
-        _addRequiredKeyword(node);
-      } else {
-        _fixBuilder._addProblem(
-            node, const NonNullableUnnamedOptionalParameter());
+    if (node.defaultValue == null) {
+      var nullabilityNode =
+          _fixBuilder._variables.decoratedElementType(element).node;
+      if (!nullabilityNode.isNullable) {
+        if (element.isNamed) {
+          _addRequiredKeyword(node, nullabilityNode);
+        } else {
+          _fixBuilder._addProblem(
+              node, const NonNullableUnnamedOptionalParameter());
+        }
       }
     }
     super.visitDefaultFormalParameter(node);
@@ -428,20 +463,28 @@ class _AdditionalMigrationsVisitor extends RecursiveAstVisitor<void> {
     super.visitTypeName(node);
   }
 
-  void _addRequiredKeyword(DefaultFormalParameter node) {
+  void _addRequiredKeyword(
+      DefaultFormalParameter parameter, NullabilityNode node) {
     // Change an existing `@required` annotation into a `required` keyword if
     // possible.
-    var metadata = node.metadata;
+    final element = parameter.declaredElement;
+    final method = element.enclosingElement;
+    final cls = method.enclosingElement;
+    var info = AtomicEditInfo(
+        NullabilityFixDescription.addRequired(
+            cls.name, method.name, element.name),
+        [node]);
+    var metadata = parameter.metadata;
     for (var annotation in metadata) {
       if (annotation.elementAnnotation.isRequired) {
         // TODO(paulberry): what if `@required` isn't the first annotation?
         // Will we produce something that isn't grammatical?
         _fixBuilder._addChange(
-            annotation, const RequiredAnnotationToRequiredKeyword());
+            annotation, RequiredAnnotationToRequiredKeyword(info));
         return;
       }
     }
     // Otherwise create a new `required` keyword.
-    _fixBuilder._addChange(node, const AddRequiredKeyword());
+    _fixBuilder._addChange(parameter, AddRequiredKeyword(info));
   }
 }

@@ -212,6 +212,167 @@ f(List<int> x) {}
     expect(origin.node, null);
   }
 
+  Future<void> test_fix_reason_add_required_function() async {
+    await analyze('_f({int/*!*/ i) {}');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description,
+            NullabilityFixDescription.addRequired(null, '_f', 'i'));
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  Future<void> test_fix_reason_add_required_method() async {
+    await analyze('class C { _f({int/*!*/ i) {} }');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description,
+            NullabilityFixDescription.addRequired('C', '_f', 'i'));
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  Future<void> test_fix_reason_discard_condition() async {
+    await analyze('''
+_f(int/*!*/ i) {
+  if (i != null) {
+    return i;
+  }
+}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.discardCondition);
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  Future<void> test_fix_reason_discard_condition_no_block() async {
+    await analyze('''
+_f(int/*!*/ i) {
+  if (i != null) return i;
+}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.discardCondition);
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  Future<void> test_fix_reason_discard_else() async {
+    await analyze('''
+_f(int/*!*/ i) {
+  if (i != null) {
+    return i;
+  } else {
+    return 'null';
+  }
+}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.discardElse);
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  Future<void> test_fix_reason_discard_else_empty_then() async {
+    await analyze('''
+_f(int/*!*/ i) {
+  if (i != null) {} else {
+    return 'null';
+  }
+}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.discardElse);
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  Future<void> test_fix_reason_discard_then() async {
+    await analyze('''
+_f(int/*!*/ i) {
+  if (i == null) {
+    return 'null';
+  } else {
+    return i;
+  }
+}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.discardThen);
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
+  @FailingTest(reason: 'Produces no changes')
+  Future<void> test_fix_reason_discard_then_no_else() async {
+    await analyze('''
+_f(int/*!*/ i) {
+  if (i == null) {
+    return 'null';
+  }
+}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.discardThen);
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
+  }
+
   Future<void> test_fix_reason_edge() async {
     await analyze('''
 void f(int x) {
@@ -227,7 +388,7 @@ main() {
 }
 ''');
     var yUsage = findNode.simple('y);');
-    var edit = changes[yUsage.end].single as AtomicEditWithInfo;
+    var edit = changes[yUsage.end].single;
     expect(edit.isInsertion, true);
     expect(edit.replacement, '!');
     var info = edit.info;
@@ -251,7 +412,7 @@ int x = null;
     var entries = changes.entries.toList();
     expect(entries, hasLength(1));
     expect(entries.single.key, intAnnotation.end);
-    var edit = entries.single.value.single as AtomicEditWithInfo;
+    var edit = entries.single.value.single;
     expect(edit.isInsertion, true);
     expect(edit.replacement, '?');
     var info = edit.info;
@@ -259,6 +420,56 @@ int x = null;
     var reasons = info.fixReasons;
     expect(reasons, hasLength(1));
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_fix_reason_remove_unnecessary_cast() async {
+    await analyze('''
+_f(Object x) {
+  if (x is! int) return;
+  print((x as int) + 1);
+}
+''');
+    var xRef = findNode.simple('x as');
+    var asExpression = xRef.parent as Expression;
+    expect(changes, hasLength(3));
+    // Change #1: drop the `(` before the cast
+    var dropLeadingParen = changes[asExpression.offset - 1].single;
+    expect(dropLeadingParen.isDeletion, true);
+    expect(dropLeadingParen.length, 1);
+    expect(dropLeadingParen.info, null);
+    // Change #2: drop the text ` as int`
+    var dropAsInt = changes[xRef.end].single;
+    expect(dropAsInt.isDeletion, true);
+    expect(dropAsInt.length, 7);
+    expect(dropAsInt.info.description, NullabilityFixDescription.removeAs);
+    expect(dropAsInt.info.fixReasons, isEmpty);
+    // Change #3: drop the `)` after the cast
+    var dropTrailingParen = changes[asExpression.end].single;
+    expect(dropTrailingParen.isDeletion, true);
+    expect(dropTrailingParen.length, 1);
+    expect(dropTrailingParen.info, null);
+  }
+
+  @FailingTest(reason: 'Produces no changes')
+  Future<void> test_fix_reason_rewrite_required() async {
+    addMetaPackage();
+    await analyze('''
+import 'package:meta/meta.dart';
+_f({@required int i}) {}
+''');
+    var intAnnotation = findNode.typeAnnotation('int');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description,
+            NullabilityFixDescription.addRequired(null, '_f', 'i'));
+        expect(info.fixReasons.single,
+            same(explicitTypeNullability[intAnnotation]));
+      }
+    }
   }
 
   Future<void> test_graphEdge() async {
@@ -1026,7 +1237,18 @@ class _InstrumentationTestWithFixBuilder extends _InstrumentationTestBase {
   @override
   bool get useFixBuilder => true;
 
+  /// Test fails under the pre-FixBuilder implementation; passes now.
   @override
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
-  Future<void> test_fix_reason_edge() => super.test_fix_reason_edge();
+  Future<void> test_fix_reason_discard_then_no_else() =>
+      super.test_fix_reason_discard_then_no_else();
+
+  /// Test fails under the pre-FixBuilder implementation; passes now.
+  @override
+  Future<void> test_fix_reason_remove_unnecessary_cast() =>
+      super.test_fix_reason_remove_unnecessary_cast();
+
+  /// Test fails under the pre-FixBuilder implementation; passes now.
+  @override
+  Future<void> test_fix_reason_rewrite_required() =>
+      super.test_fix_reason_rewrite_required();
 }

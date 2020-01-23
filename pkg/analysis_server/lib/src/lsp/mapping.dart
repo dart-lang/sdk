@@ -427,7 +427,7 @@ String getCompletionDetail(
                     suggestion.element.parameters.isNotEmpty
                 // Extract the type part from '(MyType value)`
                 ? suggestion.element.parameters.substring(
-                    1, suggestion.element.parameters.lastIndexOf(" "))
+                    1, suggestion.element.parameters.lastIndexOf(' '))
                 : '');
   } else if (hasParameters && hasReturnType) {
     return '$prefix${suggestion.element.parameters} → ${suggestion.element.returnType}';
@@ -468,7 +468,7 @@ String getDeclarationCompletionDetail(
                     declaration.parameters.isNotEmpty
                 // Extract the type part from '(MyType value)`
                 ? declaration.parameters
-                    .substring(1, declaration.parameters.lastIndexOf(" "))
+                    .substring(1, declaration.parameters.lastIndexOf(' '))
                 : '');
   } else if (hasParameters && hasReturnType) {
     return '$prefix${declaration.parameters} → ${declaration.returnType}';
@@ -898,13 +898,13 @@ lsp.SignatureHelp toSignatureHelp(List<lsp.MarkupKind> preferredFormats,
         .toList();
     final params = [];
     if (req.isNotEmpty) {
-      params.add(req.map(getParamLabel).join(", "));
+      params.add(req.map(getParamLabel).join(', '));
     }
     if (opt.isNotEmpty) {
-      params.add("[" + opt.map(getParamLabel).join(", ") + "]");
+      params.add('[' + opt.map(getParamLabel).join(', ') + ']');
     }
     if (named.isNotEmpty) {
-      params.add("{" + named.map(getParamLabel).join(", ") + "}");
+      params.add('{' + named.map(getParamLabel).join(', ') + '}');
     }
     return '${resp.name}(${params.join(", ")})';
   }

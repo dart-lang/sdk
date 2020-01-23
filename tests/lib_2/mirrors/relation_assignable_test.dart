@@ -4,7 +4,6 @@
 
 library test.relation_assignable;
 
-@MirrorsUsed(targets: "test.relation_assignable")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";
@@ -34,11 +33,11 @@ test(MirrorSystem mirrors) {
   LibraryMirror thisLibrary = mirrors.findLibrary(#test.relation_assignable);
 
   // Classes.
-  TypeMirror Super = thisLibrary.declarations[#Superclass];
-  TypeMirror Sub1 = thisLibrary.declarations[#Subclass1];
-  TypeMirror Sub2 = thisLibrary.declarations[#Subclass2];
-  TypeMirror Obj = coreLibrary.declarations[#Object];
-  TypeMirror Nul = coreLibrary.declarations[#Null];
+  TypeMirror Super = thisLibrary.declarations[#Superclass] as TypeMirror;
+  TypeMirror Sub1 = thisLibrary.declarations[#Subclass1] as TypeMirror;
+  TypeMirror Sub2 = thisLibrary.declarations[#Subclass2] as TypeMirror;
+  TypeMirror Obj = coreLibrary.declarations[#Object] as TypeMirror;
+  TypeMirror Nul = coreLibrary.declarations[#Null] as TypeMirror;
 
   Expect.isTrue(Obj.isAssignableTo(Obj));
   Expect.isTrue(Super.isAssignableTo(Super));
@@ -70,10 +69,13 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(Super.isAssignableTo(Nul));
 
   // Function typedef - argument type.
-  TypeMirror Func = coreLibrary.declarations[#Function];
-  TypedefMirror NumPred = thisLibrary.declarations[#NumberPredicate];
-  TypedefMirror IntPred = thisLibrary.declarations[#IntegerPredicate];
-  TypedefMirror DubPred = thisLibrary.declarations[#DoublePredicate];
+  TypeMirror Func = coreLibrary.declarations[#Function] as TypeMirror;
+  TypedefMirror NumPred =
+      thisLibrary.declarations[#NumberPredicate] as TypedefMirror;
+  TypedefMirror IntPred =
+      thisLibrary.declarations[#IntegerPredicate] as TypedefMirror;
+  TypedefMirror DubPred =
+      thisLibrary.declarations[#DoublePredicate] as TypedefMirror;
 
   Expect.isTrue(Func.isAssignableTo(Func));
   Expect.isTrue(NumPred.isAssignableTo(NumPred));
@@ -102,9 +104,12 @@ test(MirrorSystem mirrors) {
   Expect.isTrue(Obj.isAssignableTo(DubPred));
 
   // Function typedef - return type.
-  TypedefMirror NumGen = thisLibrary.declarations[#NumberGenerator];
-  TypedefMirror IntGen = thisLibrary.declarations[#IntegerGenerator];
-  TypedefMirror DubGen = thisLibrary.declarations[#DoubleGenerator];
+  TypedefMirror NumGen =
+      thisLibrary.declarations[#NumberGenerator] as TypedefMirror;
+  TypedefMirror IntGen =
+      thisLibrary.declarations[#IntegerGenerator] as TypedefMirror;
+  TypedefMirror DubGen =
+      thisLibrary.declarations[#DoubleGenerator] as TypedefMirror;
 
   Expect.isTrue(NumGen.isAssignableTo(NumGen));
   Expect.isTrue(IntGen.isAssignableTo(IntGen));
@@ -227,7 +232,7 @@ test(MirrorSystem mirrors) {
   Expect.isFalse(TFromC.isAssignableTo(TFromA));
   Expect.isFalse(TFromC.isAssignableTo(TFromB));
 
-  TypeMirror Num = coreLibrary.declarations[#num];
+  TypeMirror Num = coreLibrary.declarations[#num] as TypeMirror;
   Expect.isTrue(TFromC.isAssignableTo(Num));
   Expect.isTrue(Num.isAssignableTo(TFromC));
 

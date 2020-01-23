@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateClassName(String name) {
-  return _validateUpperCamelCase(name, "Class");
+  return _validateUpperCamelCase(name, 'Class');
 }
 
 /**
@@ -27,7 +27,7 @@ RefactoringStatus validateConstructorName(String name) {
   if (name != null && name.isEmpty) {
     return RefactoringStatus();
   }
-  return _validateLowerCamelCase(name, "Constructor", allowBuiltIn: true);
+  return _validateLowerCamelCase(name, 'Constructor', allowBuiltIn: true);
 }
 
 /**
@@ -37,7 +37,7 @@ RefactoringStatus validateConstructorName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateFieldName(String name) {
-  return _validateLowerCamelCase(name, "Field", allowBuiltIn: true);
+  return _validateLowerCamelCase(name, 'Field', allowBuiltIn: true);
 }
 
 /**
@@ -47,7 +47,7 @@ RefactoringStatus validateFieldName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateFunctionName(String name) {
-  return _validateLowerCamelCase(name, "Function", allowBuiltIn: true);
+  return _validateLowerCamelCase(name, 'Function', allowBuiltIn: true);
 }
 
 /**
@@ -57,7 +57,7 @@ RefactoringStatus validateFunctionName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateFunctionTypeAliasName(String name) {
-  return _validateUpperCamelCase(name, "Function type alias");
+  return _validateUpperCamelCase(name, 'Function type alias');
 }
 
 /**
@@ -70,7 +70,7 @@ RefactoringStatus validateImportPrefixName(String name) {
   if (name != null && name.isEmpty) {
     return RefactoringStatus();
   }
-  return _validateLowerCamelCase(name, "Import prefix");
+  return _validateLowerCamelCase(name, 'Import prefix');
 }
 
 /**
@@ -80,7 +80,7 @@ RefactoringStatus validateImportPrefixName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateLabelName(String name) {
-  return _validateLowerCamelCase(name, "Label", allowBuiltIn: true);
+  return _validateLowerCamelCase(name, 'Label', allowBuiltIn: true);
 }
 
 /**
@@ -92,17 +92,17 @@ RefactoringStatus validateLabelName(String name) {
 RefactoringStatus validateLibraryName(String name) {
   // null
   if (name == null) {
-    return RefactoringStatus.fatal("Library name must not be null.");
+    return RefactoringStatus.fatal('Library name must not be null.');
   }
   // blank
   if (isBlank(name)) {
-    return RefactoringStatus.fatal("Library name must not be blank.");
+    return RefactoringStatus.fatal('Library name must not be blank.');
   }
   // check identifiers
   List<String> identifiers = name.split('.');
   for (String identifier in identifiers) {
     RefactoringStatus status = _validateIdentifier(identifier,
-        "Library name identifier", "a lowercase letter or underscore");
+        'Library name identifier', 'a lowercase letter or underscore');
     if (!status.isOK) {
       return status;
     }
@@ -112,7 +112,7 @@ RefactoringStatus validateLibraryName(String name) {
     for (int c in identifier.codeUnits) {
       if (isUpperCase(c)) {
         return RefactoringStatus.warning(
-            "Library name should consist of lowercase identifier separated by dots.");
+            'Library name should consist of lowercase identifier separated by dots.');
       }
     }
   }
@@ -127,7 +127,7 @@ RefactoringStatus validateLibraryName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateMethodName(String name) {
-  return _validateLowerCamelCase(name, "Method", allowBuiltIn: true);
+  return _validateLowerCamelCase(name, 'Method', allowBuiltIn: true);
 }
 
 /**
@@ -137,7 +137,7 @@ RefactoringStatus validateMethodName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateParameterName(String name) {
-  return _validateLowerCamelCase(name, "Parameter", allowBuiltIn: true);
+  return _validateLowerCamelCase(name, 'Parameter', allowBuiltIn: true);
 }
 
 /**
@@ -147,7 +147,7 @@ RefactoringStatus validateParameterName(String name) {
  *   FATAL if the name is illegal.
  */
 RefactoringStatus validateVariableName(String name) {
-  return _validateLowerCamelCase(name, "Variable", allowBuiltIn: true);
+  return _validateLowerCamelCase(name, 'Variable', allowBuiltIn: true);
 }
 
 RefactoringStatus _validateIdentifier(
@@ -156,13 +156,13 @@ RefactoringStatus _validateIdentifier(
   // has leading/trailing spaces
   String trimmed = identifier.trim();
   if (identifier != trimmed) {
-    String message = "$desc must not start or end with a blank.";
+    String message = '$desc must not start or end with a blank.';
     return RefactoringStatus.fatal(message);
   }
   // empty
   int length = identifier.length;
   if (length == 0) {
-    String message = "$desc must not be empty.";
+    String message = '$desc must not be empty.';
     return RefactoringStatus.fatal(message);
   }
   // keyword
@@ -170,10 +170,10 @@ RefactoringStatus _validateIdentifier(
     Keyword keyword = Keyword.keywords[identifier];
     if (keyword != null) {
       if (keyword.isBuiltInOrPseudo && allowBuiltIn) {
-        String message = "Avoid using built-in identifiers as names.";
+        String message = 'Avoid using built-in identifiers as names.';
         return RefactoringStatus.warning(message);
       } else {
-        String message = "$desc must not be a keyword.";
+        String message = '$desc must not be a keyword.';
         return RefactoringStatus.fatal(message);
       }
     }
@@ -194,7 +194,7 @@ RefactoringStatus _validateIdentifier(
   if (!isLetter(currentChar) &&
       currentChar != CHAR_UNDERSCORE &&
       currentChar != CHAR_DOLLAR) {
-    String message = "$desc must begin with $beginDesc.";
+    String message = '$desc must begin with $beginDesc.';
     return RefactoringStatus.fatal(message);
   }
   // OK
@@ -209,12 +209,12 @@ RefactoringStatus _validateLowerCamelCase(String identifier, String desc,
   desc += ' name';
   // null
   if (identifier == null) {
-    String message = "$desc must not be null.";
+    String message = '$desc must not be null.';
     return RefactoringStatus.fatal(message);
   }
   // is not identifier
   RefactoringStatus status = _validateIdentifier(
-      identifier, desc, "a lowercase letter or underscore",
+      identifier, desc, 'a lowercase letter or underscore',
       allowBuiltIn: allowBuiltIn);
   if (!status.isOK) {
     return status;
@@ -229,7 +229,7 @@ RefactoringStatus _validateLowerCamelCase(String identifier, String desc,
   }
   // does not start with lower case
   if (!isLowerCase(identifier.codeUnitAt(0))) {
-    String message = "$desc should start with a lowercase letter.";
+    String message = '$desc should start with a lowercase letter.';
     return RefactoringStatus.warning(message);
   }
   // OK
@@ -243,12 +243,12 @@ RefactoringStatus _validateUpperCamelCase(String identifier, String desc) {
   desc += ' name';
   // null
   if (identifier == null) {
-    String message = "$desc must not be null.";
+    String message = '$desc must not be null.';
     return RefactoringStatus.fatal(message);
   }
   // is not identifier
   RefactoringStatus status = _validateIdentifier(
-      identifier, desc, "an uppercase letter or underscore");
+      identifier, desc, 'an uppercase letter or underscore');
   if (!status.isOK) {
     return status;
   }
@@ -263,7 +263,7 @@ RefactoringStatus _validateUpperCamelCase(String identifier, String desc) {
   // does not start with upper case
   if (!isUpperCase(identifier.codeUnitAt(0))) {
     // By convention, class names usually start with an uppercase letter
-    String message = "$desc should start with an uppercase letter.";
+    String message = '$desc should start with an uppercase letter.';
     return RefactoringStatus.warning(message);
   }
   // OK

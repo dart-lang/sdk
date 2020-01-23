@@ -10,6 +10,7 @@ import 'package:frontend_server/src/strong_components.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:package_resolver/package_resolver.dart';
 import 'package:test/test.dart';
 
 /// Additional indexed types required by the dev_compiler's NativeTypeSet.
@@ -72,6 +73,9 @@ void main() {
       ]),
   ];
 
+  final packageResolver = PackageResolver.config({'a': Uri.file('/pkg/a')});
+  final multiRootScheme = 'org-dartlang-app';
+
   test('compiles JavaScript code', () async {
     final library = Library(
       Uri.file('/c.dart'),
@@ -85,21 +89,21 @@ void main() {
     final strongComponents =
         StrongComponents(testComponent, {}, Uri.file('/c.dart'));
     strongComponents.computeModules();
-    final javaScriptBundler =
-        JavaScriptBundler(testComponent, strongComponents);
+    final javaScriptBundler = JavaScriptBundler(
+        testComponent, strongComponents, multiRootScheme, packageResolver);
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
     final coreTypes = CoreTypes(testComponent);
 
-    javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
+    await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
         coreTypes, {}, codeSink, manifestSink, sourcemapSink);
 
     final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
     final String code = utf8.decode(codeSink.buffer);
 
     expect(manifest, {
-      '/c.dart.js': {
+      '/c.dart.lib.js': {
         'code': [0, codeSink.buffer.length],
         'sourcemap': [0, sourcemapSink.buffer.length],
       },
@@ -107,7 +111,87 @@ void main() {
     expect(code, contains('ArbitrarilyChosen'));
 
     // verify source map url is correct.
-    expect(code, contains('sourceMappingURL=c.dart.js.map'));
+    expect(code, contains('sourceMappingURL=c.dart.lib.js.map'));
+  });
+
+  test('converts package: uris into /packages/ uris', () async {
+    var importUri = Uri.parse('package:a/a.dart');
+    var fileUri = await packageResolver.resolveUri(importUri);
+    final library = Library(
+      importUri,
+      fileUri: fileUri,
+      procedures: [
+        Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
+            FunctionNode(Block([])))
+      ],
+    );
+
+    final testComponent = Component(libraries: [library, ...testCoreLibraries]);
+    final strongComponents = StrongComponents(testComponent, {}, fileUri);
+    strongComponents.computeModules();
+    final javaScriptBundler = JavaScriptBundler(
+        testComponent, strongComponents, multiRootScheme, packageResolver);
+    final manifestSink = _MemorySink();
+    final codeSink = _MemorySink();
+    final sourcemapSink = _MemorySink();
+    final coreTypes = CoreTypes(testComponent);
+
+    await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+
+    final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
+    final String code = utf8.decode(codeSink.buffer);
+
+    expect(manifest, {
+      '/packages/a/a.dart.lib.js': {
+        'code': [0, codeSink.buffer.length],
+        'sourcemap': [0, sourcemapSink.buffer.length],
+      },
+    });
+    expect(code, contains('ArbitrarilyChosen'));
+
+    // verify source map url is correct.
+    expect(code, contains('sourceMappingURL=a.dart.lib.js.map'));
+  });
+
+  test('multi-root uris create modules relative to the root', () async {
+    var importUri = Uri.parse('$multiRootScheme:/web/main.dart');
+    var fileUri = importUri;
+    final library = Library(
+      importUri,
+      fileUri: fileUri,
+      procedures: [
+        Procedure(Name('ArbitrarilyChosen'), ProcedureKind.Method,
+            FunctionNode(Block([])))
+      ],
+    );
+
+    final testComponent = Component(libraries: [library, ...testCoreLibraries]);
+    final strongComponents = StrongComponents(testComponent, {}, fileUri);
+    strongComponents.computeModules();
+    final javaScriptBundler = JavaScriptBundler(
+        testComponent, strongComponents, multiRootScheme, packageResolver);
+    final manifestSink = _MemorySink();
+    final codeSink = _MemorySink();
+    final sourcemapSink = _MemorySink();
+    final coreTypes = CoreTypes(testComponent);
+
+    await javaScriptBundler.compile(ClassHierarchy(testComponent, coreTypes),
+        coreTypes, {}, codeSink, manifestSink, sourcemapSink);
+
+    final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
+    final String code = utf8.decode(codeSink.buffer);
+
+    expect(manifest, {
+      '${importUri.path}.lib.js': {
+        'code': [0, codeSink.buffer.length],
+        'sourcemap': [0, sourcemapSink.buffer.length],
+      },
+    });
+    expect(code, contains('ArbitrarilyChosen'));
+
+    // verify source map url is correct.
+    expect(code, contains('sourceMappingURL=main.dart.lib.js.map'));
   });
 
   test('can combine strongly connected components', () {
@@ -134,8 +218,8 @@ void main() {
     final strongComponents =
         StrongComponents(testComponent, {}, Uri.file('/a.dart'));
     strongComponents.computeModules();
-    final javaScriptBundler =
-        JavaScriptBundler(testComponent, strongComponents);
+    final javaScriptBundler = JavaScriptBundler(
+        testComponent, strongComponents, multiRootScheme, packageResolver);
     final manifestSink = _MemorySink();
     final codeSink = _MemorySink();
     final sourcemapSink = _MemorySink();
@@ -153,14 +237,14 @@ void main() {
     expect(moduleHeader.allMatches(code), hasLength(2));
 
     // verify source map url is correct.
-    expect(code, contains('sourceMappingURL=a.dart.js.map'));
+    expect(code, contains('sourceMappingURL=a.dart.lib.js.map'));
 
-    final offsets = manifest['/a.dart.js']['sourcemap'];
+    final offsets = manifest['/a.dart.lib.js']['sourcemap'];
     final sourcemapModuleA = json.decode(
         utf8.decode(sourcemapSink.buffer.sublist(offsets.first, offsets.last)));
 
     // verify source maps are pointing at correct source files.
-    expect(sourcemapModuleA['file'], 'a.dart');
+    expect(sourcemapModuleA['file'], 'a.dart.lib.js');
   });
 }
 

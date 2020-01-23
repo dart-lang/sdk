@@ -237,7 +237,7 @@ class LintDriver {
       packageConfigPath = pathContext.normalize(packageConfigPath);
 
       try {
-        var packages = parseDotPackagesFile(
+        var packages = parsePackagesFile(
           resourceProvider,
           resourceProvider.getFile(packageConfigPath),
         );

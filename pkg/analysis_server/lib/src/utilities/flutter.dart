@@ -128,7 +128,7 @@ class Flutter {
       // The separator includes 'child:' but that has no newlines.
       String separator =
           getText(namedExp.offset, childArg.offset - namedExp.offset);
-      String prefix = separator.contains(eol) ? "" : "$eol$indentNew";
+      String prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
         _addInsertEdit(namedExp.offset + 'child:'.length, ' <Widget>[');
         _addRemoveEdit(SourceRange(childArg.offset - 2, 2));
@@ -136,8 +136,8 @@ class Flutter {
         _addInsertEdit(listLoc, '<Widget>[');
       }
       String newChildArgSrc = childArgSrc.replaceAll(
-          RegExp("^$indentOld", multiLine: true), "$indentNew");
-      newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
+          RegExp('^$indentOld', multiLine: true), '$indentNew');
+      newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       _addReplaceEdit(rangeNode(childArg), newChildArgSrc);
     }
   }
@@ -169,7 +169,7 @@ class Flutter {
       // The separator includes 'child:' but that has no newlines.
       String separator =
           getText(namedExp.offset, childArg.offset - namedExp.offset);
-      String prefix = separator.contains(eol) ? "" : "$eol$indentNew";
+      String prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
         builder.addSimpleInsertion(
             namedExp.offset + 'child:'.length, ' <Widget>[');
@@ -178,8 +178,8 @@ class Flutter {
         builder.addSimpleInsertion(listLoc, '<Widget>[');
       }
       String newChildArgSrc = childArgSrc.replaceAll(
-          RegExp("^$indentOld", multiLine: true), "$indentNew");
-      newChildArgSrc = "$prefix$newChildArgSrc,$eol$indentOld]";
+          RegExp('^$indentOld', multiLine: true), '$indentNew');
+      newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       builder.addSimpleReplacement(rangeNode(childArg), newChildArgSrc);
     }
   }

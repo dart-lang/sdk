@@ -88,7 +88,7 @@ class MirrorsReader extends MirrorsVisitor {
 
   /// Evaluates the function [f]. Subclasses can override this to handle
   /// specific exceptions.
-  evaluate(f()) => f();
+  dynamic evaluate(dynamic f) => f();
 
   visit(var receiver, String tag, var value) {
     if (value is Function) {

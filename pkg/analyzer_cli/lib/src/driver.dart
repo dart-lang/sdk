@@ -590,7 +590,7 @@ class Driver with HasContextMixin implements CommandLineStarter {
     if (options.packageConfigPath != null) {
       String path = normalizePath(options.packageConfigPath);
       try {
-        var packages = parseDotPackagesFile(
+        var packages = parsePackagesFile(
           resourceProvider,
           resourceProvider.getFile(path),
         );

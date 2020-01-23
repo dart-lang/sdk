@@ -51,7 +51,7 @@ class ImportedElementsComputerTest extends AbstractContextTest {
   }
 
   test_dartAsync_noPrefix() async {
-    String selection = "Future<String> f = null;";
+    String selection = 'Future<String> f = null;';
     String content = '''
 import 'dart:async';
 printer() {
@@ -67,7 +67,7 @@ printer() {
   }
 
   test_dartAsync_prefix() async {
-    String selection = "a.Future<String> f = null;";
+    String selection = 'a.Future<String> f = null;';
     String content = '''
 import 'dart:async' as a;
 printer() {
@@ -112,7 +112,7 @@ blankLine() {
   }
 
   test_dartMath_noPrefix() async {
-    String selection = "new Random();";
+    String selection = 'new Random();';
     String content = '''
 import 'dart:math';
 bool randomBool() {
@@ -231,7 +231,7 @@ class B {
   static String b = '';
 }
 ''');
-    String selection = "A.a + B.b";
+    String selection = 'A.a + B.b';
     String content = '''
 import 'package:foo/foo.dart';
 blankLine() {
@@ -250,7 +250,7 @@ class Foo {
   static String first = '';
 }
 ''');
-    String selection = "Foo.first";
+    String selection = 'Foo.first';
     String content = '''
 import 'package:foo/foo.dart';
 blankLine() {
@@ -269,7 +269,7 @@ class Foo {
   static String first = '';
 }
 ''');
-    String selection = "f.Foo.first";
+    String selection = 'f.Foo.first';
     String content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
@@ -286,7 +286,7 @@ blankLine() {
     addPackageFile('foo', 'foo.dart', '''
 String foo() => '';
 ''');
-    String selection = "f.foo()";
+    String selection = 'f.foo()';
     String content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
@@ -303,7 +303,7 @@ blankLine() {
     addPackageFile('foo', 'foo.dart', '''
 String foo = '';
 ''');
-    String selection = "f.foo";
+    String selection = 'f.foo';
     String content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
@@ -320,7 +320,7 @@ blankLine() {
     addPackageFile('foo', 'foo.dart', '''
 String foo = '';
 ''');
-    String selection = "f.foo";
+    String selection = 'f.foo';
     String content = '''
 import 'package:foo/foo.dart' as f;
 main() {
@@ -339,7 +339,7 @@ class Foo {
   static String first = '';
 }
 ''');
-    String selection = "Foo.first";
+    String selection = 'Foo.first';
     String content = '''
 import 'package:foo/foo.dart' as f;
 blankLine() {
@@ -359,7 +359,7 @@ class Foo {
   static String second = '';
 }
 ''');
-    String selection = "f.Foo.first + Foo.second";
+    String selection = 'f.Foo.first + Foo.second';
     String content = '''
 import 'package:foo/foo.dart';
 import 'package:foo/foo.dart' as f;

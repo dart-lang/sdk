@@ -4,7 +4,6 @@
 
 library symbol_validation_test;
 
-@MirrorsUsed(targets: "symbol_validation_test")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -23,8 +22,8 @@ invalidSymbol(String string) {
 }
 
 validPrivateSymbol(String string) {
-  ClosureMirror closure = reflect(main);
-  LibraryMirror library = closure.function.owner;
+  ClosureMirror closure = reflect(main) as ClosureMirror;
+  LibraryMirror library = closure.function.owner as LibraryMirror;
   Expect.equals(
       string,
       MirrorSystem.getName(MirrorSystem.getSymbol(string, library)),

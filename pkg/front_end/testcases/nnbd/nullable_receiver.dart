@@ -12,7 +12,11 @@ class A {
   void call() {}
 }
 
-error(String? s, A? a) {
+class B {
+  String toString([int extra = 42]) => super.toString();
+}
+
+error(String? s, A? a, B? b) {
   s.length;
   s.substring(1, 1);
 
@@ -20,6 +24,7 @@ error(String? s, A? a) {
   a.bar;
   a.baz = 42;
   a();
+  b.toString(0);
 
   Function f1 = a;
   void Function() f2 = a;
@@ -27,21 +32,31 @@ error(String? s, A? a) {
 }
 
 // It's ok to invoke members of Object on nullable types.
-ok(String? s, A? a, Invocation i) {
+ok<T extends Object?>(String? s, A? a, T t, B? b, Invocation i) {
   s == s;
   a == a;
+  t == t;
+  b == b;
 
   s.hashCode;
   a.hashCode;
+  t.hashCode;
+  b.hashCode;
 
   s.toString();
   a.toString();
+  t.toString();
+  b.toString();
 
   try { s.noSuchMethod(i); } catch (e, t) {}
   try { a.noSuchMethod(i); } catch (e, t) {}
+  try { t.noSuchMethod(i); } catch (e, t) {}
+  try { b.noSuchMethod(i); } catch (e, t) {}
 
   s.runtimeType;
   a.runtimeType;
+  t.runtimeType;
+  b.runtimeType;
 }
 
 main() {}

@@ -16,7 +16,7 @@ class Annotation {
 class Annotated {}
 
 main(List<String> args) {
-  ClassMirror mirror = reflectType(Annotated);
+  ClassMirror mirror = reflectType(Annotated) as ClassMirror;
   Expect.equals("ClassMirror on 'Annotated'", mirror.toString());
 
   var bindings = mirror.metadata[0].reflectee.bindings;

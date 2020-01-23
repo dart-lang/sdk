@@ -502,8 +502,8 @@ class TestChannel implements ServerCommunicationChannel {
   }
 
   @override
-  void listen(void onRequest(server.Request request),
-      {Function onError, void onDone()}) {
+  void listen(void Function(server.Request) onRequest,
+      {Function onError, void Function() onDone}) {
     fail('Unexpected invocation of listen');
   }
 

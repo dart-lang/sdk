@@ -25,7 +25,7 @@ main() {
   Expect.equals('a,b,c', Function.apply(f, ['a', 'b', 'c']));
   Expect.throwsNoSuchMethodError(() => f.foo('a', 'b', 'c'));
 
-  ClosureMirror cm = reflect(f);
+  ClosureMirror cm = reflect(f) as ClosureMirror;
   Expect.isTrue(cm is ClosureMirror);
   Expect.equals('a', cm.apply(['a']).reflectee);
   Expect.equals('a,b', cm.apply(['a', 'b']).reflectee);

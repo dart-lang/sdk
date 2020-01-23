@@ -1009,7 +1009,7 @@ var x = <int>[];
           ['declaration']), //token('x', 4, 'dart:core;List', ['declaration']),
       token('=', 6, null, null),
       token('<', 8, null, null),
-      token("int", 9, 'dart:core;Type<int>', [
+      token('int', 9, 'dart:core;Type<int>', [
         'reference'
       ]), //token("int", 9, 'dart:core;Type<dart:core;int>', ['reference']),
       token('>', 12, null, null),
@@ -1028,11 +1028,11 @@ var x = <int, int>{};
           ['declaration']), //token('x', 4, 'dart:core;Map', ['declaration']),
       token('=', 6, null, null),
       token('<', 8, null, null),
-      token("int", 9, 'dart:core;Type<int>', [
+      token('int', 9, 'dart:core;Type<int>', [
         'reference'
       ]), //token("int", 9, 'dart:core;Type<dart:core;int>', ['reference']),
 //      token(',', null, null),
-      token("int", 14, 'dart:core;Type<int>', [
+      token('int', 14, 'dart:core;Type<int>', [
         'reference'
       ]), //token("int", 14, 'dart:core;Type<dart:core;int>', ['reference']),
       token('>', 17, null, null),
@@ -1063,7 +1063,7 @@ var x = <int>{};
           ['declaration']), //token('x', 4, 'dart:core;Set', ['declaration']),
       token('=', 6, null, null),
       token('<', 8, null, null),
-      token("int", 9, 'dart:core;Type<int>', [
+      token('int', 9, 'dart:core;Type<int>', [
         'reference'
       ]), //token("int", 9, 'dart:core;Type<dart:core;int>', ['reference']),
       token('>', 12, null, null),

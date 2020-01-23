@@ -253,11 +253,11 @@ void f([num? a]) {
     assertRegion(
         region: regions[1],
         offset: 24,
-        details: ["This variable is initialized to a nullable value"]);
+        details: ['This variable is initialized to a nullable value']);
     assertRegion(
         region: regions[2],
         offset: 38,
-        details: ["The value of the expression is nullable"]);
+        details: ['The value of the expression is nullable']);
   }
 
   test_asExpression_insideReturn() async {
@@ -277,7 +277,7 @@ int? f([num? a]) {
     assertRegion(
         region: regions[2],
         offset: 36,
-        details: ["The value of the expression is nullable"]);
+        details: ['The value of the expression is nullable']);
   }
 
   test_discardCondition() async {
@@ -345,7 +345,7 @@ void g() {
     var region = regions[0];
     var edits = region.edits;
     assertRegion(region: region, offset: 10, details: [
-      "A dynamic value, which is nullable is passed as an argument"
+      'A dynamic value, which is nullable is passed as an argument'
     ]);
     assertDetail(detail: region.details[0], offset: 104, length: 1);
     assertEdit(edit: edits[0], offset: 10, replacement: '/*!*/');
@@ -379,7 +379,7 @@ void g() {
     assertRegion(
         region: regions[2],
         offset: 66,
-        details: ["This is later required to accept null."]);
+        details: ['This is later required to accept null.']);
   }
 
   test_exactNullable_exactNullable() async {
@@ -422,7 +422,7 @@ String? g() => 1 == 2 ? "Hello" : null;
     assertRegion(
         region: regions[0],
         offset: 6,
-        details: ["This function returns a nullable value on line 1"]);
+        details: ['This function returns a nullable value on line 1']);
     assertDetail(detail: regions[0].details[0], offset: 11, length: 2);
   }
 
@@ -441,7 +441,7 @@ class A {
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(1));
     assertRegion(region: regions[0], offset: 15, details: [
-      "This field is initialized by an optional field formal parameter that "
+      'This field is initialized by an optional field formal parameter that '
           "has an implicit default value of 'null'"
     ]);
   }
@@ -461,7 +461,7 @@ class A {
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(1));
     assertRegion(region: regions[0], offset: 15, details: [
-      "This field is initialized by an optional field formal parameter that "
+      'This field is initialized by an optional field formal parameter that '
           "has an explicit default value of 'null'"
     ]);
   }
@@ -489,8 +489,8 @@ void g() {
     // TODO(brianwilkerson) It would be nice if the target for the region could
     //  be the argument rather than the field formal parameter.
     assertRegion(region: regions[0], offset: 15, details: [
-      "This field is initialized by a field formal parameter and a nullable "
-          "value is passed as an argument"
+      'This field is initialized by a field formal parameter and a nullable '
+          'value is passed as an argument'
     ]);
   }
 
@@ -515,7 +515,7 @@ class A {
     assertRegion(
         region: regions[1],
         offset: 33,
-        details: ["This field is initialized to a nullable value"]);
+        details: ['This field is initialized to a nullable value']);
   }
 
   test_fieldLaterAssignedNullable() async {
@@ -563,7 +563,7 @@ class C {
     var region = regions[0];
     var edits = region.edits;
     assertRegion(region: region, offset: 42, length: 9, details: [
-      "This parameter is non-nullable, so cannot have an implicit default "
+      'This parameter is non-nullable, so cannot have an implicit default '
           "value of 'null'"
     ]);
     assertEdit(
@@ -588,7 +588,7 @@ class C {
     var region = regions[1];
     var edits = region.edits;
     assertRegion(region: region, offset: 34, length: 9, details: [
-      "This parameter is non-nullable, so cannot have an implicit default "
+      'This parameter is non-nullable, so cannot have an implicit default '
           "value of 'null'"
     ]);
     assertEdit(
@@ -616,12 +616,12 @@ void f() {
     assertRegion(
         region: regions[1],
         offset: 48,
-        details: ["This list is initialized with a nullable value on line 3"]);
+        details: ['This list is initialized with a nullable value on line 3']);
     assertDetail(detail: regions[1].details[0], offset: 58, length: 1);
     assertRegion(
         region: regions[2],
         offset: 81,
-        details: ["This set is initialized with a nullable value on line 4"]);
+        details: ['This set is initialized with a nullable value on line 4']);
     assertDetail(detail: regions[2].details[0], offset: 90, length: 1);
   }
 
@@ -639,12 +639,12 @@ void f() {
     expect(regions, hasLength(2));
     // regions[0] is `num? a`.
     assertRegion(region: regions[1], offset: 39, details: [
-      "List value type must be nullable because a length is specified,"
-          " and the list items are initialized as null."
+      'List value type must be nullable because a length is specified,'
+          ' and the list items are initialized as null.'
     ]);
   }
 
-  @FailingTest(issue: "https://github.com/dart-lang/sdk/issues/40064")
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40064')
   test_listConstructor_length_implicitType() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
@@ -659,8 +659,8 @@ void f() {
     expect(regions, hasLength(2));
     // regions[0] is `num? a`.
     assertRegion(region: regions[1], offset: 40, details: [
-      "List value type must be nullable because a length is specified,"
-          " and the list items are initialized as null."
+      'List value type must be nullable because a length is specified,'
+          ' and the list items are initialized as null.'
     ]);
   }
 
@@ -688,7 +688,7 @@ void f() {
     assertRegion(
         region: regions[1],
         offset: 48,
-        details: ["This list is initialized with a nullable value on line 5"]);
+        details: ['This list is initialized with a nullable value on line 5']);
     assertDetail(detail: regions[1].details[0], offset: 79, length: 1);
   }
 
@@ -713,7 +713,7 @@ void f() {
     assertRegion(
         region: regions[1],
         offset: 34,
-        details: ["This variable is initialized to a nullable value"]);
+        details: ['This variable is initialized to a nullable value']);
   }
 
   test_mapLiteralTypeArgument() async {
@@ -736,12 +736,12 @@ void f() {
     assertRegion(
         region: regions[1],
         offset: 48,
-        details: ["This map is initialized with a nullable value on line 3"]);
+        details: ['This map is initialized with a nullable value on line 3']);
     assertDetail(detail: regions[1].details[0], offset: 71, length: 1);
     assertRegion(
         region: regions[2],
         offset: 106,
-        details: ["This map is initialized with a nullable value on line 4"]);
+        details: ['This map is initialized with a nullable value on line 4']);
     assertDetail(detail: regions[2].details[0], offset: 128, length: 1);
   }
 
@@ -771,7 +771,7 @@ void f(A a) {
     expect(regions, hasLength(2));
     // regions[0] is "an explicit null is passed..."
     assertRegion(region: regions[1], offset: 71, details: [
-      "The corresponding parameter in the overridden method, A.m, is nullable"
+      'The corresponding parameter in the overridden method, A.m, is nullable'
     ]);
     assertDetail(detail: regions[1].details[0], offset: 20, length: 3);
   }
@@ -792,7 +792,7 @@ void f(String s) {
         region: regions[0],
         offset: 7,
         length: 6,
-        details: ["This value is asserted to be non-null"]);
+        details: ['This value is asserted to be non-null']);
   }
 
   test_nonNullableType_exclamationComment() async {
@@ -821,7 +821,7 @@ void f(String s) {
     List<RegionInfo> regions = unit.nonNullableTypeRegions;
     expect(regions, hasLength(1));
     assertRegion(region: regions[0], offset: 7, length: 6, details: [
-      "This value is unconditionally used in a non-nullable context"
+      'This value is unconditionally used in a non-nullable context'
     ]);
   }
 
@@ -849,7 +849,7 @@ class C {
     var region = regions[1];
     var edits = region.edits;
     assertRegion(region: regions[1], offset: 65, details: [
-      "This value must be null-checked before accessing its properties."
+      'This value must be null-checked before accessing its properties.'
     ]);
     assertEdit(edit: edits[0], offset: 64, length: 0, replacement: '/*!*/');
   }
@@ -876,7 +876,7 @@ class C {
     expect(regions, hasLength(2));
     // regions[0] is `int?`.
     assertRegion(region: regions[1], offset: 65, details: [
-      "This value must be null-checked before calling its methods."
+      'This value must be null-checked before calling its methods.'
     ]);
   }
 
@@ -917,7 +917,7 @@ void h() => g(null);
     List<RegionInfo> regions = unit.regions;
     expect(regions, hasLength(1));
     assertRegion(region: regions[0], offset: 13, details: [
-      "A dynamic value, which is nullable is passed as an argument"
+      'A dynamic value, which is nullable is passed as an argument'
     ]);
   }
 
@@ -953,10 +953,10 @@ void f(A a) {
     expect(regions, hasLength(3));
     // regions[0] is "an explicit null is passed..."
     assertRegion(region: regions[1], offset: 64, details: [
-      "The corresponding parameter in the overridden method, A.m, is nullable"
+      'The corresponding parameter in the overridden method, A.m, is nullable'
     ]);
     assertRegion(region: regions[2], offset: 109, details: [
-      "The corresponding parameter in the overridden method, B.m, is nullable"
+      'The corresponding parameter in the overridden method, B.m, is nullable'
     ]);
     assertDetail(detail: regions[1].details[0], offset: 19, length: 3);
     assertDetail(detail: regions[2].details[0], offset: 60, length: 3);
@@ -994,7 +994,7 @@ void f(A a) {
     expect(regions, hasLength(2));
     // regions[0] is "an explicit null is passed..."
     assertRegion(region: regions[1], offset: 104, details: [
-      "The corresponding parameter in the overridden method is nullable"
+      'The corresponding parameter in the overridden method is nullable'
     ]);
   }
 
@@ -1022,7 +1022,7 @@ class B extends A {
     assertRegion(
         region: regions[0],
         offset: 62,
-        details: ["A nullable value is assigned"]);
+        details: ['A nullable value is assigned']);
   }
 
   test_parameter_fromOverriddenField_explicit() async {
@@ -1047,12 +1047,12 @@ void f(A a) => a.m = null;
     expect(regions, hasLength(2));
     assertRegion(region: regions[0], offset: 15, details: [
       // TODO(srawlins): I suspect this should be removed...
-      "A nullable value is assigned",
+      'A nullable value is assigned',
       "An explicit 'null' is assigned in the function 'f'",
     ]);
     assertRegion(region: regions[1], offset: 61, details: [
       // TODO(srawlins): Improve this message to include "B.m".
-      "The corresponding parameter in the overridden method is nullable"
+      'The corresponding parameter in the overridden method is nullable'
     ]);
     assertDetail(detail: regions[0].details[1], offset: 90, length: 4);
     assertDetail(detail: regions[1].details[0], offset: 12, length: 3);
@@ -1071,7 +1071,7 @@ void g({int? i}) {}
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(region: regions[0], offset: 30, details: [
-      "This named parameter was omitted in a call to this function",
+      'This named parameter was omitted in a call to this function',
       "This parameter has an implicit default value of 'null'",
     ]);
     assertDetail(detail: regions[0].details[0], offset: 11, length: 3);
@@ -1104,7 +1104,7 @@ void f({String? s = sd}) {}
     assertRegion(
         region: regions[1],
         offset: 33,
-        details: ["This parameter has a nullable default value"]);
+        details: ['This parameter has a nullable default value']);
   }
 
   test_parameter_optional_implicitDefault_named() async {
@@ -1156,7 +1156,7 @@ class B implements A {
     assertRegion(
         region: regions[0],
         offset: 27,
-        details: ["An overridding method has a nullable return value"]);
+        details: ['An overridding method has a nullable return value']);
     assertDetail(detail: regions[0].details[0], offset: 60, length: 6);
   }
 
@@ -1179,7 +1179,7 @@ String? g() {
     assertRegion(
         region: regions[0],
         offset: 6,
-        details: ["This function returns a nullable value on line 3"]);
+        details: ['This function returns a nullable value on line 3']);
     assertInTargets(targets: unit.targets, offset: 40, length: 6); // "return"
   }
 
@@ -1200,7 +1200,7 @@ String? g() {
     assertRegion(
         region: regions[0],
         offset: 6,
-        details: ["This function returns a nullable value on line 2"]);
+        details: ['This function returns a nullable value on line 2']);
     assertDetail(detail: regions[0].details[0], offset: 15, length: 6);
   }
 
@@ -1221,7 +1221,7 @@ int? f() => _f;
     assertRegion(
         region: regions[1],
         offset: 19,
-        details: ["This function returns a nullable value on line 2"]);
+        details: ['This function returns a nullable value on line 2']);
   }
 
   test_returnType_getter_block() async {
@@ -1249,7 +1249,7 @@ class A {
     assertRegion(
         region: regions[1],
         offset: 33,
-        details: ["This getter returns a nullable value on line 4"]);
+        details: ['This getter returns a nullable value on line 4']);
   }
 
   test_returnType_getter_expression() async {
@@ -1273,7 +1273,7 @@ class A {
     assertRegion(
         region: regions[1],
         offset: 33,
-        details: ["This getter returns a nullable value on line 3"]);
+        details: ['This getter returns a nullable value on line 3']);
   }
 
   test_setLiteralTypeArgument_nestedList() async {
@@ -1300,7 +1300,7 @@ void f() {
     assertRegion(
         region: regions[1],
         offset: 53,
-        details: ["This set is initialized with a nullable value on line 5"]);
+        details: ['This set is initialized with a nullable value on line 5']);
     // TODO(srawlins): Actually, this is marking the `[s]`, but I think only
     //  `s` should be marked. Minor bug for now.
     assertDetail(detail: regions[1].details[0], offset: 87, length: 3);
@@ -1323,7 +1323,7 @@ int? _f2 = _f;
     assertRegion(
         region: regions[1],
         offset: 19,
-        details: ["This variable is initialized to a nullable value"]);
+        details: ['This variable is initialized to a nullable value']);
   }
 
   test_uninitializedField() async {
@@ -1351,11 +1351,11 @@ class C {
     RegionInfo region = regions.single;
     assertRegion(region: region, offset: 15, details: [
       "The constructor 'C' does not initialize this field in its initializer "
-          "list",
+          'list',
       "The constructor 'C.one' does not initialize this field in its "
-          "initializer list",
+          'initializer list',
       "The constructor 'C.two' does not initialize this field in its "
-          "initializer list",
+          'initializer list',
     ]);
 
     assertDetail(detail: region.details[0], offset: 25, length: 1);
@@ -1384,7 +1384,7 @@ void g(int i) => print(i.isEven);
     assertRegion(
         region: regions[0],
         offset: 16,
-        details: ["Used on line 4, when it is possibly uninitialized"]);
+        details: ['Used on line 4, when it is possibly uninitialized']);
     // regions[1] is the `v1!` fix.
   }
 }

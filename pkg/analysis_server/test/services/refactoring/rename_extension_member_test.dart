@@ -146,7 +146,7 @@ extension E on int {
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: "Field name must not be null.",
+      expectedMessage: 'Field name must not be null.',
     );
 
     // OK
@@ -167,7 +167,7 @@ extension E on int {
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: "Method name must not be null.",
+      expectedMessage: 'Method name must not be null.',
     );
 
     // empty
@@ -175,7 +175,7 @@ extension E on int {
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: "Method name must not be empty.",
+      expectedMessage: 'Method name must not be empty.',
     );
 
     // same
@@ -183,7 +183,7 @@ extension E on int {
     assertRefactoringStatus(
       refactoring.checkNewName(),
       RefactoringProblemSeverity.FATAL,
-      expectedMessage: "The new name must be different than the current name.",
+      expectedMessage: 'The new name must be different than the current name.',
     );
 
     // OK

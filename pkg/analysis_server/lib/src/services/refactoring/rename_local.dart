@@ -38,12 +38,12 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   @override
   String get refactoringName {
     if (element is ParameterElement) {
-      return "Rename Parameter";
+      return 'Rename Parameter';
     }
     if (element is FunctionElement) {
-      return "Rename Local Function";
+      return 'Rename Local Function';
     }
-    return "Rename Local Variable";
+    return 'Rename Local Variable';
   }
 
   @override

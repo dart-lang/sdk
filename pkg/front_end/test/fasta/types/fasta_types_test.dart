@@ -10,6 +10,11 @@ import "package:kernel/core_types.dart" show CoreTypes;
 
 import "package:kernel/target/targets.dart" show NoneTarget, TargetFlags;
 
+import 'package:kernel/testing/type_parser_environment.dart'
+    show TypeParserEnvironment;
+
+import 'package:kernel/type_environment.dart';
+
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions;
 
@@ -28,15 +33,10 @@ import "package:front_end/src/fasta/kernel/kernel_builder.dart"
     show ClassHierarchyBuilder;
 
 import "package:front_end/src/fasta/ticker.dart" show Ticker;
-import 'package:kernel/type_environment.dart';
 
-import "kernel_type_parser.dart" show KernelEnvironment, KernelFromParsedType;
-
-import "kernel_type_parser_test.dart" show parseSdk;
+import 'kernel_type_parser_test.dart' show parseSdk;
 
 import "shared_type_tests.dart" show SubtypeTest;
-
-import "type_parser.dart" as type_parser show parse, parseTypeVariables;
 
 main() {
   final Ticker ticker = new Ticker(isVerbose: false);
@@ -44,7 +44,7 @@ main() {
       options: new CompilerOptions()
         ..packagesFileUri = Uri.base.resolve(".packages")));
   final Uri uri = Uri.parse("dart:core");
-  final KernelEnvironment environment = new KernelEnvironment(uri, uri);
+  final TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   final Component sdk = parseSdk(uri, environment);
   Future<void> doIt(_) async {
     DillTarget target = new DillTarget(
@@ -64,15 +64,15 @@ main() {
   asyncTest(() => context.runInContext<void>(doIt));
 }
 
-class FastaTypesTest extends SubtypeTest<DartType, KernelEnvironment> {
+class FastaTypesTest extends SubtypeTest<DartType, TypeParserEnvironment> {
   final ClassHierarchyBuilder hierarchy;
 
-  final KernelEnvironment environment;
+  final TypeParserEnvironment environment;
 
   FastaTypesTest(this.hierarchy, this.environment);
 
-  DartType toType(String text, KernelEnvironment environment) {
-    return environment.kernelFromParsedType(type_parser.parse(text).single);
+  DartType toType(String text, TypeParserEnvironment environment) {
+    return environment.parseType(text);
   }
 
   IsSubtypeOf isSubtypeImpl(DartType subtype, DartType supertype) {
@@ -80,11 +80,7 @@ class FastaTypesTest extends SubtypeTest<DartType, KernelEnvironment> {
         .performNullabilityAwareSubtypeCheck(subtype, supertype);
   }
 
-  KernelEnvironment extend(String typeParameters) {
-    if (typeParameters?.isEmpty ?? true) return environment;
-    return const KernelFromParsedType()
-        .computeTypeParameterEnvironment(
-            type_parser.parseTypeVariables("<$typeParameters>"), environment)
-        .environment;
+  TypeParserEnvironment extend(String typeParameters) {
+    return environment.extendWithTypeParameters(typeParameters);
   }
 }

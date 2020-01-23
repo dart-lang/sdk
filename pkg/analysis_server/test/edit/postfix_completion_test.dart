@@ -85,7 +85,7 @@ main() {
       }
       return;
     }
-    fail("Expected to find |$message| but got: " + change.message);
+    fail('Expected to find |$message| but got: ' + change.message);
   }
 
   _prepareCompletion(String key,
@@ -99,12 +99,12 @@ main() {
   _prepareCompletionAt(int offset, String key) async {
     var params = EditGetPostfixCompletionParams(testFile, key, offset);
     var request =
-        Request('0', "edit.isPostfixCompletionApplicable", params.toJson());
+        Request('0', 'edit.isPostfixCompletionApplicable', params.toJson());
     Response response = await waitResponse(request, throwOnError: false);
     var isApplicable =
         EditIsPostfixCompletionApplicableResult.fromResponse(response);
     if (!isApplicable.value) {
-      fail("Postfix completion not applicable at given location");
+      fail('Postfix completion not applicable at given location');
     }
     request =
         EditGetPostfixCompletionParams(testFile, key, offset).toRequest('1');

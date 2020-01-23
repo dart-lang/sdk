@@ -33,7 +33,7 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   String get refactoringName {
-    return "Rename Import Prefix";
+    return 'Rename Import Prefix';
   }
 
   @override
@@ -62,12 +62,12 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
         int uriEnd = node.uri.end;
         int prefixEnd = element.prefixOffset + prefix.nameLength;
         edit = newSourceEdit_range(
-            range.startOffsetEndOffset(uriEnd, prefixEnd), "");
+            range.startOffsetEndOffset(uriEnd, prefixEnd), '');
       } else {
         if (prefix == null) {
           ImportDirective node = _findNode();
           int uriEnd = node.uri.end;
-          edit = newSourceEdit_range(SourceRange(uriEnd, 0), " as $newName");
+          edit = newSourceEdit_range(SourceRange(uriEnd, 0), ' as $newName');
         } else {
           int offset = element.prefixOffset;
           int length = prefix.nameLength;

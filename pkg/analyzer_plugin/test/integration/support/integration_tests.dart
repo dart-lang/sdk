@@ -514,7 +514,7 @@ class Server {
     _pendingCommands[id] = completer;
     String line = json.encode(command);
     _recordStdio('SEND: $line');
-    _process.stdin.add(utf8.encoder.convert("$line\n"));
+    _process.stdin.add(utf8.encoder.convert('$line\n'));
     return completer.future;
   }
 
@@ -615,7 +615,7 @@ class Server {
   /// [debugStdio] has been called.
   void _recordStdio(String line) {
     double elapsedTime = currentElapseTime;
-    line = "$elapsedTime: $line";
+    line = '$elapsedTime: $line';
     if (_debuggingStdio) {
       print(line);
     }

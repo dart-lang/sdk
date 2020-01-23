@@ -257,18 +257,18 @@ class Test {}
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Class name must not be null.");
+        expectedMessage: 'Class name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Class name must not be empty.");
+        expectedMessage: 'Class name must not be empty.');
     // same
     refactoring.newName = 'Test';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
         expectedMessage:
-            "The new name must be different than the current name.");
+            'The new name must be different than the current name.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -283,12 +283,12 @@ test() {}
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function name must not be null.");
+        expectedMessage: 'Function name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function name must not be empty.");
+        expectedMessage: 'Function name must not be empty.');
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -303,7 +303,7 @@ typedef Test();
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Function type alias name must not be null.");
+        expectedMessage: 'Function type alias name must not be null.');
     // OK
     refactoring.newName = 'NewName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -318,12 +318,12 @@ var test;
     refactoring.newName = null;
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Variable name must not be null.");
+        expectedMessage: 'Variable name must not be null.');
     // empty
     refactoring.newName = '';
     assertRefactoringStatus(
         refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Variable name must not be empty.");
+        expectedMessage: 'Variable name must not be empty.');
     // OK
     refactoring.newName = 'newName';
     assertRefactoringStatusOK(refactoring.checkNewName());
@@ -681,39 +681,39 @@ NewName test;
   }
 
   test_createChange_PropertyAccessorElement_getter_declaration() async {
-    await _test_createChange_PropertyAccessorElement("test {}");
+    await _test_createChange_PropertyAccessorElement('test {}');
   }
 
   test_createChange_PropertyAccessorElement_getter_usage() async {
-    await _test_createChange_PropertyAccessorElement("test);");
+    await _test_createChange_PropertyAccessorElement('test);');
   }
 
   test_createChange_PropertyAccessorElement_mix() async {
-    await _test_createChange_PropertyAccessorElement("test += 2");
+    await _test_createChange_PropertyAccessorElement('test += 2');
   }
 
   test_createChange_PropertyAccessorElement_setter_declaration() async {
-    await _test_createChange_PropertyAccessorElement("test(x) {}");
+    await _test_createChange_PropertyAccessorElement('test(x) {}');
   }
 
   test_createChange_PropertyAccessorElement_setter_usage() async {
-    await _test_createChange_PropertyAccessorElement("test = 1");
+    await _test_createChange_PropertyAccessorElement('test = 1');
   }
 
   test_createChange_TopLevelVariableElement_field() async {
-    await _test_createChange_TopLevelVariableElement("test = 0");
+    await _test_createChange_TopLevelVariableElement('test = 0');
   }
 
   test_createChange_TopLevelVariableElement_getter() async {
-    await _test_createChange_TopLevelVariableElement("test);");
+    await _test_createChange_TopLevelVariableElement('test);');
   }
 
   test_createChange_TopLevelVariableElement_mix() async {
-    await _test_createChange_TopLevelVariableElement("test += 2");
+    await _test_createChange_TopLevelVariableElement('test += 2');
   }
 
   test_createChange_TopLevelVariableElement_setter() async {
-    await _test_createChange_TopLevelVariableElement("test = 1");
+    await _test_createChange_TopLevelVariableElement('test = 1');
   }
 
   _test_createChange_PropertyAccessorElement(String search) async {

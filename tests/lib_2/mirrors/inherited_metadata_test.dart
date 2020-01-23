@@ -4,14 +4,13 @@
 
 library test.mirrors;
 
-@MirrorsUsed(targets: "test.mirrors")
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
 class RemoteClass {
   final String name;
-  const RemoteClass([this.name]);
+  const RemoteClass([this.name = "default"]);
 }
 
 class A {}

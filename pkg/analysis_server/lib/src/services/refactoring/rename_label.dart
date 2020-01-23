@@ -22,7 +22,7 @@ class RenameLabelRefactoringImpl extends RenameRefactoringImpl {
   LabelElement get element => super.element as LabelElement;
 
   @override
-  String get refactoringName => "Rename Label";
+  String get refactoringName => 'Rename Label';
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {

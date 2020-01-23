@@ -13,7 +13,7 @@ import 'package:expect/expect.dart';
 class Foo {}
 
 void main() {
-  LibraryMirror rootLibrary = reflectClass(Foo).owner;
+  LibraryMirror rootLibrary = reflectClass(Foo).owner as LibraryMirror;
   IsolateMirror isolate = currentMirrorSystem().isolate;
   Expect.isTrue(isolate.debugName is String);
   Expect.isTrue(isolate.isCurrent);

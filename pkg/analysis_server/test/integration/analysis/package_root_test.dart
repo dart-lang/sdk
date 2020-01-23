@@ -35,11 +35,11 @@ main() {
   f();
 }
 """;
-    String fooBarText = """
+    String fooBarText = '''
 library foo.bar;
 
 f() {}
-""";
+''';
     writeFile(mainPath, mainText);
     String normalizedFooBarPath = writeFile(fooBarPath, fooBarText);
     sendServerSetSubscriptions([ServerService.STATUS]);

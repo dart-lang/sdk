@@ -20,7 +20,7 @@ main() {
 
     test('returns correct output for union types', () {
       final message = RequestMessage(
-          Either2<num, String>.t1(1), Method.shutdown, null, "test");
+          Either2<num, String>.t1(1), Method.shutdown, null, 'test');
       String output = json.encode(message.toJson());
       expect(output, equals('{"id":1,"method":"shutdown","jsonrpc":"test"}'));
     });
@@ -165,14 +165,14 @@ main() {
       expect(CreateFile.canParse(<String, dynamic>{}, reporter), isFalse);
       expect(reporter.errors, hasLength(1));
       expect(
-          reporter.errors.first, equals("params.kind must not be undefined"));
+          reporter.errors.first, equals('params.kind must not be undefined'));
     });
 
     test('canParse records null fields', () {
       final reporter = LspJsonReporter('params');
       expect(CreateFile.canParse({'kind': null}, reporter), isFalse);
       expect(reporter.errors, hasLength(1));
-      expect(reporter.errors.first, equals("params.kind must not be null"));
+      expect(reporter.errors.first, equals('params.kind must not be null'));
     });
 
     test('canParse records fields of the wrong type', () {
@@ -180,7 +180,7 @@ main() {
       expect(RenameFileOptions.canParse({'overwrite': 1}, reporter), isFalse);
       expect(reporter.errors, hasLength(1));
       expect(reporter.errors.first,
-          equals("params.overwrite must be of type bool"));
+          equals('params.overwrite must be of type bool'));
     });
 
     test('canParse records nested undefined fields', () {
@@ -191,7 +191,7 @@ main() {
           isFalse);
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
-          equals("params.textDocument.uri must not be undefined"));
+          equals('params.textDocument.uri must not be undefined'));
     });
 
     test('canParse records nested null fields', () {
@@ -203,7 +203,7 @@ main() {
           isFalse);
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
-          equals("params.textDocument.uri must not be null"));
+          equals('params.textDocument.uri must not be null'));
     });
 
     test('canParse records nested fields of the wrong type', () {
@@ -215,7 +215,7 @@ main() {
           isFalse);
       expect(reporter.errors, hasLength(greaterThanOrEqualTo(1)));
       expect(reporter.errors.first,
-          equals("params.textDocument.uri must be of type String"));
+          equals('params.textDocument.uri must be of type String'));
     });
 
     test(
@@ -231,7 +231,7 @@ main() {
       expect(
           reporter.errors.first,
           equals(
-              "params.documentChanges must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>"));
+              'params.documentChanges must be of type Either2<List<TextDocumentEdit>, List<Either4<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>>'));
     });
 
     test('ResponseMessage can include a null result', () {
@@ -266,16 +266,16 @@ main() {
       final message = RequestMessage.fromJson(jsonDecode(input));
       expect(message.id, equals(Either2<num, String>.t1(1)));
       expect(message.id.valueEquals(1), isTrue);
-      expect(message.jsonrpc, "test");
+      expect(message.jsonrpc, 'test');
       expect(message.method, Method.shutdown);
     });
 
     test('parses JSON for types with unions (right side)', () {
       final input = '{"id":"one","method":"shutdown","jsonrpc":"test"}';
       final message = RequestMessage.fromJson(jsonDecode(input));
-      expect(message.id, equals(Either2<num, String>.t2("one")));
-      expect(message.id.valueEquals("one"), isTrue);
-      expect(message.jsonrpc, "test");
+      expect(message.id, equals(Either2<num, String>.t2('one')));
+      expect(message.id.valueEquals('one'), isTrue);
+      expect(message.jsonrpc, 'test');
       expect(message.method, Method.shutdown);
     });
 
@@ -308,9 +308,9 @@ main() {
           '{"id":1,"invalidField":true,"method":"foo","jsonrpc":"test"}';
       final message = RequestMessage.fromJson(jsonDecode(input));
       expect(message.id.valueEquals(1), isTrue);
-      expect(message.method, equals(Method("foo")));
+      expect(message.method, equals(Method('foo')));
       expect(message.params, isNull);
-      expect(message.jsonrpc, equals("test"));
+      expect(message.jsonrpc, equals('test'));
     });
   });
 

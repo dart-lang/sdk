@@ -162,6 +162,31 @@ mixin ClientCapabilitiesHelperMixin {
     return WorkspaceClientCapabilities.fromJson(json);
   }
 
+  TextDocumentClientCapabilities withAllSupportedDynamicRegistrations(
+    TextDocumentClientCapabilities source,
+  ) {
+    // This list should match all of the fields listed in
+    // `ClientDynamicRegistrations.supported`.
+    return extendTextDocumentCapabilities(source, {
+      'synchronization': {'dynamicRegistration': true},
+      'completion': {'dynamicRegistration': true},
+      'hover': {'dynamicRegistration': true},
+      'signatureHelp': {'dynamicRegistration': true},
+      'references': {'dynamicRegistration': true},
+      'documentHighlight': {'dynamicRegistration': true},
+      'documentSymbol': {'dynamicRegistration': true},
+      'synchronization': {'dynamicRegistration': true},
+      'formatting': {'dynamicRegistration': true},
+      'onTypeFormatting': {'dynamicRegistration': true},
+      'declaration': {'dynamicRegistration': true},
+      'definition': {'dynamicRegistration': true},
+      'implementation': {'dynamicRegistration': true},
+      'codeAction': {'dynamicRegistration': true},
+      'rename': {'dynamicRegistration': true},
+      'foldingRange': {'dynamicRegistration': true},
+    });
+  }
+
   WorkspaceClientCapabilities withApplyEditSupport(
     WorkspaceClientCapabilities source,
   ) {
@@ -265,31 +290,6 @@ mixin ClientCapabilitiesHelperMixin {
   ) {
     return extendTextDocumentCapabilities(source, {
       'synchronization': {'dynamicRegistration': true}
-    });
-  }
-
-  TextDocumentClientCapabilities withAllSupportedDynamicRegistrations(
-    TextDocumentClientCapabilities source,
-  ) {
-    // This list should match all of the fields listed in
-    // `ClientDynamicRegistrations.supported`.
-    return extendTextDocumentCapabilities(source, {
-      'synchronization': {'dynamicRegistration': true},
-      'completion': {'dynamicRegistration': true},
-      'hover': {'dynamicRegistration': true},
-      'signatureHelp': {'dynamicRegistration': true},
-      'references': {'dynamicRegistration': true},
-      'documentHighlight': {'dynamicRegistration': true},
-      'documentSymbol': {'dynamicRegistration': true},
-      'synchronization': {'dynamicRegistration': true},
-      'formatting': {'dynamicRegistration': true},
-      'onTypeFormatting': {'dynamicRegistration': true},
-      'declaration': {'dynamicRegistration': true},
-      'definition': {'dynamicRegistration': true},
-      'implementation': {'dynamicRegistration': true},
-      'codeAction': {'dynamicRegistration': true},
-      'rename': {'dynamicRegistration': true},
-      'foldingRange': {'dynamicRegistration': true},
     });
   }
 }
@@ -540,7 +540,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Future<T> expectErrorNotification<T>(
-    FutureOr<void> f(), {
+    FutureOr<void> Function() f, {
     Duration timeout = const Duration(seconds: 5),
   }) async {
     final firstError = errorNotificationsFromServer.first;
@@ -554,7 +554,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Future<T> expectNotification<T>(
     bool Function(NotificationMessage) test,
-    FutureOr<void> f(), {
+    FutureOr<void> Function() f, {
     Duration timeout = const Duration(seconds: 5),
   }) async {
     final firstError = notificationsFromServer.firstWhere(test);
@@ -569,7 +569,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// Expects a [method] request from the server after executing [f].
   Future<RequestMessage> expectRequest(
     Method method,
-    FutureOr<void> f(), {
+    FutureOr<void> Function() f, {
     Duration timeout = const Duration(seconds: 5),
   }) async {
     final firstRequest =
@@ -782,8 +782,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// response to the request it sends (3).
   Future<T> handleExpectedRequest<T, R, RR>(
     Method method,
-    Future<T> f(), {
-    @required FutureOr<RR> handler(R params),
+    Future<T> Function() f, {
+    @required FutureOr<RR> Function(R) handler,
     Duration timeout = const Duration(seconds: 5),
   }) async {
     FutureOr<T> outboundRequest;

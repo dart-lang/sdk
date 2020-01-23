@@ -1129,7 +1129,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             interfaceBound =
                 interfaceSubstitution.substituteType(interfaceBound);
           }
-          if (declaredBound != substitution.substituteType(interfaceBound)) {
+          DartType computedBound = substitution.substituteType(interfaceBound);
+          if (declaredBound != computedBound) {
             reportInvalidOverride(
                 isInterfaceCheck,
                 declaredMember,

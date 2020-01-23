@@ -149,21 +149,21 @@ class RefactoringStatus {
   @override
   String toString() {
     StringBuffer sb = StringBuffer();
-    sb.write("<");
+    sb.write('<');
     if (_severity == null) {
       sb.write('OK');
     } else {
       sb.write(_severity.name);
     }
     if (!isOK) {
-      sb.write("\n");
+      sb.write('\n');
       for (RefactoringProblem problem in problems) {
-        sb.write("\t");
+        sb.write('\t');
         sb.write(problem);
-        sb.write("\n");
+        sb.write('\n');
       }
     }
-    sb.write(">");
+    sb.write('>');
     return sb.toString();
   }
 

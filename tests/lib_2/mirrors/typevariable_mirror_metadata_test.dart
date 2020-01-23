@@ -4,7 +4,6 @@
 
 library test.typevariable_metadata_test;
 
-@MirrorsUsed(targets: "test.typevariable_metadata_test")
 import "dart:mirrors";
 
 import "metadata_test.dart";

@@ -134,8 +134,9 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     for (var offset in offsets) {
       var edits = changes[offset];
       var descriptions = edits
-          .whereType<AtomicEditWithInfo>()
-          .map((edit) => edit.info.description.appliedMessage)
+          .map((edit) => edit.info)
+          .where((info) => info != null)
+          .map((info) => info.description.appliedMessage)
           .join(', ');
       var sourceEdit = edits.toSourceEdit(offset);
       listener.addSuggestion(
@@ -199,19 +200,19 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     return location;
   }
 
-  static List<MapEntry<Location, AtomicEditWithInfo>>
-      _gatherAtomicEditsByLocation(
-          Source source,
-          PotentialModification potentialModification,
-          LineInfo lineInfo,
-          AtomicEditInfo info) {
-    List<MapEntry<Location, AtomicEditWithInfo>> result = [];
+  static List<MapEntry<Location, AtomicEdit>> _gatherAtomicEditsByLocation(
+      Source source,
+      PotentialModification potentialModification,
+      LineInfo lineInfo,
+      AtomicEditInfo info) {
+    List<MapEntry<Location, AtomicEdit>> result = [];
 
     for (var modification in potentialModification.modifications) {
-      var atomicEditWithInfo = AtomicEditWithInfo.replace(
-          modification.length, modification.replacement, info);
-      result.add(MapEntry(_computeLocation(lineInfo, modification, source),
-          atomicEditWithInfo));
+      var atomicEdit = AtomicEdit.replace(
+          modification.length, modification.replacement,
+          info: info);
+      result.add(MapEntry(
+          _computeLocation(lineInfo, modification, source), atomicEdit));
     }
     return result;
   }

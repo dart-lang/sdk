@@ -14,14 +14,12 @@ import "package:kernel/text/ast_to_text.dart" show Printer;
 
 import "package:kernel/type_environment.dart" show IsSubtypeOf, TypeEnvironment;
 
-import "kernel_type_parser.dart"
-    show KernelEnvironment, KernelFromParsedType, parseLibrary;
+import 'package:kernel/testing/type_parser_environment.dart'
+    show TypeParserEnvironment, parseLibrary;
 
-import "mock_sdk.dart" show mockSdk;
+import 'package:kernel/testing/mock_sdk.dart' show mockSdk;
 
-import "shared_type_tests.dart" show SubtypeTest;
-
-import "type_parser.dart" as type_parser show parse, parseTypeVariables;
+import 'shared_type_tests.dart' show SubtypeTest;
 
 const String testSdk = """
 typedef Typedef<T> <S>(T) -> S;
@@ -83,7 +81,7 @@ class MixinApplication = self::Object with self::FBound<self::MixinApplication> 
 }
 """;
 
-Component parseSdk(Uri uri, KernelEnvironment environment) {
+Component parseSdk(Uri uri, TypeParserEnvironment environment) {
   Library library =
       parseLibrary(uri, mockSdk + testSdk, environment: environment);
   StringBuffer sb = new StringBuffer();
@@ -95,27 +93,27 @@ Component parseSdk(Uri uri, KernelEnvironment environment) {
 
 main() {
   Uri uri = Uri.parse("dart:core");
-  KernelEnvironment environment = new KernelEnvironment(uri, uri);
+  TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
   Component component = parseSdk(uri, environment);
   CoreTypes coreTypes = new CoreTypes(component);
   ClassHierarchy hierarchy = new ClassHierarchy(component, coreTypes);
   new KernelSubtypeTest(coreTypes, hierarchy, environment).run();
 }
 
-class KernelSubtypeTest extends SubtypeTest<DartType, KernelEnvironment> {
+class KernelSubtypeTest extends SubtypeTest<DartType, TypeParserEnvironment> {
   final CoreTypes coreTypes;
 
   final ClassHierarchy hierarchy;
 
-  final KernelEnvironment environment;
+  final TypeParserEnvironment environment;
 
   KernelSubtypeTest(this.coreTypes, this.hierarchy, this.environment);
 
   @override
   bool get skipFutureOrPromotion => true;
 
-  DartType toType(String text, KernelEnvironment environment) {
-    return environment.kernelFromParsedType(type_parser.parse(text).single);
+  DartType toType(String text, TypeParserEnvironment environment) {
+    return environment.parseType(text);
   }
 
   IsSubtypeOf isSubtypeImpl(DartType subtype, DartType supertype) {
@@ -123,11 +121,7 @@ class KernelSubtypeTest extends SubtypeTest<DartType, KernelEnvironment> {
         .performNullabilityAwareSubtypeCheck(subtype, supertype);
   }
 
-  KernelEnvironment extend(String typeParameters) {
-    if (typeParameters?.isEmpty ?? true) return environment;
-    return const KernelFromParsedType()
-        .computeTypeParameterEnvironment(
-            type_parser.parseTypeVariables("<$typeParameters>"), environment)
-        .environment;
+  TypeParserEnvironment extend(String typeParameters) {
+    return environment.extendWithTypeParameters(typeParameters);
   }
 }

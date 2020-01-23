@@ -137,9 +137,9 @@ class DirectiveOrganizer {
   static _DirectivePriority getDirectivePriority(UriBasedDirective directive) {
     String uriContent = directive.uri.stringValue;
     if (directive is ImportDirective) {
-      if (uriContent.startsWith("dart:")) {
+      if (uriContent.startsWith('dart:')) {
         return _DirectivePriority.IMPORT_SDK;
-      } else if (uriContent.startsWith("package:")) {
+      } else if (uriContent.startsWith('package:')) {
         return _DirectivePriority.IMPORT_PKG;
       } else if (uriContent.contains('://')) {
         return _DirectivePriority.IMPORT_OTHER;
@@ -148,9 +148,9 @@ class DirectiveOrganizer {
       }
     }
     if (directive is ExportDirective) {
-      if (uriContent.startsWith("dart:")) {
+      if (uriContent.startsWith('dart:')) {
         return _DirectivePriority.EXPORT_SDK;
-      } else if (uriContent.startsWith("package:")) {
+      } else if (uriContent.startsWith('package:')) {
         return _DirectivePriority.EXPORT_PKG;
       } else if (uriContent.contains('://')) {
         return _DirectivePriority.EXPORT_OTHER;

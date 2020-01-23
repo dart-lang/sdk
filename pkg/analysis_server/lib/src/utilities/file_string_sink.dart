@@ -20,7 +20,7 @@ class FileStringSink implements StringSink {
   }
 
   @override
-  void writeAll(Iterable objects, [String separator = ""]) {
+  void writeAll(Iterable objects, [String separator = '']) {
     throw UnimplementedError();
   }
 
@@ -30,7 +30,7 @@ class FileStringSink implements StringSink {
   }
 
   @override
-  void writeln([Object obj = ""]) {
+  void writeln([Object obj = '']) {
     var currentTimeMillis = DateTime.now().millisecondsSinceEpoch;
     _sink.writeln('$currentTimeMillis $obj');
   }

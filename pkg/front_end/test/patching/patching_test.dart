@@ -47,22 +47,31 @@ class PatchingDataComputer extends DataComputer<Features> {
   const PatchingDataComputer();
 
   @override
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     member.accept(new PatchingDataExtractor(compilerResult, actualMap));
   }
 
   @override
-  void computeClassData(InternalCompilerResult compilerResult, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new PatchingDataExtractor(compilerResult, actualMap).computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(InternalCompilerResult compilerResult,
-      Library library, Map<Id, ActualData<Features>> actualMap,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
+      Map<Id, ActualData<Features>> actualMap,
       {bool verbose}) {
     new PatchingDataExtractor(compilerResult, actualMap)
         .computeForLibrary(library);
@@ -71,9 +80,9 @@ class PatchingDataComputer extends DataComputer<Features> {
   @override
   bool get supportsErrors => true;
 
-  /// Returns data corresponding to [error].
-  Features computeErrorData(
-      InternalCompilerResult compiler, Id id, List<FormattedMessage> errors) {
+  @override
+  Features computeErrorData(TestConfig config, InternalCompilerResult compiler,
+      Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     features[Tags.error] = errorsToText(errors);
     return features;

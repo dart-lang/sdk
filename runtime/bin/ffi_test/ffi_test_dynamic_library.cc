@@ -13,7 +13,7 @@
   extern "C" __attribute__((visibility("default"))) __attribute((used))
 #endif
 
-DART_EXPORT int return42() {
+DART_EXPORT intptr_t return42() {
   return 42;
 }
 

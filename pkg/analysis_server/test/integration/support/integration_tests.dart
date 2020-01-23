@@ -650,7 +650,7 @@ class Server {
     _pendingCommands[id] = completer;
     String line = json.encode(command);
     _recordStdio('==> $line');
-    _process.stdin.add(utf8.encoder.convert("$line\n"));
+    _process.stdin.add(utf8.encoder.convert('$line\n'));
     return completer.future;
   }
 
@@ -770,7 +770,7 @@ class Server {
    */
   void _recordStdio(String line) {
     double elapsedTime = currentElapseTime;
-    line = "$elapsedTime: $line";
+    line = '$elapsedTime: $line';
     if (_debuggingStdio) {
       print(line);
     }
@@ -939,7 +939,7 @@ abstract class _RecursiveMatcher extends Matcher {
    * substructure did not match.
    */
   checkSubstructure(item, Matcher matcher, List<MismatchDescriber> mismatches,
-      Description describeSubstructure(Description description)) {
+      Description Function(Description) describeSubstructure) {
     Map subState = {};
     if (!matcher.matches(item, subState)) {
       mismatches.add((Description mismatchDescription) {

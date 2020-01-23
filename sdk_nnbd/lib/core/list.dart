@@ -166,17 +166,17 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    * Creates a list with [length] positions and fills it with values created by
    * calling [generator] for each index in the range `0` .. `length - 1`
    * in increasing order.
+   * ```dart
+   * List<int>.generate(3, (int index) => index * index); // [0, 1, 4]
+   * ```
+   * The created list is fixed-length if [growable] is set to false.
    *
-   *     new List<int>.generate(3, (int index) => index * index); // [0, 1, 4]
-   *
-   * The created list is fixed-length unless [growable] is true.
+   * The [length] must be non-negative.
    */
   factory List.generate(int length, E generator(int index),
       {bool growable = true}) {
-    if (length <= 0) {
-      if (growable) return <E>[];
-      return List<E>.empty();
-    }
+    if (length < 0) throw RangeError.index(length, 0, null, "length");
+    if (length == 0) return List<E>.empty(growable: growable);
     List<E> result = List<E>.filled(length, generator(0), growable: growable);
     for (int i = 1; i < length; i++) {
       result[i] = generator(i);

@@ -43,27 +43,27 @@ class AddContentOverlay implements HasToJson {
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     json ??= {};
     if (json is Map) {
-      if (json["type"] != "add") {
-        throw jsonDecoder.mismatch(jsonPath, "equal add", json);
+      if (json['type'] != 'add') {
+        throw jsonDecoder.mismatch(jsonPath, 'equal add', json);
       }
       String content;
-      if (json.containsKey("content")) {
+      if (json.containsKey('content')) {
         content =
-            jsonDecoder.decodeString(jsonPath + ".content", json["content"]);
+            jsonDecoder.decodeString(jsonPath + '.content', json['content']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "content");
+        throw jsonDecoder.mismatch(jsonPath, 'content');
       }
       return AddContentOverlay(content);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "AddContentOverlay", json);
+      throw jsonDecoder.mismatch(jsonPath, 'AddContentOverlay', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["type"] = "add";
-    result["content"] = content;
+    result['type'] = 'add';
+    result['content'] = content;
     return result;
   }
 
@@ -213,68 +213,68 @@ class AnalysisError implements HasToJson {
     json ??= {};
     if (json is Map) {
       AnalysisErrorSeverity severity;
-      if (json.containsKey("severity")) {
+      if (json.containsKey('severity')) {
         severity = AnalysisErrorSeverity.fromJson(
-            jsonDecoder, jsonPath + ".severity", json["severity"]);
+            jsonDecoder, jsonPath + '.severity', json['severity']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "severity");
+        throw jsonDecoder.mismatch(jsonPath, 'severity');
       }
       AnalysisErrorType type;
-      if (json.containsKey("type")) {
+      if (json.containsKey('type')) {
         type = AnalysisErrorType.fromJson(
-            jsonDecoder, jsonPath + ".type", json["type"]);
+            jsonDecoder, jsonPath + '.type', json['type']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "type");
+        throw jsonDecoder.mismatch(jsonPath, 'type');
       }
       Location location;
-      if (json.containsKey("location")) {
+      if (json.containsKey('location')) {
         location = Location.fromJson(
-            jsonDecoder, jsonPath + ".location", json["location"]);
+            jsonDecoder, jsonPath + '.location', json['location']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "location");
+        throw jsonDecoder.mismatch(jsonPath, 'location');
       }
       String message;
-      if (json.containsKey("message")) {
+      if (json.containsKey('message')) {
         message =
-            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+            jsonDecoder.decodeString(jsonPath + '.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "message");
+        throw jsonDecoder.mismatch(jsonPath, 'message');
       }
       String correction;
-      if (json.containsKey("correction")) {
+      if (json.containsKey('correction')) {
         correction = jsonDecoder.decodeString(
-            jsonPath + ".correction", json["correction"]);
+            jsonPath + '.correction', json['correction']);
       }
       String code;
-      if (json.containsKey("code")) {
-        code = jsonDecoder.decodeString(jsonPath + ".code", json["code"]);
+      if (json.containsKey('code')) {
+        code = jsonDecoder.decodeString(jsonPath + '.code', json['code']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "code");
+        throw jsonDecoder.mismatch(jsonPath, 'code');
       }
       bool hasFix;
-      if (json.containsKey("hasFix")) {
-        hasFix = jsonDecoder.decodeBool(jsonPath + ".hasFix", json["hasFix"]);
+      if (json.containsKey('hasFix')) {
+        hasFix = jsonDecoder.decodeBool(jsonPath + '.hasFix', json['hasFix']);
       }
       return AnalysisError(severity, type, location, message, code,
           correction: correction, hasFix: hasFix);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
+      throw jsonDecoder.mismatch(jsonPath, 'AnalysisError', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["severity"] = severity.toJson();
-    result["type"] = type.toJson();
-    result["location"] = location.toJson();
-    result["message"] = message;
+    result['severity'] = severity.toJson();
+    result['type'] = type.toJson();
+    result['location'] = location.toJson();
+    result['message'] = message;
     if (correction != null) {
-      result["correction"] = correction;
+      result['correction'] = correction;
     }
-    result["code"] = code;
+    result['code'] = code;
     if (hasFix != null) {
-      result["hasFix"] = hasFix;
+      result['hasFix'] = hasFix;
     }
     return result;
   }
@@ -320,12 +320,12 @@ class AnalysisError implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorSeverity implements Enum {
-  static const AnalysisErrorSeverity INFO = AnalysisErrorSeverity._("INFO");
+  static const AnalysisErrorSeverity INFO = AnalysisErrorSeverity._('INFO');
 
   static const AnalysisErrorSeverity WARNING =
-      AnalysisErrorSeverity._("WARNING");
+      AnalysisErrorSeverity._('WARNING');
 
-  static const AnalysisErrorSeverity ERROR = AnalysisErrorSeverity._("ERROR");
+  static const AnalysisErrorSeverity ERROR = AnalysisErrorSeverity._('ERROR');
 
   /// A list containing all of the enum values that are defined.
   static const List<AnalysisErrorSeverity> VALUES = <AnalysisErrorSeverity>[
@@ -341,11 +341,11 @@ class AnalysisErrorSeverity implements Enum {
 
   factory AnalysisErrorSeverity(String name) {
     switch (name) {
-      case "INFO":
+      case 'INFO':
         return INFO;
-      case "WARNING":
+      case 'WARNING':
         return WARNING;
-      case "ERROR":
+      case 'ERROR':
         return ERROR;
     }
     throw Exception('Illegal enum value: $name');
@@ -360,11 +360,11 @@ class AnalysisErrorSeverity implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorSeverity", json);
+    throw jsonDecoder.mismatch(jsonPath, 'AnalysisErrorSeverity', json);
   }
 
   @override
-  String toString() => "AnalysisErrorSeverity.$name";
+  String toString() => 'AnalysisErrorSeverity.$name';
 
   String toJson() => name;
 }
@@ -385,25 +385,25 @@ class AnalysisErrorSeverity implements Enum {
 /// Clients may not extend, implement or mix-in this class.
 class AnalysisErrorType implements Enum {
   static const AnalysisErrorType CHECKED_MODE_COMPILE_TIME_ERROR =
-      AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
+      AnalysisErrorType._('CHECKED_MODE_COMPILE_TIME_ERROR');
 
   static const AnalysisErrorType COMPILE_TIME_ERROR =
-      AnalysisErrorType._("COMPILE_TIME_ERROR");
+      AnalysisErrorType._('COMPILE_TIME_ERROR');
 
-  static const AnalysisErrorType HINT = AnalysisErrorType._("HINT");
+  static const AnalysisErrorType HINT = AnalysisErrorType._('HINT');
 
-  static const AnalysisErrorType LINT = AnalysisErrorType._("LINT");
+  static const AnalysisErrorType LINT = AnalysisErrorType._('LINT');
 
   static const AnalysisErrorType STATIC_TYPE_WARNING =
-      AnalysisErrorType._("STATIC_TYPE_WARNING");
+      AnalysisErrorType._('STATIC_TYPE_WARNING');
 
   static const AnalysisErrorType STATIC_WARNING =
-      AnalysisErrorType._("STATIC_WARNING");
+      AnalysisErrorType._('STATIC_WARNING');
 
   static const AnalysisErrorType SYNTACTIC_ERROR =
-      AnalysisErrorType._("SYNTACTIC_ERROR");
+      AnalysisErrorType._('SYNTACTIC_ERROR');
 
-  static const AnalysisErrorType TODO = AnalysisErrorType._("TODO");
+  static const AnalysisErrorType TODO = AnalysisErrorType._('TODO');
 
   /// A list containing all of the enum values that are defined.
   static const List<AnalysisErrorType> VALUES = <AnalysisErrorType>[
@@ -424,21 +424,21 @@ class AnalysisErrorType implements Enum {
 
   factory AnalysisErrorType(String name) {
     switch (name) {
-      case "CHECKED_MODE_COMPILE_TIME_ERROR":
+      case 'CHECKED_MODE_COMPILE_TIME_ERROR':
         return CHECKED_MODE_COMPILE_TIME_ERROR;
-      case "COMPILE_TIME_ERROR":
+      case 'COMPILE_TIME_ERROR':
         return COMPILE_TIME_ERROR;
-      case "HINT":
+      case 'HINT':
         return HINT;
-      case "LINT":
+      case 'LINT':
         return LINT;
-      case "STATIC_TYPE_WARNING":
+      case 'STATIC_TYPE_WARNING':
         return STATIC_TYPE_WARNING;
-      case "STATIC_WARNING":
+      case 'STATIC_WARNING':
         return STATIC_WARNING;
-      case "SYNTACTIC_ERROR":
+      case 'SYNTACTIC_ERROR':
         return SYNTACTIC_ERROR;
-      case "TODO":
+      case 'TODO':
         return TODO;
     }
     throw Exception('Illegal enum value: $name');
@@ -453,11 +453,11 @@ class AnalysisErrorType implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "AnalysisErrorType", json);
+    throw jsonDecoder.mismatch(jsonPath, 'AnalysisErrorType', json);
   }
 
   @override
-  String toString() => "AnalysisErrorType.$name";
+  String toString() => 'AnalysisErrorType.$name';
 
   String toJson() => name;
 }
@@ -490,30 +490,30 @@ class ChangeContentOverlay implements HasToJson {
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     json ??= {};
     if (json is Map) {
-      if (json["type"] != "change") {
-        throw jsonDecoder.mismatch(jsonPath, "equal change", json);
+      if (json['type'] != 'change') {
+        throw jsonDecoder.mismatch(jsonPath, 'equal change', json);
       }
       List<SourceEdit> edits;
-      if (json.containsKey("edits")) {
+      if (json.containsKey('edits')) {
         edits = jsonDecoder.decodeList(
-            jsonPath + ".edits",
-            json["edits"],
+            jsonPath + '.edits',
+            json['edits'],
             (String jsonPath, Object json) =>
                 SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "edits");
+        throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
       return ChangeContentOverlay(edits);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "ChangeContentOverlay", json);
+      throw jsonDecoder.mismatch(jsonPath, 'ChangeContentOverlay', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["type"] = "change";
-    result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
+    result['type'] = 'change';
+    result['edits'] = edits.map((SourceEdit value) => value.toJson()).toList();
     return result;
   }
 
@@ -904,132 +904,132 @@ class CompletionSuggestion implements HasToJson {
     json ??= {};
     if (json is Map) {
       CompletionSuggestionKind kind;
-      if (json.containsKey("kind")) {
+      if (json.containsKey('kind')) {
         kind = CompletionSuggestionKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+            jsonDecoder, jsonPath + '.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "kind");
+        throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
       int relevance;
-      if (json.containsKey("relevance")) {
+      if (json.containsKey('relevance')) {
         relevance =
-            jsonDecoder.decodeInt(jsonPath + ".relevance", json["relevance"]);
+            jsonDecoder.decodeInt(jsonPath + '.relevance', json['relevance']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "relevance");
+        throw jsonDecoder.mismatch(jsonPath, 'relevance');
       }
       String completion;
-      if (json.containsKey("completion")) {
+      if (json.containsKey('completion')) {
         completion = jsonDecoder.decodeString(
-            jsonPath + ".completion", json["completion"]);
+            jsonPath + '.completion', json['completion']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "completion");
+        throw jsonDecoder.mismatch(jsonPath, 'completion');
       }
       String displayText;
-      if (json.containsKey("displayText")) {
+      if (json.containsKey('displayText')) {
         displayText = jsonDecoder.decodeString(
-            jsonPath + ".displayText", json["displayText"]);
+            jsonPath + '.displayText', json['displayText']);
       }
       int selectionOffset;
-      if (json.containsKey("selectionOffset")) {
+      if (json.containsKey('selectionOffset')) {
         selectionOffset = jsonDecoder.decodeInt(
-            jsonPath + ".selectionOffset", json["selectionOffset"]);
+            jsonPath + '.selectionOffset', json['selectionOffset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "selectionOffset");
+        throw jsonDecoder.mismatch(jsonPath, 'selectionOffset');
       }
       int selectionLength;
-      if (json.containsKey("selectionLength")) {
+      if (json.containsKey('selectionLength')) {
         selectionLength = jsonDecoder.decodeInt(
-            jsonPath + ".selectionLength", json["selectionLength"]);
+            jsonPath + '.selectionLength', json['selectionLength']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "selectionLength");
+        throw jsonDecoder.mismatch(jsonPath, 'selectionLength');
       }
       bool isDeprecated;
-      if (json.containsKey("isDeprecated")) {
+      if (json.containsKey('isDeprecated')) {
         isDeprecated = jsonDecoder.decodeBool(
-            jsonPath + ".isDeprecated", json["isDeprecated"]);
+            jsonPath + '.isDeprecated', json['isDeprecated']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "isDeprecated");
+        throw jsonDecoder.mismatch(jsonPath, 'isDeprecated');
       }
       bool isPotential;
-      if (json.containsKey("isPotential")) {
+      if (json.containsKey('isPotential')) {
         isPotential = jsonDecoder.decodeBool(
-            jsonPath + ".isPotential", json["isPotential"]);
+            jsonPath + '.isPotential', json['isPotential']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "isPotential");
+        throw jsonDecoder.mismatch(jsonPath, 'isPotential');
       }
       String docSummary;
-      if (json.containsKey("docSummary")) {
+      if (json.containsKey('docSummary')) {
         docSummary = jsonDecoder.decodeString(
-            jsonPath + ".docSummary", json["docSummary"]);
+            jsonPath + '.docSummary', json['docSummary']);
       }
       String docComplete;
-      if (json.containsKey("docComplete")) {
+      if (json.containsKey('docComplete')) {
         docComplete = jsonDecoder.decodeString(
-            jsonPath + ".docComplete", json["docComplete"]);
+            jsonPath + '.docComplete', json['docComplete']);
       }
       String declaringType;
-      if (json.containsKey("declaringType")) {
+      if (json.containsKey('declaringType')) {
         declaringType = jsonDecoder.decodeString(
-            jsonPath + ".declaringType", json["declaringType"]);
+            jsonPath + '.declaringType', json['declaringType']);
       }
       String defaultArgumentListString;
-      if (json.containsKey("defaultArgumentListString")) {
+      if (json.containsKey('defaultArgumentListString')) {
         defaultArgumentListString = jsonDecoder.decodeString(
-            jsonPath + ".defaultArgumentListString",
-            json["defaultArgumentListString"]);
+            jsonPath + '.defaultArgumentListString',
+            json['defaultArgumentListString']);
       }
       List<int> defaultArgumentListTextRanges;
-      if (json.containsKey("defaultArgumentListTextRanges")) {
+      if (json.containsKey('defaultArgumentListTextRanges')) {
         defaultArgumentListTextRanges = jsonDecoder.decodeList(
-            jsonPath + ".defaultArgumentListTextRanges",
-            json["defaultArgumentListTextRanges"],
+            jsonPath + '.defaultArgumentListTextRanges',
+            json['defaultArgumentListTextRanges'],
             jsonDecoder.decodeInt);
       }
       Element element;
-      if (json.containsKey("element")) {
+      if (json.containsKey('element')) {
         element = Element.fromJson(
-            jsonDecoder, jsonPath + ".element", json["element"]);
+            jsonDecoder, jsonPath + '.element', json['element']);
       }
       String returnType;
-      if (json.containsKey("returnType")) {
+      if (json.containsKey('returnType')) {
         returnType = jsonDecoder.decodeString(
-            jsonPath + ".returnType", json["returnType"]);
+            jsonPath + '.returnType', json['returnType']);
       }
       List<String> parameterNames;
-      if (json.containsKey("parameterNames")) {
-        parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames",
-            json["parameterNames"], jsonDecoder.decodeString);
+      if (json.containsKey('parameterNames')) {
+        parameterNames = jsonDecoder.decodeList(jsonPath + '.parameterNames',
+            json['parameterNames'], jsonDecoder.decodeString);
       }
       List<String> parameterTypes;
-      if (json.containsKey("parameterTypes")) {
-        parameterTypes = jsonDecoder.decodeList(jsonPath + ".parameterTypes",
-            json["parameterTypes"], jsonDecoder.decodeString);
+      if (json.containsKey('parameterTypes')) {
+        parameterTypes = jsonDecoder.decodeList(jsonPath + '.parameterTypes',
+            json['parameterTypes'], jsonDecoder.decodeString);
       }
       int requiredParameterCount;
-      if (json.containsKey("requiredParameterCount")) {
+      if (json.containsKey('requiredParameterCount')) {
         requiredParameterCount = jsonDecoder.decodeInt(
-            jsonPath + ".requiredParameterCount",
-            json["requiredParameterCount"]);
+            jsonPath + '.requiredParameterCount',
+            json['requiredParameterCount']);
       }
       bool hasNamedParameters;
-      if (json.containsKey("hasNamedParameters")) {
+      if (json.containsKey('hasNamedParameters')) {
         hasNamedParameters = jsonDecoder.decodeBool(
-            jsonPath + ".hasNamedParameters", json["hasNamedParameters"]);
+            jsonPath + '.hasNamedParameters', json['hasNamedParameters']);
       }
       String parameterName;
-      if (json.containsKey("parameterName")) {
+      if (json.containsKey('parameterName')) {
         parameterName = jsonDecoder.decodeString(
-            jsonPath + ".parameterName", json["parameterName"]);
+            jsonPath + '.parameterName', json['parameterName']);
       }
       String parameterType;
-      if (json.containsKey("parameterType")) {
+      if (json.containsKey('parameterType')) {
         parameterType = jsonDecoder.decodeString(
-            jsonPath + ".parameterType", json["parameterType"]);
+            jsonPath + '.parameterType', json['parameterType']);
       }
       String importUri;
-      if (json.containsKey("importUri")) {
+      if (json.containsKey('importUri')) {
         importUri = jsonDecoder.decodeString(
-            jsonPath + ".importUri", json["importUri"]);
+            jsonPath + '.importUri', json['importUri']);
       }
       return CompletionSuggestion(kind, relevance, completion, selectionOffset,
           selectionLength, isDeprecated, isPotential,
@@ -1049,64 +1049,64 @@ class CompletionSuggestion implements HasToJson {
           parameterType: parameterType,
           importUri: importUri);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestion", json);
+      throw jsonDecoder.mismatch(jsonPath, 'CompletionSuggestion', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kind"] = kind.toJson();
-    result["relevance"] = relevance;
-    result["completion"] = completion;
+    result['kind'] = kind.toJson();
+    result['relevance'] = relevance;
+    result['completion'] = completion;
     if (displayText != null) {
-      result["displayText"] = displayText;
+      result['displayText'] = displayText;
     }
-    result["selectionOffset"] = selectionOffset;
-    result["selectionLength"] = selectionLength;
-    result["isDeprecated"] = isDeprecated;
-    result["isPotential"] = isPotential;
+    result['selectionOffset'] = selectionOffset;
+    result['selectionLength'] = selectionLength;
+    result['isDeprecated'] = isDeprecated;
+    result['isPotential'] = isPotential;
     if (docSummary != null) {
-      result["docSummary"] = docSummary;
+      result['docSummary'] = docSummary;
     }
     if (docComplete != null) {
-      result["docComplete"] = docComplete;
+      result['docComplete'] = docComplete;
     }
     if (declaringType != null) {
-      result["declaringType"] = declaringType;
+      result['declaringType'] = declaringType;
     }
     if (defaultArgumentListString != null) {
-      result["defaultArgumentListString"] = defaultArgumentListString;
+      result['defaultArgumentListString'] = defaultArgumentListString;
     }
     if (defaultArgumentListTextRanges != null) {
-      result["defaultArgumentListTextRanges"] = defaultArgumentListTextRanges;
+      result['defaultArgumentListTextRanges'] = defaultArgumentListTextRanges;
     }
     if (element != null) {
-      result["element"] = element.toJson();
+      result['element'] = element.toJson();
     }
     if (returnType != null) {
-      result["returnType"] = returnType;
+      result['returnType'] = returnType;
     }
     if (parameterNames != null) {
-      result["parameterNames"] = parameterNames;
+      result['parameterNames'] = parameterNames;
     }
     if (parameterTypes != null) {
-      result["parameterTypes"] = parameterTypes;
+      result['parameterTypes'] = parameterTypes;
     }
     if (requiredParameterCount != null) {
-      result["requiredParameterCount"] = requiredParameterCount;
+      result['requiredParameterCount'] = requiredParameterCount;
     }
     if (hasNamedParameters != null) {
-      result["hasNamedParameters"] = hasNamedParameters;
+      result['hasNamedParameters'] = hasNamedParameters;
     }
     if (parameterName != null) {
-      result["parameterName"] = parameterName;
+      result['parameterName'] = parameterName;
     }
     if (parameterType != null) {
-      result["parameterType"] = parameterType;
+      result['parameterType'] = parameterType;
     }
     if (importUri != null) {
-      result["importUri"] = importUri;
+      result['importUri'] = importUri;
     }
     return result;
   }
@@ -1196,44 +1196,44 @@ class CompletionSuggestionKind implements Enum {
   /// the invocation and the parameterNames, parameterTypes, and
   /// requiredParameterCount attributes are defined.
   static const CompletionSuggestionKind ARGUMENT_LIST =
-      CompletionSuggestionKind._("ARGUMENT_LIST");
+      CompletionSuggestionKind._('ARGUMENT_LIST');
 
   static const CompletionSuggestionKind IMPORT =
-      CompletionSuggestionKind._("IMPORT");
+      CompletionSuggestionKind._('IMPORT');
 
   /// The element identifier should be inserted at the completion location. For
   /// example "someMethod" in import 'myLib.dart' show someMethod;. For
   /// suggestions of this kind, the element attribute is defined and the
   /// completion field is the element's identifier.
   static const CompletionSuggestionKind IDENTIFIER =
-      CompletionSuggestionKind._("IDENTIFIER");
+      CompletionSuggestionKind._('IDENTIFIER');
 
   /// The element is being invoked at the completion location. For example,
   /// 'someMethod' in x.someMethod();. For suggestions of this kind, the element
   /// attribute is defined and the completion field is the element's identifier.
   static const CompletionSuggestionKind INVOCATION =
-      CompletionSuggestionKind._("INVOCATION");
+      CompletionSuggestionKind._('INVOCATION');
 
   /// A keyword is being suggested. For suggestions of this kind, the completion
   /// is the keyword.
   static const CompletionSuggestionKind KEYWORD =
-      CompletionSuggestionKind._("KEYWORD");
+      CompletionSuggestionKind._('KEYWORD');
 
   /// A named argument for the current call site is being suggested. For
   /// suggestions of this kind, the completion is the named argument identifier
   /// including a trailing ':' and a space.
   static const CompletionSuggestionKind NAMED_ARGUMENT =
-      CompletionSuggestionKind._("NAMED_ARGUMENT");
+      CompletionSuggestionKind._('NAMED_ARGUMENT');
 
   static const CompletionSuggestionKind OPTIONAL_ARGUMENT =
-      CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
+      CompletionSuggestionKind._('OPTIONAL_ARGUMENT');
 
   /// An overriding implementation of a class member is being suggested.
   static const CompletionSuggestionKind OVERRIDE =
-      CompletionSuggestionKind._("OVERRIDE");
+      CompletionSuggestionKind._('OVERRIDE');
 
   static const CompletionSuggestionKind PARAMETER =
-      CompletionSuggestionKind._("PARAMETER");
+      CompletionSuggestionKind._('PARAMETER');
 
   /// A list containing all of the enum values that are defined.
   static const List<CompletionSuggestionKind> VALUES =
@@ -1256,23 +1256,23 @@ class CompletionSuggestionKind implements Enum {
 
   factory CompletionSuggestionKind(String name) {
     switch (name) {
-      case "ARGUMENT_LIST":
+      case 'ARGUMENT_LIST':
         return ARGUMENT_LIST;
-      case "IMPORT":
+      case 'IMPORT':
         return IMPORT;
-      case "IDENTIFIER":
+      case 'IDENTIFIER':
         return IDENTIFIER;
-      case "INVOCATION":
+      case 'INVOCATION':
         return INVOCATION;
-      case "KEYWORD":
+      case 'KEYWORD':
         return KEYWORD;
-      case "NAMED_ARGUMENT":
+      case 'NAMED_ARGUMENT':
         return NAMED_ARGUMENT;
-      case "OPTIONAL_ARGUMENT":
+      case 'OPTIONAL_ARGUMENT':
         return OPTIONAL_ARGUMENT;
-      case "OVERRIDE":
+      case 'OVERRIDE':
         return OVERRIDE;
-      case "PARAMETER":
+      case 'PARAMETER':
         return PARAMETER;
     }
     throw Exception('Illegal enum value: $name');
@@ -1287,11 +1287,11 @@ class CompletionSuggestionKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "CompletionSuggestionKind", json);
+    throw jsonDecoder.mismatch(jsonPath, 'CompletionSuggestionKind', json);
   }
 
   @override
-  String toString() => "CompletionSuggestionKind.$name";
+  String toString() => 'CompletionSuggestionKind.$name';
 
   String toJson() => name;
 }
@@ -1456,43 +1456,43 @@ class Element implements HasToJson {
     json ??= {};
     if (json is Map) {
       ElementKind kind;
-      if (json.containsKey("kind")) {
+      if (json.containsKey('kind')) {
         kind =
-            ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+            ElementKind.fromJson(jsonDecoder, jsonPath + '.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "kind");
+        throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
       String name;
-      if (json.containsKey("name")) {
-        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      if (json.containsKey('name')) {
+        name = jsonDecoder.decodeString(jsonPath + '.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "name");
+        throw jsonDecoder.mismatch(jsonPath, 'name');
       }
       Location location;
-      if (json.containsKey("location")) {
+      if (json.containsKey('location')) {
         location = Location.fromJson(
-            jsonDecoder, jsonPath + ".location", json["location"]);
+            jsonDecoder, jsonPath + '.location', json['location']);
       }
       int flags;
-      if (json.containsKey("flags")) {
-        flags = jsonDecoder.decodeInt(jsonPath + ".flags", json["flags"]);
+      if (json.containsKey('flags')) {
+        flags = jsonDecoder.decodeInt(jsonPath + '.flags', json['flags']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "flags");
+        throw jsonDecoder.mismatch(jsonPath, 'flags');
       }
       String parameters;
-      if (json.containsKey("parameters")) {
+      if (json.containsKey('parameters')) {
         parameters = jsonDecoder.decodeString(
-            jsonPath + ".parameters", json["parameters"]);
+            jsonPath + '.parameters', json['parameters']);
       }
       String returnType;
-      if (json.containsKey("returnType")) {
+      if (json.containsKey('returnType')) {
         returnType = jsonDecoder.decodeString(
-            jsonPath + ".returnType", json["returnType"]);
+            jsonPath + '.returnType', json['returnType']);
       }
       String typeParameters;
-      if (json.containsKey("typeParameters")) {
+      if (json.containsKey('typeParameters')) {
         typeParameters = jsonDecoder.decodeString(
-            jsonPath + ".typeParameters", json["typeParameters"]);
+            jsonPath + '.typeParameters', json['typeParameters']);
       }
       return Element(kind, name, flags,
           location: location,
@@ -1500,7 +1500,7 @@ class Element implements HasToJson {
           returnType: returnType,
           typeParameters: typeParameters);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Element", json);
+      throw jsonDecoder.mismatch(jsonPath, 'Element', json);
     }
   }
 
@@ -1514,20 +1514,20 @@ class Element implements HasToJson {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kind"] = kind.toJson();
-    result["name"] = name;
+    result['kind'] = kind.toJson();
+    result['name'] = name;
     if (location != null) {
-      result["location"] = location.toJson();
+      result['location'] = location.toJson();
     }
-    result["flags"] = flags;
+    result['flags'] = flags;
     if (parameters != null) {
-      result["parameters"] = parameters;
+      result['parameters'] = parameters;
     }
     if (returnType != null) {
-      result["returnType"] = returnType;
+      result['returnType'] = returnType;
     }
     if (typeParameters != null) {
-      result["typeParameters"] = typeParameters;
+      result['typeParameters'] = typeParameters;
     }
     return result;
   }
@@ -1596,61 +1596,61 @@ class Element implements HasToJson {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class ElementKind implements Enum {
-  static const ElementKind CLASS = ElementKind._("CLASS");
+  static const ElementKind CLASS = ElementKind._('CLASS');
 
-  static const ElementKind CLASS_TYPE_ALIAS = ElementKind._("CLASS_TYPE_ALIAS");
+  static const ElementKind CLASS_TYPE_ALIAS = ElementKind._('CLASS_TYPE_ALIAS');
 
-  static const ElementKind COMPILATION_UNIT = ElementKind._("COMPILATION_UNIT");
+  static const ElementKind COMPILATION_UNIT = ElementKind._('COMPILATION_UNIT');
 
-  static const ElementKind CONSTRUCTOR = ElementKind._("CONSTRUCTOR");
+  static const ElementKind CONSTRUCTOR = ElementKind._('CONSTRUCTOR');
 
   static const ElementKind CONSTRUCTOR_INVOCATION =
-      ElementKind._("CONSTRUCTOR_INVOCATION");
+      ElementKind._('CONSTRUCTOR_INVOCATION');
 
-  static const ElementKind ENUM = ElementKind._("ENUM");
+  static const ElementKind ENUM = ElementKind._('ENUM');
 
-  static const ElementKind ENUM_CONSTANT = ElementKind._("ENUM_CONSTANT");
+  static const ElementKind ENUM_CONSTANT = ElementKind._('ENUM_CONSTANT');
 
-  static const ElementKind FIELD = ElementKind._("FIELD");
+  static const ElementKind FIELD = ElementKind._('FIELD');
 
-  static const ElementKind FILE = ElementKind._("FILE");
+  static const ElementKind FILE = ElementKind._('FILE');
 
-  static const ElementKind FUNCTION = ElementKind._("FUNCTION");
+  static const ElementKind FUNCTION = ElementKind._('FUNCTION');
 
   static const ElementKind FUNCTION_INVOCATION =
-      ElementKind._("FUNCTION_INVOCATION");
+      ElementKind._('FUNCTION_INVOCATION');
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind._("FUNCTION_TYPE_ALIAS");
+      ElementKind._('FUNCTION_TYPE_ALIAS');
 
-  static const ElementKind GETTER = ElementKind._("GETTER");
+  static const ElementKind GETTER = ElementKind._('GETTER');
 
-  static const ElementKind LABEL = ElementKind._("LABEL");
+  static const ElementKind LABEL = ElementKind._('LABEL');
 
-  static const ElementKind LIBRARY = ElementKind._("LIBRARY");
+  static const ElementKind LIBRARY = ElementKind._('LIBRARY');
 
-  static const ElementKind LOCAL_VARIABLE = ElementKind._("LOCAL_VARIABLE");
+  static const ElementKind LOCAL_VARIABLE = ElementKind._('LOCAL_VARIABLE');
 
-  static const ElementKind METHOD = ElementKind._("METHOD");
+  static const ElementKind METHOD = ElementKind._('METHOD');
 
-  static const ElementKind MIXIN = ElementKind._("MIXIN");
+  static const ElementKind MIXIN = ElementKind._('MIXIN');
 
-  static const ElementKind PARAMETER = ElementKind._("PARAMETER");
+  static const ElementKind PARAMETER = ElementKind._('PARAMETER');
 
-  static const ElementKind PREFIX = ElementKind._("PREFIX");
+  static const ElementKind PREFIX = ElementKind._('PREFIX');
 
-  static const ElementKind SETTER = ElementKind._("SETTER");
+  static const ElementKind SETTER = ElementKind._('SETTER');
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind._("TOP_LEVEL_VARIABLE");
+      ElementKind._('TOP_LEVEL_VARIABLE');
 
-  static const ElementKind TYPE_PARAMETER = ElementKind._("TYPE_PARAMETER");
+  static const ElementKind TYPE_PARAMETER = ElementKind._('TYPE_PARAMETER');
 
-  static const ElementKind UNIT_TEST_GROUP = ElementKind._("UNIT_TEST_GROUP");
+  static const ElementKind UNIT_TEST_GROUP = ElementKind._('UNIT_TEST_GROUP');
 
-  static const ElementKind UNIT_TEST_TEST = ElementKind._("UNIT_TEST_TEST");
+  static const ElementKind UNIT_TEST_TEST = ElementKind._('UNIT_TEST_TEST');
 
-  static const ElementKind UNKNOWN = ElementKind._("UNKNOWN");
+  static const ElementKind UNKNOWN = ElementKind._('UNKNOWN');
 
   /// A list containing all of the enum values that are defined.
   static const List<ElementKind> VALUES = <ElementKind>[
@@ -1689,57 +1689,57 @@ class ElementKind implements Enum {
 
   factory ElementKind(String name) {
     switch (name) {
-      case "CLASS":
+      case 'CLASS':
         return CLASS;
-      case "CLASS_TYPE_ALIAS":
+      case 'CLASS_TYPE_ALIAS':
         return CLASS_TYPE_ALIAS;
-      case "COMPILATION_UNIT":
+      case 'COMPILATION_UNIT':
         return COMPILATION_UNIT;
-      case "CONSTRUCTOR":
+      case 'CONSTRUCTOR':
         return CONSTRUCTOR;
-      case "CONSTRUCTOR_INVOCATION":
+      case 'CONSTRUCTOR_INVOCATION':
         return CONSTRUCTOR_INVOCATION;
-      case "ENUM":
+      case 'ENUM':
         return ENUM;
-      case "ENUM_CONSTANT":
+      case 'ENUM_CONSTANT':
         return ENUM_CONSTANT;
-      case "FIELD":
+      case 'FIELD':
         return FIELD;
-      case "FILE":
+      case 'FILE':
         return FILE;
-      case "FUNCTION":
+      case 'FUNCTION':
         return FUNCTION;
-      case "FUNCTION_INVOCATION":
+      case 'FUNCTION_INVOCATION':
         return FUNCTION_INVOCATION;
-      case "FUNCTION_TYPE_ALIAS":
+      case 'FUNCTION_TYPE_ALIAS':
         return FUNCTION_TYPE_ALIAS;
-      case "GETTER":
+      case 'GETTER':
         return GETTER;
-      case "LABEL":
+      case 'LABEL':
         return LABEL;
-      case "LIBRARY":
+      case 'LIBRARY':
         return LIBRARY;
-      case "LOCAL_VARIABLE":
+      case 'LOCAL_VARIABLE':
         return LOCAL_VARIABLE;
-      case "METHOD":
+      case 'METHOD':
         return METHOD;
-      case "MIXIN":
+      case 'MIXIN':
         return MIXIN;
-      case "PARAMETER":
+      case 'PARAMETER':
         return PARAMETER;
-      case "PREFIX":
+      case 'PREFIX':
         return PREFIX;
-      case "SETTER":
+      case 'SETTER':
         return SETTER;
-      case "TOP_LEVEL_VARIABLE":
+      case 'TOP_LEVEL_VARIABLE':
         return TOP_LEVEL_VARIABLE;
-      case "TYPE_PARAMETER":
+      case 'TYPE_PARAMETER':
         return TYPE_PARAMETER;
-      case "UNIT_TEST_GROUP":
+      case 'UNIT_TEST_GROUP':
         return UNIT_TEST_GROUP;
-      case "UNIT_TEST_TEST":
+      case 'UNIT_TEST_TEST':
         return UNIT_TEST_TEST;
-      case "UNKNOWN":
+      case 'UNKNOWN':
         return UNKNOWN;
     }
     throw Exception('Illegal enum value: $name');
@@ -1754,11 +1754,11 @@ class ElementKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "ElementKind", json);
+    throw jsonDecoder.mismatch(jsonPath, 'ElementKind', json);
   }
 
   @override
-  String toString() => "ElementKind.$name";
+  String toString() => 'ElementKind.$name';
 
   String toJson() => name;
 }
@@ -1778,22 +1778,22 @@ class ElementKind implements Enum {
 ///
 /// Clients may not extend, implement or mix-in this class.
 class FoldingKind implements Enum {
-  static const FoldingKind ANNOTATIONS = FoldingKind._("ANNOTATIONS");
+  static const FoldingKind ANNOTATIONS = FoldingKind._('ANNOTATIONS');
 
-  static const FoldingKind CLASS_BODY = FoldingKind._("CLASS_BODY");
+  static const FoldingKind CLASS_BODY = FoldingKind._('CLASS_BODY');
 
-  static const FoldingKind DIRECTIVES = FoldingKind._("DIRECTIVES");
+  static const FoldingKind DIRECTIVES = FoldingKind._('DIRECTIVES');
 
   static const FoldingKind DOCUMENTATION_COMMENT =
-      FoldingKind._("DOCUMENTATION_COMMENT");
+      FoldingKind._('DOCUMENTATION_COMMENT');
 
-  static const FoldingKind FILE_HEADER = FoldingKind._("FILE_HEADER");
+  static const FoldingKind FILE_HEADER = FoldingKind._('FILE_HEADER');
 
-  static const FoldingKind FUNCTION_BODY = FoldingKind._("FUNCTION_BODY");
+  static const FoldingKind FUNCTION_BODY = FoldingKind._('FUNCTION_BODY');
 
-  static const FoldingKind INVOCATION = FoldingKind._("INVOCATION");
+  static const FoldingKind INVOCATION = FoldingKind._('INVOCATION');
 
-  static const FoldingKind LITERAL = FoldingKind._("LITERAL");
+  static const FoldingKind LITERAL = FoldingKind._('LITERAL');
 
   /// A list containing all of the enum values that are defined.
   static const List<FoldingKind> VALUES = <FoldingKind>[
@@ -1814,21 +1814,21 @@ class FoldingKind implements Enum {
 
   factory FoldingKind(String name) {
     switch (name) {
-      case "ANNOTATIONS":
+      case 'ANNOTATIONS':
         return ANNOTATIONS;
-      case "CLASS_BODY":
+      case 'CLASS_BODY':
         return CLASS_BODY;
-      case "DIRECTIVES":
+      case 'DIRECTIVES':
         return DIRECTIVES;
-      case "DOCUMENTATION_COMMENT":
+      case 'DOCUMENTATION_COMMENT':
         return DOCUMENTATION_COMMENT;
-      case "FILE_HEADER":
+      case 'FILE_HEADER':
         return FILE_HEADER;
-      case "FUNCTION_BODY":
+      case 'FUNCTION_BODY':
         return FUNCTION_BODY;
-      case "INVOCATION":
+      case 'INVOCATION':
         return INVOCATION;
-      case "LITERAL":
+      case 'LITERAL':
         return LITERAL;
     }
     throw Exception('Illegal enum value: $name');
@@ -1843,11 +1843,11 @@ class FoldingKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "FoldingKind", json);
+    throw jsonDecoder.mismatch(jsonPath, 'FoldingKind', json);
   }
 
   @override
-  String toString() => "FoldingKind.$name";
+  String toString() => 'FoldingKind.$name';
 
   String toJson() => name;
 }
@@ -1906,36 +1906,36 @@ class FoldingRegion implements HasToJson {
     json ??= {};
     if (json is Map) {
       FoldingKind kind;
-      if (json.containsKey("kind")) {
+      if (json.containsKey('kind')) {
         kind =
-            FoldingKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+            FoldingKind.fromJson(jsonDecoder, jsonPath + '.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "kind");
+        throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       return FoldingRegion(kind, offset, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "FoldingRegion", json);
+      throw jsonDecoder.mismatch(jsonPath, 'FoldingRegion', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kind"] = kind.toJson();
-    result["offset"] = offset;
-    result["length"] = length;
+    result['kind'] = kind.toJson();
+    result['offset'] = offset;
+    result['length'] = length;
     return result;
   }
 
@@ -2016,36 +2016,36 @@ class HighlightRegion implements HasToJson {
     json ??= {};
     if (json is Map) {
       HighlightRegionType type;
-      if (json.containsKey("type")) {
+      if (json.containsKey('type')) {
         type = HighlightRegionType.fromJson(
-            jsonDecoder, jsonPath + ".type", json["type"]);
+            jsonDecoder, jsonPath + '.type', json['type']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "type");
+        throw jsonDecoder.mismatch(jsonPath, 'type');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       return HighlightRegion(type, offset, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "HighlightRegion", json);
+      throw jsonDecoder.mismatch(jsonPath, 'HighlightRegion', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["type"] = type.toJson();
-    result["offset"] = offset;
-    result["length"] = length;
+    result['type'] = type.toJson();
+    result['offset'] = offset;
+    result['length'] = length;
     return result;
   }
 
@@ -2153,264 +2153,264 @@ class HighlightRegion implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class HighlightRegionType implements Enum {
   static const HighlightRegionType ANNOTATION =
-      HighlightRegionType._("ANNOTATION");
+      HighlightRegionType._('ANNOTATION');
 
-  static const HighlightRegionType BUILT_IN = HighlightRegionType._("BUILT_IN");
+  static const HighlightRegionType BUILT_IN = HighlightRegionType._('BUILT_IN');
 
-  static const HighlightRegionType CLASS = HighlightRegionType._("CLASS");
+  static const HighlightRegionType CLASS = HighlightRegionType._('CLASS');
 
   static const HighlightRegionType COMMENT_BLOCK =
-      HighlightRegionType._("COMMENT_BLOCK");
+      HighlightRegionType._('COMMENT_BLOCK');
 
   static const HighlightRegionType COMMENT_DOCUMENTATION =
-      HighlightRegionType._("COMMENT_DOCUMENTATION");
+      HighlightRegionType._('COMMENT_DOCUMENTATION');
 
   static const HighlightRegionType COMMENT_END_OF_LINE =
-      HighlightRegionType._("COMMENT_END_OF_LINE");
+      HighlightRegionType._('COMMENT_END_OF_LINE');
 
   static const HighlightRegionType CONSTRUCTOR =
-      HighlightRegionType._("CONSTRUCTOR");
+      HighlightRegionType._('CONSTRUCTOR');
 
   static const HighlightRegionType DIRECTIVE =
-      HighlightRegionType._("DIRECTIVE");
+      HighlightRegionType._('DIRECTIVE');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType DYNAMIC_TYPE =
-      HighlightRegionType._("DYNAMIC_TYPE");
+      HighlightRegionType._('DYNAMIC_TYPE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION =
-      HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
+      HighlightRegionType._('DYNAMIC_LOCAL_VARIABLE_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE =
-      HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
+      HighlightRegionType._('DYNAMIC_LOCAL_VARIABLE_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION =
-      HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
+      HighlightRegionType._('DYNAMIC_PARAMETER_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE =
-      HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
+      HighlightRegionType._('DYNAMIC_PARAMETER_REFERENCE');
 
-  static const HighlightRegionType ENUM = HighlightRegionType._("ENUM");
+  static const HighlightRegionType ENUM = HighlightRegionType._('ENUM');
 
   static const HighlightRegionType ENUM_CONSTANT =
-      HighlightRegionType._("ENUM_CONSTANT");
+      HighlightRegionType._('ENUM_CONSTANT');
 
   /// Only for version 1 of highlight.
-  static const HighlightRegionType FIELD = HighlightRegionType._("FIELD");
+  static const HighlightRegionType FIELD = HighlightRegionType._('FIELD');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType FIELD_STATIC =
-      HighlightRegionType._("FIELD_STATIC");
+      HighlightRegionType._('FIELD_STATIC');
 
   /// Only for version 1 of highlight.
-  static const HighlightRegionType FUNCTION = HighlightRegionType._("FUNCTION");
+  static const HighlightRegionType FUNCTION = HighlightRegionType._('FUNCTION');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType FUNCTION_DECLARATION =
-      HighlightRegionType._("FUNCTION_DECLARATION");
+      HighlightRegionType._('FUNCTION_DECLARATION');
 
   static const HighlightRegionType FUNCTION_TYPE_ALIAS =
-      HighlightRegionType._("FUNCTION_TYPE_ALIAS");
+      HighlightRegionType._('FUNCTION_TYPE_ALIAS');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType GETTER_DECLARATION =
-      HighlightRegionType._("GETTER_DECLARATION");
+      HighlightRegionType._('GETTER_DECLARATION');
 
   static const HighlightRegionType IDENTIFIER_DEFAULT =
-      HighlightRegionType._("IDENTIFIER_DEFAULT");
+      HighlightRegionType._('IDENTIFIER_DEFAULT');
 
   static const HighlightRegionType IMPORT_PREFIX =
-      HighlightRegionType._("IMPORT_PREFIX");
+      HighlightRegionType._('IMPORT_PREFIX');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_FIELD_DECLARATION =
-      HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
+      HighlightRegionType._('INSTANCE_FIELD_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_FIELD_REFERENCE =
-      HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
+      HighlightRegionType._('INSTANCE_FIELD_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_GETTER_DECLARATION =
-      HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
+      HighlightRegionType._('INSTANCE_GETTER_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_GETTER_REFERENCE =
-      HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
+      HighlightRegionType._('INSTANCE_GETTER_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_METHOD_DECLARATION =
-      HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
+      HighlightRegionType._('INSTANCE_METHOD_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_METHOD_REFERENCE =
-      HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
+      HighlightRegionType._('INSTANCE_METHOD_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_SETTER_DECLARATION =
-      HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
+      HighlightRegionType._('INSTANCE_SETTER_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType INSTANCE_SETTER_REFERENCE =
-      HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
+      HighlightRegionType._('INSTANCE_SETTER_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType INVALID_STRING_ESCAPE =
-      HighlightRegionType._("INVALID_STRING_ESCAPE");
+      HighlightRegionType._('INVALID_STRING_ESCAPE');
 
-  static const HighlightRegionType KEYWORD = HighlightRegionType._("KEYWORD");
+  static const HighlightRegionType KEYWORD = HighlightRegionType._('KEYWORD');
 
-  static const HighlightRegionType LABEL = HighlightRegionType._("LABEL");
+  static const HighlightRegionType LABEL = HighlightRegionType._('LABEL');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType LIBRARY_NAME =
-      HighlightRegionType._("LIBRARY_NAME");
+      HighlightRegionType._('LIBRARY_NAME');
 
   static const HighlightRegionType LITERAL_BOOLEAN =
-      HighlightRegionType._("LITERAL_BOOLEAN");
+      HighlightRegionType._('LITERAL_BOOLEAN');
 
   static const HighlightRegionType LITERAL_DOUBLE =
-      HighlightRegionType._("LITERAL_DOUBLE");
+      HighlightRegionType._('LITERAL_DOUBLE');
 
   static const HighlightRegionType LITERAL_INTEGER =
-      HighlightRegionType._("LITERAL_INTEGER");
+      HighlightRegionType._('LITERAL_INTEGER');
 
   static const HighlightRegionType LITERAL_LIST =
-      HighlightRegionType._("LITERAL_LIST");
+      HighlightRegionType._('LITERAL_LIST');
 
   static const HighlightRegionType LITERAL_MAP =
-      HighlightRegionType._("LITERAL_MAP");
+      HighlightRegionType._('LITERAL_MAP');
 
   static const HighlightRegionType LITERAL_STRING =
-      HighlightRegionType._("LITERAL_STRING");
+      HighlightRegionType._('LITERAL_STRING');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_FUNCTION_DECLARATION =
-      HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
+      HighlightRegionType._('LOCAL_FUNCTION_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_FUNCTION_REFERENCE =
-      HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
+      HighlightRegionType._('LOCAL_FUNCTION_REFERENCE');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType LOCAL_VARIABLE =
-      HighlightRegionType._("LOCAL_VARIABLE");
+      HighlightRegionType._('LOCAL_VARIABLE');
 
   static const HighlightRegionType LOCAL_VARIABLE_DECLARATION =
-      HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
+      HighlightRegionType._('LOCAL_VARIABLE_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType LOCAL_VARIABLE_REFERENCE =
-      HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
+      HighlightRegionType._('LOCAL_VARIABLE_REFERENCE');
 
   /// Only for version 1 of highlight.
-  static const HighlightRegionType METHOD = HighlightRegionType._("METHOD");
+  static const HighlightRegionType METHOD = HighlightRegionType._('METHOD');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType METHOD_DECLARATION =
-      HighlightRegionType._("METHOD_DECLARATION");
+      HighlightRegionType._('METHOD_DECLARATION');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType METHOD_DECLARATION_STATIC =
-      HighlightRegionType._("METHOD_DECLARATION_STATIC");
+      HighlightRegionType._('METHOD_DECLARATION_STATIC');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType METHOD_STATIC =
-      HighlightRegionType._("METHOD_STATIC");
+      HighlightRegionType._('METHOD_STATIC');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType PARAMETER =
-      HighlightRegionType._("PARAMETER");
+      HighlightRegionType._('PARAMETER');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType SETTER_DECLARATION =
-      HighlightRegionType._("SETTER_DECLARATION");
+      HighlightRegionType._('SETTER_DECLARATION');
 
   /// Only for version 1 of highlight.
   static const HighlightRegionType TOP_LEVEL_VARIABLE =
-      HighlightRegionType._("TOP_LEVEL_VARIABLE");
+      HighlightRegionType._('TOP_LEVEL_VARIABLE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType PARAMETER_DECLARATION =
-      HighlightRegionType._("PARAMETER_DECLARATION");
+      HighlightRegionType._('PARAMETER_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType PARAMETER_REFERENCE =
-      HighlightRegionType._("PARAMETER_REFERENCE");
+      HighlightRegionType._('PARAMETER_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_FIELD_DECLARATION =
-      HighlightRegionType._("STATIC_FIELD_DECLARATION");
+      HighlightRegionType._('STATIC_FIELD_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_GETTER_DECLARATION =
-      HighlightRegionType._("STATIC_GETTER_DECLARATION");
+      HighlightRegionType._('STATIC_GETTER_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_GETTER_REFERENCE =
-      HighlightRegionType._("STATIC_GETTER_REFERENCE");
+      HighlightRegionType._('STATIC_GETTER_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_METHOD_DECLARATION =
-      HighlightRegionType._("STATIC_METHOD_DECLARATION");
+      HighlightRegionType._('STATIC_METHOD_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_METHOD_REFERENCE =
-      HighlightRegionType._("STATIC_METHOD_REFERENCE");
+      HighlightRegionType._('STATIC_METHOD_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_SETTER_DECLARATION =
-      HighlightRegionType._("STATIC_SETTER_DECLARATION");
+      HighlightRegionType._('STATIC_SETTER_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType STATIC_SETTER_REFERENCE =
-      HighlightRegionType._("STATIC_SETTER_REFERENCE");
+      HighlightRegionType._('STATIC_SETTER_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION =
-      HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
+      HighlightRegionType._('TOP_LEVEL_FUNCTION_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE =
-      HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
+      HighlightRegionType._('TOP_LEVEL_FUNCTION_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION =
-      HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
+      HighlightRegionType._('TOP_LEVEL_GETTER_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE =
-      HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
+      HighlightRegionType._('TOP_LEVEL_GETTER_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION =
-      HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
+      HighlightRegionType._('TOP_LEVEL_SETTER_DECLARATION');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE =
-      HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
+      HighlightRegionType._('TOP_LEVEL_SETTER_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION =
-      HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
+      HighlightRegionType._('TOP_LEVEL_VARIABLE_DECLARATION');
 
   static const HighlightRegionType TYPE_NAME_DYNAMIC =
-      HighlightRegionType._("TYPE_NAME_DYNAMIC");
+      HighlightRegionType._('TYPE_NAME_DYNAMIC');
 
   static const HighlightRegionType TYPE_PARAMETER =
-      HighlightRegionType._("TYPE_PARAMETER");
+      HighlightRegionType._('TYPE_PARAMETER');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE =
-      HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+      HighlightRegionType._('UNRESOLVED_INSTANCE_MEMBER_REFERENCE');
 
   /// Only for version 2 of highlight.
   static const HighlightRegionType VALID_STRING_ESCAPE =
-      HighlightRegionType._("VALID_STRING_ESCAPE");
+      HighlightRegionType._('VALID_STRING_ESCAPE');
 
   /// A list containing all of the enum values that are defined.
   static const List<HighlightRegionType> VALUES = <HighlightRegionType>[
@@ -2496,151 +2496,151 @@ class HighlightRegionType implements Enum {
 
   factory HighlightRegionType(String name) {
     switch (name) {
-      case "ANNOTATION":
+      case 'ANNOTATION':
         return ANNOTATION;
-      case "BUILT_IN":
+      case 'BUILT_IN':
         return BUILT_IN;
-      case "CLASS":
+      case 'CLASS':
         return CLASS;
-      case "COMMENT_BLOCK":
+      case 'COMMENT_BLOCK':
         return COMMENT_BLOCK;
-      case "COMMENT_DOCUMENTATION":
+      case 'COMMENT_DOCUMENTATION':
         return COMMENT_DOCUMENTATION;
-      case "COMMENT_END_OF_LINE":
+      case 'COMMENT_END_OF_LINE':
         return COMMENT_END_OF_LINE;
-      case "CONSTRUCTOR":
+      case 'CONSTRUCTOR':
         return CONSTRUCTOR;
-      case "DIRECTIVE":
+      case 'DIRECTIVE':
         return DIRECTIVE;
-      case "DYNAMIC_TYPE":
+      case 'DYNAMIC_TYPE':
         return DYNAMIC_TYPE;
-      case "DYNAMIC_LOCAL_VARIABLE_DECLARATION":
+      case 'DYNAMIC_LOCAL_VARIABLE_DECLARATION':
         return DYNAMIC_LOCAL_VARIABLE_DECLARATION;
-      case "DYNAMIC_LOCAL_VARIABLE_REFERENCE":
+      case 'DYNAMIC_LOCAL_VARIABLE_REFERENCE':
         return DYNAMIC_LOCAL_VARIABLE_REFERENCE;
-      case "DYNAMIC_PARAMETER_DECLARATION":
+      case 'DYNAMIC_PARAMETER_DECLARATION':
         return DYNAMIC_PARAMETER_DECLARATION;
-      case "DYNAMIC_PARAMETER_REFERENCE":
+      case 'DYNAMIC_PARAMETER_REFERENCE':
         return DYNAMIC_PARAMETER_REFERENCE;
-      case "ENUM":
+      case 'ENUM':
         return ENUM;
-      case "ENUM_CONSTANT":
+      case 'ENUM_CONSTANT':
         return ENUM_CONSTANT;
-      case "FIELD":
+      case 'FIELD':
         return FIELD;
-      case "FIELD_STATIC":
+      case 'FIELD_STATIC':
         return FIELD_STATIC;
-      case "FUNCTION":
+      case 'FUNCTION':
         return FUNCTION;
-      case "FUNCTION_DECLARATION":
+      case 'FUNCTION_DECLARATION':
         return FUNCTION_DECLARATION;
-      case "FUNCTION_TYPE_ALIAS":
+      case 'FUNCTION_TYPE_ALIAS':
         return FUNCTION_TYPE_ALIAS;
-      case "GETTER_DECLARATION":
+      case 'GETTER_DECLARATION':
         return GETTER_DECLARATION;
-      case "IDENTIFIER_DEFAULT":
+      case 'IDENTIFIER_DEFAULT':
         return IDENTIFIER_DEFAULT;
-      case "IMPORT_PREFIX":
+      case 'IMPORT_PREFIX':
         return IMPORT_PREFIX;
-      case "INSTANCE_FIELD_DECLARATION":
+      case 'INSTANCE_FIELD_DECLARATION':
         return INSTANCE_FIELD_DECLARATION;
-      case "INSTANCE_FIELD_REFERENCE":
+      case 'INSTANCE_FIELD_REFERENCE':
         return INSTANCE_FIELD_REFERENCE;
-      case "INSTANCE_GETTER_DECLARATION":
+      case 'INSTANCE_GETTER_DECLARATION':
         return INSTANCE_GETTER_DECLARATION;
-      case "INSTANCE_GETTER_REFERENCE":
+      case 'INSTANCE_GETTER_REFERENCE':
         return INSTANCE_GETTER_REFERENCE;
-      case "INSTANCE_METHOD_DECLARATION":
+      case 'INSTANCE_METHOD_DECLARATION':
         return INSTANCE_METHOD_DECLARATION;
-      case "INSTANCE_METHOD_REFERENCE":
+      case 'INSTANCE_METHOD_REFERENCE':
         return INSTANCE_METHOD_REFERENCE;
-      case "INSTANCE_SETTER_DECLARATION":
+      case 'INSTANCE_SETTER_DECLARATION':
         return INSTANCE_SETTER_DECLARATION;
-      case "INSTANCE_SETTER_REFERENCE":
+      case 'INSTANCE_SETTER_REFERENCE':
         return INSTANCE_SETTER_REFERENCE;
-      case "INVALID_STRING_ESCAPE":
+      case 'INVALID_STRING_ESCAPE':
         return INVALID_STRING_ESCAPE;
-      case "KEYWORD":
+      case 'KEYWORD':
         return KEYWORD;
-      case "LABEL":
+      case 'LABEL':
         return LABEL;
-      case "LIBRARY_NAME":
+      case 'LIBRARY_NAME':
         return LIBRARY_NAME;
-      case "LITERAL_BOOLEAN":
+      case 'LITERAL_BOOLEAN':
         return LITERAL_BOOLEAN;
-      case "LITERAL_DOUBLE":
+      case 'LITERAL_DOUBLE':
         return LITERAL_DOUBLE;
-      case "LITERAL_INTEGER":
+      case 'LITERAL_INTEGER':
         return LITERAL_INTEGER;
-      case "LITERAL_LIST":
+      case 'LITERAL_LIST':
         return LITERAL_LIST;
-      case "LITERAL_MAP":
+      case 'LITERAL_MAP':
         return LITERAL_MAP;
-      case "LITERAL_STRING":
+      case 'LITERAL_STRING':
         return LITERAL_STRING;
-      case "LOCAL_FUNCTION_DECLARATION":
+      case 'LOCAL_FUNCTION_DECLARATION':
         return LOCAL_FUNCTION_DECLARATION;
-      case "LOCAL_FUNCTION_REFERENCE":
+      case 'LOCAL_FUNCTION_REFERENCE':
         return LOCAL_FUNCTION_REFERENCE;
-      case "LOCAL_VARIABLE":
+      case 'LOCAL_VARIABLE':
         return LOCAL_VARIABLE;
-      case "LOCAL_VARIABLE_DECLARATION":
+      case 'LOCAL_VARIABLE_DECLARATION':
         return LOCAL_VARIABLE_DECLARATION;
-      case "LOCAL_VARIABLE_REFERENCE":
+      case 'LOCAL_VARIABLE_REFERENCE':
         return LOCAL_VARIABLE_REFERENCE;
-      case "METHOD":
+      case 'METHOD':
         return METHOD;
-      case "METHOD_DECLARATION":
+      case 'METHOD_DECLARATION':
         return METHOD_DECLARATION;
-      case "METHOD_DECLARATION_STATIC":
+      case 'METHOD_DECLARATION_STATIC':
         return METHOD_DECLARATION_STATIC;
-      case "METHOD_STATIC":
+      case 'METHOD_STATIC':
         return METHOD_STATIC;
-      case "PARAMETER":
+      case 'PARAMETER':
         return PARAMETER;
-      case "SETTER_DECLARATION":
+      case 'SETTER_DECLARATION':
         return SETTER_DECLARATION;
-      case "TOP_LEVEL_VARIABLE":
+      case 'TOP_LEVEL_VARIABLE':
         return TOP_LEVEL_VARIABLE;
-      case "PARAMETER_DECLARATION":
+      case 'PARAMETER_DECLARATION':
         return PARAMETER_DECLARATION;
-      case "PARAMETER_REFERENCE":
+      case 'PARAMETER_REFERENCE':
         return PARAMETER_REFERENCE;
-      case "STATIC_FIELD_DECLARATION":
+      case 'STATIC_FIELD_DECLARATION':
         return STATIC_FIELD_DECLARATION;
-      case "STATIC_GETTER_DECLARATION":
+      case 'STATIC_GETTER_DECLARATION':
         return STATIC_GETTER_DECLARATION;
-      case "STATIC_GETTER_REFERENCE":
+      case 'STATIC_GETTER_REFERENCE':
         return STATIC_GETTER_REFERENCE;
-      case "STATIC_METHOD_DECLARATION":
+      case 'STATIC_METHOD_DECLARATION':
         return STATIC_METHOD_DECLARATION;
-      case "STATIC_METHOD_REFERENCE":
+      case 'STATIC_METHOD_REFERENCE':
         return STATIC_METHOD_REFERENCE;
-      case "STATIC_SETTER_DECLARATION":
+      case 'STATIC_SETTER_DECLARATION':
         return STATIC_SETTER_DECLARATION;
-      case "STATIC_SETTER_REFERENCE":
+      case 'STATIC_SETTER_REFERENCE':
         return STATIC_SETTER_REFERENCE;
-      case "TOP_LEVEL_FUNCTION_DECLARATION":
+      case 'TOP_LEVEL_FUNCTION_DECLARATION':
         return TOP_LEVEL_FUNCTION_DECLARATION;
-      case "TOP_LEVEL_FUNCTION_REFERENCE":
+      case 'TOP_LEVEL_FUNCTION_REFERENCE':
         return TOP_LEVEL_FUNCTION_REFERENCE;
-      case "TOP_LEVEL_GETTER_DECLARATION":
+      case 'TOP_LEVEL_GETTER_DECLARATION':
         return TOP_LEVEL_GETTER_DECLARATION;
-      case "TOP_LEVEL_GETTER_REFERENCE":
+      case 'TOP_LEVEL_GETTER_REFERENCE':
         return TOP_LEVEL_GETTER_REFERENCE;
-      case "TOP_LEVEL_SETTER_DECLARATION":
+      case 'TOP_LEVEL_SETTER_DECLARATION':
         return TOP_LEVEL_SETTER_DECLARATION;
-      case "TOP_LEVEL_SETTER_REFERENCE":
+      case 'TOP_LEVEL_SETTER_REFERENCE':
         return TOP_LEVEL_SETTER_REFERENCE;
-      case "TOP_LEVEL_VARIABLE_DECLARATION":
+      case 'TOP_LEVEL_VARIABLE_DECLARATION':
         return TOP_LEVEL_VARIABLE_DECLARATION;
-      case "TYPE_NAME_DYNAMIC":
+      case 'TYPE_NAME_DYNAMIC':
         return TYPE_NAME_DYNAMIC;
-      case "TYPE_PARAMETER":
+      case 'TYPE_PARAMETER':
         return TYPE_PARAMETER;
-      case "UNRESOLVED_INSTANCE_MEMBER_REFERENCE":
+      case 'UNRESOLVED_INSTANCE_MEMBER_REFERENCE':
         return UNRESOLVED_INSTANCE_MEMBER_REFERENCE;
-      case "VALID_STRING_ESCAPE":
+      case 'VALID_STRING_ESCAPE':
         return VALID_STRING_ESCAPE;
     }
     throw Exception('Illegal enum value: $name');
@@ -2655,11 +2655,11 @@ class HighlightRegionType implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "HighlightRegionType", json);
+    throw jsonDecoder.mismatch(jsonPath, 'HighlightRegionType', json);
   }
 
   @override
-  String toString() => "HighlightRegionType.$name";
+  String toString() => 'HighlightRegionType.$name';
 
   String toJson() => name;
 }
@@ -2742,51 +2742,51 @@ class KytheEntry implements HasToJson {
     json ??= {};
     if (json is Map) {
       KytheVName source;
-      if (json.containsKey("source")) {
+      if (json.containsKey('source')) {
         source = KytheVName.fromJson(
-            jsonDecoder, jsonPath + ".source", json["source"]);
+            jsonDecoder, jsonPath + '.source', json['source']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "source");
+        throw jsonDecoder.mismatch(jsonPath, 'source');
       }
       String kind;
-      if (json.containsKey("kind")) {
-        kind = jsonDecoder.decodeString(jsonPath + ".kind", json["kind"]);
+      if (json.containsKey('kind')) {
+        kind = jsonDecoder.decodeString(jsonPath + '.kind', json['kind']);
       }
       KytheVName target;
-      if (json.containsKey("target")) {
+      if (json.containsKey('target')) {
         target = KytheVName.fromJson(
-            jsonDecoder, jsonPath + ".target", json["target"]);
+            jsonDecoder, jsonPath + '.target', json['target']);
       }
       String fact;
-      if (json.containsKey("fact")) {
-        fact = jsonDecoder.decodeString(jsonPath + ".fact", json["fact"]);
+      if (json.containsKey('fact')) {
+        fact = jsonDecoder.decodeString(jsonPath + '.fact', json['fact']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "fact");
+        throw jsonDecoder.mismatch(jsonPath, 'fact');
       }
       List<int> value;
-      if (json.containsKey("value")) {
+      if (json.containsKey('value')) {
         value = jsonDecoder.decodeList(
-            jsonPath + ".value", json["value"], jsonDecoder.decodeInt);
+            jsonPath + '.value', json['value'], jsonDecoder.decodeInt);
       }
       return KytheEntry(source, fact, kind: kind, target: target, value: value);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "KytheEntry", json);
+      throw jsonDecoder.mismatch(jsonPath, 'KytheEntry', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["source"] = source.toJson();
+    result['source'] = source.toJson();
     if (kind != null) {
-      result["kind"] = kind;
+      result['kind'] = kind;
     }
     if (target != null) {
-      result["target"] = target.toJson();
+      result['target'] = target.toJson();
     }
-    result["fact"] = fact;
+    result['fact'] = fact;
     if (value != null) {
-      result["value"] = value;
+      result['value'] = value;
     }
     return result;
   }
@@ -2909,51 +2909,51 @@ class KytheVName implements HasToJson {
     json ??= {};
     if (json is Map) {
       String signature;
-      if (json.containsKey("signature")) {
+      if (json.containsKey('signature')) {
         signature = jsonDecoder.decodeString(
-            jsonPath + ".signature", json["signature"]);
+            jsonPath + '.signature', json['signature']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "signature");
+        throw jsonDecoder.mismatch(jsonPath, 'signature');
       }
       String corpus;
-      if (json.containsKey("corpus")) {
-        corpus = jsonDecoder.decodeString(jsonPath + ".corpus", json["corpus"]);
+      if (json.containsKey('corpus')) {
+        corpus = jsonDecoder.decodeString(jsonPath + '.corpus', json['corpus']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "corpus");
+        throw jsonDecoder.mismatch(jsonPath, 'corpus');
       }
       String root;
-      if (json.containsKey("root")) {
-        root = jsonDecoder.decodeString(jsonPath + ".root", json["root"]);
+      if (json.containsKey('root')) {
+        root = jsonDecoder.decodeString(jsonPath + '.root', json['root']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "root");
+        throw jsonDecoder.mismatch(jsonPath, 'root');
       }
       String path;
-      if (json.containsKey("path")) {
-        path = jsonDecoder.decodeString(jsonPath + ".path", json["path"]);
+      if (json.containsKey('path')) {
+        path = jsonDecoder.decodeString(jsonPath + '.path', json['path']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "path");
+        throw jsonDecoder.mismatch(jsonPath, 'path');
       }
       String language;
-      if (json.containsKey("language")) {
+      if (json.containsKey('language')) {
         language =
-            jsonDecoder.decodeString(jsonPath + ".language", json["language"]);
+            jsonDecoder.decodeString(jsonPath + '.language', json['language']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "language");
+        throw jsonDecoder.mismatch(jsonPath, 'language');
       }
       return KytheVName(signature, corpus, root, path, language);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "KytheVName", json);
+      throw jsonDecoder.mismatch(jsonPath, 'KytheVName', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["signature"] = signature;
-    result["corpus"] = corpus;
-    result["root"] = root;
-    result["path"] = path;
-    result["language"] = language;
+    result['signature'] = signature;
+    result['corpus'] = corpus;
+    result['root'] = root;
+    result['path'] = path;
+    result['language'] = language;
     return result;
   }
 
@@ -3041,34 +3041,34 @@ class LinkedEditGroup implements HasToJson {
     json ??= {};
     if (json is Map) {
       List<Position> positions;
-      if (json.containsKey("positions")) {
+      if (json.containsKey('positions')) {
         positions = jsonDecoder.decodeList(
-            jsonPath + ".positions",
-            json["positions"],
+            jsonPath + '.positions',
+            json['positions'],
             (String jsonPath, Object json) =>
                 Position.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "positions");
+        throw jsonDecoder.mismatch(jsonPath, 'positions');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       List<LinkedEditSuggestion> suggestions;
-      if (json.containsKey("suggestions")) {
+      if (json.containsKey('suggestions')) {
         suggestions = jsonDecoder.decodeList(
-            jsonPath + ".suggestions",
-            json["suggestions"],
+            jsonPath + '.suggestions',
+            json['suggestions'],
             (String jsonPath, Object json) =>
                 LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "suggestions");
+        throw jsonDecoder.mismatch(jsonPath, 'suggestions');
       }
       return LinkedEditGroup(positions, length, suggestions);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "LinkedEditGroup", json);
+      throw jsonDecoder.mismatch(jsonPath, 'LinkedEditGroup', json);
     }
   }
 
@@ -3078,10 +3078,10 @@ class LinkedEditGroup implements HasToJson {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["positions"] =
+    result['positions'] =
         positions.map((Position value) => value.toJson()).toList();
-    result["length"] = length;
-    result["suggestions"] = suggestions
+    result['length'] = length;
+    result['suggestions'] = suggestions
         .map((LinkedEditSuggestion value) => value.toJson())
         .toList();
     return result;
@@ -3164,29 +3164,29 @@ class LinkedEditSuggestion implements HasToJson {
     json ??= {};
     if (json is Map) {
       String value;
-      if (json.containsKey("value")) {
-        value = jsonDecoder.decodeString(jsonPath + ".value", json["value"]);
+      if (json.containsKey('value')) {
+        value = jsonDecoder.decodeString(jsonPath + '.value', json['value']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "value");
+        throw jsonDecoder.mismatch(jsonPath, 'value');
       }
       LinkedEditSuggestionKind kind;
-      if (json.containsKey("kind")) {
+      if (json.containsKey('kind')) {
         kind = LinkedEditSuggestionKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+            jsonDecoder, jsonPath + '.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "kind");
+        throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
       return LinkedEditSuggestion(value, kind);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "LinkedEditSuggestion", json);
+      throw jsonDecoder.mismatch(jsonPath, 'LinkedEditSuggestion', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["value"] = value;
-    result["kind"] = kind.toJson();
+    result['value'] = value;
+    result['kind'] = kind.toJson();
     return result;
   }
 
@@ -3222,16 +3222,16 @@ class LinkedEditSuggestion implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class LinkedEditSuggestionKind implements Enum {
   static const LinkedEditSuggestionKind METHOD =
-      LinkedEditSuggestionKind._("METHOD");
+      LinkedEditSuggestionKind._('METHOD');
 
   static const LinkedEditSuggestionKind PARAMETER =
-      LinkedEditSuggestionKind._("PARAMETER");
+      LinkedEditSuggestionKind._('PARAMETER');
 
   static const LinkedEditSuggestionKind TYPE =
-      LinkedEditSuggestionKind._("TYPE");
+      LinkedEditSuggestionKind._('TYPE');
 
   static const LinkedEditSuggestionKind VARIABLE =
-      LinkedEditSuggestionKind._("VARIABLE");
+      LinkedEditSuggestionKind._('VARIABLE');
 
   /// A list containing all of the enum values that are defined.
   static const List<LinkedEditSuggestionKind> VALUES =
@@ -3244,13 +3244,13 @@ class LinkedEditSuggestionKind implements Enum {
 
   factory LinkedEditSuggestionKind(String name) {
     switch (name) {
-      case "METHOD":
+      case 'METHOD':
         return METHOD;
-      case "PARAMETER":
+      case 'PARAMETER':
         return PARAMETER;
-      case "TYPE":
+      case 'TYPE':
         return TYPE;
-      case "VARIABLE":
+      case 'VARIABLE':
         return VARIABLE;
     }
     throw Exception('Illegal enum value: $name');
@@ -3265,11 +3265,11 @@ class LinkedEditSuggestionKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "LinkedEditSuggestionKind", json);
+    throw jsonDecoder.mismatch(jsonPath, 'LinkedEditSuggestionKind', json);
   }
 
   @override
-  String toString() => "LinkedEditSuggestionKind.$name";
+  String toString() => 'LinkedEditSuggestionKind.$name';
 
   String toJson() => name;
 }
@@ -3359,51 +3359,51 @@ class Location implements HasToJson {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       int startLine;
-      if (json.containsKey("startLine")) {
+      if (json.containsKey('startLine')) {
         startLine =
-            jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
+            jsonDecoder.decodeInt(jsonPath + '.startLine', json['startLine']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "startLine");
+        throw jsonDecoder.mismatch(jsonPath, 'startLine');
       }
       int startColumn;
-      if (json.containsKey("startColumn")) {
+      if (json.containsKey('startColumn')) {
         startColumn = jsonDecoder.decodeInt(
-            jsonPath + ".startColumn", json["startColumn"]);
+            jsonPath + '.startColumn', json['startColumn']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "startColumn");
+        throw jsonDecoder.mismatch(jsonPath, 'startColumn');
       }
       return Location(file, offset, length, startLine, startColumn);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Location", json);
+      throw jsonDecoder.mismatch(jsonPath, 'Location', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["offset"] = offset;
-    result["length"] = length;
-    result["startLine"] = startLine;
-    result["startColumn"] = startColumn;
+    result['file'] = file;
+    result['offset'] = offset;
+    result['length'] = length;
+    result['startLine'] = startLine;
+    result['startColumn'] = startColumn;
     return result;
   }
 
@@ -3492,36 +3492,36 @@ class NavigationRegion implements HasToJson {
     json ??= {};
     if (json is Map) {
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       List<int> targets;
-      if (json.containsKey("targets")) {
+      if (json.containsKey('targets')) {
         targets = jsonDecoder.decodeList(
-            jsonPath + ".targets", json["targets"], jsonDecoder.decodeInt);
+            jsonPath + '.targets', json['targets'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "targets");
+        throw jsonDecoder.mismatch(jsonPath, 'targets');
       }
       return NavigationRegion(offset, length, targets);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "NavigationRegion", json);
+      throw jsonDecoder.mismatch(jsonPath, 'NavigationRegion', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["offset"] = offset;
-    result["length"] = length;
-    result["targets"] = targets;
+    result['offset'] = offset;
+    result['length'] = length;
+    result['targets'] = targets;
     return result;
   }
 
@@ -3648,61 +3648,61 @@ class NavigationTarget implements HasToJson {
     json ??= {};
     if (json is Map) {
       ElementKind kind;
-      if (json.containsKey("kind")) {
+      if (json.containsKey('kind')) {
         kind =
-            ElementKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+            ElementKind.fromJson(jsonDecoder, jsonPath + '.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "kind");
+        throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
       int fileIndex;
-      if (json.containsKey("fileIndex")) {
+      if (json.containsKey('fileIndex')) {
         fileIndex =
-            jsonDecoder.decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
+            jsonDecoder.decodeInt(jsonPath + '.fileIndex', json['fileIndex']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "fileIndex");
+        throw jsonDecoder.mismatch(jsonPath, 'fileIndex');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       int startLine;
-      if (json.containsKey("startLine")) {
+      if (json.containsKey('startLine')) {
         startLine =
-            jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
+            jsonDecoder.decodeInt(jsonPath + '.startLine', json['startLine']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "startLine");
+        throw jsonDecoder.mismatch(jsonPath, 'startLine');
       }
       int startColumn;
-      if (json.containsKey("startColumn")) {
+      if (json.containsKey('startColumn')) {
         startColumn = jsonDecoder.decodeInt(
-            jsonPath + ".startColumn", json["startColumn"]);
+            jsonPath + '.startColumn', json['startColumn']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "startColumn");
+        throw jsonDecoder.mismatch(jsonPath, 'startColumn');
       }
       return NavigationTarget(
           kind, fileIndex, offset, length, startLine, startColumn);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "NavigationTarget", json);
+      throw jsonDecoder.mismatch(jsonPath, 'NavigationTarget', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kind"] = kind.toJson();
-    result["fileIndex"] = fileIndex;
-    result["offset"] = offset;
-    result["length"] = length;
-    result["startLine"] = startLine;
-    result["startColumn"] = startColumn;
+    result['kind'] = kind.toJson();
+    result['fileIndex'] = fileIndex;
+    result['offset'] = offset;
+    result['length'] = length;
+    result['startLine'] = startLine;
+    result['startColumn'] = startColumn;
     return result;
   }
 
@@ -3789,37 +3789,37 @@ class Occurrences implements HasToJson {
     json ??= {};
     if (json is Map) {
       Element element;
-      if (json.containsKey("element")) {
+      if (json.containsKey('element')) {
         element = Element.fromJson(
-            jsonDecoder, jsonPath + ".element", json["element"]);
+            jsonDecoder, jsonPath + '.element', json['element']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "element");
+        throw jsonDecoder.mismatch(jsonPath, 'element');
       }
       List<int> offsets;
-      if (json.containsKey("offsets")) {
+      if (json.containsKey('offsets')) {
         offsets = jsonDecoder.decodeList(
-            jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
+            jsonPath + '.offsets', json['offsets'], jsonDecoder.decodeInt);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offsets");
+        throw jsonDecoder.mismatch(jsonPath, 'offsets');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       return Occurrences(element, offsets, length);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Occurrences", json);
+      throw jsonDecoder.mismatch(jsonPath, 'Occurrences', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["element"] = element.toJson();
-    result["offsets"] = offsets;
-    result["length"] = length;
+    result['element'] = element.toJson();
+    result['offsets'] = offsets;
+    result['length'] = length;
     return result;
   }
 
@@ -3950,63 +3950,63 @@ class Outline implements HasToJson {
     json ??= {};
     if (json is Map) {
       Element element;
-      if (json.containsKey("element")) {
+      if (json.containsKey('element')) {
         element = Element.fromJson(
-            jsonDecoder, jsonPath + ".element", json["element"]);
+            jsonDecoder, jsonPath + '.element', json['element']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "element");
+        throw jsonDecoder.mismatch(jsonPath, 'element');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       int codeOffset;
-      if (json.containsKey("codeOffset")) {
+      if (json.containsKey('codeOffset')) {
         codeOffset =
-            jsonDecoder.decodeInt(jsonPath + ".codeOffset", json["codeOffset"]);
+            jsonDecoder.decodeInt(jsonPath + '.codeOffset', json['codeOffset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "codeOffset");
+        throw jsonDecoder.mismatch(jsonPath, 'codeOffset');
       }
       int codeLength;
-      if (json.containsKey("codeLength")) {
+      if (json.containsKey('codeLength')) {
         codeLength =
-            jsonDecoder.decodeInt(jsonPath + ".codeLength", json["codeLength"]);
+            jsonDecoder.decodeInt(jsonPath + '.codeLength', json['codeLength']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "codeLength");
+        throw jsonDecoder.mismatch(jsonPath, 'codeLength');
       }
       List<Outline> children;
-      if (json.containsKey("children")) {
+      if (json.containsKey('children')) {
         children = jsonDecoder.decodeList(
-            jsonPath + ".children",
-            json["children"],
+            jsonPath + '.children',
+            json['children'],
             (String jsonPath, Object json) =>
                 Outline.fromJson(jsonDecoder, jsonPath, json));
       }
       return Outline(element, offset, length, codeOffset, codeLength,
           children: children);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Outline", json);
+      throw jsonDecoder.mismatch(jsonPath, 'Outline', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["element"] = element.toJson();
-    result["offset"] = offset;
-    result["length"] = length;
-    result["codeOffset"] = codeOffset;
-    result["codeLength"] = codeLength;
+    result['element'] = element.toJson();
+    result['offset'] = offset;
+    result['length'] = length;
+    result['codeOffset'] = codeOffset;
+    result['codeLength'] = codeLength;
     if (children != null) {
-      result["children"] =
+      result['children'] =
           children.map((Outline value) => value.toJson()).toList();
     }
     return result;
@@ -4110,43 +4110,43 @@ class ParameterInfo implements HasToJson {
     json ??= {};
     if (json is Map) {
       ParameterKind kind;
-      if (json.containsKey("kind")) {
+      if (json.containsKey('kind')) {
         kind = ParameterKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+            jsonDecoder, jsonPath + '.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "kind");
+        throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
       String name;
-      if (json.containsKey("name")) {
-        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      if (json.containsKey('name')) {
+        name = jsonDecoder.decodeString(jsonPath + '.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "name");
+        throw jsonDecoder.mismatch(jsonPath, 'name');
       }
       String type;
-      if (json.containsKey("type")) {
-        type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
+      if (json.containsKey('type')) {
+        type = jsonDecoder.decodeString(jsonPath + '.type', json['type']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "type");
+        throw jsonDecoder.mismatch(jsonPath, 'type');
       }
       String defaultValue;
-      if (json.containsKey("defaultValue")) {
+      if (json.containsKey('defaultValue')) {
         defaultValue = jsonDecoder.decodeString(
-            jsonPath + ".defaultValue", json["defaultValue"]);
+            jsonPath + '.defaultValue', json['defaultValue']);
       }
       return ParameterInfo(kind, name, type, defaultValue: defaultValue);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "ParameterInfo", json);
+      throw jsonDecoder.mismatch(jsonPath, 'ParameterInfo', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["kind"] = kind.toJson();
-    result["name"] = name;
-    result["type"] = type;
+    result['kind'] = kind.toJson();
+    result['name'] = name;
+    result['type'] = type;
     if (defaultValue != null) {
-      result["defaultValue"] = defaultValue;
+      result['defaultValue'] = defaultValue;
     }
     return result;
   }
@@ -4187,13 +4187,13 @@ class ParameterInfo implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class ParameterKind implements Enum {
   /// A named parameter.
-  static const ParameterKind NAMED = ParameterKind._("NAMED");
+  static const ParameterKind NAMED = ParameterKind._('NAMED');
 
   /// An optional parameter.
-  static const ParameterKind OPTIONAL = ParameterKind._("OPTIONAL");
+  static const ParameterKind OPTIONAL = ParameterKind._('OPTIONAL');
 
   /// A required parameter.
-  static const ParameterKind REQUIRED = ParameterKind._("REQUIRED");
+  static const ParameterKind REQUIRED = ParameterKind._('REQUIRED');
 
   /// A list containing all of the enum values that are defined.
   static const List<ParameterKind> VALUES = <ParameterKind>[
@@ -4209,11 +4209,11 @@ class ParameterKind implements Enum {
 
   factory ParameterKind(String name) {
     switch (name) {
-      case "NAMED":
+      case 'NAMED':
         return NAMED;
-      case "OPTIONAL":
+      case 'OPTIONAL':
         return OPTIONAL;
-      case "REQUIRED":
+      case 'REQUIRED':
         return REQUIRED;
     }
     throw Exception('Illegal enum value: $name');
@@ -4228,11 +4228,11 @@ class ParameterKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "ParameterKind", json);
+    throw jsonDecoder.mismatch(jsonPath, 'ParameterKind', json);
   }
 
   @override
-  String toString() => "ParameterKind.$name";
+  String toString() => 'ParameterKind.$name';
 
   String toJson() => name;
 }
@@ -4278,28 +4278,28 @@ class Position implements HasToJson {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       return Position(file, offset);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "Position", json);
+      throw jsonDecoder.mismatch(jsonPath, 'Position', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["offset"] = offset;
+    result['file'] = file;
+    result['offset'] = offset;
     return result;
   }
 
@@ -4340,29 +4340,29 @@ class Position implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringKind implements Enum {
   static const RefactoringKind CONVERT_GETTER_TO_METHOD =
-      RefactoringKind._("CONVERT_GETTER_TO_METHOD");
+      RefactoringKind._('CONVERT_GETTER_TO_METHOD');
 
   static const RefactoringKind CONVERT_METHOD_TO_GETTER =
-      RefactoringKind._("CONVERT_METHOD_TO_GETTER");
+      RefactoringKind._('CONVERT_METHOD_TO_GETTER');
 
   static const RefactoringKind EXTRACT_LOCAL_VARIABLE =
-      RefactoringKind._("EXTRACT_LOCAL_VARIABLE");
+      RefactoringKind._('EXTRACT_LOCAL_VARIABLE');
 
   static const RefactoringKind EXTRACT_METHOD =
-      RefactoringKind._("EXTRACT_METHOD");
+      RefactoringKind._('EXTRACT_METHOD');
 
   static const RefactoringKind EXTRACT_WIDGET =
-      RefactoringKind._("EXTRACT_WIDGET");
+      RefactoringKind._('EXTRACT_WIDGET');
 
   static const RefactoringKind INLINE_LOCAL_VARIABLE =
-      RefactoringKind._("INLINE_LOCAL_VARIABLE");
+      RefactoringKind._('INLINE_LOCAL_VARIABLE');
 
   static const RefactoringKind INLINE_METHOD =
-      RefactoringKind._("INLINE_METHOD");
+      RefactoringKind._('INLINE_METHOD');
 
-  static const RefactoringKind MOVE_FILE = RefactoringKind._("MOVE_FILE");
+  static const RefactoringKind MOVE_FILE = RefactoringKind._('MOVE_FILE');
 
-  static const RefactoringKind RENAME = RefactoringKind._("RENAME");
+  static const RefactoringKind RENAME = RefactoringKind._('RENAME');
 
   /// A list containing all of the enum values that are defined.
   static const List<RefactoringKind> VALUES = <RefactoringKind>[
@@ -4384,23 +4384,23 @@ class RefactoringKind implements Enum {
 
   factory RefactoringKind(String name) {
     switch (name) {
-      case "CONVERT_GETTER_TO_METHOD":
+      case 'CONVERT_GETTER_TO_METHOD':
         return CONVERT_GETTER_TO_METHOD;
-      case "CONVERT_METHOD_TO_GETTER":
+      case 'CONVERT_METHOD_TO_GETTER':
         return CONVERT_METHOD_TO_GETTER;
-      case "EXTRACT_LOCAL_VARIABLE":
+      case 'EXTRACT_LOCAL_VARIABLE':
         return EXTRACT_LOCAL_VARIABLE;
-      case "EXTRACT_METHOD":
+      case 'EXTRACT_METHOD':
         return EXTRACT_METHOD;
-      case "EXTRACT_WIDGET":
+      case 'EXTRACT_WIDGET':
         return EXTRACT_WIDGET;
-      case "INLINE_LOCAL_VARIABLE":
+      case 'INLINE_LOCAL_VARIABLE':
         return INLINE_LOCAL_VARIABLE;
-      case "INLINE_METHOD":
+      case 'INLINE_METHOD':
         return INLINE_METHOD;
-      case "MOVE_FILE":
+      case 'MOVE_FILE':
         return MOVE_FILE;
-      case "RENAME":
+      case 'RENAME':
         return RENAME;
     }
     throw Exception('Illegal enum value: $name');
@@ -4415,11 +4415,11 @@ class RefactoringKind implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "RefactoringKind", json);
+    throw jsonDecoder.mismatch(jsonPath, 'RefactoringKind', json);
   }
 
   @override
-  String toString() => "RefactoringKind.$name";
+  String toString() => 'RefactoringKind.$name';
 
   String toJson() => name;
 }
@@ -4512,37 +4512,37 @@ class RefactoringMethodParameter implements HasToJson {
     json ??= {};
     if (json is Map) {
       String id;
-      if (json.containsKey("id")) {
-        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
+      if (json.containsKey('id')) {
+        id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
       }
       RefactoringMethodParameterKind kind;
-      if (json.containsKey("kind")) {
+      if (json.containsKey('kind')) {
         kind = RefactoringMethodParameterKind.fromJson(
-            jsonDecoder, jsonPath + ".kind", json["kind"]);
+            jsonDecoder, jsonPath + '.kind', json['kind']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "kind");
+        throw jsonDecoder.mismatch(jsonPath, 'kind');
       }
       String type;
-      if (json.containsKey("type")) {
-        type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
+      if (json.containsKey('type')) {
+        type = jsonDecoder.decodeString(jsonPath + '.type', json['type']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "type");
+        throw jsonDecoder.mismatch(jsonPath, 'type');
       }
       String name;
-      if (json.containsKey("name")) {
-        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      if (json.containsKey('name')) {
+        name = jsonDecoder.decodeString(jsonPath + '.name', json['name']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "name");
+        throw jsonDecoder.mismatch(jsonPath, 'name');
       }
       String parameters;
-      if (json.containsKey("parameters")) {
+      if (json.containsKey('parameters')) {
         parameters = jsonDecoder.decodeString(
-            jsonPath + ".parameters", json["parameters"]);
+            jsonPath + '.parameters', json['parameters']);
       }
       return RefactoringMethodParameter(kind, type, name,
           id: id, parameters: parameters);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "RefactoringMethodParameter", json);
+      throw jsonDecoder.mismatch(jsonPath, 'RefactoringMethodParameter', json);
     }
   }
 
@@ -4550,13 +4550,13 @@ class RefactoringMethodParameter implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     if (id != null) {
-      result["id"] = id;
+      result['id'] = id;
     }
-    result["kind"] = kind.toJson();
-    result["type"] = type;
-    result["name"] = name;
+    result['kind'] = kind.toJson();
+    result['type'] = type;
+    result['name'] = name;
     if (parameters != null) {
-      result["parameters"] = parameters;
+      result['parameters'] = parameters;
     }
     return result;
   }
@@ -4599,13 +4599,13 @@ class RefactoringMethodParameter implements HasToJson {
 /// Clients may not extend, implement or mix-in this class.
 class RefactoringMethodParameterKind implements Enum {
   static const RefactoringMethodParameterKind REQUIRED =
-      RefactoringMethodParameterKind._("REQUIRED");
+      RefactoringMethodParameterKind._('REQUIRED');
 
   static const RefactoringMethodParameterKind POSITIONAL =
-      RefactoringMethodParameterKind._("POSITIONAL");
+      RefactoringMethodParameterKind._('POSITIONAL');
 
   static const RefactoringMethodParameterKind NAMED =
-      RefactoringMethodParameterKind._("NAMED");
+      RefactoringMethodParameterKind._('NAMED');
 
   /// A list containing all of the enum values that are defined.
   static const List<RefactoringMethodParameterKind> VALUES =
@@ -4618,11 +4618,11 @@ class RefactoringMethodParameterKind implements Enum {
 
   factory RefactoringMethodParameterKind(String name) {
     switch (name) {
-      case "REQUIRED":
+      case 'REQUIRED':
         return REQUIRED;
-      case "POSITIONAL":
+      case 'POSITIONAL':
         return POSITIONAL;
-      case "NAMED":
+      case 'NAMED':
         return NAMED;
     }
     throw Exception('Illegal enum value: $name');
@@ -4638,11 +4638,11 @@ class RefactoringMethodParameterKind implements Enum {
       }
     }
     throw jsonDecoder.mismatch(
-        jsonPath, "RefactoringMethodParameterKind", json);
+        jsonPath, 'RefactoringMethodParameterKind', json);
   }
 
   @override
-  String toString() => "RefactoringMethodParameterKind.$name";
+  String toString() => 'RefactoringMethodParameterKind.$name';
 
   String toJson() => name;
 }
@@ -4705,37 +4705,37 @@ class RefactoringProblem implements HasToJson {
     json ??= {};
     if (json is Map) {
       RefactoringProblemSeverity severity;
-      if (json.containsKey("severity")) {
+      if (json.containsKey('severity')) {
         severity = RefactoringProblemSeverity.fromJson(
-            jsonDecoder, jsonPath + ".severity", json["severity"]);
+            jsonDecoder, jsonPath + '.severity', json['severity']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "severity");
+        throw jsonDecoder.mismatch(jsonPath, 'severity');
       }
       String message;
-      if (json.containsKey("message")) {
+      if (json.containsKey('message')) {
         message =
-            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+            jsonDecoder.decodeString(jsonPath + '.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "message");
+        throw jsonDecoder.mismatch(jsonPath, 'message');
       }
       Location location;
-      if (json.containsKey("location")) {
+      if (json.containsKey('location')) {
         location = Location.fromJson(
-            jsonDecoder, jsonPath + ".location", json["location"]);
+            jsonDecoder, jsonPath + '.location', json['location']);
       }
       return RefactoringProblem(severity, message, location: location);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "RefactoringProblem", json);
+      throw jsonDecoder.mismatch(jsonPath, 'RefactoringProblem', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["severity"] = severity.toJson();
-    result["message"] = message;
+    result['severity'] = severity.toJson();
+    result['message'] = message;
     if (location != null) {
-      result["location"] = location.toJson();
+      result['location'] = location.toJson();
     }
     return result;
   }
@@ -4776,14 +4776,14 @@ class RefactoringProblem implements HasToJson {
 class RefactoringProblemSeverity implements Enum {
   /// A minor code problem. No example, because it is not used yet.
   static const RefactoringProblemSeverity INFO =
-      RefactoringProblemSeverity._("INFO");
+      RefactoringProblemSeverity._('INFO');
 
   /// A minor code problem. For example names of local variables should be camel
   /// case and start with a lower case letter. Staring the name of a variable
   /// with an upper case is OK from the language point of view, but it is nice
   /// to warn the user.
   static const RefactoringProblemSeverity WARNING =
-      RefactoringProblemSeverity._("WARNING");
+      RefactoringProblemSeverity._('WARNING');
 
   /// The refactoring technically can be performed, but there is a logical
   /// problem. For example the name of a local variable being extracted
@@ -4795,13 +4795,13 @@ class RefactoringProblemSeverity implements Enum {
   /// the name conflict might be expected, and the user wants to fix it
   /// afterwards.
   static const RefactoringProblemSeverity ERROR =
-      RefactoringProblemSeverity._("ERROR");
+      RefactoringProblemSeverity._('ERROR');
 
   /// A fatal error, which prevents performing the refactoring. For example the
   /// name of a local variable being extracted is not a valid identifier, or
   /// selection is not a valid expression.
   static const RefactoringProblemSeverity FATAL =
-      RefactoringProblemSeverity._("FATAL");
+      RefactoringProblemSeverity._('FATAL');
 
   /// A list containing all of the enum values that are defined.
   static const List<RefactoringProblemSeverity> VALUES =
@@ -4814,13 +4814,13 @@ class RefactoringProblemSeverity implements Enum {
 
   factory RefactoringProblemSeverity(String name) {
     switch (name) {
-      case "INFO":
+      case 'INFO':
         return INFO;
-      case "WARNING":
+      case 'WARNING':
         return WARNING;
-      case "ERROR":
+      case 'ERROR':
         return ERROR;
-      case "FATAL":
+      case 'FATAL':
         return FATAL;
     }
     throw Exception('Illegal enum value: $name');
@@ -4835,7 +4835,7 @@ class RefactoringProblemSeverity implements Enum {
         // Fall through
       }
     }
-    throw jsonDecoder.mismatch(jsonPath, "RefactoringProblemSeverity", json);
+    throw jsonDecoder.mismatch(jsonPath, 'RefactoringProblemSeverity', json);
   }
 
   /// Returns the [RefactoringProblemSeverity] with the maximal severity.
@@ -4844,7 +4844,7 @@ class RefactoringProblemSeverity implements Enum {
       maxRefactoringProblemSeverity(a, b);
 
   @override
-  String toString() => "RefactoringProblemSeverity.$name";
+  String toString() => 'RefactoringProblemSeverity.$name';
 
   String toJson() => name;
 }
@@ -4863,19 +4863,19 @@ class RemoveContentOverlay implements HasToJson {
       JsonDecoder jsonDecoder, String jsonPath, Object json) {
     json ??= {};
     if (json is Map) {
-      if (json["type"] != "remove") {
-        throw jsonDecoder.mismatch(jsonPath, "equal remove", json);
+      if (json['type'] != 'remove') {
+        throw jsonDecoder.mismatch(jsonPath, 'equal remove', json);
       }
       return RemoveContentOverlay();
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "RemoveContentOverlay", json);
+      throw jsonDecoder.mismatch(jsonPath, 'RemoveContentOverlay', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["type"] = "remove";
+    result['type'] = 'remove';
     return result;
   }
 
@@ -4992,40 +4992,40 @@ class SourceChange implements HasToJson {
     json ??= {};
     if (json is Map) {
       String message;
-      if (json.containsKey("message")) {
+      if (json.containsKey('message')) {
         message =
-            jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
+            jsonDecoder.decodeString(jsonPath + '.message', json['message']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "message");
+        throw jsonDecoder.mismatch(jsonPath, 'message');
       }
       List<SourceFileEdit> edits;
-      if (json.containsKey("edits")) {
+      if (json.containsKey('edits')) {
         edits = jsonDecoder.decodeList(
-            jsonPath + ".edits",
-            json["edits"],
+            jsonPath + '.edits',
+            json['edits'],
             (String jsonPath, Object json) =>
                 SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "edits");
+        throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
       List<LinkedEditGroup> linkedEditGroups;
-      if (json.containsKey("linkedEditGroups")) {
+      if (json.containsKey('linkedEditGroups')) {
         linkedEditGroups = jsonDecoder.decodeList(
-            jsonPath + ".linkedEditGroups",
-            json["linkedEditGroups"],
+            jsonPath + '.linkedEditGroups',
+            json['linkedEditGroups'],
             (String jsonPath, Object json) =>
                 LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "linkedEditGroups");
+        throw jsonDecoder.mismatch(jsonPath, 'linkedEditGroups');
       }
       Position selection;
-      if (json.containsKey("selection")) {
+      if (json.containsKey('selection')) {
         selection = Position.fromJson(
-            jsonDecoder, jsonPath + ".selection", json["selection"]);
+            jsonDecoder, jsonPath + '.selection', json['selection']);
       }
       String id;
-      if (json.containsKey("id")) {
-        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
+      if (json.containsKey('id')) {
+        id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
       }
       return SourceChange(message,
           edits: edits,
@@ -5033,24 +5033,24 @@ class SourceChange implements HasToJson {
           selection: selection,
           id: id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "SourceChange", json);
+      throw jsonDecoder.mismatch(jsonPath, 'SourceChange', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["message"] = message;
-    result["edits"] =
+    result['message'] = message;
+    result['edits'] =
         edits.map((SourceFileEdit value) => value.toJson()).toList();
-    result["linkedEditGroups"] = linkedEditGroups
+    result['linkedEditGroups'] = linkedEditGroups
         .map((LinkedEditGroup value) => value.toJson())
         .toList();
     if (selection != null) {
-      result["selection"] = selection.toJson();
+      result['selection'] = selection.toJson();
     }
     if (id != null) {
-      result["id"] = id;
+      result['id'] = id;
     }
     return result;
   }
@@ -5186,31 +5186,31 @@ class SourceEdit implements HasToJson {
     json ??= {};
     if (json is Map) {
       int offset;
-      if (json.containsKey("offset")) {
-        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      if (json.containsKey('offset')) {
+        offset = jsonDecoder.decodeInt(jsonPath + '.offset', json['offset']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "offset");
+        throw jsonDecoder.mismatch(jsonPath, 'offset');
       }
       int length;
-      if (json.containsKey("length")) {
-        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      if (json.containsKey('length')) {
+        length = jsonDecoder.decodeInt(jsonPath + '.length', json['length']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "length");
+        throw jsonDecoder.mismatch(jsonPath, 'length');
       }
       String replacement;
-      if (json.containsKey("replacement")) {
+      if (json.containsKey('replacement')) {
         replacement = jsonDecoder.decodeString(
-            jsonPath + ".replacement", json["replacement"]);
+            jsonPath + '.replacement', json['replacement']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "replacement");
+        throw jsonDecoder.mismatch(jsonPath, 'replacement');
       }
       String id;
-      if (json.containsKey("id")) {
-        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
+      if (json.containsKey('id')) {
+        id = jsonDecoder.decodeString(jsonPath + '.id', json['id']);
       }
       return SourceEdit(offset, length, replacement, id: id);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "SourceEdit", json);
+      throw jsonDecoder.mismatch(jsonPath, 'SourceEdit', json);
     }
   }
 
@@ -5220,11 +5220,11 @@ class SourceEdit implements HasToJson {
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["offset"] = offset;
-    result["length"] = length;
-    result["replacement"] = replacement;
+    result['offset'] = offset;
+    result['length'] = length;
+    result['replacement'] = replacement;
     if (id != null) {
-      result["id"] = id;
+      result['id'] = id;
     }
     return result;
   }
@@ -5323,40 +5323,40 @@ class SourceFileEdit implements HasToJson {
     json ??= {};
     if (json is Map) {
       String file;
-      if (json.containsKey("file")) {
-        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      if (json.containsKey('file')) {
+        file = jsonDecoder.decodeString(jsonPath + '.file', json['file']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "file");
+        throw jsonDecoder.mismatch(jsonPath, 'file');
       }
       int fileStamp;
-      if (json.containsKey("fileStamp")) {
+      if (json.containsKey('fileStamp')) {
         fileStamp =
-            jsonDecoder.decodeInt(jsonPath + ".fileStamp", json["fileStamp"]);
+            jsonDecoder.decodeInt(jsonPath + '.fileStamp', json['fileStamp']);
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "fileStamp");
+        throw jsonDecoder.mismatch(jsonPath, 'fileStamp');
       }
       List<SourceEdit> edits;
-      if (json.containsKey("edits")) {
+      if (json.containsKey('edits')) {
         edits = jsonDecoder.decodeList(
-            jsonPath + ".edits",
-            json["edits"],
+            jsonPath + '.edits',
+            json['edits'],
             (String jsonPath, Object json) =>
                 SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
-        throw jsonDecoder.mismatch(jsonPath, "edits");
+        throw jsonDecoder.mismatch(jsonPath, 'edits');
       }
       return SourceFileEdit(file, fileStamp, edits: edits);
     } else {
-      throw jsonDecoder.mismatch(jsonPath, "SourceFileEdit", json);
+      throw jsonDecoder.mismatch(jsonPath, 'SourceFileEdit', json);
     }
   }
 
   @override
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
-    result["file"] = file;
-    result["fileStamp"] = fileStamp;
-    result["edits"] = edits.map((SourceEdit value) => value.toJson()).toList();
+    result['file'] = file;
+    result['fileStamp'] = fileStamp;
+    result['edits'] = edits.map((SourceEdit value) => value.toJson()).toList();
     return result;
   }
 

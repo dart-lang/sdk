@@ -534,7 +534,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     args.addAll([
       "--ignore-unrecognized-flags",
       "--no-summarize",
-      "--no-source-map",
       "-o",
       outputFile,
       inputFile,

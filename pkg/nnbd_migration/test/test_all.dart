@@ -23,6 +23,7 @@ import 'nullability_migration_impl_test.dart'
     as nullability_migration_impl_test;
 import 'nullability_node_test.dart' as nullability_node_test;
 import 'utilities/test_all.dart' as utilities;
+import 'variables_test.dart' as variables;
 
 main() {
   defineReflectiveSuite(() {
@@ -41,5 +42,6 @@ main() {
     nullability_migration_impl_test.main();
     nullability_node_test.main();
     utilities.main();
+    variables.main();
   });
 }

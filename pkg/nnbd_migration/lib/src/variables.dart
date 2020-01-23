@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' as math;
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
 import 'package:nnbd_migration/src/conditional_discard.dart';
@@ -18,6 +21,16 @@ import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
+
+/// Data structure used by [Variables.spanForUniqueIdentifier] to return an
+/// offset/end pair.
+class OffsetEndPair {
+  final int offset;
+
+  final int end;
+
+  OffsetEndPair(this.offset, this.end);
+}
 
 class Variables implements VariableRecorder, VariableRepository {
   final NullabilityGraph _graph;
@@ -33,7 +46,11 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _decoratedTypeAnnotations = <Source, Map<int, DecoratedType>>{};
 
+  final _expressionChecks = <Source, Map<int, ExpressionChecks>>{};
+
   final _potentialModifications = <Source, List<PotentialModification>>{};
+
+  final _unnecessaryCasts = <Source, Set<int>>{};
 
   final AlreadyMigratedCodeDecorator _alreadyMigratedCodeDecorator;
 
@@ -66,8 +83,8 @@ class Variables implements VariableRecorder, VariableRepository {
       throw StateError('No declarated type annotations in ${source.fullName}; '
           'expected one for ${typeAnnotation.toSource()}');
     }
-    DecoratedType decoratedTypeAnnotation =
-        annotationsInSource[_uniqueOffsetForTypeAnnotation(typeAnnotation)];
+    DecoratedType decoratedTypeAnnotation = annotationsInSource[
+        uniqueIdentifierForSpan(typeAnnotation.offset, typeAnnotation.end)];
     if (decoratedTypeAnnotation == null) {
       throw StateError('Missing declarated type annotation'
           ' in ${source.fullName}; for ${typeAnnotation.toSource()}');
@@ -104,6 +121,13 @@ class Variables implements VariableRecorder, VariableRepository {
       }
       return decoratedType;
     }
+  }
+
+  /// Retrieves the [ExpressionChecks] object corresponding to the given
+  /// [expression], if one exists; otherwise null.
+  ExpressionChecks expressionChecks(Source source, Expression expression) {
+    return (_expressionChecks[source] ??
+        {})[uniqueIdentifierForSpan(expression.offset, expression.end)];
   }
 
   ConditionalDiscard getConditionalDiscard(Source source, AstNode node) =>
@@ -150,7 +174,7 @@ class Variables implements VariableRecorder, VariableRepository {
     if (potentialModification != null)
       _addPotentialModification(source, potentialModification);
     (_decoratedTypeAnnotations[source] ??=
-        {})[_uniqueOffsetForTypeAnnotation(node)] = type;
+        {})[uniqueIdentifierForSpan(node.offset, node.end)] = type;
   }
 
   @override
@@ -167,6 +191,9 @@ class Variables implements VariableRecorder, VariableRepository {
   void recordExpressionChecks(
       Source source, Expression expression, ExpressionChecksOrigin origin) {
     _addPotentialModification(source, origin.checks);
+    (_expressionChecks[source] ??=
+            {})[uniqueIdentifierForSpan(expression.offset, expression.end)] =
+        origin.checks;
   }
 
   @override
@@ -175,6 +202,19 @@ class Variables implements VariableRecorder, VariableRepository {
     var modification = PotentiallyAddRequired(parameter, node);
     _addPotentialModification(source, modification);
   }
+
+  @override
+  void recordUnnecessaryCast(Source source, AsExpression node) {
+    bool newlyAdded = (_unnecessaryCasts[source] ??= {})
+        .add(uniqueIdentifierForSpan(node.offset, node.end));
+    assert(newlyAdded);
+  }
+
+  /// Queries whether, prior to migration, an unnecessary cast existed at
+  /// [node].
+  bool wasUnnecessaryCast(Source source, AsExpression node) =>
+      (_unnecessaryCasts[source] ?? const {})
+          .contains(uniqueIdentifierForSpan(node.offset, node.end));
 
   void _addPotentialModification(
       Source source, PotentialModification potentialModification) {
@@ -222,8 +262,73 @@ class Variables implements VariableRecorder, VariableRepository {
     return result;
   }
 
-  int _uniqueOffsetForTypeAnnotation(TypeAnnotation typeAnnotation) =>
-      typeAnnotation is GenericFunctionType
-          ? typeAnnotation.functionKeyword.offset
-          : typeAnnotation.offset;
+  /// Inverts the logic of [uniqueIdentifierForSpan], producing an (offset, end)
+  /// pair.
+  @visibleForTesting
+  static OffsetEndPair spanForUniqueIdentifier(int span) {
+    // The formula for uniqueIdentifierForSpan was:
+    //   span = end*(end + 1) / 2 + offset
+    // In other words, all encodings with the same `end` value are consecutive.
+    // So we just have to figure out the `end` value for this `span`, then
+    // use [uniqueIdentifierForSpan] to find the first encoding with this `end`
+    // value, and subtract to find the offset.
+    //
+    // To find the `end` value, we assume offset = 0 and solve for `end` using
+    // the quadratic formula:
+    //   span = end*(end + 1) / 2
+    //   end^2 + end - 2*span = 0
+    //   end = -1 +/- sqrt(1 + 8*span)
+    // We can reslove the `+/-` to `+` (since the result we seek can't be
+    // negative), so that yields:
+    //   end = sqrt(1 + 8*span) - 1
+    int end = (math.sqrt(1 + 8.0 * span) - 1).floor();
+    assert(end >= 0);
+
+    // There's a slight chance of numerical instabilities in `sqrt` leading to
+    // a result for `end` that's off by 1, so we loop to find the correct
+    // result:
+    while (true) {
+      // Compute the first `span` value corresponding to this `end` value.
+      int firstSpanForThisEnd = uniqueIdentifierForSpan(0, end);
+
+      // Offsets are encoded consecutively so we can find the offset by
+      // subtracting:
+      int offset = span - firstSpanForThisEnd;
+
+      if (offset < 0) {
+        // Oops, `end` must have been too large.  Decrement and try again.
+        assert(end > 0);
+        --end;
+      } else if (offset > end) {
+        // Oops, `end` must have been too small.  Increment and try again.
+        ++end;
+      } else {
+        return OffsetEndPair(offset, end);
+      }
+    }
+  }
+
+  /// Combine the given [offset] and [end] into a unique integer that depends
+  /// on both of them, taking advantage of the fact that `0 <= offset <= end`.
+  @visibleForTesting
+  static int uniqueIdentifierForSpan(int offset, int end) {
+    assert(0 <= offset && offset <= end);
+    // Our encoding is based on the observation that if you make a graph of the
+    // set of all possible (offset, end) pairs, marking those that satisfy
+    // `0 <= offset <= end` with an `x`, you get a triangle shape:
+    //
+    //       offset
+    //     +-------->
+    //     |x
+    //     |xx
+    // end |xxx
+    //     |xxxx
+    //     V
+    //
+    // If we assign integers to the `x`s in the order they appear in this graph,
+    // then the rows start with numbers 0, 1, 3, 6, 10, etc.  This can be
+    // computed from `end` as `end*(end + 1)/2`.  We use `~/` for integer
+    // division.
+    return end * (end + 1) ~/ 2 + offset;
+  }
 }

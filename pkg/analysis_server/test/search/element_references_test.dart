@@ -764,7 +764,7 @@ main() {
   ppp.Stream b;
 }
 ''');
-    await findElementReferences("ppp;", false);
+    await findElementReferences('ppp;', false);
     expect(searchElement.kind, ElementKind.PREFIX);
     expect(searchElement.name, 'ppp');
     expect(searchElement.location.startLine, 1);

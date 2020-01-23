@@ -197,7 +197,7 @@ testNames(mirrors) {
 testLibraryUri(var value, bool check(Uri uri)) {
   var valueMirror = reflect(value);
   ClassMirror valueClass = valueMirror.type;
-  LibraryMirror valueLibrary = valueClass.owner;
+  LibraryMirror valueLibrary = valueClass.owner as LibraryMirror;
   Uri uri = valueLibrary.uri;
   if (uri.scheme != "https" ||
       uri.host != "dartlang.org" ||

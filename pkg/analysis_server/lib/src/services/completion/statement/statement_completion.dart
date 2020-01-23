@@ -29,31 +29,31 @@ class DartStatementCompletion {
   static const NO_COMPLETION =
       StatementCompletionKind('No_COMPLETION', 'No completion available');
   static const SIMPLE_ENTER = StatementCompletionKind(
-      'SIMPLE_ENTER', "Insert a newline at the end of the current line");
+      'SIMPLE_ENTER', 'Insert a newline at the end of the current line');
   static const SIMPLE_SEMICOLON = StatementCompletionKind(
-      'SIMPLE_SEMICOLON', "Add a semicolon and newline");
+      'SIMPLE_SEMICOLON', 'Add a semicolon and newline');
   static const COMPLETE_CLASS_DECLARATION = StatementCompletionKind(
-      'COMPLETE_CLASS_DECLARATION', "Complete class declaration");
+      'COMPLETE_CLASS_DECLARATION', 'Complete class declaration');
   static const COMPLETE_CONTROL_FLOW_BLOCK = StatementCompletionKind(
-      'COMPLETE_CONTROL_FLOW_BLOCK', "Complete control flow block");
+      'COMPLETE_CONTROL_FLOW_BLOCK', 'Complete control flow block');
   static const COMPLETE_DO_STMT =
-      StatementCompletionKind('COMPLETE_DO_STMT', "Complete do-statement");
+      StatementCompletionKind('COMPLETE_DO_STMT', 'Complete do-statement');
   static const COMPLETE_IF_STMT =
-      StatementCompletionKind('COMPLETE_IF_STMT', "Complete if-statement");
+      StatementCompletionKind('COMPLETE_IF_STMT', 'Complete if-statement');
   static const COMPLETE_FOR_STMT =
-      StatementCompletionKind('COMPLETE_FOR_STMT', "Complete for-statement");
+      StatementCompletionKind('COMPLETE_FOR_STMT', 'Complete for-statement');
   static const COMPLETE_FOR_EACH_STMT = StatementCompletionKind(
-      'COMPLETE_FOR_EACH_STMT', "Complete for-each-statement");
+      'COMPLETE_FOR_EACH_STMT', 'Complete for-each-statement');
   static const COMPLETE_FUNCTION_DECLARATION = StatementCompletionKind(
-      'COMPLETE_FUNCTION_DECLARATION', "Complete function declaration");
+      'COMPLETE_FUNCTION_DECLARATION', 'Complete function declaration');
   static const COMPLETE_SWITCH_STMT = StatementCompletionKind(
-      'COMPLETE_SWITCH_STMT', "Complete switch-statement");
+      'COMPLETE_SWITCH_STMT', 'Complete switch-statement');
   static const COMPLETE_TRY_STMT =
-      StatementCompletionKind('COMPLETE_TRY_STMT', "Complete try-statement");
+      StatementCompletionKind('COMPLETE_TRY_STMT', 'Complete try-statement');
   static const COMPLETE_VARIABLE_DECLARATION = StatementCompletionKind(
-      'COMPLETE_VARIABLE_DECLARATION', "Complete variable declaration");
+      'COMPLETE_VARIABLE_DECLARATION', 'Complete variable declaration');
   static const COMPLETE_WHILE_STMT = StatementCompletionKind(
-      'COMPLETE_WHILE_STMT', "Complete while-statement");
+      'COMPLETE_WHILE_STMT', 'Complete while-statement');
 }
 
 /**
@@ -122,7 +122,7 @@ class StatementCompletionKind {
  */
 class StatementCompletionProcessor {
   static final NO_COMPLETION = StatementCompletion(
-      DartStatementCompletion.NO_COMPLETION, SourceChange("", edits: []));
+      DartStatementCompletion.NO_COMPLETION, SourceChange('', edits: []));
 
   final StatementCompletionContext statementContext;
   final CorrectionUtils utils;
@@ -441,7 +441,7 @@ class StatementCompletionProcessor {
     // an exception further downstream.
     // TODO(danrubel): change `statement.whileKeyword?.lexeme == "while"`
     // to `statement.whileKeyword != null` once the fasta parser is the default.
-    bool hasWhileKeyword = statement.whileKeyword?.lexeme == "while" &&
+    bool hasWhileKeyword = statement.whileKeyword?.lexeme == 'while' &&
         !statement.whileKeyword.isSynthetic;
     int exitDelta = 0;
     if (!_statementHasValidBody(statement.doKeyword, statement.body)) {
@@ -502,9 +502,9 @@ class StatementCompletionProcessor {
         }
       }
     } else {
-      sb.append(" while (");
+      sb.append(' while (');
       sb.setExitOffset();
-      sb.append(");");
+      sb.append(');');
     }
     _insertBuilder(sb);
     if (exitDelta != 0) {

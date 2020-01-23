@@ -8,7 +8,7 @@
 import "dart:mirrors";
 
 class Foo {
-  int a;
+  int a = 0;
 }
 
 main() {

@@ -1079,7 +1079,7 @@ class ContextManagerImpl implements ContextManager {
         return PackageMapDisposition(packageMap, packageRoot: packageRoot);
       } else if (packagesDirOrFile.isFile()) {
         File packageSpecFile = resourceProvider.getFile(packageRoot);
-        Packages packages = parseDotPackagesFile(
+        Packages packages = parsePackagesFile(
           resourceProvider,
           packageSpecFile,
         );
@@ -1096,7 +1096,7 @@ class ContextManagerImpl implements ContextManager {
     } else {
       // Try .packages first.
       if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-        Packages packages = parseDotPackagesFile(
+        Packages packages = parsePackagesFile(
           resourceProvider,
           packagespecFile,
         );

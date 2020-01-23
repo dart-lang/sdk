@@ -13,7 +13,8 @@ typedef bool Predicate(num n);
 bool somePredicate(num n) => n < 0;
 
 main() {
-  FunctionTypeMirror numToBool1 = reflect(somePredicate).type;
+  FunctionTypeMirror numToBool1 =
+      reflect(somePredicate).type as FunctionTypeMirror;
   FunctionTypeMirror numToBool2 =
       (reflectType(Predicate) as TypedefMirror).referent;
 

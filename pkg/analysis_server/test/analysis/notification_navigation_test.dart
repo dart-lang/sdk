@@ -358,8 +358,8 @@ class BBB {}
 ''');
     await prepareNavigation();
     // has region for complete "A.named"
-    assertHasRegion("A(BBB");
-    assertHasTarget("A(BBB", 0);
+    assertHasRegion('A(BBB');
+    assertHasTarget('A(BBB', 0);
     // validate that we don't forget to resolve parameters
     assertHasRegionTarget('BBB p', 'BBB {}');
   }

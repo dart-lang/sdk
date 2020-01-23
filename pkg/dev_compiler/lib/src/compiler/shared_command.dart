@@ -305,18 +305,31 @@ Uri sourcePathToRelativeUri(String source, {bool windows}) {
   return uri;
 }
 
-/// Adjusts the source paths in [sourceMap] to be relative to [sourceMapPath],
-/// and returns the new map.  Relative paths are in terms of URIs ('/'), not
-/// local OS paths (e.g., windows '\'). Sources with a multi-root scheme
-/// matching [multiRootScheme] are adjusted to be relative to
-/// [multiRootOutputPath].
-// TODO(jmesserly): find a new home for this.
+/// Adjusts the source uris in [sourceMap] to be relative uris, and returns
+/// the new map.
+///
+/// Source uris show up in two forms, absolute `file:` uris and custom
+/// [multiRootScheme] uris (also "absolute" uris, but always relative to some
+/// multi-root).
+///
+/// - `file:` uris are converted to be relative to [sourceMapBase], which
+///   defaults to the dirname of [sourceMapPath] if not provided.
+///
+/// - [multiRootScheme] uris are prefixed by [multiRootOutputPath]. If the
+///   path starts with `/lib`, then we strip that before making it relative
+///   to the [multiRootOutputPath], and assert that [multiRootOutputPath]
+///   starts with `/packages` (more explanation inline).
+///
+// TODO(#40251): Remove this logic from dev_compiler itself, push it to the
+// invokers of dev_compiler which have more knowledge about how they want
+// source paths to look.
 Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
-    {String multiRootOutputPath}) {
+    {String multiRootOutputPath, String sourceMapBase}) {
   var map = Map.from(sourceMap);
   // Convert to a local file path if it's not.
   sourceMapPath = sourcePathToUri(p.absolute(p.fromUri(sourceMapPath))).path;
   var sourceMapDir = p.url.dirname(sourceMapPath);
+  sourceMapBase ??= sourceMapDir;
   var list = (map['sources'] as List).toList();
 
   String makeRelative(String sourcePath) {
@@ -330,8 +343,17 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
         var shortPath = uri.path
             .replaceAll('/sdk/', '/dart-sdk/')
             .replaceAll('/sdk_nnbd/', '/dart-sdk/');
+        // A multi-root uri starting with a path under `/lib` indicates that
+        // the multi-root is at the root of a package (typically, the
+        // application root package). These should be converted into a
+        // `/packages` path, we do that by stripping the `/lib` prefix and
+        // relying on the `multiRootOutputPath` to be set to the proper
+        // packages dir (so /packages/<package>).
+        if (shortPath.startsWith('/lib') &&
+            multiRootOutputPath.startsWith('/packages')) {
+          shortPath = shortPath.substring(4);
+        }
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
-        multiRootPath = multiRootPath;
         multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);
         return multiRootPath;
       }
@@ -342,7 +364,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
     sourcePath = sourcePathToUri(p.absolute(p.fromUri(uri))).path;
 
     // Fall back to a relative path against the source map itself.
-    sourcePath = p.url.relative(sourcePath, from: sourceMapDir);
+    sourcePath = p.url.relative(sourcePath, from: sourceMapBase);
 
     // Convert from relative local path to relative URI.
     return p.toUri(sourcePath).path;

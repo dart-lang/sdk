@@ -9,11 +9,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
@@ -264,6 +265,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitAsExpression(AsExpression node) {
+    if (BestPracticesVerifier.isUnnecessaryCast(node, _typeSystem)) {
+      _variables.recordUnnecessaryCast(source, node);
+    }
     final typeNode = _variables.decoratedTypeAnnotation(source, node.type);
     _handleAssignment(node.expression, destinationType: typeNode);
     _flowAnalysis.asExpression_end(node.expression, typeNode);
@@ -897,6 +901,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var createdType = DecoratedType(node.staticType, nullabilityNode,
         typeArguments: decoratedTypeArguments);
     var calleeType = getOrComputeElementType(callee, targetType: createdType);
+    for (var i = 0; i < decoratedTypeArguments.length; ++i) {
+      _checkAssignment(null,
+          source: decoratedTypeArguments[i],
+          destination:
+              _variables.decoratedTypeParameterBound(typeParameters[i]),
+          hard: true);
+    }
     _handleInvocationArguments(node, node.argumentList.arguments, typeArguments,
         typeArgumentTypes, calleeType, typeParameters);
     return createdType;
@@ -2111,6 +2122,20 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     });
   }
 
+  /// Instantiate [type] with [argumentTypes], assigning [argumentTypes] to
+  /// [bounds].
+  DecoratedType _handleInstantiation(
+      DecoratedType type, List<DecoratedType> argumentTypes) {
+    for (var i = 0; i < argumentTypes.length; ++i) {
+      _checkAssignment(null,
+          source: argumentTypes[i],
+          destination: type.typeFormalBounds[i],
+          hard: true);
+    }
+
+    return type.instantiate(argumentTypes);
+  }
+
   /// Creates the necessary constraint(s) for an [ArgumentList] when invoking an
   /// executable element whose type is [calleeType].
   ///
@@ -2125,7 +2150,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       TypeArgumentList typeArguments,
       Iterable<DartType> typeArgumentTypes,
       DecoratedType calleeType,
-      Iterable<TypeParameterElement> constructorTypeParameters,
+      List<TypeParameterElement> constructorTypeParameters,
       {DartType invokeType}) {
     var typeFormals = constructorTypeParameters ?? calleeType.typeFormals;
     if (typeFormals.isNotEmpty) {
@@ -2138,7 +2163,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               Map<TypeParameterElement, DecoratedType>.fromIterables(
                   constructorTypeParameters, argumentTypes));
         } else {
-          calleeType = calleeType.instantiate(argumentTypes);
+          calleeType = _handleInstantiation(calleeType, argumentTypes);
         }
       } else {
         if (invokeType is FunctionType) {
@@ -2147,7 +2172,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                   DecoratedType.forImplicitType(typeProvider, argType, _graph))
               .toList();
           instrumentation?.implicitTypeArguments(source, node, argumentTypes);
-          calleeType = calleeType.instantiate(argumentTypes);
+          calleeType = _handleInstantiation(calleeType, argumentTypes);
         } else if (constructorTypeParameters != null) {
           // No need to instantiate; caller has already substituted in the
           // correct type arguments.

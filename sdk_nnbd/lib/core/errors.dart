@@ -98,8 +98,15 @@ class Error {
 class AssertionError extends Error {
   /** Message describing the assertion error. */
   final Object? message;
+
   AssertionError([this.message]);
-  String toString() => "Assertion failed";
+
+  String toString() {
+    if (message != null) {
+      return "Assertion failed: ${Error.safeToString(message)}";
+    }
+    return "Assertion failed";
+  }
 }
 
 /**

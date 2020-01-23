@@ -201,11 +201,11 @@ class MockStdin implements IOSink {
   void write(Object obj) {}
 
   @override
-  void writeAll(Iterable objects, [String separator = ""]) {}
+  void writeAll(Iterable objects, [String separator = '']) {}
 
   @override
   void writeCharCode(int charCode) {}
 
   @override
-  void writeln([Object obj = ""]) {}
+  void writeln([Object obj = '']) {}
 }

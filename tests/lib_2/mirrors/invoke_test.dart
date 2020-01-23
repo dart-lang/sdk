@@ -110,7 +110,7 @@ testSync() {
       () => cm.newInstance(const Symbol('named'), []), 'Wrong arity');
 
   // LibraryMirror invoke
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
   result = lm.invoke(const Symbol('libraryFunction'), [':', ')']);
   Expect.equals(':)', result.reflectee);
   Expect.throwsNoSuchMethodError(

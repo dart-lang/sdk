@@ -708,7 +708,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
             writeln(' else {');
             indent(() {
               writeln(
-                  "throw jsonDecoder.mismatch(jsonPath, $fieldNameString);");
+                  'throw jsonDecoder.mismatch(jsonPath, $fieldNameString);');
             });
             writeln('}');
           } else {

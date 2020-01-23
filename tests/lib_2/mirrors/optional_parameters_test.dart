@@ -8,7 +8,6 @@
 
 library optional_parameter_test;
 
-@MirrorsUsed(targets: 'optional_parameter_test')
 import "dart:mirrors";
 import 'package:expect/expect.dart';
 
@@ -17,7 +16,7 @@ class A {
 }
 
 class B {
-  foo([int x]) => x + 1;
+  foo([int x = -1]) => x + 1;
 }
 
 main() {

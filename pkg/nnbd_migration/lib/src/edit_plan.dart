@@ -15,28 +15,28 @@ import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
 Map<int, List<AtomicEdit>> _removeCode(
-    int offset, int end, _RemovalStyle removalStyle) {
+    int offset, int end, _RemovalStyle removalStyle, AtomicEditInfo info) {
   if (offset < end) {
     // TODO(paulberry): handle preexisting comments?
     switch (removalStyle) {
       case _RemovalStyle.commentSpace:
         return {
-          offset: [AtomicEdit.insert('/* ')],
-          end: [AtomicEdit.insert('*/ ')]
+          offset: [AtomicEdit.insert('/* ', info: info)],
+          end: [AtomicEdit.insert('*/ ', info: info)]
         };
       case _RemovalStyle.delete:
         return {
-          offset: [AtomicEdit.delete(end - offset)]
+          offset: [AtomicEdit.delete(end - offset, info: info)]
         };
       case _RemovalStyle.spaceComment:
         return {
-          offset: [AtomicEdit.insert(' /*')],
-          end: [AtomicEdit.insert(' */')]
+          offset: [AtomicEdit.insert(' /*', info: info)],
+          end: [AtomicEdit.insert(' */', info: info)]
         };
       case _RemovalStyle.spaceInsideComment:
         return {
-          offset: [AtomicEdit.insert('/* ')],
-          end: [AtomicEdit.insert(' */')]
+          offset: [AtomicEdit.insert('/* ', info: info)],
+          end: [AtomicEdit.insert(' */', info: info)]
         };
     }
     throw StateError('Null value for removalStyle');
@@ -57,6 +57,10 @@ Map<int, List<AtomicEdit>> _removeCode(
 /// May be subclassed to allow additional information to be recorded about the
 /// edit.
 class AtomicEdit {
+  /// Additional information about this edit, or `null` if no additional
+  /// information is available.
+  final AtomicEditInfo info;
+
   /// The number of characters that should be deleted by this edit, or `0` if no
   /// characters should be deleted.
   final int length;
@@ -66,18 +70,27 @@ class AtomicEdit {
   final String replacement;
 
   /// Initialize an edit to delete [length] characters.
-  const AtomicEdit.delete(this.length)
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  const AtomicEdit.delete(this.length, {this.info})
       : assert(length > 0),
         replacement = '';
 
   /// Initialize an edit to insert the [replacement] characters.
-  const AtomicEdit.insert(this.replacement)
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  const AtomicEdit.insert(this.replacement, {this.info})
       : assert(replacement.length > 0),
         length = 0;
 
   /// Initialize an edit to replace [length] characters with the [replacement]
   /// characters.
-  const AtomicEdit.replace(this.length, this.replacement)
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  const AtomicEdit.replace(this.length, this.replacement, {this.info})
       : assert(length > 0 || replacement.length > 0);
 
   /// Return `true` if this edit is a deletion (no characters added).
@@ -110,23 +123,6 @@ class AtomicEditInfo {
   final List<FixReasonInfo> fixReasons;
 
   AtomicEditInfo(this.description, this.fixReasons);
-}
-
-/// An atomic edit that has additional information associated with it.
-class AtomicEditWithInfo extends AtomicEdit {
-  final AtomicEditInfo info;
-
-  /// Initialize an edit to delete [length] characters.
-  const AtomicEditWithInfo.delete(int length, this.info) : super.delete(length);
-
-  /// Initialize an edit to insert the [replacement] characters.
-  const AtomicEditWithInfo.insert(String replacement, this.info)
-      : super.insert(replacement);
-
-  /// Initialize an edit to replace [length] characters with the [replacement]
-  /// characters.
-  const AtomicEditWithInfo.replace(int length, String replacement, this.info)
-      : super.replace(length, replacement);
 }
 
 /// An [EditPlan] is a builder capable of accumulating a set of edits to be
@@ -173,6 +169,84 @@ class EditPlanner {
 
   EditPlanner(this.lineInfo, this.sourceText, {this.removeViaComments = false});
 
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending the given [operand], with an intervening binary [operator].
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan addBinaryPostfix(
+      NodeProducingEditPlan innerPlan, TokenType operator, String operand,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is Expression);
+    var precedence = Precedence.forTokenType(operator);
+    var isAssociative = precedence != Precedence.relational &&
+        precedence != Precedence.equality &&
+        precedence != Precedence.assignment;
+    return surround(innerPlan,
+        suffix: [AtomicEdit.insert(' ${operator.lexeme} $operand', info: info)],
+        outerPrecedence: precedence,
+        innerPrecedence: precedence,
+        associative: isAssociative);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// prepending the given [operand], with an intervening binary [operator].
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  ///
+  /// If the expression represented by [operand] is known not to end in a
+  /// cascade expression, caller may optionally set [allowCascade] to `true` to
+  /// prevent a rare corner case where parentheses would be added unnecessarily.
+  /// Note that it is always safe to leave [allowCascade] at its default value
+  /// of `false`.
+  NodeProducingEditPlan addBinaryPrefix(
+      String operand, TokenType operator, NodeProducingEditPlan innerPlan,
+      {AtomicEditInfo info, bool allowCascade = false}) {
+    assert(innerPlan.sourceNode is Expression);
+    var precedence = Precedence.forTokenType(operator);
+    var isAssociative = precedence == Precedence.assignment;
+    return surround(innerPlan,
+        prefix: [AtomicEdit.insert('$operand ${operator.lexeme} ', info: info)],
+        outerPrecedence: precedence,
+        innerPrecedence: precedence,
+        associative: isAssociative,
+        allowCascade: allowCascade);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending the given postfix [operator].  This could be used, for example,
+  /// to add a null check.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan addUnaryPostfix(
+      NodeProducingEditPlan innerPlan, TokenType operator,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is Expression);
+    return surround(innerPlan,
+        suffix: [AtomicEdit.insert(operator.lexeme, info: info)],
+        outerPrecedence: Precedence.postfix,
+        innerPrecedence: Precedence.postfix,
+        associative: true);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// prepending the given prefix [operator].
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan addUnaryPrefix(
+      TokenType operator, NodeProducingEditPlan innerPlan,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is Expression);
+    return surround(innerPlan,
+        prefix: [AtomicEdit.insert(operator.lexeme, info: info)],
+        outerPrecedence: Precedence.prefix,
+        innerPrecedence: Precedence.prefix,
+        associative: true);
+  }
+
   /// Creates a [_PassThroughBuilder] object based around [node].
   ///
   /// Exposed so that we can substitute a mock class in unit tests.
@@ -188,16 +262,20 @@ class EditPlanner {
   /// If no changes are required to the AST node that is being extracted, the
   /// caller may create innerPlan using [EditPlan.passThrough].
   ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  ///
   /// [innerPlan] will be finalized as a side effect (either immediately or when
   /// the newly created plan is finalized), so it should not be re-used by the
   /// caller.
   NodeProducingEditPlan extract(
-      AstNode sourceNode, NodeProducingEditPlan innerPlan) {
+      AstNode sourceNode, NodeProducingEditPlan innerPlan,
+      {AtomicEditInfo info}) {
     var parent = innerPlan.sourceNode.parent;
     if (!identical(parent, sourceNode) && parent is ParenthesizedExpression) {
       innerPlan = _ProvisionalParenEditPlan(parent, innerPlan);
     }
-    return _ExtractEditPlan(sourceNode, innerPlan, this);
+    return _ExtractEditPlan(sourceNode, innerPlan, this, info);
   }
 
   /// Converts [plan] to a representation of the concrete edits that need
@@ -216,6 +294,17 @@ class EditPlanner {
     // The plan for a compilation unit should always be a NodeProducingEditPlan.
     // So we can just ask it for its changes.
     return (plan as NodeProducingEditPlan)._getChanges(false);
+  }
+
+  /// Creates a new edit plan that consists of executing [innerPlan], and then
+  /// appending a `?`, to make a type nullable.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan makeNullable(NodeProducingEditPlan innerPlan,
+      {AtomicEditInfo info}) {
+    assert(innerPlan.sourceNode is TypeAnnotation);
+    return surround(innerPlan, suffix: [AtomicEdit.insert('?', info: info)]);
   }
 
   /// Creates a new edit plan that makes no changes to [node], but may make
@@ -284,7 +373,10 @@ class EditPlanner {
   /// [node] must be one element of a variable length sequence maintained by
   /// [node]'s parent (for example, a statement in a block, an element in a
   /// list, a declaration in a class, etc.)
-  EditPlan removeNode(AstNode sourceNode) {
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  EditPlan removeNode(AstNode sourceNode, {AtomicEditInfo info}) {
     var parent = sourceNode.parent;
     var sequenceNodes = _computeSequenceNodes(parent);
     if (sequenceNodes == null) {
@@ -293,7 +385,7 @@ class EditPlanner {
     }
     var index = sequenceNodes.indexOf(sourceNode);
     assert(index != -1);
-    return _RemoveEditPlan(parent, index, index);
+    return _RemoveEditPlan(parent, index, index, info);
   }
 
   /// Creates a new edit plan that removes a sequence of adjacent nodes from
@@ -306,7 +398,11 @@ class EditPlanner {
   ///
   /// If [firstSourceNode] and [lastSourceNode] are the same node, then the
   /// behavior is identical to [removeNode] (i.e. just the one node is removed).
-  EditPlan removeNodes(AstNode firstSourceNode, AstNode lastSourceNode) {
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  EditPlan removeNodes(AstNode firstSourceNode, AstNode lastSourceNode,
+      {AtomicEditInfo info}) {
     var parent = firstSourceNode.parent;
     assert(identical(lastSourceNode.parent, parent));
     var sequenceNodes = _computeSequenceNodes(parent);
@@ -318,7 +414,7 @@ class EditPlanner {
     assert(firstIndex != -1);
     var lastIndex = sequenceNodes.indexOf(lastSourceNode, firstIndex);
     assert(lastIndex >= firstIndex);
-    return _RemoveEditPlan(parent, firstIndex, lastIndex);
+    return _RemoveEditPlan(parent, firstIndex, lastIndex, info);
   }
 
   /// Creates a new edit plan that replaces the contents of [sourceNode] with
@@ -329,18 +425,29 @@ class EditPlanner {
   /// of parentheses insertion and deletion: [precedence] indicates the
   /// precedence of the resulting expression.  [endsInCascade] indicates whether
   /// the resulting plan will end in a cascade.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
   NodeProducingEditPlan replace(
       AstNode sourceNode, List<AtomicEdit> replacement,
       {Precedence precedence = Precedence.primary,
-      bool endsInCascade = false}) {
+      bool endsInCascade = false,
+      AtomicEditInfo info}) {
     return _SimpleEditPlan(sourceNode, precedence, endsInCascade, {
-      sourceNode.offset: [AtomicEdit.delete(sourceNode.length), ...replacement]
+      sourceNode.offset: [
+        AtomicEdit.delete(sourceNode.length, info: info),
+        ...replacement
+      ]
     });
   }
 
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// surrounding it with [prefix] and [suffix] text.  This could be used, for
   /// example, to add a cast.
+  ///
+  /// Note that it's tricky to get precedence correct.  When possible, use one
+  /// of the other methods in this class, such as [addBinaryPostfix],
+  /// [addBinaryPrefix], [addUnaryPostfix], or [addUnaryPrefix].
   ///
   /// If the edit plan is going to be used in a context where an expression is
   /// expected, additional arguments should be provided to control the behavior
@@ -614,8 +721,10 @@ class _EndsInCascadeVisitor extends UnifyingAstVisitor<void> {
 class _ExtractEditPlan extends _NestedEditPlan {
   final EditPlanner _planner;
 
-  _ExtractEditPlan(
-      AstNode sourceNode, NodeProducingEditPlan innerPlan, this._planner)
+  final AtomicEditInfo _info;
+
+  _ExtractEditPlan(AstNode sourceNode, NodeProducingEditPlan innerPlan,
+      this._planner, this._info)
       : super(sourceNode, innerPlan);
 
   @override
@@ -631,14 +740,16 @@ class _ExtractEditPlan extends _NestedEditPlan {
             innerPlan.sourceNode.offset,
             _planner.removeViaComments
                 ? _RemovalStyle.commentSpace
-                : _RemovalStyle.delete) +
+                : _RemovalStyle.delete,
+            _info) +
         changes +
         _removeCode(
             innerPlan.sourceNode.end,
             sourceNode.end,
             _planner.removeViaComments
                 ? _RemovalStyle.spaceComment
-                : _RemovalStyle.delete);
+                : _RemovalStyle.delete,
+            _info);
     // Apply parens if needed.
     if (parens && !useInnerParens) {
       changes = _createAddParenChanges(changes);
@@ -1055,14 +1166,15 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
     }
 
     for (; planIndex <= lastPlanIndex; planIndex++) {
+      var innerPlan = innerPlans[planIndex] as _RemoveEditPlan;
       var offset = nextRemovalOffset;
       int end;
       if (planIndex == lastPlanIndex) {
         end = lastRemovalEnd;
       } else {
-        var innerPlan = innerPlans[planIndex + 1] as _RemoveEditPlan;
-        assert(identical(innerPlan.parentNode, node));
-        nextRemovalOffset = _removalOffset(innerPlan);
+        var nextInnerPlan = innerPlans[planIndex + 1] as _RemoveEditPlan;
+        assert(identical(nextInnerPlan.parentNode, node));
+        nextRemovalOffset = _removalOffset(nextInnerPlan);
         if (planner.removeViaComments) {
           end = _removalEnd(innerPlans[planIndex] as _RemoveEditPlan);
         } else {
@@ -1081,7 +1193,8 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
           end,
           planner.removeViaComments
               ? _RemovalStyle.spaceInsideComment
-              : _RemovalStyle.delete);
+              : _RemovalStyle.delete,
+          innerPlan.info);
     }
 
     return planIndex;
@@ -1232,7 +1345,10 @@ class _RemoveEditPlan extends EditPlan {
   /// Index of the node to be removed within the parent.
   final int lastChildIndex;
 
-  _RemoveEditPlan(this.parentNode, this.firstChildIndex, this.lastChildIndex)
+  final AtomicEditInfo info;
+
+  _RemoveEditPlan(
+      this.parentNode, this.firstChildIndex, this.lastChildIndex, this.info)
       : super._();
 }
 

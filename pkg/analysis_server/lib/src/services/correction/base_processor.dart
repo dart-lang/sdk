@@ -136,7 +136,7 @@ abstract class BaseProcessor {
       @required String prefix,
       @required String builderName,
     }) {
-      builder.write("$prefix$builderName.add($constructorId");
+      builder.write('$prefix$builderName.add($constructorId');
       if (typeArgs != null) {
         builder.write('<');
         builder.writeTypes(typeArgs);

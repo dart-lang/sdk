@@ -4,7 +4,6 @@
 
 library foo;
 
-@MirrorsUsed(targets: const ["foo", "bar"])
 import 'dart:mirrors';
 import 'typedef_library.dart' deferred as def;
 

@@ -35,11 +35,10 @@ class C2<T> {
 
 main() {
   // Test that type arguments are instantiated correctly on concrete types.
-  dynamic used;
-  used = C<int>().foo();
-  used = E<int, String>().foo();
-  used = E<int, String>().bar();
-  used = E<int, String>().baz();
+  print(C<int>().foo());
+  print(E<int, String>().foo());
+  print(E<int, String>().bar());
+  print(E<int, String>().baz());
 
   // Test that narrow against type-parameters works.
   C<X> c = new C<Y>();
@@ -50,6 +49,4 @@ main() {
   C2<num> c2 = new C2<num>();
   c2.id3(3.0);
   c2.id4(K<J>());
-
-  return used;
 }

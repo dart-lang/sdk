@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
@@ -25,6 +26,9 @@ class EditPlanTest extends AbstractSingleUnitTest {
   String code;
 
   EditPlanner _planner;
+
+  @override
+  bool get analyzeWithNnbd => true;
 
   EditPlanner get planner {
     if (_planner == null) createPlanner();
@@ -49,6 +53,177 @@ class EditPlanTest extends AbstractSingleUnitTest {
 
   NodeProducingEditPlan extract(AstNode inner, AstNode outer) =>
       planner.extract(outer, planner.passThrough(inner));
+
+  Future<void> test_addBinaryPostfix_assignment_right_associative() async {
+    await analyze('_f(a, b, c) => a = b;');
+    // Admittedly this is sort of a bogus test case, since the code it produces
+    // (`(a = b) = c`) is non-grammatical.  But we still want to verify that it
+    // *doesn't* produce `a = b = c`, which would be grammatical but which would
+    // break apart the subexpression `a = b`.
+    checkPlan(
+        planner.addBinaryPostfix(
+            planner.passThrough(findNode.assignment('a = b')),
+            TokenType.EQ,
+            'c'),
+        '_f(a, b, c) => (a = b) = c;');
+  }
+
+  Future<void> test_addBinaryPostfix_associative() async {
+    await analyze('var x = 1 - 2;');
+    checkPlan(
+        planner.addBinaryPostfix(
+            planner.passThrough(findNode.binary('-')), TokenType.MINUS, '3'),
+        'var x = 1 - 2 - 3;');
+  }
+
+  Future<void> test_addBinaryPostfix_endsInCascade() async {
+    await analyze('f(x) => x..y = 1;');
+    checkPlan(
+        planner.addBinaryPostfix(
+            planner.passThrough(findNode.integerLiteral('1')),
+            TokenType.PLUS,
+            '2'),
+        'f(x) => x..y = 1 + 2;');
+  }
+
+  Future<void> test_addBinaryPostfix_equality_non_associative() async {
+    await analyze('var x = 1 == 2;');
+    checkPlan(
+        planner.addBinaryPostfix(
+            planner.passThrough(findNode.binary('==')), TokenType.EQ_EQ, '3'),
+        'var x = (1 == 2) == 3;');
+  }
+
+  Future<void> test_addBinaryPostfix_inner_precedence() async {
+    await analyze('var x = 1 < 2;');
+    checkPlan(
+        planner.addBinaryPostfix(
+            planner.passThrough(findNode.binary('<')), TokenType.EQ_EQ, 'true'),
+        'var x = 1 < 2 == true;');
+    checkPlan(
+        planner.addBinaryPostfix(
+            planner.passThrough(findNode.binary('<')), TokenType.AS, 'bool'),
+        'var x = (1 < 2) as bool;');
+  }
+
+  Future<void> test_addBinaryPostfix_outer_precedence() async {
+    await analyze('var x = 1 == true;');
+    checkPlan(
+        planner.addBinaryPostfix(
+            planner.passThrough(findNode.integerLiteral('1')),
+            TokenType.LT,
+            '2'),
+        'var x = 1 < 2 == true;');
+    checkPlan(
+        planner.addBinaryPostfix(
+            planner.passThrough(findNode.integerLiteral('1')),
+            TokenType.EQ_EQ,
+            '2'),
+        'var x = (1 == 2) == true;');
+  }
+
+  Future<void> test_addBinaryPrefix_allowCascade() async {
+    await analyze('f(x) => 1..isEven;');
+    checkPlan(
+        planner.addBinaryPrefix(
+            'x..y', TokenType.EQ, planner.passThrough(findNode.cascade('..'))),
+        'f(x) => x..y = (1..isEven);');
+    checkPlan(
+        planner.addBinaryPrefix(
+            'x', TokenType.EQ, planner.passThrough(findNode.cascade('..')),
+            allowCascade: true),
+        'f(x) => x = 1..isEven;');
+  }
+
+  Future<void> test_addBinaryPrefix_assignment_right_associative() async {
+    await analyze('_f(a, b, c) => b = c;');
+    checkPlan(
+        planner.addBinaryPrefix('a', TokenType.EQ,
+            planner.passThrough(findNode.assignment('b = c'))),
+        '_f(a, b, c) => a = b = c;');
+  }
+
+  Future<void> test_addBinaryPrefix_associative() async {
+    await analyze('var x = 1 - 2;');
+    checkPlan(
+        planner.addBinaryPrefix(
+            '0', TokenType.MINUS, planner.passThrough(findNode.binary('-'))),
+        'var x = 0 - (1 - 2);');
+  }
+
+  Future<void> test_addBinaryPrefix_outer_precedence() async {
+    await analyze('var x = 2 == true;');
+    checkPlan(
+        planner.addBinaryPrefix('1', TokenType.LT,
+            planner.passThrough(findNode.integerLiteral('2'))),
+        'var x = 1 < 2 == true;');
+    checkPlan(
+        planner.addBinaryPrefix('1', TokenType.EQ_EQ,
+            planner.passThrough(findNode.integerLiteral('2'))),
+        'var x = (1 == 2) == true;');
+  }
+
+  Future<void> test_addUnaryPostfix_inner_precedence_add_parens() async {
+    await analyze('f(x) => -x;');
+    checkPlan(
+        planner.addUnaryPostfix(
+            planner.passThrough(findNode.prefix('-x')), TokenType.BANG),
+        'f(x) => (-x)!;');
+  }
+
+  Future<void> test_addUnaryPostfix_inner_precedence_no_parens() async {
+    await analyze('f(x) => x++;');
+    checkPlan(
+        planner.addUnaryPostfix(
+            planner.passThrough(findNode.postfix('x++')), TokenType.BANG),
+        'f(x) => x++!;');
+  }
+
+  Future<void> test_addUnaryPostfix_outer_precedence() async {
+    await analyze('f(x) => x!;');
+    checkPlan(
+        planner.addUnaryPostfix(
+            planner.passThrough(findNode.simple('x!')), TokenType.PLUS_PLUS),
+        'f(x) => x++!;');
+  }
+
+  Future<void> test_addUnaryPrefix_inner_precedence_add_parens() async {
+    await analyze('f(x, y) => x * y;');
+    checkPlan(
+        planner.addUnaryPrefix(
+            TokenType.MINUS, planner.passThrough(findNode.binary('*'))),
+        'f(x, y) => -(x * y);');
+  }
+
+  Future<void> test_addUnaryPrefix_inner_precedence_no_parens() async {
+    await analyze('f(x) => -x;');
+    // TODO(paulberry): if we added a `-` instead of a `~`, the result would
+    // scan as a single `--` token, so we would need parens.  Add support for
+    // this corner case.
+    checkPlan(
+        planner.addUnaryPrefix(
+            TokenType.TILDE, planner.passThrough(findNode.prefix('-x'))),
+        'f(x) => ~-x;');
+  }
+
+  Future<void> test_addUnaryPrefix_outer_precedence_add_parens() async {
+    await analyze('f(x) => x!;');
+    checkPlan(
+        planner.addUnaryPrefix(
+            TokenType.MINUS, planner.passThrough(findNode.simple('x!'))),
+        'f(x) => (-x)!;');
+  }
+
+  Future<void> test_addUnaryPrefix_outer_precedence_no_parens() async {
+    await analyze('f(x) => -x;');
+    // TODO(paulberry): if we added a `-` instead of a `~`, the result would
+    // scan as a single `--` token, so we would need parens.  Add support for
+    // this corner case.
+    checkPlan(
+        planner.addUnaryPrefix(
+            TokenType.TILDE, planner.passThrough(findNode.simple('x;'))),
+        'f(x) => -~x;');
+  }
 
   Future<void> test_cascadeSearchLimit() async {
     // Ok, we have to ask each parent if it represents a cascade section.
@@ -186,6 +361,14 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = 0; var y = 0;');
   }
 
+  Future<void> test_makeNullable() async {
+    await analyze('int x = 0;');
+    checkPlan(
+        planner
+            .makeNullable(planner.passThrough(findNode.typeAnnotation('int'))),
+        'int? x = 0;');
+  }
+
   Future<void> test_passThrough_remove_statement() async {
     await analyze('''
 void f() {
@@ -229,16 +412,16 @@ void f() {
   Future<void> test_remove_class_member() async {
     await analyze('''
 class C {
-  int x;
-  int y;
-  int z;
+  int? x;
+  int? y;
+  int? z;
 }
 ''');
     var declaration = findNode.fieldDeclaration('y');
     var changes = checkPlan(planner.removeNode(declaration), '''
 class C {
-  int x;
-  int z;
+  int? x;
+  int? z;
 }
 ''');
     expect(changes.keys, [declaration.offset - 2]);
@@ -297,13 +480,13 @@ enum E {
   Future<void> test_remove_field_declaration() async {
     await analyze('''
 class C {
-  int x, y, z;
+  int? x, y, z;
 }
 ''');
     var declaration = findNode.simple('y').parent;
     var changes = checkPlan(planner.removeNode(declaration), '''
 class C {
-  int x, z;
+  int? x, z;
 }
 ''');
     expect(changes.keys, [declaration.offset]);
@@ -740,12 +923,12 @@ import 'dart:math';
   Future<void> test_remove_type_argument() async {
     await analyze('''
 class C<T, U, V> {}
-C<int, double, String> c;
+C<int, double, String>? c;
 ''');
     var typeArgument = findNode.simple('double').parent;
     var changes = checkPlan(planner.removeNode(typeArgument), '''
 class C<T, U, V> {}
-C<int, String> c;
+C<int, String>? c;
 ''');
     expect(changes.keys, [typeArgument.offset]);
   }
@@ -758,9 +941,9 @@ C<int, String> c;
   }
 
   Future<void> test_remove_variable_declaration() async {
-    await analyze('int x, y, z;');
+    await analyze('int? x, y, z;');
     var declaration = findNode.simple('y').parent;
-    var changes = checkPlan(planner.removeNode(declaration), 'int x, z;');
+    var changes = checkPlan(planner.removeNode(declaration), 'int? x, z;');
     expect(changes.keys, [declaration.offset]);
   }
 

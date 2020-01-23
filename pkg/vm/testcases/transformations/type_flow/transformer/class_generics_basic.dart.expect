@@ -63,16 +63,14 @@ class C2<T extends core::Object* = dynamic> extends core::Object {
     return x;
 }
 static method main() → dynamic {
-  dynamic used;
-  used = [@vm.direct-call.metadata=#lib::C::foo] [@vm.inferred-type.metadata=#lib::D<dart.core::int*> (skip check)] new self::C::•<core::int*>().{self::C::foo}();
-  used = [@vm.direct-call.metadata=#lib::E::foo] [@vm.inferred-type.metadata=#lib::D<dart.core::String*> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::foo}();
-  used = [@vm.direct-call.metadata=#lib::E::bar] [@vm.inferred-type.metadata=#lib::D<dart.core::int*> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::bar}();
-  used = [@vm.direct-call.metadata=#lib::E::baz] [@vm.inferred-type.metadata=#lib::D<dart.core::String*> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::baz}();
+  core::print([@vm.direct-call.metadata=#lib::C::foo] [@vm.inferred-type.metadata=#lib::D<dart.core::int*> (skip check)] new self::C::•<core::int*>().{self::C::foo}());
+  core::print([@vm.direct-call.metadata=#lib::E::foo] [@vm.inferred-type.metadata=#lib::D<dart.core::String*> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::foo}());
+  core::print([@vm.direct-call.metadata=#lib::E::bar] [@vm.inferred-type.metadata=#lib::D<dart.core::int*> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::bar}());
+  core::print([@vm.direct-call.metadata=#lib::E::baz] [@vm.inferred-type.metadata=#lib::D<dart.core::String*> (skip check)] new self::E::•<core::int*, core::String*>().{self::E::baz}());
   self::C<self::X*>* c = new self::C::•<self::Y*>();
   [@vm.call-site-attributes.metadata=receiverType:#lib::C<#lib::X*>*] [@vm.direct-call.metadata=#lib::C::id1] [@vm.inferred-type.metadata=!? (skip check)] c.{self::C::id1}(new self::Y::•());
   [@vm.call-site-attributes.metadata=receiverType:#lib::C<#lib::X*>*] [@vm.direct-call.metadata=#lib::C::id2] c.{self::C::id2}(new self::Z::•());
   self::C2<core::num*>* c2 = new self::C2::•<core::num*>();
   [@vm.call-site-attributes.metadata=receiverType:#lib::C2<dart.core::num*>*] [@vm.direct-call.metadata=#lib::C2::id3] [@vm.inferred-type.metadata=!? (skip check)] c2.{self::C2::id3}(3.0);
   [@vm.call-site-attributes.metadata=receiverType:#lib::C2<dart.core::num*>*] [@vm.direct-call.metadata=#lib::C2::id4] [@vm.inferred-type.metadata=!? (skip check)] c2.{self::C2::id4}(new self::K::•<self::J*>());
-  return used;
 }

@@ -13,7 +13,8 @@ import "package:kernel/core_types.dart";
 
 import "package:kernel/library_index.dart" show LibraryIndex;
 
-import "kernel_type_parser.dart" as kernel_type_parser show parseComponent;
+import 'package:kernel/testing/type_parser_environment.dart'
+    as kernel_type_parser show parseComponent;
 
 final Uri libraryUri = Uri.parse("org-dartlang-test:///library.dart");
 

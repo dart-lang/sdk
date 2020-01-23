@@ -34,7 +34,7 @@ class WebServer {
    * The content type for HTML responses.
    */
   static final ContentType _htmlContent =
-      ContentType("text", "html", charset: "utf-8");
+      ContentType('text', 'html', charset: 'utf-8');
 
   /**
    * The instrumentation log being served up.
@@ -172,7 +172,7 @@ class WebServer {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.notFound;
     response.headers.contentType =
-        ContentType("text", "html", charset: "utf-8");
+        ContentType('text', 'html', charset: 'utf-8');
     response.write(
         '<html><head></head><body><h3>Page not found: "${request.uri.path}".</h3></body></html>');
     response.close();

@@ -8,7 +8,6 @@
 library illegal_msg_mirror_test;
 
 import "dart:isolate";
-@MirrorsUsed(targets: "Class")
 import "dart:mirrors";
 
 import "package:expect/expect.dart";

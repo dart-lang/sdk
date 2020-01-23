@@ -60,15 +60,15 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   @override
   String get refactoringName {
     if (element is FunctionElement) {
-      return "Rename Top-Level Function";
+      return 'Rename Top-Level Function';
     }
     if (element is FunctionTypeAliasElement) {
-      return "Rename Function Type Alias";
+      return 'Rename Function Type Alias';
     }
     if (element is TopLevelVariableElement) {
-      return "Rename Top-Level Variable";
+      return 'Rename Top-Level Variable';
     }
-    return "Rename Class";
+    return 'Rename Class';
   }
 
   @override

@@ -23,7 +23,7 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   String get refactoringName {
-    return "Rename Library";
+    return 'Rename Library';
   }
 
   @override

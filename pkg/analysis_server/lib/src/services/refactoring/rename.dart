@@ -108,7 +108,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
     RefactoringStatus result = RefactoringStatus();
     if (newName == oldName) {
       result.addFatalError(
-          "The new name must be different than the current name.");
+          'The new name must be different than the current name.');
     }
     return result;
   }

@@ -424,12 +424,13 @@ class InferenceVisitor
     inferrer.inferConstructorParameterTypes(node.target);
     bool hasExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    DartType inferredType = inferrer.inferInvocation(
+    InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext,
         node.fileOffset,
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
         node.arguments,
+        node.name,
         returnType:
             computeConstructorReturnType(node.target, inferrer.coreTypes),
         isConst: node.isConst);
@@ -441,7 +442,8 @@ class InferenceVisitor
             inferred: true);
       }
     }
-    return new ExpressionInferenceResult(inferredType, node);
+    return new ExpressionInferenceResult(
+        result.inferredType, result.applyResult(node));
   }
 
   @override
@@ -458,8 +460,8 @@ class InferenceVisitor
         : new FunctionType(
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
-    DartType inferredType = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, node.arguments);
+    InvocationInferenceResult result = inferrer.inferInvocation(typeContext,
+        node.fileOffset, calleeType, node.arguments, node.target.name);
     Expression replacement = new StaticInvocation(node.target, node.arguments);
     if (!inferrer.isTopLevel && node.target != null) {
       inferrer.library.checkBoundsInStaticInvocation(
@@ -468,7 +470,8 @@ class InferenceVisitor
           inferrer.helper.uri,
           typeArgumentsInfo);
     }
-    return inferrer.instantiateTearOff(inferredType, typeContext, replacement);
+    return inferrer.instantiateTearOff(
+        result.inferredType, typeContext, result.applyResult(replacement));
   }
 
   ExpressionInferenceResult visitExtensionSet(
@@ -704,12 +707,13 @@ class InferenceVisitor
       FactoryConstructorInvocationJudgment node, DartType typeContext) {
     bool hadExplicitTypeArguments =
         getExplicitTypeArguments(node.arguments) != null;
-    DartType inferredType = inferrer.inferInvocation(
+    InvocationInferenceResult result = inferrer.inferInvocation(
         typeContext,
         node.fileOffset,
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
         node.arguments,
+        node.name,
         returnType:
             computeConstructorReturnType(node.target, inferrer.coreTypes),
         isConst: node.isConst);
@@ -722,7 +726,8 @@ class InferenceVisitor
             inferred: true);
       }
     }
-    return new ExpressionInferenceResult(inferredType, node);
+    return new ExpressionInferenceResult(
+        result.inferredType, result.applyResult(node));
   }
 
   @override
@@ -1058,6 +1063,7 @@ class InferenceVisitor
             .computeThisFunctionType(inferrer.library.nonNullable)
             .withoutTypeParameters),
         node.argumentsJudgment,
+        node.target.name,
         returnType: inferrer.thisType,
         skipTypeArgumentInference: true);
   }
@@ -2284,26 +2290,6 @@ class InferenceVisitor
         node.arguments,
         typeContext,
         isExpressionInvocation: false);
-    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
-        if (inferrer.nnbdStrongMode) {
-          return new ExpressionInferenceResult.nullAware(
-              invocationResult.inferredType,
-              inferrer.helper.wrapInProblem(
-                  invocationResult.expression..fileOffset = node.fileOffset,
-                  templateNullableMethodCallError.withArguments(node.name.name,
-                      receiverType, inferrer.isNonNullableByDefault),
-                  node.name.name.length),
-              null);
-        } else {
-          inferrer.helper.addProblem(
-              templateNullableMethodCallWarning.withArguments(node.name.name,
-                  receiverType, inferrer.isNonNullableByDefault),
-              node.fileOffset,
-              node.name.name.length);
-        }
-      }
-    }
     return invocationResult;
   }
 
@@ -4641,7 +4627,10 @@ class InferenceVisitor
         isThisReceiver: node.receiver is ThisExpression);
     Expression resultExpression = readResult.expression;
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+      if (receiverType is! DynamicType &&
+          receiverType.isPotentiallyNullable &&
+          !inferrer.matchesObjectMemberCall(
+              node.name, const [], const [], const [])) {
         if (inferrer.nnbdStrongMode) {
           resultExpression = inferrer.helper.wrapInProblem(
               resultExpression,
@@ -4681,6 +4670,7 @@ class InferenceVisitor
         node.target.function
             .computeThisFunctionType(inferrer.library.nonNullable),
         node.arguments,
+        node.target.name,
         returnType: inferrer.coreTypes.thisInterfaceType(
             node.target.enclosingClass, inferrer.library.nonNullable),
         skipTypeArgumentInference: true);
@@ -4843,8 +4833,8 @@ class InferenceVisitor
         : new FunctionType(
             [], const DynamicType(), inferrer.library.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
-    DartType inferredType = inferrer.inferInvocation(
-        typeContext, node.fileOffset, calleeType, node.arguments);
+    InvocationInferenceResult result = inferrer.inferInvocation(
+        typeContext, node.fileOffset, calleeType, node.arguments, node.name);
     if (!inferrer.isTopLevel && node.target != null) {
       inferrer.library.checkBoundsInStaticInvocation(
           node,
@@ -4852,7 +4842,8 @@ class InferenceVisitor
           inferrer.helper.uri,
           typeArgumentsInfo);
     }
-    return new ExpressionInferenceResult(inferredType, node);
+    return new ExpressionInferenceResult(
+        result.inferredType, result.applyResult(node));
   }
 
   @override
@@ -4890,6 +4881,7 @@ class InferenceVisitor
             .computeThisFunctionType(inferrer.library.nonNullable)
             .withoutTypeParameters),
         node.arguments,
+        node.target.name,
         returnType: inferrer.thisType,
         skipTypeArgumentInference: true);
   }
@@ -5395,7 +5387,7 @@ class InferenceVisitor
       FunctionType calleeType =
           new FunctionType([], inferredType, inferrer.library.nonNullable);
       inferrer.inferInvocation(
-          typeContext, node.fileOffset, calleeType, node.arguments);
+          typeContext, node.fileOffset, calleeType, node.arguments, null);
     }
     return new ExpressionInferenceResult(inferredType, node);
   }

@@ -33,7 +33,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
       String _format(AnalysisError e) =>
-          "${e.location.startLine}: ${e.message}";
+          '${e.location.startLine}: ${e.message}';
       filesErrors[decoded.file] = decoded.errors.map(_format).toList();
     }
     if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
@@ -144,7 +144,7 @@ f() {}
         {'/project/target.dart': AddContentOverlay('import "none.dart";')});
     await server.onAnalysisComplete;
     expect(filesErrors, {
-      '/project/main.dart': ["1: Unused import."],
+      '/project/main.dart': ['1: Unused import.'],
       '/project/target.dart': ["1: Target of URI doesn't exist: 'none.dart'."],
       '/project/none.dart': []
     });

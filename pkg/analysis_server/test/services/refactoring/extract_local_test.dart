@@ -196,12 +196,12 @@ main() {
     refactoring.name = null;
     assertRefactoringStatus(
         refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Variable name must not be null.");
+        expectedMessage: 'Variable name must not be null.');
     // empty
     refactoring.name = '';
     assertRefactoringStatus(
         refactoring.checkName(), RefactoringProblemSeverity.FATAL,
-        expectedMessage: "Variable name must not be empty.");
+        expectedMessage: 'Variable name must not be empty.');
     // OK
     refactoring.name = 'res';
     assertRefactoringStatusOK(refactoring.checkName());
@@ -1365,12 +1365,12 @@ main() {
   void _assertSingleLinkedEditGroup(
       {int length, List<int> offsets, List<String> names}) {
     var positions =
-        offsets.map((offset) => {"file": testFile, "offset": offset});
-    var suggestions = names.map((name) => {"value": name, "kind": "VARIABLE"});
+        offsets.map((offset) => {'file': testFile, 'offset': offset});
+    var suggestions = names.map((name) => {'value': name, 'kind': 'VARIABLE'});
     var expected = <String, dynamic>{
-      "length": length,
-      "positions": positions.toList(),
-      "suggestions": suggestions.toList()
+      'length': length,
+      'positions': positions.toList(),
+      'suggestions': suggestions.toList()
     };
     _assertSingleLinkedEditGroupJson(json.encode(expected));
   }

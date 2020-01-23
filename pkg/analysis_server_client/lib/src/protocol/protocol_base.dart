@@ -435,7 +435,7 @@ class Response {
   Response.invalidAnalysisRoot(Request request, String rootPath)
       : this(request.id,
             error: RequestError(RequestErrorCode.INVALID_ANALYSIS_ROOT,
-                "Invalid analysis root: $rootPath"));
+                'Invalid analysis root: $rootPath'));
 
   /// Initialize a newly created instance to represent an error condition caused
   /// by a [request] that specifies an execution context whose context root does
@@ -443,7 +443,7 @@ class Response {
   Response.invalidExecutionContext(Request request, String contextId)
       : this(request.id,
             error: RequestError(RequestErrorCode.INVALID_EXECUTION_CONTEXT,
-                "Invalid execution context: $contextId"));
+                'Invalid execution context: $contextId'));
 
   /// Initialize a newly created instance to represent the
   /// INVALID_FILE_PATH_FORMAT error condition.

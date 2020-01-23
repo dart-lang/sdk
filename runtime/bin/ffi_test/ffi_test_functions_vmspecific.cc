@@ -172,13 +172,13 @@ void ClobberAndCall(void (*fn)()) {
 extern "C" void ClobberAndCall(void (*fn)());
 #endif
 
-DART_EXPORT int TestGC(void (*do_gc)()) {
+DART_EXPORT intptr_t TestGC(void (*do_gc)()) {
   ClobberAndCall(do_gc);
   return 0;
 }
 
 struct CallbackTestData {
-  int success;
+  intptr_t success;
   void (*callback)();
 };
 
@@ -189,11 +189,11 @@ void CallbackTestSignalHandler(int) {
   siglongjmp(buf, 1);
 }
 
-int ExpectAbort(void (*fn)()) {
+intptr_t ExpectAbort(void (*fn)()) {
   fprintf(stderr, "**** EXPECT STACKTRACE TO FOLLOW. THIS IS OK. ****\n");
 
   struct sigaction old_action = {};
-  int result = __sigsetjmp(buf, /*savesigs=*/1);
+  intptr_t result = __sigsetjmp(buf, /*savesigs=*/1);
   if (result == 0) {
     // Install signal handler.
     struct sigaction handler = {};
@@ -219,10 +219,10 @@ void* TestCallbackOnThreadOutsideIsolate(void* parameter) {
   return NULL;
 }
 
-int TestCallbackOtherThreadHelper(void* (*tester)(void*), void (*fn)()) {
+intptr_t TestCallbackOtherThreadHelper(void* (*tester)(void*), void (*fn)()) {
   CallbackTestData data = {1, fn};
   pthread_attr_t attr;
-  int result = pthread_attr_init(&attr);
+  intptr_t result = pthread_attr_init(&attr);
   CHECK_EQ(result, 0);
 
   pthread_t tid;
@@ -241,13 +241,13 @@ int TestCallbackOtherThreadHelper(void* (*tester)(void*), void (*fn)()) {
 }
 
 // Run a callback on another thread and verify that it triggers SIGABRT.
-DART_EXPORT int TestCallbackWrongThread(void (*fn)()) {
+DART_EXPORT intptr_t TestCallbackWrongThread(void (*fn)()) {
   return TestCallbackOtherThreadHelper(&TestCallbackOnThreadOutsideIsolate, fn);
 }
 
 // Verify that we get SIGABRT when invoking a native callback outside an
 // isolate.
-DART_EXPORT int TestCallbackOutsideIsolate(void (*fn)()) {
+DART_EXPORT intptr_t TestCallbackOutsideIsolate(void (*fn)()) {
   Dart_Isolate current = Dart_CurrentIsolate();
 
   Dart_ExitIsolate();
@@ -258,7 +258,7 @@ DART_EXPORT int TestCallbackOutsideIsolate(void (*fn)()) {
   return data.success;
 }
 
-DART_EXPORT int TestCallbackWrongIsolate(void (*fn)()) {
+DART_EXPORT intptr_t TestCallbackWrongIsolate(void (*fn)()) {
   return ExpectAbort(fn);
 }
 

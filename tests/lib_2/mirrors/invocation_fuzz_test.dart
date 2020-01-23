@@ -51,8 +51,8 @@ bool isBlacklisted(Symbol qualifiedSymbol) {
 }
 
 class Task {
-  var name;
-  var action;
+  dynamic name;
+  dynamic action;
 }
 
 var queue = new List<Task>();

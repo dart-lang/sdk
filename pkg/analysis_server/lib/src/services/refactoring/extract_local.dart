@@ -25,7 +25,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-const String _TOKEN_SEPARATOR = "\uFFFF";
+const String _TOKEN_SEPARATOR = '\uFFFF';
 
 /**
  * [ExtractLocalRefactoring] implementation.
@@ -75,11 +75,11 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   String get _declarationKeyword {
     if (_isPartOfConstantExpression(singleExpression)) {
-      return "const";
+      return 'const';
     } else if (_isLintEnabled(LintNames.prefer_final_locals)) {
-      return "final";
+      return 'final';
     } else {
-      return "var";
+      return 'var';
     }
   }
 
@@ -200,7 +200,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     // prepare replacement
     String occurrenceReplacement = name;
     if (stringLiteralPart != null) {
-      occurrenceReplacement = "\${$name}";
+      occurrenceReplacement = '\${$name}';
       occurrencesShift += 2;
     }
     // replace occurrences with variable reference

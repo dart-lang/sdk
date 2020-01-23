@@ -183,6 +183,8 @@ var require = {
   baseUrl: "/root_dart/$testJSDir",
   paths: {
     "dart_sdk": "/root_build/gen/utils/dartdevc/$sdkPath",
+    "browser-source-map-support":
+      "/root_dart/third_party/node-source-map-support/browser-source-map-support",
 $packagePaths
   },
   waitSeconds: 30,
@@ -192,8 +194,9 @@ $packagePaths
 <script type="text/javascript"
         src="/root_dart/third_party/requirejs/require.js"></script>
 <script type="text/javascript">
-requirejs(["$testName", "dart_sdk", "async_helper"],
-    function($testId, sdk, async_helper) {
+requirejs(["$testName", "dart_sdk", "browser-source-map-support", "async_helper"],
+    function($testId, sdk, sm, async_helper) {
+  sm.install();
   sdk._isolate_helper.startRootIsolate(function() {}, []);
   sdk._debugger.registerDevtoolsFormatter();
 

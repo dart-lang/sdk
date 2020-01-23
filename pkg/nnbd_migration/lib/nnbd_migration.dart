@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -38,6 +40,12 @@ class NullabilityFixDescription {
   static const checkExpression = const NullabilityFixDescription._(
     appliedMessage: 'Added a non-null assertion to nullable expression',
     kind: NullabilityFixKind.checkExpression,
+  );
+
+  /// An unnecessary downcast has been discarded.
+  static const removeAs = const NullabilityFixDescription._(
+    appliedMessage: 'Discarded a downcast that is now unnecessary',
+    kind: NullabilityFixKind.removeAs,
   );
 
   /// A message used by dartfix to indicate a fix has been applied.
@@ -79,6 +87,10 @@ class NullabilityFixDescription {
       other is NullabilityFixDescription &&
       appliedMessage == other.appliedMessage &&
       kind == other.kind;
+
+  @override
+  toString() =>
+      'NullabilityFixDescription(${json.encode(appliedMessage)}, $kind)';
 }
 
 /// An enumeration of the various kinds of nullability fixes.
@@ -90,6 +102,7 @@ enum NullabilityFixKind {
   discardThen,
   makeTypeNullable,
   noModification,
+  removeAs,
 }
 
 /// Provisional API for DartFix to perform nullability migration.

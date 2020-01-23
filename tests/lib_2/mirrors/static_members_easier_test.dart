@@ -4,7 +4,6 @@
 
 library test.static_members;
 
-@MirrorsUsed(targets: "test.static_members")
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
@@ -17,7 +16,7 @@ selectKeys(map, predicate) {
 
 main() {
   ClassMirror cm = reflectClass(declarations_model.Class);
-  LibraryMirror lm = cm.owner;
+  LibraryMirror lm = cm.owner as LibraryMirror;
 
   Expect.setEquals([
     #staticVariable,

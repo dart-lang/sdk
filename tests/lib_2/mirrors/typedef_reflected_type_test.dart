@@ -6,7 +6,6 @@ library test;
 
 import 'package:expect/expect.dart';
 
-@MirrorsUsed(targets: "test")
 import 'dart:mirrors';
 
 typedef int Foo<T>(String x);

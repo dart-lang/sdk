@@ -13,7 +13,7 @@ class C {
 }
 
 main() {
-  LibraryMirror thisLibrary = reflectClass(C).owner;
+  LibraryMirror thisLibrary = reflectClass(C).owner as LibraryMirror;
   Expect.equals(thisLibrary.declarations[#topLevelMethod],
       (reflect(topLevelMethod) as ClosureMirror).function, "topLevel");
 

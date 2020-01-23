@@ -62,13 +62,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("MyClass"));
-    expect(result.dartdoc, equals("MyClass constructor doc"));
+    expect(result.name, equals('MyClass'));
+    expect(result.dartdoc, equals('MyClass constructor doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
   test_constructor_factory() async {
@@ -87,13 +87,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("MyClass"));
-    expect(result.dartdoc, equals("MyClass factory constructor doc"));
+    expect(result.name, equals('MyClass'));
+    expect(result.dartdoc, equals('MyClass factory constructor doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
   test_constructor_named() async {
@@ -108,13 +108,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("MyClass.foo"));
-    expect(result.dartdoc, equals("MyClass.foo constructor doc"));
+    expect(result.name, equals('MyClass.foo'));
+    expect(result.dartdoc, equals('MyClass.foo constructor doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
   test_does_not_walk_up_over_closure() async {
@@ -169,11 +169,11 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("f"));
-    expect(result.dartdoc, equals("f doc"));
+    expect(result.name, equals('f'));
+    expect(result.dartdoc, equals('f doc'));
     expect(result.parameters, hasLength(1));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "s", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 's', 'String')));
   }
 
   test_function_from_other_file() async {
@@ -191,13 +191,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
   test_function_irrelevant_parens() async {
@@ -209,13 +209,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
   test_function_named() async {
@@ -227,13 +227,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
   test_function_named_with_default_int() async {
@@ -245,15 +245,15 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(
         result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, "length", "int",
-            defaultValue: "1")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int',
+            defaultValue: '1')));
   }
 
   test_function_named_with_default_string() async {
@@ -265,14 +265,14 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(
         result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, "email", "String",
+        equals(ParameterInfo(ParameterKind.NAMED, 'email', 'String',
             defaultValue: '"a@b.c"')));
   }
 
@@ -288,11 +288,11 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("two"));
-    expect(result.dartdoc, equals("two doc"));
+    expect(result.name, equals('two'));
+    expect(result.dartdoc, equals('two doc'));
     expect(result.parameters, hasLength(1));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "two", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'two', 'String')));
   }
 
   test_function_nested_call_outer() async {
@@ -307,11 +307,11 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(1));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "one", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'one', 'String')));
   }
 
   test_function_no_dart_doc() async {
@@ -322,13 +322,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
+    expect(result.name, equals('one'));
     expect(result.dartdoc, isNull);
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
   test_function_optional() async {
@@ -340,13 +340,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.OPTIONAL, "length", "int")));
+        equals(ParameterInfo(ParameterKind.OPTIONAL, 'length', 'int')));
   }
 
   test_function_optional_with_default() async {
@@ -358,15 +358,15 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(
         result.parameters[1],
-        equals(ParameterInfo(ParameterKind.OPTIONAL, "length", "int",
-            defaultValue: "11")));
+        equals(ParameterInfo(ParameterKind.OPTIONAL, 'length', 'int',
+            defaultValue: '11')));
   }
 
   test_function_required() async {
@@ -378,13 +378,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
   test_function_zero_arguments() async {
@@ -396,8 +396,8 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("one"));
-    expect(result.dartdoc, equals("one doc"));
+    expect(result.name, equals('one'));
+    expect(result.dartdoc, equals('one doc'));
     expect(result.parameters, hasLength(0));
   }
 
@@ -436,13 +436,13 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("myMethod"));
-    expect(result.dartdoc, equals("MyClass instance method"));
+    expect(result.name, equals('myMethod'));
+    expect(result.dartdoc, equals('MyClass instance method'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
   test_method_static() async {
@@ -459,12 +459,12 @@ main() {
 }
 ''');
     var result = await prepareSignature('/*^*/');
-    expect(result.name, equals("myStaticMethod"));
-    expect(result.dartdoc, equals("MyClass static method"));
+    expect(result.name, equals('myStaticMethod'));
+    expect(result.dartdoc, equals('MyClass static method'));
     expect(result.parameters, hasLength(2));
     expect(result.parameters[0],
-        equals(ParameterInfo(ParameterKind.REQUIRED, "name", "String")));
+        equals(ParameterInfo(ParameterKind.REQUIRED, 'name', 'String')));
     expect(result.parameters[1],
-        equals(ParameterInfo(ParameterKind.NAMED, "length", "int")));
+        equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 }

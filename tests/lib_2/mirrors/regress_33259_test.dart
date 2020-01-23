@@ -8,13 +8,13 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 void main() {
-  Expect.isTrue(
-      reflectClass(Thing).declarations[#foo].metadata[0].reflectee is Sub);
+  final foo = reflectClass(Thing).declarations[#foo] as VariableMirror;
+  Expect.isTrue(foo.metadata[0].reflectee is Sub);
 }
 
 class Thing {
   @Sub()
-  String foo;
+  String foo = "initialized";
 }
 
 class Base<T> {

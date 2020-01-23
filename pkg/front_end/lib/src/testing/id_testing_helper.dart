@@ -59,29 +59,41 @@ abstract class DataComputer<T> {
   /// Function that computes a data mapping for [member].
   ///
   /// Fills [actualMap] with the data.
-  void computeMemberData(InternalCompilerResult compilerResult, Member member,
+  void computeMemberData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Member member,
       Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
 
   /// Function that computes a data mapping for [cls].
   ///
   /// Fills [actualMap] with the data.
-  void computeClassData(InternalCompilerResult compilerResult, Class cls,
+  void computeClassData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Class cls,
       Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
 
   /// Function that computes a data mapping for [extension].
   ///
   /// Fills [actualMap] with the data.
-  void computeExtensionData(InternalCompilerResult compilerResult,
-      Extension extension, Map<Id, ActualData<T>> actualMap,
+  void computeExtensionData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Extension extension,
+      Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
-  void computeLibraryData(InternalCompilerResult compilerResult,
-      Library library, Map<Id, ActualData<T>> actualMap,
+  void computeLibraryData(
+      TestConfig config,
+      InternalCompilerResult compilerResult,
+      Library library,
+      Map<Id, ActualData<T>> actualMap,
       {bool verbose}) {}
 
   /// Returns `true` if this data computer supports tests with compile-time
@@ -92,7 +104,7 @@ abstract class DataComputer<T> {
   bool get supportsErrors => false;
 
   /// Returns data corresponding to [error].
-  T computeErrorData(InternalCompilerResult compiler, Id id,
+  T computeErrorData(TestConfig config, InternalCompilerResult compiler, Id id,
           List<FormattedMessage> errors) =>
       null;
 
@@ -299,7 +311,8 @@ Future<TestResult<T>> runTestForConfig<T>(
           offset = 0;
         }
         NodeId id = new NodeId(offset, IdKind.error);
-        T data = dataComputer.computeErrorData(compilerResult, id, list);
+        T data =
+            dataComputer.computeErrorData(config, compilerResult, id, list);
         if (data != null) {
           Map<Id, ActualData<T>> actualMap = actualMapForUri(uri);
           actualMap[id] = new ActualData<T>(id, data, uri, offset, list);
@@ -328,17 +341,18 @@ Future<TestResult<T>> runTestForConfig<T>(
         return;
       }
     }
-    dataComputer.computeMemberData(compilerResult, member, actualMap,
+    dataComputer.computeMemberData(config, compilerResult, member, actualMap,
         verbose: verbose);
   }
 
   void processClass(Class cls, Map<Id, ActualData<T>> actualMap) {
-    dataComputer.computeClassData(compilerResult, cls, actualMap,
+    dataComputer.computeClassData(config, compilerResult, cls, actualMap,
         verbose: verbose);
   }
 
   void processExtension(Extension extension, Map<Id, ActualData<T>> actualMap) {
-    dataComputer.computeExtensionData(compilerResult, extension, actualMap,
+    dataComputer.computeExtensionData(
+        config, compilerResult, extension, actualMap,
         verbose: verbose);
   }
 
@@ -354,7 +368,7 @@ Future<TestResult<T>> runTestForConfig<T>(
       continue;
     }
     dataComputer.computeLibraryData(
-        compilerResult, library, actualMapFor(library));
+        config, compilerResult, library, actualMapFor(library));
     for (Class cls in library.classes) {
       processClass(cls, actualMapFor(cls));
       for (Member member in cls.members) {
