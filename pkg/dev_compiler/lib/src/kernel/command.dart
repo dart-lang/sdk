@@ -10,12 +10,12 @@ import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
-import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
@@ -26,7 +26,6 @@ import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
-
 import 'compiler.dart';
 import 'target.dart';
 

@@ -4,12 +4,14 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
-import 'module_builder.dart';
+
 import '../kernel/command.dart' as kernel_compiler;
+import 'module_builder.dart';
 
 // TODO(nshahan) Merge all of this file the locations where they are used in
 // the kernel (only) version of DDC.
