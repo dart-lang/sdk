@@ -23,5 +23,6 @@ library from "org-dartlang-test:///main.dart" as main {
 
   static method main() → void {
     lib::C* c = new lib::C::•();
+    dart.core::print(c);
   }
 }

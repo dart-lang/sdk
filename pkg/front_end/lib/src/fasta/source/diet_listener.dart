@@ -97,6 +97,7 @@ class DietListener extends StackListenerImpl {
 
   DeclarationBuilder _currentDeclaration;
   ClassBuilder _currentClass;
+  bool _inRedirectingFactory = false;
 
   bool currentClassIsParserRecovery = false;
 
@@ -590,7 +591,7 @@ class DietListener extends StackListenerImpl {
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
 
     FunctionBuilder builder = lookupConstructor(beginToken, name);
-    if (bodyToken == null || optional("=", bodyToken.endGroup.next)) {
+    if (_inRedirectingFactory) {
       buildRedirectingFactoryMethod(
           bodyToken, builder, MemberKind.Factory, metadata);
     } else {
@@ -625,6 +626,7 @@ class DietListener extends StackListenerImpl {
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody");
     discard(1); // ConstructorReference.
+    _inRedirectingFactory = true;
   }
 
   @override
@@ -793,6 +795,7 @@ class DietListener extends StackListenerImpl {
   void endMember() {
     debugEvent("Member");
     checkEmpty(-1);
+    _inRedirectingFactory = false;
   }
 
   @override
@@ -933,6 +936,11 @@ class DietListener extends StackListenerImpl {
       token = parser.parseInitializersOpt(token);
       token = parser.parseAsyncModifierOpt(token);
       AsyncMarker asyncModifier = getAsyncMarker(listener) ?? AsyncMarker.Sync;
+      if (kind == MemberKind.Factory && asyncModifier != AsyncMarker.Sync) {
+        // Factories has to be sync. The parser issued an error.
+        // Recover to sync.
+        asyncModifier = AsyncMarker.Sync;
+      }
       bool isExpression = false;
       bool allowAbstract = asyncModifier == AsyncMarker.Sync;
       parser.parseFunctionBody(token, isExpression, allowAbstract);

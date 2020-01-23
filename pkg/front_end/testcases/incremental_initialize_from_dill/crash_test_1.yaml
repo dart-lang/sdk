@@ -9,13 +9,31 @@ worlds:
   - entry: main.dart
     sources:
       main.dart: |
+        import "lib.dart";
+        void main() {
+          var c = new C.e4();
+        }
+      lib.dart: |
         class C {
           C();
           factory C.e4() async = C;
         }
-
+    expectedLibraryCount: 2
+    errors: true
+  - entry: main.dart
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        import "lib.dart";
         void main() {
           var c = new C.e4();
+          print(c);
         }
-    expectedLibraryCount: 1
+      lib.dart: |
+        class C {
+          C();
+          factory C.e4() async = C;
+        }
+    expectedLibraryCount: 2
     errors: true
