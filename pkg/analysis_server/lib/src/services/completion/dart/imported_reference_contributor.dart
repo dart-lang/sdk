@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 import '../../../protocol_server.dart' show CompletionSuggestion;
@@ -56,17 +57,24 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     optype = (request as DartCompletionRequestImpl).opType;
     List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
+    final seenElements = <protocol.Element>{};
+
     // Traverse imports including dart:core
     for (ImportElement importElem in imports) {
       LibraryElement libElem = importElem?.importedLibrary;
       if (libElem != null) {
-        suggestions.addAll(_buildSuggestions(libElem.exportNamespace,
+        final newSuggestions = _buildSuggestions(libElem.exportNamespace,
             prefix: importElem.prefix?.name,
             showNames: showNamesIn(importElem),
-            hiddenNames: hiddenNamesIn(importElem)));
+            hiddenNames: hiddenNamesIn(importElem));
+        for (var suggestion in newSuggestions) {
+          // Filter out multiply-exported elements (like Future and Stream).
+          if (seenElements.add(suggestion.element)) {
+            suggestions.add(suggestion);
+          }
+        }
       }
     }
-
     return suggestions;
   }
 
