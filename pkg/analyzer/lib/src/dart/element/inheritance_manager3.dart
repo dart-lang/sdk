@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -71,7 +70,7 @@ class InheritanceManager3 {
     if (interface._inheritedMap == null) {
       interface._inheritedMap = {};
       _findMostSpecificFromNamedCandidates(
-        type.element,
+        type.element.library.typeSystem,
         interface._inheritedMap,
         interface._overridden,
       );
@@ -99,6 +98,7 @@ class InheritanceManager3 {
 
     var classLibrary = classElement.library;
     var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
+    var typeSystem = classLibrary.typeSystem;
 
     Map<Name, List<ExecutableElement>> namedCandidates = {};
     List<Map<Name, ExecutableElement>> superImplemented = [];
@@ -142,7 +142,7 @@ class InheritanceManager3 {
         // from its superclass constraints, whether it is abstract or concrete.
         var superClass = <Name, ExecutableElement>{};
         _findMostSpecificFromNamedCandidates(
-          classElement,
+          typeSystem,
           superClass,
           superClassCandidates,
         );
@@ -202,7 +202,7 @@ class InheritanceManager3 {
     // signature becomes the signature of the class's interface.
     Map<Name, ExecutableElement> map = Map.of(declared);
     List<Conflict> conflicts = _findMostSpecificFromNamedCandidates(
-      classElement,
+      typeSystem,
       map,
       namedCandidates,
     );
@@ -383,11 +383,9 @@ class InheritanceManager3 {
   /// such single most specific signature (i.e. no valid override), then add a
   /// new conflict description.
   List<Conflict> _findMostSpecificFromNamedCandidates(
-      ClassElement targetClass,
+      TypeSystemImpl typeSystem,
       Map<Name, ExecutableElement> map,
       Map<Name, List<ExecutableElement>> namedCandidates) {
-    TypeSystemImpl typeSystem = targetClass.library.typeSystem;
-
     List<Conflict> conflicts;
 
     for (var name in namedCandidates.keys) {
@@ -415,9 +413,9 @@ class InheritanceManager3 {
       // candidates from [I1, I2, S, M1, M2]. But during method lookup
       // candidates should be considered in backward order, i.e. from `M2`,
       // then from `M1`, then from `S`.
-      var validOverrides = <ExecutableElement>[];
+      ExecutableElement validOverride;
       for (var i = candidates.length - 1; i >= 0; i--) {
-        var validOverride = candidates[i];
+        validOverride = candidates[i];
         for (var j = 0; j < candidates.length; j++) {
           var candidate = candidates[j];
           if (!typeSystem.isOverrideSubtypeOf(
@@ -427,17 +425,16 @@ class InheritanceManager3 {
           }
         }
         if (validOverride != null) {
-          validOverrides.add(validOverride);
+          break;
         }
       }
 
-      if (validOverrides.isEmpty) {
+      if (validOverride != null) {
+        map[name] = validOverride;
+      } else {
         conflicts ??= <Conflict>[];
         conflicts.add(Conflict(name, candidates));
-        continue;
       }
-
-      map[name] = _topMerge(typeSystem, targetClass, validOverrides);
     }
 
     return conflicts;
@@ -466,61 +463,6 @@ class InheritanceManager3 {
     }
 
     return declared;
-  }
-
-  /// Given one or more [validOverrides], merge them into a single resulting
-  /// signature. This signature always exists.
-  ExecutableElement _topMerge(
-    TypeSystemImpl typeSystem,
-    ClassElement targetClass,
-    List<ExecutableElement> validOverrides,
-  ) {
-    var first = validOverrides[0];
-    if (validOverrides.length == 1) {
-      return first;
-    } else {
-      var firstType = first.type;
-      var allTypesEqual = true;
-      for (var executable in validOverrides) {
-        if (executable.type != firstType) {
-          allTypesEqual = false;
-          break;
-        }
-      }
-
-      if (allTypesEqual) {
-        return first;
-      }
-
-      FunctionType resultType;
-      for (var executable in validOverrides) {
-        var type = executable.type;
-        var normalizedType = typeSystem.normalize(type);
-        if (resultType == null) {
-          resultType = normalizedType;
-        } else {
-          resultType = typeSystem.topMerge(resultType, normalizedType);
-        }
-      }
-
-      if (first is MethodElement) {
-        var firstMethod = first;
-        var result = MethodElementImpl(firstMethod.name, -1);
-        result.enclosingElement = targetClass;
-        result.typeParameters = resultType.typeFormals;
-        result.returnType = resultType.returnType;
-        result.parameters = resultType.parameters;
-        return result;
-      } else {
-        var firstAccessor = first as PropertyAccessorElement;
-        var result = PropertyAccessorElementImpl(firstAccessor.name, -1);
-        result.enclosingElement = targetClass;
-        result.getter = firstAccessor.isGetter;
-        result.returnType = resultType.returnType;
-        result.parameters = resultType.parameters;
-        return result;
-      }
-    }
   }
 
   static bool _isDeclaredInObject(ExecutableElement element) {
