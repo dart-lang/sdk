@@ -192,6 +192,24 @@ function addClickHandlers(parentSelector) {
       loadRegionExplanation(region);
     };
   });
+  const navArrows = parentElement.querySelectorAll(".arrow");
+  navArrows.forEach((arrow) => {
+    const childList = arrow.parentNode.querySelector(":scope > ul");
+    // Animating height from "auto" to "0" is not supported by CSS [1], so all
+    // we have are hacks. The `* 2` allows for events in which the list grows in
+    // height when resized, with additional text wrapping.
+    // [1] https://css-tricks.com/using-css-transitions-auto-dimensions/
+    childList.style.maxHeight = childList.offsetHeight * 2 + "px";
+    arrow.onclick = (event) => {
+      if (!childList.classList.contains("collapsed")) {
+        childList.classList.add("collapsed");
+        arrow.classList.add("collapsed");
+      } else {
+        childList.classList.remove("collapsed");
+        arrow.classList.remove("collapsed");
+      }
+    };
+  });
 }
 
 // Load the explanation for [region], into the ".panel-content" div.

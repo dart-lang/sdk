@@ -125,7 +125,9 @@ class InstrumentationRenderer {
     buffer.writeln('$indent<ul>');
     linksGroupedByDirectory
         .forEach((String directoryName, Iterable<UnitLink> groupedLinks) {
-      buffer.writeln('$indent  <li class="dir"><span>📁$directoryName</span>');
+      buffer.write('$indent  <li class="dir">');
+      buffer.writeln(
+          '<span class="arrow">&#x25BC;</span>&#x1F4C1;$directoryName');
       _renderNavigationSubtree(groupedLinks, depth + 1, buffer);
       buffer.writeln('$indent  </li>');
     });
@@ -133,7 +135,7 @@ class InstrumentationRenderer {
       var modifications =
           link.modificationCount == 1 ? 'modification' : 'modifications';
       buffer.writeln('$indent  <li>'
-          '<a href="${link.url}" class="nav-link" data-name="${link.relativePath}">'
+          '&#x1F4C4;<a href="${link.url}" class="nav-link" data-name="${link.relativePath}">'
           '${link.fileName}</a> (${link.modificationCount} $modifications)'
           '</li>');
     }

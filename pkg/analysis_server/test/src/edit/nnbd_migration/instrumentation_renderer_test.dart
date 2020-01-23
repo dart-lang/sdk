@@ -45,24 +45,24 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
     renderedView = _stripAttributes(renderedView);
     expect(renderedView, contains('''
 <ul>
-  <li class="dir"><span>📁bin</span>
+  <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;bin
     <ul>
-      <li><a href="..." class="nav-link" data-name="...">bin.dart</a> (1 modification)</li>
+      <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">bin.dart</a> (1 modification)</li>
     </ul>
   </li>
-  <li class="dir"><span>📁lib</span>
+  <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;lib
     <ul>
-      <li class="dir"><span>📁src</span>
+      <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;src
         <ul>
-          <li><a href="..." class="nav-link" data-name="...">b.dart</a> (1 modification)</li>
+          <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">b.dart</a> (1 modification)</li>
         </ul>
       </li>
-      <li><a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
+      <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
     </ul>
   </li>
-  <li class="dir"><span>📁test</span>
+  <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;test
     <ul>
-      <li><a href="..." class="nav-link" data-name="...">test.dart</a> (1 modification)</li>
+      <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">test.dart</a> (1 modification)</li>
     </ul>
   </li>
 </ul>'''));
@@ -77,17 +77,17 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
     renderedView = _stripAttributes(renderedView);
     expect(renderedView, contains('''
 <ul>
-  <li class="dir"><span>📁lib</span>
+  <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;lib
     <ul>
-      <li class="dir"><span>📁src</span>
+      <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;src
         <ul>
-          <li><a href="..." class="nav-link" data-name="...">b.dart</a> (1 modification)</li>
+          <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">b.dart</a> (1 modification)</li>
         </ul>
       </li>
-      <li><a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
+      <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
     </ul>
   </li>
-  <li><a href="..." class="nav-link" data-name="...">tool.dart</a> (1 modification)</li>
+  <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">tool.dart</a> (1 modification)</li>
 </ul>'''));
   }
 
@@ -99,10 +99,10 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
     renderedView = _stripAttributes(renderedView);
     expect(renderedView, contains('''
 <ul>
-  <li class="dir"><span>📁lib</span>
+  <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;lib
     <ul>
-      <li><a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
-      <li><a href="..." class="nav-link" data-name="...">b.dart</a> (1 modification)</li>
+      <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
+      <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">b.dart</a> (1 modification)</li>
     </ul>
   </li>
 </ul>'''));
@@ -114,11 +114,11 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
     renderedView = _stripAttributes(renderedView);
     expect(renderedView, contains('''
 <ul>
-  <li class="dir"><span>📁lib</span>
+  <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;lib
     <ul>
-      <li class="dir"><span>📁src</span>
+      <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;src
         <ul>
-          <li><a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
+          <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
         </ul>
       </li>
     </ul>
@@ -132,7 +132,7 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
     renderedView = _stripAttributes(renderedView);
     expect(renderedView, contains('''
 <ul>
-  <li><a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
+  <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
 </ul>'''));
   }
 

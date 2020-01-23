@@ -79,19 +79,38 @@ h2#unit-name {
   list-style-type: none;
 }
 
-.nav-inner li.dir::before {
-  content: "▼";
-  font-size: 8px;
-  padding-right: 5px;
+.nav-inner li.dir {
+  margin-left: 5px;
 }
 
 .nav-inner li:not(.dir) {
-  padding-left: 5px;
+  margin-left: 20px;
+}
+
+.nav-inner li.dir .arrow {
+  cursor: pointer;
+  display: inline-block;
+  font-size: 10px;
+  margin-right: 4px;
+  transition: transform 0.5s ease-out;
+}
+
+.nav-inner li.dir .arrow.collapsed {
+  transform: rotate(-90deg);
+}
+
+.nav-inner ul {
+  max-height: 2000px;
+  transition: max-height 0.5s ease-out;
+}
+
+.nav-inner ul.collapsed {
+  max-height: 0 !important;
+  overflow: hidden;
 }
 
 .nav-inner .nav-link {
   color: #33ccff;
-  margin-left: 1em;
 }
 
 .nav-inner .selected-file {
