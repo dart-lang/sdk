@@ -1571,6 +1571,13 @@
             "lib",
             "dartdevc_native"
           ]
+        },
+        {
+          "name": "ddc nnbd strong co19 tests",
+          "arguments": [
+            "-ndartdevk-strong-linux-release-chrome",
+            "co19/LanguageFeatures/nnbd"
+          ]
         }
       ]
     },
