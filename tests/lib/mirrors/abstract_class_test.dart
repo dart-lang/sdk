@@ -27,7 +27,7 @@ class Bar extends Foo {
 testSimple() {
   Expect.isTrue(reflectClass(Foo).isAbstract);
   Expect.isFalse(reflectClass(Bar).isAbstract);
-  Expect.isTrue(reflect(new Bar()).type.superclass.isAbstract);
+  Expect.isTrue(reflect(new Bar()).type.superclass!.isAbstract);
   Expect.isFalse(reflect(new Bar()).type.isAbstract);
 }
 
@@ -48,7 +48,7 @@ class FunctionBar extends FunctionFoo {
 testFakeFunction() {
   Expect.isTrue(reflectClass(FunctionFoo).isAbstract);
   Expect.isFalse(reflectClass(FunctionBar).isAbstract);
-  Expect.isTrue(reflect(new FunctionBar()).type.superclass.isAbstract);
+  Expect.isTrue(reflect(new FunctionBar()).type.superclass!.isAbstract);
   Expect.isFalse(reflect(new FunctionBar()).type.isAbstract);
 }
 
@@ -65,7 +65,7 @@ testGeneric() {
   Expect.isTrue(reflectClass(GenericFoo).isAbstract);
   Expect.isFalse(reflectClass(GenericBar).isAbstract);
   // Bound.
-  Expect.isTrue(reflect(new GenericBar<int>()).type.superclass.isAbstract);
+  Expect.isTrue(reflect(new GenericBar<int>()).type.superclass!.isAbstract);
   Expect.isFalse(reflect(new GenericBar<int>()).type.isAbstract);
 }
 
@@ -106,30 +106,31 @@ testAnonMixinApplication() {
   {
     // Mixin is abstract.
     Expect.isFalse(reflectClass(SubMA).isAbstract);
-    Expect.isTrue(reflectClass(SubMA).superclass.isAbstract);
-    Expect.isTrue(reflectClass(SubMA).superclass.superclass.isAbstract);
+    Expect.isTrue(reflectClass(SubMA).superclass!.isAbstract);
+    Expect.isTrue(reflectClass(SubMA).superclass!.superclass!.isAbstract);
     Expect.isTrue(reflectClass(MA).isAbstract);
-    Expect.isTrue(reflectClass(MA).superclass.isAbstract);
+    Expect.isTrue(reflectClass(MA).superclass!.isAbstract);
 
     // Mixin is concrete.
     Expect.isFalse(reflectClass(SubMA2).isAbstract);
-    Expect.isTrue(reflectClass(SubMA2).superclass.isAbstract);
-    Expect.isTrue(reflectClass(SubMA2).superclass.superclass.isAbstract);
+    Expect.isTrue(reflectClass(SubMA2).superclass!.isAbstract);
+    Expect.isTrue(reflectClass(SubMA2).superclass!.superclass!.isAbstract);
     Expect.isTrue(reflectClass(MA2).isAbstract);
-    Expect.isTrue(reflectClass(MA2).superclass.isAbstract);
+    Expect.isTrue(reflectClass(MA2).superclass!.isAbstract);
   }
 
   // Application is concrete.
   {
     // Mixin is abstract.
     Expect.isFalse(reflectClass(ConcreteMA).isAbstract);
-    Expect.isTrue(reflectClass(ConcreteMA).superclass.isAbstract);
-    Expect.isFalse(reflectClass(ConcreteMA).superclass.superclass.isAbstract);
+    Expect.isTrue(reflectClass(ConcreteMA).superclass!.isAbstract);
+    Expect.isFalse(reflectClass(ConcreteMA).superclass!.superclass!.isAbstract);
 
     // Mixin is concrete.
     Expect.isFalse(reflectClass(ConcreteMA2).isAbstract);
-    Expect.isTrue(reflectClass(ConcreteMA2).superclass.isAbstract);
-    Expect.isFalse(reflectClass(ConcreteMA2).superclass.superclass.isAbstract);
+    Expect.isTrue(reflectClass(ConcreteMA2).superclass!.isAbstract);
+    Expect.isFalse(
+        reflectClass(ConcreteMA2).superclass!.superclass!.isAbstract);
   }
 }
 
@@ -152,23 +153,24 @@ testNamedMixinApplication() {
   {
     // Mixin is abstract.
     Expect.isFalse(reflectClass(SubNamedMA).isAbstract);
-    Expect.isTrue(reflectClass(SubNamedMA).superclass.isAbstract);
-    Expect.isFalse(reflectClass(SubNamedMA).superclass.superclass.isAbstract);
+    Expect.isTrue(reflectClass(SubNamedMA).superclass!.isAbstract);
+    Expect.isFalse(reflectClass(SubNamedMA).superclass!.superclass!.isAbstract);
     Expect.isTrue(reflectClass(NamedMA).isAbstract);
-    Expect.isFalse(reflectClass(NamedMA).superclass.isAbstract);
+    Expect.isFalse(reflectClass(NamedMA).superclass!.isAbstract);
 
     // Mixin is concrete.
     Expect.isFalse(reflectClass(SubNamedMA2).isAbstract);
-    Expect.isTrue(reflectClass(SubNamedMA2).superclass.isAbstract);
-    Expect.isFalse(reflectClass(SubNamedMA2).superclass.superclass.isAbstract);
+    Expect.isTrue(reflectClass(SubNamedMA2).superclass!.isAbstract);
+    Expect.isFalse(
+        reflectClass(SubNamedMA2).superclass!.superclass!.isAbstract);
     Expect.isTrue(reflectClass(NamedMA2).isAbstract);
-    Expect.isFalse(reflectClass(NamedMA2).superclass.isAbstract);
+    Expect.isFalse(reflectClass(NamedMA2).superclass!.isAbstract);
   }
 
   // Application is concrete.
   {
     // Mixin is concrete.
     Expect.isFalse(reflectClass(ConcreteNamedMA2).isAbstract);
-    Expect.isFalse(reflectClass(ConcreteNamedMA2).superclass.isAbstract);
+    Expect.isFalse(reflectClass(ConcreteNamedMA2).superclass!.isAbstract);
   }
 }

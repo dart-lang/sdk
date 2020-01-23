@@ -35,11 +35,11 @@ void testOriginals() {
   ClassMirror e = reflectClass(E);
   ClassMirror f = reflectClass(F);
   ClassMirror ff = reflectClass(FF);
-  ClassMirror superA = a.superclass;
-  ClassMirror superB = b.superclass;
-  ClassMirror superC = c.superclass;
-  ClassMirror superD = d.superclass;
-  ClassMirror superE = e.superclass;
+  ClassMirror superA = a.superclass!;
+  ClassMirror superB = b.superclass!;
+  ClassMirror superC = c.superclass!;
+  ClassMirror superD = d.superclass!;
+  ClassMirror superE = e.superclass!;
   ClassMirror superInterfaceF = f.superinterfaces[0];
   ClassMirror superInterfaceFF = ff.superinterfaces[0];
 
@@ -83,12 +83,12 @@ void testInstances() {
   ClassMirror r = reflect(new R()).type;
   ClassMirror hr = reflect(new H<R>()).type;
 
-  ClassMirror superA = a.superclass;
-  ClassMirror superB = b.superclass;
-  ClassMirror superC = c.superclass;
-  ClassMirror superD = d.superclass;
-  ClassMirror superE = e.superclass;
-  ClassMirror superE0 = e0.superclass;
+  ClassMirror superA = a.superclass!;
+  ClassMirror superB = b.superclass!;
+  ClassMirror superC = c.superclass!;
+  ClassMirror superD = d.superclass!;
+  ClassMirror superE = e.superclass!;
+  ClassMirror superE0 = e0.superclass!;
   ClassMirror superInterfaceF = f.superinterfaces[0];
   ClassMirror superInterfaceFF = ff.superinterfaces[0];
 

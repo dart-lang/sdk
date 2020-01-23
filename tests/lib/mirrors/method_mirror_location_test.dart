@@ -19,7 +19,7 @@ expectLocation(Mirror mirror, String uriSuffix, int line, int column) {
     methodMirror = mirror as MethodMirror;
   }
   Expect.isTrue(methodMirror is MethodMirror);
-  final location = methodMirror.location;
+  final location = methodMirror.location!;
   final uri = location.sourceUri;
   Expect.isTrue(uri.toString().endsWith(uriSuffix), "Expected suffix $uriSuffix in $uri");
   Expect.equals(line, location.line, "line");
@@ -50,27 +50,27 @@ main() {
   String otherSuffix = 'method_mirror_location_other.dart';
 
   // This file.
-  expectLocation(reflectClass(ClassInMainFile).declarations[#ClassInMainFile],
+  expectLocation(reflectClass(ClassInMainFile).declarations[#ClassInMainFile]!,
       mainSuffix, 31, 3);
   expectLocation(
-      reflectClass(ClassInMainFile).declarations[#method], mainSuffix, 33, 3);
+      reflectClass(ClassInMainFile).declarations[#method]!, mainSuffix, 33, 3);
   expectLocation(reflect(topLevelInMainFile), mainSuffix, 36, 1);
   expectLocation(reflect(spaceIdentedInMainFile), mainSuffix, 37, 3);
   expectLocation(reflect(tabIdentedInMainFile), mainSuffix, 38, 2);
   expectLocation(reflect(localFunction), mainSuffix, 45, 3);
 
   // Another part.
-  expectLocation(reflectClass(ClassInOtherFile).declarations[#ClassInOtherFile],
+  expectLocation(reflectClass(ClassInOtherFile).declarations[#ClassInOtherFile]!,
       otherSuffix, 8, 3);
   expectLocation(
-      reflectClass(ClassInOtherFile).declarations[#method], otherSuffix, 10, 3);
+      reflectClass(ClassInOtherFile).declarations[#method]!, otherSuffix, 10, 3);
   expectLocation(reflect(topLevelInOtherFile), otherSuffix, 13, 1);
   expectLocation(reflect(spaceIdentedInOtherFile), otherSuffix, 15, 3);
   expectLocation(reflect(tabIdentedInOtherFile), otherSuffix, 17, 2);
 
   // Synthetic methods.
   Expect.isNull(reflectClass(HasImplicitConstructor)
-      .declarations[#HasImplicitConstructor]
+      .declarations[#HasImplicitConstructor]!
       .location);
   Expect.isNull(
       (reflectType(Predicate) as TypedefMirror).referent.callMethod.location);

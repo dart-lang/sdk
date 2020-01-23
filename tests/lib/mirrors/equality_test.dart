@@ -28,7 +28,7 @@ class BadEqualityHash {
 typedef bool Predicate(Object o);
 Predicate somePredicate = (Object o) => false;
 
-checkEquality(List<Map<String, Object>> equivalenceClasses) {
+checkEquality(List<Map<String, Object?>> equivalenceClasses) {
   for (var equivalenceClass in equivalenceClasses) {
     equivalenceClass.forEach((name, member) {
       equivalenceClass.forEach((otherName, otherMember) {
@@ -61,7 +61,7 @@ main() {
   var badEqualityHash1 = new BadEqualityHash();
   var badEqualityHash2 = new BadEqualityHash();
 
-  checkEquality(<Map<String, Object>>[
+  checkEquality(<Map<String, Object?>>[
     {'reflect(o1)': reflect(o1), 'reflect(o1), again': reflect(o1)},
     {'reflect(o2)': reflect(o2), 'reflect(o2), again': reflect(o2)},
     {

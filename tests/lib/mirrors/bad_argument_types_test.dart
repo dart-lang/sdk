@@ -23,8 +23,8 @@ void bar<T extends num>(T a) {
 }
 
 class Foo {
-  Map<String, String> bork;
-  static Map<String, String> bark;
+  Map<String, String>? bork;
+  static Map<String, String>? bark;
   static set woof(Map<String, String> x) {
     bark = x;
   }
@@ -35,7 +35,7 @@ class Foo {
 
   Foo.a();
 
-  static void baz(Map<String, String> m, {String bar}) {
+  static void baz(Map<String, String> m, {String? bar}) {
     print('baz');
     print(m['bar']);
     print(bar);

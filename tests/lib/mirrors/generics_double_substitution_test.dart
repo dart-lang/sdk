@@ -13,7 +13,7 @@ class A<R> {}
 class B<S> {}
 
 class C<T> extends B<A<T>> {
-  A<T> field;
+  late A<T> field;
   A<T> returnType() => new A<T>();
   parameterType(A<T> param) {}
 }
@@ -31,6 +31,6 @@ main() {
   MethodMirror parameterType = cOfString.declarations[#parameterType] as MethodMirror;
   Expect.equals(aOfString, parameterType.parameters.single.type);
 
-  ClassMirror typeArgOfSuperclass = cOfString.superclass.typeArguments.single as ClassMirror;
+  ClassMirror typeArgOfSuperclass = cOfString.superclass!.typeArguments.single as ClassMirror;
   Expect.equals(aOfString, typeArgOfSuperclass); //# 01: ok
 }

@@ -13,8 +13,8 @@ import 'repeated_private_anon_mixin_app1.dart' as lib1;
 import 'repeated_private_anon_mixin_app2.dart' as lib2;
 
 testMA() {
-  Symbol name1 = reflectClass(lib1.MA).superclass.simpleName;
-  Symbol name2 = reflectClass(lib2.MA).superclass.simpleName;
+  Symbol name1 = reflectClass(lib1.MA).superclass!.simpleName;
+  Symbol name2 = reflectClass(lib2.MA).superclass!.simpleName;
 
   Expect.equals('lib._S with lib._M', MirrorSystem.getName(name1));
   Expect.equals('lib._S with lib._M', MirrorSystem.getName(name2));
@@ -24,8 +24,8 @@ testMA() {
 }
 
 testMA2() {
-  Symbol name1 = reflectClass(lib1.MA2).superclass.simpleName;
-  Symbol name2 = reflectClass(lib2.MA2).superclass.simpleName;
+  Symbol name1 = reflectClass(lib1.MA2).superclass!.simpleName;
+  Symbol name2 = reflectClass(lib2.MA2).superclass!.simpleName;
 
   Expect.equals('lib._S with lib._M, lib._M2', MirrorSystem.getName(name1));
   Expect.equals('lib._S with lib._M, lib._M2', MirrorSystem.getName(name2));

@@ -9,7 +9,7 @@ class A<T> {}
 
 class B<T extends A> extends A implements C {
   A m(A a) {}
-  A field;
+  late A field;
 }
 
 class C<S, T> {}
@@ -26,7 +26,7 @@ main() {
   TypeMirror cInstance = reflect(new C<dynamic, dynamic>()).type;
   TypeMirror cNestedInstance = reflect(new C<C, dynamic>()).type;
   TypeMirror cTypeArgument = cNestedInstance.typeArguments.first;
-  TypeMirror superA = bDecl.superclass;
+  TypeMirror superA = bDecl.superclass!;
   TypeMirror superC = bDecl.superinterfaces.single;
   MethodMirror m = bDecl.declarations[#m] as MethodMirror;
   VariableMirror field = bDecl.declarations[#field] as VariableMirror;

@@ -8,7 +8,7 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class SuperGeneric<R, S> {
-  R r;
+  late R r;
   s(S s) {}
 }
 
@@ -20,8 +20,8 @@ main() {
   ClassMirror genericDecl = reflectClass(Generic);
   ClassMirror genericOfString = reflect(new Generic<String>()).type;
   ClassMirror superGenericDecl = reflectClass(SuperGeneric);
-  ClassMirror superOfTAndInt = genericDecl.superclass;
-  ClassMirror superOfStringAndInt = genericOfString.superclass;
+  ClassMirror superOfTAndInt = genericDecl.superclass!;
+  ClassMirror superOfStringAndInt = genericOfString.superclass!;
 
   Expect.isTrue(genericDecl.isOriginalDeclaration);
   Expect.isFalse(genericOfString.isOriginalDeclaration);
@@ -36,12 +36,12 @@ main() {
   Symbol t(ClassMirror cm) =>
       (cm.declarations[#t] as MethodMirror).returnType.simpleName;
 
-  Expect.equals(#T, r(genericDecl.superclass));
-  Expect.equals(#int, s(genericDecl.superclass));
+  Expect.equals(#T, r(genericDecl.superclass!));
+  Expect.equals(#int, s(genericDecl.superclass!));
   Expect.equals(#T, t(genericDecl));
 
-  Expect.equals(#String, r(genericOfString.superclass));
-  Expect.equals(#int, s(genericOfString.superclass));
+  Expect.equals(#String, r(genericOfString.superclass!));
+  Expect.equals(#int, s(genericOfString.superclass!));
   Expect.equals(#String, t(genericOfString));
 
   Expect.equals(#R, r(superGenericDecl));

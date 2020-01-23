@@ -48,17 +48,17 @@ main() {
   ClassMirror orderedCollectionSerializerDecl =
       reflectClass(OrderedCollectionSerializer);
 
-  ClassMirror orderedCollectionOfInt = orderedIntegerCollection.superclass;
+  ClassMirror orderedCollectionOfInt = orderedIntegerCollection.superclass!;
   ClassMirror customOrderedCollectionOfInt =
-      customOrderedIntegerCollection.superclass;
-  ClassMirror serializerOfCollection = collectionSerializerDecl.superclass;
+      customOrderedIntegerCollection.superclass!;
+  ClassMirror serializerOfCollection = collectionSerializerDecl.superclass!;
   ClassMirror serializerOfOrderedCollection =
-      orderedCollectionSerializerDecl.superclass;
+      orderedCollectionSerializerDecl.superclass!;
   ClassMirror collectionOfDynamic = reflect(new Collection()).type;
   ClassMirror orderedCollectionOfDynamic =
       reflect(new OrderedCollection()).type;
   ClassMirror collectionWithSerializableOfOrderedCollection =
-      orderedCollectionDecl.superclass;
+      orderedCollectionDecl.superclass!;
 
   Expect.isTrue(collectionDecl.isOriginalDeclaration);
   Expect.isTrue(serializableDecl.isOriginalDeclaration);

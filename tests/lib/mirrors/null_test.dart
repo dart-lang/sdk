@@ -40,11 +40,11 @@ void test() {
   ClassMirror NullMirror = nullMirror.type;
   Expect.equals(reflectClass(Null), NullMirror);
   Expect.equals(#Null, NullMirror.simpleName);
-  Expect.equals(#Object, NullMirror.superclass.simpleName);
-  Expect.equals(null, NullMirror.superclass.superclass);
+  Expect.equals(#Object, NullMirror.superclass!.simpleName);
+  Expect.equals(null, NullMirror.superclass!.superclass);
   Expect.listEquals([], NullMirror.superinterfaces);
   Map<Uri, LibraryMirror> libraries = currentMirrorSystem().libraries;
-  LibraryMirror coreLibrary = libraries[Uri.parse('dart:core')];
+  LibraryMirror? coreLibrary = libraries[Uri.parse('dart:core')];
   if (coreLibrary == null) {
     // In minified mode we don't preserve the URIs.
     coreLibrary = libraries.values

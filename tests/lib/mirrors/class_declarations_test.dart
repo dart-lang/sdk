@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 import 'stringify.dart';
 import 'declarations_model.dart' as declarations_model;
 
-Set<DeclarationMirror> inheritedDeclarations(ClassMirror cm) {
+Set<DeclarationMirror> inheritedDeclarations(ClassMirror? cm) {
   var decls = new Set<DeclarationMirror>();
   while (cm != null) {
     decls.addAll(cm.declarations.values);

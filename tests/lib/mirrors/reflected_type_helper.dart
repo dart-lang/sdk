@@ -7,7 +7,7 @@ library test.reflected_type_helper;
 import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
-expectReflectedType(TypeMirror typeMirror, Type expectedType) {
+expectReflectedType(TypeMirror typeMirror, Type? expectedType) {
   if (expectedType == null) {
     Expect.isFalse(typeMirror.hasReflectedType);
     Expect.throwsUnsupportedError(() => typeMirror.reflectedType,

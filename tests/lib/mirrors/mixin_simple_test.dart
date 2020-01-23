@@ -20,24 +20,24 @@ class MultipleMixins extends Class with Mixin2 {}
 
 main() {
   Expect.equals(reflectClass(Class), reflectClass(Class).mixin);
-  Expect.equals(reflectClass(Mixin), reflectClass(Class).superclass.mixin);
+  Expect.equals(reflectClass(Mixin), reflectClass(Class).superclass!.mixin);
   Expect.equals(
-      reflectClass(Super), reflectClass(Class).superclass.superclass.mixin);
+      reflectClass(Super), reflectClass(Class).superclass!.superclass!.mixin);
 
   Expect.equals(
       reflectClass(MultipleMixins), reflectClass(MultipleMixins).mixin);
   Expect.equals(
-      reflectClass(Mixin2), reflectClass(MultipleMixins).superclass.mixin);
+      reflectClass(Mixin2), reflectClass(MultipleMixins).superclass!.mixin);
   Expect.equals(reflectClass(Class),
-      reflectClass(MultipleMixins).superclass.superclass.mixin);
+      reflectClass(MultipleMixins).superclass!.superclass!.mixin);
   Expect.equals(reflectClass(Mixin),
-      reflectClass(MultipleMixins).superclass.superclass.superclass.mixin);
+      reflectClass(MultipleMixins).superclass!.superclass!.superclass!.mixin);
   Expect.equals(
       reflectClass(Super),
       reflectClass(MultipleMixins)
-          .superclass
-          .superclass
-          .superclass
-          .superclass
+          .superclass!
+          .superclass!
+          .superclass!
+          .superclass!
           .mixin);
 }

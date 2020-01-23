@@ -43,19 +43,19 @@ main() {
   typeParameters(reflectClass(NonGenericClass2).mixin, []);
   typeParameters(reflectClass(GenericClass1).mixin, [#C]);
   typeParameters(reflectClass(GenericClass2).mixin, [#C]);
-  typeParameters(reflectClass(NonGenericClass1).superclass.mixin, [#M]);
-  typeParameters(reflectClass(NonGenericClass2).superclass.mixin, [#M]);
-  typeParameters(reflectClass(GenericClass1).superclass.mixin, [#M]);
-  typeParameters(reflectClass(GenericClass2).superclass.mixin, [#M]);
+  typeParameters(reflectClass(NonGenericClass1).superclass!.mixin, [#M]);
+  typeParameters(reflectClass(NonGenericClass2).superclass!.mixin, [#M]);
+  typeParameters(reflectClass(GenericClass1).superclass!.mixin, [#M]);
+  typeParameters(reflectClass(GenericClass2).superclass!.mixin, [#M]);
   typeParameters(reflectClass(GenericMultipleMixins).mixin, [#A, #B, #C]);
-  typeParameters(reflectClass(GenericMultipleMixins).superclass.mixin, [#N]);
+  typeParameters(reflectClass(GenericMultipleMixins).superclass!.mixin, [#N]);
   typeParameters(
-      reflectClass(GenericMultipleMixins).superclass.superclass.mixin, [#M]);
+      reflectClass(GenericMultipleMixins).superclass!.superclass!.mixin, [#M]);
   typeParameters(
       reflectClass(GenericMultipleMixins)
-          .superclass
-          .superclass
-          .superclass
+          .superclass!
+          .superclass!
+          .superclass!
           .mixin,
       [#S]);
 
@@ -72,23 +72,24 @@ main() {
   typeArguments(reflectClass(GenericClass1).mixin, []);
   typeArguments(reflectClass(GenericClass2).mixin, []);
   typeArguments(
-      reflectClass(NonGenericClass1).superclass.mixin, [dynamicMirror]);
+      reflectClass(NonGenericClass1).superclass!.mixin, [dynamicMirror]);
   typeArguments(
-      reflectClass(NonGenericClass2).superclass.mixin, [reflectClass(String)]);
-  typeArguments(reflectClass(GenericClass1).superclass.mixin,
+      reflectClass(NonGenericClass2).superclass!.mixin, [reflectClass(String)]);
+  typeArguments(reflectClass(GenericClass1).superclass!.mixin,
       [reflectClass(GenericClass1).typeVariables.single]);
   typeArguments(
-      reflectClass(GenericClass2).superclass.mixin, [reflectClass(String)]);
+      reflectClass(GenericClass2).superclass!.mixin, [reflectClass(String)]);
   typeArguments(reflectClass(GenericMultipleMixins).mixin, []);
-  typeArguments(reflectClass(GenericMultipleMixins).superclass.mixin,
+  typeArguments(reflectClass(GenericMultipleMixins).superclass!.mixin,
       [reflectClass(GenericMultipleMixins).typeVariables[2]]);
-  typeArguments(reflectClass(GenericMultipleMixins).superclass.superclass.mixin,
+  typeArguments(
+      reflectClass(GenericMultipleMixins).superclass!.superclass!.mixin,
       [reflectClass(GenericMultipleMixins).typeVariables[1]]);
   typeArguments(
       reflectClass(GenericMultipleMixins)
-          .superclass
-          .superclass
-          .superclass
+          .superclass!
+          .superclass!
+          .superclass!
           .mixin,
       [reflectClass(GenericMultipleMixins).typeVariables[0]]);
 
@@ -102,34 +103,34 @@ main() {
   typeParameters(reflect(new NonGenericClass2()).type.mixin, []);
   typeParameters(reflect(new GenericClass1<bool>()).type.mixin, [#C]);
   typeParameters(reflect(new GenericClass2<bool>()).type.mixin, [#C]);
-  typeParameters(reflect(new NonGenericClass1()).type.superclass.mixin, [#M]);
-  typeParameters(reflect(new NonGenericClass2()).type.superclass.mixin, [#M]);
+  typeParameters(reflect(new NonGenericClass1()).type.superclass!.mixin, [#M]);
+  typeParameters(reflect(new NonGenericClass2()).type.superclass!.mixin, [#M]);
   typeParameters(
-      reflect(new GenericClass1<bool>()).type.superclass.mixin, [#M]);
+      reflect(new GenericClass1<bool>()).type.superclass!.mixin, [#M]);
   typeParameters(
-      reflect(new GenericClass2<bool>()).type.superclass.mixin, [#M]);
+      reflect(new GenericClass2<bool>()).type.superclass!.mixin, [#M]);
   typeParameters(
       reflect(new GenericMultipleMixins<bool, String, int>()).type.mixin,
       [#A, #B, #C]);
   typeParameters(
       reflect(new GenericMultipleMixins<bool, String, int>())
           .type
-          .superclass
+          .superclass!
           .mixin,
       [#N]);
   typeParameters(
       reflect(new GenericMultipleMixins<bool, String, int>())
           .type
-          .superclass
-          .superclass
+          .superclass!
+          .superclass!
           .mixin,
       [#M]);
   typeParameters(
       reflect(new GenericMultipleMixins<bool, String, int>())
           .type
-          .superclass
-          .superclass
-          .superclass
+          .superclass!
+          .superclass!
+          .superclass!
           .mixin,
       [#S]);
 
@@ -148,12 +149,12 @@ main() {
   typeArguments(
       reflect(new GenericClass2<bool>()).type.mixin, [reflectClass(bool)]);
   typeArguments(
-      reflect(new NonGenericClass1()).type.superclass.mixin, [dynamicMirror]);
-  typeArguments(reflect(new NonGenericClass2()).type.superclass.mixin,
+      reflect(new NonGenericClass1()).type.superclass!.mixin, [dynamicMirror]);
+  typeArguments(reflect(new NonGenericClass2()).type.superclass!.mixin,
       [reflectClass(String)]);
-  typeArguments(reflect(new GenericClass1<bool>()).type.superclass.mixin,
+  typeArguments(reflect(new GenericClass1<bool>()).type.superclass!.mixin,
       [reflectClass(bool)]);
-  typeArguments(reflect(new GenericClass2<bool>()).type.superclass.mixin,
+  typeArguments(reflect(new GenericClass2<bool>()).type.superclass!.mixin,
       [reflectClass(String)]);
   typeArguments(
       reflect(new GenericMultipleMixins<bool, String, int>()).type.mixin,
@@ -161,22 +162,22 @@ main() {
   typeArguments(
       reflect(new GenericMultipleMixins<bool, String, int>())
           .type
-          .superclass
+          .superclass!
           .mixin,
       [reflectClass(int)]);
   typeArguments(
       reflect(new GenericMultipleMixins<bool, String, int>())
           .type
-          .superclass
-          .superclass
+          .superclass!
+          .superclass!
           .mixin,
       [reflectClass(String)]);
   typeArguments(
       reflect(new GenericMultipleMixins<bool, String, int>())
           .type
-          .superclass
-          .superclass
-          .superclass
+          .superclass!
+          .superclass!
+          .superclass!
           .mixin,
       [reflectClass(bool)]);
 }

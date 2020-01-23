@@ -18,20 +18,20 @@ checkImplements(object, String name) {
 
   // The VM implements List via a mixin, so check for that.
   if (cls.superinterfaces.isEmpty && object is List) {
-    cls = cls.superclass.superclass.mixin;
+    cls = cls.superclass!.superclass!.mixin;
   }
 
   // The VM implements String through an intermediate abstract
   // class.
   if (cls.superinterfaces.isEmpty && object is String) {
-    cls = cls.superclass;
+    cls = cls.superclass!;
   }
 
   // The VM implements int through an intermediate abstract
   // class.
   if (object is int &&
-      stringify(cls.superclass.simpleName) == 's(_IntegerImplementation)') {
-    cls = cls.superclass;
+      stringify(cls.superclass!.simpleName) == 's(_IntegerImplementation)') {
+    cls = cls.superclass!;
   }
 
   List<ClassMirror> superinterfaces = cls.superinterfaces;

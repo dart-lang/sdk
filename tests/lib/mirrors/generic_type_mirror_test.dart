@@ -6,12 +6,21 @@ import "dart:mirrors";
 import "package:expect/expect.dart";
 
 class Foo<W, V> {
-  V field;
+  late V field;
   V get bar => field;
   set bar(V v) {}
-  W m() {}
-  V n() {}
-  H<V> p() {}
+  W m() {
+    throw "does-not-return";
+  }
+
+  V n() {
+    throw "does-not-return";
+  }
+
+  H<V> p() {
+    throw "does-not-return";
+  }
+
   o(W w) {}
 }
 

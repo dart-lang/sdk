@@ -6,7 +6,7 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class Foo {
-  T bar<T>() => null;
+  T bar<T>() => throw "does-not-return";
 }
 
 void main() {

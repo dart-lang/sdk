@@ -27,7 +27,7 @@ main() {
   cm = reflectClass(B);
   checkMetadata(cm.typeVariables[0], [m3]);
 
-  TypedefMirror tm = reflectType(Predicate);
+  TypedefMirror tm = reflectType(Predicate) as TypedefMirror;
   checkMetadata(tm.typeVariables[0], [m1, m2]);
   FunctionTypeMirror ftm = tm.referent;
   checkMetadata(ftm, []);

@@ -20,8 +20,8 @@ class A<T> {
   @C(44)
   String field = "";
   var dynamicTypeField;
-  T typeVariableField;
-  H<int> parameterizedTypeField;
+  late T typeVariableField;
+  late H<int> parameterizedTypeField;
 }
 
 class H<T> {}

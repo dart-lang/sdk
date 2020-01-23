@@ -33,14 +33,14 @@ class Alice {
 }
 
 class Bob {
-  Carol savedCarol;
+  Carol? savedCarol;
   foo(Carol carol) {
     savedCarol = carol; // Store a capability
     carol.foo();
   }
 
   bar() {
-    savedCarol.foo();
+    savedCarol!.foo();
   }
 }
 

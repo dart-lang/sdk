@@ -19,9 +19,9 @@ testTypeVariableOfClass() {
   ClassMirror aDecl = reflectClass(A);
   ClassMirror bDecl = reflectClass(B);
   ClassMirror aOfInt = reflect(new A<int>()).type;
-  ClassMirror aOfR = bDecl.superclass;
+  ClassMirror aOfR = bDecl.superclass!;
   ClassMirror bOfString = reflect(new B<String>()).type;
-  ClassMirror aOfString = bOfString.superclass;
+  ClassMirror aOfString = bOfString.superclass!;
 
   Expect.equals(aDecl, aDecl.typeVariables[0].owner);
   Expect.equals(aDecl, aOfInt.typeVariables[0].owner);
@@ -33,7 +33,7 @@ testTypeVariableOfClass() {
 }
 
 typedef bool Predicate<T>(T t);
-Predicate<List> somePredicateOfList;
+late Predicate<List> somePredicateOfList;
 
 testTypeVariableOfTypedef() {
   LibraryMirror thisLibrary =

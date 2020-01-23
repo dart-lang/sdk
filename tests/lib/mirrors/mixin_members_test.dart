@@ -42,9 +42,9 @@ membersOf(ClassMirror cm) {
 
 main() {
   ClassMirror cm = reflectClass(C);
-  ClassMirror sM1M2 = cm.superclass;
-  ClassMirror sM1 = sM1M2.superclass;
-  ClassMirror s = sM1.superclass;
+  ClassMirror sM1M2 = cm.superclass!;
+  ClassMirror sM1 = sM1M2.superclass!;
+  ClassMirror s = sM1.superclass!;
   expect('{}', membersOf(cm));
   expect(
       '[s(baz1), s(baz2)]',

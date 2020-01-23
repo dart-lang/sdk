@@ -18,14 +18,14 @@ class Generic<X, Y> extends Super<X, Y> {} //# 02: compile-time error
 
 main() {
   ClassMirror superDecl = reflectClass(Super);
-  ClassMirror superOfNumAndInt = reflectClass(Fixed).superclass;
+  ClassMirror superOfNumAndInt = reflectClass(Fixed).superclass!;
   ClassMirror genericDecl = reflectClass(Generic); // //# 02: continued
-  ClassMirror superOfXAndY = genericDecl.superclass; // //# 02: continued
+  ClassMirror superOfXAndY = genericDecl.superclass!; // //# 02: continued
   ClassMirror genericOfNumAndDouble = reflect(new Generic<num, double>()).type; // //# 02: continued
-  ClassMirror superOfNumAndDouble = genericOfNumAndDouble.superclass; // //# 02: continued
+  ClassMirror superOfNumAndDouble = genericOfNumAndDouble.superclass!; // //# 02: continued
 
   ClassMirror genericOfNumAndBool = reflect(new Generic<num, bool>()).type; // //# 02: compile-time error
-  ClassMirror superOfNumAndBool = genericOfNumAndBool.superclass; // //# 02: continued
+  ClassMirror superOfNumAndBool = genericOfNumAndBool.superclass!; // //# 02: continued
   Expect.isFalse(genericOfNumAndBool.isOriginalDeclaration); // //# 02: continued
   Expect.isFalse(superOfNumAndBool.isOriginalDeclaration); // //# 02: continued
   typeParameters(genericOfNumAndBool, [#X, #Y]); // //# 02: continued

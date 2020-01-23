@@ -34,7 +34,7 @@ enum AnnotatedEnum { SALT, PEPPER }
 // any number of absolute paths.
 expectLocation(
     DeclarationMirror mirror, String uriSuffix, int line, int column) {
-  final location = mirror.location;
+  final location = mirror.location!;
   final uri = location.sourceUri;
   Expect.isTrue(
       uri.toString().endsWith(uriSuffix), "Expected suffix $uriSuffix in $uri");
@@ -64,6 +64,6 @@ main() {
   expectLocation(reflectClass(TabIndentedInOtherFile), otherSuffix, 11, 2);
 
   // Synthetic classes.
-  Expect.isNull(reflectClass(MA).superclass.location);
+  Expect.isNull(reflectClass(MA).superclass!.location);
   Expect.isNull((reflect(main) as ClosureMirror).type.location);
 }

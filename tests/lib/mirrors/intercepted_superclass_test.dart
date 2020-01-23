@@ -13,17 +13,17 @@ check(ClassMirror cm) {
 }
 
 main() {
-  check(reflect('').type.superclass);
-  check(reflect(1).type.superclass);
-  check(reflect(1.5).type.superclass);
-  check(reflect(true).type.superclass);
-  check(reflect(false).type.superclass);
-  check(reflect([]).type.superclass);
+  check(reflect('').type.superclass!);
+  check(reflect(1).type.superclass!);
+  check(reflect(1.5).type.superclass!);
+  check(reflect(true).type.superclass!);
+  check(reflect(false).type.superclass!);
+  check(reflect([]).type.superclass!);
 
-  check(reflectClass(String).superclass);
-  check(reflectClass(int).superclass);
-  check(reflectClass(double).superclass);
-  check(reflectClass(num).superclass);
-  check(reflectClass(bool).superclass);
-  check(reflectClass(List).superclass);
+  check(reflectClass(String).superclass!);
+  check(reflectClass(int).superclass!);
+  check(reflectClass(double).superclass!);
+  check(reflectClass(num).superclass!);
+  check(reflectClass(bool).superclass!);
+  check(reflectClass(List).superclass!);
 }

@@ -39,7 +39,7 @@ main() {
   Expect.equals(dynamic, c_dynamic.s);
 
   dynamic reflective_a_int =
-      cmB.superclass.newInstance(Symbol.empty, []).reflectee;
+      cmB.superclass!.newInstance(Symbol.empty, []).reflectee;
   dynamic reflective_a_dynamic = cmA.newInstance(Symbol.empty, []).reflectee;
   dynamic reflective_b = cmB.newInstance(Symbol.empty, []).reflectee;
   dynamic reflective_c_dynamic = cmC.newInstance(Symbol.empty, []).reflectee;

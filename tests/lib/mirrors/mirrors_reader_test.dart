@@ -30,7 +30,7 @@ class RuntimeMirrorsReader extends MirrorsReader {
     Expect.isNotNull(mirror.owner);
   }
 
-  bool allowUnsupported(var receiver, String tag, UnsupportedError exception) {
+  bool allowUnsupported(var receiver, String tag, UnsupportedError? exception) {
     if (mirrorSystemType == '_MirrorSystem') {
       // VM mirror system.
       if (tag.endsWith('location')) {
@@ -45,7 +45,8 @@ class RuntimeMirrorsReader extends MirrorsReader {
     return false;
   }
 
-  bool expectUnsupported(var receiver, String tag, UnsupportedError exception) {
+  bool expectUnsupported(
+      var receiver, String tag, UnsupportedError? exception) {
     // [DeclarationMirror.location] is intentionally not supported in runtime
     // mirrors.
 

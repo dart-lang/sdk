@@ -1291,7 +1291,8 @@
           "name": "vm weak tests with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
-            "language"
+            "language",
+            "lib/mirrors"
           ]
         }
       ]
@@ -2339,13 +2340,17 @@
           "name": "analyze nnbd strong tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
-            "language"]
+            "language",
+            "lib/mirrors"
+          ]
         },
         {
           "name": "analyze nnbd weak tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-weak-${system}",
-            "language"]
+            "language",
+            "lib/mirrors"
+          ]
         },
         {
           "name": "analyze nnbd strong co19 tests",

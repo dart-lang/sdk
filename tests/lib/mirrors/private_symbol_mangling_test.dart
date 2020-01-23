@@ -19,7 +19,7 @@ class C1 {
 
 getPrivateGlobalFieldValue(LibraryMirror lib) {
   for (Symbol symbol in lib.declarations.keys) {
-    DeclarationMirror decl = lib.declarations[symbol];
+    DeclarationMirror decl = lib.declarations[symbol]!;
     if (decl is VariableMirror && decl.isPrivate) {
       return lib.getField(symbol).reflectee;
     }
@@ -28,7 +28,7 @@ getPrivateGlobalFieldValue(LibraryMirror lib) {
 
 getPrivateFieldValue(InstanceMirror cls) {
   for (Symbol symbol in cls.type.declarations.keys) {
-    DeclarationMirror decl = cls.type.declarations[symbol];
+    DeclarationMirror decl = cls.type.declarations[symbol]!;
     if (decl is VariableMirror && decl.isPrivate) {
       return cls.getField(symbol).reflectee;
     }
@@ -37,7 +37,7 @@ getPrivateFieldValue(InstanceMirror cls) {
 
 getPrivateGlobalMethodValue(LibraryMirror lib) {
   for (Symbol symbol in lib.declarations.keys) {
-    DeclarationMirror decl = lib.declarations[symbol];
+    DeclarationMirror decl = lib.declarations[symbol]!;
     if (decl is MethodMirror && decl.isRegularMethod && decl.isPrivate) {
       return lib.invoke(symbol, []).reflectee;
     }
@@ -46,7 +46,7 @@ getPrivateGlobalMethodValue(LibraryMirror lib) {
 
 getPrivateMethodValue(InstanceMirror cls) {
   for (Symbol symbol in cls.type.declarations.keys) {
-    DeclarationMirror decl = cls.type.declarations[symbol];
+    DeclarationMirror decl = cls.type.declarations[symbol]!;
     if (decl is MethodMirror && decl.isRegularMethod && decl.isPrivate) {
       return cls.invoke(symbol, []).reflectee;
     }

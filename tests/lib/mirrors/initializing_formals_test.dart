@@ -8,11 +8,11 @@ import 'dart:mirrors';
 import 'package:expect/expect.dart';
 
 class Class<T> {
-  num numField = 0;
-  bool boolField = false;
-  String stringField = "";
-  T tField;
-  dynamic _privateField;
+  late num numField;
+  late bool boolField;
+  late String stringField;
+  late T tField;
+  late dynamic _privateField;
 
   Class.nongeneric(this.numField);
   Class.named({this.boolField = false});
@@ -55,7 +55,7 @@ main() {
   Expect.isFalse(pm.isFinal); // //# 01: ok
   Expect.isTrue(pm.isOptional); // //# 01: ok
   Expect.isTrue(pm.hasDefaultValue); // //# 01: ok
-  Expect.equals(false, pm.defaultValue.reflectee); // //# 01: ok
+  Expect.equals(false, pm.defaultValue!.reflectee); // //# 01: ok
   Expect.isFalse(pm.isPrivate);
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
@@ -68,7 +68,7 @@ main() {
   Expect.isFalse(pm.isFinal); // //# 01: ok
   Expect.isTrue(pm.isOptional); // //# 01: ok
   Expect.isTrue(pm.hasDefaultValue); // //# 01: ok
-  Expect.equals('default', pm.defaultValue.reflectee); // //# 01: ok
+  Expect.equals('default', pm.defaultValue!.reflectee); // //# 01: ok
   Expect.isFalse(pm.isPrivate);
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);

@@ -112,7 +112,7 @@ class Expect {
   /**
    * Checks whether the expected and actual values are equal (using `==`).
    */
-  static void equals(var expected, var actual, [String reason = ""]) {
+  static void equals(dynamic expected, dynamic actual, [String reason = ""]) {
     if (expected == actual) return;
     String msg = _getMessage(reason);
     if (expected is String && actual is String) {
@@ -129,7 +129,7 @@ class Expect {
   /**
    * Checks whether the actual value is a bool and its value is true.
    */
-  static void isTrue(var actual, [String reason = ""]) {
+  static void isTrue(dynamic actual, [String reason = ""]) {
     if (_identical(actual, true)) return;
     String msg = _getMessage(reason);
     _fail("Expect.isTrue($actual$msg) fails.");
@@ -138,7 +138,7 @@ class Expect {
   /**
    * Checks whether the actual value is a bool and its value is false.
    */
-  static void isFalse(var actual, [String reason = ""]) {
+  static void isFalse(dynamic actual, [String reason = ""]) {
     if (_identical(actual, false)) return;
     String msg = _getMessage(reason);
     _fail("Expect.isFalse($actual$msg) fails.");
@@ -147,7 +147,7 @@ class Expect {
   /**
    * Checks whether [actual] is null.
    */
-  static void isNull(actual, [String reason = ""]) {
+  static void isNull(dynamic actual, [String reason = ""]) {
     if (null == actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.isNull(actual: <$actual>$msg) fails.");
@@ -156,7 +156,7 @@ class Expect {
   /**
    * Checks whether [actual] is not null.
    */
-  static void isNotNull(actual, [String reason = ""]) {
+  static void isNotNull(dynamic actual, [String reason = ""]) {
     if (null != actual) return;
     String msg = _getMessage(reason);
     _fail("Expect.isNotNull(actual: <$actual>$msg) fails.");
@@ -166,7 +166,8 @@ class Expect {
    * Checks whether the expected and actual values are identical
    * (using `identical`).
    */
-  static void identical(var expected, var actual, [String reason = ""]) {
+  static void identical(dynamic expected, dynamic actual,
+      [String reason = ""]) {
     if (_identical(expected, actual)) return;
     String msg = _getMessage(reason);
     if (expected is String && actual is String) {

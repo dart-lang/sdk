@@ -15,9 +15,9 @@ typedef bool GenericPredicate<T>(T t);
 typedef S GenericTransform<S>(S s);
 
 class C<R> {
-  GenericPredicate<num> predicateOfNum;
-  GenericTransform<String> transformOfString;
-  GenericTransform<R> transformOfR;
+  GenericPredicate<num> predicateOfNum = (num n) => false;
+  GenericTransform<String> transformOfString = (String s) => s;
+  GenericTransform<R> transformOfR = (R r) => r;
 }
 
 reflectTypeDeclaration(t) => reflectType(t).originalDeclaration;

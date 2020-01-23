@@ -8,7 +8,7 @@ import 'dart:isolate';
 import "package:expect/expect.dart";
 
 void main() {
-  Expect.isTrue(reflectClass(MyException).superclass.reflectedType ==
+  Expect.isTrue(reflectClass(MyException).superclass!.reflectedType ==
       IsolateSpawnException);
 
   Expect.isTrue(reflectClass(IsolateSpawnException).reflectedType ==

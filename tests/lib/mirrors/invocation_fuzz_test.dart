@@ -80,7 +80,7 @@ checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
 }
 
 checkInstance(instanceMirror, origin) {
-  ClassMirror klass = instanceMirror.type;
+  ClassMirror? klass = instanceMirror.type;
   while (klass != null) {
     instanceMirror.type.declarations.values
         .where((d) => d is MethodMirror && !d.isStatic)

@@ -21,7 +21,7 @@ class E {
 String foo() {
   String c = reflectClass(E).metadata[0].invoke(#toString, []).reflectee;
   String d = reflectClass(E)
-      .declarations[#f]
+      .declarations[#f]!
       .metadata[0]
       .invoke(#toString, []).reflectee;
   InstanceMirror i = currentMirrorSystem().findLibrary(#main).metadata[0];

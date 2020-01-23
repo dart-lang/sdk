@@ -16,7 +16,7 @@ main() {
   Expect.isNotNull(libraries, 'libraries is null');
 
   Expect.isTrue(libraries.isNotEmpty);
-  LibraryMirror mirrorsLibrary = libraries[Uri.parse('dart:mirrors')];
+  LibraryMirror? mirrorsLibrary = libraries[Uri.parse('dart:mirrors')];
   if (mirrorsLibrary == null) {
     // In minified mode we don't preserve the URIs.
     mirrorsLibrary = libraries.values

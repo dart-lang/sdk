@@ -9,7 +9,7 @@ import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-String name(DeclarationMirror mirror) {
+String name(DeclarationMirror? mirror) {
   return (mirror == null) ? '<null>' : stringify(mirror.simpleName);
 }
 

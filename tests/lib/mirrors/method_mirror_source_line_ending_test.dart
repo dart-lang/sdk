@@ -12,7 +12,7 @@ import "method_mirror_source_line_ending_cr.dart";
 import "method_mirror_source_line_ending_crlf.dart";
 
 main() {
-  String sourceOf(Function f) => (reflect(f) as ClosureMirror).function.source;
+  String sourceOf(Function f) => (reflect(f) as ClosureMirror).function.source!;
 
   // Source does not cross line breaks.
   Expect.stringEquals('oneLineLF(x) => x;', sourceOf(oneLineLF));

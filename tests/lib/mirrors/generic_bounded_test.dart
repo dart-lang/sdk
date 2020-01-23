@@ -18,13 +18,13 @@ class Malbounded extends Super<String> {} //# 01: compile-time error
 
 main() {
   ClassMirror superDecl = reflectClass(Super);
-  ClassMirror superOfInt = reflectClass(Fixed).superclass;
+  ClassMirror superOfInt = reflectClass(Fixed).superclass!;
   ClassMirror genericDecl = reflectClass(Generic); // //# 02: continued
-  ClassMirror superOfR = genericDecl.superclass; // //# 02: continued
+  ClassMirror superOfR = genericDecl.superclass!; // //# 02: continued
   ClassMirror genericOfDouble = reflect(new Generic<double>()).type; // //# 02: continued
-  ClassMirror superOfDouble = genericOfDouble.superclass; // //# 02: continued
+  ClassMirror superOfDouble = genericOfDouble.superclass!; // //# 02: continued
   ClassMirror genericOfBool = reflect(new Generic<bool>()).type; // //# 02: compile-time error
-  ClassMirror superOfBool = genericOfBool.superclass; // //# 02: continued
+  ClassMirror superOfBool = genericOfBool.superclass!; // //# 02: continued
   Expect.isFalse(genericOfBool.isOriginalDeclaration); // //# 02: continued
   Expect.isFalse(superOfBool.isOriginalDeclaration); // //# 02: continued
   typeParameters(genericOfBool, [#R]); // //# 02: continued
@@ -32,7 +32,7 @@ main() {
   typeArguments(genericOfBool, [reflectClass(bool)]); // //# 02: continued
   typeArguments(superOfBool, [reflectClass(bool)]); // //# 02: continued
 
-  ClassMirror superOfString = reflectClass(Malbounded).superclass; // //# 01: continued
+  ClassMirror superOfString = reflectClass(Malbounded).superclass!; // //# 01: continued
 
   Expect.isTrue(superDecl.isOriginalDeclaration);
   Expect.isFalse(superOfInt.isOriginalDeclaration);

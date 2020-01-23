@@ -47,5 +47,5 @@ main() {
   // what has to be returned.
   //Expect.equals("E", _n(mm.returnType.simpleName));
   Expect.equals(true, mm.owner is ClassMirror);
-  Expect.equals(#C, mm.owner.simpleName);
+  Expect.equals(#C, mm.owner!.simpleName);
 }
