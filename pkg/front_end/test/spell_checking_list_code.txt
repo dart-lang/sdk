@@ -85,6 +85,7 @@ beforehand
 behave
 bellow
 belonging
+beloning
 benchmark
 benchmarks
 bf
@@ -141,6 +142,7 @@ channel
 char
 charcode
 chars
+checkpoint
 ci
 ck
 cl
@@ -419,6 +421,7 @@ gz
 gzip
 gzipped
 h
+hadn't
 harness
 hashes
 hashing
@@ -490,6 +493,7 @@ invariants
 io
 is64
 issuecomment
+issuing
 iterables
 iterating
 iterations
@@ -690,6 +694,7 @@ paren
 parens
 parenteses
 particularly
+patchup
 path
 paulberry
 pay
@@ -824,6 +829,7 @@ respond
 restriction
 resumed
 ret
+reusage
 rewrites
 rewrote
 rf
@@ -1070,6 +1076,7 @@ unittest
 universally
 unlinked
 unlower
+unmark
 unordered
 unpaired
 unparsed
