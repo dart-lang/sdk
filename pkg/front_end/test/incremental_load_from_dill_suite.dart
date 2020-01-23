@@ -4,6 +4,8 @@
 
 import 'dart:async' show Future;
 
+import 'dart:developer' show debugger;
+
 import 'dart:io' show Directory, File;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
@@ -82,7 +84,8 @@ Future<Context> createContext(
   // Disable colors to ensure that expectation files are the same across
   // platforms and independent of stdin/stderr.
   colors.enableColors = false;
-  return new Context(environment["updateExpectations"] == "true");
+  return new Context(environment["updateExpectations"] == "true",
+      environment["addDebugBreaks"] == "true");
 }
 
 class Context extends ChainContext {
@@ -92,7 +95,12 @@ class Context extends ChainContext {
   ];
 
   final bool updateExpectations;
-  Context(this.updateExpectations);
+
+  /// Add a debug break (via dart:developers `debugger()` call) after each
+  /// iteration (or 'world run') when doing a "new world test".
+  final bool breakBetween;
+
+  Context(this.updateExpectations, this.breakBetween);
 
   @override
   Future<void> cleanUp(TestDescription description, Result result) async {
@@ -775,6 +783,7 @@ Future<Null> newWorldTest(
       Component component3 = await compilerFromScratch.computeDelta(
           entryPoints: entries,
           simulateTransformer: world["simulateTransformer"]);
+      compilerFromScratch = null;
       performErrorAndWarningCheck(
           world, gotError, formattedErrors, gotWarning, formattedWarnings);
       util.throwOnEmptyMixinBodies(component3);
@@ -808,6 +817,11 @@ Future<Null> newWorldTest(
         }
         newestWholeComponentData = incrementalSerializationBytes;
       }
+    }
+
+    if (context.breakBetween) {
+      debugger();
+      print("Continuing after debug break");
     }
   }
 }

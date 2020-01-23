@@ -432,6 +432,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         hierarchy.applyTreeChanges(removedLibraries, const []);
       }
       notReusedLibraries = null;
+      directlyInvalidated = null;
 
       if (userCode != null) {
         ticker.logMs("Decided to reuse ${reusedLibraries.length}"
