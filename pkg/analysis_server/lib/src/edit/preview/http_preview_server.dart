@@ -5,8 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/migration_state.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
 /// Instances of the class [AbstractGetHandler] handle GET requests.
@@ -18,12 +17,8 @@ abstract class AbstractGetHandler {
 /// Instances of the class [HttpPreviewServer] implement a simple HTTP server
 /// that serves up dartfix preview pages.
 class HttpPreviewServer {
-  /// The information about the migration that will be used to serve up pages.
-  final MigrationInfo migrationInfo;
-
-  /// The path mapper used to map paths from the unit infos to the paths being
-  /// served.
-  final PathMapper pathMapper;
+  /// The state of the migration being previewed.
+  final MigrationState migrationState;
 
   /// An object that can handle GET requests.
   AbstractGetHandler getHandler;
@@ -32,7 +27,7 @@ class HttpPreviewServer {
   Future<HttpServer> _serverFuture;
 
   /// Initialize a newly created HTTP server.
-  HttpPreviewServer(this.migrationInfo, this.pathMapper);
+  HttpPreviewServer(this.migrationState);
 
   /// Return the port this server is bound to.
   Future<int> get boundPort async {
@@ -69,7 +64,7 @@ class HttpPreviewServer {
 
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
-    getHandler ??= PreviewSite(migrationInfo, pathMapper);
+    getHandler ??= PreviewSite(migrationState);
     await getHandler.handleGetRequest(request);
   }
 

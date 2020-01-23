@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/migration_state.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
 import 'package:analysis_server/src/edit/preview/dart_file_page.dart';
 import 'package:analysis_server/src/edit/preview/exception_page.dart';
@@ -27,12 +28,8 @@ class PreviewSite extends Site implements AbstractGetHandler {
   /// The path of the JS page used to associate highlighting within a Dart file.
   static const highlightJSPagePath = '/js/highlight.pack.js';
 
-  /// The information about the migration that will be used to serve up pages.
-  final MigrationInfo migrationInfo;
-
-  /// The path mapper used to map paths from the unit infos to the paths being
-  /// served.
-  final PathMapper pathMapper;
+  /// The state of the migration being previewed.
+  final MigrationState migrationState;
 
   /// A table mapping the paths of files to the information about the
   /// compilation units at those paths.
@@ -40,8 +37,7 @@ class PreviewSite extends Site implements AbstractGetHandler {
 
   /// Initialize a newly created site to serve a preview of the results of an
   /// NNBD migration.
-  PreviewSite(this.migrationInfo, this.pathMapper)
-      : super('NNBD Migration Preview') {
+  PreviewSite(this.migrationState) : super('NNBD Migration Preview') {
     Set<UnitInfo> unitInfos = migrationInfo.units;
     ResourceProvider provider = pathMapper.provider;
     for (UnitInfo unit in unitInfos) {
@@ -61,6 +57,14 @@ class PreviewSite extends Site implements AbstractGetHandler {
       }
     }
   }
+
+  /// Return the information about the migration that will be used to serve up
+  /// pages.
+  MigrationInfo get migrationInfo => migrationState.migrationInfo;
+
+  /// Return the path mapper used to map paths from the unit infos to the paths
+  /// being served.
+  PathMapper get pathMapper => migrationState.pathMapper;
 
   @override
   Page createExceptionPage(String message, StackTrace trace) {
@@ -87,7 +91,6 @@ class PreviewSite extends Site implements AbstractGetHandler {
     Uri uri = request.uri;
     if (uri.query.contains('replacement')) {
       performEdit(uri);
-      performMigration();
     }
     String path = uri.path;
     try {
@@ -127,9 +130,9 @@ class PreviewSite extends Site implements AbstractGetHandler {
 
   /// Perform the edit indicated by the [uri].
   void performEdit(Uri uri) {
-    // We might want to allow edits to files other than the file to be displayed
-    // after the edit is performed, in which case we'll need to encode the file
-    // path as a query parameter.
+    //
+    // Update the code on disk.
+    //
     Map<String, String> params = uri.queryParameters;
     String path = uri.path;
     int offset = int.parse(params['offset']);
@@ -139,12 +142,19 @@ class PreviewSite extends Site implements AbstractGetHandler {
     String oldContent = file.readAsStringSync();
     String newContent = oldContent.replaceRange(offset, end, replacement);
     file.writeAsStringSync(newContent);
-  }
-
-  /// Perform the migration again and update this site to serve up the results
-  /// of the new migration.
-  void performMigration() {
-    // TODO(brianwilkerson) Implement this.
+    //
+    // Update the graph by adding or removing an edge.
+    //
+    int length = end - offset;
+    if (length == 0) {
+      throw UnsupportedError('Implement insertions');
+    } else {
+      throw UnsupportedError('Implement removals');
+    }
+    //
+    // Refresh the state of the migration.
+    //
+//    migrationState.refresh();
   }
 
   @override

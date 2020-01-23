@@ -6,10 +6,8 @@ import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_code_task.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/info_builder.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/instrumentation_listener.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/migration_state.dart';
 import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -79,16 +77,11 @@ class NonNullableFix extends FixCodeTask {
   Future<void> finish() async {
     migration.finish();
 
-    OverlayResourceProvider provider = listener.server.resourceProvider;
-    InfoBuilder infoBuilder = InfoBuilder(
-        provider, includedRoot, instrumentationListener.data, listener);
-    Set<UnitInfo> unitInfos = await infoBuilder.explainMigration();
-    var pathContext = provider.pathContext;
-    MigrationInfo migrationInfo = MigrationInfo(
-        unitInfos, infoBuilder.unitMap, pathContext, includedRoot);
-    PathMapper pathMapper = PathMapper(provider);
+    var state = MigrationState(
+        migration, includedRoot, listener, instrumentationListener);
+    await state.refresh();
 
-    server = HttpPreviewServer(migrationInfo, pathMapper);
+    server = HttpPreviewServer(state);
     server.serveHttp();
     port = await server.boundPort;
   }

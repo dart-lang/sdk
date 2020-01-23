@@ -73,7 +73,7 @@ bool b = a!.isEven;
     var editList = output['editList'];
     expect(editList, contains("line 1: Changed type 'int' to be nullable."));
     expect(editList,
-        contains("line 2: Added a non-null assertion to nullable expression."));
+        contains('line 2: Added a non-null assertion to nullable expression.'));
   }
 
   test_editList_containsSummary() async {
