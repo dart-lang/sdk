@@ -91,11 +91,12 @@ class double {
     return sign * (doubleValue * P10[exponent]);
   }
 
-  static double? _parse(var str) {
+  static double? _parse(String str) {
     int len = str.length;
-    int start = str._firstNonWhitespace();
+    final strbase = str as _StringBase;
+    int start = strbase._firstNonWhitespace();
     if (start == len) return null; // All whitespace.
-    int end = str._lastNonWhitespace() + 1;
+    int end = strbase._lastNonWhitespace() + 1;
     assert(start < end);
     var result = _tryParseDouble(str, start, end);
     if (result != null) return result;
