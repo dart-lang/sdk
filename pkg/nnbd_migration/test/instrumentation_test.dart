@@ -137,12 +137,13 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   Source source;
 
-  Future<void> analyze(String content) async {
+  Future<void> analyze(String content, {bool removeViaComments = false}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     newFile(sourcePath, content: content);
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener,
-        instrumentation: _InstrumentationClient(this));
+        instrumentation: _InstrumentationClient(this),
+        removeViaComments: removeViaComments);
     var result = await session.getResolvedUnit(sourcePath);
     source = result.unit.declaredElement.source;
     findNode = FindNode(content, result.unit);
