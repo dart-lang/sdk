@@ -152,6 +152,7 @@ import 'rules/unnecessary_null_in_if_null_operators.dart';
 import 'rules/unnecessary_overrides.dart';
 import 'rules/unnecessary_parenthesis.dart';
 import 'rules/unnecessary_statements.dart';
+import 'rules/unnecessary_string_interpolations.dart';
 import 'rules/unnecessary_this.dart';
 import 'rules/unrelated_type_equality_checks.dart';
 import 'rules/unsafe_html.dart';
@@ -319,6 +320,7 @@ void registerLintRules() {
     ..register(UnnecessaryOverrides())
     ..register(UnnecessaryParenthesis())
     ..register(UnnecessaryStatements())
+    ..register(UnnecessaryStringInterpolations())
     ..register(UnnecessaryThis())
     ..register(UnrelatedTypeEqualityChecks())
     ..register(UnsafeHtml())
