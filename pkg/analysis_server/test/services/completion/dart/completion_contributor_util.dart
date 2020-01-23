@@ -183,7 +183,8 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       String paramName,
       String paramType,
       String defaultArgListString = _UNCHECKED,
-      List<int> defaultArgumentListTextRanges}) {
+      List<int> defaultArgumentListTextRanges,
+      bool isSynthetic = false}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -199,7 +200,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     expect(cs.selectionLength, equals(0));
     expect(cs.isDeprecated, equals(isDeprecated));
     expect(cs.isPotential, equals(isPotential));
-    if (cs.element != null) {
+    if (!isSynthetic && cs.element != null) {
       expect(cs.element.location, isNotNull);
       expect(cs.element.location.file, isNotNull);
       expect(cs.element.location.offset, isNotNull);

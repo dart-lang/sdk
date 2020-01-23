@@ -2237,6 +2237,8 @@ void f() {
     assertSuggest(
       'call()',
       selectionOffset: 6,
+      elemKind: ElementKind.METHOD,
+      isSynthetic: true,
     );
   }
 
@@ -2253,6 +2255,8 @@ void f() {
     assertSuggest(
       'call()',
       selectionOffset: 6,
+      elemKind: ElementKind.METHOD,
+      isSynthetic: true,
     );
   }
 
@@ -2269,6 +2273,8 @@ void f() {
     assertSuggest(
       'call()',
       selectionOffset: 6,
+      elemKind: ElementKind.METHOD,
+      isSynthetic: true,
     );
   }
 
