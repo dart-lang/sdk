@@ -343,16 +343,6 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
         var shortPath = uri.path
             .replaceAll('/sdk/', '/dart-sdk/')
             .replaceAll('/sdk_nnbd/', '/dart-sdk/');
-        // A multi-root uri starting with a path under `/lib` indicates that
-        // the multi-root is at the root of a package (typically, the
-        // application root package). These should be converted into a
-        // `/packages` path, we do that by stripping the `/lib` prefix and
-        // relying on the `multiRootOutputPath` to be set to the proper
-        // packages dir (so /packages/<package>).
-        if (shortPath.startsWith('/lib') &&
-            multiRootOutputPath.startsWith('/packages')) {
-          shortPath = shortPath.substring(4);
-        }
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
         multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);
         return multiRootPath;

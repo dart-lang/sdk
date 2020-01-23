@@ -106,9 +106,6 @@ class JavaScriptBundler {
         mapUrl: '$moduleUrl.lib.js.map',
         sourceMapBase: sourceMapBase,
         customScheme: _fileSystemScheme,
-        multiRootOutputPath: moduleUri.scheme == 'package'
-            ? '/packages/${moduleUri.pathSegments.first}'
-            : null,
       );
       final codeBytes = utf8.encode(code.code);
       final sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
