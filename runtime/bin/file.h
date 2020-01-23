@@ -253,7 +253,12 @@ class File : public ReferenceCounted<File> {
   static StdioHandleType GetStdioHandleType(int fd);
 
   // LinkTarget, GetCanonicalPath, and ReadLink may call Dart_ScopeAllocate.
-  static const char* LinkTarget(Namespace* namespc, const char* pathname);
+  // If dest and its size are provided, Dart String will not be created.
+  // The result will be populated into dest.
+  static const char* LinkTarget(Namespace* namespc,
+                                const char* pathname,
+                                char* dest = NULL,
+                                int dest_size = 0);
   static const char* GetCanonicalPath(Namespace* namespc, const char* path);
   // Link LinkTarget, but pathname must be absolute.
   static const char* ReadLink(const char* pathname);
