@@ -526,8 +526,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var superConstructorDecoratedType =
           _variables.decoratedElementType(superConstructorElement);
       var origin = ImplicitMixinSuperCallOrigin(source, node);
-      _unionDecoratedTypeParameters(
-          constructorDecoratedType, superConstructorDecoratedType, origin);
+      _linkDecoratedTypeParameters(
+          constructorDecoratedType, superConstructorDecoratedType, origin,
+          isUnion: true);
     }
     return null;
   }
@@ -664,7 +665,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var fieldType = _variables.decoratedElementType(field);
     var origin = FieldFormalParameterOrigin(source, node);
     if (node.type == null) {
-      _unionDecoratedTypes(parameterType, fieldType, origin);
+      _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: true);
     } else {
       _checkAssignment(origin,
           source: parameterType, destination: fieldType, hard: true);
@@ -1469,10 +1470,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
         var origin = InstantiateToBoundsOrigin(source, typeName);
         for (int i = 0; i < instantiatedType.typeArguments.length; i++) {
-          _unionDecoratedTypes(
+          _linkDecoratedTypes(
               instantiatedType.typeArguments[i],
               _variables.decoratedTypeParameterBound(element.typeParameters[i]),
-              origin);
+              origin,
+              isUnion: false);
         }
       } else {
         for (int i = 0; i < typeArguments.length; i++) {
@@ -2028,10 +2030,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       var overriddenFunctionType =
           decoratedOverriddenFunctionType.substitute(substitution);
       if (returnType == null) {
-        _unionDecoratedTypes(
+        _linkDecoratedTypes(
             _currentFunctionType.returnType,
             overriddenFunctionType.returnType,
-            ReturnTypeInheritanceOrigin(source, node));
+            ReturnTypeInheritanceOrigin(source, node),
+            isUnion: true);
       } else {
         _checkAssignment(ReturnTypeInheritanceOrigin(source, node),
             source: _currentFunctionType.returnType,
@@ -2070,8 +2073,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           if (overriddenParameterType != null) {
             var origin = ParameterInheritanceOrigin(source, node);
             if (_isUntypedParameter(normalParameter)) {
-              _unionDecoratedTypes(
-                  overriddenParameterType, currentParameterType, origin);
+              _linkDecoratedTypes(
+                  overriddenParameterType, currentParameterType, origin,
+                  isUnion: true);
             } else {
               _checkAssignment(origin,
                   source: overriddenParameterType,
@@ -2326,6 +2330,44 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
+  void _linkDecoratedTypeParameters(
+      DecoratedType x, DecoratedType y, EdgeOrigin origin,
+      {bool isUnion = true}) {
+    for (int i = 0;
+        i < x.positionalParameters.length && i < y.positionalParameters.length;
+        i++) {
+      _linkDecoratedTypes(
+          x.positionalParameters[i], y.positionalParameters[i], origin,
+          isUnion: isUnion);
+    }
+    for (var entry in x.namedParameters.entries) {
+      var superParameterType = y.namedParameters[entry.key];
+      if (superParameterType != null) {
+        _linkDecoratedTypes(entry.value, y.namedParameters[entry.key], origin,
+            isUnion: isUnion);
+      }
+    }
+  }
+
+  void _linkDecoratedTypes(DecoratedType x, DecoratedType y, EdgeOrigin origin,
+      {bool isUnion = true}) {
+    if (isUnion) {
+      _graph.union(x.node, y.node, origin);
+    } else {
+      _graph.connect(x.node, y.node, origin, hard: true);
+    }
+    _linkDecoratedTypeParameters(x, y, origin, isUnion: isUnion);
+    for (int i = 0;
+        i < x.typeArguments.length && i < y.typeArguments.length;
+        i++) {
+      _linkDecoratedTypes(x.typeArguments[i], y.typeArguments[i], origin,
+          isUnion: isUnion);
+    }
+    if (x.returnType != null && y.returnType != null) {
+      _linkDecoratedTypes(x.returnType, y.returnType, origin, isUnion: isUnion);
+    }
+  }
+
   EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression) {
     if (sourceType.type.isDynamic) {
       return DynamicAssignmentOrigin(source, expression);
@@ -2423,36 +2465,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     buffer.write(unit.declaredElement.source.fullName);
     buffer.write('"');
     throw UnimplementedError(buffer.toString());
-  }
-
-  void _unionDecoratedTypeParameters(
-      DecoratedType x, DecoratedType y, EdgeOrigin origin) {
-    for (int i = 0;
-        i < x.positionalParameters.length && i < y.positionalParameters.length;
-        i++) {
-      _unionDecoratedTypes(
-          x.positionalParameters[i], y.positionalParameters[i], origin);
-    }
-    for (var entry in x.namedParameters.entries) {
-      var superParameterType = y.namedParameters[entry.key];
-      if (superParameterType != null) {
-        _unionDecoratedTypes(entry.value, y.namedParameters[entry.key], origin);
-      }
-    }
-  }
-
-  void _unionDecoratedTypes(
-      DecoratedType x, DecoratedType y, EdgeOrigin origin) {
-    _graph.union(x.node, y.node, origin);
-    _unionDecoratedTypeParameters(x, y, origin);
-    for (int i = 0;
-        i < x.typeArguments.length && i < y.typeArguments.length;
-        i++) {
-      _unionDecoratedTypes(x.typeArguments[i], y.typeArguments[i], origin);
-    }
-    if (x.returnType != null && y.returnType != null) {
-      _unionDecoratedTypes(x.returnType, y.returnType, origin);
-    }
   }
 
   /// Produce Future<flatten(T)> for some T, however, we would like to merely

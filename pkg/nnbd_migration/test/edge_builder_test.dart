@@ -6507,28 +6507,29 @@ Type f() => M;
     assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
   }
 
-  Future<void> test_typeName_union_with_bound() async {
+  Future<void> test_typeName_with_bound() async {
     await analyze('''
 class C<T extends Object> {}
 void f(C c) {}
 ''');
     var cType = decoratedTypeAnnotation('C c');
     var cBound = decoratedTypeAnnotation('Object');
-    assertUnion(cType.typeArguments[0].node, cBound.node);
+    assertEdge(cType.typeArguments[0].node, cBound.node, hard: true);
   }
 
-  Future<void> test_typeName_union_with_bound_function_type() async {
+  Future<void> test_typeName_with_bound_function_type() async {
     await analyze('''
 class C<T extends int Function()> {}
 void f(C c) {}
 ''');
     var cType = decoratedTypeAnnotation('C c');
     var cBound = decoratedGenericFunctionTypeAnnotation('int Function()');
-    assertUnion(cType.typeArguments[0].node, cBound.node);
-    assertUnion(cType.typeArguments[0].returnType.node, cBound.returnType.node);
+    assertEdge(cType.typeArguments[0].node, cBound.node, hard: true);
+    assertEdge(cType.typeArguments[0].returnType.node, cBound.returnType.node,
+        hard: true);
   }
 
-  Future<void> test_typeName_union_with_bounds() async {
+  Future<void> test_typeName_with_bounds() async {
     await analyze('''
 class C<T extends Object, U extends Object> {}
 void f(C c) {}
@@ -6536,8 +6537,8 @@ void f(C c) {}
     var cType = decoratedTypeAnnotation('C c');
     var tBound = decoratedTypeAnnotation('Object,');
     var uBound = decoratedTypeAnnotation('Object>');
-    assertUnion(cType.typeArguments[0].node, tBound.node);
-    assertUnion(cType.typeArguments[1].node, uBound.node);
+    assertEdge(cType.typeArguments[0].node, tBound.node, hard: true);
+    assertEdge(cType.typeArguments[1].node, uBound.node, hard: true);
   }
 
   Future<void> test_variableDeclaration() async {

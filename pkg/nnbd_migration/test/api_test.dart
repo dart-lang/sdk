@@ -115,6 +115,28 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
+  Future<void> test_add_type_parameter_bound() async {
+    /// After a migration, a bound may be made nullable. Instantiate-to-bounds
+    /// may need to be made explicit where the migration engine prefers a
+    /// non-null type.
+    var content = '''
+class C<T extends num/*?*/> {}
+
+void main() {
+  C c = C();
+}
+''';
+    var expected = '''
+class C<T extends num?/*?*/> {}
+
+void main() {
+  C<num> c = C();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_assign_null_to_generic_type() async {
     var content = '''
 main() {
@@ -2047,6 +2069,7 @@ class C<E> {}
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   Future<void> test_genericType_noTypeArguments_use_bound() async {
     var content = '''
 abstract class C<T extends Object> { // (1)
@@ -2497,6 +2520,56 @@ bool f(a) => a is List<int>;
 ''';
     var expected = '''
 bool f(a) => a is List<int>;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_issue_40181() async {
+    // This contrived example created an "exact nullable" type parameter bound
+    // which propagated back to *all* instantiations of that parameter.
+    var content = '''
+class B<T extends Object> {
+  B([C<T> t]);
+}
+
+abstract class C<T extends Object> {
+  void f(T t);
+}
+
+class E {
+  final C<Object> _base;
+  E([C base]) : _base = base;
+  f(Object t) {
+    _base.f(t);
+  }
+}
+
+void main() {
+  E e = E();
+  e.f(null);
+}
+''';
+    var expected = '''
+class B<T extends Object> {
+  B([C<T>? t]);
+}
+
+abstract class C<T extends Object?> {
+  void f(T t);
+}
+
+class E {
+  final C<Object?>? _base;
+  E([C? base]) : _base = base;
+  f(Object? t) {
+    _base!.f(t);
+  }
+}
+
+void main() {
+  E e = E();
+  e.f(null);
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }
