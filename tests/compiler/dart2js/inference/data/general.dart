@@ -675,7 +675,8 @@ class A {
   A.generative();
 
   /*member: A.==:[exact=JSBool]*/
-  operator ==(/*[null|subclass=Object]*/ other) => 42 as dynamic;
+  operator ==(/*Union([exact=JSString], [exact=JSUInt31])*/ other) =>
+      42 as dynamic;
 
   /*member: A.myField:[exact=JSUInt31]*/
   get myField => 42;
@@ -892,7 +893,7 @@ main() {
   testDoWhile2();
   testDoWhile3();
   testDoWhile4();
-  new A() == null;
+  new A() /*invoke: [null|subclass=A]*/ == null;
   new A()
     .. /*invoke: [exact=A]*/ returnInt1()
     .. /*invoke: [exact=A]*/ returnInt2()

@@ -539,23 +539,23 @@ class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
   @override
   AbstractValue receiverTypeOfInvocation(
       ir.MethodInvocation node, AbstractValueDomain abstractValueDomain) {
-    return _targetResults.typeOfSend(node);
+    return _targetResults.typeOfReceiver(node);
   }
 
   @override
   AbstractValue receiverTypeOfGet(ir.PropertyGet node) {
-    return _targetResults.typeOfSend(node);
+    return _targetResults.typeOfReceiver(node);
   }
 
   @override
   AbstractValue receiverTypeOfDirectGet(ir.DirectPropertyGet node) {
-    return _targetResults.typeOfSend(node);
+    return _targetResults.typeOfReceiver(node);
   }
 
   @override
   AbstractValue receiverTypeOfSet(
       ir.PropertySet node, AbstractValueDomain abstractValueDomain) {
-    return _targetResults.typeOfSend(node);
+    return _targetResults.typeOfReceiver(node);
   }
 
   @override

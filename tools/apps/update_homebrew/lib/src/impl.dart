@@ -12,7 +12,6 @@ const _x64Files = {
   'linux-arm': 'sdk/dartsdk-linux-arm64-release.zip',
 };
 const _ia32Files = {
-  'mac': 'sdk/dartsdk-macos-ia32-release.zip',
   'linux': 'sdk/dartsdk-linux-ia32-release.zip',
   'linux-arm': 'sdk/dartsdk-linux-arm-release.zip',
 };
@@ -93,13 +92,8 @@ class Dart < Formula
 
   version "$stableVersion"
   if OS.mac?
-    if Hardware::CPU.is_64_bit?
-      url "$_urlBase/stable/release/${revisions['stable']}/${_x64Files['mac']}"
-      sha256 "${hashes['stable'][_x64Files['mac']]}"
-    else
-      url "$_urlBase/stable/release/${revisions['stable']}/${_ia32Files['mac']}"
-      sha256 "${hashes['stable'][_ia32Files['mac']]}"
-    end
+    url "$_urlBase/stable/release/${revisions['stable']}/${_x64Files['mac']}"
+    sha256 "${hashes['stable'][_x64Files['mac']]}"
   elsif OS.linux? && Hardware::CPU.intel?
     if Hardware::CPU.is_64_bit?
       url "$_urlBase/stable/release/${revisions['stable']}/${_x64Files['linux']}"
@@ -121,13 +115,8 @@ class Dart < Formula
   devel do
     version "$devVersion"
     if OS.mac?
-      if Hardware::CPU.is_64_bit?
-        url "$_urlBase/dev/release/${revisions['dev']}/${_x64Files['mac']}"
-        sha256 "${hashes['dev'][_x64Files['mac']]}"
-      else
-        url "$_urlBase/dev/release/${revisions['dev']}/${_ia32Files['mac']}"
-        sha256 "${hashes['dev'][_ia32Files['mac']]}"
-      end
+      url "$_urlBase/dev/release/${revisions['dev']}/${_x64Files['mac']}"
+      sha256 "${hashes['dev'][_x64Files['mac']]}"
     elsif OS.linux? && Hardware::CPU.intel?
       if Hardware::CPU.is_64_bit?
         url "$_urlBase/dev/release/${revisions['dev']}/${_x64Files['linux']}"

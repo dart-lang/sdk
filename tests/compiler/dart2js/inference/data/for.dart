@@ -47,7 +47,9 @@ forNull() {
 /*member: forNotNull:[null|exact=JSString]*/
 forNotNull() {
   var local;
-  for (var o = ''; o != null; o = o. /*invoke: [exact=JSString]*/ toString()) {
+  for (var o = '';
+      o /*invoke: [null|exact=JSString]*/ != null;
+      o = o. /*invoke: [exact=JSString]*/ toString()) {
     local = o;
   }
   return local;
@@ -60,7 +62,9 @@ forNotNull() {
 /*member: forNullFalse:[null]*/
 forNullFalse() {
   var local;
-  for (var o = ''; o == null; o = o. /*invoke: [null]*/ toString()) {
+  for (var o = '';
+      o /*invoke: [null|exact=JSString]*/ == null;
+      o = o. /*invoke: [null]*/ toString()) {
     local = o;
   }
   return local;
