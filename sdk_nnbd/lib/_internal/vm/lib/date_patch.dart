@@ -348,7 +348,7 @@ class DateTime {
     }
     if (microsecondsSinceEpoch.abs() >
         _maxMillisecondsSinceEpoch * Duration.microsecondsPerMillisecond) {
-      throw new ArgumentError();
+      return null;
     }
     return microsecondsSinceEpoch;
   }

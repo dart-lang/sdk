@@ -191,7 +191,7 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
   }
 
   // Allocate new _index and _data, and optionally copy existing contents.
-  void _init(int size, int hashMask, List oldData, int oldUsed) {
+  void _init(int size, int hashMask, List? oldData, int oldUsed) {
     assert(size & (size - 1) == 0);
     assert(_HashBase._UNUSED_PAIR == 0);
     _index = new Uint32List(size);
@@ -514,7 +514,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     }
   }
 
-  void _init(int size, int hashMask, List oldData, int oldUsed) {
+  void _init(int size, int hashMask, List? oldData, int oldUsed) {
     _index = new Uint32List(size);
     _hashMask = hashMask;
     _data = new List(size >> 1);
@@ -590,7 +590,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   E? lookup(Object? key) {
     var k = _getKeyOrData(key);
-    return identical(_data, k) ? null : k;
+    return identical(_data, k) ? null : internal.unsafeCast<E>(k);
   }
 
   bool contains(Object? key) => !identical(_data, _getKeyOrData(key));

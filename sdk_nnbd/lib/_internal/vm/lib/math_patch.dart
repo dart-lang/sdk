@@ -27,7 +27,7 @@ T min<T extends num>(T a, T b) {
         // The following returns -0.0 if either a or b is -0.0, and it
         // returns NaN if b is NaN.
         num n = (a + b) * a * b;
-        return n;
+        return n as T;
       }
     }
     // Check for NaN and b == -0.0.
@@ -51,7 +51,7 @@ T max<T extends num>(T a, T b) {
         // The following returns 0.0 if either a or b is 0.0, and it
         // returns NaN if b is NaN.
         num n = a + b;
-        return n;
+        return n as T;
       }
     }
     // Check for NaN.

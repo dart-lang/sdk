@@ -202,7 +202,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
     }
   }
 
-  void _addEntry(List<_HashMapEntry<K, V>> buckets, int index, int length,
+  void _addEntry(List<_HashMapEntry<K, V>?> buckets, int index, int length,
       K key, V value, int hashCode) {
     final entry = new _HashMapEntry<K, V>(key, value, hashCode, buckets[index]);
     buckets[index] = entry;
@@ -240,17 +240,18 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
   final _Predicate _validKey;
-  _CustomHashMap(this._equals, this._hashCode, validKey)
+  _CustomHashMap(this._equals, this._hashCode, _Predicate? validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test;
 
   bool containsKey(Object? key) {
     if (!_validKey(key)) return false;
-    final hashCode = _hashCode(key);
+    K lkey = key as K;
+    final hashCode = _hashCode(lkey);
     final buckets = _buckets;
     final index = hashCode & (buckets.length - 1);
     var entry = buckets[index];
     while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) return true;
+      if (hashCode == entry.hashCode && _equals(entry.key, lkey)) return true;
       entry = entry.next;
     }
     return false;
@@ -258,12 +259,13 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 
   V? operator [](Object? key) {
     if (!_validKey(key)) return null;
-    final hashCode = _hashCode(key);
+    K lkey = key as K;
+    final hashCode = _hashCode(lkey);
     final buckets = _buckets;
     final index = hashCode & (buckets.length - 1);
     var entry = buckets[index];
     while (entry != null) {
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) {
+      if (hashCode == entry.hashCode && _equals(entry.key, lkey)) {
         return entry.value;
       }
       entry = entry.next;
@@ -311,14 +313,15 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 
   V? remove(Object? key) {
     if (!_validKey(key)) return null;
-    final hashCode = _hashCode(key);
+    K lkey = key as K;
+    final hashCode = _hashCode(lkey);
     final buckets = _buckets;
     final index = hashCode & (buckets.length - 1);
     var entry = buckets[index];
     _HashMapEntry<K, V>? previous = null;
     while (entry != null) {
       final next = entry.next;
-      if (hashCode == entry.hashCode && _equals(entry.key, key)) {
+      if (hashCode == entry.hashCode && _equals(entry.key, lkey)) {
         _removeEntry(entry, previous, index);
         _elementCount--;
         _modificationCount =
@@ -549,8 +552,8 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   int _elementCount = 0;
   int _modificationCount = 0;
 
-  bool _equals(e1, e2) => e1 == e2;
-  int _hashCode(e) => e.hashCode;
+  bool _equals(Object? e1, Object? e2) => e1 == e2;
+  int _hashCode(Object? e) => e.hashCode;
 
   static Set<R> _newEmpty<R>() => new _HashSet<R>();
 
@@ -741,8 +744,8 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
 }
 
 class _IdentityHashSet<E> extends _HashSet<E> {
-  int _hashCode(e) => identityHashCode(e);
-  bool _equals(e1, e2) => identical(e1, e2);
+  int _hashCode(Object? e) => identityHashCode(e);
+  bool _equals(Object? e1, Object? e2) => identical(e1, e2);
 
   HashSet<E> _newSet() => new _IdentityHashSet<E>();
   HashSet<R> _newSimilarSet<R>() => new _IdentityHashSet<R>();
@@ -752,7 +755,7 @@ class _CustomHashSet<E> extends _HashSet<E> {
   final _Equality<E> _equality;
   final _Hasher<E> _hasher;
   final _Predicate _validKey;
-  _CustomHashSet(this._equality, this._hasher, bool validKey(Object o))
+  _CustomHashSet(this._equality, this._hasher, _Predicate? validKey)
       : _validKey = (validKey != null) ? validKey : new _TypeTest<E>().test;
 
   bool remove(Object? element) {
@@ -780,13 +783,13 @@ class _CustomHashSet<E> extends _HashSet<E> {
   void removeAll(Iterable<Object?> elements) {
     for (Object? element in elements) {
       if (_validKey(element)) {
-        super._remove(element, _hasher(element));
+        super._remove(element, _hashCode(element));
       }
     }
   }
 
-  bool _equals(e1, e2) => _equality(e1, e2);
-  int _hashCode(e) => _hasher(e);
+  bool _equals(Object? e1, Object? e2) => _equality(e1 as E, e2 as E);
+  int _hashCode(Object? e) => _hasher(e as E);
 
   HashSet<E> _newSet() => new _CustomHashSet<E>(_equality, _hasher, _validKey);
   HashSet<R> _newSimilarSet<R>() => new _HashSet<R>();
@@ -916,11 +919,13 @@ abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
   @patch
   Node _splayMin(Node node) {
     Node current = node;
-    while (current.left != null) {
-      Node left = internal.unsafeCast<Node>(current.left);
+    Object? nextLeft = current.left;
+    while (nextLeft != null) {
+      Node left = internal.unsafeCast<Node>(nextLeft);
       current.left = left.right;
       left.right = current;
       current = left;
+      nextLeft = current.left;
     }
     return current;
   }
@@ -928,11 +933,13 @@ abstract class _SplayTree<K, Node extends _SplayTreeNode<K>> {
   @patch
   Node _splayMax(Node node) {
     Node current = node;
-    while (current.right != null) {
-      Node right = internal.unsafeCast<Node>(current.right);
+    Object? nextRight = current.right;
+    while (nextRight != null) {
+      Node right = internal.unsafeCast<Node>(nextRight);
       current.right = right.left;
       right.left = current;
       current = right;
+      nextRight = current.right;
     }
     return current;
   }
