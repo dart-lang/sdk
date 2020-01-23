@@ -87,7 +87,7 @@ class ElfHeader {
   static const _ELFDATA2LSB = 0x01;
   static const _ELFDATA2MSB = 0x02;
 
-  ElfHeader.fromReader(Reader this.startingReader) {
+  ElfHeader.fromReader(this.startingReader) {
     _read();
   }
 
@@ -229,7 +229,7 @@ class ProgramHeaderEntry {
   static const _PT_DYNAMIC = 2;
   static const _PT_PHDR = 6;
 
-  ProgramHeaderEntry.fromReader(Reader this.reader) {
+  ProgramHeaderEntry.fromReader(this.reader) {
     assert(reader.wordSize == 4 || reader.wordSize == 8);
     _read();
   }
@@ -282,8 +282,7 @@ class ProgramHeader {
 
   List<ProgramHeaderEntry> _entries;
 
-  ProgramHeader.fromReader(Reader this.reader,
-      {int this.entrySize, int this.entryCount}) {
+  ProgramHeader.fromReader(this.reader, {this.entrySize, this.entryCount}) {
     _read();
   }
 
@@ -393,7 +392,7 @@ class SectionHeader {
   final int stringsIndex;
 
   List<SectionHeaderEntry> _entries;
-  StringTable nameTable = null;
+  StringTable nameTable;
 
   SectionHeader.fromReader(this.reader,
       {this.entrySize, this.entryCount, this.stringsIndex}) {
@@ -488,16 +487,23 @@ class Elf {
   Elf.fromReader(this.startingReader) {
     _read();
   }
-  Elf.fromFile(String filename)
-      : this.fromReader(Reader.fromTypedData(File(filename).readAsBytesSync(),
-            // We provide null for the wordSize and endianness to ensure
-            // we don't accidentally call any methods that use them until
-            // we have gotten that information from the ELF header.
-            wordSize: null,
-            endian: null));
 
-  static bool startsWithMagicNumber(String filename) {
-    final file = File(filename).openSync();
+  /// Returns either an [Elf] object representing the ELF information in the
+  /// file at [path] or null if the file does not start with the ELF magic
+  /// number.
+  factory Elf.fromFile(String path) {
+    if (!startsWithMagicNumber(path)) return null;
+    return Elf.fromReader(Reader.fromTypedData(File(path).readAsBytesSync(),
+        // We provide null for the wordSize and endianness to ensure
+        // we don't accidentally call any methods that use them until
+        // we have gotten that information from the ELF header.
+        wordSize: null,
+        endian: null));
+  }
+
+  /// Checks that the file at [path] starts with the ELF magic number.
+  static bool startsWithMagicNumber(String path) {
+    final file = File(path).openSync();
     var ret = true;
     for (int code in ElfHeader._ELFMAG.codeUnits) {
       if (file.readByteSync() != code) {
@@ -509,6 +515,7 @@ class Elf {
     return ret;
   }
 
+  /// Returns an iterable of [Section]s whose name matches [name].
   Iterable<Section> namedSection(String name) {
     final ret = <Section>[];
     for (var entry in sections.keys) {
@@ -549,6 +556,7 @@ class Elf {
     }
   }
 
+  @override
   String toString() {
     String accumulateSection(String acc, SectionHeaderEntry entry) =>
         acc + "\nSection ${entry.name} is ${sections[entry]}";

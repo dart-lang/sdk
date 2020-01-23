@@ -28,6 +28,7 @@ Future<void> generateNative(
     Kind kind,
     String sourceFile,
     String outputFile,
+    String debugFile,
     String packages,
     List<String> defines,
     bool enableAsserts,
@@ -68,7 +69,7 @@ Future<void> generateNative(
       print('Generating AOT snapshot.');
     }
     final snapshotResult = await generateAotSnapshot(
-        genSnapshot, kernelFile, snapshotFile, enableAsserts);
+        genSnapshot, kernelFile, snapshotFile, debugFile, enableAsserts);
     if (snapshotResult.exitCode != 0) {
       stderr.writeln(snapshotResult.stdout);
       stderr.writeln(snapshotResult.stderr);
@@ -139,6 +140,9 @@ E.g.: dart2native main.dart -o ../bin/my_app.exe
 Get package locations from the specified file instead of .packages. <path> can be relative or absolute.
 E.g.: dart2native --packages=/tmp/pkgs main.dart
 ''')
+    ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
+Remove debugging information from the output and save it separately to the specified file. <path> can be relative or absolute.
+''')
     ..addFlag('verbose',
         abbr: 'v', negatable: false, help: 'Show verbose output.');
 
@@ -176,6 +180,9 @@ E.g.: dart2native --packages=/tmp/pkgs main.dart
               Kind.aot: '${sourceWithoutDart}.aot',
               Kind.exe: '${sourceWithoutDart}.exe',
             }[kind]));
+  final debugPath = parsedArgs['save-debugging-info'] != null
+      ? path.canonicalize(path.normalize(parsedArgs['save-debugging-info']))
+      : null;
 
   if (!FileSystemEntity.isFileSync(sourcePath)) {
     stderr.writeln(
@@ -189,6 +196,7 @@ E.g.: dart2native --packages=/tmp/pkgs main.dart
         kind,
         sourcePath,
         outputPath,
+        debugPath,
         parsedArgs['packages'],
         parsedArgs['define'],
         parsedArgs['enable-asserts'],

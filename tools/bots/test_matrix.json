@@ -319,6 +319,7 @@
       "pkg/js/",
       "pkg/kernel/",
       "pkg/meta/",
+      "pkg/native_stack_traces/",
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",
@@ -2456,6 +2457,11 @@
           "name": "analyze pkg/meta",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "pkg/meta"]
+        },
+        {
+          "name": "analyze pkg/native_stack_traces",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--fatal-warnings", "pkg/native_stack_traces"]
         },
         {
           "name": "analyze pkg/smith",

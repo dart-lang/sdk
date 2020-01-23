@@ -13,9 +13,8 @@ import "dart:math";
 import "dart:typed_data";
 
 import 'package:expect/expect.dart';
+import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:path/path.dart' as path;
-import 'package:vm/dwarf/convert.dart';
-import 'package:vm/dwarf/dwarf.dart';
 
 import 'use_flag_test_helper.dart';
 

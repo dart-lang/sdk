@@ -6,8 +6,8 @@
 
 import 'dart:io';
 
+import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:path/path.dart' as path;
-import 'package:vm/dwarf/dwarf.dart';
 
 import 'dwarf_stack_trace_test.dart' as base;
 

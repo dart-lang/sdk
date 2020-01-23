@@ -438,6 +438,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     'mockito',
     'modular_test',
     'mustache',
+    'native_stack_traces',
     'nnbd_migration',
     'oauth2',
     'observatory',

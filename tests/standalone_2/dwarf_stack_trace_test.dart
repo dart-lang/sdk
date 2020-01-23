@@ -7,10 +7,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
-import 'package:vm/dwarf/convert.dart';
-import 'package:vm/dwarf/dwarf.dart';
 
 @pragma("vm:prefer-inline")
 bar() {
@@ -144,12 +143,12 @@ final expectedCallsInfo = <List<CallInfo>>[
     CallInfo(
         function: "bar",
         filename: "dwarf_stack_trace_test.dart",
-        line: 18,
+        line: 17,
         inlined: true),
     CallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_test.dart",
-        line: 24,
+        line: 23,
         inlined: false)
   ],
   // The second frame corresponds to call to foo in main.
@@ -157,7 +156,7 @@ final expectedCallsInfo = <List<CallInfo>>[
     CallInfo(
         function: "main",
         filename: "dwarf_stack_trace_test.dart",
-        line: 30,
+        line: 29,
         inlined: false)
   ],
   // Don't assume anything about any of the frames below the call to foo
