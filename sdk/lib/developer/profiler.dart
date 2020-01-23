@@ -127,6 +127,7 @@ class Metrics {
   }
 
   // ignore: unused_element, called from native code
+  @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
   static String _printMetric(String id) {
     var metric = _metrics[id];
     if (metric == null) {

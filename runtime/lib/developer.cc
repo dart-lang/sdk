@@ -21,7 +21,7 @@ namespace dart {
 // Native implementations for the dart:developer library.
 DEFINE_NATIVE_ENTRY(Developer_debugger, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, when, arguments->NativeArgAt(0));
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   GET_NATIVE_ARGUMENT(String, msg, arguments->NativeArgAt(1));
   Debugger* debugger = isolate->debugger();
   if (debugger == nullptr) {

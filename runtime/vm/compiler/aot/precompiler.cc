@@ -1561,6 +1561,12 @@ void Precompiler::DropFields() {
           initializer_function = field.InitializerFunction();
           initializer_function.ClearBytecode();
         }
+#if !defined(PRODUCT)
+        if (field.is_instance() && cls.is_allocated()) {
+          // Keep instance fields so their names are available to graph tools.
+          retain = true;
+        }
+#endif
         if (retain) {
           retained_fields.Add(field);
           type = field.type();

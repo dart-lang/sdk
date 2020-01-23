@@ -19,17 +19,21 @@ void warmup() {
   global = new _TestClass(new _TestClass(1, 2), null);
 }
 
-eval(Isolate isolate, String expression) async {
+@pragma("vm:entry-point")
+getGlobal() => global;
+
+invoke(Isolate isolate, String selector) async {
   Map params = {
     'targetId': isolate.rootLibrary.id,
-    'expression': expression,
+    'selector': selector,
+    'argumentIds': <String>[],
   };
-  return await isolate.invokeRpcNoUpgrade('evaluate', params);
+  return await isolate.invokeRpcNoUpgrade('invoke', params);
 }
 
 var tests = <IsolateTest>[
   (Isolate isolate) async {
-    var obj = await eval(isolate, 'global');
+    var obj = await invoke(isolate, 'getGlobal');
     var params = {
       'objectId': obj['class']['id'],
       'limit': 4,

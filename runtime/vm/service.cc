@@ -2221,6 +2221,7 @@ static bool PrintRetainingPath(Thread* thread,
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < element_field_map.Length()) {
           field ^= element_field_map.At(offset);
+          ASSERT(!field.IsNull());
           // TODO(bkonyi): check for mapping between C++ name and Dart name (V8
           // snapshot writer?)
           name ^= field.name();
@@ -2365,10 +2366,6 @@ static const MethodParameter* invoke_params[] = {
 };
 
 static bool Invoke(Thread* thread, JSONStream* js) {
-  if (CheckDebuggerDisabled(thread, js)) {
-    return true;
-  }
-
   const char* receiver_id = js->LookupParam("targetId");
   if (receiver_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -2385,10 +2382,12 @@ static bool Invoke(Thread* thread, JSONStream* js) {
     return true;
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   bool disable_breakpoints =
       BoolParameter::Parse(js->LookupParam("disableBreakpoints"), false);
   DisableBreakpointsScope db(thread->isolate()->debugger(),
                              disable_breakpoints);
+#endif
 
   Zone* zone = thread->zone();
   ObjectIdRing::LookupResult lookup_result;
