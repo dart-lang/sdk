@@ -78,14 +78,32 @@ function log_repo_changed_this_run {
   echo "$1" >> "${repos_changed_this_run}"
 }
 
+
+function _pull_into_repo {
+  local branch="$1"
+  local revision="$2"
+  local sparse_param
+
+  if [ "${branch}" == "master" ] ; then
+    sparse_param=--depth=1
+  fi
+
+  [ -z "${revision}" ] && revision="${branch}"
+
+  git pull ${sparse_param} --rebase originHTTP "${revision}"
+}
+
 #
 # Add a git repository to the workspace.
 #
 # $1: the name of the repository
 # $2: branch to clone from
+# $3: revision to check out, or leave at HEAD if empty.  We can't use sparse
+#     clones in this case.
 function add_repo_to_workspace {
   local repo_name="$1"
   local branch="$2"
+  local revision
   local clone
 
   local curr_head
@@ -93,18 +111,6 @@ function add_repo_to_workspace {
 
   if already_done_this_run "_repos/${repo_name}" ; then return 0 ; fi
   log_this_run "_repos/${repo_name}"
-
-  if [ -d "_repos/${repo_name}" ] ; then
-    pushd "_repos/${repo_name}"
-    prev_head="$(git rev-parse HEAD)"
-    ${NO_UPDATE} git pull originHTTP ${branch}
-    curr_head="$(git rev-parse HEAD)"
-    if [ "${prev_head}" != "${curr_head}" ] ; then
-      log_repo_changed_this_run "${repo_name}"
-    fi
-    popd
-    return $?
-  fi
 
   case "${repo_name}" in
     archive) clone="git@github.com:brendan-duncan/${repo_name}.git" ;;
@@ -114,6 +120,10 @@ function add_repo_to_workspace {
     git) clone="git@github.com:kevmoo/${repo_name}.git" ;;
     node-interop) clone="git@github.com:pulyaevskiy/node-interop.git" ;;
     node_preamble) clone="git@github.com:mbullington/${repo_name}.dart.git" ;;
+    package_config)
+      clone="git@github.com:dart-lang/${repo_name}.git"
+      revision=1.1.0
+      ;;
     source_gen_test) clone="git@github.com:kevmoo/${repo_name}.git" ;;
     quiver-dart) clone="git@github.com:google/${repo_name}.git" ;;
     uuid) clone="git@github.com:Daegalus/dart-uuid.git" ;;
@@ -123,6 +133,19 @@ function add_repo_to_workspace {
       echo "WARNING: using default for ${repo_name}, this might not work"
     ;;
   esac
+
+  if [ -d "_repos/${repo_name}" ] ; then
+    pushd "_repos/${repo_name}"
+    prev_head="$(git rev-parse HEAD)"
+    ${NO_UPDATE} _pull_into_repo "${branch}" "${revision}"
+    curr_head="$(git rev-parse HEAD)"
+    if [ "${prev_head}" != "${curr_head}" ] ; then
+      log_repo_changed_this_run "${repo_name}"
+    fi
+    git checkout -b "${branch}"
+    popd
+    return $?
+  fi
 
   mkdir -p _repos
   pushd "_repos"
@@ -142,7 +165,7 @@ function add_repo_to_workspace {
   echo "!**/.dart_tool/package_config.json" >> .git/info/sparse-checkout
   # TODO(jcollins-g): Usual bag of tricks does not work to stop git pull from
   # prompting and force it to hard fail if authentication is required.  Why?
-  if ! git pull --depth=1 originHTTP ; then
+  if ! _pull_into_repo ${branch} ${revision} ; then
     echo error cloning: "${clone}".  Cleaning up
     popd
     # We remove the repository here so that if you're iteratively adding new
@@ -162,12 +185,73 @@ function add_repo_to_workspace {
 # Returns false if we ran out of retries.
 function pub_get_with_retries {
   for try in 1 2 3 4 5 ; do
-    if pub get ; then return 0 ; fi
+    if pub get --no-precompile ; then return 0 ; fi
     sleep $[$try * $try]
   done
   return 1
 }
 
+#
+# Puts to stdout a list of the package names for the dependencies of a package.
+#
+# Uses pub (super slow).
+#
+# $1: directory name
+function generate_package_names_with_pub {
+  local directory_name="$1"
+  if [ -n "${ONE_PUB_ONLY}" ] && [ "${ONE_PUB_ONLY}" != "$1" ] ; then
+    return 0
+  fi
+  [ -z "${directory_name}" ] && directory_name=.
+  pushd "${directory_name}" >/dev/null
+  pub_get_with_retries >/dev/null
+  popd >/dev/null
+  # HACK ALERT: assumes '.pub-cache' is in the path of the real pub cache.
+  # Packages referring to other packages via path in pubspec.yaml are not
+  # supported at all and we do not include dependencies derived that way
+  # exclusively.
+  grep -v '^#' "${directory_name}/.packages" | grep '.pub-cache' | cut -f 1 -d :
+}
+
+# Returns true if we can use yq, or false if there is a path package dependency.
+function _can_use_yq {
+  for k in dependencies dev_dependencies ; do
+    if yq r "$1/pubspec.yaml" "${k}.*.path" | egrep -q -v '^(- null|null)$' ; then
+      return 1
+    fi
+  done
+  return 0
+}
+
+# Prints package and version number, one per line, to stdout.
+function _generate_yq_helper {
+  yq r "$1/pubspec.yaml" dependencies | egrep '^\w+:' | sed 's/:/ /'
+  yq r "$1/pubspec.yaml" dev_dependencies | egrep '^\w+:' | sed 's/:/ /'
+}
+
+#
+# Puts to stdout a list of the package names for the dependencies of a package.
+#
+# Parses yaml (fast), but requires the 'yq' program.
+#
+# $1: directory name
+function generate_package_names_with_yq {
+  local directory_name="$1"
+  local package
+  local version
+  if _can_use_yq "${directory_name}" ; then
+    _generate_yq_helper "${directory_name}" | while read package version ; do
+      if [ ! -z "${version}" ] ; then
+        echo "${package}"
+      else
+        echo "assert: should have a version number or we should have used pub" >&2
+        return 1
+      fi
+    done
+  else
+    generate_package_names_with_pub "${directory_name}"
+  fi
+}
 
 #
 # Add a package, recursively, to the workspace.  A package may add its own
@@ -248,6 +332,9 @@ function add_package_to_workspace {
       make_clone_from_package json_annotation "${repo}" master json_annotation ;;
     json_serializable) repo=json_serializable
       make_clone_from_package json_serializable "${repo}" master json_serializable ;;
+    package_config) repo=package_config
+      # TODO(jcollins-g): remove pin after https://github.com/dart-lang/sdk/issues/40208
+      make_clone_from_package package_config "${repo}" 2453cd2e78c2db56ee2669ced17ce70dd00bf576 ;;
     protobuf) repo=protobuf
       make_clone_from_package protobuf "${repo}" master protobuf ;;
     scratch_space) repo=build
@@ -288,19 +375,23 @@ function add_package_to_workspace {
       add_package_to_workspace "$n"
     done
   else
-    pushd "${package_name}"
+    # HACK ALERT: some packages have dependencies only available via path. Add
+    # those here.
+    case "${package_name}" in
+      analyzer)
+        add_package_to_workspace "analysis_tool"
+        ;;
+    esac
     if [ -n "${NO_UPDATE}" ] || repo_changed_this_run "${repo}" ; then
-      pub_get_with_retries
-      popd
-      # HACK ALERT: assumes '.pub-cache' is in the path of the real pub cache.
-      # Packages referring to other packages via path in pubspec.yaml are not
-      # supported at all and we do not include dependencies derived that way
-      # exclusively.
-      for n in $(grep -v '^#' "${package_name}/.packages" | grep '.pub-cache' | cut -f 1 -d :) ; do
-        add_package_to_workspace "$n"
-      done
-    else
-      popd
+      if [ -z "${ONE_PUB_ONLY}" ] ; then
+        for n in $(generate_package_names_with_yq "${package_name}") ; do
+          add_package_to_workspace "$n"
+        done
+      else
+        for n in $(generate_package_names_with_pub "${package_name}") ; do
+          add_package_to_workspace "$n"
+        done
+      fi
     fi
   fi
   rm -f "${package_name}/.packages"
@@ -329,10 +420,19 @@ function add_package_to_workspace {
 # we always have to re-pub-get.  This is useful in debugging the script and
 # iteratively adding repository configurations.
 #
+# Set "ONE_PUB_ONLY" to the package being migrated to restrict running pub to
+# one package only.  This has the impact of only pulling in dev dependencies
+# for the top level package.
+#
 # This script might be able to update your existing workspace, or it might
 # trash it completely.  Make backups.
 #
 function main {
+  if ! which yq ; then
+    echo "missing: yq.  apt-get install yq or brew install yq" >&2
+    return 2
+  fi
+
   if [ -z "$1" -o -z "$2" ] ; then
     echo usage: $0 source_package_name workspace_dir
     return 2
