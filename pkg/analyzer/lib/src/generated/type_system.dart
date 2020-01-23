@@ -1692,14 +1692,16 @@ class Dart2TypeSystem extends TypeSystem {
 
     // NORM(R Function<X extends B>(S)) = R1 Function(X extends B1>(S1)
     var functionType = T as FunctionType;
+    var freshTypeParameters = getFreshTypeParameters(functionType.typeFormals);
+    for (var typeParameter in freshTypeParameters.freshTypeParameters) {
+      if (typeParameter.bound != null) {
+        var typeParameterImpl = typeParameter as TypeParameterElementImpl;
+        typeParameterImpl.bound = normalize(typeParameter.bound);
+      }
+    }
+    functionType = freshTypeParameters.applyToFunctionType(functionType);
     return FunctionTypeImpl(
-      typeFormals: functionType.typeFormals.map((e) {
-        var newTypeParameter = TypeParameterElementImpl.synthetic(e.name);
-        if (e.bound != null) {
-          newTypeParameter.bound = normalize(e.bound);
-        }
-        return newTypeParameter;
-      }).toList(),
+      typeFormals: functionType.typeFormals,
       parameters: functionType.parameters.map((e) {
         return ParameterElementImpl.synthetic(
           e.name,

@@ -124,7 +124,7 @@ class FreshTypeParameters {
           substitute(parameter.type),
           // ignore: deprecated_member_use_from_same_package
           parameter.parameterKind,
-        );
+        )..isExplicitlyCovariant = parameter.isCovariant;
       }).toList(),
       returnType: substitute(type.returnType),
       nullabilitySuffix: type.nullabilitySuffix,

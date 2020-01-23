@@ -44,7 +44,47 @@ class NormalizeTypeTest with ElementsTypesMixin {
     typeSystem = analysisContext.typeSystemNonNullableByDefault;
   }
 
-  test_functionType() {
+  test_functionType_parameter_covariant() {
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: futureOrNone(objectNone), isCovariant: true),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: objectNone, isCovariant: true),
+        ],
+      ),
+    );
+  }
+
+  test_functionType_typeParameter_bound_normalized() {
+    _check(
+      functionTypeNone(
+        returnType: futureOrNone(objectNone),
+        typeFormals: [
+          typeParameter('T', bound: futureOrNone(objectNone)),
+        ],
+        parameters: [
+          requiredParameter(type: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: objectNone,
+        typeFormals: [
+          typeParameter('T', bound: objectNone),
+        ],
+        parameters: [
+          requiredParameter(type: objectNone),
+        ],
+      ),
+    );
+  }
+
+  test_functionType_typeParameter_bound_unchanged() {
     _check(
       functionTypeNone(
         returnType: intNone,
@@ -65,24 +105,61 @@ class NormalizeTypeTest with ElementsTypesMixin {
         ],
       ),
     );
+  }
 
+  test_functionType_typeParameter_fresh() {
+    var T = typeParameter('T');
+    var T2 = typeParameter('T');
     _check(
       functionTypeNone(
-        returnType: futureOrNone(objectNone),
-        typeFormals: [
-          typeParameter('T', bound: futureOrNone(objectNone)),
-        ],
+        returnType: typeParameterTypeNone(T),
+        typeFormals: [T],
         parameters: [
-          requiredParameter(type: futureOrNone(objectNone)),
+          requiredParameter(
+            type: typeParameterTypeNone(T),
+          ),
         ],
       ),
       functionTypeNone(
-        returnType: objectNone,
-        typeFormals: [
-          typeParameter('T', bound: objectNone),
-        ],
+        returnType: typeParameterTypeNone(T2),
+        typeFormals: [T2],
         parameters: [
-          requiredParameter(type: objectNone),
+          requiredParameter(
+            type: typeParameterTypeNone(T2),
+          ),
+        ],
+      ),
+    );
+  }
+
+  test_functionType_typeParameter_fresh_bound() {
+    var T = typeParameter('T');
+    var S = typeParameter('S', bound: typeParameterTypeNone(T));
+    var T2 = typeParameter('T');
+    var S2 = typeParameter('S', bound: typeParameterTypeNone(T2));
+    _check(
+      functionTypeNone(
+        returnType: typeParameterTypeNone(T),
+        typeFormals: [T, S],
+        parameters: [
+          requiredParameter(
+            type: typeParameterTypeNone(T),
+          ),
+          requiredParameter(
+            type: typeParameterTypeNone(S),
+          ),
+        ],
+      ),
+      functionTypeNone(
+        returnType: typeParameterTypeNone(T2),
+        typeFormals: [T2, S2],
+        parameters: [
+          requiredParameter(
+            type: typeParameterTypeNone(T2),
+          ),
+          requiredParameter(
+            type: typeParameterTypeNone(S2),
+          ),
         ],
       ),
     );
@@ -293,6 +370,28 @@ class NormalizeTypeTest with ElementsTypesMixin {
 expected: $expectedStr
 actual: $resultStr
 ''');
+    _checkFormalParametersIsCovariant(result, expected);
+  }
+
+  void _checkFormalParametersIsCovariant(DartType T1, DartType T2) {
+    if (T1 is FunctionType && T2 is FunctionType) {
+      var parameters1 = T1.parameters;
+      var parameters2 = T2.parameters;
+      expect(parameters1, hasLength(parameters2.length));
+      for (var i = 0; i < parameters1.length; i++) {
+        var parameter1 = parameters1[i];
+        var parameter2 = parameters2[i];
+        if (parameter1.isCovariant != parameter2.isCovariant) {
+          fail('''
+parameter1: $parameter1, isCovariant: ${parameter1.isCovariant}
+parameter2: $parameter2, isCovariant: ${parameter2.isCovariant}
+T1: ${_typeString(T1 as TypeImpl)}
+T2: ${_typeString(T2 as TypeImpl)}
+''');
+        }
+        _checkFormalParametersIsCovariant(parameter1.type, parameter2.type);
+      }
+    }
   }
 
   String _typeParametersStr(TypeImpl type) {
