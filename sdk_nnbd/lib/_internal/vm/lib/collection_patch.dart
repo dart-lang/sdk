@@ -186,7 +186,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 
   void clear() {
-    _buckets = new List(_INITIAL_CAPACITY);
+    _buckets = new List.filled(_INITIAL_CAPACITY, null);
     if (_elementCount > 0) {
       _elementCount = 0;
       _modificationCount = (_modificationCount + 1) & _MODIFICATION_COUNT_MASK;
@@ -503,21 +503,21 @@ abstract class _HashMapIterator<K, V, E> implements Iterator<E> {
 
 class _HashMapKeyIterator<K, V> extends _HashMapIterator<K, V, K> {
   _HashMapKeyIterator(_HashMap<K, V> map) : super(map);
-  K get current => _entry?.key;
+  K get current => _entry!.key;
 }
 
 class _HashMapValueIterator<K, V> extends _HashMapIterator<K, V, V> {
   _HashMapValueIterator(_HashMap<K, V> map) : super(map);
-  V get current => _entry?.value;
+  V get current => _entry!.value;
 }
 
 @patch
 class HashSet<E> {
   @patch
   factory HashSet(
-      {bool equals(E e1, E e2),
-      int hashCode(E e),
-      bool isValidKey(potentialKey)}) {
+      {bool equals(E e1, E e2)?,
+      int hashCode(E e)?,
+      bool isValidKey(potentialKey)?}) {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
@@ -771,7 +771,7 @@ class _CustomHashSet<E> extends _HashSet<E> {
   }
 
   bool containsAll(Iterable<Object?> elements) {
-    for (Object element in elements) {
+    for (Object? element in elements) {
       if (!_validKey(element) || !this.contains(element)) return false;
     }
     return true;
@@ -798,7 +798,7 @@ class _HashSetEntry<E> {
   _HashSetEntry<E>? next;
   _HashSetEntry(this.key, this.hashCode, this.next);
 
-  _HashSetEntry<E> remove() {
+  _HashSetEntry<E>? remove() {
     final result = next;
     next = null;
     return result;

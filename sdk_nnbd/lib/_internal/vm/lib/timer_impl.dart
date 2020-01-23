@@ -43,7 +43,7 @@ class _TimerHeap {
   void remove(_Timer timer) {
     _used--;
     if (isEmpty) {
-      _list[0] = null;
+      _list[0] = _Timer._sentinelTimer;
       timer._indexOrNext = null;
       return;
     }
@@ -57,7 +57,7 @@ class _TimerHeap {
         _bubbleDown(last);
       }
     }
-    _list[_used] = null;
+    _list[_used] = _Timer._sentinelTimer;
     timer._indexOrNext = null;
   }
 

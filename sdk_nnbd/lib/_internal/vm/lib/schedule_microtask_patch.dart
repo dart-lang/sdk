@@ -18,7 +18,7 @@ class _AsyncRun {
 typedef void _ScheduleImmediateClosure(void callback());
 
 class _ScheduleImmediate {
-  static _ScheduleImmediateClosure _closure;
+  static _ScheduleImmediateClosure? _closure;
 }
 
 @pragma("vm:entry-point", "call")

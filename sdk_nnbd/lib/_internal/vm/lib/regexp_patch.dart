@@ -219,7 +219,7 @@ class _RegExp implements RegExp {
   RegExpMatch? firstMatch(String input) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (input == null) throw new ArgumentError.notNull('input');
-    List<int> match = _ExecuteMatch(input, 0);
+    List? match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
     }
@@ -236,14 +236,14 @@ class _RegExp implements RegExp {
     return new _AllMatchesIterable(this, string, start);
   }
 
-  RegExpMatch matchAsPrefix(String string, [int start = 0]) {
+  RegExpMatch? matchAsPrefix(String string, [int start = 0]) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (string == null) throw new ArgumentError.notNull('string');
     if (start == null) throw new ArgumentError.notNull('start');
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
-    List<int> list = _ExecuteMatchSticky(string, start);
+    List? list = _ExecuteMatchSticky(string, start);
     if (list == null) return null;
     return new _RegExpMatch._(this, string, list);
   }
@@ -251,14 +251,14 @@ class _RegExp implements RegExp {
   bool hasMatch(String input) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (input == null) throw new ArgumentError.notNull('input');
-    List match = _ExecuteMatch(input, 0);
+    List? match = _ExecuteMatch(input, 0);
     return (match == null) ? false : true;
   }
 
-  String stringMatch(String input) {
+  String? stringMatch(String input) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (input == null) throw new ArgumentError.notNull('input');
-    List match = _ExecuteMatch(input, 0);
+    List? match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
     }
@@ -344,9 +344,9 @@ class _RegExp implements RegExp {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   ];
 
-  List _ExecuteMatch(String str, int start_index) native "RegExp_ExecuteMatch";
+  List? _ExecuteMatch(String str, int start_index) native "RegExp_ExecuteMatch";
 
-  List _ExecuteMatchSticky(String str, int start_index)
+  List? _ExecuteMatchSticky(String str, int start_index)
       native "RegExp_ExecuteMatchSticky";
 }
 
@@ -364,12 +364,12 @@ class _AllMatchesIterable extends IterableBase<RegExpMatch> {
 class _AllMatchesIterator implements Iterator<RegExpMatch> {
   final String _str;
   int _nextIndex;
-  _RegExp _re;
-  RegExpMatch _current;
+  _RegExp? _re;
+  RegExpMatch? _current;
 
   _AllMatchesIterator(this._re, this._str, this._nextIndex);
 
-  RegExpMatch get current => _current;
+  RegExpMatch get current => _current!;
 
   static bool _isLeadSurrogate(int c) {
     return c >= 0xd800 && c <= 0xdbff;
@@ -380,17 +380,19 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
   }
 
   bool moveNext() {
-    if (_re == null) return false; // Cleared after a failed match.
+    final re = _re;
+    if (re == null) return false; // Cleared after a failed match.
     if (_nextIndex <= _str.length) {
-      var match = _re._ExecuteMatch(_str, _nextIndex);
+      var match = re._ExecuteMatch(_str, _nextIndex);
       if (match != null) {
-        _current = new _RegExpMatch._(_re, _str, match);
-        _nextIndex = _current.end;
-        if (_nextIndex == _current.start) {
+        var current = new _RegExpMatch._(re, _str, match);
+        _current = current;
+        _nextIndex = current.end;
+        if (_nextIndex == current.start) {
           // Zero-width match. Advance by one more, unless the regexp
           // is in unicode mode and it would put us within a surrogate
           // pair. In that case, advance past the code point as a whole.
-          if (_re.isUnicode &&
+          if (re.isUnicode &&
               _nextIndex + 1 < _str.length &&
               _isLeadSurrogate(_str.codeUnitAt(_nextIndex)) &&
               _isTrailSurrogate(_str.codeUnitAt(_nextIndex + 1))) {

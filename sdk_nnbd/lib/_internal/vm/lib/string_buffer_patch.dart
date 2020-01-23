@@ -148,7 +148,7 @@ class StringBuffer {
   void _consumeBuffer() {
     if (_bufferPosition == 0) return;
     bool isLatin1 = _bufferCodeUnitMagnitude <= 0xFF;
-    String str = _create(_buffer, _bufferPosition, isLatin1);
+    String str = _create(_buffer!, _bufferPosition, isLatin1);
     _bufferPosition = _bufferCodeUnitMagnitude = 0;
     _addPart(str);
   }

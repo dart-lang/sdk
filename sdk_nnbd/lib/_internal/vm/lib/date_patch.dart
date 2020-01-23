@@ -49,8 +49,9 @@ class DateTime {
       int second, int millisecond, int microsecond, bool isUtc)
       : this.isUtc = isUtc,
         this._value = _brokenDownDateToValue(year, month, day, hour, minute,
-            second, millisecond, microsecond, isUtc) {
-    if (_value == null) throw new ArgumentError();
+                second, millisecond, microsecond, isUtc) ??
+            -1 {
+    if (_value == -1) throw new ArgumentError();
     if (isUtc == null) throw new ArgumentError();
   }
 
@@ -347,7 +348,7 @@ class DateTime {
     }
     if (microsecondsSinceEpoch.abs() >
         _maxMillisecondsSinceEpoch * Duration.microsecondsPerMillisecond) {
-      return null;
+      throw new ArgumentError();
     }
     return microsecondsSinceEpoch;
   }

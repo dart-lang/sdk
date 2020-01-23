@@ -291,7 +291,7 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
 
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is _InstanceMirror && identical(_reflectee, other._reflectee);
   }
 
@@ -671,8 +671,8 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     return _wrapMetadata(_metadata(_reflectee));
   }
 
-  bool operator ==(other) {
-    return this.runtimeType == other.runtimeType &&
+  bool operator ==(Object other) {
+    return other is _ClassMirror &&
         this._reflectee == other._reflectee &&
         this._reflectedType == other._reflectedType &&
         this._isGenericDeclaration == other._isGenericDeclaration;
@@ -834,9 +834,8 @@ abstract class _DeclarationMirror extends Mirror implements DeclarationMirror {
     return _wrapMetadata(_metadata(_reflectee));
   }
 
-  bool operator ==(other) {
-    return this.runtimeType == other.runtimeType &&
-        this._reflectee == other._reflectee;
+  bool operator ==(Object other) {
+    return other is _DeclarationMirror && this._reflectee == other._reflectee;
   }
 
   int get hashCode => simpleName.hashCode;
@@ -881,7 +880,7 @@ class _TypeVariableMirror extends _DeclarationMirror
 
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is TypeVariableMirror &&
         simpleName == other.simpleName &&
         owner == other.owner;
@@ -1059,9 +1058,8 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
     return _wrapMetadata(_metadata(_reflectee));
   }
 
-  bool operator ==(other) {
-    return this.runtimeType == other.runtimeType &&
-        this._reflectee == other._reflectee;
+  bool operator ==(Object other) {
+    return other is _LibraryMirror && this._reflectee == other._reflectee;
   }
 
   int get hashCode => simpleName.hashCode;
@@ -1414,7 +1412,7 @@ class _SpecialTypeMirror extends Mirror
 
   Symbol get qualifiedName => simpleName;
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is! _SpecialTypeMirror) {
       return false;
     }

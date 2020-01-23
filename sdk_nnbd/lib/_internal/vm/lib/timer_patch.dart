@@ -40,5 +40,5 @@ typedef Timer _TimerFactoryClosure(
     int milliseconds, void callback(Timer timer), bool repeating);
 
 class _TimerFactory {
-  static _TimerFactoryClosure _factory;
+  static _TimerFactoryClosure? _factory;
 }

@@ -441,7 +441,7 @@ class _CompactIterator<E> implements Iterator<E> {
   int _offset;
   final int _step;
   final int _checkSum;
-  E current;
+  E? _current;
 
   _CompactIterator(
       _HashBase table, this._data, this._len, this._offset, this._step)
@@ -456,13 +456,15 @@ class _CompactIterator<E> implements Iterator<E> {
       _offset += _step;
     } while (_offset < _len && _HashBase._isDeleted(_data, _data[_offset]));
     if (_offset < _len) {
-      current = internal.unsafeCast<E>(_data[_offset]);
+      _current = internal.unsafeCast<E>(_data[_offset]);
       return true;
     } else {
-      current = null;
+      _current = null;
       return false;
     }
   }
+
+  E get current => _current as E;
 }
 
 // Set implementation, analogous to _CompactLinkedHashMap.
@@ -482,7 +484,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     for (int offset = 0; offset < _usedData; offset++) {
       Object current = _data[offset];
       if (!_HashBase._isDeleted(_data, current)) {
-        return current;
+        return current as E;
       }
     }
     throw IterableElementError.noElement();
@@ -492,7 +494,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     for (int offset = _usedData - 1; offset >= 0; offset--) {
       Object current = _data[offset];
       if (!_HashBase._isDeleted(_data, current)) {
-        return current;
+        return current as E;
       }
     }
     throw IterableElementError.noElement();

@@ -186,7 +186,7 @@ class _GrowableList<T> extends ListBase<T> {
           throw new ConcurrentModificationError(this);
         }
         this._setLength(newLen);
-        final ListBase<T> iterableAsList = iterable;
+        final ListBase<T> iterableAsList = iterable as ListBase<T>;
         for (int i = 0; i < iterLen; i++) {
           this[len++] = iterableAsList[i];
         }

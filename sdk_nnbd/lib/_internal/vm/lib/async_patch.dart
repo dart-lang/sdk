@@ -140,7 +140,7 @@ class _AsyncStarStreamController<T> {
   bool onListenReceived = false;
   bool isScheduled = false;
   bool isSuspendedAtYield = false;
-  _Future cancellationFuture = null;
+  _Future? cancellationFuture = null;
 
   Stream<T> get stream {
     final Stream<T> local = controller.stream;
@@ -231,11 +231,11 @@ class _AsyncStarStreamController<T> {
     controller.close();
   }
 
-  _AsyncStarStreamController(this.asyncStarBody) {
-    controller = new StreamController(
-        onListen: this.onListen,
-        onResume: this.onResume,
-        onCancel: this.onCancel);
+  _AsyncStarStreamController(this.asyncStarBody)
+      : controller = new StreamController() {
+    controller.onListen = this.onListen;
+    controller.onResume = this.onResume;
+    controller.onCancel = this.onCancel;
   }
 
   onListen() {
@@ -273,17 +273,17 @@ void _rethrow(Object error, StackTrace stackTrace) native "Async_rethrow";
 @patch
 class _Future<T> {
   /// The closure implementing the async[*]-body that is `await`ing this future.
-  Function _awaiter;
+  Function? _awaiter;
 }
 
 @patch
 class _StreamImpl<T> {
   /// The closure implementing the async[*]-body that is `await`ing this future.
-  Function _awaiter;
+  Function? _awaiter;
 
   /// The closure implementing the async-generator body that is creating events
   /// for this stream.
-  Function _generator;
+  Function? _generator;
 }
 
 @pragma("vm:entry-point", "call")

@@ -241,7 +241,7 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length; // Cache array length for faster access.
   int _index;
-  E _current;
+  E? _current;
 
   _FixedSizeArrayIterator(List<E> array)
       : _array = array,
@@ -250,7 +250,7 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
     assert(array is _List<E> || array is _ImmutableList<E>);
   }
 
-  E get current => _current;
+  E get current => _current as E;
 
   @pragma("vm:prefer-inline")
   bool moveNext() {
