@@ -268,12 +268,12 @@ Object nullable(type) {
 // TODO(nshahan): Update after the normalization doc PR lands.
 @notNull
 Object legacy(type) {
-  // TODO(nshahan) Maybe normailize never*,  Null*.
-  if (_isLegacy(type) || _isNullable(type) || _isTop(type)) return type;
+  if (_isLegacy(type) || _isNullable(type) || _isTop(type) || _isNullType(type))
+    return type;
 
   // Check if a legacy version of this type has already been created.
   if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedLegacy)) {
-    return JS<NullableType>('!', '#[#]', type, _cachedLegacy);
+    return JS<LegacyType>('!', '#[#]', type, _cachedLegacy);
   }
   // Cache a canonical legacy version of this type on this type.
   var cachedType = LegacyType(type);
