@@ -95,23 +95,38 @@ class PreviewSite extends Site implements AbstractGetHandler {
     String path = uri.path;
     try {
       if (path == highlightCssPagePath) {
-        return respond(request, HighlightCssPage(this));
+        // Note: `return await` needed due to
+        // https://github.com/dart-lang/language/issues/791
+        return await respond(request, HighlightCssPage(this));
       } else if (path == highlightJSPagePath) {
-        return respond(request, HighlightJSPage(this));
+        // Note: `return await` needed due to
+        // https://github.com/dart-lang/language/issues/791
+        return await respond(request, HighlightJSPage(this));
       } else if (path == '/' || path == migrationInfo.includedRoot) {
-        return respond(request, IndexFilePage(this));
+        // Note: `return await` needed due to
+        // https://github.com/dart-lang/language/issues/791
+        return await respond(request, IndexFilePage(this));
       }
       UnitInfo unitInfo = unitInfoMap[path];
       if (unitInfo != null) {
         if (uri.queryParameters.containsKey('inline')) {
-          return respond(request, DartFilePage(this, unitInfo));
+          // Note: `return await` needed due to
+          // https://github.com/dart-lang/language/issues/791
+          return await respond(request, DartFilePage(this, unitInfo));
         } else if (uri.queryParameters.containsKey('region')) {
-          return respond(request, RegionPage(this, unitInfo));
+          // Note: `return await` needed due to
+          // https://github.com/dart-lang/language/issues/791
+          return await respond(request, RegionPage(this, unitInfo));
         } else {
-          return respond(request, IndexFilePage(this));
+          // Note: `return await` needed due to
+          // https://github.com/dart-lang/language/issues/791
+          return await respond(request, IndexFilePage(this));
         }
       }
-      return respond(request, createUnknownPage(path), HttpStatus.notFound);
+      // Note: `return await` needed due to
+      // https://github.com/dart-lang/language/issues/791
+      return await respond(
+          request, createUnknownPage(path), HttpStatus.notFound);
     } catch (exception, stackTrace) {
       try {
         await respond(
