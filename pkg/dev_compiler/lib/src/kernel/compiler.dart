@@ -1015,12 +1015,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       //   method that adds these type tests (similar to addTypeTests()) because
       //   in the bootstrap ordering the Future class hasn't been defined yet.
       if (_options.enableNullSafety) {
-        // TODO(nshahan) Update FutureOr type tests for NNBD
         var typeParam =
-            TypeParameterType(c.typeParameters[0], Nullability.legacy);
+            TypeParameterType(c.typeParameters[0], Nullability.undetermined);
         var typeT = visitTypeParameterType(typeParam);
         var futureOfT = visitInterfaceType(InterfaceType(
-            _coreTypes.futureClass, Nullability.legacy, [typeParam]));
+            _coreTypes.futureClass, currentLibrary.nonNullable, [typeParam]));
         body.add(js.statement('''
             #.is = function is_FutureOr(o) {
               return #.is(o) || #.is(o);
@@ -1028,14 +1027,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             ''', [className, typeT, futureOfT]));
         body.add(js.statement('''
             #.as = function as_FutureOr(o) {
-              if (o == null || #.is(o) || #.is(o)) return o;
-              #.castError(o, this, false);
+              if (#.is(o) || #.is(o)) return o;
+              return #.as(o, this, false);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         body.add(js.statement('''
             #._check = function check_FutureOr(o) {
-              if (o == null || #.is(o) || #.is(o)) return o;
-              #.castError(o, this, true);
+              if (#.is(o) || #.is(o)) return o;
+              return #.as(o, this, true);
             }
             ''', [className, typeT, futureOfT, runtimeModule]));
         return null;
