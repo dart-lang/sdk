@@ -1884,11 +1884,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [charOffset] as the file offset.
   @override
-  VariableGet createVariableGet(VariableDeclaration variable, int charOffset) {
+  VariableGet createVariableGet(VariableDeclaration variable, int charOffset,
+      {bool forNullGuardedAccess: false}) {
     Object fact =
         typePromoter?.getFactForAccess(variable, functionNestingLevel);
     Object scope = typePromoter?.currentScope;
-    return new VariableGetImpl(variable, fact, scope)..fileOffset = charOffset;
+    return new VariableGetImpl(variable, fact, scope,
+        forNullGuardedAccess: forNullGuardedAccess)
+      ..fileOffset = charOffset;
   }
 
   /// Helper method to create a [ReadOnlyAccessGenerator] on the [variable]
@@ -4688,7 +4691,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             typePromoter?.getFactForAccess(variable, functionNestingLevel);
         TypePromotionScope scope = typePromoter?.currentScope;
         elements.syntheticAssignment = lvalue.buildAssignment(
-            new VariableGetImpl(variable, fact, scope)
+            new VariableGetImpl(variable, fact, scope,
+                forNullGuardedAccess: false)
               ..fileOffset = inToken.offset,
             voidContext: true);
       } else {

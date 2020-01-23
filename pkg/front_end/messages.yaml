@@ -3781,6 +3781,13 @@ NullableExpressionCallWarning:
   tip: "Try calling using ?.call instead."
   severity: WARNING
 
+NullableOperatorCallError:
+  template: "Operator '#name' cannot be called on '#type' because it is potentially null."
+
+NullableOperatorCallWarning:
+  template: "Operator '#name' is called on '#type' which is potentially null."
+  severity: WARNING
+
 ThrowingNotAssignableToObjectError:
   template: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
 

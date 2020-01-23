@@ -78,11 +78,11 @@ class A7 {
 test7(A7? a) {
   var s =
       (/*A7?*/ a?. /*String!*/ /*update: String!*/ foo ??= /*String!*/ "bar");
-  /*String!*/ s;
+  /*String?*/ s;
 
   var s2 =
       (/*A7?*/ a?. /*String?*/ /*update: String!*/ bar ??= /*String!*/ "bar");
-  /*String!*/ s2;
+  /*String?*/ s2;
 }
 
 main() {}

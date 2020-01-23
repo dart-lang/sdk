@@ -2001,6 +2001,79 @@ Message _withArgumentsNullableMethodCallWarning(
 const Template<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>
+    templateNullableOperatorCallError = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Operator '#name' cannot be called on '#type' because it is potentially null.""",
+        withArguments: _withArgumentsNullableOperatorCallError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeNullableOperatorCallError = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "NullableOperatorCallError",
+  templateNullableOperatorCallError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableOperatorCallError(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeNullableOperatorCallError,
+      message:
+          """Operator '${name}' cannot be called on '${type}' because it is potentially null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateNullableOperatorCallWarning = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Operator '#name' is called on '#type' which is potentially null.""",
+        withArguments: _withArgumentsNullableOperatorCallWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeNullableOperatorCallWarning = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "NullableOperatorCallWarning", templateNullableOperatorCallWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableOperatorCallWarning(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeNullableOperatorCallWarning,
+      message:
+          """Operator '${name}' is called on '${type}' which is potentially null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
     templateNullablePropertyAccessError = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(

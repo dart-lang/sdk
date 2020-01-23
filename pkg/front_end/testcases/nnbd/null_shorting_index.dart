@@ -72,13 +72,13 @@ main() {
 
   Extension(c1?.field)?.[0];
   Extension(c1?.field)?.[0] = 1;
-  Extension(c1?.field)?.[0] = 1 + Extension(c2)?.[0];
+  Extension(c1?.field)?.[0] = 1 + Extension(c2)?.[0]!;
   Extension(c1?.field)?.[0] += 1;
-  Extension(c1?.field)?.[0] += 1 + Extension(c2)?.[0];
+  Extension(c1?.field)?.[0] += 1 + Extension(c2)?.[0]!;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   //  update.
   ++Extension(c1?.field)?.[0];
   Extension(c1?.field)?.[0]++;
   Extension(c1?.field)?.[0] ??= 1;
-  Extension(c1?.field)?.[0] ??= 1 + Extension(c2)?.[1];
+  Extension(c1?.field)?.[0] ??= 1 + Extension(c2)?.[1]!;
 }

@@ -1120,8 +1120,14 @@ class VariableGetImpl extends VariableGet {
 
   final TypePromotionScope scope;
 
-  VariableGetImpl(VariableDeclaration variable, this.fact, this.scope)
-      : super(variable);
+  // TODO(johnniwinther): Remove the need for this by encoding all null aware
+  // expressions explicitly.
+  final bool forNullGuardedAccess;
+
+  VariableGetImpl(VariableDeclaration variable, this.fact, this.scope,
+      {this.forNullGuardedAccess})
+      : assert(forNullGuardedAccess != null),
+        super(variable);
 }
 
 /// Front end specific implementation of [LoadLibrary].

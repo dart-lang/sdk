@@ -14,7 +14,7 @@ class Class extends core::Object {
 }
 static method main() → dynamic {
   self::Class? c = new self::Class::•();
-  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t2 = #t1{self::Class}.{self::Class::getter1}.{self::Class::getter2} in #t2.{core::Object::==}(null) ?{self::Class} null : let final self::Class? #t3 = #t2{self::Class}.{self::Class::getter1}.{self::Class::getter2} in #t3.{core::Object::==}(null) ?{self::Class} null : #t3{self::Class}.{self::Class::field} = c{self::Class};
+  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t2 = #t1{self::Class}.{self::Class::getter1}.{self::Class::getter2} in #t2.{core::Object::==}(null) ?{self::Class?} null : let final self::Class? #t3 = #t2{self::Class}.{self::Class::getter1}.{self::Class::getter2} in #t3.{core::Object::==}(null) ?{self::Class?} null : #t3{self::Class}.{self::Class::field} = c{self::Class};
 }
 
 constants  {

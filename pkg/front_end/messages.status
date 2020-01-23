@@ -464,6 +464,10 @@ NullableMethodCallError/analyzerCode: Fail
 NullableMethodCallError/example: Fail
 NullableMethodCallWarning/analyzerCode: Fail
 NullableMethodCallWarning/example: Fail
+NullableOperatorCallError/analyzerCode: Fail
+NullableOperatorCallError/example: Fail
+NullableOperatorCallWarning/analyzerCode: Fail
+NullableOperatorCallWarning/example: Fail
 NullablePropertyAccessError/analyzerCode: Fail
 NullablePropertyAccessError/example: Fail
 NullablePropertyAccessWarning/analyzerCode: Fail
