@@ -1,3 +1,14 @@
+## 2.7.1 - 2020-01-32
+
+This is a patch release that improves dart2js compile-time (issue [40217][]).
+
+[40217]: https://github.com/dart-lang/sdk/issues/40217
+
+**Breaking Change**:
+The Dart SDK for macOS is now only available for x64 (issue [39810][]).
+
+[39810]: https://github.com/dart-lang/sdk/issues/39810
+
 ## 2.7.0 - 2019-12-11
 
 ### Language
