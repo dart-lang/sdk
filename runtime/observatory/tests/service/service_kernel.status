@@ -41,7 +41,6 @@ async_single_step_out_test: Skip, Timeout
 async_star_single_step_into_test: Skip, Timeout
 async_star_step_out_test: Skip, Timeout
 async_step_out_test: Skip, Timeout
-auth_token_test: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/40274
 awaiter_async_stack_contents_2_test: Skip, Timeout
 awaiter_async_stack_contents_test: Skip, Timeout
 bad_reload_test: RuntimeError
@@ -78,7 +77,6 @@ debugging_inlined_finally_test: Skip, Timeout
 debugging_test: RuntimeError
 dev_fs_spawn_test: RuntimeError
 developer_extension_test: CompileTimeError
-developer_server_control_test: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/40274
 developer_service_get_isolate_id_test: Skip, Timeout
 eval_internal_class_test: RuntimeError
 eval_regression_flutter20255_test: Skip, Timeout
@@ -102,11 +100,6 @@ get_object_rpc_test: RuntimeError
 get_source_report_test: Skip, Timeout
 get_source_report_with_mixin_test: Skip, Timeout
 get_stack_rpc_test: Skip, Timeout
-http_auth_get_isolate_rpc_test: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/40274
-http_auth_get_vm_rpc_test: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/40274
-http_get_isolate_group_rpc_test: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/40274
-http_get_isolate_rpc_test: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/40274
-http_get_vm_rpc_test: Pass, RuntimeError # https://github.com/dart-lang/sdk/issues/40274
 implicit_getter_setter_test: RuntimeError
 invoke_test: Skip, Timeout
 isolate_lifecycle_test: RuntimeError

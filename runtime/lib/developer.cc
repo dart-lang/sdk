@@ -140,6 +140,7 @@ DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 0, 1) {
   SendNull(port);
   return Object::null();
 #else
+  ServiceIsolate::WaitForServiceIsolateStartup();
   if (!ServiceIsolate::IsRunning()) {
     SendNull(port);
   } else {
@@ -156,6 +157,7 @@ DEFINE_NATIVE_ENTRY(Developer_webServerControl, 0, 2) {
   return Object::null();
 #else
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, enabled, arguments->NativeArgAt(1));
+  ServiceIsolate::WaitForServiceIsolateStartup();
   if (!ServiceIsolate::IsRunning()) {
     SendNull(port);
   } else {
