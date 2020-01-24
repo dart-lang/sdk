@@ -55,15 +55,6 @@ static char* GetDirectoryPrefixFromExeName() {
     name = Platform::GetExecutableName();
     target_size = strlen(name);
   }
-  Namespace* namespc = Namespace::Create(Namespace::Default());
-  if (File::GetType(namespc, name, false) == File::kIsLink) {
-    // Resolve the link without creating Dart scope String.
-    name = File::LinkTarget(namespc, name, target, kTargetSize);
-    if (name == NULL) {
-      return strdup("");
-    }
-    target_size = strlen(name);
-  }
   const char* sep = File::PathSeparator();
   const intptr_t sep_length = strlen(sep);
 

@@ -552,10 +552,7 @@ static int ReadLinkAt(int dirfd,
   return syscall(__NR_readlinkat, dirfd, pathname, buf, bufsize);
 }
 
-const char* File::LinkTarget(Namespace* namespc,
-                             const char* name,
-                             char* dest,
-                             int dest_size) {
+const char* File::LinkTarget(Namespace* namespc, const char* name) {
   NamespaceScope ns(namespc, name);
   struct stat link_stats;
   const int status = TEMP_FAILURE_RETRY(
@@ -577,17 +574,11 @@ const char* File::LinkTarget(Namespace* namespc,
   if (target_size <= 0) {
     return NULL;
   }
-  if (dest == NULL) {
-    dest = DartUtils::ScopedCString(target_size + 1);
-  } else {
-    ASSERT(dest_size > 0);
-    if (dest_size <= target_size) {
-      return NULL;
-    }
-  }
-  memmove(dest, target, target_size);
-  dest[target_size] = '\0';
-  return dest;
+  char* target_name = DartUtils::ScopedCString(target_size + 1);
+  ASSERT(target_name != NULL);
+  memmove(target_name, target, target_size);
+  target_name[target_size] = '\0';
+  return target_name;
 }
 
 bool File::IsAbsolutePath(const char* pathname) {

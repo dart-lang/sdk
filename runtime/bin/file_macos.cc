@@ -518,10 +518,7 @@ bool File::SetLastModified(Namespace* namespc,
   return utime(name, &times) == 0;
 }
 
-const char* File::LinkTarget(Namespace* namespc,
-                             const char* pathname,
-                             char* dest,
-                             int dest_size) {
+const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
   struct stat link_stats;
   if (lstat(pathname, &link_stats) != 0) {
     return NULL;
@@ -539,17 +536,11 @@ const char* File::LinkTarget(Namespace* namespc,
   if (target_size <= 0) {
     return NULL;
   }
-  if (dest == NULL) {
-    dest = DartUtils::ScopedCString(target_size + 1);
-  } else {
-    ASSERT(dest_size > 0);
-    if ((size_t)dest_size <= target_size) {
-      return NULL;
-    }
-  }
-  memmove(dest, target, target_size);
-  dest[target_size] = '\0';
-  return dest;
+  char* target_name = DartUtils::ScopedCString(target_size + 1);
+  ASSERT(target_name != NULL);
+  memmove(target_name, target, target_size);
+  target_name[target_size] = '\0';
+  return target_name;
 }
 
 bool File::IsAbsolutePath(const char* pathname) {

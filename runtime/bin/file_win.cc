@@ -517,10 +517,7 @@ int64_t File::LengthFromPath(Namespace* namespc, const char* name) {
   return st.st_size;
 }
 
-const char* File::LinkTarget(Namespace* namespc,
-                             const char* pathname,
-                             char* dest,
-                             int dest_size) {
+const char* File::LinkTarget(Namespace* namespc, const char* pathname) {
   const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
   HANDLE dir_handle = CreateFileW(
       name, GENERIC_READ,
@@ -574,18 +571,13 @@ const char* File::LinkTarget(Namespace* namespc,
   }
   int utf8_length = WideCharToMultiByte(CP_UTF8, 0, target, target_length, NULL,
                                         0, NULL, NULL);
-  if (dest_size > 0 && dest_size <= utf8_length) {
-    return NULL;
-  }
-  if (dest == NULL) {
-    dest = DartUtils::ScopedCString(utf8_length + 1);
-  }
-  if (0 == WideCharToMultiByte(CP_UTF8, 0, target, target_length, dest,
+  char* utf8_target = DartUtils::ScopedCString(utf8_length + 1);
+  if (0 == WideCharToMultiByte(CP_UTF8, 0, target, target_length, utf8_target,
                                utf8_length, NULL, NULL)) {
     return NULL;
   }
-  dest[utf8_length] = '\0';
-  return dest;
+  utf8_target[utf8_length] = '\0';
+  return utf8_target;
 }
 
 void File::Stat(Namespace* namespc, const char* name, int64_t* data) {
