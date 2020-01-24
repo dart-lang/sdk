@@ -751,6 +751,18 @@ C<int> f() => null;
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_local_variable() async {
+    await analyze('''
+class C<T extends Object> {}
+main() {
+  C<int> c = null;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_mixin_implements() async {
     await analyze('''
 class A<T extends Object> {}
