@@ -40,8 +40,6 @@ bool _isFuchsia = false;
 @pragma("vm:entry-point")
 var _signalWatch;
 var _signalSubscription;
-@pragma("vm:entry-point")
-bool _enableServicePortFallback = false;
 
 // HTTP server.
 Server server;
@@ -55,7 +53,7 @@ _lazyServerBoot() {
   var service = new VMService();
   // Lazily create server.
   server = new Server(service, _ip, _port, _originCheckDisabled,
-      _authCodesDisabled, _serviceInfoFilename, _enableServicePortFallback);
+      _authCodesDisabled, _serviceInfoFilename);
 }
 
 Future cleanupCallback() async {

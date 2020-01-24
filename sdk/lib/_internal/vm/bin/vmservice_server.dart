@@ -147,13 +147,12 @@ class Server {
 
   final VMService _service;
   final String _ip;
+  final int _port;
   final bool _originCheckDisabled;
   final bool _authCodesDisabled;
-  final bool _enableServicePortFallback;
   final String _serviceInfoFilename;
   HttpServer _server;
   bool get running => _server != null;
-  int _port = -1;
 
   /// Returns the server address including the auth token.
   Uri get serverAddress {
@@ -168,14 +167,8 @@ class Server {
 
   // On Fuchsia, authentication codes are disabled by default. To enable, the authentication token
   // would have to be written into the hub alongside the port number.
-  Server(
-      this._service,
-      this._ip,
-      this._port,
-      this._originCheckDisabled,
-      bool authCodesDisabled,
-      this._serviceInfoFilename,
-      this._enableServicePortFallback)
+  Server(this._service, this._ip, this._port, this._originCheckDisabled,
+      bool authCodesDisabled, this._serviceInfoFilename)
       : _authCodesDisabled = (authCodesDisabled || Platform.isFuchsia);
 
   bool _isAllowedOrigin(String origin) {
@@ -428,10 +421,6 @@ class Server {
         _notifyServerState("");
         onServerAddressChange(null);
         return this;
-      }
-      if (_port != 0 && _enableServicePortFallback && attempts >= 3) {
-        _port = 0;
-        serverPrint('Falling back to automatic port selection');
       }
       await new Future<Null>.delayed(const Duration(seconds: 1));
     }
