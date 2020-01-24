@@ -53,16 +53,19 @@ import '../../api_prototype/file_system.dart' show FileSystem;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/dynamic_type_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/never_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
+import '../builder/void_type_builder.dart';
 
 import '../compiler_context.dart' show CompilerContext;
 
@@ -527,7 +530,10 @@ class KernelTarget extends TargetImplementation {
         }
       }
     } else if (supertype is InvalidTypeDeclarationBuilder ||
-        supertype is TypeVariableBuilder) {
+        supertype is TypeVariableBuilder ||
+        supertype is DynamicTypeBuilder ||
+        supertype is VoidTypeBuilder ||
+        supertype is NeverTypeBuilder) {
       builder.addSyntheticConstructor(
           makeDefaultConstructor(builder.cls, referenceFrom));
     } else {

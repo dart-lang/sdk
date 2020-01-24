@@ -1794,6 +1794,7 @@ mixed
 mixes
 mixin
 mixin's
+mixing
 mixins
 mock
 mode

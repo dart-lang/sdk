@@ -24,6 +24,7 @@ allocations
 alt
 amortized
 anon
+aoo
 approval
 approximation
 asdf
@@ -52,6 +53,7 @@ blah
 blindly
 blocked
 blorp
+boo
 bootstrap
 bots
 bowtie
@@ -97,6 +99,7 @@ consts
 contract
 conversion
 conversions
+coo
 cov
 crashes
 cumulative
@@ -135,6 +138,7 @@ dist
 doctype
 doesnt
 dog
+doo
 downstream
 dumping
 dupe
@@ -149,6 +153,7 @@ elapse
 ell
 entrypoint
 entrypoints
+eoo
 epoch
 err
 everytime
@@ -189,6 +194,7 @@ gc
 gen
 generators
 git
+goo
 greeting
 gtgt
 gulp
@@ -200,6 +206,7 @@ heuristics
 hi
 hints
 home
+hoo
 hosting
 hot
 hotreload
@@ -223,12 +230,15 @@ internet
 interpolate
 inv
 invalidating
+ioo
 isolate
 isolates
 iter
+joo
 jumped
 kernels
 ko
+koo
 la
 lc
 ld
@@ -243,6 +253,7 @@ listening
 ll
 logd
 logs
+loo
 loopback
 mac
 maker
@@ -261,16 +272,19 @@ misspelled
 mistake
 mistakes
 month
+moo
 mx
 mysdk
 negatable
 ninja
 nonexisting
+noo
 numerator
 observable
 observatory
 oh
 okay
+ooo
 optimal
 oracle
 outbound

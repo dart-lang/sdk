@@ -3829,3 +3829,24 @@ NonNullableOptOutComment:
 
 AwaitInLateLocalInitializer:
   template: "`await` expressions are not supported in late local initializers."
+
+NullableSuperclassError:
+  template: "Can't extend '#name' because it's marked with '?'."
+
+NullableSuperclassWarning:
+  template: "Extending '#name' marked with '?'."
+  severity: WARNING
+
+NullableInterfaceError:
+  template: "Can't implement '#name' because it's marked with '?'."
+
+NullableInterfaceWarning:
+  template: "Implementing '#name' marked with '?'."
+  severity: WARNING
+
+NullableMixinError:
+  template: "Can't mix '#name' in because it's marked with '?'."
+
+NullableMixinWarning:
+  template: "Mixing in '#name' marked with '?'."
+  severity: WARNING

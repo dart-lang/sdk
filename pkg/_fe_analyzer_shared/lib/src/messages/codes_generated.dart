@@ -6275,6 +6275,139 @@ const MessageCode messageNullAwareCascadeOutOfOrder = const MessageCode(
         r"""Try moving the '?..' operator to be the first cascade operator in the sequence.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNullableInterfaceError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't implement '#name' because it's marked with '?'.""",
+        withArguments: _withArgumentsNullableInterfaceError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableInterfaceError =
+    const Code<Message Function(String name)>(
+  "NullableInterfaceError",
+  templateNullableInterfaceError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableInterfaceError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableInterfaceError,
+      message: """Can't implement '${name}' because it's marked with '?'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNullableInterfaceWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Implementing '#name' marked with '?'.""",
+        withArguments: _withArgumentsNullableInterfaceWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableInterfaceWarning =
+    const Code<Message Function(String name)>(
+        "NullableInterfaceWarning", templateNullableInterfaceWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableInterfaceWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableInterfaceWarning,
+      message: """Implementing '${name}' marked with '?'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNullableMixinError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't mix '#name' in because it's marked with '?'.""",
+        withArguments: _withArgumentsNullableMixinError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableMixinError =
+    const Code<Message Function(String name)>(
+  "NullableMixinError",
+  templateNullableMixinError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableMixinError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableMixinError,
+      message: """Can't mix '${name}' in because it's marked with '?'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNullableMixinWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Mixing in '#name' marked with '?'.""",
+        withArguments: _withArgumentsNullableMixinWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableMixinWarning =
+    const Code<Message Function(String name)>(
+        "NullableMixinWarning", templateNullableMixinWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableMixinWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableMixinWarning,
+      message: """Mixing in '${name}' marked with '?'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNullableSuperclassError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't extend '#name' because it's marked with '?'.""",
+        withArguments: _withArgumentsNullableSuperclassError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableSuperclassError =
+    const Code<Message Function(String name)>(
+  "NullableSuperclassError",
+  templateNullableSuperclassError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableSuperclassError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableSuperclassError,
+      message: """Can't extend '${name}' because it's marked with '?'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateNullableSuperclassWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate: r"""Extending '#name' marked with '?'.""",
+        withArguments: _withArgumentsNullableSuperclassWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableSuperclassWarning =
+    const Code<Message Function(String name)>(
+        "NullableSuperclassWarning", templateNullableSuperclassWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableSuperclassWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableSuperclassWarning,
+      message: """Extending '${name}' marked with '?'.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeObjectExtends = messageObjectExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
