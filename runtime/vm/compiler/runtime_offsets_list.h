@@ -29,8 +29,11 @@
 //     Class::Name() if Filter returns true for that value.
 // CONSTANT(Class, Name) Miscellaneous constant.
 // PRECOMP_NO_CHECK(Code) Don't check this offset in the precompiled runtime.
-#define OFFSETS_LIST(FIELD, ARRAY, ARRAY_STRUCTFIELD, SIZEOF, RANGE, CONSTANT, \
-                     PRECOMP_NO_CHECK)                                         \
+// PRECOMP_CALCULATE_BUT_NO_CHECK(Code) Same as PRECOMP_NO_CHECK, but generates
+// the offset
+#define OFFSETS_LIST_EXTENDED(FIELD, ARRAY, ARRAY_STRUCTFIELD, SIZEOF, RANGE,  \
+                              CONSTANT, PRECOMP_NO_CHECK,                      \
+                              PRECOMP_CALCULATE_BUT_NO_CHECK)                  \
   ARRAY(ObjectPool, element_offset)                                            \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
@@ -268,5 +271,10 @@
   SIZEOF(GrowableObjectArray, InstanceSize, RawGrowableObjectArray)            \
   SIZEOF(Instance, InstanceSize, RawInstance)                                  \
   SIZEOF(LinkedHashMap, InstanceSize, RawLinkedHashMap)
+
+#define OFFSETS_LIST(FIELD, ARRAY, ARRAY_STRUCTFIELD, SIZEOF, RANGE, CONSTANT, \
+                     PRECOMP_NO_CHECK)                                         \
+  OFFSETS_LIST_EXTENDED(FIELD, ARRAY, ARRAY_STRUCTFIELD, SIZEOF, RANGE,        \
+                        CONSTANT, PRECOMP_NO_CHECK, PRECOMP_NO_CHECK)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_

@@ -469,8 +469,19 @@ word Context::variable_offset(word n) {
     return element_offset(index) + field_offset;                               \
   }
 
+#if defined(TARGET_ARCH_IA32)
+
 #define DEFINE_SIZEOF(clazz, name, what)                                       \
   word clazz::name() { return clazz##_##name; }
+
+#else
+
+#define DEFINE_SIZEOF(clazz, name, what)                                       \
+  word clazz::name() {                                                         \
+    return FLAG_precompiled_mode ? AOT_##clazz##_##name : clazz##_##name;      \
+  }
+
+#endif  //  defined(TARGET_ARCH_IA32)
 
 #define DEFINE_RANGE(Class, Getter, Type, First, Last, Filter)                 \
   word Class::Getter(Type index) {                                             \

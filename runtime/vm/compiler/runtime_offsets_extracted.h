@@ -1520,4 +1520,1216 @@ static constexpr dart::compiler::target::word Instance_InstanceSize = 8;
 static constexpr dart::compiler::target::word LinkedHashMap_InstanceSize = 56;
 #endif  // defined(TARGET_ARCH_ARM64)
 
+#if defined(TARGET_ARCH_ARM)
+static constexpr dart::compiler::target::word
+    AOT_ObjectPool_elements_start_offset = 8;
+static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 4;
+static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
+    268435455;
+static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
+    65533;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kMonomorphicEntryOffsetJIT = 0;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kPolymorphicEntryOffsetJIT = 40;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kMonomorphicEntryOffsetAOT = 0;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kPolymorphicEntryOffsetAOT = 12;
+static constexpr dart::compiler::target::word AOT_HeapPage_kBytesPerCardLog2 =
+    9;
+static constexpr dart::compiler::target::word
+    AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_String_kMaxElements =
+    536870911;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 4;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 6;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 5;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 2;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 3;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kTestEntryLength = 7;
+static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
+    0;
+static constexpr dart::compiler::target::word
+    AOT_AbstractType_type_test_stub_entry_point_offset = 4;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_count_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_first_named_entry_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_named_entry_size = 8;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_name_offset = 0;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_position_offset = 4;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_positional_count_offset = 20;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_type_args_len_offset = 12;
+static constexpr dart::compiler::target::word AOT_Array_data_offset = 12;
+static constexpr dart::compiler::target::word AOT_Array_length_offset = 8;
+static constexpr dart::compiler::target::word AOT_Array_tags_offset = 0;
+static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_Class_declaration_type_offset = 56;
+static constexpr dart::compiler::target::word
+    AOT_Class_num_type_arguments_offset = 102;
+static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 44;
+static constexpr dart::compiler::target::word
+    AOT_Class_type_arguments_field_offset_in_words_offset = 92;
+static constexpr dart::compiler::target::word
+    AOT_ClassTable_shared_class_table_offset = 16;
+static constexpr dart::compiler::target::word AOT_ClassTable_table_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_SharedClassTable_class_heap_stats_table_offset = 0;
+static constexpr dart::compiler::target::word AOT_Closure_context_offset = 20;
+static constexpr dart::compiler::target::word
+    AOT_Closure_delayed_type_arguments_offset = 12;
+static constexpr dart::compiler::target::word AOT_Closure_function_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_Closure_function_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_Closure_instantiator_type_arguments_offset = 4;
+static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 20;
+static constexpr dart::compiler::target::word
+    AOT_Code_saved_instructions_offset = 24;
+static constexpr dart::compiler::target::word AOT_Code_owner_offset = 28;
+static constexpr dart::compiler::target::word AOT_Context_num_variables_offset =
+    4;
+static constexpr dart::compiler::target::word AOT_Context_parent_offset = 8;
+static constexpr dart::compiler::target::word AOT_Double_value_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_ExternalOneByteString_external_data_offset = 12;
+static constexpr dart::compiler::target::word
+    AOT_ExternalTwoByteString_external_data_offset = 12;
+static constexpr dart::compiler::target::word AOT_Float32x4_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_Float64x2_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_Function_code_offset = 44;
+static constexpr dart::compiler::target::word
+    AOT_Function_entry_point_offset[] = {4, 8};
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_data_offset = 12;
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_length_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_type_arguments_offset = 4;
+static constexpr dart::compiler::target::word AOT_HeapPage_card_table_offset =
+    20;
+static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask = 3;
+static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedShift = 0;
+static constexpr dart::compiler::target::word
+    AOT_ICData_arguments_descriptor_offset = 12;
+static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 4;
+static constexpr dart::compiler::target::word AOT_Isolate_class_table_offset =
+    40;
+static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
+    20;
+static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
+    28;
+static constexpr dart::compiler::target::word AOT_Isolate_object_store_offset =
+    36;
+static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
+    64;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 16;
+static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+    16;
+static constexpr dart::compiler::target::word
+    AOT_LinkedHashMap_deleted_keys_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_LinkedHashMap_hash_mask_offset = 12;
+static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_LinkedHashMap_used_data_offset = 20;
+static constexpr dart::compiler::target::word
+    AOT_MarkingStackBlock_pointers_offset = 8;
+static constexpr dart::compiler::target::word AOT_MarkingStackBlock_top_offset =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_MegamorphicCache_arguments_descriptor_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_MegamorphicCache_buckets_offset = 4;
+static constexpr dart::compiler::target::word AOT_MegamorphicCache_mask_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_Mint_value_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_argc_tag_offset = 4;
+static constexpr dart::compiler::target::word AOT_NativeArguments_argv_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_retval_offset = 12;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_thread_offset = 0;
+static constexpr dart::compiler::target::word
+    AOT_ObjectStore_double_type_offset = 64;
+static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
+    32;
+static constexpr dart::compiler::target::word
+    AOT_ObjectStore_string_type_offset = 80;
+static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
+    12;
+static constexpr dart::compiler::target::word
+    AOT_Pointer_c_memory_address_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_entry_point_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_lower_limit_offset = 12;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_target_offset = 4;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_upper_limit_offset = 14;
+static constexpr dart::compiler::target::word
+    AOT_StoreBufferBlock_pointers_offset = 8;
+static constexpr dart::compiler::target::word AOT_StoreBufferBlock_top_offset =
+    4;
+static constexpr dart::compiler::target::word AOT_String_hash_offset = 8;
+static constexpr dart::compiler::target::word AOT_String_length_offset = 4;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_cache_offset = 4;
+static constexpr dart::compiler::target::word
+    AOT_Thread_AllocateArray_entry_point_offset = 328;
+static constexpr dart::compiler::target::word
+    AOT_Thread_active_exception_offset = 664;
+static constexpr dart::compiler::target::word
+    AOT_Thread_active_stacktrace_offset = 668;
+static constexpr dart::compiler::target::word
+    AOT_Thread_array_write_barrier_code_offset = 120;
+static constexpr dart::compiler::target::word
+    AOT_Thread_array_write_barrier_entry_point_offset = 220;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_with_fpu_regs_entry_point_offset = 244;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_with_fpu_regs_stub_offset = 160;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_without_fpu_regs_entry_point_offset = 248;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_without_fpu_regs_stub_offset = 164;
+static constexpr dart::compiler::target::word
+    AOT_Thread_async_stack_trace_offset = 92;
+static constexpr dart::compiler::target::word
+    AOT_Thread_auto_scope_native_wrapper_entry_point_offset = 288;
+static constexpr dart::compiler::target::word AOT_Thread_bool_false_offset =
+    112;
+static constexpr dart::compiler::target::word AOT_Thread_bool_true_offset = 108;
+static constexpr dart::compiler::target::word
+    AOT_Thread_bootstrap_native_wrapper_entry_point_offset = 280;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_to_runtime_entry_point_offset = 224;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_to_runtime_stub_offset = 140;
+static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
+    700;
+static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
+    268;
+static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
+    180;
+static constexpr dart::compiler::target::word
+    AOT_Thread_deoptimize_entry_offset = 272;
+static constexpr dart::compiler::target::word
+    AOT_Thread_deoptimize_stub_offset = 184;
+static constexpr dart::compiler::target::word
+    AOT_Thread_double_abs_address_offset = 308;
+static constexpr dart::compiler::target::word
+    AOT_Thread_double_negate_address_offset = 304;
+static constexpr dart::compiler::target::word AOT_Thread_end_offset = 68;
+static constexpr dart::compiler::target::word
+    AOT_Thread_enter_safepoint_stub_offset = 204;
+static constexpr dart::compiler::target::word
+    AOT_Thread_execution_state_offset = 684;
+static constexpr dart::compiler::target::word
+    AOT_Thread_exit_safepoint_stub_offset = 208;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_native_through_safepoint_stub_offset = 212;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_native_through_safepoint_entry_point_offset = 276;
+static constexpr dart::compiler::target::word
+    AOT_Thread_fix_allocation_stub_code_offset = 128;
+static constexpr dart::compiler::target::word
+    AOT_Thread_fix_callers_target_code_offset = 124;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_absolute_address_offset = 320;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_negate_address_offset = 316;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_not_address_offset = 312;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_zerow_address_offset = 324;
+static constexpr dart::compiler::target::word
+    AOT_Thread_global_object_pool_offset = 672;
+static constexpr dart::compiler::target::word
+    AOT_Thread_interpret_call_entry_point_offset = 292;
+static constexpr dart::compiler::target::word
+    AOT_Thread_invoke_dart_code_from_bytecode_stub_offset = 136;
+static constexpr dart::compiler::target::word
+    AOT_Thread_invoke_dart_code_stub_offset = 132;
+static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 52;
+static constexpr dart::compiler::target::word
+    AOT_Thread_field_table_values_offset = 56;
+static constexpr dart::compiler::target::word
+    AOT_Thread_lazy_deopt_from_return_stub_offset = 188;
+static constexpr dart::compiler::target::word
+    AOT_Thread_lazy_deopt_from_throw_stub_offset = 192;
+static constexpr dart::compiler::target::word
+    AOT_Thread_lazy_specialize_type_test_stub_offset = 200;
+static constexpr dart::compiler::target::word
+    AOT_Thread_marking_stack_block_offset = 80;
+static constexpr dart::compiler::target::word
+    AOT_Thread_megamorphic_call_checked_entry_offset = 260;
+static constexpr dart::compiler::target::word
+    AOT_Thread_monomorphic_miss_entry_offset = 264;
+static constexpr dart::compiler::target::word
+    AOT_Thread_monomorphic_miss_stub_offset = 176;
+static constexpr dart::compiler::target::word
+    AOT_Thread_no_scope_native_wrapper_entry_point_offset = 284;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_with_fpu_regs_entry_point_offset = 232;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_with_fpu_regs_stub_offset = 148;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_with_fpu_regs_entry_point_offset = 240;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_with_fpu_regs_stub_offset = 156;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_without_fpu_regs_entry_point_offset = 228;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_without_fpu_regs_stub_offset = 144;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_without_fpu_regs_entry_point_offset = 236;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_without_fpu_regs_stub_offset = 152;
+static constexpr dart::compiler::target::word AOT_Thread_object_null_offset =
+    104;
+static constexpr dart::compiler::target::word
+    AOT_Thread_predefined_symbols_address_offset = 296;
+static constexpr dart::compiler::target::word AOT_Thread_resume_pc_offset = 676;
+static constexpr dart::compiler::target::word
+    AOT_Thread_saved_shadow_call_stack_offset = 680;
+static constexpr dart::compiler::target::word
+    AOT_Thread_safepoint_state_offset = 688;
+static constexpr dart::compiler::target::word
+    AOT_Thread_slow_type_test_stub_offset = 196;
+static constexpr dart::compiler::target::word AOT_Thread_stack_limit_offset =
+    36;
+static constexpr dart::compiler::target::word
+    AOT_Thread_saved_stack_limit_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_flags_offset = 44;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_with_fpu_regs_entry_point_offset = 256;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_with_fpu_regs_stub_offset = 172;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_without_fpu_regs_entry_point_offset = 252;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_without_fpu_regs_stub_offset = 168;
+static constexpr dart::compiler::target::word
+    AOT_Thread_store_buffer_block_offset = 76;
+static constexpr dart::compiler::target::word
+    AOT_Thread_top_exit_frame_info_offset = 72;
+static constexpr dart::compiler::target::word AOT_Thread_top_offset = 64;
+static constexpr dart::compiler::target::word AOT_Thread_top_resource_offset =
+    24;
+static constexpr dart::compiler::target::word
+    AOT_Thread_unboxed_int64_runtime_arg_offset = 96;
+static constexpr dart::compiler::target::word AOT_Thread_vm_tag_offset = 88;
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_code_offset = 116;
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_entry_point_offset = 216;
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_mask_offset = 48;
+static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
+    692;
+static constexpr dart::compiler::target::word
+    AOT_TimelineStream_enabled_offset = 8;
+static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
+    12;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 20;
+static constexpr dart::compiler::target::word AOT_Type_signature_offset = 24;
+static constexpr dart::compiler::target::word AOT_Type_type_class_id_offset =
+    12;
+static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 32;
+static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 33;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_instantiations_offset = 4;
+static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 12;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataBase_data_field_offset = 4;
+static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
+    12;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_offset_in_bytes_offset = 16;
+static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 12;
+static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 12;
+static constexpr dart::compiler::target::word
+    AOT_MonomorphicSmiableCall_target_offset = 4;
+static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word AOT_Array_element_size = 4;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
+    4;
+static constexpr dart::compiler::target::word
+    AOT_ClassTable_elements_start_offset = 0;
+static constexpr dart::compiler::target::word AOT_ClassTable_element_size = 1;
+static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
+    4, 12, 8, 16};
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_wrappers_thread_offset[] = {
+        628, 632, 636, 640, 644, -1, 648, 652,
+        656, 660, -1,  -1,  -1,  -1, -1,  -1};
+static constexpr dart::compiler::target::word AOT_Array_header_size = 12;
+static constexpr dart::compiler::target::word AOT_Context_header_size = 12;
+static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 16;
+static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_UnalignedHeaderSize = 8;
+static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
+static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
+    16;
+static constexpr dart::compiler::target::word AOT_String_InstanceSize = 12;
+static constexpr dart::compiler::target::word AOT_TypedData_InstanceSize = 12;
+static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 4;
+static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
+    12;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 28;
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_InstanceSize = 16;
+static constexpr dart::compiler::target::word AOT_Instance_InstanceSize = 4;
+static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+    28;
+#endif  // defined(TARGET_ARCH_ARM)
+
+#if defined(TARGET_ARCH_X64)
+static constexpr dart::compiler::target::word
+    AOT_ObjectPool_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;
+static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
+    576460752303423487;
+static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
+    32765;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kPolymorphicEntryOffsetJIT = 40;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kMonomorphicEntryOffsetAOT = 8;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kPolymorphicEntryOffsetAOT = 22;
+static constexpr dart::compiler::target::word AOT_HeapPage_kBytesPerCardLog2 =
+    10;
+static constexpr dart::compiler::target::word
+    AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_String_kMaxElements =
+    2305843009213693951;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 4;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 6;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 5;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 2;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 3;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kTestEntryLength = 7;
+static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
+    0;
+static constexpr dart::compiler::target::word
+    AOT_AbstractType_type_test_stub_entry_point_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_count_offset = 32;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_first_named_entry_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_named_entry_size = 16;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_name_offset = 0;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_position_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_positional_count_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_type_args_len_offset = 24;
+static constexpr dart::compiler::target::word AOT_Array_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_Array_length_offset = 16;
+static constexpr dart::compiler::target::word AOT_Array_tags_offset = 0;
+static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_Class_declaration_type_offset = 112;
+static constexpr dart::compiler::target::word
+    AOT_Class_num_type_arguments_offset = 182;
+static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 88;
+static constexpr dart::compiler::target::word
+    AOT_Class_type_arguments_field_offset_in_words_offset = 172;
+static constexpr dart::compiler::target::word
+    AOT_ClassTable_shared_class_table_offset = 32;
+static constexpr dart::compiler::target::word AOT_ClassTable_table_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_SharedClassTable_class_heap_stats_table_offset = 0;
+static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_Closure_delayed_type_arguments_offset = 24;
+static constexpr dart::compiler::target::word AOT_Closure_function_offset = 32;
+static constexpr dart::compiler::target::word
+    AOT_Closure_function_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_Closure_instantiator_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_Code_saved_instructions_offset = 48;
+static constexpr dart::compiler::target::word AOT_Code_owner_offset = 56;
+static constexpr dart::compiler::target::word AOT_Context_num_variables_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_Context_parent_offset = 16;
+static constexpr dart::compiler::target::word AOT_Double_value_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_ExternalOneByteString_external_data_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_ExternalTwoByteString_external_data_offset = 16;
+static constexpr dart::compiler::target::word AOT_Float32x4_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_Float64x2_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
+static constexpr dart::compiler::target::word
+    AOT_Function_entry_point_offset[] = {8, 16};
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_data_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_length_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_HeapPage_card_table_offset =
+    40;
+static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask = 3;
+static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedShift = 0;
+static constexpr dart::compiler::target::word
+    AOT_ICData_arguments_descriptor_offset = 24;
+static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 8;
+static constexpr dart::compiler::target::word AOT_Isolate_class_table_offset =
+    80;
+static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
+    40;
+static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
+    48;
+static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
+    56;
+static constexpr dart::compiler::target::word AOT_Isolate_object_store_offset =
+    72;
+static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
+    128;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
+static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+    32;
+static constexpr dart::compiler::target::word
+    AOT_LinkedHashMap_deleted_keys_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_LinkedHashMap_hash_mask_offset = 24;
+static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    16;
+static constexpr dart::compiler::target::word
+    AOT_LinkedHashMap_used_data_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_MarkingStackBlock_pointers_offset = 16;
+static constexpr dart::compiler::target::word AOT_MarkingStackBlock_top_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_MegamorphicCache_arguments_descriptor_offset = 32;
+static constexpr dart::compiler::target::word
+    AOT_MegamorphicCache_buckets_offset = 8;
+static constexpr dart::compiler::target::word AOT_MegamorphicCache_mask_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_Mint_value_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_argc_tag_offset = 8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_argv_offset =
+    16;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_retval_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_thread_offset = 0;
+static constexpr dart::compiler::target::word
+    AOT_ObjectStore_double_type_offset = 128;
+static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
+    64;
+static constexpr dart::compiler::target::word
+    AOT_ObjectStore_string_type_offset = 160;
+static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
+    16;
+static constexpr dart::compiler::target::word
+    AOT_Pointer_c_memory_address_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_entry_point_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_lower_limit_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_target_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_upper_limit_offset = 26;
+static constexpr dart::compiler::target::word
+    AOT_StoreBufferBlock_pointers_offset = 16;
+static constexpr dart::compiler::target::word AOT_StoreBufferBlock_top_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_String_hash_offset = 4;
+static constexpr dart::compiler::target::word AOT_String_length_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_cache_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_Thread_AllocateArray_entry_point_offset = 648;
+static constexpr dart::compiler::target::word
+    AOT_Thread_active_exception_offset = 1336;
+static constexpr dart::compiler::target::word
+    AOT_Thread_active_stacktrace_offset = 1344;
+static constexpr dart::compiler::target::word
+    AOT_Thread_array_write_barrier_code_offset = 232;
+static constexpr dart::compiler::target::word
+    AOT_Thread_array_write_barrier_entry_point_offset = 432;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_with_fpu_regs_entry_point_offset = 480;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_with_fpu_regs_stub_offset = 312;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_without_fpu_regs_entry_point_offset = 488;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_without_fpu_regs_stub_offset = 320;
+static constexpr dart::compiler::target::word
+    AOT_Thread_async_stack_trace_offset = 184;
+static constexpr dart::compiler::target::word
+    AOT_Thread_auto_scope_native_wrapper_entry_point_offset = 568;
+static constexpr dart::compiler::target::word AOT_Thread_bool_false_offset =
+    216;
+static constexpr dart::compiler::target::word AOT_Thread_bool_true_offset = 208;
+static constexpr dart::compiler::target::word
+    AOT_Thread_bootstrap_native_wrapper_entry_point_offset = 552;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_to_runtime_entry_point_offset = 440;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_to_runtime_stub_offset = 272;
+static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
+    1408;
+static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
+    528;
+static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
+    352;
+static constexpr dart::compiler::target::word
+    AOT_Thread_deoptimize_entry_offset = 536;
+static constexpr dart::compiler::target::word
+    AOT_Thread_deoptimize_stub_offset = 360;
+static constexpr dart::compiler::target::word
+    AOT_Thread_double_abs_address_offset = 608;
+static constexpr dart::compiler::target::word
+    AOT_Thread_double_negate_address_offset = 600;
+static constexpr dart::compiler::target::word AOT_Thread_end_offset = 136;
+static constexpr dart::compiler::target::word
+    AOT_Thread_enter_safepoint_stub_offset = 400;
+static constexpr dart::compiler::target::word
+    AOT_Thread_execution_state_offset = 1376;
+static constexpr dart::compiler::target::word
+    AOT_Thread_exit_safepoint_stub_offset = 408;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_native_through_safepoint_stub_offset = 416;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_native_through_safepoint_entry_point_offset = 544;
+static constexpr dart::compiler::target::word
+    AOT_Thread_fix_allocation_stub_code_offset = 248;
+static constexpr dart::compiler::target::word
+    AOT_Thread_fix_callers_target_code_offset = 240;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_absolute_address_offset = 632;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_negate_address_offset = 624;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_not_address_offset = 616;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_zerow_address_offset = 640;
+static constexpr dart::compiler::target::word
+    AOT_Thread_global_object_pool_offset = 1352;
+static constexpr dart::compiler::target::word
+    AOT_Thread_interpret_call_entry_point_offset = 576;
+static constexpr dart::compiler::target::word
+    AOT_Thread_invoke_dart_code_from_bytecode_stub_offset = 264;
+static constexpr dart::compiler::target::word
+    AOT_Thread_invoke_dart_code_stub_offset = 256;
+static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 104;
+static constexpr dart::compiler::target::word
+    AOT_Thread_field_table_values_offset = 112;
+static constexpr dart::compiler::target::word
+    AOT_Thread_lazy_deopt_from_return_stub_offset = 368;
+static constexpr dart::compiler::target::word
+    AOT_Thread_lazy_deopt_from_throw_stub_offset = 376;
+static constexpr dart::compiler::target::word
+    AOT_Thread_lazy_specialize_type_test_stub_offset = 392;
+static constexpr dart::compiler::target::word
+    AOT_Thread_marking_stack_block_offset = 160;
+static constexpr dart::compiler::target::word
+    AOT_Thread_megamorphic_call_checked_entry_offset = 512;
+static constexpr dart::compiler::target::word
+    AOT_Thread_monomorphic_miss_entry_offset = 520;
+static constexpr dart::compiler::target::word
+    AOT_Thread_monomorphic_miss_stub_offset = 344;
+static constexpr dart::compiler::target::word
+    AOT_Thread_no_scope_native_wrapper_entry_point_offset = 560;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_with_fpu_regs_entry_point_offset = 456;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_with_fpu_regs_stub_offset = 288;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_with_fpu_regs_entry_point_offset = 472;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_with_fpu_regs_stub_offset = 304;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_without_fpu_regs_entry_point_offset = 448;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_without_fpu_regs_stub_offset = 280;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_without_fpu_regs_entry_point_offset = 464;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_without_fpu_regs_stub_offset = 296;
+static constexpr dart::compiler::target::word AOT_Thread_object_null_offset =
+    200;
+static constexpr dart::compiler::target::word
+    AOT_Thread_predefined_symbols_address_offset = 584;
+static constexpr dart::compiler::target::word AOT_Thread_resume_pc_offset =
+    1360;
+static constexpr dart::compiler::target::word
+    AOT_Thread_saved_shadow_call_stack_offset = 1368;
+static constexpr dart::compiler::target::word
+    AOT_Thread_safepoint_state_offset = 1384;
+static constexpr dart::compiler::target::word
+    AOT_Thread_slow_type_test_stub_offset = 384;
+static constexpr dart::compiler::target::word AOT_Thread_stack_limit_offset =
+    72;
+static constexpr dart::compiler::target::word
+    AOT_Thread_saved_stack_limit_offset = 80;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_flags_offset = 88;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_with_fpu_regs_entry_point_offset = 504;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_with_fpu_regs_stub_offset = 336;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_without_fpu_regs_entry_point_offset = 496;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_without_fpu_regs_stub_offset = 328;
+static constexpr dart::compiler::target::word
+    AOT_Thread_store_buffer_block_offset = 152;
+static constexpr dart::compiler::target::word
+    AOT_Thread_top_exit_frame_info_offset = 144;
+static constexpr dart::compiler::target::word AOT_Thread_top_offset = 128;
+static constexpr dart::compiler::target::word AOT_Thread_top_resource_offset =
+    48;
+static constexpr dart::compiler::target::word
+    AOT_Thread_unboxed_int64_runtime_arg_offset = 192;
+static constexpr dart::compiler::target::word AOT_Thread_vm_tag_offset = 176;
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_code_offset = 224;
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_entry_point_offset = 424;
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_mask_offset = 96;
+static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
+    1392;
+static constexpr dart::compiler::target::word
+    AOT_TimelineStream_enabled_offset = 16;
+static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 32;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 40;
+static constexpr dart::compiler::target::word AOT_Type_signature_offset = 48;
+static constexpr dart::compiler::target::word AOT_Type_type_class_id_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 60;
+static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
+    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_offset_in_bytes_offset = 32;
+static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_elements_start_offset = 32;
+static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_ClassTable_elements_start_offset = 0;
+static constexpr dart::compiler::target::word AOT_ClassTable_element_size = 1;
+static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
+    8, 24, 16, 32};
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_wrappers_thread_offset[] = {
+        1248, 1256, 1264, 1272, -1,   -1,   1280, 1288,
+        1296, 1304, 1312, -1,   1320, 1328, -1,   -1};
+static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
+static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
+static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 16;
+static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_UnalignedHeaderSize = 12;
+static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
+static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
+    32;
+static constexpr dart::compiler::target::word AOT_String_InstanceSize = 16;
+static constexpr dart::compiler::target::word AOT_TypedData_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 8;
+static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_InstanceSize = 32;
+static constexpr dart::compiler::target::word AOT_Instance_InstanceSize = 8;
+static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+    56;
+#endif  // defined(TARGET_ARCH_X64)
+
+#if defined(TARGET_ARCH_IA32)
+#endif  // defined(TARGET_ARCH_IA32)
+
+#if defined(TARGET_ARCH_ARM64)
+static constexpr dart::compiler::target::word
+    AOT_ObjectPool_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_ObjectPool_element_size = 8;
+static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
+    576460752303423487;
+static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
+    32765;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kMonomorphicEntryOffsetJIT = 8;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kPolymorphicEntryOffsetJIT = 48;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kMonomorphicEntryOffsetAOT = 8;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_kPolymorphicEntryOffsetAOT = 20;
+static constexpr dart::compiler::target::word AOT_HeapPage_kBytesPerCardLog2 =
+    10;
+static constexpr dart::compiler::target::word
+    AOT_NativeEntry_kNumCallWrapperArguments = 2;
+static constexpr dart::compiler::target::word AOT_String_kMaxElements =
+    2305843009213693951;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 4;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceClassIdOrFunction = 1;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 6;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 5;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 2;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 3;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_kTestEntryLength = 7;
+static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kTestResult =
+    0;
+static constexpr dart::compiler::target::word
+    AOT_AbstractType_type_test_stub_entry_point_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_count_offset = 32;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_first_named_entry_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_named_entry_size = 16;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_name_offset = 0;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_position_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_positional_count_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_ArgumentsDescriptor_type_args_len_offset = 24;
+static constexpr dart::compiler::target::word AOT_Array_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_Array_length_offset = 16;
+static constexpr dart::compiler::target::word AOT_Array_tags_offset = 0;
+static constexpr dart::compiler::target::word AOT_Array_type_arguments_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_Class_declaration_type_offset = 112;
+static constexpr dart::compiler::target::word
+    AOT_Class_num_type_arguments_offset = 182;
+static constexpr dart::compiler::target::word AOT_Class_super_type_offset = 88;
+static constexpr dart::compiler::target::word
+    AOT_Class_type_arguments_field_offset_in_words_offset = 172;
+static constexpr dart::compiler::target::word
+    AOT_ClassTable_shared_class_table_offset = 32;
+static constexpr dart::compiler::target::word AOT_ClassTable_table_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_SharedClassTable_class_heap_stats_table_offset = 0;
+static constexpr dart::compiler::target::word AOT_Closure_context_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_Closure_delayed_type_arguments_offset = 24;
+static constexpr dart::compiler::target::word AOT_Closure_function_offset = 32;
+static constexpr dart::compiler::target::word
+    AOT_Closure_function_type_arguments_offset = 16;
+static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_Closure_instantiator_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_Code_object_pool_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_Code_saved_instructions_offset = 48;
+static constexpr dart::compiler::target::word AOT_Code_owner_offset = 56;
+static constexpr dart::compiler::target::word AOT_Context_num_variables_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_Context_parent_offset = 16;
+static constexpr dart::compiler::target::word AOT_Double_value_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_ExternalOneByteString_external_data_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_ExternalTwoByteString_external_data_offset = 16;
+static constexpr dart::compiler::target::word AOT_Float32x4_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_Float64x2_value_offset = 8;
+static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
+static constexpr dart::compiler::target::word
+    AOT_Function_entry_point_offset[] = {8, 16};
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_data_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_length_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_type_arguments_offset = 8;
+static constexpr dart::compiler::target::word AOT_HeapPage_card_table_offset =
+    40;
+static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedMask = 3;
+static constexpr dart::compiler::target::word AOT_ICData_NumArgsTestedShift = 0;
+static constexpr dart::compiler::target::word
+    AOT_ICData_arguments_descriptor_offset = 24;
+static constexpr dart::compiler::target::word AOT_ICData_entries_offset = 8;
+static constexpr dart::compiler::target::word AOT_Isolate_class_table_offset =
+    80;
+static constexpr dart::compiler::target::word AOT_Isolate_current_tag_offset =
+    40;
+static constexpr dart::compiler::target::word AOT_Isolate_default_tag_offset =
+    48;
+static constexpr dart::compiler::target::word AOT_Isolate_ic_miss_code_offset =
+    56;
+static constexpr dart::compiler::target::word AOT_Isolate_object_store_offset =
+    72;
+static constexpr dart::compiler::target::word AOT_Isolate_single_step_offset =
+    128;
+static constexpr dart::compiler::target::word AOT_Isolate_user_tag_offset = 32;
+static constexpr dart::compiler::target::word AOT_LinkedHashMap_data_offset =
+    32;
+static constexpr dart::compiler::target::word
+    AOT_LinkedHashMap_deleted_keys_offset = 48;
+static constexpr dart::compiler::target::word
+    AOT_LinkedHashMap_hash_mask_offset = 24;
+static constexpr dart::compiler::target::word AOT_LinkedHashMap_index_offset =
+    16;
+static constexpr dart::compiler::target::word
+    AOT_LinkedHashMap_used_data_offset = 40;
+static constexpr dart::compiler::target::word
+    AOT_MarkingStackBlock_pointers_offset = 16;
+static constexpr dart::compiler::target::word AOT_MarkingStackBlock_top_offset =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_MegamorphicCache_arguments_descriptor_offset = 32;
+static constexpr dart::compiler::target::word
+    AOT_MegamorphicCache_buckets_offset = 8;
+static constexpr dart::compiler::target::word AOT_MegamorphicCache_mask_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_Mint_value_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_argc_tag_offset = 8;
+static constexpr dart::compiler::target::word AOT_NativeArguments_argv_offset =
+    16;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_retval_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_NativeArguments_thread_offset = 0;
+static constexpr dart::compiler::target::word
+    AOT_ObjectStore_double_type_offset = 128;
+static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
+    64;
+static constexpr dart::compiler::target::word
+    AOT_ObjectStore_string_type_offset = 160;
+static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
+    16;
+static constexpr dart::compiler::target::word
+    AOT_Pointer_c_memory_address_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_entry_point_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_lower_limit_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_target_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_SingleTargetCache_upper_limit_offset = 26;
+static constexpr dart::compiler::target::word
+    AOT_StoreBufferBlock_pointers_offset = 16;
+static constexpr dart::compiler::target::word AOT_StoreBufferBlock_top_offset =
+    8;
+static constexpr dart::compiler::target::word AOT_String_hash_offset = 4;
+static constexpr dart::compiler::target::word AOT_String_length_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_SubtypeTestCache_cache_offset = 8;
+static constexpr dart::compiler::target::word
+    AOT_Thread_AllocateArray_entry_point_offset = 648;
+static constexpr dart::compiler::target::word
+    AOT_Thread_active_exception_offset = 1416;
+static constexpr dart::compiler::target::word
+    AOT_Thread_active_stacktrace_offset = 1424;
+static constexpr dart::compiler::target::word
+    AOT_Thread_array_write_barrier_code_offset = 232;
+static constexpr dart::compiler::target::word
+    AOT_Thread_array_write_barrier_entry_point_offset = 432;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_with_fpu_regs_entry_point_offset = 480;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_with_fpu_regs_stub_offset = 312;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_without_fpu_regs_entry_point_offset = 488;
+static constexpr dart::compiler::target::word
+    AOT_Thread_allocate_mint_without_fpu_regs_stub_offset = 320;
+static constexpr dart::compiler::target::word
+    AOT_Thread_async_stack_trace_offset = 184;
+static constexpr dart::compiler::target::word
+    AOT_Thread_auto_scope_native_wrapper_entry_point_offset = 568;
+static constexpr dart::compiler::target::word AOT_Thread_bool_false_offset =
+    216;
+static constexpr dart::compiler::target::word AOT_Thread_bool_true_offset = 208;
+static constexpr dart::compiler::target::word
+    AOT_Thread_bootstrap_native_wrapper_entry_point_offset = 552;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_to_runtime_entry_point_offset = 440;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_to_runtime_stub_offset = 272;
+static constexpr dart::compiler::target::word AOT_Thread_dart_stream_offset =
+    1488;
+static constexpr dart::compiler::target::word AOT_Thread_optimize_entry_offset =
+    528;
+static constexpr dart::compiler::target::word AOT_Thread_optimize_stub_offset =
+    352;
+static constexpr dart::compiler::target::word
+    AOT_Thread_deoptimize_entry_offset = 536;
+static constexpr dart::compiler::target::word
+    AOT_Thread_deoptimize_stub_offset = 360;
+static constexpr dart::compiler::target::word
+    AOT_Thread_double_abs_address_offset = 608;
+static constexpr dart::compiler::target::word
+    AOT_Thread_double_negate_address_offset = 600;
+static constexpr dart::compiler::target::word AOT_Thread_end_offset = 136;
+static constexpr dart::compiler::target::word
+    AOT_Thread_enter_safepoint_stub_offset = 400;
+static constexpr dart::compiler::target::word
+    AOT_Thread_execution_state_offset = 1456;
+static constexpr dart::compiler::target::word
+    AOT_Thread_exit_safepoint_stub_offset = 408;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_native_through_safepoint_stub_offset = 416;
+static constexpr dart::compiler::target::word
+    AOT_Thread_call_native_through_safepoint_entry_point_offset = 544;
+static constexpr dart::compiler::target::word
+    AOT_Thread_fix_allocation_stub_code_offset = 248;
+static constexpr dart::compiler::target::word
+    AOT_Thread_fix_callers_target_code_offset = 240;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_absolute_address_offset = 632;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_negate_address_offset = 624;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_not_address_offset = 616;
+static constexpr dart::compiler::target::word
+    AOT_Thread_float_zerow_address_offset = 640;
+static constexpr dart::compiler::target::word
+    AOT_Thread_global_object_pool_offset = 1432;
+static constexpr dart::compiler::target::word
+    AOT_Thread_interpret_call_entry_point_offset = 576;
+static constexpr dart::compiler::target::word
+    AOT_Thread_invoke_dart_code_from_bytecode_stub_offset = 264;
+static constexpr dart::compiler::target::word
+    AOT_Thread_invoke_dart_code_stub_offset = 256;
+static constexpr dart::compiler::target::word AOT_Thread_isolate_offset = 104;
+static constexpr dart::compiler::target::word
+    AOT_Thread_field_table_values_offset = 112;
+static constexpr dart::compiler::target::word
+    AOT_Thread_lazy_deopt_from_return_stub_offset = 368;
+static constexpr dart::compiler::target::word
+    AOT_Thread_lazy_deopt_from_throw_stub_offset = 376;
+static constexpr dart::compiler::target::word
+    AOT_Thread_lazy_specialize_type_test_stub_offset = 392;
+static constexpr dart::compiler::target::word
+    AOT_Thread_marking_stack_block_offset = 160;
+static constexpr dart::compiler::target::word
+    AOT_Thread_megamorphic_call_checked_entry_offset = 512;
+static constexpr dart::compiler::target::word
+    AOT_Thread_monomorphic_miss_entry_offset = 520;
+static constexpr dart::compiler::target::word
+    AOT_Thread_monomorphic_miss_stub_offset = 344;
+static constexpr dart::compiler::target::word
+    AOT_Thread_no_scope_native_wrapper_entry_point_offset = 560;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_with_fpu_regs_entry_point_offset = 456;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_with_fpu_regs_stub_offset = 288;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_with_fpu_regs_entry_point_offset = 472;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_with_fpu_regs_stub_offset = 304;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_without_fpu_regs_entry_point_offset = 448;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_error_shared_without_fpu_regs_stub_offset = 280;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_without_fpu_regs_entry_point_offset = 464;
+static constexpr dart::compiler::target::word
+    AOT_Thread_null_arg_error_shared_without_fpu_regs_stub_offset = 296;
+static constexpr dart::compiler::target::word AOT_Thread_object_null_offset =
+    200;
+static constexpr dart::compiler::target::word
+    AOT_Thread_predefined_symbols_address_offset = 584;
+static constexpr dart::compiler::target::word AOT_Thread_resume_pc_offset =
+    1440;
+static constexpr dart::compiler::target::word
+    AOT_Thread_saved_shadow_call_stack_offset = 1448;
+static constexpr dart::compiler::target::word
+    AOT_Thread_safepoint_state_offset = 1464;
+static constexpr dart::compiler::target::word
+    AOT_Thread_slow_type_test_stub_offset = 384;
+static constexpr dart::compiler::target::word AOT_Thread_stack_limit_offset =
+    72;
+static constexpr dart::compiler::target::word
+    AOT_Thread_saved_stack_limit_offset = 80;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_flags_offset = 88;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_with_fpu_regs_entry_point_offset = 504;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_with_fpu_regs_stub_offset = 336;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_without_fpu_regs_entry_point_offset = 496;
+static constexpr dart::compiler::target::word
+    AOT_Thread_stack_overflow_shared_without_fpu_regs_stub_offset = 328;
+static constexpr dart::compiler::target::word
+    AOT_Thread_store_buffer_block_offset = 152;
+static constexpr dart::compiler::target::word
+    AOT_Thread_top_exit_frame_info_offset = 144;
+static constexpr dart::compiler::target::word AOT_Thread_top_offset = 128;
+static constexpr dart::compiler::target::word AOT_Thread_top_resource_offset =
+    48;
+static constexpr dart::compiler::target::word
+    AOT_Thread_unboxed_int64_runtime_arg_offset = 192;
+static constexpr dart::compiler::target::word AOT_Thread_vm_tag_offset = 176;
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_code_offset = 224;
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_entry_point_offset = 424;
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_mask_offset = 96;
+static constexpr dart::compiler::target::word AOT_Thread_callback_code_offset =
+    1472;
+static constexpr dart::compiler::target::word
+    AOT_TimelineStream_enabled_offset = 16;
+static constexpr dart::compiler::target::word AOT_TwoByteString_data_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_Type_arguments_offset = 32;
+static constexpr dart::compiler::target::word AOT_Type_hash_offset = 40;
+static constexpr dart::compiler::target::word AOT_Type_signature_offset = 48;
+static constexpr dart::compiler::target::word AOT_Type_type_class_id_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Type_type_state_offset = 60;
+static constexpr dart::compiler::target::word AOT_Type_nullability_offset = 61;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_instantiations_offset = 8;
+static constexpr dart::compiler::target::word AOT_TypeRef_type_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataBase_data_field_offset = 8;
+static constexpr dart::compiler::target::word AOT_TypedDataBase_length_offset =
+    16;
+static constexpr dart::compiler::target::word AOT_TypedDataView_data_offset =
+    24;
+static constexpr dart::compiler::target::word
+    AOT_TypedDataView_offset_in_bytes_offset = 32;
+static constexpr dart::compiler::target::word AOT_TypedData_data_offset = 24;
+static constexpr dart::compiler::target::word AOT_UserTag_tag_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_MonomorphicSmiableCall_expected_cid_offset = 16;
+static constexpr dart::compiler::target::word
+    AOT_MonomorphicSmiableCall_entrypoint_offset = 24;
+static constexpr dart::compiler::target::word
+    AOT_MonomorphicSmiableCall_target_offset = 8;
+static constexpr dart::compiler::target::word AOT_Array_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word AOT_Array_element_size = 8;
+static constexpr dart::compiler::target::word
+    AOT_TypeArguments_elements_start_offset = 32;
+static constexpr dart::compiler::target::word AOT_TypeArguments_element_size =
+    8;
+static constexpr dart::compiler::target::word
+    AOT_ClassTable_elements_start_offset = 0;
+static constexpr dart::compiler::target::word AOT_ClassTable_element_size = 1;
+static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
+    8, 24, 16, 32};
+static constexpr dart::compiler::target::word
+    AOT_Thread_write_barrier_wrappers_thread_offset[] = {
+        1248, 1256, 1264, 1272, 1280, 1288, 1296, 1304, 1312, 1320, 1328,
+        1336, 1344, 1352, 1360, -1,   -1,   -1,   -1,   1368, 1376, 1384,
+        -1,   1392, 1400, 1408, -1,   -1,   -1,   -1,   -1,   -1};
+static constexpr dart::compiler::target::word AOT_Array_header_size = 24;
+static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
+static constexpr dart::compiler::target::word AOT_Double_InstanceSize = 16;
+static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
+static constexpr dart::compiler::target::word
+    AOT_Instructions_UnalignedHeaderSize = 12;
+static constexpr dart::compiler::target::word AOT_Int32x4_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_Mint_InstanceSize = 16;
+static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
+    32;
+static constexpr dart::compiler::target::word AOT_String_InstanceSize = 16;
+static constexpr dart::compiler::target::word AOT_TypedData_InstanceSize = 24;
+static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 8;
+static constexpr dart::compiler::target::word AOT_TypedDataBase_InstanceSize =
+    24;
+static constexpr dart::compiler::target::word AOT_Closure_InstanceSize = 56;
+static constexpr dart::compiler::target::word
+    AOT_GrowableObjectArray_InstanceSize = 32;
+static constexpr dart::compiler::target::word AOT_Instance_InstanceSize = 8;
+static constexpr dart::compiler::target::word AOT_LinkedHashMap_InstanceSize =
+    56;
+#endif  // defined(TARGET_ARCH_ARM64)
+
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_EXTRACTED_H_

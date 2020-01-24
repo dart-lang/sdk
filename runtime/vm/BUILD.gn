@@ -196,3 +196,16 @@ executable("offsets_extractor") {
   ]
   include_dirs = [ ".." ]
 }
+
+executable("offsets_extractor_precompiled_runtime") {
+  configs += [
+    "..:dart_arch_config",
+    "..:dart_config",
+    "..:dart_precompiled_runtime_config",
+    ":libdart_vm_config",
+  ]
+  sources = [
+    "compiler/offsets_extractor.cc",
+  ]
+  include_dirs = [ ".." ]
+}
