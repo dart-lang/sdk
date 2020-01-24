@@ -24,6 +24,7 @@ TypeTestingStubNamer::TypeTestingStubNamer()
 
 const char* TypeTestingStubNamer::StubNameForType(
     const AbstractType& type) const {
+  NoSafepointScope no_safepoint;
   const uintptr_t address =
       reinterpret_cast<uintptr_t>(type.raw()) & 0x7fffffff;
   Zone* Z = Thread::Current()->zone();
@@ -33,6 +34,7 @@ const char* TypeTestingStubNamer::StubNameForType(
 
 const char* TypeTestingStubNamer::StringifyType(
     const AbstractType& type) const {
+  NoSafepointScope no_safepoint;
   Zone* Z = Thread::Current()->zone();
   if (type.IsType() && !type.IsFunctionType()) {
     const intptr_t cid = Type::Cast(type).type_class_id();
@@ -50,10 +52,8 @@ const char* TypeTestingStubNamer::StringifyType(
       curl = OS::SCreate(Z, "nolib%" Pd "_", counter++);
     }
 
-    string_ = klass_.ScrubbedName();
-    ASSERT(!string_.IsNull());
-    const char* concatenated =
-        AssemblerSafeName(OS::SCreate(Z, "%s_%s", curl, string_.ToCString()));
+    const char* concatenated = AssemblerSafeName(
+        OS::SCreate(Z, "%s_%s", curl, klass_.ScrubbedNameCString()));
 
     const intptr_t type_parameters = klass_.NumTypeParameters();
     if (type.arguments() != TypeArguments::null() && type_parameters > 0) {

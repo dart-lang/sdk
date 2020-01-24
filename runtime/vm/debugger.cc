@@ -1504,7 +1504,7 @@ RawTypeArguments* ActivationFrame::BuildParameters(
     } else if (!name.Equals(Symbols::This()) &&
                !IsSyntheticVariableName(name)) {
       if (IsPrivateVariableName(name)) {
-        name = String::ScrubName(name);
+        name = Symbols::New(Thread::Current(), String::ScrubName(name));
       }
       bool conflict = false;
       for (intptr_t j = 0; j < param_names.Length(); j++) {
@@ -1639,8 +1639,8 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
       if (!IsSyntheticVariableName(var_name)) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
-        var_name = String::ScrubName(var_name);
-        jsvar.AddProperty("name", var_name.ToCString());
+        const char* scrubbed_var_name = String::ScrubName(var_name);
+        jsvar.AddProperty("name", scrubbed_var_name);
         jsvar.AddProperty("value", var_value);
         // Where was the variable declared?
         jsvar.AddProperty("declarationTokenPos", declaration_token_pos);

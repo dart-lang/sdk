@@ -3369,8 +3369,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
 
   String& func_name = String::Handle();
   func_name = func.name();
-  func_name = String::ScrubName(func_name);
-  function_name_ = NewConstChar(func_name.ToCString());
+  function_name_ = NewConstChar(String::ScrubName(func_name));
   if (!cls.IsTopLevel()) {
     const String& class_name = String::Handle(cls.Name());
     class_name_ = NewConstChar(class_name.ToCString());

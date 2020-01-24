@@ -285,9 +285,9 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Function", ref);
   AddFunctionServiceId(jsobj, *this, cls);
-  const String& user_name = String::Handle(UserVisibleName());
+  const char* user_name = UserVisibleNameCString();
   const String& vm_name = String::Handle(name());
-  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
+  AddNameProperties(&jsobj, user_name, vm_name.ToCString());
   const Function& parent = Function::Handle(parent_function());
   if (!parent.IsNull()) {
     jsobj.AddProperty("owner", parent);
@@ -367,9 +367,9 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddFixedServiceId("classes/%" Pd "/fields/%s", cls.id(),
                           encoded_field_name);
 
-  const String& user_name = String::Handle(UserVisibleName());
+  const char* user_name = UserVisibleNameCString();
   const String& vm_name = String::Handle(name());
-  AddNameProperties(&jsobj, user_name.ToCString(), vm_name.ToCString());
+  AddNameProperties(&jsobj, user_name, vm_name.ToCString());
   if (cls.IsTopLevel()) {
     const Library& library = Library::Handle(cls.library());
     jsobj.AddProperty("owner", library);
@@ -481,8 +481,8 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   AddCommonObjectProperties(&jsobj, "Library", ref);
   jsobj.AddFixedServiceId("libraries/%s", id.ToCString());
   const String& vm_name = String::Handle(name());
-  const String& scrubbed_name = String::Handle(String::ScrubName(vm_name));
-  AddNameProperties(&jsobj, scrubbed_name.ToCString(), vm_name.ToCString());
+  const char* scrubbed_name = String::ScrubName(vm_name);
+  AddNameProperties(&jsobj, scrubbed_name, vm_name.ToCString());
   const String& library_url = String::Handle(url());
   jsobj.AddPropertyStr("uri", library_url);
   if (ref) {
@@ -1427,8 +1427,8 @@ void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   const Class& cls = Class::Handle(clazz());
-  const String& kind = String::Handle(cls.UserVisibleName());
-  jsobj.AddProperty("kind", kind.ToCString());
+  const char* kind = cls.UserVisibleNameCString();
+  jsobj.AddProperty("kind", kind);
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("length", Length());
   if (ref) {
@@ -1462,8 +1462,8 @@ void ExternalTypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   const Class& cls = Class::Handle(clazz());
-  const String& kind = String::Handle(cls.UserVisibleName());
-  jsobj.AddProperty("kind", kind.ToCString());
+  const char* kind = cls.UserVisibleNameCString();
+  jsobj.AddProperty("kind", kind);
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("length", Length());
   if (ref) {

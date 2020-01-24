@@ -332,7 +332,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   if (str_.raw() == Symbols::TopLevel().raw()) {
     cls = library_.toplevel_class();
   } else {
-    str_ = String::ScrubName(str_);
+    str_ = String::New(String::ScrubName(str_));
     cls = library_.LookupClassAllowPrivate(str_);
   }
   if (cls.IsNull()) {
@@ -366,10 +366,10 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
   str_ ^= ReadObjectImpl(kAsInlinedObject);
   if (str_.Equals(Symbols::TopLevel())) {
     str_ ^= ReadObjectImpl(kAsInlinedObject);
-    str_ = String::ScrubName(str_);
+    str_ = String::New(String::ScrubName(str_));
     func = library_.LookupFunctionAllowPrivate(str_);
   } else {
-    str_ = String::ScrubName(str_);
+    str_ = String::New(String::ScrubName(str_));
     cls_ = library_.LookupClassAllowPrivate(str_);
     if (cls_.IsNull()) {
       OS::PrintErr("Name of class not found %s\n", str_.ToCString());
@@ -377,7 +377,7 @@ RawObject* SnapshotReader::ReadStaticImplicitClosure(intptr_t object_id,
     }
     cls_.EnsureIsFinalized(thread());
     str_ ^= ReadObjectImpl(kAsInlinedObject);
-    str_ = String::ScrubName(str_);
+    str_ = String::New(String::ScrubName(str_));
     func = cls_.LookupFunctionAllowPrivate(str_);
   }
   if (func.IsNull()) {
