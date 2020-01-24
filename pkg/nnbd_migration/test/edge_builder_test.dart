@@ -741,6 +741,18 @@ class C extends Object with A<int> {}
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_function_invocation_type_argument() async {
+    await analyze('''
+void f<T extends Object>() {}
+void main() {
+  (f)<int>();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_in_return_type() async {
     await analyze('''
 class C<T extends Object> {}
@@ -798,6 +810,18 @@ void main() {
         decoratedTypeAnnotation('Object').node,
         hard: true);
     assertEdge(decoratedTypeAnnotation('String').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_method_call_type_argument() async {
+    await analyze('''
+void f<T extends Object>() {}
+void main() {
+  f<int>();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
         decoratedTypeAnnotation('Object').node,
         hard: true);
   }

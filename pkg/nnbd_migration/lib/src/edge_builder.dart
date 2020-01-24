@@ -747,6 +747,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       FunctionExpressionInvocation node) {
     final argumentList = node.argumentList;
     final typeArguments = node.typeArguments;
+    typeArguments?.accept(this);
     DecoratedType calleeType = _checkExpressionNotNull(node.function);
     if (calleeType.type is FunctionType) {
       return _handleInvocationArguments(node, argumentList.arguments,
@@ -754,7 +755,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           invokeType: node.staticInvokeType);
     } else {
       // Invocation of type `dynamic` or `Function`.
-      typeArguments?.accept(this);
       argumentList.accept(this);
       return _makeNullableDynamicType(node);
     }
@@ -1015,6 +1015,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     bool isNullAware = node.isNullAware;
     var callee = node.methodName.staticElement;
     bool calleeIsStatic = callee is ExecutableElement && callee.isStatic;
+    node.typeArguments?.accept(this);
+
     if (node.isCascaded) {
       targetType = _currentCascadeTargetType;
     } else if (target != null) {
@@ -1034,7 +1036,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       // Dynamic dispatch.  The return type is `dynamic`.
       // TODO(paulberry): would it be better to assume a return type of `Never`
       // so that we don't unnecessarily propagate nullabilities everywhere?
-      node.typeArguments?.accept(this);
       node.argumentList.accept(this);
       return _makeNullableDynamicType(node);
     }
