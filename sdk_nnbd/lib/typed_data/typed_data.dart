@@ -440,15 +440,28 @@ class Endian {
  * with ordinary [List] implementations.
  * `ByteData` can save space, by eliminating the need for object headers,
  * and time, by eliminating the need for data copies.
+ *
+ * If data comes in as bytes, they can be converted to `ByteData` by
+ * sharing the same buffer.
+ * ```dart
+ * Uint8List bytes = ...;
+ * var blob = ByteData.sublistView(bytes);
+ * if (blob.getUint32(0, Endian.little) == 0x04034b50) { // Zip file marker
+ *   ...
+ * }
+ *
+ * ```
+ *
  * Finally, `ByteData` may be used to intentionally reinterpret the bytes
  * representing one arithmetic type as another.
  * For example this code fragment determine what 32-bit signed integer
- * is represented by the bytes of a 32-bit floating point number:
- *
- *     var buffer = new Uint8List(8).buffer;
- *     var bdata = new ByteData.view(buffer);
- *     bdata.setFloat32(0, 3.04);
- *     int huh = bdata.getInt32(0);
+ * is represented by the bytes of a 32-bit floating point number
+ * (both stored as big endian):
+ * ```dart
+ * var bdata = new ByteData(8);
+ * bdata.setFloat32(0, 3.04);
+ * int huh = bdata.getInt32(0); // 0x40428f5c
+ * ```
  */
 abstract class ByteData implements TypedData {
   /**
@@ -787,6 +800,8 @@ abstract class Int8List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int8List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely [length] bytes.
    */
   external factory Int8List(int length);
 
@@ -796,6 +811,9 @@ abstract class Int8List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely `elements.length`
+   * bytes.
    */
   external factory Int8List.fromList(List<int> elements);
 
@@ -905,6 +923,8 @@ abstract class Uint8List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint8List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely [length] bytes.
    */
   external factory Uint8List(int length);
 
@@ -914,6 +934,9 @@ abstract class Uint8List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely `elements.length`
+   * bytes.
    */
   external factory Uint8List.fromList(List<int> elements);
 
@@ -1032,6 +1055,8 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint8ClampedList] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely [length] bytes.
    */
   external factory Uint8ClampedList(int length);
 
@@ -1041,6 +1066,9 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
    *
    * Values are clamped to fit in the list when they are copied,
    * the same way storing values clamps them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely `elements.length`
+   * bytes.
    */
   external factory Uint8ClampedList.fromList(List<int> elements);
 
@@ -1153,6 +1181,9 @@ abstract class Int16List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int16List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 2 bytes.
    */
   external factory Int16List(int length);
 
@@ -1162,6 +1193,9 @@ abstract class Int16List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 2 bytes.
    */
   external factory Int16List.fromList(List<int> elements);
 
@@ -1283,6 +1317,9 @@ abstract class Uint16List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint16List] of the specified length (in elements), all
    * of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 2 bytes.
    */
   external factory Uint16List(int length);
 
@@ -1292,6 +1329,9 @@ abstract class Uint16List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 2 bytes.
    */
   external factory Uint16List.fromList(List<int> elements);
 
@@ -1414,6 +1454,9 @@ abstract class Int32List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int32List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 4 bytes.
    */
   external factory Int32List(int length);
 
@@ -1423,6 +1466,9 @@ abstract class Int32List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 4 bytes.
    */
   external factory Int32List.fromList(List<int> elements);
 
@@ -1544,6 +1590,9 @@ abstract class Uint32List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint32List] of the specified length (in elements), all
    * of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 4 bytes.
    */
   external factory Uint32List(int length);
 
@@ -1553,6 +1602,9 @@ abstract class Uint32List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 4 bytes.
    */
   external factory Uint32List.fromList(List<int> elements);
 
@@ -1675,6 +1727,9 @@ abstract class Int64List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int64List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 8 bytes.
    */
   external factory Int64List(int length);
 
@@ -1684,6 +1739,9 @@ abstract class Int64List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 8 bytes.
    */
   external factory Int64List.fromList(List<int> elements);
 
@@ -1805,6 +1863,9 @@ abstract class Uint64List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint64List] of the specified length (in elements), all
    * of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 8 bytes.
    */
   external factory Uint64List(int length);
 
@@ -1814,6 +1875,9 @@ abstract class Uint64List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 8 bytes.
    */
   external factory Uint64List.fromList(List<int> elements);
 
@@ -1937,6 +2001,9 @@ abstract class Float32List implements List<double>, _TypedFloatList {
   /**
    * Creates a [Float32List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 4 bytes.
    */
   external factory Float32List(int length);
 
@@ -1946,6 +2013,9 @@ abstract class Float32List implements List<double>, _TypedFloatList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 4 bytes.
    */
   external factory Float32List.fromList(List<double> elements);
 
@@ -2064,12 +2134,18 @@ abstract class Float64List implements List<double>, _TypedFloatList {
   /**
    * Creates a [Float64List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 8 bytes.
    */
   external factory Float64List(int length);
 
   /**
    * Creates a [Float64List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 8 bytes.
    */
   external factory Float64List.fromList(List<double> elements);
 
@@ -2187,12 +2263,18 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
   /**
    * Creates a [Float32x4List] of the specified length (in elements),
    * all of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 16 bytes.
    */
   external factory Float32x4List(int length);
 
   /**
    * Creates a [Float32x4List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 16 bytes.
    */
   external factory Float32x4List.fromList(List<Float32x4> elements);
 
@@ -2318,12 +2400,18 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
   /**
    * Creates a [Int32x4List] of the specified length (in elements),
    * all of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 16 bytes.
    */
   external factory Int32x4List(int length);
 
   /**
    * Creates a [Int32x4List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 16 bytes.
    */
   external factory Int32x4List.fromList(List<Int32x4> elements);
 
@@ -2449,12 +2537,18 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
   /**
    * Creates a [Float64x2List] of the specified length (in elements),
    * all of whose elements have all lanes set to zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 16 bytes.
    */
   external factory Float64x2List(int length);
 
   /**
    * Creates a [Float64x2List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 16 bytes.
    */
   external factory Float64x2List.fromList(List<Float64x2> elements);
 
