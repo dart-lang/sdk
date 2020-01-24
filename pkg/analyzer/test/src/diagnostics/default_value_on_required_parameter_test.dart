@@ -22,19 +22,19 @@ class DefaultValueOnRequiredParameterTest extends DriverResolutionTest {
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
 
-  test_notRequired_default() async {
+  test_function_notRequired_default() async {
     await assertNoErrorsInCode('''
 void log({String message: 'no message'}) {}
 ''');
   }
 
-  test_notRequired_noDefault() async {
+  test_function_notRequired_noDefault() async {
     await assertNoErrorsInCode('''
 void log({String? message}) {}
 ''');
   }
 
-  test_required_default() async {
+  test_function_required_default() async {
     await assertErrorsInCode('''
 void log({required String? message: 'no message'}) {}
 ''', [
@@ -42,9 +42,29 @@ void log({required String? message: 'no message'}) {}
     ]);
   }
 
-  test_required_noDefault() async {
+  test_function_required_noDefault() async {
     await assertNoErrorsInCode('''
 void log({required String message}) {}
 ''');
+  }
+
+  test_method_abstract_required_default() async {
+    await assertErrorsInCode('''
+abstract class C {
+  void foo({required int? a = 0});
+}
+''', [
+      error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 45, 1),
+    ]);
+  }
+
+  test_method_required_default() async {
+    await assertErrorsInCode('''
+class C {
+  void foo({required int? a = 0}) {}
+}
+''', [
+      error(CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER, 36, 1),
+    ]);
   }
 }

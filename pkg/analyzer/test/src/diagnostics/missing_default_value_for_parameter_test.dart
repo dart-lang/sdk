@@ -195,6 +195,46 @@ void f(void Function([int, int?]) p) {}
 ''');
   }
 
+  test_method_abstract_nonNullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void foo({int a});
+}
+''');
+  }
+
+  test_method_abstract_nonNullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void foo([int a]);
+}
+''');
+  }
+
+  test_method_abstract_nullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+abstract class C {
+  void foo({int? a});
+}
+''');
+  }
+
+  test_method_abstract_potentiallyNonNullable_named_optional() async {
+    await assertNoErrorsInCode('''
+abstract class A<T> {
+  void foo({T a});
+}
+''');
+  }
+
+  test_method_abstract_potentiallyNonNullable_positional_optional() async {
+    await assertNoErrorsInCode('''
+abstract class A<T extends Object?> {
+  void foo([T a]);
+}
+''');
+  }
+
   test_method_nonNullable_named_optional_noDefault() async {
     await assertErrorsInCode('''
 class C {
