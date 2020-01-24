@@ -2021,6 +2021,9 @@ OverrideTypeVariablesMismatch:
   template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
 
+OverrideTypeVariablesBoundMismatch:
+  template: "Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'."
+
 OverriddenMethodCause:
   template: "This is the overridden method ('#name')."
   severity: CONTEXT

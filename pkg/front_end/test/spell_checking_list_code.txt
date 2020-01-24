@@ -575,8 +575,10 @@ method10a
 method10b
 method1a
 method1b
+method1c
 method2a
 method2b
+method2c
 method3a
 method3b
 method3c

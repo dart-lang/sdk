@@ -491,6 +491,8 @@ OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
 OverrideTypeMismatchReturnType/example: Fail
 OverrideTypeMismatchSetter/example: Fail
+OverrideTypeVariablesBoundMismatch/analyzerCode: Fail
+OverrideTypeVariablesBoundMismatch/example: Fail
 OverrideTypeVariablesMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail

@@ -2378,6 +2378,60 @@ Message _withArgumentsOverrideTypeMismatchSetter(String name, DartType _type,
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
+        Message Function(DartType _type, String name, String name2,
+            DartType _type2, String name3, bool isNonNullableByDefault)>
+    templateOverrideTypeVariablesBoundMismatch = const Template<
+            Message Function(DartType _type, String name, String name2,
+                DartType _type2, String name3, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'.""",
+        withArguments: _withArgumentsOverrideTypeVariablesBoundMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, String name2,
+            DartType _type2, String name3, bool isNonNullableByDefault)>
+    codeOverrideTypeVariablesBoundMismatch = const Code<
+        Message Function(DartType _type, String name, String name2,
+            DartType _type2, String name3, bool isNonNullableByDefault)>(
+  "OverrideTypeVariablesBoundMismatch",
+  templateOverrideTypeVariablesBoundMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideTypeVariablesBoundMismatch(
+    DartType _type,
+    String name,
+    String name2,
+    DartType _type2,
+    String name3,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeOverrideTypeVariablesBoundMismatch,
+      message:
+          """Declared bound '${type}' of type variable '${name}' of '${name2}' doesn't match the bound '${type2}' on overridden method '${name3}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'name2': name2,
+        'type2': _type2,
+        'name3': name3
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
         Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateRedirectingFactoryIncompatibleTypeArgument = const Template<
