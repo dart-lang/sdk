@@ -390,7 +390,9 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation> {
     if (_closedWorld.nativeData.isNativeMember(_analyzedMember)) {
       // Native methods do not have a body, and we currently just say
       // they return dynamic and may contain all side-effects.
-      _sideEffectsBuilder.setAllSideEffectsAndDependsOnSomething();
+      NativeBehavior nativeBehavior =
+          _closedWorld.nativeData.getNativeMethodBehavior(_analyzedMember);
+      _sideEffectsBuilder.add(nativeBehavior.sideEffects);
       return _types.dynamicType;
     }
 
