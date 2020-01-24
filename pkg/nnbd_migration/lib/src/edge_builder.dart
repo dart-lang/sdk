@@ -475,8 +475,13 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  DecoratedType visitClassDeclaration(ClassDeclaration node) =>
-      visitClassOrMixinOrExtensionDeclaration(node);
+  DecoratedType visitClassDeclaration(ClassDeclaration node) {
+    visitClassOrMixinOrExtensionDeclaration(node);
+    node.extendsClause?.accept(this);
+    node.implementsClause?.accept(this);
+    node.withClause?.accept(this);
+    return null;
+  }
 
   DecoratedType visitClassOrMixinOrExtensionDeclaration(
       CompilationUnitMember node) {
@@ -1050,8 +1055,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  DecoratedType visitMixinDeclaration(MixinDeclaration node) =>
-      visitClassOrMixinOrExtensionDeclaration(node);
+  DecoratedType visitMixinDeclaration(MixinDeclaration node) {
+    visitClassOrMixinOrExtensionDeclaration(node);
+    node.implementsClause?.accept(this);
+    node.onClause?.accept(this);
+    return null;
+  }
 
   @override
   DecoratedType visitNamespaceDirective(NamespaceDirective node) {

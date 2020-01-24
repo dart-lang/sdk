@@ -711,10 +711,60 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('int').node, anyNode, hard: true);
   }
 
+  Future<void> test_assign_to_bound_class_extends() async {
+    await analyze('''
+class A<T extends Object> {}
+class C extends A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_class_implements() async {
+    await analyze('''
+class A<T extends Object> {}
+class C implements A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_class_with() async {
+    await analyze('''
+class A<T extends Object> {}
+class C extends Object with A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_in_return_type() async {
     await analyze('''
 class C<T extends Object> {}
 C<int> f() => null;
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_mixin_implements() async {
+    await analyze('''
+class A<T extends Object> {}
+mixin C implements A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_mixin_on() async {
+    await analyze('''
+class A<T extends Object> {}
+mixin C on A<int> {}
 ''');
     assertEdge(decoratedTypeAnnotation('int').node,
         decoratedTypeAnnotation('Object').node,
