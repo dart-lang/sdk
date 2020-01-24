@@ -10,6 +10,7 @@
 # automatic tools might move it to the top of the file.
 
 argument(s)
+assigning
 b
 c
 compilercontext.runincontext
@@ -38,6 +39,7 @@ nativetype
 nosuchmethod
 num1%.3ms
 o
+opts
 part(s)
 patch(es)
 re

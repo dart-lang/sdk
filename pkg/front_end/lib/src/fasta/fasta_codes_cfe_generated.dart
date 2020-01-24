@@ -2193,7 +2193,7 @@ const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
         messageTemplate:
-            r"""Optional parameter '#name' doensn't have a default value and its type '#type' doesn't allow null.""",
+            r"""Optional parameter '#name' doesn't have a default value and its type '#type' doesn't allow null.""",
         withArguments:
             _withArgumentsOptionalNonNullableWithoutInitializerWarning);
 
@@ -2218,7 +2218,7 @@ Message _withArgumentsOptionalNonNullableWithoutInitializerWarning(
   String type = typeParts.join();
   return new Message(codeOptionalNonNullableWithoutInitializerWarning,
       message:
-          """Optional parameter '${name}' doensn't have a default value and its type '${type}' doesn't allow null.""" +
+          """Optional parameter '${name}' doesn't have a default value and its type '${type}' doesn't allow null.""" +
               labeler.originMessages,
       arguments: {'name': name, 'type': _type});
 }

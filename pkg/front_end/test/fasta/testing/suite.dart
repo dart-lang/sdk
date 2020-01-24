@@ -363,7 +363,8 @@ class FastaContext extends ChainContext with MatchContext {
   }
 
   @override
-  Set<Expectation> processExpectedOutcomes(Set<Expectation> outcomes) {
+  Set<Expectation> processExpectedOutcomes(
+      Set<Expectation> outcomes, TestDescription description) {
     if (skipVm && outcomes.length == 1 && outcomes.single == runtimeError) {
       return new Set<Expectation>.from([Expectation.Pass]);
     } else {

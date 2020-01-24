@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/required.dart:29:8: Warning: Optional parameter 'x' doensn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:29:8: Warning: Optional parameter 'x' doesn't have a default value and its type 'int' doesn't allow null.
 //   foo({x}) {}
 //        ^
 //
@@ -25,7 +25,7 @@ library;
 //   f2 = (int a = 42, [int b]) {};
 //               ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:48:15: Warning: Optional parameter 'a' doensn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:48:15: Warning: Optional parameter 'a' doesn't have a default value and its type 'int' doesn't allow null.
 //   void g({int a, required int b = 42}) {}
 //               ^
 //
@@ -33,7 +33,7 @@ library;
 //   void g({int a, required int b = 42}) {}
 //                               ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:49:13: Warning: Optional parameter 'a' doensn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:49:13: Warning: Optional parameter 'a' doesn't have a default value and its type 'int' doesn't allow null.
 //   f = ({int a, required int b = 42}) {};
 //             ^
 //
@@ -41,11 +41,11 @@ library;
 //   f = ({int a, required int b = 42}) {};
 //                             ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:52:28: Warning: Optional parameter 'b' doensn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:52:28: Warning: Optional parameter 'b' doesn't have a default value and its type 'int' doesn't allow null.
 //   void g2(int a = 42, [int b]) {}
 //                            ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:53:26: Warning: Optional parameter 'b' doensn't have a default value and its type 'int' doesn't allow null.
+// pkg/front_end/testcases/nnbd/required.dart:53:26: Warning: Optional parameter 'b' doesn't have a default value and its type 'int' doesn't allow null.
 //   f2 = (int a = 42, [int b]) {};
 //                          ^
 //

@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+# Note that test/spelling: Status will have no effect. Spelling errors can
+# always be fixed by either spelling correctly or updating the dictionary.
+
 AbstractClassInstantiation/example: Fail
 AbstractClassMember/part_wrapped_script5: Fail
 AbstractClassMember/part_wrapped_script6: Fail
@@ -351,7 +354,6 @@ InterfaceCheck/example: Fail
 InterpolationInUri/example: Fail
 InvalidAssignmentWarning/analyzerCode: Fail
 InvalidAssignmentWarning/example: Fail
-InvalidAssignmentWarning/spelling: Fail
 InvalidBreakTarget/analyzerCode: Fail
 InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail
@@ -447,7 +449,6 @@ NonInstanceTypeVariableUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonNullableOptOut/analyzerCode: Fail
 NonNullableOptOut/example: Fail
-NonNullableOptOutComment/spelling: Fail
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail
 NonPartOfDirectiveInPart/script1: Fail
 NotAConstantExpression/example: Fail
@@ -483,7 +484,6 @@ OptionalNonNullableWithoutInitializerError/analyzerCode: Fail
 OptionalNonNullableWithoutInitializerError/example: Fail
 OptionalNonNullableWithoutInitializerWarning/analyzerCode: Fail
 OptionalNonNullableWithoutInitializerWarning/example: Fail
-OptionalNonNullableWithoutInitializerWarning/spelling: Fail
 OverrideFewerNamedArguments/example: Fail
 OverrideFewerPositionalArguments/example: Fail
 OverrideMismatchNamedParameter/example: Fail
