@@ -15,6 +15,7 @@ dev_dependencies:
 
 flutter:
   plugin:
-    web:
-      pluginClass: SamplePlugin
-      fileName: main.dart
+    platforms:
+      web:
+        pluginClass: SamplePlugin
+        fileName: main.dart

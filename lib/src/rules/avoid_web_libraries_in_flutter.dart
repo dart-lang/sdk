@@ -88,7 +88,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // Check for a web plugin context declaration.
-    return ((parsedPubspec['flutter'] ?? const {})['plugin'] ??
+    return (((parsedPubspec['flutter'] ?? const {})['plugin'] ??
+                const {})['platforms'] ??
             const {})['web'] ==
         null;
   }
