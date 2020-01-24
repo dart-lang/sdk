@@ -24,13 +24,11 @@ final allFixes = <DartFixInfo>[
     'fix-named-constructor-type-arguments',
     'Move named constructor type arguments from the name to the type.',
     FixErrorTask.fixNamedConstructorTypeArgs,
-    isRequired: true,
   ),
   DartFixInfo(
     'use-mixin',
     'Convert classes used as a mixin to the new mixin syntax.',
     PreferMixinFix.task,
-    isRequired: true,
   ),
   //
   // Pedantic lint fixes.
@@ -150,9 +148,6 @@ class DartFixInfo {
   /// lint set.
   final bool isPedantic;
 
-  /// A flag indicating whether this fix is in the set of required fixes.
-  final bool isRequired;
-
   final void Function(DartFixRegistrar registrar, DartFixListener listener,
       EditDartfixParams params) _setup;
 
@@ -161,13 +156,11 @@ class DartFixInfo {
     this.description,
     this._setup, {
     this.isDefault = true,
-    this.isRequired = false,
     this.isPedantic = false,
   });
 
   /// Return a newly created fix generated from this fix info.
-  DartFix asDartFix() =>
-      DartFix(key, description: description, isRequired: isRequired);
+  DartFix asDartFix() => DartFix(key, description: description);
 
   /// Register this fix with the [registrar] and report progress to the
   /// [listener].
@@ -618,12 +611,9 @@ class LintFixInfo extends DartFixInfo {
     this.fixKind,
     String description, {
     bool isDefault = true,
-    bool isRequired = false,
     bool isPedantic = false,
   }) : super(lintName.replaceAll('_', '-'), description, null,
-            isDefault: isDefault,
-            isRequired: isRequired,
-            isPedantic: isPedantic);
+            isDefault: isDefault, isPedantic: isPedantic);
 
   @override
   void setup(DartFixRegistrar registrar, DartFixListener listener,

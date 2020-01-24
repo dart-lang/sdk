@@ -6747,7 +6747,6 @@ class ConvertMethodToGetterOptions extends RefactoringOptions
 /// {
 ///   "name": String
 ///   "description": optional String
-///   "isRequired": optional bool
 /// }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -6755,8 +6754,6 @@ class DartFix implements HasToJson {
   String _name;
 
   String _description;
-
-  bool _isRequired;
 
   /// The name of the fix.
   String get name => _name;
@@ -6775,18 +6772,9 @@ class DartFix implements HasToJson {
     _description = value;
   }
 
-  /// `true` if the fix is in the "required" fixes group.
-  bool get isRequired => _isRequired;
-
-  /// `true` if the fix is in the "required" fixes group.
-  set isRequired(bool value) {
-    _isRequired = value;
-  }
-
-  DartFix(String name, {String description, bool isRequired}) {
+  DartFix(String name, {String description}) {
     this.name = name;
     this.description = description;
-    this.isRequired = isRequired;
   }
 
   factory DartFix.fromJson(
@@ -6804,12 +6792,7 @@ class DartFix implements HasToJson {
         description = jsonDecoder.decodeString(
             jsonPath + '.description', json['description']);
       }
-      bool isRequired;
-      if (json.containsKey('isRequired')) {
-        isRequired = jsonDecoder.decodeBool(
-            jsonPath + '.isRequired', json['isRequired']);
-      }
-      return DartFix(name, description: description, isRequired: isRequired);
+      return DartFix(name, description: description);
     } else {
       throw jsonDecoder.mismatch(jsonPath, 'DartFix', json);
     }
@@ -6822,9 +6805,6 @@ class DartFix implements HasToJson {
     if (description != null) {
       result['description'] = description;
     }
-    if (isRequired != null) {
-      result['isRequired'] = isRequired;
-    }
     return result;
   }
 
@@ -6834,9 +6814,7 @@ class DartFix implements HasToJson {
   @override
   bool operator ==(other) {
     if (other is DartFix) {
-      return name == other.name &&
-          description == other.description &&
-          isRequired == other.isRequired;
+      return name == other.name && description == other.description;
     }
     return false;
   }
@@ -6846,7 +6824,6 @@ class DartFix implements HasToJson {
     int hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, description.hashCode);
-    hash = JenkinsSmiHash.combine(hash, isRequired.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -7158,7 +7135,6 @@ class DiagnosticGetServerPortResult implements ResponseResult {
 ///   "included": List<FilePath>
 ///   "includedFixes": optional List<String>
 ///   "includePedanticFixes": optional bool
-///   "includeRequiredFixes": optional bool
 ///   "excludedFixes": optional List<String>
 ///   "port": optional int
 ///   "outputDir": optional FilePath
@@ -7171,8 +7147,6 @@ class EditDartfixParams implements RequestParams {
   List<String> _includedFixes;
 
   bool _includePedanticFixes;
-
-  bool _includeRequiredFixes;
 
   List<String> _excludedFixes;
 
@@ -7225,14 +7199,6 @@ class EditDartfixParams implements RequestParams {
     _includePedanticFixes = value;
   }
 
-  /// A flag indicating whether "required" fixes should be applied.
-  bool get includeRequiredFixes => _includeRequiredFixes;
-
-  /// A flag indicating whether "required" fixes should be applied.
-  set includeRequiredFixes(bool value) {
-    _includeRequiredFixes = value;
-  }
-
   /// A list of names indicating which fixes should not be applied.
   ///
   /// If a name is specified that does not match the name of a known fix, an
@@ -7266,14 +7232,12 @@ class EditDartfixParams implements RequestParams {
   EditDartfixParams(List<String> included,
       {List<String> includedFixes,
       bool includePedanticFixes,
-      bool includeRequiredFixes,
       List<String> excludedFixes,
       int port,
       String outputDir}) {
     this.included = included;
     this.includedFixes = includedFixes;
     this.includePedanticFixes = includePedanticFixes;
-    this.includeRequiredFixes = includeRequiredFixes;
     this.excludedFixes = excludedFixes;
     this.port = port;
     this.outputDir = outputDir;
@@ -7300,11 +7264,6 @@ class EditDartfixParams implements RequestParams {
         includePedanticFixes = jsonDecoder.decodeBool(
             jsonPath + '.includePedanticFixes', json['includePedanticFixes']);
       }
-      bool includeRequiredFixes;
-      if (json.containsKey('includeRequiredFixes')) {
-        includeRequiredFixes = jsonDecoder.decodeBool(
-            jsonPath + '.includeRequiredFixes', json['includeRequiredFixes']);
-      }
       List<String> excludedFixes;
       if (json.containsKey('excludedFixes')) {
         excludedFixes = jsonDecoder.decodeList(jsonPath + '.excludedFixes',
@@ -7322,7 +7281,6 @@ class EditDartfixParams implements RequestParams {
       return EditDartfixParams(included,
           includedFixes: includedFixes,
           includePedanticFixes: includePedanticFixes,
-          includeRequiredFixes: includeRequiredFixes,
           excludedFixes: excludedFixes,
           port: port,
           outputDir: outputDir);
@@ -7345,9 +7303,6 @@ class EditDartfixParams implements RequestParams {
     }
     if (includePedanticFixes != null) {
       result['includePedanticFixes'] = includePedanticFixes;
-    }
-    if (includeRequiredFixes != null) {
-      result['includeRequiredFixes'] = includeRequiredFixes;
     }
     if (excludedFixes != null) {
       result['excludedFixes'] = excludedFixes;
@@ -7377,7 +7332,6 @@ class EditDartfixParams implements RequestParams {
           listEqual(includedFixes, other.includedFixes,
               (String a, String b) => a == b) &&
           includePedanticFixes == other.includePedanticFixes &&
-          includeRequiredFixes == other.includeRequiredFixes &&
           listEqual(excludedFixes, other.excludedFixes,
               (String a, String b) => a == b) &&
           port == other.port &&
@@ -7392,7 +7346,6 @@ class EditDartfixParams implements RequestParams {
     hash = JenkinsSmiHash.combine(hash, included.hashCode);
     hash = JenkinsSmiHash.combine(hash, includedFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, includePedanticFixes.hashCode);
-    hash = JenkinsSmiHash.combine(hash, includeRequiredFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, excludedFixes.hashCode);
     hash = JenkinsSmiHash.combine(hash, port.hashCode);
     hash = JenkinsSmiHash.combine(hash, outputDir.hashCode);

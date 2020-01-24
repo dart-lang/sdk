@@ -55,7 +55,6 @@ void main() {
     }
     expect(options.force, force);
     expect(options.pedanticFixes, pedanticFixes);
-    expect(options.requiredFixes, requiredFixes);
     expect(options.overwrite, overwrite);
     expect(options.serverSnapshot, serverSnapshot);
     expect(options.showHelp, showHelp);
@@ -122,10 +121,6 @@ void main() {
 
   test('pedantic fixes', () {
     parse(['--pedantic', 'foo'], pedanticFixes: true);
-  });
-
-  test('required fixes', () {
-    parse(['--required', 'foo'], requiredFixes: true);
   });
 
   test('server snapshot', () {

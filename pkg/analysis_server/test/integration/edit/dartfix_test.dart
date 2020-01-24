@@ -68,13 +68,4 @@ class C with B {}
     expect(result.suggestions.length, 0);
     expect(result.edits.length, 0);
   }
-
-  test_dartfix_required() async {
-    setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        includeRequiredFixes: true);
-    expect(result.hasErrors, isFalse);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.edits.length, greaterThanOrEqualTo(1));
-  }
 }

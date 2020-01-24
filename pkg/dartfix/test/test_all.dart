@@ -11,7 +11,6 @@ import 'src/driver_help_test.dart' as driver_help;
 import 'src/driver_include_test.dart' as driver_include;
 import 'src/driver_pedantic_test.dart' as driver_pedantic;
 import 'src/driver_prefer_is_empty_test.dart' as driver_prefer_is_empty;
-import 'src/driver_required_test.dart' as driver_required;
 import 'src/driver_test.dart' as driver;
 import 'src/options_test.dart' as options_test;
 
@@ -23,7 +22,6 @@ void main() {
   group('driver', driver_include.main);
   group('driver', driver_pedantic.main);
   group('driver', driver_prefer_is_empty.main);
-  group('driver', driver_required.main);
   group('driver', driver.main);
   group('options', options_test.main);
 }

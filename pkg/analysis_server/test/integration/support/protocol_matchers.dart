@@ -325,11 +325,10 @@ final Matcher isContextData =
 /// {
 ///   "name": String
 ///   "description": optional String
-///   "isRequired": optional bool
 /// }
 final Matcher isDartFix = LazyMatcher(() => MatchesJsonObject(
     'DartFix', {'name': isString},
-    optionalFields: {'description': isString, 'isRequired': isBool}));
+    optionalFields: {'description': isString}));
 
 /// DartFixSuggestion
 ///
@@ -2208,7 +2207,6 @@ final Matcher isDiagnosticGetServerPortResult = LazyMatcher(() =>
 ///   "included": List<FilePath>
 ///   "includedFixes": optional List<String>
 ///   "includePedanticFixes": optional bool
-///   "includeRequiredFixes": optional bool
 ///   "excludedFixes": optional List<String>
 ///   "port": optional int
 ///   "outputDir": optional FilePath
@@ -2219,7 +2217,6 @@ final Matcher isEditDartfixParams =
         }, optionalFields: {
           'includedFixes': isListOf(isString),
           'includePedanticFixes': isBool,
-          'includeRequiredFixes': isBool,
           'excludedFixes': isListOf(isString),
           'port': isInt,
           'outputDir': isFilePath

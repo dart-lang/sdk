@@ -1576,12 +1576,12 @@ abstract class IntegrationTestMixin {
   /// source requires it.
   ///
   /// If includedFixes is specified, then those fixes will be applied. If
-  /// includeRequiredFixes is specified, then "required" fixes will be applied
-  /// in addition to whatever fixes are specified in includedFixes if any. If
-  /// neither includedFixes nor includeRequiredFixes is specified, then all
-  /// fixes will be applied. If excludedFixes is specified, then those fixes
-  /// will not be applied regardless of whether they are "required" or
-  /// specified in includedFixes.
+  /// includePedanticFixes is specified, then fixes associated with the
+  /// pedantic rule set will be applied in addition to whatever fixes are
+  /// specified in includedFixes if any. If neither includedFixes nor
+  /// includePedanticFixes is specified, then no fixes will be applied. If
+  /// excludedFixes is specified, then those fixes will not be applied
+  /// regardless of whether they are specified in includedFixes.
   ///
   /// Parameters
   ///
@@ -1608,10 +1608,6 @@ abstract class IntegrationTestMixin {
   /// includePedanticFixes: bool (optional)
   ///
   ///   A flag indicating whether "pedantic" fixes should be applied.
-  ///
-  /// includeRequiredFixes: bool (optional)
-  ///
-  ///   A flag indicating whether "required" fixes should be applied.
   ///
   /// excludedFixes: List<String> (optional)
   ///
@@ -1670,14 +1666,12 @@ abstract class IntegrationTestMixin {
   Future<EditDartfixResult> sendEditDartfix(List<String> included,
       {List<String> includedFixes,
       bool includePedanticFixes,
-      bool includeRequiredFixes,
       List<String> excludedFixes,
       int port,
       String outputDir}) async {
     var params = EditDartfixParams(included,
             includedFixes: includedFixes,
             includePedanticFixes: includePedanticFixes,
-            includeRequiredFixes: includeRequiredFixes,
             excludedFixes: excludedFixes,
             port: port,
             outputDir: outputDir)
