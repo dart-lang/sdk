@@ -1197,9 +1197,10 @@ late_lowering/late_nullable_field_without_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
 late_lowering/override: TextSerializationFailure
+late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/assignability: TextSerializationFailure
-nnbd/definite_assignment_and_completion
+nnbd/call: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure
 nnbd/forin: TextSerializationFailure
@@ -1244,6 +1245,7 @@ nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
 nnbd/required: TextSerializationFailure
 nnbd/required_named_parameter: TextSerializationFailure
+nnbd/return_late: TextSerializationFailure
 nnbd/shorting_stop: TextSerializationFailure
 nnbd/simple_never: TextSerializationFailure
 nnbd/sink_hierarchy: TextSerializationFailure

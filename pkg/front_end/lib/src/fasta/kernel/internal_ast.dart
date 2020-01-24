@@ -1116,8 +1116,24 @@ class VariableDeclarationImpl extends VariableDeclaration {
         hasDeclaredInitializer = true,
         super.forValue(initializer);
 
+  // The synthesized local getter function for a lowered late variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
   VariableDeclaration lateGetter;
+
+  // The synthesized local setter function for an assignable lowered late
+  // variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
   VariableDeclaration lateSetter;
+
+  // The original type (declared or inferred) of a lowered late variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
+  DartType lateType;
 }
 
 /// Front end specific implementation of [VariableGet].

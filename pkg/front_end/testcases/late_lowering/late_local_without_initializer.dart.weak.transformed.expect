@@ -9,7 +9,7 @@ static method main() → dynamic {
     return let final core::int? #t1 = lateLocal in #t1.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Local 'lateLocal' has not been initialized.") : #t1{core::int};
   function #lateLocal#set(core::int #t2) → dynamic
     return lateLocal = #t2;
-  self::throws(() → core::int? => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
+  self::throws(() → core::int => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
   self::expect(123, #lateLocal#set.call(123));
   self::expect(123, #lateLocal#get.call());
   function local<T extends core::Object? = dynamic>(T% value) → core::Null? {
@@ -21,7 +21,7 @@ static method main() → dynamic {
       #lateGenericLocal#isSet = true;
       return lateGenericLocal = #t3;
     }
-    self::throws(() → T? => #lateGenericLocal#get.call(), "Read value from uninitialized lateGenericLocal");
+    self::throws(() → T% => #lateGenericLocal#get.call(), "Read value from uninitialized lateGenericLocal");
     self::expect(value, #lateGenericLocal#set.call(value));
     self::expect(value, #lateGenericLocal#get.call());
   }

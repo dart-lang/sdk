@@ -2652,7 +2652,7 @@ class TypeInferrerImpl implements TypeInferrer {
     assert(target.isCallFunction);
     FunctionType functionType = getFunctionType(target, receiverType);
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, functionType, arguments, target.member?.name,
+        typeContext, fileOffset, functionType, arguments, callName,
         receiverType: receiverType);
     // TODO(johnniwinther): Check that type arguments against the bounds.
     return createNullAwareExpressionInferenceResult(

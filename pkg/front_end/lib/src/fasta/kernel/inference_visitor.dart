@@ -5401,6 +5401,7 @@ class InferenceVisitor
         result.add(setter);
       }
       node.isLate = false;
+      node.lateType = node.type;
       node.type = inferrer.computeNullable(node.type);
       node.initializer = null;
 
@@ -5419,7 +5420,7 @@ class InferenceVisitor
     }
 
     DartType promotedType;
-    DartType declaredOrInferredType = variable.type;
+    DartType declaredOrInferredType = variable.lateType ?? variable.type;
     if (inferrer.isNonNullableByDefault) {
       if (node.forNullGuardedAccess) {
         DartType nonNullableType = inferrer.computeNonNullable(variable.type);
