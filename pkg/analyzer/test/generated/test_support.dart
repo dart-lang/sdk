@@ -28,6 +28,10 @@ class ExpectedError {
   /// The message text of the error or `null` if the message should not be checked.
   final String message;
 
+  /// A pattern that should be contained in the error message or `null` if the message
+  /// contents should not be checked.
+  final Pattern messageContains;
+
   /// The list of context messages that are expected to be associated with the
   /// error.
   final List<ExpectedContextMessage> expectedContextMessages;
@@ -35,6 +39,7 @@ class ExpectedError {
   /// Initialize a newly created error description.
   ExpectedError(this.code, this.offset, this.length,
       {this.message,
+      this.messageContains,
       this.expectedContextMessages = const <ExpectedContextMessage>[]});
 
   /// Return `true` if the [error] matches this description of what it's
@@ -46,6 +51,10 @@ class ExpectedError {
       return false;
     }
     if (message != null && error.message != message) {
+      return false;
+    }
+    if (messageContains != null &&
+        error.message?.contains(messageContains) != true) {
       return false;
     }
     List<DiagnosticMessage> contextMessages = error.contextMessages.toList();

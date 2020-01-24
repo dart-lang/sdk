@@ -606,10 +606,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ExpectedError error(ErrorCode code, int offset, int length,
           {String text,
+          Pattern messageContains,
           List<ExpectedContextMessage> contextMessages =
               const <ExpectedContextMessage>[]}) =>
       ExpectedError(code, offset, length,
-          message: text, expectedContextMessages: contextMessages);
+          message: text,
+          messageContains: messageContains,
+          expectedContextMessages: contextMessages);
 
   AuxiliaryElements getNodeAuxElements(AstNode node) {
     if (node is IndexExpression) {
