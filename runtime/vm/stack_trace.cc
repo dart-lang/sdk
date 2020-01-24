@@ -357,7 +357,13 @@ void StackTraceUtils::CollectFramesLazy(
   Zone* zone = thread->zone();
   DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != nullptr);  // We expect to find a dart invocation frame.
+
+  // If e.g. the isolate is paused before executing anything, we might not get
+  // any frames at all. Bail:
+  if (frame == nullptr) {
+    return;
+  }
+
   auto& function = Function::Handle(zone);
   auto& code = Code::Handle(zone);
   auto& bytecode = Bytecode::Handle(zone);
