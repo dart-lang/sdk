@@ -5,6 +5,7 @@
 [ $compiler == dart2js ]
 convert/chunked_conversion_utf88_test: Slow
 convert/utf85_test: Slow
+developer/metrics_num_test: Skip # Because of an int / double type test.
 developer/timeline_test: Skip # Not supported
 html/async_test: SkipByDesign
 html/custom/document_register_basic_test: Slow
@@ -22,7 +23,6 @@ html/wrapping_collections_test: SkipByDesign # Testing an issue that is only rel
 html/xhr_test: Slow
 isolate/*: SkipByDesign # No support for dart:isolate in dart4web (http://dartbug.com/30538)
 mirrors/*: SkipByDesign # Mirrors not supported on web in Dart 2.0.
-profiler/metrics_num_test: Skip # Because of an int / double type test.
 typed_data/int64_list_load_store_test: SkipByDesign # dart2js does not support Int64List
 typed_data/typed_data_hierarchy_int64_test: SkipByDesign # dart2js does not support Int64List
 typed_data/unmodifiable_typed_data_test: SkipByDesign # dart2js does not support Int64List
@@ -98,4 +98,3 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
-
