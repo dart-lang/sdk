@@ -1847,8 +1847,8 @@ class _BigIntImpl implements BigInt {
     var n = 3;
     final k1 = k - 1;
     final km = (1 << k) - 1;
-    List gDigits = new List(km + 1);
-    List gUsed = new List(km + 1);
+    List gDigits = new List.filled(km + 1, null);
+    List gUsed = new List.filled(km + 1, null);
     gDigits[1] = _newDigits(z._normModulusUsed);
     gUsed[1] = z._convert(this, gDigits[1]);
     if (k > 1) {

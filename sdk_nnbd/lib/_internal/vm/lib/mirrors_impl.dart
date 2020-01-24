@@ -70,7 +70,7 @@ SourceLocation? _location(reflectee) native "DeclarationMirror_location";
 List<dynamic> _metadata(reflectee) native 'DeclarationMirror_metadata';
 
 List<InstanceMirror> _wrapMetadata(List reflectees) {
-  var mirrors = new List<InstanceMirror>();
+  var mirrors = <InstanceMirror>[];
   for (var reflectee in reflectees) {
     mirrors.add(reflect(reflectee));
   }
@@ -226,9 +226,9 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -316,10 +316,10 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
     int numPositionalArguments = positionalArguments.length + 1; // Receiver.
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List.filled(numArguments, null);
     arguments[0] = _reflectee; // Receiver.
     arguments.setRange(1, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -471,7 +471,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     if (_isTransformedMixinApplication) {
       interfaceTypes = interfaceTypes.sublist(0, interfaceTypes.length - 1);
     }
-    var interfaceMirrors = new List<ClassMirror>();
+    var interfaceMirrors = <ClassMirror>[];
     for (var interfaceType in interfaceTypes) {
       interfaceMirrors.add(reflectType(interfaceType) as ClassMirror);
     }
@@ -480,7 +480,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   }
 
   Symbol get _mixinApplicationName {
-    var mixins = new List<ClassMirror>();
+    var mixins = <ClassMirror>[];
     var klass = this;
     while (_nativeMixin(klass._reflectedType) != null) {
       mixins.add(klass.mixin);
@@ -605,7 +605,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     if (!_isTransformedMixinApplication && _isAnonymousMixinApplication) {
       return _typeVariables = const <TypeVariableMirror>[];
     }
-    var result = new List<TypeVariableMirror>();
+    var result = <TypeVariableMirror>[];
 
     List params = _ClassMirror_type_variables(_reflectee);
     ClassMirror owner = originalDeclaration;
@@ -651,9 +651,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -962,7 +962,7 @@ class _TypedefMirror extends _DeclarationMirror
     var v = _typeVariables;
     if (v != null) return v;
 
-    var result = new List<TypeVariableMirror>();
+    var result = <TypeVariableMirror>[];
     List params = _ClassMirror._ClassMirror_type_variables(_reflectee);
     TypedefMirror owner = originalDeclaration;
     var mirror;

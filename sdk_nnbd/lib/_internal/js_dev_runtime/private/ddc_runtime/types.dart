@@ -846,7 +846,7 @@ class GenericFunctionType extends AbstractFunctionType {
     // formal if known, or it will be the original TypeVariable if we are still
     // solving for it. This array is passed to `instantiateToBounds` as we are
     // progressively solving for type variables.
-    var defaults = List<Object?>(typeFormals.length);
+    var defaults = List<Object?>.filled(typeFormals.length, null);
     // not ground
     var partials = Map<TypeVariable, Object>.identity();
 
@@ -1480,7 +1480,7 @@ class _TypeInferrer {
 
   /// Returns the inferred types based on the current constraints.
   List<Object>? getInferredTypes() {
-    var result = List<Object>();
+    var result = <Object>[];
     for (var constraint in _typeVariables.values) {
       // Prefer the known bound, if any.
       if (constraint.lower != null) {

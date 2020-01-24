@@ -66,7 +66,7 @@ Type _instantiateClass(Type type, List<Type> typeArguments) {
   }
 
   var typeArgsLenth = typeArguments.length;
-  var unwrappedArgs = List(typeArgsLenth);
+  var unwrappedArgs = List.filled(typeArgsLenth, null);
   for (int i = 0; i < typeArgsLenth; i++) {
     unwrappedArgs[i] = dart.unwrapType(typeArguments[i]);
   }

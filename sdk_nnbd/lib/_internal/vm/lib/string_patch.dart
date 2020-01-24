@@ -901,7 +901,7 @@ abstract class _StringBase implements String {
       // A matched empty string input returns the empty list.
       return <String>[];
     }
-    List<String> result = new List<String>();
+    List<String> result = <String>[];
     int startIndex = 0;
     int previousIndex = 0;
     // 'pattern' may not be implemented correctly and therefore we cannot
@@ -1330,7 +1330,7 @@ class _StringMatch implements Match {
   }
 
   List<String> groups(List<int> groups) {
-    List<String> result = new List<String>();
+    List<String> result = <String>[];
     for (int g in groups) {
       result.add(group(g));
     }

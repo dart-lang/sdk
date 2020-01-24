@@ -95,7 +95,7 @@ class _WebSocketProtocolTransformer extends StreamTransformerBase<List<int>,
   EventSink<dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/ >? _eventSink;
 
   final bool _serverSide;
-  final List _maskingBytes = new List(4);
+  final Uint8List _maskingBytes = Uint8List(4);
   final BytesBuilder _payload = new BytesBuilder(copy: false);
 
   _WebSocketPerMessageDeflate? _deflate;
@@ -429,7 +429,7 @@ class _WebSocketTransformerImpl
   }
 
   static List<String> _tokenizeFieldValue(String headerValue) {
-    List<String> tokens = new List<String>();
+    List<String> tokens = <String>[];
     int start = 0;
     int index = 0;
     while (index < headerValue.length) {

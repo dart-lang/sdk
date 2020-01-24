@@ -712,7 +712,7 @@ abstract class _JsonStringifier {
       writeString("{}");
       return true;
     }
-    var keyValueList = List<Object?>(map.length * 2);
+    var keyValueList = List<Object?>.filled(map.length * 2, null);
     var i = 0;
     var allStringKeys = true;
     map.forEach((key, value) {
@@ -772,7 +772,7 @@ abstract class _JsonPrettyPrintMixin implements _JsonStringifier {
       writeString("{}");
       return true;
     }
-    var keyValueList = List<Object?>(map.length * 2);
+    var keyValueList = List<Object?>.filled(map.length * 2, null);
     var i = 0;
     var allStringKeys = true;
     map.forEach((key, value) {

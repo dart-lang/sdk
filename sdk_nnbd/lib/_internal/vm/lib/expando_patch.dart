@@ -9,7 +9,7 @@ class Expando<T> {
   @patch
   Expando([String? name])
       : name = name,
-        _data = new List(_minSize),
+        _data = new List.filled(_minSize, null),
         _used = 0;
 
   static const _minSize = 8;
@@ -116,7 +116,7 @@ class Expando<T> {
 
     // Reset the mappings to empty so that we can just add the existing
     // valid entries.
-    _data = new List(new_size);
+    _data = new List.filled(new_size, null);
     _used = 0;
 
     for (var i = 0; i < old_data.length; i++) {

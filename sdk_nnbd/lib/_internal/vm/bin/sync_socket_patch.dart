@@ -185,7 +185,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
       throw response;
     }
     List<_InternetAddress> addresses =
-        new List<_InternetAddress>(response.length);
+        new List<_InternetAddress>.filled(response.length, null);
     for (int i = 0; i < response.length; ++i) {
       var result = response[i];
       addresses[i] = new _InternetAddress(result[1], host, result[2]);

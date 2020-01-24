@@ -100,7 +100,7 @@ class DateTime {
     const [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
   ];
 
-  static List _computeUpperPart(int localMicros) {
+  static List<int> _computeUpperPart(int localMicros) {
     const int DAYS_IN_4_YEARS = 4 * 365 + 1;
     const int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
     const int DAYS_IN_400_YEARS = 4 * DAYS_IN_100_YEARS + 1;
@@ -167,7 +167,7 @@ class DateTime {
             DateTime.daysPerWeek) +
         DateTime.monday;
 
-    List list = new List(_YEAR_INDEX + 1);
+    List<int> list = new List<int>.filled(_YEAR_INDEX + 1, 0);
     list[_MICROSECOND_INDEX] = resultMicrosecond;
     list[_MILLISECOND_INDEX] = resultMillisecond;
     list[_SECOND_INDEX] = resultSecond;

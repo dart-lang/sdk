@@ -1057,7 +1057,7 @@ class _HttpClientRequest extends _HttpOutboundMessage<HttpClientResponse>
     implements HttpClientRequest {
   final String method;
   final Uri uri;
-  final List<Cookie> cookies = new List<Cookie>();
+  final List<Cookie> cookies = [];
 
   // The HttpClient this request belongs to.
   final _HttpClient _httpClient;
@@ -2926,7 +2926,7 @@ class _ProxyConfiguration {
   static const String PROXY_PREFIX = "PROXY ";
   static const String DIRECT_PREFIX = "DIRECT";
 
-  _ProxyConfiguration(String configuration) : proxies = new List<_Proxy>() {
+  _ProxyConfiguration(String configuration) : proxies = <_Proxy>[] {
     if (configuration == null) {
       throw new HttpException("Invalid proxy configuration $configuration");
     }

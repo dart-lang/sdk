@@ -538,7 +538,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   ListQueue([int? initialCapacity])
       : _head = 0,
         _tail = 0,
-        _table = List<E?>(_calculateCapacity(initialCapacity));
+        _table = List<E?>.filled(_calculateCapacity(initialCapacity), null);
 
   static int _calculateCapacity(int? initialCapacity) {
     if (initialCapacity == null || initialCapacity < _INITIAL_CAPACITY) {
@@ -840,7 +840,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
 
   /// Grow the table when full.
   void _grow() {
-    List<E?> newTable = List<E?>(_table.length * 2);
+    List<E?> newTable = List<E?>.filled(_table.length * 2, null);
     int split = _table.length - _head;
     newTable.setRange(0, split, _table, _head);
     newTable.setRange(split, split + _head, _table, 0);
@@ -871,7 +871,7 @@ class ListQueue<E> extends ListIterable<E> implements Queue<E> {
     // expansion.
     newElementCount += newElementCount >> 1;
     int newCapacity = _nextPowerOf2(newElementCount);
-    List<E?> newTable = List<E?>(newCapacity);
+    List<E?> newTable = List<E?>.filled(newCapacity, null);
     _tail = _writeToList(newTable);
     _table = newTable;
     _head = 0;

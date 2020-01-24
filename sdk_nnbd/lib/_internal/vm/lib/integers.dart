@@ -303,7 +303,7 @@ abstract class _IntegerImplementation implements int {
       // -MIN_INT64 == MIN_INT64, so it requires special handling.
       return _minInt64ToRadixString(radix);
     }
-    var temp = new List<int>();
+    var temp = <int>[];
     do {
       int digit = value % radix;
       value ~/= radix;
@@ -351,7 +351,7 @@ abstract class _IntegerImplementation implements int {
   /// This method is only used to handle corner case of
   /// MIN_INT64 = -0x8000000000000000.
   String _minInt64ToRadixString(int radix) {
-    var temp = new List<int>();
+    var temp = <int>[];
     int value = this;
     assert(value < 0);
     do {

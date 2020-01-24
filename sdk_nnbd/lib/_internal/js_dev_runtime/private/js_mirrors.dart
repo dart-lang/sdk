@@ -571,7 +571,7 @@ class JsMethodMirror extends JsMirror implements MethodMirror {
     // TODO(vsm): Add named args.
     List args = ftype.args;
     List opts = ftype.optionals;
-    var params = List<ParameterMirror>(args.length + opts.length);
+    var params = List<ParameterMirror>.filled(args.length + opts.length, null);
 
     for (var i = 0; i < args.length; ++i) {
       var type = args[i];

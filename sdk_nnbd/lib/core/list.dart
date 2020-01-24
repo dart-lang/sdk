@@ -16,7 +16,7 @@ part of dart.core;
  *
  * * Growable list. Full implementation of the API defined in this class.
  *
- * The default growable list, as returned by `new List()` or `[]`, keeps
+ * The default growable list, as created by `[]`, keeps
  * an internal buffer, and grows that buffer when necessary. This guarantees
  * that a sequence of [add] operations will each execute in amortized constant
  * time. Setting the length directly may take time proportional to the new
@@ -84,6 +84,13 @@ abstract class List<E> implements EfficientLengthIterable<E> {
    *
    * If the element type is not nullable, [length] must not be greater than
    * zero.
+   *
+   * This constructor cannot be used in null-safe code.
+   * Use [List.filled] to create a non-empty list.
+   * This requires a fill value to initialize the list elements with.
+   * To create an empty list, use `[]` for a growable list or
+   * `List.empty` for a fixed length list (or where growability is determined
+   * at run-time).
    */
   external factory List([int? length]);
 

@@ -13,7 +13,7 @@ part of dart.collection;
 /// `operator[]=` and `length=`, which need to be implemented.
 ///
 /// *NOTICE*: Forwarding just these four operations to a normal growable [List]
-/// (as created by `new List()`) will give very bad performance for `add` and
+/// (as created by `[]`) will give very bad performance for `add` and
 /// `addAll` operations of `ListBase`. These operations are implemented by
 /// increasing the length of the list by one for each `add` operation, and
 /// repeatedly increasing the length of a growable list is not efficient.
@@ -43,7 +43,7 @@ abstract class ListBase<E> extends Object with ListMixin<E> {
 /// `length=` and `operator[]=`
 ///
 /// *NOTICE*: Forwarding just these four operations to a normal growable [List]
-/// (as created by `new List()`) will give very bad performance for `add` and
+/// (as created by `[]`) will give very bad performance for `add` and
 /// `addAll` operations of `ListBase`. These operations are implemented by
 /// increasing the length of the list by one for each `add` operation, and
 /// repeatedly increasing the length of a growable list is not efficient.

@@ -266,7 +266,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   String join([String separator = '']) {
-    var list = new List(this.length);
+    var list = List.filled(this.length, null);
     for (int i = 0; i < this.length; i++) {
       list[i] = '${this[i]}';
     }

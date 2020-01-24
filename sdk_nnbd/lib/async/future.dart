@@ -431,7 +431,7 @@ abstract class Future<T> {
       if (remaining == 0) {
         return new Future<List<T>>.value(const <Never>[]);
       }
-      values = new List<T?>(remaining);
+      values = new List<T?>.filled(remaining, null);
     } catch (e, st) {
       // The error must have been thrown while iterating over the futures
       // list, or while installing a callback handler on the future.
