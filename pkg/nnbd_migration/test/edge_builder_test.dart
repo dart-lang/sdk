@@ -711,6 +711,24 @@ void f(Object o) {
     assertEdge(decoratedTypeAnnotation('int').node, anyNode, hard: true);
   }
 
+  Future<void> test_assign_to_bound_class_alias() async {
+    await analyze('''
+class C<T extends Object/*1*/> {}
+class D<T extends Object/*2*/> {}
+mixin M<T extends Object/*3*/> {}
+class F = C<int> with M<String> implements D<num>;
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object/*1*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('num').node,
+        decoratedTypeAnnotation('Object/*2*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('String').node,
+        decoratedTypeAnnotation('Object/*3*/').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_class_extends() async {
     await analyze('''
 class A<T extends Object> {}

@@ -518,6 +518,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitClassTypeAlias(ClassTypeAlias node) {
+    node.superclass.accept(this);
+    node.implementsClause?.accept(this);
+    node.withClause?.accept(this);
     var classElement = node.declaredElement;
     var supertype = classElement.supertype;
     var superElement = supertype.element;
