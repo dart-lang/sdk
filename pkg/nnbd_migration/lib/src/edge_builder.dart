@@ -1350,6 +1350,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitSpreadElement(SpreadElement node) {
     final spreadType = node.expression.staticType;
+    DecoratedType spreadTypeDecorated;
     if (_typeSystem.isSubtypeOf(spreadType, typeProvider.mapObjectObjectType)) {
       assert(_currentMapKeyType != null && _currentMapValueType != null);
       final expectedType = typeProvider.mapType2(
@@ -1358,7 +1359,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           typeProvider, expectedType, _graph,
           typeArguments: [_currentMapKeyType, _currentMapValueType]);
 
-      _handleAssignment(node.expression,
+      spreadTypeDecorated = _handleAssignment(node.expression,
           destinationType: expectedDecoratedType);
     } else if (_typeSystem.isSubtypeOf(
         spreadType, typeProvider.iterableDynamicType)) {
@@ -1369,14 +1370,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           typeProvider, expectedType, _graph,
           typeArguments: [_currentLiteralElementType]);
 
-      _handleAssignment(node.expression,
+      spreadTypeDecorated = _handleAssignment(node.expression,
           destinationType: expectedDecoratedType);
     } else {
       // Downcast. We can't assume nullability here, so do nothing.
     }
 
     if (!node.isNullAware) {
-      _checkExpressionNotNull(node.expression);
+      _checkExpressionNotNull(node.expression, sourceType: spreadTypeDecorated);
     }
 
     return null;
@@ -1602,11 +1603,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// value is non-null.
   ///
   /// Returns the decorated type of [expression].
-  DecoratedType _checkExpressionNotNull(Expression expression) {
+  DecoratedType _checkExpressionNotNull(Expression expression,
+      {DecoratedType sourceType}) {
     if (_isPrefix(expression)) {
       throw ArgumentError('cannot check non-nullability of a prefix');
     }
-    DecoratedType sourceType = expression.accept(this);
+    sourceType ??= expression.accept(this);
     if (sourceType == null) {
       throw StateError('No type computed for ${expression.runtimeType} '
           '(${expression.toSource()}) offset=${expression.offset}');
