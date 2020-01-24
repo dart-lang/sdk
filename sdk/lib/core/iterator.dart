@@ -33,21 +33,21 @@ part of dart.core;
  * in the [library tour](http://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html)
  */
 abstract class Iterator<E> {
-  /**
-   * Moves to the next element.
+   /**
+   * Advances the iterator to the next element of the iteration.
+   * 
+   * Should be called before reading [current]. It the call to `moveNext` returns
+   * `true`, then [current] will contain the next element of the iteration until 
+   * `moveNext` is called again. If the call returns `false`, there are no further
+   * elements and [current] should not be used any more.
    *
-   * Returns true if [current] contains the next element.
-   * Returns false if no elements are left.
+   * It is safe to call [moveNext] after it has already returned `false`, 
+   * but it must keep returning `false` and not have any other effect.
    *
-   * Invoke [moveNext] to move to the first element and to each
-   * subsequent element.
-   *
-   * It is safe to invoke [moveNext] even when the iterator is already
-   * positioned after the last element.
-   * In this case [moveNext] returns false again and has no effect.
-   *
-   * A call to `moveNext` may throw if iteration has been broken by
-   * changing the underlying collection.
+   * A call to `moveNext` may throw for various reasons, including a concurrent change
+   * to an underlying collection. If that happens, the iterator may be in an inconsistent 
+   * state, and any further behavior of the iterator is unspecified, 
+   * including the effect of reading [current]. 
    */
   bool moveNext();
 
