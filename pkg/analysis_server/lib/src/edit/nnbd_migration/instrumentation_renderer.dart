@@ -74,9 +74,6 @@ mustache.Template _template = mustache.Template(r'''
 /// Instrumentation display output for a library that was migrated to use
 /// non-nullable types.
 class InstrumentationRenderer {
-  /// A flag indicating whether the incremental workflow is currently supported.
-  static const bool supportsIncrementalWorkflow = false;
-
   /// Information for a whole migration, so that libraries can reference each
   /// other.
   final MigrationInfo migrationInfo;

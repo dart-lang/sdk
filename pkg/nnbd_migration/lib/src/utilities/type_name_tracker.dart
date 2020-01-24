@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 
 /// A simple class to find all [TypeName]s and track if they all get visited.
 class TypeNameTracker extends RecursiveAstVisitor<void> {

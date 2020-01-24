@@ -29,7 +29,6 @@ import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/scoped_set.dart';
-import 'package:nnbd_migration/src/utilities/type_name_tracker.dart';
 
 import 'decorated_type_operations.dart';
 

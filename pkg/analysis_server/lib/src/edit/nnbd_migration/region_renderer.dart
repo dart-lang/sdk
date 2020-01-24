@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show HtmlEscape, HtmlEscapeMode, jsonEncode;
+import 'dart:convert' show jsonEncode;
 
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
@@ -10,11 +10,6 @@ import 'package:path/path.dart' as path;
 
 /// The HTML that is displayed for a region of code.
 class RegionRenderer {
-  /// A converter which only escapes "&", "<", and ">". Safe for use in HTML
-  /// text, between HTML elements.
-  static const HtmlEscape _htmlEscape =
-      HtmlEscape(HtmlEscapeMode(escapeLtGt: true));
-
   /// A flag indicating whether the incremental workflow is currently supported.
   static const bool supportsIncrementalWorkflow = false;
 
