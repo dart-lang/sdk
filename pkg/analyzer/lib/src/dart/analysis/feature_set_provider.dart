@@ -11,6 +11,10 @@ import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 class FeatureSetProvider {
+  /// This flag will be turned to `true` and inlined when we un-fork SDK,
+  /// so that the only SDK is the Null Safe SDK.
+  static const isNullSafetySdk = false;
+
   static final _preNonNullableVersion = Version(2, 7, 0);
 
   final FeatureSet _sdkFeatureSet;

@@ -516,7 +516,10 @@ void main() {
 
     assertBinaryExpression(
       findNode.binary('=='),
-      element: objectElement.getMethod('=='),
+      element: elementMatcher(
+        objectElement.getMethod('=='),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'bool',
     );
 
@@ -565,7 +568,10 @@ void main() {
 
     assertSimpleIdentifier(
       findNode.simple('toString'),
-      element: objectElement.getMethod('toString'),
+      element: elementMatcher(
+        objectElement.getMethod('toString'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'String Function()',
     );
   }
@@ -579,7 +585,10 @@ void main() {
 
     assertSimpleIdentifier(
       findNode.simple('hashCode'),
-      element: objectElement.getGetter('hashCode'),
+      element: elementMatcher(
+        objectElement.getGetter('hashCode'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'int',
     );
   }
