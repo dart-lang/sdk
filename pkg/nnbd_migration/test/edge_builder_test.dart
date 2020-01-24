@@ -916,6 +916,15 @@ void main() {
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_method_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+class D {
+  f<U extends C<int>>() {}
+}
+''');
+  }
+
   Future<void> test_assign_to_bound_method_call_type_argument() async {
     await analyze('''
 void f<T extends Object>() {}

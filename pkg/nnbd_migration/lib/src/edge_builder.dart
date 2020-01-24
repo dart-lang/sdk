@@ -1014,6 +1014,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitMethodDeclaration(MethodDeclaration node) {
     _handleExecutableDeclaration(node, node.declaredElement, node.metadata,
         node.returnType, node.parameters, null, node.body, null);
+    node.typeParameters?.accept(this);
     return null;
   }
 
