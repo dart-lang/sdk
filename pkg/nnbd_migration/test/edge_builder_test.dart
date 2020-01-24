@@ -793,6 +793,16 @@ class B<T extends A<int>> {}
     assertEdge(aBoundInt, aBound, hard: true);
   }
 
+  Future<void> test_assign_to_bound_within_bound_method() async {
+    await analyze('''
+class C<T extends Object> {}
+void f<T extends C<int>>() {}
+''');
+    var cBound = decoratedTypeAnnotation('Object').node;
+    var fcInt = decoratedTypeAnnotation('int').node;
+    assertEdge(fcInt, cBound, hard: true);
+  }
+
   Future<void> test_assign_type_parameter_to_bound() async {
     await analyze('''
 class C<T extends List<int>> {

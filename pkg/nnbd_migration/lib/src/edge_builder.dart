@@ -721,6 +721,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitFunctionExpression(FunctionExpression node) {
     // TODO(mfairhurst): enable edge builder "_insideFunction" hard edge tests.
     node.parameters?.accept(this);
+    node.typeParameters?.accept(this);
     if (node.parent is! FunctionDeclaration) {
       _flowAnalysis.functionExpression_begin(node);
     }
