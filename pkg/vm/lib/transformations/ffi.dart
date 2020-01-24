@@ -120,7 +120,7 @@ const wordSize = <Abi, int>{
 /// Has an entry for all Abis. Empty entries document that every native
 /// type is aligned to it's own size in this ABI.
 ///
-/// See runtime/vm/compiler/ffi.cc for asserts in the VM that verify these
+/// See runtime/vm/ffi/abi.cc for asserts in the VM that verify these
 /// alignments.
 ///
 /// TODO(37470): Add uncommon primitive data types when we want to support them.
