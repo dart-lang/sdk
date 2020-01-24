@@ -690,6 +690,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFunctionDeclaration(FunctionDeclaration node) {
     node.metadata.accept(this);
+    node.returnType?.accept(this);
     if (_flowAnalysis != null) {
       // This is a local function.
       _flowAnalysis.functionExpression_begin(node);
@@ -1305,6 +1306,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       return _makeNonNullLiteralType(node);
     } else if (staticElement is ExtensionElement) {
       return _makeNonNullLiteralType(node);
+    } else if (staticElement == null) {
+      assert(node.toString() == 'void');
     } else if (staticElement.enclosingElement is ClassElement &&
         (staticElement.enclosingElement as ClassElement).isEnum) {
       return getOrComputeElementType(staticElement);
