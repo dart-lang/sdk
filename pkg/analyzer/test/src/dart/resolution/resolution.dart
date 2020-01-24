@@ -143,6 +143,32 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, same(expected));
   }
 
+  void assertElement2(
+    Object nodeOrElement, {
+    @required Element declaration,
+    bool isLegacy = false,
+    Map<String, String> substitution = const {},
+  }) {
+    Element element;
+    if (nodeOrElement is AstNode) {
+      element = getNodeElement(nodeOrElement);
+    } else {
+      element = nodeOrElement as Element;
+    }
+
+    var actualDeclaration = element?.declaration;
+    expect(actualDeclaration, same(declaration));
+
+    if (element is Member) {
+      expect(element.isLegacy, isLegacy);
+      assertSubstitution(element.substitution, substitution);
+    } else {
+      if (isLegacy || substitution.isNotEmpty) {
+        fail('Expected to be a Member: (${element.runtimeType}) $element');
+      }
+    }
+  }
+
   void assertElementLibraryUri(Element element, String expected) {
     var uri = element.library.source.uri;
     expect('$uri', expected);
