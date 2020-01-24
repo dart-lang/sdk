@@ -549,7 +549,10 @@ bool File::SetLastModified(Namespace* namespc,
   return utimensat(ns.fd(), ns.path(), times, 0) == 0;
 }
 
-const char* File::LinkTarget(Namespace* namespc, const char* name) {
+const char* File::LinkTarget(Namespace* namespc,
+                             const char* name,
+                             char* dest,
+                             int dest_size) {
   NamespaceScope ns(namespc, name);
   struct stat64 link_stats;
   const int status = TEMP_FAILURE_RETRY(
@@ -571,11 +574,17 @@ const char* File::LinkTarget(Namespace* namespc, const char* name) {
   if (target_size <= 0) {
     return NULL;
   }
-  char* target_name = DartUtils::ScopedCString(target_size + 1);
-  ASSERT(target_name != NULL);
-  memmove(target_name, target, target_size);
-  target_name[target_size] = '\0';
-  return target_name;
+  if (dest == NULL) {
+    dest = DartUtils::ScopedCString(target_size + 1);
+  } else {
+    ASSERT(dest_size > 0);
+    if (dest_size <= target_size) {
+      return NULL;
+    }
+  }
+  memmove(dest, target, target_size);
+  dest[target_size] = '\0';
+  return dest;
 }
 
 bool File::IsAbsolutePath(const char* pathname) {
