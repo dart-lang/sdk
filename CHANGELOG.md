@@ -127,7 +127,7 @@ representation soon.
 
 [17207]: https://github.com/dart-lang/sdk/issues/17207
 
-## 2.7.1 - 2020-01-32
+## 2.7.1 - 2020-01-23
 
 This is a patch release that improves dart2js compile-time (issue [40217][]).
 
