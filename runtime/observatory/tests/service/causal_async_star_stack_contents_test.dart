@@ -52,6 +52,7 @@ var tests = <IsolateTest>[
     } else {
       expect(asyncStack.length, greaterThanOrEqualTo(1));
       expect(asyncStack[0].toString(), contains('helper'));
+      // helper isn't awaited.
     }
   },
   resumeIsolate,
@@ -62,17 +63,14 @@ var tests = <IsolateTest>[
     // Has causal frames (we are inside an async function)
     expect(stack['asyncCausalFrames'], isNotNull);
     var asyncStack = stack['asyncCausalFrames'];
+    expect(asyncStack.length, greaterThanOrEqualTo(3));
+    expect(asyncStack[0].toString(), contains('foobar'));
+    expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
+    expect(asyncStack[2].toString(), contains('helper'));
+    expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
     if (useCausalAsyncStacks) {
-      expect(asyncStack.length, greaterThanOrEqualTo(3));
-      expect(asyncStack[0].toString(), contains('foobar'));
-      expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
-      expect(asyncStack[2].toString(), contains('helper'));
-      expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
+      // helper isn't awaited.
       expect(asyncStack[4].toString(), contains('testMain'));
-    } else {
-      // TODO(dartbug.com/37668): Implement suport for this in the debugger.
-      expect(asyncStack.length, greaterThanOrEqualTo(1));
-      expect(asyncStack[0].toString(), contains('foobar'));
     }
   },
   resumeIsolate,
@@ -87,22 +85,19 @@ var tests = <IsolateTest>[
     await printFrames(asyncStack);
     print('sync:');
     await printFrames(stack['frames']);
+    expect(asyncStack.length, greaterThanOrEqualTo(4));
+    expect(asyncStack[0].toString(), contains('foobar'));
+    expect(
+        await asyncStack[0].location.toUserString(), contains('.dart:$LINE_C'));
+    expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
+    expect(asyncStack[2].toString(), contains('helper'));
+    expect(await asyncStack[2].location.toUserString(), contains('.dart:30'));
+    expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
     if (useCausalAsyncStacks) {
+      // helper isn't awaited.
       expect(asyncStack.length, greaterThanOrEqualTo(5));
-      expect(asyncStack[0].toString(), contains('foobar'));
-      expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
-      expect(asyncStack[2].toString(), contains('helper'));
-      expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
       expect(asyncStack[4].toString(), contains('testMain'));
-      expect(await asyncStack[0].location.toUserString(),
-          contains('.dart:$LINE_C'));
-      expect(await asyncStack[2].location.toUserString(), contains('.dart:30'));
       expect(await asyncStack[4].location.toUserString(), contains('.dart:36'));
-    } else {
-      // TODO(dartbug.com/37668): Implement suport for this in the debugger.
-      expect(asyncStack.length, greaterThanOrEqualTo(2));
-      expect(asyncStack[0].toString(), contains('foobar'));
-      expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
     }
   },
 ];

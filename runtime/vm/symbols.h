@@ -396,6 +396,7 @@ class ObjectPointerVisitor;
   V(_StackTrace, "_StackTrace")                                                \
   V(_StreamController, "_StreamController")                                    \
   V(_StreamImpl, "_StreamImpl")                                                \
+  V(_StreamIterator, "_StreamIterator")                                        \
   V(_String, "String")                                                         \
   V(_SyncIterable, "_SyncIterable")                                            \
   V(_SyncIterableConstructor, "_SyncIterable.")                                \
@@ -444,6 +445,7 @@ class ObjectPointerVisitor;
   V(_simpleInstanceOfTrue, "_simpleInstanceOfTrue")                            \
   V(_stackTrace, "_stackTrace")                                                \
   V(_state, "_state")                                                          \
+  V(_stateData, "_stateData")                                                  \
   V(_varData, "_varData")                                                      \
   V(_wordCharacterMap, "_wordCharacterMap")                                    \
   V(add, "add")                                                                \
