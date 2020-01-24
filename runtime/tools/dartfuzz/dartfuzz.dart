@@ -14,7 +14,7 @@ import 'dartfuzz_type_table.dart';
 // Version of DartFuzz. Increase this each time changes are made
 // to preserve the property that a given version of DartFuzz yields
 // the same fuzzed program for a deterministic random seed.
-const String version = '1.85';
+const String version = '1.86';
 
 // Restriction on statements and expressions.
 const int stmtDepth = 1;
@@ -372,7 +372,7 @@ class DartApi {
           DartLib('times1_337Float', [DartType.VOID, DartType.DOUBLE], true),
           DartLib(
               'sumManyDoubles',
-              [DartType.VOID, ...List<DartType>.filled(10, DartType.INT)],
+              [DartType.VOID, ...List<DartType>.filled(10, DartType.DOUBLE)],
               true),
           DartLib('times1_337Double', [DartType.VOID, DartType.DOUBLE], true),
           DartLib(
