@@ -49,7 +49,6 @@ import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart'
     show Namer, ConstantEmitter, StringBackedName;
 import '../../js_backend/js_interop_analysis.dart' as jsInteropAnalysis;
-import '../../js_backend/native_data.dart' show NativeData;
 import '../../js_backend/runtime_types.dart';
 import '../../js_backend/runtime_types_codegen.dart';
 import '../../js_backend/runtime_types_new.dart'
