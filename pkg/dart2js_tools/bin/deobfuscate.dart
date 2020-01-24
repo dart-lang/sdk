@@ -48,7 +48,7 @@ main(List<String> args) {
   try {
     String obfuscatedTrace = new File(args[0]).readAsStringSync();
     String error = extractErrorMessage(obfuscatedTrace);
-    var provider = new CachingFileProvider();
+    var provider = new CachingFileProvider(logger: Logger());
     StackDeobfuscationResult result =
         deobfuscateStack(obfuscatedTrace, provider);
     Frame firstFrame = result.original.frames.first;

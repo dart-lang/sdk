@@ -31,13 +31,15 @@ class Dart2jsMapping {
     return _frameIndex;
   }
 
-  Dart2jsMapping(this.sourceMap, Map json) {
+  Dart2jsMapping(this.sourceMap, Map json, {Logger logger}) {
     var extensions = json['x_org_dartlang_dart2js'];
     if (extensions == null) return;
     var minifiedNames = extensions['minified_names'];
     if (minifiedNames != null) {
-      _extractMinifedNames(minifiedNames['global'], sourceMap, globalNames);
-      _extractMinifedNames(minifiedNames['instance'], sourceMap, instanceNames);
+      _extractMinifedNames(
+          minifiedNames['global'], sourceMap, globalNames, logger);
+      _extractMinifedNames(
+          minifiedNames['instance'], sourceMap, instanceNames, logger);
     }
     String jsonFrames = extensions['frames'];
     if (jsonFrames != null) {
@@ -74,10 +76,10 @@ class FrameEntry {
 }
 
 const _marker = "\n//# sourceMappingURL=";
-Dart2jsMapping parseMappingFor(Uri uri) {
+Dart2jsMapping parseMappingFor(Uri uri, {Logger logger}) {
   var file = new File.fromUri(uri);
   if (!file.existsSync()) {
-    warn('Error: no such file: $uri');
+    logger?.log('Error: no such file: $uri');
     return null;
   }
   var contents = file.readAsStringSync();
@@ -86,7 +88,7 @@ Dart2jsMapping parseMappingFor(Uri uri) {
   if (urlIndex != -1) {
     sourcemapPath = contents.substring(urlIndex + _marker.length).trim();
   } else {
-    warn('Error: source-map url marker not found in $uri\n'
+    logger?.log('Error: source-map url marker not found in $uri\n'
         '       trying $uri.map');
     sourcemapPath = '${uri.pathSegments.last}.map';
   }
@@ -94,11 +96,11 @@ Dart2jsMapping parseMappingFor(Uri uri) {
   assert(!sourcemapPath.contains('\n'));
   var sourcemapFile = new File.fromUri(uri.resolve(sourcemapPath));
   if (!sourcemapFile.existsSync()) {
-    warn('Error: no such file: $sourcemapFile');
+    logger?.log('Error: no such file: $sourcemapFile');
     return null;
   }
   var json = jsonDecode(sourcemapFile.readAsStringSync());
-  return new Dart2jsMapping(parseJson(json), json);
+  return new Dart2jsMapping(parseJson(json), json, logger: logger);
 }
 
 class _FrameDecoder implements Iterator<String> {
@@ -149,10 +151,10 @@ class _FrameDecoder implements Iterator<String> {
 }
 
 _extractMinifedNames(String encodedInput, SingleMapping sourceMap,
-    Map<String, String> minifiedNames) {
+    Map<String, String> minifiedNames, Logger logger) {
   List<String> input = encodedInput.split(',');
   if (input.length % 2 != 0) {
-    warn("expected an even number of entries");
+    logger?.log("Error: expected an even number of entries");
   }
   for (int i = 0; i < input.length; i += 2) {
     String minifiedName = input[i];

@@ -31,7 +31,7 @@ class StackTraceLine {
   ///     at <fileName>:<lineNo>
   ///     at <fileName>
   ///
-  factory StackTraceLine.fromText(String text) {
+  factory StackTraceLine.fromText(String text, {Logger logger}) {
     text = text.trim();
     assert(text.startsWith('at '));
     text = text.substring('at '.length);
@@ -43,7 +43,7 @@ class StackTraceLine {
         methodName = text.substring(0, nameEnd).trim();
         text = text.substring(nameEnd + 1, endParen).trim();
       } else {
-        warn('Missing left-paren in: $text');
+        logger?.log('Missing left-paren in: $text');
       }
     }
     int lineNo;
@@ -123,13 +123,13 @@ class StackTraceLine {
   }
 }
 
-List<StackTraceLine> parseStackTrace(String trace) {
+List<StackTraceLine> parseStackTrace(String trace, {Logger logger}) {
   List<String> lines = trace.split(new RegExp(r'(\r|\n|\r\n)'));
   List<StackTraceLine> jsStackTrace = <StackTraceLine>[];
   for (String line in lines) {
     line = line.trim();
     if (line.startsWith('at ')) {
-      jsStackTrace.add(new StackTraceLine.fromText(line));
+      jsStackTrace.add(new StackTraceLine.fromText(line, logger: logger));
     }
   }
   return jsStackTrace;

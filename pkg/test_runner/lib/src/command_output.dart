@@ -9,6 +9,7 @@ import 'dart:io' as io;
 
 import 'package:status_file/expectation.dart';
 import 'package:test_runner/src/static_error.dart';
+import 'package:dart2js_tools/deobfuscate_stack_trace.dart';
 
 import 'browser_controller.dart';
 import 'command.dart';
@@ -269,7 +270,12 @@ class BrowserCommandOutput extends CommandOutput
   final BrowserTestOutput _result;
   final Expectation _outcome;
 
-  factory BrowserCommandOutput(Command command, BrowserTestOutput result) {
+  /// Directory that is being served under `http:/.../root_build/` to browser
+  /// tests.
+  final String _buildDirectory;
+
+  factory BrowserCommandOutput(
+      BrowserTestCommand command, BrowserTestOutput result) {
     Expectation outcome;
 
     var parsedResult =
@@ -297,12 +303,24 @@ class BrowserCommandOutput extends CommandOutput
       }
     }
 
-    return BrowserCommandOutput._internal(command, result, outcome,
-        parsedResult, encodeUtf8(""), encodeUtf8(stderr));
+    return BrowserCommandOutput._internal(
+        command,
+        result,
+        outcome,
+        parsedResult,
+        command.configuration.buildDirectory,
+        encodeUtf8(""),
+        encodeUtf8(stderr));
   }
 
-  BrowserCommandOutput._internal(Command command, BrowserTestOutput result,
-      this._outcome, this._jsonResult, List<int> stdout, List<int> stderr)
+  BrowserCommandOutput._internal(
+      Command command,
+      BrowserTestOutput result,
+      this._outcome,
+      this._jsonResult,
+      this._buildDirectory,
+      List<int> stdout,
+      List<int> stderr)
       : _result = result,
         super(command, 0, result.didTimeout, stdout, stderr, result.duration,
             false, 0);
@@ -364,13 +382,25 @@ class BrowserCommandOutput extends CommandOutput
 
     void _showError(String header, event) {
       output.subsection(header);
-      output.write((event["value"] as String).trim());
+      var value = event["value"] as String;
       if (event["stack_trace"] != null) {
-        var stack = (event["stack_trace"] as String).trim().split("\n");
-        output.writeAll(stack);
+        value = '$value\n${event["stack_trace"] as String}';
       }
-
       showedError = true;
+      output.write(value);
+
+      // Skip deobfuscation if there is no indication that there is a stack
+      // trace in the string value.
+      if (!value.contains(RegExp('\\.js:'))) return;
+      var stringStack = value
+          // Convert `http:` URIs to relative `file:` URIs.
+          .replaceAll(RegExp('http://[^/]*/root_build/'), '$_buildDirectory/')
+          .replaceAll(RegExp('http://[^/]*/root_dart/'), '')
+          // Remove query parameters (seen in .html URIs).
+          .replaceAll(RegExp('\\?[^:]*:'), ':');
+      // TODO(sigmund): change internal deobfuscation code to avoid spurious
+      // error messages when files do not have a corresponding source-map.
+      _deobfuscateAndWriteStack(stringStack, output);
     }
 
     for (var event in _jsonResult.events) {
@@ -993,6 +1023,16 @@ class JSCommandLineOutput extends CommandOutput
     }
     return Expectation.pass;
   }
+
+  void describe(TestCase testCase, Progress progress, OutputWriter output) {
+    super.describe(testCase, progress, output);
+    var decodedOut = decodeUtf8(stdout)
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .trim();
+
+    _deobfuscateAndWriteStack(decodedOut, output);
+  }
 }
 
 class ScriptCommandOutput extends CommandOutput {
@@ -1183,5 +1223,18 @@ mixin _UnittestSuiteMessagesMixin {
       }
     }
     return outcome;
+  }
+}
+
+void _deobfuscateAndWriteStack(String stack, OutputWriter output) {
+  try {
+    var deobfuscatedStack = deobfuscateStackTrace(stack);
+    if (deobfuscatedStack == stack) return;
+    output.subsection('Deobfuscated error and stack');
+    output.write(deobfuscatedStack);
+  } catch (e, st) {
+    output.subsection('Warning: not able to deobfuscate stack');
+    output.writeAll(['input: $stack', 'error: $e', 'stack trace: $st']);
+    return;
   }
 }

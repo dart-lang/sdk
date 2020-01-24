@@ -211,8 +211,8 @@ void main(List<String> args) async {
   String requirePath;
   String ddcSdk;
   var archDir = nnbd ? 'ReleaseX64NNBD' : 'ReleaseX64';
-  var sdkRoot = p.dirname(p.dirname(ddcPath));
   if (debug) {
+    var sdkRoot = p.dirname(p.dirname(ddcPath));
     var buildDir = p.join(sdkRoot, Platform.isMacOS ? 'xcodebuild' : 'out');
     dartSdk = p.join(buildDir, archDir, 'dart-sdk');
   }
@@ -262,15 +262,12 @@ void main(List<String> args) async {
   require.config({
     paths: {
         'dart_sdk': '$sdkJsPath/dart_sdk',
-        'browser-source-map-support':
-          '$sdkRoot/third_party/node-source-map-support/browser-source-map-support'
     },
     waitSeconds: 15
   });
-  require(['dart_sdk', 'browser-source-map-support', '$basename'],
-        function(sdk, sm, app) {
+  require(['dart_sdk', '$basename'],
+        function(sdk, app) {
     'use strict';
-    sm.install();
     if ($nnbd) {
       sdk.dart.strictSubtypeChecks($isNnbdStrong);
     }
@@ -292,8 +289,7 @@ void main(List<String> args) async {
       ]);
       if (await process.exitCode != 0) exit(await process.exitCode);
     } else if (node) {
-      var nodePath =
-          '$sdkJsPath:$sdkRoot/third_party/node-source-map-support:$libRoot';
+      var nodePath = '$sdkJsPath:$libRoot';
       var runjs = '''
 let source_maps;
 try {
