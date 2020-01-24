@@ -197,21 +197,6 @@ complex_reload_test: RuntimeError
 [ $compiler == dartkb && ($builder_tag == bytecode_interpreter || $builder_tag == bytecode_mixed) ]
 *: Skip # There are still timeouts in the interpreter and mixed modes which cause infra timeouts.
 
-[ $compiler == dartkp && $mode == debug ]
-async_single_step_into_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-async_single_step_out_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-async_star_single_step_into_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-async_star_step_out_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-async_step_out_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-awaiter_async_stack_contents_2_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-causal_async_stack_contents_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-causal_async_stack_presence_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-causal_async_star_stack_presence_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-next_through_simple_async_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-next_through_simple_async_with_returns_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-pause_on_unhandled_async_exceptions2_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-pause_on_unhandled_async_exceptions_test: Crash # https://github.com/dart-lang/sdk/issues/40275
-
 [ $mode == debug && ($compiler == dartk || $compiler == dartkb) ]
 isolate_lifecycle_test: Skip # Flaky.
 pause_idle_isolate_test: Skip # Flaky
