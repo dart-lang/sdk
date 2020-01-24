@@ -2528,13 +2528,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  List<VariableDeclaration> buildVariableDeclarations(variableOrExpression) {
+  List<VariableDeclaration> _buildForLoopVariableDeclarations(
+      variableOrExpression) {
     // TODO(ahe): This can be simplified now that we have the events
     // `handleForInitializer...` events.
     if (variableOrExpression is Generator) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
     if (variableOrExpression is VariableDeclaration) {
+      // Late for loop variables are not supported. An error has already been
+      // reported by the parser.
+      variableOrExpression.isLate = false;
       return <VariableDeclaration>[variableOrExpression];
     } else if (variableOrExpression is Expression) {
       VariableDeclaration variable =
@@ -2550,7 +2554,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (variableOrExpression is List<Object>) {
       List<VariableDeclaration> variables = <VariableDeclaration>[];
       for (Object v in variableOrExpression) {
-        variables.addAll(buildVariableDeclarations(v));
+        variables.addAll(_buildForLoopVariableDeclarations(v));
       }
       return variables;
     } else if (variableOrExpression == null) {
@@ -2634,7 +2638,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     transformCollections = true;
     List<VariableDeclaration> variables =
-        buildVariableDeclarations(variableOrExpression);
+        _buildForLoopVariableDeclarations(variableOrExpression);
     Expression condition;
     if (conditionStatement is ExpressionStatement) {
       condition = conditionStatement.expression;
@@ -2699,7 +2703,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     Object variableOrExpression = pop();
     List<VariableDeclaration> variables =
-        buildVariableDeclarations(variableOrExpression);
+        _buildForLoopVariableDeclarations(variableOrExpression);
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
@@ -4669,6 +4673,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Token forToken, Token inToken, Object lvalue, Statement body) {
     ForInElements elements = new ForInElements();
     if (lvalue is VariableDeclaration) {
+      // Late for-in variables are not supported. An error has already been
+      // reported by the parser.
+      lvalue.isLate = false;
       elements.explicitVariableDeclaration = lvalue;
       typeInferrer?.assignedVariables?.write(lvalue);
       if (lvalue.isConst) {

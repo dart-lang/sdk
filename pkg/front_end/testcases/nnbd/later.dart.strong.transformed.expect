@@ -98,15 +98,13 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
     on dynamic catch(final dynamic late, final core::StackTrace e) {
     }
   }
-  for (late core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
     core::print("baz");
   }
   {
     core::Iterator<core::String*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String*>*>(<core::String>["baz"]).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-      function #s#initializer() → core::String
-        return :sync-for-iterator.{core::Iterator::current};
-      late core::String s = #s#initializer.call();
+      core::String s = :sync-for-iterator.{core::Iterator::current};
       {
         core::print(s);
       }
@@ -114,7 +112,7 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
   }
   block {
     final core::List<core::int> #t1 = <core::int>[];
-    for (late core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1))
+    for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1))
       #t1.{core::List::add}(i);
   } =>#t1;
 }
@@ -144,9 +142,7 @@ static method hest() → dynamic /* originally async */ {
               dynamic #t2 = asy::_asyncStarMoveNextHelper(:stream);
               [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(_in::unsafeCast<core::bool*>(:result)) {
-                function #s#initializer() → core::String
-                  return :for-iterator.{asy::_StreamIterator::current};
-                late core::String s = #s#initializer.call();
+                core::String s = :for-iterator.{asy::_StreamIterator::current};
                 {
                   core::print(s);
                 }

@@ -97,20 +97,20 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
     on dynamic catch(final dynamic late, final core::StackTrace e) {
     }
   }
-  for (late core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
+  for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1)) {
     core::print("baz");
   }
-  for (late core::String s in <core::String>["baz"]) {
+  for (core::String s in <core::String>["baz"]) {
     core::print(s);
   }
   block {
     final core::List<core::int> #t1 = <core::int>[];
-    for (late core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1))
+    for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1))
       #t1.{core::List::add}(i);
   } =>#t1;
 }
 static method hest() → dynamic async {
-  await for (late core::String s in asy::Stream::fromIterable<core::String>(<core::String*>["hest"])) {
+  await for (core::String s in asy::Stream::fromIterable<core::String>(<core::String*>["hest"])) {
     core::print(s);
   }
   return "hest";
