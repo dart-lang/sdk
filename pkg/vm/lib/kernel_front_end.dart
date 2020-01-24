@@ -32,7 +32,8 @@ import 'package:front_end/src/api_unstable/vm.dart'
         kernelForProgram,
         parseExperimentalArguments,
         parseExperimentalFlags,
-        printDiagnosticMessage;
+        printDiagnosticMessage,
+        resolveInputUri;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/ast.dart' show Component, Library, Reference;
@@ -197,9 +198,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final fileSystem =
       createFrontEndFileSystem(fileSystemScheme, fileSystemRoots);
 
-  final Uri packagesUri = packages != null
-      ? convertFileOrUriArgumentToUri(fileSystem, packages)
-      : null;
+  final Uri packagesUri = packages != null ? resolveInputUri(packages) : null;
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
   final List<Uri> linkedDependencies = <Uri>[];
@@ -207,7 +206,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     linkedDependencies.add(platformKernelUri);
   }
 
-  Uri mainUri = convertFileOrUriArgumentToUri(fileSystem, input);
+  Uri mainUri = resolveInputUri(input);
   if (packagesUri != null) {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
@@ -572,40 +571,12 @@ FileSystem createFrontEndFileSystem(
       multiRootFileSystemScheme != null) {
     final rootUris = <Uri>[];
     for (String root in multiRootFileSystemRoots) {
-      rootUris.add(Uri.base.resolveUri(new Uri.file(root)));
+      rootUris.add(resolveInputUri(root));
     }
     fileSystem = new MultiRootFileSystem(
         multiRootFileSystemScheme, rootUris, fileSystem);
   }
   return fileSystem;
-}
-
-/// Convert command line argument [input] which is a file or URI to an
-/// absolute URI.
-///
-/// If virtual multi-root file system is used, or [input] can be parsed to a
-/// URI with 'package', 'file', or 'http' scheme, then [input] is interpreted
-/// as URI. Otherwise [input] is interpreted as a file path.
-Uri convertFileOrUriArgumentToUri(FileSystem fileSystem, String input) {
-  if (input == null) {
-    return null;
-  }
-  // If using virtual multi-root file system, input source argument should be
-  // specified as URI.
-  if (fileSystem is MultiRootFileSystem) {
-    return Uri.base.resolve(input);
-  }
-  try {
-    Uri uri = Uri.parse(input);
-    if (uri.scheme == 'package' ||
-        uri.scheme == 'file' ||
-        uri.scheme == 'http') {
-      return uri;
-    }
-  } on FormatException {
-    // Ignore, treat input argument as file path.
-  }
-  return Uri.base.resolveUri(new Uri.file(input));
 }
 
 /// Convert a URI which may use virtual file system schema to a real file URI.

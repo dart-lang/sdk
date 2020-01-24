@@ -303,7 +303,7 @@ class FrontendCompiler implements CompilerInterface {
     _fileSystem = createFrontEndFileSystem(
         options['filesystem-scheme'], options['filesystem-root'],
         allowHttp: options['enable-http-uris']);
-    _mainSource = _getFileOrUri(entryPoint);
+    _mainSource = resolveInputUri(entryPoint);
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$entryPoint.dill';
     _kernelBinaryFilenameIncremental = _options['output-incremental-dill'] ??
         (_options['output-dill'] != null
@@ -317,10 +317,12 @@ class FrontendCompiler implements CompilerInterface {
     final Uri sdkRoot = _ensureFolderPath(options['sdk-root']);
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
+    final String packagesOption = _options['packages'];
     final CompilerOptions compilerOptions = CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
-      ..packagesFileUri = _getFileOrUri(_options['packages'])
+      ..packagesFileUri =
+          packagesOption != null ? resolveInputUri(packagesOption) : null
       ..sdkSummary = sdkRoot.resolve(platformKernelDill)
       ..verbose = options['verbose']
       ..embedSourceText = options['embed-source-text']
@@ -777,7 +779,7 @@ class FrontendCompiler implements CompilerInterface {
     _outputStream.writeln('result $boundaryKey');
     await invalidateIfInitializingFromDill();
     if (entryPoint != null) {
-      _mainSource = _getFileOrUri(entryPoint);
+      _mainSource = resolveInputUri(entryPoint);
     }
     errors.clear();
 
@@ -958,9 +960,6 @@ class FrontendCompiler implements CompilerInterface {
     _generator.resetDeltaState();
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
   }
-
-  Uri _getFileOrUri(String fileOrUri) =>
-      convertFileOrUriArgumentToUri(_fileSystem, fileOrUri);
 
   IncrementalCompiler _createGenerator(Uri initializeFromDillUri) {
     return IncrementalCompiler(_compilerOptions, _mainSource,
