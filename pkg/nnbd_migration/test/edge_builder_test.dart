@@ -741,6 +741,16 @@ class C extends Object with A<int> {}
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_extension_extended_type() async {
+    await analyze('''
+class C<T extends Object> {}
+extension E on C<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_for() async {
     await analyze('''
 class C<T extends Object> {}

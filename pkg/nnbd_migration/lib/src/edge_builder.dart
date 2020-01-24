@@ -659,8 +659,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     return null;
   }
 
-  DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) =>
-      visitClassOrMixinOrExtensionDeclaration(node);
+  DecoratedType visitExtensionDeclaration(ExtensionDeclaration node) {
+    visitClassOrMixinOrExtensionDeclaration(node);
+    node.extendedType.accept(this);
+    return null;
+  }
 
   @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
