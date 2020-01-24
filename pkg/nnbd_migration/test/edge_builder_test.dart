@@ -741,6 +741,54 @@ class C extends Object with A<int> {}
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_for() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  for (C<int> c = null ;;) {}
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_for_element() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  [for (C<int> c = null ;;) c];
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_for_in() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  for (C<int> c in []) {}
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_for_in_element() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  [for (C<int> c in []) c];
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_function_invocation_type_argument() async {
     await analyze('''
 void f<T extends Object>() {}
