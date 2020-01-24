@@ -9,8 +9,6 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
-const _debug = true;
-
 void main() {
   File exampleFile;
   Directory exampleDir;
@@ -27,6 +25,8 @@ void main() {
     try {
       await driver.start([
         if (_debug) '-v',
+        '--fix',
+        'use-mixin',
         '--excludeFix',
         'use-mixin',
         exampleDir.path,
@@ -44,3 +44,5 @@ void main() {
     expect(suggestions, hasLength(0));
   }, timeout: const Timeout(Duration(minutes: 3)));
 }
+
+const _debug = true;

@@ -55,9 +55,6 @@ class EditDartFix
         }
       }
     }
-    if (fixInfo.isEmpty) {
-      fixInfo.addAll(allFixes.where((i) => i.isDefault));
-    }
     if (params.excludedFixes != null) {
       for (String key in params.excludedFixes) {
         var info = allFixes.firstWhere((i) => i.key == key, orElse: () => null);

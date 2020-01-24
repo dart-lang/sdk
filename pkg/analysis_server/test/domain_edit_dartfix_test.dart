@@ -144,7 +144,8 @@ main() {
 }
     ''');
     createProject();
-    EditDartfixResult result = await performFix();
+    EditDartfixResult result = await performFix(
+        includedFixes: ['fix-named-constructor-type-arguments']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'type arguments', 60, 8);
     expectEdits(result.edits, '''
@@ -343,7 +344,8 @@ const double myDouble = 42;
     // Add analysis options to enable ui as code
     addTestFile('f({a: 1}) { }');
     createProject();
-    EditDartfixResult result = await performFix();
+    EditDartfixResult result =
+        await performFix(includedFixes: ['prefer-equal-for-default-values']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace ':' with '='", 4, 1);
     expect(result.hasErrors, isFalse);
@@ -415,7 +417,7 @@ class B extends A {}
 class C with B {}
     ''');
     createProject();
-    EditDartfixResult result = await performFix();
+    EditDartfixResult result = await performFix(includedFixes: ['use-mixin']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'mixin', 17, 1);
     expectEdits(result.edits, '''

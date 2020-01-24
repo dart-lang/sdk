@@ -25,14 +25,6 @@ class C with B {}
     standardAnalysisSetup();
   }
 
-  test_dartfix() async {
-    setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)]);
-    expect(result.hasErrors, isFalse);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.edits.length, greaterThanOrEqualTo(1));
-  }
-
   test_dartfix_exclude() async {
     setupTarget();
     EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
@@ -40,15 +32,6 @@ class C with B {}
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, 0);
     expect(result.edits.length, 0);
-  }
-
-  test_dartfix_exclude_other() async {
-    setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        excludedFixes: ['double-to-int']);
-    expect(result.hasErrors, isFalse);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.edits.length, greaterThanOrEqualTo(1));
   }
 
   test_dartfix_include() async {

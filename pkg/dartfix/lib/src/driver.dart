@@ -112,7 +112,6 @@ class Driver {
     Options options, {
     Progress progress,
   }) async {
-    logger.trace('Requesting fixes');
     Future isAnalysisComplete = handler.analysisComplete();
 
     final params = EditDartfixParams(options.targets);
@@ -264,6 +263,11 @@ These fixes can be enabled using --$includeFixOption:''');
         await server.stop();
       }
       context.exit(0);
+    }
+
+    if (options.includeFixes.isEmpty && !options.pedanticFixes) {
+      logger.stdout('No fixes specified.');
+      context.exit(1);
     }
 
     Future serverStopped;
