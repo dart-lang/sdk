@@ -58,6 +58,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get mapElement => typeProvider.mapElement;
 
+  NeverElementImpl get neverElement => NeverElementImpl.instance;
+
   ClassElement get numElement => typeProvider.numType.element;
 
   ClassElement get objectElement => typeProvider.objectType.element;
@@ -678,6 +680,16 @@ mixin ResolutionTest implements ResourceProviderMixin {
     result = await resolveFile(path);
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
+  }
+
+  /// Choose the type display string, depending on whether the [result] is
+  /// non-nullable or legacy.
+  String typeStr(String nonNullable, String legacy) {
+    if (result.libraryElement.isNonNullableByDefault) {
+      return nonNullable;
+    } else {
+      return legacy;
+    }
   }
 
   /// Return a textual representation of the [type] that is appropriate for

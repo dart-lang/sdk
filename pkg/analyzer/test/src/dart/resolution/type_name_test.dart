@@ -18,6 +18,9 @@ main() {
 
 @reflectiveTest
 class TypeNameResolutionTest extends DriverResolutionTest {
+  @override
+  bool get typeToStringWithNullability => true;
+
   test_class() async {
     await assertNoErrorsInCode(r'''
 class A {}
@@ -28,7 +31,7 @@ f(A a) {}
     assertTypeName(
       findNode.typeName('A a'),
       findElement.class_('A'),
-      'A',
+      typeStr('A', 'A*'),
     );
   }
 
@@ -42,7 +45,7 @@ f(A a) {}
     assertTypeName(
       findNode.typeName('A a'),
       findElement.class_('A'),
-      'A<num>',
+      typeStr('A<num>', 'A<num*>*'),
     );
   }
 
@@ -56,7 +59,7 @@ f(A a) {}
     assertTypeName(
       findNode.typeName('A a'),
       findElement.class_('A'),
-      'A<dynamic>',
+      typeStr('A<dynamic>', 'A<dynamic>*'),
     );
   }
 
@@ -70,7 +73,7 @@ f(A<int> a) {}
     assertTypeName(
       findNode.typeName('A<int> a'),
       findElement.class_('A'),
-      'A<int>',
+      typeStr('A<int>', 'A<int*>*'),
     );
   }
 
@@ -84,7 +87,7 @@ f(F a) {}
     assertTypeName(
       findNode.typeName('F a'),
       findElement.functionTypeAlias('F'),
-      'int Function()',
+      typeStr('int Function()', 'int* Function()*'),
     );
   }
 
@@ -98,7 +101,7 @@ f(F a) {}
     assertTypeName(
       findNode.typeName('F a'),
       findElement.functionTypeAlias('F'),
-      'num Function()',
+      typeStr('num Function()', 'num* Function()*'),
     );
   }
 
@@ -112,7 +115,7 @@ f(F a) {}
     assertTypeName(
       findNode.typeName('F a'),
       findElement.functionTypeAlias('F'),
-      'dynamic Function()',
+      typeStr('dynamic Function()', 'dynamic Function()*'),
     );
   }
 
@@ -126,7 +129,19 @@ f(F<int> a) {}
     assertTypeName(
       findNode.typeName('F<int> a'),
       findElement.functionTypeAlias('F'),
-      'int Function()',
+      typeStr('int Function()', 'int* Function()*'),
+    );
+  }
+
+  test_never() async {
+    await assertNoErrorsInCode(r'''
+f(Never a) {}
+''');
+
+    assertTypeName(
+      findNode.typeName('Never a'),
+      neverElement,
+      typeStr('Never', 'Never*'),
     );
   }
 }
@@ -141,9 +156,6 @@ class TypeNameResolutionWithNnbdTest extends TypeNameResolutionTest {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
   }
-
-  @override
-  bool get typeToStringWithNullability => true;
 
   test_optIn_fromOptOut_class() async {
     newFile('/test/lib/a.dart', content: r'''
