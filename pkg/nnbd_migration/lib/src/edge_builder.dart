@@ -979,6 +979,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         instrumentation?.implicitTypeArguments(source, node, [elementType]);
         _currentLiteralElementType = elementType;
       } else {
+        node.typeArguments.accept(this);
         _currentLiteralElementType = _variables.decoratedTypeAnnotation(
             source, node.typeArguments.arguments[0]);
       }
@@ -1241,6 +1242,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _currentLiteralElementType = elementType;
         } else {
           assert(typeArguments.length == 1);
+          node.typeArguments.accept(this);
           _currentLiteralElementType =
               _variables.decoratedTypeAnnotation(source, typeArguments[0]);
         }
@@ -1268,6 +1270,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               ?.implicitTypeArguments(source, node, [keyType, valueType]);
         } else {
           assert(typeArguments.length == 2);
+          node.typeArguments.accept(this);
           _currentMapKeyType =
               _variables.decoratedTypeAnnotation(source, typeArguments[0]);
           _currentMapValueType =

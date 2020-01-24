@@ -751,6 +751,18 @@ C<int> f() => null;
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_list_literal() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  <C<int>>[];
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_local_variable() async {
     await analyze('''
 class C<T extends Object> {}
@@ -759,6 +771,21 @@ main() {
 }
 ''');
     assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_map_literal() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  <C<int>, C<String>>{};
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('String').node,
         decoratedTypeAnnotation('Object').node,
         hard: true);
   }
@@ -777,6 +804,18 @@ mixin C implements A<int> {}
     await analyze('''
 class A<T extends Object> {}
 mixin C on A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_set_literal() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  <C<int>>{};
+}
 ''');
     assertEdge(decoratedTypeAnnotation('int').node,
         decoratedTypeAnnotation('Object').node,
