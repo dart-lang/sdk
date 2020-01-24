@@ -1526,6 +1526,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
     }
+    typeName.visitChildren(this);
     return null;
   }
 
