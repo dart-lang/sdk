@@ -25,10 +25,11 @@ import 'package:nnbd_migration/src/edge_origin.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
-import 'package:nnbd_migration/src/utilities/annotation_tracker.dart';
+import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/utilities/resolution_utils.dart';
 import 'package:nnbd_migration/src/utilities/scoped_set.dart';
+import 'package:nnbd_migration/src/utilities/type_name_tracker.dart';
 
 import 'decorated_type_operations.dart';
 
@@ -93,7 +94,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     with
         _AssignmentChecker,
         PermissiveModeVisitor<DecoratedType>,
-        AnnotationTracker<DecoratedType>,
+        CompletenessTracker<DecoratedType>,
         ResolutionUtils {
   final TypeSystem _typeSystem;
 
@@ -1527,6 +1528,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
     typeName.visitChildren(this);
+    typeNameVisited(typeName); // Note this has been visited to TypeNameTracker.
     return null;
   }
 
