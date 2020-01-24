@@ -3639,6 +3639,50 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_remove_question_from_question_dot() async {
+    var content = '_f(int/*!*/ i) => i?.isEven;';
+    var expected = '_f(int/*!*/ i) => i.isEven;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_remove_question_from_question_dot_and_add_bang() async {
+    var content = '''
+class C {
+  int/*?*/ i;
+}
+int/*!*/ f(C/*!*/ c) => c?.i;
+''';
+    var expected = '''
+class C {
+  int?/*?*/ i;
+}
+int/*!*/ f(C/*!*/ c) => c.i!;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_remove_question_from_question_dot_method() async {
+    var content = '_f(int/*!*/ i) => i?.abs();';
+    var expected = '_f(int/*!*/ i) => i.abs();';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_remove_question_from_question_dot_shortcut() async {
+    var content = '''
+class C {
+  int/*!*/ i;
+}
+bool/*?*/ f(C/*?*/ c) => c?.i?.isEven;
+''';
+    var expected = '''
+class C {
+  int/*!*/ i;
+}
+bool?/*?*/ f(C?/*?*/ c) => c?.i.isEven;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_removed_if_element_doesnt_introduce_nullability() async {
     // Failing because we don't yet remove the dead list element
     // `if (x == null) recover()`.

@@ -38,16 +38,25 @@ class AssignmentTargetInfo {
 
 @reflectiveTest
 class FixBuilderTest extends EdgeBuilderTestBase {
-  static const isNullCheck = TypeMatcher<NullCheck>();
+  static final isAddRequiredKeyword =
+      havingInnerMatcher(TypeMatcher<AddRequiredKeyword>(), isNoChange);
 
-  static const isAddRequiredKeyword = TypeMatcher<AddRequiredKeyword>();
+  static final isMakeNullable =
+      havingInnerMatcher(TypeMatcher<MakeNullable>(), isNoChange);
 
-  static const isMakeNullable = TypeMatcher<MakeNullable>();
+  static const isNoChange = TypeMatcher<NoChange>();
 
-  static const isRemoveAs = TypeMatcher<RemoveAs>();
+  static final isNullCheck =
+      havingInnerMatcher(TypeMatcher<NullCheck>(), isNoChange);
 
-  static const isRequiredAnnotationToRequiredKeyword =
-      TypeMatcher<RequiredAnnotationToRequiredKeyword>();
+  static const isRemoveNullAwarenessFromPropertyAccess =
+      TypeMatcher<RemoveNullAwarenessFromPropertyAccess>();
+
+  static final isRemoveAs =
+      havingInnerMatcher(TypeMatcher<RemoveAs>(), isNoChange);
+
+  static final isRequiredAnnotationToRequiredKeyword = havingInnerMatcher(
+      TypeMatcher<RequiredAnnotationToRequiredKeyword>(), isNoChange);
 
   DartType get dynamicType => postMigrationTypeProvider.dynamicType;
 
@@ -2251,6 +2260,41 @@ _f(_C/*?*/ c) => c?.toString;
         findNode.propertyAccess('c?.toString'), 'String Function()?');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40313')
+  Future<void> test_propertyAccess_nullAware_potentiallyNullable() async {
+    // In the code example below, the `?.` is not changed to `.` because `T`
+    // might be instantiated to `int?`, in which case the null check is still
+    // needed.
+    await analyze('''
+class C<T extends int/*?*/> {
+  f(T t) => t?.isEven;
+}
+''');
+    visitSubexpression(findNode.propertyAccess('?.'), 'bool?');
+  }
+
+  Future<void> test_propertyAccess_nullAware_removeNullAwareness() async {
+    await analyze('_f(int/*!*/ i) => i?.isEven;');
+    var propertyAccess = findNode.propertyAccess('?.');
+    visitSubexpression(propertyAccess, 'bool',
+        changes: {propertyAccess: isRemoveNullAwarenessFromPropertyAccess});
+  }
+
+  Future<void>
+      test_propertyAccess_nullAware_removeNullAwareness_nullCheck() async {
+    await analyze('''
+class C {
+  int/*?*/ i;
+}
+int/*!*/ f(C/*!*/ c) => c?.i;
+''');
+    var propertyAccess = findNode.propertyAccess('?.');
+    visitSubexpression(propertyAccess, 'int', changes: {
+      propertyAccess: havingInnerMatcher(const TypeMatcher<NullCheck>(),
+          isRemoveNullAwarenessFromPropertyAccess)
+    });
+  }
+
   Future<void> test_propertyAccess_nullAware_substituted() async {
     await analyze('''
 abstract class _C<T> {
@@ -2710,6 +2754,11 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
             .thisOrAncestorMatching((ancestor) => identical(ancestor, scope)) !=
         null;
   }
+
+  static TypeMatcher<NestableChange> havingInnerMatcher(
+          TypeMatcher<NestableChange> typeMatcher, Matcher innerMatcher) =>
+      typeMatcher.having(
+          (nullCheck) => nullCheck.inner, 'inner change', innerMatcher);
 
   static Matcher isEliminateDeadIf(bool knownValue) =>
       TypeMatcher<EliminateDeadIf>()

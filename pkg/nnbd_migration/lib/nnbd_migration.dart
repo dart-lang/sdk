@@ -56,6 +56,13 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.removeAs,
   );
 
+  /// A null-aware operator needs to be changed into its non-null-aware
+  /// equivalent.
+  static const removeNullAwareness = const NullabilityFixDescription._(
+      appliedMessage:
+          'Changed a null-aware access into an ordinary access, because the target cannot be null',
+      kind: NullabilityFixKind.removeNullAwareness);
+
   /// A message used by dartfix to indicate a fix has been applied.
   final String appliedMessage;
 
@@ -112,6 +119,7 @@ enum NullabilityFixKind {
   makeTypeNullable,
   noModification,
   removeAs,
+  removeNullAwareness,
 }
 
 /// Provisional API for DartFix to perform nullability migration.

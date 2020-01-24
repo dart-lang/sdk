@@ -412,6 +412,7 @@ class InfoBuilder {
       case NullabilityFixKind.discardIf:
       case NullabilityFixKind.discardThen:
       case NullabilityFixKind.removeAs:
+      case NullabilityFixKind.removeNullAwareness:
         // There's no need for hints around code that is being removed.
         break;
       case NullabilityFixKind.makeTypeNullable:

@@ -12,17 +12,17 @@ import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// Implementation of [NodeChange] representing the addition of the keyword
 /// `required` to a named parameter.
-class AddRequiredKeyword extends _NestableChange {
+class AddRequiredKeyword extends NestableChange {
   /// Information about why the change should be made.
   final AtomicEditInfo info;
 
   const AddRequiredKeyword(this.info,
       [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super(inner);
+      : super._(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
-    var innerPlan = _inner.apply(node, aggregator);
+    var innerPlan = inner.apply(node, aggregator);
     return aggregator.planner.surround(innerPlan,
         prefix: [AtomicEdit.insert('required ', info: info)]);
   }
@@ -167,7 +167,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
 /// Implementation of [NodeChange] representing introduction of an explicit
 /// downcast.
-class IntroduceAs extends _NestableChange {
+class IntroduceAs extends NestableChange {
   /// TODO(paulberry): shouldn't be a String
   final String type;
 
@@ -176,34 +176,42 @@ class IntroduceAs extends _NestableChange {
 
   const IntroduceAs(this.type, this.info,
       [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super(inner);
+      : super._(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
-    var innerPlan = _inner.apply(node, aggregator);
+    var innerPlan = inner.apply(node, aggregator);
     return aggregator.planner.addBinaryPostfix(innerPlan, TokenType.AS, type);
   }
 }
 
 /// Implementation of [NodeChange] representing the addition of a trailing `?`
 /// to a type.
-class MakeNullable extends _NestableChange {
+class MakeNullable extends NestableChange {
   /// The decorated type to which a question mark is being added.
   final DecoratedType decoratedType;
 
   const MakeNullable(this.decoratedType,
       [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super(inner);
+      : super._(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
-    var innerPlan = _inner.apply(node, aggregator);
+    var innerPlan = inner.apply(node, aggregator);
     return aggregator.planner.makeNullable(innerPlan,
         info: AtomicEditInfo(
             NullabilityFixDescription.makeTypeNullable(
                 decoratedType.type.toString()),
             [decoratedType.node]));
   }
+}
+
+/// Shared base class for [NodeChange]s that are based on an [inner] change.
+abstract class NestableChange extends NodeChange {
+  /// The change that should be applied first, before applying this change.
+  final NodeChange<NodeProducingEditPlan> inner;
+
+  const NestableChange._(this.inner);
 }
 
 /// Implementation of [NodeChange] representing no change at all.  This class
@@ -237,17 +245,17 @@ abstract class NodeChange<P extends EditPlan> {
 
 /// Implementation of [NodeChange] representing the addition of a null check to
 /// an expression.
-class NullCheck extends _NestableChange {
+class NullCheck extends NestableChange {
   /// Information about why the change should be made.
   final AtomicEditInfo info;
 
   const NullCheck(this.info,
       [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super(inner);
+      : super._(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
-    var innerPlan = _inner.apply(node, aggregator);
+    var innerPlan = inner.apply(node, aggregator);
     return aggregator.planner
         .addUnaryPostfix(innerPlan, TokenType.BANG, info: info);
   }
@@ -255,28 +263,74 @@ class NullCheck extends _NestableChange {
 
 /// Implementation of [NodeChange] representing the removal of an unnecessary
 /// cast.
-class RemoveAs extends _NestableChange {
+class RemoveAs extends NestableChange {
   const RemoveAs([NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super(inner);
+      : super._(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
     return aggregator.planner.extract(
-        node, _inner.apply((node as AsExpression).expression, aggregator),
+        node, inner.apply((node as AsExpression).expression, aggregator),
         infoAfter:
             AtomicEditInfo(NullabilityFixDescription.removeAs, const []));
   }
 }
 
+/// Implementation of [NodeChange] representing the removal of `?` from a `?.`
+/// in a method invocation because the target is non-nullable, or because of
+/// null shorting.
+class RemoveNullAwarenessFromMethodInvocation
+    extends NodeChange<NodeProducingEditPlan> {
+  const RemoveNullAwarenessFromMethodInvocation();
+
+  @override
+  NodeProducingEditPlan apply(AstNode node, FixAggregator aggregator) {
+    var methodInvocation = node as MethodInvocation;
+    var typeArguments = methodInvocation.typeArguments;
+    return aggregator.planner.removeNullAwarenessFromMethodInvocation(
+        methodInvocation,
+        targetPlan: aggregator.innerPlanForNode(methodInvocation.target),
+        methodNamePlan:
+            aggregator.innerPlanForNode(methodInvocation.methodName),
+        typeArgumentsPlan: typeArguments == null
+            ? null
+            : aggregator.innerPlanForNode(typeArguments),
+        argumentListPlan:
+            aggregator.innerPlanForNode(methodInvocation.argumentList),
+        info:
+            AtomicEditInfo(NullabilityFixDescription.removeNullAwareness, []));
+  }
+}
+
+/// Implementation of [NodeChange] representing the removal of `?` from a `?.`
+/// in a property access because the target is non-nullable, or because of null
+/// shorting.
+class RemoveNullAwarenessFromPropertyAccess
+    extends NodeChange<NodeProducingEditPlan> {
+  const RemoveNullAwarenessFromPropertyAccess();
+
+  @override
+  NodeProducingEditPlan apply(AstNode node, FixAggregator aggregator) {
+    var propertyAccess = node as PropertyAccess;
+    return aggregator.planner.removeNullAwarenessFromPropertyAccess(
+        propertyAccess,
+        targetPlan: aggregator.innerPlanForNode(propertyAccess.target),
+        propertyNamePlan:
+            aggregator.innerPlanForNode(propertyAccess.propertyName),
+        info:
+            AtomicEditInfo(NullabilityFixDescription.removeNullAwareness, []));
+  }
+}
+
 /// Implementation of [NodeChange] that changes an `@required` annotation into
 /// a `required` keyword.
-class RequiredAnnotationToRequiredKeyword extends _NestableChange {
+class RequiredAnnotationToRequiredKeyword extends NestableChange {
   /// Information about why the change should be made.
   final AtomicEditInfo info;
 
   const RequiredAnnotationToRequiredKeyword(this.info,
       [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super(inner);
+      : super._(inner);
 
   @override
   EditPlan apply(AstNode node, FixAggregator aggregator) {
@@ -291,17 +345,10 @@ class RequiredAnnotationToRequiredKeyword extends _NestableChange {
       // The text `required` already exists in the annotation; we can just
       // extract it.
       return aggregator.planner
-          .extract(node, _inner.apply(name, aggregator), infoBefore: info);
+          .extract(node, inner.apply(name, aggregator), infoBefore: info);
     } else {
       return aggregator.planner
           .replace(node, [AtomicEdit.insert('required', info: info)]);
     }
   }
-}
-
-/// Shared base class for [NodeChange]s that are based on an [_inner] change.
-abstract class _NestableChange extends NodeChange {
-  final NodeChange<NodeProducingEditPlan> _inner;
-
-  const _NestableChange(this._inner);
 }

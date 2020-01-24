@@ -425,6 +425,33 @@ int x = null;
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
   }
 
+  Future<void> test_fix_reason_remove_question_from_question_dot() async {
+    await analyze('_f(int/*!*/ i) => i?.isEven;');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.removeNullAwareness);
+        expect(info.fixReasons, isEmpty);
+      }
+    }
+  }
+
+  Future<void>
+      test_fix_reason_remove_question_from_question_dot_method() async {
+    await analyze('_f(int/*!*/ i) => i?.abs();');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.removeNullAwareness);
+        expect(info.fixReasons, isEmpty);
+      }
+    }
+  }
+
   Future<void> test_fix_reason_remove_unnecessary_cast() async {
     await analyze('''
 _f(Object x) {

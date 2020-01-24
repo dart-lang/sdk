@@ -419,6 +419,68 @@ class EditPlanner {
     return _RemoveEditPlan(parent, firstIndex, lastIndex, info);
   }
 
+  /// Creates a new edit plan that removes null awareness from [sourceNode].
+  ///
+  /// Optional arguments [targetPlan], [methodNamePlan], [typeArgumentsPlan],
+  /// and [argumentListPlan] indicate what changes should be made to the node's
+  /// target, method name, type arguments, and argument list, respectively.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan removeNullAwarenessFromMethodInvocation(
+      MethodInvocation sourceNode,
+      {NodeProducingEditPlan targetPlan,
+      NodeProducingEditPlan methodNamePlan,
+      NodeProducingEditPlan typeArgumentsPlan,
+      NodeProducingEditPlan argumentListPlan,
+      AtomicEditInfo info}) {
+    assert(sourceNode.operator.type == TokenType.QUESTION_PERIOD);
+    var builder = _PassThroughBuilderImpl(sourceNode);
+    if (targetPlan != null) {
+      builder._handleNodeProducingEditPlan(targetPlan);
+    }
+    builder.changes += {
+      sourceNode.operator.offset: [AtomicEdit.delete(1, info: info)]
+    };
+    if (methodNamePlan != null) {
+      builder._handleNodeProducingEditPlan(methodNamePlan);
+    }
+    if (typeArgumentsPlan != null) {
+      builder._handleNodeProducingEditPlan(typeArgumentsPlan);
+    }
+    if (argumentListPlan != null) {
+      builder._handleNodeProducingEditPlan(argumentListPlan);
+    }
+    return builder.finish(this);
+  }
+
+  /// Creates a new edit plan that removes null awareness from [sourceNode].
+  ///
+  /// Optional arguments [targetPlan] and, [propertyNamePlan] indicate what
+  /// changes should be made to the node's target and property name,
+  /// respectively.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan removeNullAwarenessFromPropertyAccess(
+      PropertyAccess sourceNode,
+      {NodeProducingEditPlan targetPlan,
+      NodeProducingEditPlan propertyNamePlan,
+      AtomicEditInfo info}) {
+    assert(sourceNode.operator.type == TokenType.QUESTION_PERIOD);
+    var builder = _PassThroughBuilderImpl(sourceNode);
+    if (targetPlan != null) {
+      builder._handleNodeProducingEditPlan(targetPlan);
+    }
+    builder.changes += {
+      sourceNode.operator.offset: [AtomicEdit.delete(1, info: info)]
+    };
+    if (propertyNamePlan != null) {
+      builder._handleNodeProducingEditPlan(propertyNamePlan);
+    }
+    return builder.finish(this);
+  }
+
   /// Creates a new edit plan that replaces the contents of [sourceNode] with
   /// the given [replacement] text.
   ///
