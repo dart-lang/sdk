@@ -299,6 +299,15 @@ class _FileSystemWatcher {
           }
         }
       } else if (event == RawSocketEvent.closed) {
+        // After this point we should not try to do anything with pathId as
+        // the handle it represented is closed and gone now.
+        if (_idMap.containsKey(pathId)) {
+          _idMap.remove(pathId);
+          if (_idMap.isEmpty && _id != null) {
+            _closeWatcher(_id);
+            _id = null;
+          }
+        }
       } else if (event == RawSocketEvent.readClosed) {
         // If Directory watcher buffer overflows, it will send an readClosed event.
         // Normal closing will cancel stream subscription so that path is
