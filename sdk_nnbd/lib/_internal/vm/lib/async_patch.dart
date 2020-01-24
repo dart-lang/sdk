@@ -27,9 +27,9 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
   void complete([FutureOr<T>? value]) {
     if (!isSync || value is Future<T>) {
-      _future._asyncComplete(value);
+      _future._asyncComplete(value as FutureOr<T>);
     } else {
-      _future._completeWithValue(value);
+      _future._completeWithValue(value as T);
     }
   }
 
@@ -88,10 +88,16 @@ Function _asyncErrorWrapperHelper(continuation) {
 ///
 /// Returns the result of registering with `.then`.
 Future _awaitHelper(
-    var object, Function thenCallback, Function errorCallback, var awaiter) {
+    var object,
+    FutureOr<dynamic> Function(dynamic) thenCallback,
+    Function errorCallback,
+    var awaiter) {
+  late _Future future;
   if (object is! Future) {
-    object = new _Future().._setValue(object);
-  } else if (object is! _Future) {
+    future = new _Future().._setValue(object);
+  } else if (object is _Future) {
+    future = object;
+  } else {
     return object.then(thenCallback, onError: errorCallback);
   }
   // `object` is a `_Future`.
@@ -102,8 +108,8 @@ Future _awaitHelper(
   //
   // We can only do this for our internal futures (the default implementation of
   // all futures that are constructed by the `dart:async` library).
-  object._awaiter = awaiter;
-  return object._thenAwait(thenCallback, errorCallback);
+  future._awaiter = awaiter;
+  return future._thenAwait(thenCallback, errorCallback);
 }
 
 // Called as part of the 'await for (...)' construct. Registers the
@@ -122,11 +128,12 @@ void _asyncStarMoveNextHelper(var stream) {
     return;
   }
   // stream is a _StreamImpl.
-  if (stream._generator == null) {
+  final generator = stream._generator;
+  if (generator == null) {
     // No generator registered, this isn't an async* Stream.
     return;
   }
-  _moveNextDebuggerStepCheck(stream._generator);
+  _moveNextDebuggerStepCheck(generator);
 }
 
 // _AsyncStarStreamController is used by the compiler to implement
@@ -207,10 +214,11 @@ class _AsyncStarStreamController<T> {
   }
 
   void addError(Object error, StackTrace stackTrace) {
-    if ((cancellationFuture != null) && cancellationFuture._mayComplete) {
+    final future = cancellationFuture;
+    if ((future != null) && future._mayComplete) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
-      cancellationFuture._completeError(error, stackTrace);
+      future._completeError(error, stackTrace);
       return;
     }
     // If stream is cancelled, tell caller to exit the async generator.
@@ -223,10 +231,11 @@ class _AsyncStarStreamController<T> {
   }
 
   close() {
-    if ((cancellationFuture != null) && cancellationFuture._mayComplete) {
+    final future = cancellationFuture;
+    if ((future != null) && future._mayComplete) {
       // If the stream has been cancelled, complete the cancellation future
       // with the error.
-      cancellationFuture._completeWithValue(null);
+      future._completeWithValue(null);
     }
     controller.close();
   }
