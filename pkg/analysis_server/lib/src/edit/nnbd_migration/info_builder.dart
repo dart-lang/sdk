@@ -558,8 +558,7 @@ class InfoBuilder {
         // Insert the replacement text without deleting the replaced text.
         content = content.replaceRange(end, end, replacement);
         var info = edit.info;
-        String explanation =
-            info != null ? '${info.description.appliedMessage}.' : null;
+        String explanation = info?.description?.appliedMessage;
         List<EditDetail> edits =
             info != null ? _computeEdits(info, sourceOffset) : [];
         List<RegionDetail> details = _computeDetails(edit);

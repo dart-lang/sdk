@@ -210,6 +210,73 @@ function addClickHandlers(parentSelector) {
       }
     };
   });
+  const postLinks = parentElement.querySelectorAll(".post-link");
+  postLinks.forEach((link) => {
+    link.onclick = (event) => {
+      // Directing the server to produce an edit; request it, then do work with
+      // the response.
+      const path = absolutePath(event.currentTarget.getAttribute("href"));
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", path);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          // Likely request new navigation and file content.
+        } else {
+          alert("Request failed; status of " + xhr.status);
+        }
+      };
+      xhr.onerror = function(e) {
+        alert(`Could not load ${path}; preview server might be disconnected.`);
+      };
+      xhr.send();
+    };
+  });
+}
+
+function writeRegionExplanation(response) {
+  const editPanel =
+      document.querySelector(".edit-panel .panel-content");
+  editPanel.innerHTML = "";
+  const regionLocation = document.createElement("p");
+  regionLocation.classList.add("region-location");
+  regionLocation.appendChild(document.createTextNode(
+      `${response["path"]} line ${response["line"]}`));
+  editPanel.appendChild(regionLocation);
+  const explanation = editPanel.appendChild(document.createElement("p"));
+  explanation.appendChild(document.createTextNode(response["explanation"]));
+  const detailCount = response["details"].length;
+  if (detailCount == 0) {
+    // Having 0 details is not necessarily an expected possibility, but handling
+    // the possibility prevents awkward text, "for 0 reasons:".
+    explanation.appendChild(document.createTextNode("."));
+  } else {
+    explanation.appendChild(document.createTextNode(
+        detailCount == 1
+            ? ` for ${detailCount} reason:` : ` for ${detailCount} reasons:`));
+    const detailList = editPanel.appendChild(document.createElement("ol"));
+    for (const detail of response["details"]) {
+      const detailItem = detailList.appendChild(document.createElement("li"));
+      detailItem.appendChild(document.createTextNode(detail["description"]));
+      if (detail["link"] !== undefined) {
+        detailItem.appendChild(document.createTextNode(" ("));
+        const a = detailItem.appendChild(document.createElement("a"));
+        a.appendChild(document.createTextNode(detail["link"]["text"]));
+        a.setAttribute("href", detail["link"]["href"]);
+        a.classList.add("post-link");
+        detailItem.appendChild(document.createTextNode(")"));
+      }
+    }
+  }
+  if (response["edits"] !== undefined) {
+    for (const edit of response["edits"]) {
+      const editParagraph = editPanel.appendChild(document.createElement("p"));
+      const a = editParagraph.appendChild(document.createElement("a"));
+      a.appendChild(document.createTextNode(edit["text"]));
+      a.setAttribute("href", edit["href"]);
+      a.classList.add("post-link");
+    }
+  }
 }
 
 // Load the explanation for [region], into the ".panel-content" div.
@@ -219,13 +286,11 @@ function loadRegionExplanation(region) {
   const path = window.location.pathname;
   const offset = region.dataset.offset;
   xhr.open("GET", path + `?region=region&offset=${offset}`);
-  xhr.setRequestHeader("Content-Type", "text/html");
+  xhr.setRequestHeader("Content-Type", "application/json");
   xhr.onload = function() {
     if (xhr.status === 200) {
-      const response = xhr.responseText;
-      const editPanelContent =
-          document.querySelector(".edit-panel .panel-content");
-      editPanelContent.innerHTML = response;
+      const response = JSON.parse(xhr.responseText);
+      writeRegionExplanation(response);
       addClickHandlers(".edit-panel .panel-content");
     } else {
       alert(`Request failed; status of ${xhr.status}`);

@@ -66,7 +66,7 @@ class UnitRenderer {
           'disabled="disabled"> ');
       content.write('line ${region.lineNumber}: ');
       content.write(_htmlEscape.convert(region.explanation));
-      content.write('</p>');
+      content.write('.</p>');
     }
     return content.toString();
   }

@@ -270,11 +270,16 @@ h2#unit-name {
   margin-top: 0;
 }
 
-.info-panel ul {
-  padding-left: 18px;
+.info-panel .region-location {
+  overflow-wrap: break-word;
 }
 
-.info-panel .nav-link {
+.info-panel ul,
+.info-panel ol {
+  padding-left: 20px;
+}
+
+.info-panel a {
   color: #33ccff;
 }
 
