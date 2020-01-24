@@ -967,6 +967,19 @@ mixin M<T extends C<int>> {}
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_redirecting_constructor_argument() async {
+    await analyze('''
+class A<T extends Object> {}
+class C {
+  factory C() = D<A<int>>;
+}
+class D<U> implements C {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_set_literal() async {
     await analyze('''
 class C<T extends Object> {}

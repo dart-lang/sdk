@@ -579,6 +579,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitConstructorDeclaration(ConstructorDeclaration node) {
     _fieldsNotInitializedByConstructor =
         _fieldsNotInitializedAtDeclaration.toSet();
+    node.redirectedConstructor?.type?.typeArguments?.accept(this);
     _handleExecutableDeclaration(
         node,
         node.declaredElement,
