@@ -48,6 +48,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   bool get enableUnusedLocalVariable => false;
 
+  ClassElement get futureElement => typeProvider.futureElement;
+
   ClassElement get intElement => typeProvider.intType.element;
 
   InterfaceType get intType => typeProvider.intType;
@@ -61,6 +63,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ClassElement get objectElement => typeProvider.objectType.element;
 
   InterfaceType get objectType => typeProvider.objectType;
+
+  ClassElement get stringElement => typeProvider.stringType.element;
 
   InterfaceType get stringType => typeProvider.stringType;
 
