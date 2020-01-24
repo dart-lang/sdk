@@ -878,6 +878,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     List<DecoratedType> decoratedTypeArguments;
     var typeArguments = node.constructorName.type.typeArguments;
     if (typeArguments != null) {
+      typeArguments.accept(this);
       typeArgumentTypes = typeArguments.arguments.map((t) => t.type);
       decoratedTypeArguments = typeArguments.arguments
           .map((t) => _variables.decoratedTypeAnnotation(source, t))

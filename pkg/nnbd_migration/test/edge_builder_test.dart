@@ -751,6 +751,18 @@ C<int> f() => null;
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_instance_creation() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  C<int>();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_list_literal() async {
     await analyze('''
 class C<T extends Object> {}
