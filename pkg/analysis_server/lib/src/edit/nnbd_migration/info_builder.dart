@@ -51,7 +51,9 @@ class InfoBuilder {
 
   /// Initialize a newly created builder.
   InfoBuilder(this.provider, this.includedPath, this.info, this.listener,
-      {this.explainNonNullableTypes = true});
+      // TODO(srawlins): Re-enable once
+      //  https://github.com/dart-lang/sdk/issues/40253 is fixed.
+      {this.explainNonNullableTypes = false});
 
   /// The analysis server used to get information about libraries.
   AnalysisServer get server => listener.server;

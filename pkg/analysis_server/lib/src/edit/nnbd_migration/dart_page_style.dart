@@ -7,23 +7,20 @@ body {
   background-color: black;
   color: white;
   font-family: 'Open Sans', sans-serif;
-  /* This allows very small files to be displayed lower than the very top of the
-   * screen.
-   */
-  margin: 8px;
-  padding: 0.5em;
+  margin: 0;
+  padding: 0;
 }
 
 h1 {
   font-size: 2.4em;
   font-weight: 600;
-  margin: 0;
+  margin: 8px 8px 0 8px;
 }
 
 h2#unit-name {
   font-size: 1.2em;
   font-weight: 600;
-  margin-bottom: 0;
+  margin: 8px 8px 0 8px;
 }
 
 .horizontal {
@@ -271,7 +268,12 @@ h2#unit-name {
 }
 
 .info-panel .region-location {
-  overflow-wrap: break-word;
+  padding-left: 12px;
+  text-indent: -12px;
+}
+
+.info-panel .nowrap {
+  white-space: nowrap;
 }
 
 .info-panel ul,

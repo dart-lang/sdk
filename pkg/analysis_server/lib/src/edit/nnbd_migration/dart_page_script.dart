@@ -235,13 +235,17 @@ function addClickHandlers(parentSelector) {
 }
 
 function writeRegionExplanation(response) {
-  const editPanel =
-      document.querySelector(".edit-panel .panel-content");
+  const editPanel = document.querySelector(".edit-panel .panel-content");
   editPanel.innerHTML = "";
   const regionLocation = document.createElement("p");
   regionLocation.classList.add("region-location");
-  regionLocation.appendChild(document.createTextNode(
-      `${response["path"]} line ${response["line"]}`));
+  // Insert a zero-width space after each "/", to allow lines to wrap after each
+  // directory name.
+  const path = response["path"].replace(/\//g, "/\u200B");
+  regionLocation.appendChild(document.createTextNode(`${path} `));
+  const regionLine = regionLocation.appendChild(document.createElement("span"));
+  regionLine.appendChild(document.createTextNode(`line ${response["line"]}`));
+  regionLine.classList.add("nowrap");
   editPanel.appendChild(regionLocation);
   const explanation = editPanel.appendChild(document.createElement("p"));
   explanation.appendChild(document.createTextNode(response["explanation"]));
@@ -318,16 +322,14 @@ function debounce(fn, delay) {
 // Resize the fixed-size and fixed-position navigation and information panels.
 function resizePanels() {
   const navInner = document.querySelector(".nav-inner");
-  // TODO(srawlins): I'm honestly not sure where 8 comes from; but without
-  // `- 8`, the navigation is too tall and the bottom cannot be seen.
-  const height = window.innerHeight - 8;
+  const height = window.innerHeight;
   navInner.style.height = height + "px";
 
-  const infoPanelHeight = height / 2 - 8;
+  const infoPanelHeight = height / 2 - 6;
   const editPanel = document.querySelector(".edit-panel");
   editPanel.style.height = infoPanelHeight + "px";
 
-  const editListHeight = height / 2 - 8;
+  const editListHeight = height / 2 - 6;
   const editList = document.querySelector(".edit-list");
   editList.style.height = editListHeight + "px";
 }
@@ -373,15 +375,16 @@ window.addEventListener("scroll", (event) => {
   const innerTopOffset = navPanel.offsetTop;
   if (window.pageYOffset > innerTopOffset) {
     if (!navInner.classList.contains("fixed")) {
-      navPanel.style.width = navPanel.offsetWidth + "px";
-      // Subtract 6px for nav-inner's padding.
-      navInner.style.width = (navInner.offsetWidth - 6) + "px";
+      const navPanelWidth = navPanel.offsetWidth - 14;
+      navPanel.style.width = navPanelWidth + "px";
+      // Subtract 7px for nav-inner's padding.
+      navInner.style.width = navPanelWidth + 7 + "px";
       navInner.classList.add("fixed");
     }
     if (!panelContainer.classList.contains("fixed")) {
-      infoPanel.style.width = infoPanel.offsetWidth + "px";
-      // Subtract 6px for edit-panel's padding.
-      panelContainer.style.width = (panelContainer.offsetWidth - 6) + "px";
+      const infoPanelWidth = infoPanel.offsetWidth;
+      infoPanel.style.width = infoPanelWidth + "px";
+      panelContainer.style.width = infoPanelWidth + "px";
       panelContainer.classList.add("fixed");
     }
   } else {
