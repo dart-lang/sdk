@@ -1067,6 +1067,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     visitClassOrMixinOrExtensionDeclaration(node);
     node.implementsClause?.accept(this);
     node.onClause?.accept(this);
+    node.typeParameters?.accept(this);
     return null;
   }
 

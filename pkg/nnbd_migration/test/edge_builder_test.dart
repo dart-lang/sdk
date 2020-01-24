@@ -904,6 +904,16 @@ mixin C on A<int> {}
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_mixin_type_parameter_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+mixin M<T extends C<int>> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_set_literal() async {
     await analyze('''
 class C<T extends Object> {}
