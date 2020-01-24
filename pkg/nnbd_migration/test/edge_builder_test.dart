@@ -771,6 +771,16 @@ mixin C on A<int> {}
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_within_bound() async {
+    await analyze('''
+class A<T extends Object> {}
+class B<T extends A<int>> {}
+  ''');
+    var aBound = decoratedTypeAnnotation('Object').node;
+    var aBoundInt = decoratedTypeAnnotation('int').node;
+    assertEdge(aBoundInt, aBound, hard: true);
+  }
+
   Future<void> test_assign_type_parameter_to_bound() async {
     await analyze('''
 class C<T extends List<int>> {
