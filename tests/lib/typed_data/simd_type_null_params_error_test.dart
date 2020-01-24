@@ -2,6 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Requirements=nnbd-strong
+
+// Many other tests will check that static nullability checks are applied to
+// actual arguments of regular function invocations. This test is still not
+// redundant, because it involves a built-in type and methods subject to
+// patching, and patching could introduce bugs in this area.
+
 import 'dart:typed_data';
 
 main() {
