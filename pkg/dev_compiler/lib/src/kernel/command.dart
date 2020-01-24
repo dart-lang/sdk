@@ -388,10 +388,22 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
   }
 
-  var compiler = ProgramCompiler(component, result.classHierarchy, options);
+  final importToSummary = Map<Library, Component>.identity();
+  final summaryToModule = Map<Component, String>.identity();
+  for (var i = 0; i < result.inputSummaries.length; i++) {
+    var summary = result.inputSummaries[i];
+    var moduleImport = summaryModules[inputSummaries[i]];
+    for (var l in summary.libraries) {
+      assert(!importToSummary.containsKey(l));
+      importToSummary[l] = summary;
+      summaryToModule[summary] = moduleImport;
+    }
+  }
 
-  var jsModule = compiler.emitModule(
-      compiledLibraries, result.inputSummaries, inputSummaries, summaryModules);
+  var compiler = ProgramCompiler(component, result.classHierarchy, options,
+      importToSummary, summaryToModule);
+
+  var jsModule = compiler.emitModule(compiledLibraries);
 
   // Also the old Analyzer backend had some code to make debugging better when
   // --single-out-file is used, but that option does not appear to be used by
@@ -487,9 +499,10 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var multiRootOutputPath = argResults['multi-root-output-path'] as String;
   var options = SharedCompilerOptions.fromArguments(argResults);
 
-  var compiler =
-      ProgramCompiler(component, hierarchy, options, coreTypes: coreTypes);
-  var jsModule = compiler.emitModule(component, const [], const [], const {});
+  var compiler = ProgramCompiler(
+      component, hierarchy, options, const {}, const {},
+      coreTypes: coreTypes);
+  var jsModule = compiler.emitModule(component);
   var outFiles = <Future>[];
 
   // Also the old Analyzer backend had some code to make debugging better when

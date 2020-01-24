@@ -42,10 +42,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   /// Maps a library URI import, that is not in [_libraries], to the
   /// corresponding Kernel summary module we imported it with.
-  final _importToSummary = Map<Library, Component>.identity();
+  ///
+  /// An entry must exist for every reachable component.
+  final Map<Library, Component> _importToSummary;
 
   /// Maps a Kernel summary to the JS import name for the module.
-  final _summaryToModule = Map<Component, String>.identity();
+  ///
+  /// An entry must exist for every reachable component.
+  final Map<Component, String> _summaryToModule;
 
   /// The variable for the current catch clause
   VariableDeclaration _rethrowParameter;
@@ -218,8 +222,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   final NullableInference _nullableInference;
 
-  factory ProgramCompiler(Component component, ClassHierarchy hierarchy,
+  factory ProgramCompiler(
+      Component component,
+      ClassHierarchy hierarchy,
       SharedCompilerOptions options,
+      Map<Library, Component> importToSummary,
+      Map<Component, String> summaryToModule,
       {CoreTypes coreTypes}) {
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
@@ -229,16 +237,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsTypeRep = JSTypeRep(types, hierarchy);
     var staticTypeContext = StatefulStaticTypeContext.stacked(types);
     return ProgramCompiler._(
-        coreTypes,
-        coreTypes.index,
-        nativeTypes,
-        constants,
-        types,
-        hierarchy,
-        jsTypeRep,
-        NullableInference(jsTypeRep, staticTypeContext),
-        staticTypeContext,
-        options);
+      coreTypes,
+      coreTypes.index,
+      nativeTypes,
+      constants,
+      types,
+      hierarchy,
+      jsTypeRep,
+      NullableInference(jsTypeRep, staticTypeContext),
+      staticTypeContext,
+      options,
+      importToSummary,
+      summaryToModule,
+    );
   }
 
   ProgramCompiler._(
@@ -251,7 +262,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       this._typeRep,
       this._nullableInference,
       this._staticTypeContext,
-      this._options)
+      this._options,
+      this._importToSummary,
+      this._summaryToModule)
       : _jsArrayClass = sdk.getClass('dart:_interceptors', 'JSArray'),
         _asyncStreamIteratorClass =
             sdk.getClass('dart:async', 'StreamIterator'),
@@ -288,22 +301,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   InterfaceType get internalSymbolType =>
       _coreTypes.legacyRawType(_coreTypes.internalSymbolClass);
 
-  js_ast.Program emitModule(Component component, List<Component> summaries,
-      List<Uri> summaryUris, Map<Uri, String> moduleImportForSummary) {
+  js_ast.Program emitModule(Component component) {
     if (moduleItems.isNotEmpty) {
       throw StateError('Can only call emitModule once.');
     }
     _component = component;
-
-    for (var i = 0; i < summaries.length; i++) {
-      var summary = summaries[i];
-      var moduleImport = moduleImportForSummary[summaryUris[i]];
-      for (var l in summary.libraries) {
-        assert(!_importToSummary.containsKey(l));
-        _importToSummary[l] = summary;
-        _summaryToModule[summary] = moduleImport;
-      }
-    }
 
     var libraries = component.libraries;
 
