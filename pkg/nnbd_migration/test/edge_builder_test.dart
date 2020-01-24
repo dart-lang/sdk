@@ -769,6 +769,32 @@ extension E on C<int> {}
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_field_formal_typed() async {
+    await analyze('''
+class C<T extends Object> {}
+class D {
+  dynamic i;
+  D(C<int> this.i);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_field_formal_typed_function() async {
+    await analyze('''
+class C<T extends Object> {}
+class D {
+  dynamic i;
+  D(this.i(C<int> name));
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_for() async {
     await analyze('''
 class C<T extends Object> {}

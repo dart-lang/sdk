@@ -671,6 +671,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitFieldFormalParameter(FieldFormalParameter node) {
     node.metadata.accept(this);
+    node.parameters?.accept(this);
     var parameterElement = node.declaredElement as FieldFormalParameterElement;
     var parameterType = _variables.decoratedElementType(parameterElement);
     var field = parameterElement.field;
@@ -680,9 +681,11 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (node.type == null) {
       _linkDecoratedTypes(parameterType, fieldType, origin, isUnion: true);
     } else {
+      node.type.accept(this);
       _checkAssignment(origin,
           source: parameterType, destination: fieldType, hard: true);
     }
+
     return null;
   }
 
