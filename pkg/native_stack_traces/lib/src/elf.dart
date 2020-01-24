@@ -432,6 +432,7 @@ class SectionHeader {
   int get length => _entries.length;
   SectionHeaderEntry operator [](int index) => _entries[index];
 
+  @override
   String toString() {
     var ret = "";
     for (var i = 0; i < length; i++) {
@@ -456,7 +457,9 @@ class Section {
     }
   }
 
+  int get virtualAddress => headerEntry.addr;
   int get length => reader.bdata.lengthInBytes;
+  @override
   String toString() => "an unparsed section of ${length} bytes\n";
 }
 
@@ -471,8 +474,18 @@ class StringTable extends Section {
 
   String operator [](int index) => _entries[index];
 
-  String toString() => _entries.keys.fold("a string table:\n",
-      (String acc, int key) => acc + "  $key => ${_entries[key]}\n");
+  @override
+  String toString() {
+    var buffer = StringBuffer("a string table:\n");
+    for (var key in _entries.keys) {
+      buffer
+        ..write(" ")
+        ..write(key)
+        ..write(" => ")
+        ..writeln(_entries[key]);
+    }
+    return buffer.toString();
+  }
 }
 
 class Elf {

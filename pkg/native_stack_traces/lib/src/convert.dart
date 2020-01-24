@@ -9,92 +9,41 @@ import "dwarf.dart";
 
 String _stackTracePiece(CallInfo call, int depth) => "#${depth}\t${call}";
 
-/// An enum describing the section where a PC address is located.
-enum InstructionSection { vm, isolate }
+// A pattern matching the last line of the non-symbolic stack trace header.
+//
+// Currently, this happens to include the only pieces of information from the
+// stack trace header we need: the absolute addresses during program
+// execution of the start of the isolate and VM instructions.
+final _headerEndRE =
+    RegExp(r'isolate_instructions: ([\da-f]+) vm_instructions: ([\da-f]+)$');
 
-/// A class representing a program counter address as an offset into the
-/// appropriate instructions section.
-class PCOffset {
-  final int offset;
-  final InstructionSection section;
-
-  PCOffset(this.offset, this.section);
-
-  /// Returns the corresponding virtual address in [dwarf] or null if
-  /// [dwarf] is null.
-  int virtualAddress(Dwarf dwarf) {
-    if (dwarf != null) {
-      switch (section) {
-        case InstructionSection.vm:
-          return dwarf.convertToVMVirtualAddress(offset);
-        case InstructionSection.isolate:
-          return dwarf.convertToIsolateVirtualAddress(offset);
-      }
-    }
-    return null;
-  }
-
-  @override
-  int get hashCode => offset.hashCode + section.index;
-
-  @override
-  bool operator ==(Object other) {
-    return other is PCOffset &&
-        offset == other.offset &&
-        section == other.section;
-  }
+// Parses instructions section information into a new [StackTraceHeader].
+//
+// Returns a new [StackTraceHeader] if [line] contains the needed header
+// information, otherwise returns `null`.
+StackTraceHeader _parseInstructionsLine(String line) {
+  final match = _headerEndRE.firstMatch(line);
+  if (match == null) return null;
+  final isolateAddr = int.parse(match[1], radix: 16);
+  final vmAddr = int.parse(match[2], radix: 16);
+  return StackTraceHeader(isolateAddr, vmAddr);
 }
 
-/// A class representing header information for a Dart stack trace generated
-/// when running a snapshot compiled with the `--dwarf-stack-traces` flag.
+/// Header information for a non-symbolic Dart stack trace.
 class StackTraceHeader {
   final int _isolateStart;
   final int _vmStart;
 
   StackTraceHeader(this._isolateStart, this._vmStart);
 
-  // There are currently four lines in what we consider the stack trace header.
-  // The warning, the * line, the pid/tid/name line, and the instructions line.
-  static const lineCount = 4;
-
-  /// The start of the stack trace header when running with
-  /// --dwarf-stack-traces. Follows the exception information.
-  static const _headerStart = 'Warning: This VM has been configured to produce '
-      'stack traces that violate the Dart standard.';
-
-  /// The last line of the stack trace header when running with
-  /// --dwarf-stack-traces.
-  ///
-  /// Currently, this happens to include the only pieces of information from the
-  /// stack trace header we need: the absolute addresses during program
-  /// execution of the start of the isolate and VM instructions.
-  static final _headerEndRE = RegExp(
-      r'isolate_instructions: ([0-9a-f]+) vm_instructions: ([0-9a-f]+)$');
-
-  static bool matchesStart(String line) => line.endsWith(_headerStart);
-
-  /// Tries to parse stack trace header information from the given lines of
-  /// input. Returns null if the line does not contain the expected header
-  /// information.
-  factory StackTraceHeader.fromLines(Iterable<String> lines) {
-    if (lines.length != lineCount) return null;
-    final match = _headerEndRE.firstMatch(lines.last);
-    if (match == null) return null;
-    final isolateAddr = int.tryParse("0x" + match[1]);
-    final vmAddr = int.tryParse("0x" + match[2]);
-    if (isolateAddr == null || vmAddr == null) return null;
-    return StackTraceHeader(isolateAddr, vmAddr);
-  }
-
-  /// Converts an absolute program counter address from a Dart stack trace
-  /// to a [PCOffset].
-  PCOffset convertAbsoluteAddress(int address) {
+  /// The [PCOffset] for the given absolute program counter address.
+  PCOffset offsetOf(int address) {
     final isolateOffset = address - _isolateStart;
     int vmOffset = address - _vmStart;
     if (vmOffset > 0 && vmOffset == min(vmOffset, isolateOffset)) {
-      return PCOffset(vmOffset, InstructionSection.vm);
+      return PCOffset(vmOffset, InstructionsSection.vm);
     } else {
-      return PCOffset(isolateOffset, InstructionSection.isolate);
+      return PCOffset(isolateOffset, InstructionsSection.isolate);
     }
   }
 }
@@ -107,32 +56,21 @@ class StackTraceHeader {
 ///   - The path to the snapshot, if it was loaded as a dynamic library,
 ///     otherwise the string "<unknown>".
 final _traceLineRE =
-    RegExp(r'    #(\d{2}) abs ([0-9a-f]+)(?: virt ([0-9a-f]+))? (.*)$');
+    RegExp(r'    #(\d{2}) abs ([\da-f]+)(?: virt ([\da-f]+))? (.*)$');
 
 PCOffset _retrievePCOffset(StackTraceHeader header, Match match) {
   if (header == null || match == null) return null;
-  final address = int.tryParse("0x" + match[2]);
-  return header.convertAbsoluteAddress(address);
+  final address = int.tryParse(match[2], radix: 16);
+  return header.offsetOf(address);
 }
 
-/// Returns the [PCOffset] for each frame's absolute PC address if [lines]
-/// contains one or more Dart stack traces generated by a snapshot compiled
-/// with `--dwarf-stack-traces`.
+/// The [PCOffset]s for frames of the non-symbolic stack traces in [lines].
 Iterable<PCOffset> collectPCOffsets(Iterable<String> lines) sync* {
-  final headerCache = <String>[];
   StackTraceHeader header;
   for (var line in lines) {
-    if (headerCache.isNotEmpty) {
-      headerCache.add(line);
-      if (headerCache.length == StackTraceHeader.lineCount) {
-        header = StackTraceHeader.fromLines(headerCache);
-        headerCache.clear();
-      }
-      continue;
-    }
-    if (StackTraceHeader.matchesStart(line)) {
-      header = null;
-      headerCache.add(line);
+    final parsedHeader = _parseInstructionsLine(line);
+    if (parsedHeader != null) {
+      header = parsedHeader;
       continue;
     }
     final match = _traceLineRE.firstMatch(line);
@@ -141,70 +79,54 @@ Iterable<PCOffset> collectPCOffsets(Iterable<String> lines) sync* {
   }
 }
 
-/// A [StreamTransformer] that scans a stream of lines for Dart stack traces
-/// generated by a snapshot compiled with `--dwarf-stack-traces`. The
-/// transformer assumes that there may be text preceeding the Dart output on
-/// individual lines, like in log files, but that there is no trailing text.
+/// A [StreamTransformer] that scans lines for non-symbolic stack traces.
+///
+/// A [NativeStackTraceDecoder] scans a stream of lines for non-symbolic
+/// stack traces containing only program counter address information. Such
+/// stack traces are generated by the VM when executing a snapshot compiled
+/// with `--dwarf-stack-traces`.
+///
+/// The transformer assumes that there may be text preceding the stack frames
+/// on individual lines, like in log files, but that there is no trailing text.
 /// For each stack frame found, the transformer attempts to locate a function
 /// name, file name and line number using the provided DWARF information.
 ///
-/// If no information is found, or the line is not a stack frame, the line is
-/// output to the sink unchanged.
+/// If no information is found, or the line is not a stack frame, then the line
+/// will be unchanged in the output stream.
 ///
-/// If the located information corresponds to Dart internals, the frame will be
-/// dropped if and only if [includeInternalFrames] is false.
+/// If the located information corresponds to Dart internals and
+/// [includeInternalFrames] is false, then the output stream contains no
+/// entries for the line.
 ///
-/// Otherwise, at least one altered stack frame is generated and replaces the
-/// stack frame portion of the original line. If the PC address corresponds to
-/// inlined code, then multiple stack frames may be generated. When multiple
-/// stack frames are generated, only the first replaces the stack frame portion
-/// of the original line, and the remaining frames are separately output.
+/// Otherwise, the output stream contains one or more lines with symbolic stack
+/// frames for the given non-symbolic stack frame line. Multiple symbolic stack
+/// frame lines are generated when the PC address corresponds to inlined code.
+/// In the output stream, each symbolic stack frame is prefixed by the non-stack
+/// frame portion of the original line.
 class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
   final Dwarf _dwarf;
   final bool _includeInternalFrames;
-  final _cachedHeaderLines = <String>[];
-  int _cachedDepth = 0;
-  StackTraceHeader _cachedHeader;
 
   DwarfStackTraceDecoder(this._dwarf, {bool includeInternalFrames = false})
       : _includeInternalFrames = includeInternalFrames;
 
   Stream<String> bind(Stream<String> stream) async* {
+    int depth = 0;
+    StackTraceHeader header;
     await for (final line in stream) {
-      if (_cachedHeaderLines.isNotEmpty) {
-        _cachedHeaderLines.add(line);
-        if (_cachedHeaderLines.length == StackTraceHeader.lineCount) {
-          _cachedHeader = StackTraceHeader.fromLines(_cachedHeaderLines);
-          // If we failed to parse a header, output the cached lines unchanged.
-          if (_cachedHeader == null) {
-            for (final cachedLine in _cachedHeaderLines) {
-              yield cachedLine;
-            }
-          }
-          _cachedHeaderLines.clear();
-        }
-        continue;
-      }
-      // Reset any stack-related state when we see the start of a new
-      // stacktrace.
-      if (StackTraceHeader.matchesStart(line)) {
-        _cachedDepth = 0;
-        _cachedHeader = null;
-        _cachedHeaderLines.add(line);
+      final parsedHeader = _parseInstructionsLine(line);
+      if (parsedHeader != null) {
+        header = parsedHeader;
+        depth = 0;
+        yield line;
         continue;
       }
       // If at any point we can't get appropriate information for the current
       // line as a stack trace line, then just pass the line through unchanged.
       final lineMatch = _traceLineRE.firstMatch(line);
-      final offset = _retrievePCOffset(_cachedHeader, lineMatch);
-      final location = offset?.virtualAddress(_dwarf);
-      if (location == null) {
-        yield line;
-        continue;
-      }
-      final callInfo = _dwarf
-          .callInfo(location, includeInternalFrames: _includeInternalFrames)
-          ?.toList();
+      final offset = _retrievePCOffset(header, lineMatch);
+      final callInfo = offset?.callInfoFrom(_dwarf,
+          includeInternalFrames: _includeInternalFrames);
       if (callInfo == null) {
         yield line;
         continue;
@@ -214,9 +136,8 @@ class DwarfStackTraceDecoder extends StreamTransformerBase<String, String> {
       // Output the lines for the symbolic frame with the prefix found on the
       // original non-symbolic frame line.
       final prefix = line.substring(0, lineMatch.start);
-      yield prefix + _stackTracePiece(callInfo.first, _cachedDepth++);
-      for (int i = 1; i < callInfo.length; i++) {
-        yield prefix + _stackTracePiece(callInfo[i], _cachedDepth++);
+      for (final call in callInfo) {
+        yield prefix + _stackTracePiece(call, depth++);
       }
     }
   }

@@ -221,7 +221,7 @@ class _AbbreviationsTable {
           .join("\n");
 }
 
-/// A class representing a DWARF Debug Information Entry (DIE).
+/// A DWARF Debug Information Entry (DIE).
 class DebugInformationEntry {
   final Reader reader;
   final CompilationUnit compilationUnit;
@@ -569,13 +569,11 @@ class FileInfo {
   bool containsKey(int index) => _files.containsKey(index);
   FileEntry operator [](int index) => _files[index];
 
-  @override
-  String toString() {
+  void writeToStringBuffer(StringBuffer buffer) {
     if (_files.isEmpty) {
-      return "No file information.\n";
+      buffer.writeln("No file information.");
+      return;
     }
-
-    var ret = "File information:\n";
 
     final indexHeader = "Entry";
     final dirIndexHeader = "Dir";
@@ -601,21 +599,36 @@ class FileInfo {
     final maxSizeLength = sizeStrings.values
         .fold(sizeHeader.length, (int acc, String s) => max(acc, s.length));
 
-    ret += " ${indexHeader.padRight(maxIndexLength)}";
-    ret += " ${dirIndexHeader.padRight(maxDirIndexLength)}";
-    ret += " ${modifiedHeader.padRight(maxModifiedLength)}";
-    ret += " ${sizeHeader.padRight(maxSizeLength)}";
-    ret += " $nameHeader\n";
+    buffer.writeln("File information:");
+
+    buffer..write(" ")..write(indexHeader.padRight(maxIndexLength));
+    buffer..write(" ")..write(dirIndexHeader.padRight(maxDirIndexLength));
+    buffer..write(" ")..write(modifiedHeader.padRight(maxModifiedLength));
+    buffer..write(" ")..write(sizeHeader.padRight(maxSizeLength));
+    buffer
+      ..write(" ")
+      ..writeln(nameHeader);
 
     for (final index in _files.keys) {
-      ret += " ${indexStrings[index].padRight(maxIndexLength)}";
-      ret += " ${dirIndexStrings[index].padRight(maxDirIndexLength)}";
-      ret += " ${modifiedStrings[index].padRight(maxModifiedLength)}";
-      ret += " ${sizeStrings[index].padRight(maxSizeLength)}";
-      ret += " ${_files[index].name}\n";
+      buffer..write(" ")..write(indexStrings[index].padRight(maxIndexLength));
+      buffer
+        ..write(" ")
+        ..write(dirIndexStrings[index].padRight(maxDirIndexLength));
+      buffer
+        ..write(" ")
+        ..write(modifiedStrings[index].padRight(maxModifiedLength));
+      buffer..write(" ")..write(sizeStrings[index].padRight(maxSizeLength));
+      buffer
+        ..write(" ")
+        ..writeln(_files[index].name);
     }
+  }
 
-    return ret;
+  @override
+  String toString() {
+    var buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
   }
 }
 
@@ -871,7 +884,7 @@ class LineNumberProgram {
 
   @override
   String toString() {
-    var ret = "  Size: $size\n"
+    var buffer = StringBuffer("  Size: $size\n"
         "  Version: $version\n"
         "  Header length: $headerLength\n"
         "  Min instruction length: $minimumInstructionLength\n"
@@ -879,24 +892,34 @@ class LineNumberProgram {
         "  Line base: $lineBase\n"
         "  Line range: $lineRange\n"
         "  Opcode base: $opcodeBase\n"
-        "  Standard opcode lengths:\n";
+        "  Standard opcode lengths:\n");
     for (int i = 1; i < opcodeBase; i++) {
-      ret += "    Opcode $i: ${standardOpcodeLengths[i]}\n";
+      buffer
+        ..write("    Opcode ")
+        ..write(i)
+        ..write(": ")
+        ..writeln(standardOpcodeLengths[i]);
     }
 
     if (includeDirectories.isEmpty) {
-      ret += "No include directories.\n";
+      buffer.writeln("No include directories.");
     } else {
-      ret += "Include directories:\n";
+      buffer.writeln("Include directories:");
       for (final dir in includeDirectories) {
-        ret += "    $dir\n";
+        buffer
+          ..write("    ")
+          ..writeln(dir);
       }
     }
 
-    ret += "${filesInfo}\nResults of line number program:\n";
-    ret += calculatedMatrix.map((LineNumberState s) => s.toString()).join();
+    filesInfo.writeToStringBuffer(buffer);
 
-    return ret;
+    buffer.writeln("Results of line number program:");
+    for (final state in calculatedMatrix) {
+      buffer..write(state);
+    }
+
+    return buffer.toString();
   }
 }
 
@@ -978,14 +1001,48 @@ class CallInfo {
       "${function} (${filename}:${line <= 0 ? "??" : line.toString()})";
 }
 
-/// A class representing DWARF debugging information.
+/// The instructions section in which a program counter address is located.
+enum InstructionsSection { vm, isolate }
+
+/// A program counter address viewed as an offset into the appropriate
+/// instructions section of a Dart snapshot.
+class PCOffset {
+  final int offset;
+  final InstructionsSection section;
+
+  PCOffset(this.offset, this.section);
+
+  /// The virtual address for this [PCOffset] in [dwarf].
+  int virtualAddressIn(Dwarf dwarf) => dwarf.virtualAddressOf(this);
+
+  /// The call information found for this [PCOffset] in [dwarf].
+  ///
+  /// If [includeInternalFrames] is false, then only information corresponding
+  /// to user or library code is returned.
+  Iterable<CallInfo> callInfoFrom(Dwarf dwarf,
+          {bool includeInternalFrames = false}) =>
+      dwarf.callInfoFor(dwarf.virtualAddressOf(this),
+          includeInternalFrames: includeInternalFrames);
+
+  @override
+  int get hashCode => _hashFinish(_hashCombine(offset.hashCode, section.index));
+
+  @override
+  bool operator ==(Object other) {
+    return other is PCOffset &&
+        offset == other.offset &&
+        section == other.section;
+  }
+}
+
+/// The DWARF debugging information for a Dart snapshot.
 class Dwarf {
   final Elf elf;
   Map<int, _AbbreviationsTable> abbreviationTables;
   DebugInfo debugInfo;
   LineNumberInfo lineNumberInfo;
-  int vmStartAddress;
-  int isolateStartAddress;
+  int _vmStartAddress;
+  int _isolateStartAddress;
 
   Dwarf.fromElf(this.elf) {
     _loadSections();
@@ -1017,21 +1074,23 @@ class Dwarf {
     final infoSection = elf.namedSection(".debug_info").first;
     debugInfo = DebugInfo.fromReader(infoSection.reader, this);
 
-    final textSegments = elf.namedSection(".text");
+    final textSegments = elf.namedSection(".text").toList();
     if (textSegments.length != 2) {
       throw FormatException(
           "Expected two text segments for VM and isolate instructions");
     }
 
-    final textAddresses = textSegments.map((s) => s.headerEntry.addr).toList();
-    vmStartAddress = textAddresses[0];
-    isolateStartAddress = textAddresses[1];
+    _vmStartAddress = textSegments[0].virtualAddress;
+    _isolateStartAddress = textSegments[1].virtualAddress;
   }
 
-  /// Returns an iterable of [CallInfo] for the given virtual address.
+  /// The call information for the given virtual address. There may be
+  /// multiple [CallInfo] objects returned for a single virtual address when
+  /// code has been inlined.
+  ///
   /// If [includeInternalFrames] is false, then only information corresponding
   /// to user or library code is returned.
-  Iterable<CallInfo> callInfo(int address,
+  Iterable<CallInfo> callInfoFor(int address,
       {bool includeInternalFrames = false}) {
     final calls = debugInfo.callInfo(address);
     if (calls != null && !includeInternalFrames) {
@@ -1040,16 +1099,16 @@ class Dwarf {
     return calls;
   }
 
-  /// Returns the virtual address for the given offset into the VM
-  /// instructions image.
-  int convertToVMVirtualAddress(int textOffset) {
-    return textOffset + vmStartAddress;
-  }
-
-  /// Returns the virtual address for the given offset into the isolate
-  /// instructions image.
-  int convertToIsolateVirtualAddress(int textOffset) {
-    return textOffset + isolateStartAddress;
+  /// The virtual address in this DWARF information for the given [PCOffset].
+  int virtualAddressOf(PCOffset pcOffset) {
+    switch (pcOffset.section) {
+      case InstructionsSection.vm:
+        return pcOffset.offset + _vmStartAddress;
+      case InstructionsSection.isolate:
+        return pcOffset.offset + _isolateStartAddress;
+      default:
+        throw "Unexpected value for instructions section";
+    }
   }
 
   @override

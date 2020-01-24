@@ -103,17 +103,6 @@ main(List<String> args) async {
     ]);
     final strippedOffsets = collectPCOffsets(strippedTrace);
 
-    if (Platform.isWindows) {
-      // TODO(dartbug.com/35274): After this point, we make sure that we get
-      // the same offsets from the DWARF stack traces. On Windows, we currently
-      // aren't guaranteed to get the same offset in DWARF stack traces from
-      // different runs because we aren't using the native loader for dynamic
-      // libraries (as the Windows one does not understand ELF). Instead, we
-      // fall back onto our own ELF loader, and the DWARF stack trace output
-      // only prints relative PC addresses for dynamically loaded libraries.
-      return;
-    }
-
     // The retrieved offsets should be the same for all runs.
     Expect.deepEquals(wholeOffsets, strippedOffsets);
     Expect.deepEquals(strippedOnlyOffsets, strippedOffsets);
