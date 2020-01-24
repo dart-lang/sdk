@@ -14,8 +14,6 @@ testMain() async {
 }
 
 var tests = <IsolateTest>[
-  // Stopped at 'debugger' statement.
-  isolateIsRunning,
   // Kill the app
   (Isolate isolate) async {
     Map<String, dynamic> params = <String, dynamic>{};

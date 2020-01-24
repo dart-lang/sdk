@@ -1905,6 +1905,16 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     });
   }
 
+  Future<ServiceObject> invoke(ServiceObject target, String selector,
+      [List<ServiceObject> arguments = const <ServiceObject>[]]) {
+    Map params = {
+      'targetId': target.id,
+      'selector': selector,
+      'argumentIds': arguments.map((arg) => arg.id).toList(),
+    };
+    return invokeRpc('invoke', params);
+  }
+
   Future<ServiceObject> eval(ServiceObject target, String expression,
       {Map<String, ServiceObject> scope, bool disableBreakpoints: false}) {
     Map params = {
