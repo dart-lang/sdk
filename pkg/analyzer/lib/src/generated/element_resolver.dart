@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -126,7 +127,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
    */
   ElementResolver(this._resolver,
       {this.reportConstEvaluationErrors = true,
-      ElementTypeProvider elementTypeProvider = const ElementTypeProvider()})
+      ElementTypeProvider elementTypeProvider = const ElementTypeProvider(),
+      MigratableAstInfoProvider migratableAstInfoProvider =
+          const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
         _extensionResolver = _resolver.extensionResolver,
         _typePropertyResolver = _resolver.typePropertyResolver,
@@ -136,6 +139,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     _methodInvocationResolver = MethodInvocationResolver(
       _resolver,
       elementTypeProvider,
+      migratableAstInfoProvider,
       inferenceHelper: _resolver.inferenceHelper,
     );
   }

@@ -203,6 +203,14 @@ class FixBuilder {
     }
   }
 
+  /// Determines whether the given [node], which is a null-aware method
+  /// invocation, property access, or index expression, should remain null-aware
+  /// after migration.
+  bool _shouldStayNullAware(Expression node) {
+    // TODO(paulberry): Implement
+    return true;
+  }
+
   static TypeSystemImpl _makeNnbdTypeSystem(
       TypeProvider nnbdTypeProvider, Dart2TypeSystem typeSystem) {
     // TODO(paulberry): do we need to test both possible values of
@@ -221,6 +229,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   final FixBuilder _fixBuilder;
 
   final Expando<List<CollectionElement>> _collectionElements = Expando();
+
+  final Expando<bool> _shouldStayNullAware = Expando();
 
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
@@ -300,6 +310,24 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         }
         return _fixBuilder._computeMigratedType(variable);
       });
+
+  @override
+  bool isIndexExpressionNullAware(IndexExpression node) {
+    return node.isNullAware &&
+        (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
+  }
+
+  @override
+  bool isMethodInvocationNullAware(MethodInvocation node) {
+    return node.isNullAware &&
+        (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
+  }
+
+  @override
+  bool isPropertyAccessNullAware(PropertyAccess node) {
+    return node.isNullAware &&
+        (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
+  }
 
   @override
   DartType modifyExpressionType(Expression node, DartType type) =>

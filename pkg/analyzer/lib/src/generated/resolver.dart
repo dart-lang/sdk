@@ -37,11 +37,11 @@ import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/error/bool_expression_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/collection_element_provider.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
@@ -199,7 +199,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   final ElementTypeProvider _elementTypeProvider;
 
-  final CollectionElementProvider _collectionElementProvider;
+  final MigratableAstInfoProvider _migratableAstInfoProvider;
 
   /// Helper for checking expression that should have the `bool` type.
   BoolExpressionVerifier boolExpressionVerifier;
@@ -315,7 +315,7 @@ class ResolverVisitor extends ScopedVisitor {
             reportConstEvaluationErrors,
             flowAnalysisHelper,
             const ElementTypeProvider(),
-            const CollectionElementProvider());
+            const MigratableAstInfoProvider());
 
   ResolverVisitor._(
       this.inheritance,
@@ -330,7 +330,7 @@ class ResolverVisitor extends ScopedVisitor {
       reportConstEvaluationErrors,
       this._flowAnalysis,
       this._elementTypeProvider,
-      this._collectionElementProvider)
+      this._migratableAstInfoProvider)
       : _featureSet = featureSet,
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
@@ -346,7 +346,7 @@ class ResolverVisitor extends ScopedVisitor {
     );
     this._typedLiteralResolver = TypedLiteralResolver(
         this, _featureSet, typeSystem, typeProvider,
-        collectionElementProvider: _collectionElementProvider);
+        migratableAstInfoProvider: _migratableAstInfoProvider);
     this.extensionResolver = ExtensionMemberResolver(this);
     this.typePropertyResolver = TypePropertyResolver(this);
     this.inferenceHelper = InvocationInferenceHelper(
@@ -385,7 +385,8 @@ class ResolverVisitor extends ScopedVisitor {
     );
     this.elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
-        elementTypeProvider: _elementTypeProvider);
+        elementTypeProvider: _elementTypeProvider,
+        migratableAstInfoProvider: _migratableAstInfoProvider);
     this.inferenceContext = InferenceContext._(this);
     this.typeAnalyzer = StaticTypeAnalyzer(
       this,
@@ -1418,7 +1419,8 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitIndexExpression(IndexExpression node) {
     node.target?.accept(this);
-    if (node.isNullAware && _isNonNullableByDefault) {
+    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node) &&
+        _isNonNullableByDefault) {
       _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
       _unfinishedNullShorts.add(node.nullShortingTermination);
     }
@@ -1586,7 +1588,8 @@ class ResolverVisitor extends ScopedVisitor {
     // to be visited in the context of the property access node.
     //
     node.target?.accept(this);
-    if (node.isNullAware && _isNonNullableByDefault) {
+    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node) &&
+        _isNonNullableByDefault) {
       _flowAnalysis.flow.nullAwareAccess_rightBegin(node.target);
       _unfinishedNullShorts.add(node.nullShortingTermination);
     }

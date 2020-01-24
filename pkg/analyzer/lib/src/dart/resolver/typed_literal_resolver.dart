@@ -13,8 +13,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/collection_element_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
@@ -25,7 +25,7 @@ class TypedLiteralResolver {
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final ErrorReporter _errorReporter;
-  final CollectionElementProvider _collectionElementProvider;
+  final MigratableAstInfoProvider _migratableAstInfoProvider;
 
   final bool _strictInference;
   final bool _uiAsCodeEnabled;
@@ -34,8 +34,8 @@ class TypedLiteralResolver {
 
   factory TypedLiteralResolver(ResolverVisitor resolver, FeatureSet featureSet,
       TypeSystemImpl typeSystem, TypeProviderImpl typeProvider,
-      {CollectionElementProvider collectionElementProvider =
-          const CollectionElementProvider()}) {
+      {MigratableAstInfoProvider migratableAstInfoProvider =
+          const MigratableAstInfoProvider()}) {
     var library = resolver.definingLibrary as LibraryElementImpl;
     var analysisOptions = library.context.analysisOptions;
     var analysisOptionsImpl = analysisOptions as AnalysisOptionsImpl;
@@ -48,7 +48,7 @@ class TypedLiteralResolver {
         featureSet.isEnabled(Feature.control_flow_collections) ||
             featureSet.isEnabled(Feature.spread_collections),
         featureSet.isEnabled(Feature.non_nullable),
-        collectionElementProvider);
+        migratableAstInfoProvider);
   }
 
   TypedLiteralResolver._(
@@ -59,7 +59,7 @@ class TypedLiteralResolver {
       this._strictInference,
       this._uiAsCodeEnabled,
       this._isNonNullableByDefault,
-      this._collectionElementProvider);
+      this._migratableAstInfoProvider);
 
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
@@ -301,10 +301,10 @@ class TypedLiteralResolver {
   }
 
   List<CollectionElement> _getListElements(ListLiteral node) =>
-      _collectionElementProvider.getListElements(node);
+      _migratableAstInfoProvider.getListElements(node);
 
   List<CollectionElement> _getSetOrMapElements(SetOrMapLiteral node) =>
-      _collectionElementProvider.getSetOrMapElements(node);
+      _migratableAstInfoProvider.getSetOrMapElements(node);
 
   _InferredCollectionElementTypeInformation _inferCollectionElementType(
       CollectionElement element) {
