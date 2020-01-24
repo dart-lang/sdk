@@ -1236,7 +1236,7 @@ void f(int x) {
 class C<T> {
   void f(T t) {}
 }
-voig g(C<int> x, int y) {
+void g(C<int> x, int y) {
   x.f(y);
 }
 ''');
