@@ -99,22 +99,6 @@ int f({required String s}) => s.length;
     await _checkSingleFileChanges(content, expected);
   }
 
-  Future<void> test_as_allows_null() async {
-    var content = '''
-int f(Object o) => (o as int)?.gcd(1);
-main() {
-  f(null);
-}
-''';
-    var expected = '''
-int? f(Object? o) => (o as int?)?.gcd(1);
-main() {
-  f(null);
-}
-''';
-    await _checkSingleFileChanges(content, expected);
-  }
-
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   Future<void> test_add_type_parameter_bound() async {
     /// After a migration, a bound may be made nullable. Instantiate-to-bounds
@@ -132,6 +116,22 @@ class C<T extends num?/*?*/> {}
 
 void main() {
   C<num> c = C();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_as_allows_null() async {
+    var content = '''
+int f(Object o) => (o as int)?.gcd(1);
+main() {
+  f(null);
+}
+''';
+    var expected = '''
+int? f(Object? o) => (o as int?)?.gcd(1);
+main() {
+  f(null);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
