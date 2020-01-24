@@ -699,6 +699,18 @@ main() {
         hard: false);
   }
 
+  Future<void> test_assign_to_bound_as() async {
+    // TODO(mfairhurst): support downcast to type params with bounds
+    await analyze('''
+class C<T> {}
+void f(Object o) {
+  o as C<int>;
+}
+''');
+    // For now, edge to `anyNode`, because the true bound is inferred.
+    assertEdge(decoratedTypeAnnotation('int').node, anyNode, hard: true);
+  }
+
   Future<void> test_assign_to_bound_in_return_type() async {
     await analyze('''
 class C<T extends Object> {}

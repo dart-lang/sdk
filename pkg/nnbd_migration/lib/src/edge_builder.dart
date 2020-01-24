@@ -268,6 +268,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (BestPracticesVerifier.isUnnecessaryCast(node, _typeSystem)) {
       _variables.recordUnnecessaryCast(source, node);
     }
+    node.type.accept(this);
     final typeNode = _variables.decoratedTypeAnnotation(source, node.type);
     _handleAssignment(node.expression, destinationType: typeNode);
     _flowAnalysis.asExpression_end(node.expression, typeNode);
