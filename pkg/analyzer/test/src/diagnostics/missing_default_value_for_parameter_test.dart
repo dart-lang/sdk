@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -233,6 +234,96 @@ abstract class A<T extends Object?> {
   void foo([T a]);
 }
 ''');
+  }
+
+  test_method_external_nonNullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+class C {
+  external void foo({int a});
+}
+''');
+  }
+
+  test_method_external_nonNullable_positional_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+class C {
+  external void foo([int a]);
+}
+''');
+  }
+
+  test_method_external_nullable_named_optional_noDefault() async {
+    await assertNoErrorsInCode('''
+class C {
+  external void foo({int? a});
+}
+''');
+  }
+
+  test_method_external_potentiallyNonNullable_named_optional() async {
+    await assertNoErrorsInCode('''
+class A<T> {
+  external void foo({T a});
+}
+''');
+  }
+
+  test_method_external_potentiallyNonNullable_positional_optional() async {
+    await assertNoErrorsInCode('''
+class A<T extends Object?> {
+  external void foo([T a]);
+}
+''');
+  }
+
+  test_method_native_nonNullable_named_optional_noDefault() async {
+    await assertErrorsInCode('''
+class C {
+  void foo({int a}) native;
+}
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 30, 7),
+    ]);
+  }
+
+  test_method_native_nonNullable_positional_optional_noDefault() async {
+    await assertErrorsInCode('''
+class C {
+  void foo([int a]) native;
+}
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 30, 7),
+    ]);
+  }
+
+  test_method_native_nullable_named_optional_noDefault() async {
+    await assertErrorsInCode('''
+class C {
+  void foo({int? a}) native;
+}
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 31, 7),
+    ]);
+  }
+
+  test_method_native_potentiallyNonNullable_named_optional() async {
+    await assertErrorsInCode('''
+class A<T> {
+  void foo({T a}) native;
+}
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 31, 7),
+    ]);
+  }
+
+  test_method_native_potentiallyNonNullable_positional_optional() async {
+    await assertErrorsInCode('''
+class A<T extends Object?> {
+  void foo([T a]) native;
+}
+''', [
+      error(ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE, 47, 7),
+    ]);
   }
 
   test_method_nonNullable_named_optional_noDefault() async {

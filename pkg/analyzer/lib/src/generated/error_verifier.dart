@@ -5263,7 +5263,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     var parent = node.parent;
     var defaultValuesAreExpected = parent is ConstructorDeclaration ||
         parent is FunctionExpression ||
-        parent is MethodDeclaration && !parent.isAbstract;
+        parent is MethodDeclaration &&
+            !parent.isAbstract &&
+            parent.externalKeyword == null &&
+            parent.body is! NativeFunctionBody;
 
     for (var parameter in node.parameters) {
       if (parameter is DefaultFormalParameter) {
