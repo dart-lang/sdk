@@ -762,8 +762,8 @@ abstract class BehaviorBuilder {
   /// Returns a list of type constraints from the annotations of
   /// [annotationClass].
   /// Returns `null` if no constraints.
-  List _collect(Iterable<String> annotations, TypeLookup lookupType) {
-    var types = null;
+  List<dynamic> _collect(Iterable<String> annotations, TypeLookup lookupType) {
+    List<dynamic> types = null;
     for (String specString in annotations) {
       for (final typeString in specString.split('|')) {
         var type = NativeBehavior._parseType(typeString, lookupType);
