@@ -329,7 +329,7 @@ if (target_cpu == "x64") {
       ignore_patterns = "{}"
     },
   ]
-  if (is_linux) {
+  if (is_linux || is_android) {
     copy_tree_specs += [
       {
         target = "copy_libtensorflowlite_c"
