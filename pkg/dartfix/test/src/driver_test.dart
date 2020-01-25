@@ -10,6 +10,17 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
+void main() {
+  defineDriverTests(
+    name: 'default',
+    options: ['--fix', 'prefer-int-literals', '--fix', 'use-mixin'],
+    expectedSuggestions: [
+      'Convert MyMixin to a mixin',
+      'Convert to an int literal',
+    ],
+  );
+}
+
 void defineDriverTests({
   String name,
   List<String> options,
@@ -93,17 +104,6 @@ void defineDriverTests({
     }
     expect(stdout1, stdout2);
   });
-}
-
-void main() {
-  defineDriverTests(
-    name: 'default',
-    options: ['--fix', 'double-to-int', '--fix', 'use-mixin'],
-    expectedSuggestions: [
-      'Convert MyMixin to a mixin',
-      'Convert to an int literal',
-    ],
-  );
 }
 
 String replaceLeadingComment(String source) => source.replaceAll(

@@ -5,7 +5,6 @@
 import 'package:analysis_server/protocol/protocol_generated.dart'
     show DartFix, EditDartfixParams;
 import 'package:analysis_server/src/edit/edit_dartfix.dart';
-import 'package:analysis_server/src/edit/fix/basic_fix_lint_assist_task.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_listener.dart';
 import 'package:analysis_server/src/edit/fix/dartfix_registrar.dart';
 import 'package:analysis_server/src/edit/fix/fix_error_task.dart';
@@ -31,7 +30,7 @@ final allFixes = <DartFixInfo>[
     PreferMixinFix.task,
   ),
   //
-  // Pedantic lint fixes.
+  // Lint fixes.
   //
   // TODO(brianwilkerson) The commented out fixes below involve potentially
   //  non-local changes, so they can't currently be applied together. I have an
@@ -66,6 +65,7 @@ final allFixes = <DartFixInfo>[
   LintFixInfo.preferFinalLocals,
   LintFixInfo.preferForElementsToMapFromIterable,
   LintFixInfo.preferGenericFunctionTypeAliases,
+  LintFixInfo.preferIfElementsToConditionalExpressions,
   LintFixInfo.preferIfNullOperators,
   LintFixInfo.preferInlinedAdds,
   LintFixInfo.preferIntLiterals,
@@ -89,31 +89,6 @@ final allFixes = <DartFixInfo>[
   LintFixInfo.unnecessaryThis,
   LintFixInfo.useFunctionTypeSyntaxForParameters,
   LintFixInfo.useRethrowWhenPossible,
-  //
-  // Other fixes
-  //
-  DartFixInfo(
-    // TODO(brianwilkerson) This duplicates `LintFixInfo.preferIntLiterals` and
-    //  should be removed.
-    'double-to-int',
-    'Find double literals ending in .0 and remove the .0 wherever double context can be inferred.',
-    BasicFixLintAssistTask.preferIntLiterals,
-  ),
-  DartFixInfo(
-    'use-spread-collections',
-    'Convert to using collection spread operators.',
-    BasicFixLintAssistTask.preferSpreadCollections,
-  ),
-  DartFixInfo(
-    'collection-if-elements',
-    'Convert to using if elements when building collections.',
-    BasicFixLintAssistTask.preferIfElementsToConditionalExpressions,
-  ),
-  DartFixInfo(
-    'map-for-elements',
-    'Convert to for elements when building maps from iterables.',
-    BasicFixLintAssistTask.preferForElementsToMapFromIterable,
-  ),
   //
   // Experimental fixes
   //
@@ -376,6 +351,11 @@ class LintFixInfo extends DartFixInfo {
     "Convert into 'Function' syntax",
     isPedantic: true,
   );
+
+  static final preferIfElementsToConditionalExpressions = LintFixInfo(
+      'prefer_if_elements_to_conditional_expressions',
+      DartFixKind.CONVERT_TO_IF_ELEMENT,
+      "Convert to an 'if' element.");
 
   static final preferIfNullOperators = LintFixInfo(
     'prefer_if_null_operators',

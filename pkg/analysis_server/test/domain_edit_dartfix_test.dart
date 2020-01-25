@@ -81,21 +81,14 @@ class EditDartfixDomainHandlerTest extends AbstractAnalysisTest {
   }
 
   test_collection_if_elements() async {
-    // Add analysis options to enable ui as code
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-    - spread-collections
-''');
     addTestFile('''
 f(bool b) {
   return ['a', b ? 'c' : 'd', 'e'];
 }
 ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['collection-if-elements']);
+    EditDartfixResult result = await performFix(
+        includedFixes: ['prefer-if-elements-to-conditional-expressions']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, '''
@@ -129,7 +122,7 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert no suggestions now that source has been excluded
-    final result = await performFix(includedFixes: ['double-to-int']);
+    final result = await performFix(includedFixes: ['prefer-int-literals']);
     expect(result.suggestions, hasLength(0));
     expect(result.edits, hasLength(0));
   }
@@ -166,33 +159,6 @@ const double myDouble = 42.0;
 
     final result = await performFixRaw(includedFixes: ['not-a-fix']);
     expect(result.error, isNotNull);
-  }
-
-  test_map_for_elements() async {
-    // Add analysis options to enable ui as code
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-    - spread-collections
-''');
-    addTestFile('''
-f(Iterable<int> i) {
-  var k = 3;
-  return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
-}
-''');
-    createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['map-for-elements']);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.hasErrors, isFalse);
-    expectEdits(result.edits, '''
-f(Iterable<int> i) {
-  var k = 3;
-  return { for (var e in i) e * 2 : k };
-}
-''');
   }
 
   test_nonNullable() async {
@@ -303,7 +269,7 @@ const double myDouble = 42.0;
 
     // Assert dartfix suggestions
     EditDartfixResult result =
-        await performFix(includedFixes: ['double-to-int']);
+        await performFix(includedFixes: ['prefer-int-literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -321,7 +287,7 @@ const double myDouble = 42.0;
 
     // Assert dartfix suggestions
     EditDartfixResult result =
-        await performFix(includedFixes: ['double-to-int']);
+        await performFix(includedFixes: ['prefer-int-literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -358,11 +324,11 @@ var m =
   Map<int, int>.fromIterable([1, 2, 3], key: (i) => i, value: (i) => i * 2);
     ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['map-for-elements']);
+    EditDartfixResult result = await performFix(
+        includedFixes: ['prefer-for-elements-to-map-fromIterable']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
-        result.suggestions[0], "Convert to a 'for' element", 10, 3);
+        result.suggestions[0], "Convert to a 'for' element", 10, 73);
     expectEdits(result.edits, '''
 var m =
   { for (var i in [1, 2, 3]) i : i * 2 };
@@ -374,11 +340,11 @@ var m =
 f(bool b) => ['a', b ? 'c' : 'd', 'e'];
     ''');
     createProject();
-    EditDartfixResult result =
-        await performFix(includedFixes: ['collection-if-elements']);
+    EditDartfixResult result = await performFix(
+        includedFixes: ['prefer-if-elements-to-conditional-expressions']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
-        result.suggestions[0], "Convert to an 'if' element", 19, 1);
+        result.suggestions[0], "Convert to an 'if' element", 19, 13);
     expectEdits(result.edits, '''
 f(bool b) => ['a', if (b) 'c' else 'd', 'e'];
     ''');
@@ -390,7 +356,7 @@ const double myDouble = 42.0;
     ''');
     createProject();
     EditDartfixResult result =
-        await performFix(includedFixes: ['double-to-int']);
+        await performFix(includedFixes: ['prefer-int-literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
     expectEdits(result.edits, '''
@@ -458,20 +424,13 @@ var l = [
   }
 
   test_preferSpreadCollections() async {
-    // Add analysis options to enable ui as code
-    newFile('/project/analysis_options.yaml', content: '''
-analyzer:
-  enable-experiment:
-    - control-flow-collections
-    - spread-collections
-''');
     addTestFile('''
 var l1 = ['b'];
 var l2 = ['a']..addAll(l1);
 ''');
     createProject();
     EditDartfixResult result =
-        await performFix(includedFixes: ['use-spread-collections']);
+        await performFix(includedFixes: ['prefer-spread-collections']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, '''

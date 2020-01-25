@@ -46,7 +46,7 @@ class C with B {}
   test_dartfix_include_other() async {
     setupTarget();
     EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        includedFixes: ['double-to-int']);
+        includedFixes: ['prefer-int-literals']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, 0);
     expect(result.edits.length, 0);
