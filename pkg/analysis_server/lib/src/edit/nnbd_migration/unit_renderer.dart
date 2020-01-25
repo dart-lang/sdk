@@ -127,9 +127,7 @@ class UnitRenderer {
     //
     // Apply the insertions that have been computed.
     //
-    List<int> offsets = []
-      ..addAll(openInsertions.keys)
-      ..addAll(closeInsertions.keys);
+    List<int> offsets = [...openInsertions.keys, ...closeInsertions.keys];
     offsets.sort();
     StringBuffer navContent2 = StringBuffer();
     int previousOffset2 = 0;

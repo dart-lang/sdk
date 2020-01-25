@@ -609,7 +609,7 @@ class StatementCompletionProcessor {
             // emptyCondition, emptyInitializersEmptyCondition
             replacementLength = match.end - match.start;
             sb = SourceBuilder(file, forParts.leftSeparator.offset);
-            sb.append('; ${match.group(1) == null ? '' : match.group(1)}; )');
+            sb.append('; ${match.group(1) ?? ''}; )');
             String suffix = text.substring(match.end);
             if (suffix.trim().isNotEmpty) {
               sb.append(' ');
@@ -1202,7 +1202,7 @@ class StatementCompletionProcessor {
   }
 
   AstNode _selectedNode({int at}) =>
-      NodeLocator(at == null ? selectionOffset : at).searchWithin(unit);
+      NodeLocator(at ?? selectionOffset).searchWithin(unit);
 
   void _setCompletion(StatementCompletionKind kind, [List args]) {
     assert(exitPosition != null);

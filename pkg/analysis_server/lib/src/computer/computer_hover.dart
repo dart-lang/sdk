@@ -166,9 +166,10 @@ class DartUnitHoverComputer {
     }
     // Look for documentation comments of overridden members.
     OverriddenElements overridden = findOverriddenElements(element);
-    for (Element superElement in []
-      ..addAll(overridden.superElements)
-      ..addAll(overridden.interfaceElements)) {
+    for (Element superElement in [
+      ...overridden.superElements,
+      ...overridden.interfaceElements
+    ]) {
       String rawDoc = superElement.documentationComment;
       if (rawDoc != null) {
         Element interfaceClass = superElement.enclosingElement;

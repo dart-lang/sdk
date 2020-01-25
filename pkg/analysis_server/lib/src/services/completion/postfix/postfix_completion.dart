@@ -548,9 +548,8 @@ class PostfixCompletionProcessor {
     return expr;
   }
 
-  AstNode _selectedNode({int at}) =>
-      NodeLocator(at == null ? selectionOffset : at)
-          .searchWithin(completionContext.resolveResult.unit);
+  AstNode _selectedNode({int at}) => NodeLocator(at ?? selectionOffset)
+      .searchWithin(completionContext.resolveResult.unit);
 
   void _setCompletionFromBuilder(
       DartChangeBuilder builder, PostfixCompletionKind kind,
