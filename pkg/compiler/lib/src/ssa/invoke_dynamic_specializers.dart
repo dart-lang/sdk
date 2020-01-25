@@ -9,7 +9,6 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
-import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../world.dart' show JClosedWorld;
 import 'logging.dart';
@@ -45,11 +44,12 @@ class InvokeDynamicSpecializer {
     instruction.setUseGvn();
   }
 
-  Selector renameToOptimizedSelector(
-      String name, Selector selector, JCommonElements commonElements) {
-    if (selector.name == name) return selector;
-    return new Selector.call(new Name(name, commonElements.interceptorsLibrary),
-        new CallStructure(selector.argumentCount));
+  void redirectSelector(
+      HInvokeDynamic instruction, String name, JCommonElements commonElements) {
+    Selector selector = instruction.selector;
+    if (selector.name == name) return;
+    instruction.selector = Selector.call(
+        Name(name, commonElements.interceptorsLibrary), selector.callStructure);
   }
 
   constant_system.Operation operation() => null;
@@ -786,8 +786,7 @@ class TruncatingDivideSpecializer extends BinaryArithmeticSpecializer {
         }
         // We can call _tdivFast because the rhs is a 32bit integer
         // and not 0, nor -1.
-        instruction.selector = renameToOptimizedSelector(
-            '_tdivFast', instruction.selector, commonElements);
+        redirectSelector(instruction, '_tdivFast', commonElements);
         if (log != null) {
           registerOptimization(log, instruction, null);
         }
@@ -892,8 +891,7 @@ class ShiftLeftSpecializer extends BinaryBitOpSpecializer {
       // can be GVN'ed.
       clearAllSideEffects(instruction);
       if (isPositive(right, closedWorld)) {
-        instruction.selector = renameToOptimizedSelector(
-            '_shlPositive', instruction.selector, commonElements);
+        redirectSelector(instruction, '_shlPositive', commonElements);
       }
       if (log != null) {
         registerOptimization(log, instruction, null);
@@ -956,21 +954,18 @@ class ShiftRightSpecializer extends BinaryBitOpSpecializer {
       // can be GVN'ed.
       clearAllSideEffects(instruction);
       if (isPositive(right, closedWorld) && isPositive(left, closedWorld)) {
-        instruction.selector = renameToOptimizedSelector(
-            '_shrBothPositive', instruction.selector, commonElements);
+        redirectSelector(instruction, '_shrBothPositive', commonElements);
         if (log != null) {
           registerOptimization(log, instruction, null);
         }
       } else if (isPositive(left, closedWorld) &&
           right.isNumber(closedWorld.abstractValueDomain).isDefinitelyTrue) {
-        instruction.selector = renameToOptimizedSelector(
-            '_shrReceiverPositive', instruction.selector, commonElements);
+        redirectSelector(instruction, '_shrReceiverPositive', commonElements);
         if (log != null) {
           registerOptimization(log, instruction, null);
         }
       } else if (isPositive(right, closedWorld)) {
-        instruction.selector = renameToOptimizedSelector(
-            '_shrOtherPositive', instruction.selector, commonElements);
+        redirectSelector(instruction, '_shrOtherPositive', commonElements);
         if (log != null) {
           registerOptimization(log, instruction, null);
         }
@@ -1337,8 +1332,7 @@ class CodeUnitAtSpecializer extends InvokeDynamicSpecializer {
       if (instruction.inputs.last
           .isPositiveInteger(closedWorld.abstractValueDomain)
           .isDefinitelyTrue) {
-        instruction.selector = renameToOptimizedSelector(
-            '_codeUnitAt', instruction.selector, commonElements);
+        redirectSelector(instruction, '_codeUnitAt', commonElements);
       }
       log?.registerCodeUnitAt(instruction);
     }

@@ -272,16 +272,17 @@ class SsaSimplifyInterceptors extends HBaseVisitor
               interceptedClasses.contains(_commonElements.jsIntClass))) {
         Set<ClassEntity> required;
         for (HInstruction user in node.usedBy) {
-          if (user is! HInvoke) continue;
-          Set<ClassEntity> intercepted = _interceptorData
-              .getInterceptedClassesOn(user.selector.name, _closedWorld);
-          if (intercepted.contains(_commonElements.jsIntClass)) {
-            required ??= {};
-            required.add(_commonElements.jsIntClass);
-          }
-          if (intercepted.contains(_commonElements.jsDoubleClass)) {
-            required ??= {};
-            required.add(_commonElements.jsDoubleClass);
+          if (user is HInvokeDynamic) {
+            Set<ClassEntity> intercepted = _interceptorData
+                .getInterceptedClassesOn(user.selector.name, _closedWorld);
+            if (intercepted.contains(_commonElements.jsIntClass)) {
+              required ??= {};
+              required.add(_commonElements.jsIntClass);
+            }
+            if (intercepted.contains(_commonElements.jsDoubleClass)) {
+              required ??= {};
+              required.add(_commonElements.jsDoubleClass);
+            }
           }
         }
         // Don't modify the result of
