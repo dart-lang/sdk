@@ -24,7 +24,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 
-main(List<String> args) async {
+void main(List<String> args) async {
   // TODO(sigmund): provide sdk folder as well.
   if (args.length < 2) {
     print('usage: perf.dart <bench-id> <entry.dart>');

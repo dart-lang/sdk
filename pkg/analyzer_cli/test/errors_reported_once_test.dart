@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'utils.dart';
 
-main() {
+void main() {
   defineReflectiveTests(ErrorsReportedOnceTest);
 }
 
@@ -39,7 +39,7 @@ class ErrorsReportedOnceTest {
     exitHandler = savedExitHandler;
   }
 
-  test_once() async {
+  Future<void> test_once() async {
     String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
     Driver driver = Driver(isTesting: true);
     await driver.start(
@@ -54,7 +54,7 @@ class ErrorsReportedOnceTest {
     expect(unusedWarning.allMatches(output).toList(), hasLength(1));
   }
 
-  test_once_machine() async {
+  Future<void> test_once_machine() async {
     String testDir = path.join(testDirectory, 'data', 'errors_reported_once');
     Driver driver = Driver(isTesting: true);
     await driver.start([

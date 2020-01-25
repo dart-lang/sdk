@@ -9,7 +9,7 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   test('makePerfReport', () {
     var options = CommandLineOptions.parse(['somefile.dart']);
     var encoded = makePerfReport(1000, 1234, options, 0, AnalysisStats());

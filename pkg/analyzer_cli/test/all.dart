@@ -14,7 +14,7 @@ import 'perf_report_test.dart' as perf_report_test;
 import 'reporter_test.dart' as reporter_test;
 import 'strong_mode_test.dart' as strong_mode_test;
 
-main() {
+void main() {
   analysis_options_test.main();
   build_mode_test.main();
   driver_test.main();
