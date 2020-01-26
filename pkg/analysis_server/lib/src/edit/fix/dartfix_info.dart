@@ -17,15 +17,18 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 final allFixes = <DartFixInfo>[
   //
-  // Required fixes due to errors or upcoming language changes
+  // Error and warning fixes.
   //
   DartFixInfo(
-    'fix-named-constructor-type-arguments',
+    'wrong_number_of_type_arguments_constructor',
     'Move named constructor type arguments from the name to the type.',
     FixErrorTask.fixNamedConstructorTypeArgs,
   ),
+  //
+  // Assist fixes.
+  //
   DartFixInfo(
-    'use-mixin',
+    'convert_class_to_mixin',
     'Convert classes used as a mixin to the new mixin syntax.',
     PreferMixinFix.task,
   ),
@@ -531,8 +534,7 @@ class LintFixInfo extends DartFixInfo {
     this.fixKind,
     String description, {
     bool isPedantic = false,
-  }) : super(lintName.replaceAll('_', '-'), description, null,
-            isPedantic: isPedantic);
+  }) : super(lintName, description, null, isPedantic: isPedantic);
 
   @override
   void setup(DartFixRegistrar registrar, DartFixListener listener,

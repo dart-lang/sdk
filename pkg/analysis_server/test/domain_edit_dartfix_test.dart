@@ -88,7 +88,7 @@ f(bool b) {
 ''');
     createProject();
     EditDartfixResult result = await performFix(
-        includedFixes: ['prefer-if-elements-to-conditional-expressions']);
+        includedFixes: ['prefer_if_elements_to_conditional_expressions']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, '''
@@ -104,7 +104,7 @@ const double myDouble = 42.0;
     ''');
     createProject();
 
-    final result = await performFixRaw(excludedFixes: ['not-a-fix']);
+    final result = await performFixRaw(excludedFixes: ['not_a_fix']);
     expect(result.error, isNotNull);
   }
 
@@ -122,7 +122,7 @@ const double myDouble = 42.0;
     createProject();
 
     // Assert no suggestions now that source has been excluded
-    final result = await performFix(includedFixes: ['prefer-int-literals']);
+    final result = await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(0));
     expect(result.edits, hasLength(0));
   }
@@ -138,7 +138,7 @@ main() {
     ''');
     createProject();
     EditDartfixResult result = await performFix(
-        includedFixes: ['fix-named-constructor-type-arguments']);
+        includedFixes: ['wrong_number_of_type_arguments_constructor']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'type arguments', 60, 8);
     expectEdits(result.edits, '''
@@ -157,7 +157,7 @@ const double myDouble = 42.0;
     ''');
     createProject();
 
-    final result = await performFixRaw(includedFixes: ['not-a-fix']);
+    final result = await performFixRaw(includedFixes: ['not_a_fix']);
     expect(result.error, isNotNull);
   }
 
@@ -269,7 +269,7 @@ const double myDouble = 42.0;
 
     // Assert dartfix suggestions
     EditDartfixResult result =
-        await performFix(includedFixes: ['prefer-int-literals']);
+        await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -287,7 +287,7 @@ const double myDouble = 42.0;
 
     // Assert dartfix suggestions
     EditDartfixResult result =
-        await performFix(includedFixes: ['prefer-int-literals']);
+        await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 38, 4);
     expectEdits(result.edits, '''
@@ -311,7 +311,7 @@ const double myDouble = 42;
     addTestFile('f({a: 1}) { }');
     createProject();
     EditDartfixResult result =
-        await performFix(includedFixes: ['prefer-equal-for-default-values']);
+        await performFix(includedFixes: ['prefer_equal_for_default_values']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace ':' with '='", 4, 1);
     expect(result.hasErrors, isFalse);
@@ -325,7 +325,7 @@ var m =
     ''');
     createProject();
     EditDartfixResult result = await performFix(
-        includedFixes: ['prefer-for-elements-to-map-fromIterable']);
+        includedFixes: ['prefer_for_elements_to_map_fromIterable']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
         result.suggestions[0], "Convert to a 'for' element", 10, 73);
@@ -341,7 +341,7 @@ f(bool b) => ['a', b ? 'c' : 'd', 'e'];
     ''');
     createProject();
     EditDartfixResult result = await performFix(
-        includedFixes: ['prefer-if-elements-to-conditional-expressions']);
+        includedFixes: ['prefer_if_elements_to_conditional_expressions']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(
         result.suggestions[0], "Convert to an 'if' element", 19, 13);
@@ -356,7 +356,7 @@ const double myDouble = 42.0;
     ''');
     createProject();
     EditDartfixResult result =
-        await performFix(includedFixes: ['prefer-int-literals']);
+        await performFix(includedFixes: ['prefer_int_literals']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'int literal', 24, 4);
     expectEdits(result.edits, '''
@@ -368,7 +368,7 @@ const double myDouble = 42;
     addTestFile('main(List<String> args) { if (args.length == 0) { } }');
     createProject();
     EditDartfixResult result =
-        await performFix(includedFixes: ['prefer-is-empty']);
+        await performFix(includedFixes: ['prefer_is_empty']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], "Replace with 'isEmpty'", 30, 16);
     expect(result.hasErrors, isFalse);
@@ -383,7 +383,8 @@ class B extends A {}
 class C with B {}
     ''');
     createProject();
-    EditDartfixResult result = await performFix(includedFixes: ['use-mixin']);
+    EditDartfixResult result =
+        await performFix(includedFixes: ['convert_class_to_mixin']);
     expect(result.suggestions, hasLength(1));
     expectSuggestion(result.suggestions[0], 'mixin', 17, 1);
     expectEdits(result.edits, '''
@@ -405,7 +406,7 @@ var l = [
 ''');
     createProject();
     EditDartfixResult result =
-        await performFix(includedFixes: ['prefer-single-quotes']);
+        await performFix(includedFixes: ['prefer_single_quotes']);
     expect(result.suggestions, hasLength(2));
     expectSuggestion(
         result.suggestions[0], 'Convert to single quoted string', 12, 5);
@@ -430,7 +431,7 @@ var l2 = ['a']..addAll(l1);
 ''');
     createProject();
     EditDartfixResult result =
-        await performFix(includedFixes: ['prefer-spread-collections']);
+        await performFix(includedFixes: ['prefer_spread_collections']);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.hasErrors, isFalse);
     expectEdits(result.edits, '''

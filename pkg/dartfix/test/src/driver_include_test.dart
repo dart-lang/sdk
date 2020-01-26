@@ -26,7 +26,7 @@ void main() {
       await driver.start([
         if (_debug) '-v',
         '--fix',
-        'prefer-int-literals',
+        'prefer_int_literals',
         exampleDir.path,
       ], testContext: testContext, testLogger: testLogger);
     } finally {

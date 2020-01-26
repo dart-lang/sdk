@@ -26,9 +26,9 @@ void main() {
       await driver.start([
         if (_debug) '-v',
         '--fix',
-        'use-mixin',
+        'convert_class_to_mixin',
         '--excludeFix',
-        'use-mixin',
+        'convert_class_to_mixin',
         exampleDir.path,
       ], testContext: testContext, testLogger: testLogger);
     } finally {

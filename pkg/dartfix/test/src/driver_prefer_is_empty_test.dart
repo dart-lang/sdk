@@ -6,8 +6,8 @@ import 'driver_test.dart' show defineDriverTests;
 
 void main() {
   defineDriverTests(
-    name: 'prefer-is-empty',
-    options: ['--fix', 'prefer-is-empty'],
+    name: 'prefer_is_empty',
+    options: ['--fix', 'prefer_is_empty'],
     expectedSuggestions: ["Replace with 'isEmpty'"],
   );
 }

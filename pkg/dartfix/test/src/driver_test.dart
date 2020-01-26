@@ -13,7 +13,12 @@ import 'test_context.dart';
 void main() {
   defineDriverTests(
     name: 'default',
-    options: ['--fix', 'prefer-int-literals', '--fix', 'use-mixin'],
+    options: [
+      '--fix',
+      'prefer_int_literals',
+      '--fix',
+      'convert_class_to_mixin'
+    ],
     expectedSuggestions: [
       'Convert MyMixin to a mixin',
       'Convert to an int literal',
@@ -28,7 +33,7 @@ void defineDriverTests({
   bool debug = false,
   bool updateExample = false,
 }) {
-  var fixFileName = 'example_${name.replaceAll('-', '_')}.dart';
+  var fixFileName = 'example_$name.dart';
 
   File exampleFile;
   File exampleFixedFile;
