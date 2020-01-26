@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'subscription_manager_test.dart' as subscription_manager_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     subscription_manager_test.main();
   }, name: 'subscriptions');

@@ -6,7 +6,7 @@ import 'package:analyzer_plugin/src/utilities/string_utilities.dart';
 import 'package:test/test.dart' hide isEmpty;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StringUtilitiesTest);
   });

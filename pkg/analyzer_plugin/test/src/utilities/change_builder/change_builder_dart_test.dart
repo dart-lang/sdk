@@ -22,7 +22,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../../../support/abstract_context.dart';
 import 'dart/dart_change_builder_mixin.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartChangeBuilderImplTest);
     defineReflectiveTests(DartEditBuilderImplTest);
@@ -36,7 +36,7 @@ main() {
 @reflectiveTest
 class DartChangeBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_createFileEditBuilder() async {
+  Future<void> test_createFileEditBuilder() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'library test;');
     DartChangeBuilderImpl builder = newBuilder();
@@ -51,7 +51,7 @@ class DartChangeBuilderImplTest extends AbstractContextTest
 @reflectiveTest
 class DartEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_writeClassDeclaration_interfaces() async {
+  Future<void> test_writeClassDeclaration_interfaces() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
@@ -68,7 +68,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
         edit.replacement, equalsIgnoringWhitespace('class C implements A { }'));
   }
 
-  test_writeClassDeclaration_isAbstract() async {
+  Future<void> test_writeClassDeclaration_isAbstract() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
@@ -83,7 +83,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     expect(edit.replacement, equalsIgnoringWhitespace('abstract class C { }'));
   }
 
-  test_writeClassDeclaration_memberWriter() async {
+  Future<void> test_writeClassDeclaration_memberWriter() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
@@ -100,7 +100,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     expect(edit.replacement, equalsIgnoringWhitespace('class C { /**/}'));
   }
 
-  test_writeClassDeclaration_mixins_noSuperclass() async {
+  Future<void> test_writeClassDeclaration_mixins_noSuperclass() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
@@ -117,7 +117,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
         equalsIgnoringWhitespace('class C extends Object with A { }'));
   }
 
-  test_writeClassDeclaration_mixins_superclass() async {
+  Future<void> test_writeClassDeclaration_mixins_superclass() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {} class B {}');
     DartType typeA = await _getType(path, 'A');
@@ -135,7 +135,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
         equalsIgnoringWhitespace('class C extends A with B { }'));
   }
 
-  test_writeClassDeclaration_nameGroupName() async {
+  Future<void> test_writeClassDeclaration_nameGroupName() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
@@ -157,7 +157,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     expect(group.positions, hasLength(1));
   }
 
-  test_writeClassDeclaration_superclass() async {
+  Future<void> test_writeClassDeclaration_superclass() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class B {}');
     DartType typeB = await _getType(path, 'B');
@@ -180,7 +180,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     expect(group.positions, hasLength(1));
   }
 
-  test_writeConstructorDeclaration_bodyWriter() async {
+  Future<void> test_writeConstructorDeclaration_bodyWriter() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class C {}');
 
@@ -196,7 +196,7 @@ class DartEditBuilderImplTest extends AbstractContextTest
     expect(edit.replacement, equalsIgnoringWhitespace('A() { print(42); }'));
   }
 
-  test_writeConstructorDeclaration_fieldNames() async {
+  Future<void> test_writeConstructorDeclaration_fieldNames() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, r'''
 class C {
@@ -215,7 +215,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('A(this.a, this.bb);'));
   }
 
-  test_writeConstructorDeclaration_initializerWriter() async {
+  Future<void> test_writeConstructorDeclaration_initializerWriter() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class C {}');
 
@@ -231,7 +231,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('A() : super();'));
   }
 
-  test_writeConstructorDeclaration_parameterWriter() async {
+  Future<void> test_writeConstructorDeclaration_parameterWriter() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class C {}');
 
@@ -247,7 +247,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('A(int a, {this.b});'));
   }
 
-  test_writeFieldDeclaration_initializerWriter() async {
+  Future<void> test_writeFieldDeclaration_initializerWriter() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -265,7 +265,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('var f = e;'));
   }
 
-  test_writeFieldDeclaration_isConst() async {
+  Future<void> test_writeFieldDeclaration_isConst() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -280,7 +280,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
   }
 
-  test_writeFieldDeclaration_isConst_isFinal() async {
+  Future<void> test_writeFieldDeclaration_isConst_isFinal() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -296,7 +296,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('const f;'));
   }
 
-  test_writeFieldDeclaration_isConst_type() async {
+  Future<void> test_writeFieldDeclaration_isConst_type() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -313,7 +313,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('const A f;'));
   }
 
-  test_writeFieldDeclaration_isFinal() async {
+  Future<void> test_writeFieldDeclaration_isFinal() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -328,7 +328,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('final f;'));
   }
 
-  test_writeFieldDeclaration_isFinal_type() async {
+  Future<void> test_writeFieldDeclaration_isFinal_type() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -345,7 +345,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('final A f;'));
   }
 
-  test_writeFieldDeclaration_isStatic() async {
+  Future<void> test_writeFieldDeclaration_isStatic() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -360,7 +360,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('static var f;'));
   }
 
-  test_writeFieldDeclaration_nameGroupName() async {
+  Future<void> test_writeFieldDeclaration_nameGroupName() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -385,7 +385,7 @@ class C {
     expect(position.offset, equals(13));
   }
 
-  test_writeFieldDeclaration_type_typeGroupName() async {
+  Future<void> test_writeFieldDeclaration_type_typeGroupName() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {} class B {}';
     addSource(path, content);
@@ -411,7 +411,8 @@ class C {
     expect(position.offset, equals(20));
   }
 
-  test_writeFunctionDeclaration_noReturnType_noParams_body() async {
+  Future<void>
+      test_writeFunctionDeclaration_noReturnType_noParams_body() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '';
     addSource(path, content);
@@ -429,7 +430,8 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('fib() { ... }'));
   }
 
-  test_writeFunctionDeclaration_noReturnType_noParams_noBody() async {
+  Future<void>
+      test_writeFunctionDeclaration_noReturnType_noParams_noBody() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '';
     addSource(path, content);
@@ -452,7 +454,8 @@ class C {
     expect(group.positions, hasLength(1));
   }
 
-  test_writeFunctionDeclaration_noReturnType_params_noBody() async {
+  Future<void>
+      test_writeFunctionDeclaration_noReturnType_params_noBody() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '';
     addSource(path, content);
@@ -470,7 +473,8 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('fib(p, q, r) {}'));
   }
 
-  test_writeFunctionDeclaration_returnType_noParams_noBody() async {
+  Future<void>
+      test_writeFunctionDeclaration_returnType_noParams_noBody() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -495,7 +499,7 @@ class C {
     expect(group.positions, hasLength(1));
   }
 
-  test_writeGetterDeclaration_bodyWriter() async {
+  Future<void> test_writeGetterDeclaration_bodyWriter() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -513,7 +517,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('get g {}'));
   }
 
-  test_writeGetterDeclaration_isStatic() async {
+  Future<void> test_writeGetterDeclaration_isStatic() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -529,7 +533,7 @@ class C {
     expect(edit.replacement, equalsIgnoringWhitespace('static get g => null;'));
   }
 
-  test_writeGetterDeclaration_nameGroupName() async {
+  Future<void> test_writeGetterDeclaration_nameGroupName() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -554,7 +558,7 @@ class C {
     expect(position.offset, equals(13));
   }
 
-  test_writeGetterDeclaration_returnType() async {
+  Future<void> test_writeGetterDeclaration_returnType() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {} class B {}';
     addSource(path, content);
@@ -580,7 +584,7 @@ class C {
     expect(position.offset, equals(20));
   }
 
-  test_writeLocalVariableDeclaration_noType_initializer() async {
+  Future<void> test_writeLocalVariableDeclaration_noType_initializer() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '''
 void f() {
@@ -602,7 +606,7 @@ void f() {
     expect(edit.replacement, equalsIgnoringWhitespace('var foo = null;'));
   }
 
-  test_writeLocalVariableDeclaration_noType_noInitializer() async {
+  Future<void> test_writeLocalVariableDeclaration_noType_noInitializer() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '''
 void f() {
@@ -629,7 +633,8 @@ void f() {
     expect(group.positions, hasLength(1));
   }
 
-  test_writeLocalVariableDeclaration_noType_noInitializer_const() async {
+  Future<void>
+      test_writeLocalVariableDeclaration_noType_noInitializer_const() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '''
 void f() {
@@ -649,7 +654,8 @@ void f() {
     expect(edit.replacement, equalsIgnoringWhitespace('const foo;'));
   }
 
-  test_writeLocalVariableDeclaration_noType_noInitializer_final() async {
+  Future<void>
+      test_writeLocalVariableDeclaration_noType_noInitializer_final() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '''
 void f() {
@@ -669,7 +675,7 @@ void f() {
     expect(edit.replacement, equalsIgnoringWhitespace('final foo;'));
   }
 
-  test_writeLocalVariableDeclaration_type_initializer() async {
+  Future<void> test_writeLocalVariableDeclaration_type_initializer() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '''
 void f() {
@@ -700,7 +706,7 @@ class MyClass {}''';
     expect(edit.replacement, equalsIgnoringWhitespace('MyClass foo = null;'));
   }
 
-  test_writeLocalVariableDeclaration_type_noInitializer() async {
+  Future<void> test_writeLocalVariableDeclaration_type_noInitializer() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '''
 void f() {
@@ -736,7 +742,8 @@ class MyClass {}''';
     expect(group.positions, hasLength(1));
   }
 
-  test_writeLocalVariableDeclaration_type_noInitializer_final() async {
+  Future<void>
+      test_writeLocalVariableDeclaration_type_noInitializer_final() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '''
 void f() {
@@ -773,7 +780,7 @@ class MyClass {}''';
     expect(group.positions, hasLength(1));
   }
 
-  test_writeMixinDeclaration_interfaces() async {
+  Future<void> test_writeMixinDeclaration_interfaces() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
@@ -790,7 +797,8 @@ class MyClass {}''';
         edit.replacement, equalsIgnoringWhitespace('mixin M implements A { }'));
   }
 
-  test_writeMixinDeclaration_interfacesAndSuperclassConstraints() async {
+  Future<void>
+      test_writeMixinDeclaration_interfacesAndSuperclassConstraints() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {} class B {}');
     DartType typeA = await _getType(path, 'A');
@@ -808,7 +816,7 @@ class MyClass {}''';
         equalsIgnoringWhitespace('mixin M on B implements A { }'));
   }
 
-  test_writeMixinDeclaration_memberWriter() async {
+  Future<void> test_writeMixinDeclaration_memberWriter() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
@@ -825,7 +833,7 @@ class MyClass {}''';
     expect(edit.replacement, equalsIgnoringWhitespace('mixin M { /**/}'));
   }
 
-  test_writeMixinDeclaration_nameGroupName() async {
+  Future<void> test_writeMixinDeclaration_nameGroupName() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, '');
 
@@ -847,7 +855,7 @@ class MyClass {}''';
     expect(group.positions, hasLength(1));
   }
 
-  test_writeMixinDeclaration_superclassConstraints() async {
+  Future<void> test_writeMixinDeclaration_superclassConstraints() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'class A {}');
     DartType typeA = await _getType(path, 'A');
@@ -863,7 +871,7 @@ class MyClass {}''';
     expect(edit.replacement, equalsIgnoringWhitespace('mixin M on A { }'));
   }
 
-  test_writeParameter() async {
+  Future<void> test_writeParameter() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -878,7 +886,7 @@ class MyClass {}''';
     expect(edit.replacement, equalsIgnoringWhitespace('a'));
   }
 
-  test_writeParameter_type() async {
+  Future<void> test_writeParameter_type() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -894,7 +902,7 @@ class MyClass {}''';
     expect(edit.replacement, equalsIgnoringWhitespace('A a'));
   }
 
-  test_writeParameterMatchingArgument() async {
+  Future<void> test_writeParameterMatchingArgument() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = r'''
 f() {}
@@ -923,7 +931,7 @@ class A {}
     expect(edit.replacement, equalsIgnoringWhitespace('A a'));
   }
 
-  test_writeParameters_named() async {
+  Future<void> test_writeParameters_named() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'f(int a, {bool b = false, String c}) {}';
     addSource(path, content);
@@ -945,7 +953,7 @@ class A {}
         equalsIgnoringWhitespace('(int a, {bool b = false, String c})'));
   }
 
-  test_writeParameters_positional() async {
+  Future<void> test_writeParameters_positional() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'f(int a, [bool b = false, String c]) {}';
     addSource(path, content);
@@ -966,7 +974,7 @@ class A {}
         equalsIgnoringWhitespace('(int a, [bool b = false, String c])'));
   }
 
-  test_writeParameters_required() async {
+  Future<void> test_writeParameters_required() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'f(int i, String s) {}';
     addSource(path, content);
@@ -986,7 +994,7 @@ class A {}
     expect(edit.replacement, equalsIgnoringWhitespace('(int i, String s)'));
   }
 
-  test_writeParametersMatchingArguments_named() async {
+  Future<void> test_writeParametersMatchingArguments_named() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '''
 f(int i, String s) {
@@ -1011,7 +1019,7 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('String s, {int index}'));
   }
 
-  test_writeParametersMatchingArguments_required() async {
+  Future<void> test_writeParametersMatchingArguments_required() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = '''
 f(int i, String s) {
@@ -1036,7 +1044,7 @@ f(int i, String s) {
     expect(edit.replacement, equalsIgnoringWhitespace('String s, int i'));
   }
 
-  test_writeReference_method() async {
+  Future<void> test_writeReference_method() async {
     String aPath = convertPath('/a.dart');
     addSource(aPath, r'''
 class A {
@@ -1063,7 +1071,7 @@ import 'a.dart';
     expect(edit.replacement, equalsIgnoringWhitespace('foo'));
   }
 
-  test_writeReference_topLevel_hasImport_noPrefix() async {
+  Future<void> test_writeReference_topLevel_hasImport_noPrefix() async {
     String aPath = convertPath('/home/test/lib/a.dart');
     addSource(aPath, 'const a = 42;');
 
@@ -1085,7 +1093,7 @@ import 'a.dart';
     expect(edit.replacement, equalsIgnoringWhitespace('a'));
   }
 
-  test_writeReference_topLevel_hasImport_prefix() async {
+  Future<void> test_writeReference_topLevel_hasImport_prefix() async {
     String aPath = convertPath('/home/test/lib/a.dart');
     addSource(aPath, 'const a = 42;');
 
@@ -1107,7 +1115,7 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace('p.a'));
   }
 
-  test_writeReference_topLevel_noImport() async {
+  Future<void> test_writeReference_topLevel_noImport() async {
     String aPath = convertPath('/home/test/bin/a.dart');
     addSource(aPath, 'const a = 42;');
 
@@ -1129,7 +1137,7 @@ import 'a.dart' as p;
     expect(edits[1].replacement, equalsIgnoringWhitespace('a'));
   }
 
-  test_writeSetterDeclaration_bodyWriter() async {
+  Future<void> test_writeSetterDeclaration_bodyWriter() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1147,7 +1155,7 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {/* TODO */}'));
   }
 
-  test_writeSetterDeclaration_isStatic() async {
+  Future<void> test_writeSetterDeclaration_isStatic() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1163,7 +1171,7 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace('static set s(s) {}'));
   }
 
-  test_writeSetterDeclaration_nameGroupName() async {
+  Future<void> test_writeSetterDeclaration_nameGroupName() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1188,7 +1196,7 @@ import 'a.dart' as p;
     expect(position.offset, equals(13));
   }
 
-  test_writeSetterDeclaration_parameterType() async {
+  Future<void> test_writeSetterDeclaration_parameterType() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {} class B {}';
     addSource(path, content);
@@ -1214,7 +1222,7 @@ import 'a.dart' as p;
     expect(position.offset, equals(26));
   }
 
-  test_writeType_dynamic() async {
+  Future<void> test_writeType_dynamic() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1231,31 +1239,31 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
-  test_writeType_function() async {
+  Future<void> test_writeType_function() async {
     await _assertWriteType('int Function(double a, String b)');
   }
 
-  test_writeType_function_generic() async {
+  Future<void> test_writeType_function_generic() async {
     await _assertWriteType('T Function<T, U>(T a, U b)');
   }
 
-  test_writeType_function_noReturnType() async {
+  Future<void> test_writeType_function_noReturnType() async {
     await _assertWriteType('Function()');
   }
 
-  test_writeType_function_parameters_named() async {
+  Future<void> test_writeType_function_parameters_named() async {
     await _assertWriteType('int Function(int a, {int b, int c})');
   }
 
-  test_writeType_function_parameters_noName() async {
+  Future<void> test_writeType_function_parameters_noName() async {
     await _assertWriteType('int Function(double, String)');
   }
 
-  test_writeType_function_parameters_positional() async {
+  Future<void> test_writeType_function_parameters_positional() async {
     await _assertWriteType('int Function(int a, [int b, int c])');
   }
 
-  test_writeType_genericType() async {
+  Future<void> test_writeType_genericType() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {} class B<E> {}';
     addSource(path, content);
@@ -1272,7 +1280,7 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace('B<A>'));
   }
 
-  test_writeType_groupName() async {
+  Future<void> test_writeType_groupName() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {} class B extends A {} class C extends B {}';
     addSource(path, content);
@@ -1294,7 +1302,7 @@ import 'a.dart' as p;
     expect(group, isNotNull);
   }
 
-  test_writeType_groupName_addSupertypeProposals() async {
+  Future<void> test_writeType_groupName_addSupertypeProposals() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {} class B extends A {} class C extends B {}';
     addSource(path, content);
@@ -1327,7 +1335,7 @@ import 'a.dart' as p;
     expect(values, contains('C'));
   }
 
-  test_writeType_groupName_invalidType() async {
+  Future<void> test_writeType_groupName_invalidType() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A<T> {}';
     addSource(path, content);
@@ -1348,15 +1356,15 @@ import 'a.dart' as p;
     expect(builder.sourceChange.linkedEditGroups, isEmpty);
   }
 
-  test_writeType_interface_typeArguments() async {
+  Future<void> test_writeType_interface_typeArguments() async {
     await _assertWriteType('Map<int, List<String>>');
   }
 
-  test_writeType_interface_typeArguments_allDynamic() async {
+  Future<void> test_writeType_interface_typeArguments_allDynamic() async {
     await _assertWriteType('Map');
   }
 
-  test_writeType_null() async {
+  Future<void> test_writeType_null() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1371,7 +1379,7 @@ import 'a.dart' as p;
     expect(edit.replacement, equalsIgnoringWhitespace(''));
   }
 
-  test_writeType_prefixGenerator() async {
+  Future<void> test_writeType_prefixGenerator() async {
     String aPath = convertPath('/home/test/lib/a.dart');
     String bPath = convertPath('/home/test/lib/b.dart');
 
@@ -1430,7 +1438,7 @@ class B {}
             '_prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;'));
   }
 
-  test_writeType_required_dynamic() async {
+  Future<void> test_writeType_required_dynamic() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1448,7 +1456,7 @@ class B {}
     expect(edit.replacement, equalsIgnoringWhitespace('var'));
   }
 
-  test_writeType_required_notNull() async {
+  Future<void> test_writeType_required_notNull() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1464,7 +1472,7 @@ class B {}
     expect(edit.replacement, equalsIgnoringWhitespace('A'));
   }
 
-  test_writeType_required_null() async {
+  Future<void> test_writeType_required_null() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1479,7 +1487,7 @@ class B {}
     expect(edit.replacement, equalsIgnoringWhitespace('var'));
   }
 
-  test_writeType_simpleType() async {
+  Future<void> test_writeType_simpleType() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1495,16 +1503,16 @@ class B {}
     expect(edit.replacement, equalsIgnoringWhitespace('A'));
   }
 
-  test_writeType_typedef_typeArguments() async {
+  Future<void> test_writeType_typedef_typeArguments() async {
     await _assertWriteType('F<int, String>',
         declarations: 'typedef void F<T, U>(T t, U u);');
   }
 
-  test_writeType_void() async {
+  Future<void> test_writeType_void() async {
     await _assertWriteType('void Function()');
   }
 
-  test_writeTypes_empty() async {
+  Future<void> test_writeTypes_empty() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1519,7 +1527,7 @@ class B {}
     expect(edit.replacement, isEmpty);
   }
 
-  test_writeTypes_noPrefix() async {
+  Future<void> test_writeTypes_noPrefix() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {} class B {}';
     addSource(path, content);
@@ -1536,7 +1544,7 @@ class B {}
     expect(edit.replacement, equalsIgnoringWhitespace('A, B'));
   }
 
-  test_writeTypes_null() async {
+  Future<void> test_writeTypes_null() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {}';
     addSource(path, content);
@@ -1551,7 +1559,7 @@ class B {}
     expect(edit.replacement, isEmpty);
   }
 
-  test_writeTypes_prefix() async {
+  Future<void> test_writeTypes_prefix() async {
     String path = convertPath('/home/test/lib/test.dart');
     String content = 'class A {} class B {}';
     addSource(path, content);
@@ -1613,7 +1621,7 @@ class B {}
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_convertFunctionFromSyncToAsync_closure() async {
+  Future<void> test_convertFunctionFromSyncToAsync_closure() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''var f = () {}''');
 
@@ -1631,7 +1639,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     expect(edits[0].replacement, equalsIgnoringWhitespace('async'));
   }
 
-  test_convertFunctionFromSyncToAsync_topLevelFunction() async {
+  Future<void> test_convertFunctionFromSyncToAsync_topLevelFunction() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');
 
@@ -1650,7 +1658,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     expect(edits[1].replacement, equalsIgnoringWhitespace('Future<String>'));
   }
 
-  test_createEditBuilder() async {
+  Future<void> test_createEditBuilder() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'library test;');
     DartChangeBuilderImpl builder = newBuilder();
@@ -1667,7 +1675,7 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     });
   }
 
-  test_format_hasEdits() async {
+  Future<void> test_format_hasEdits() async {
     var initialCode = r'''
 void functionBefore() {
   1 +  2;
@@ -1719,7 +1727,7 @@ void functionAfter() {
 ''');
   }
 
-  test_format_noEdits() async {
+  Future<void> test_format_noEdits() async {
     var initialCode = r'''
 void functionBefore() {
   1 +  2;
@@ -1762,7 +1770,7 @@ void functionAfter() {
 ''');
   }
 
-  test_replaceTypeWithFuture() async {
+  Future<void> test_replaceTypeWithFuture() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, 'String f() {}');
 
@@ -1783,7 +1791,7 @@ void functionAfter() {
 
 @reflectiveTest
 class DartLinkedEditBuilderImplTest extends AbstractContextTest {
-  test_addSuperTypesAsSuggestions() async {
+  Future<void> test_addSuperTypesAsSuggestions() async {
     String path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''
 class A {}
@@ -1809,7 +1817,7 @@ class C extends B {}
 @reflectiveTest
 class ImportLibraryTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_dart_beforeDart() async {
+  Future<void> test_dart_beforeDart() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:aaa';
@@ -1824,7 +1832,7 @@ import 'dart:ccc';
     );
   }
 
-  test_dart_beforeDart_first() async {
+  Future<void> test_dart_beforeDart_first() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:bbb';
@@ -1837,7 +1845,7 @@ import 'dart:bbb';
     );
   }
 
-  test_dart_beforePackage() async {
+  Future<void> test_dart_beforePackage() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:foo/foo.dart';
@@ -1851,7 +1859,7 @@ import 'package:foo/foo.dart';
     );
   }
 
-  test_multiple_dart_then_package() async {
+  Future<void> test_multiple_dart_then_package() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:aaa';
@@ -1873,7 +1881,7 @@ import 'package:ccc/ccc.dart';
     );
   }
 
-  test_multiple_package_then_dart() async {
+  Future<void> test_multiple_package_then_dart() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:aaa';
@@ -1895,7 +1903,7 @@ import 'package:ccc/ccc.dart';
     );
   }
 
-  test_noDirectives_docComment() async {
+  Future<void> test_noDirectives_docComment() async {
     await _assertImportLibrary(
       initialCode: '''
 /// Documentation comment.
@@ -1913,7 +1921,7 @@ void main() {}
     );
   }
 
-  test_noDirectives_hashBang() async {
+  Future<void> test_noDirectives_hashBang() async {
     await _assertImportLibrary(
       initialCode: '''
 #!/bin/dart
@@ -1931,7 +1939,7 @@ void main() {}
     );
   }
 
-  test_noDirectives_lineComment() async {
+  Future<void> test_noDirectives_lineComment() async {
     await _assertImportLibrary(
       initialCode: '''
 // Not documentation comment.
@@ -1951,7 +1959,7 @@ void main() {}
     );
   }
 
-  test_noImports_afterLibrary_hasDeclaration() async {
+  Future<void> test_noImports_afterLibrary_hasDeclaration() async {
     await _assertImportLibrary(
       initialCode: '''
 library test;
@@ -1969,7 +1977,7 @@ class A {}
     );
   }
 
-  test_noImports_afterLibrary_hasPart() async {
+  Future<void> test_noImports_afterLibrary_hasPart() async {
     await _assertImportLibrary(
       initialCode: '''
 library test;
@@ -1988,7 +1996,7 @@ part 'a.dart';
     );
   }
 
-  test_noImports_beforePart() async {
+  Future<void> test_noImports_beforePart() async {
     await _assertImportLibrary(
       initialCode: '''
 part 'a.dart';
@@ -2003,7 +2011,7 @@ part 'a.dart';
     );
   }
 
-  test_package_afterDart() async {
+  Future<void> test_package_afterDart() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2017,7 +2025,7 @@ import 'package:aaa/aaa.dart';
     );
   }
 
-  test_package_afterPackage() async {
+  Future<void> test_package_afterPackage() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a1.dart';
@@ -2034,7 +2042,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_afterPackage_leadingComment() async {
+  Future<void> test_package_afterPackage_leadingComment() async {
     await _assertImportLibrary(
       initialCode: '''
 // comment
@@ -2053,7 +2061,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_afterPackage_trailingComment() async {
+  Future<void> test_package_afterPackage_trailingComment() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a1.dart'; // comment
@@ -2070,7 +2078,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforePackage() async {
+  Future<void> test_package_beforePackage() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a1.dart';
@@ -2089,7 +2097,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforePackage_first() async {
+  Future<void> test_package_beforePackage_first() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a2.dart';
@@ -2106,7 +2114,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforePackage_leadingComments() async {
+  Future<void> test_package_beforePackage_leadingComments() async {
     await _assertImportLibrary(
       initialCode: '''
 // comment a2
@@ -2125,7 +2133,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforePackage_trailingComments() async {
+  Future<void> test_package_beforePackage_trailingComments() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:aaa/a2.dart'; // comment a2
@@ -2142,7 +2150,7 @@ import 'foo.dart';
     );
   }
 
-  test_package_beforeRelative() async {
+  Future<void> test_package_beforeRelative() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'foo.dart';
@@ -2156,7 +2164,7 @@ import 'foo.dart';
     );
   }
 
-  test_relative_afterDart() async {
+  Future<void> test_relative_afterDart() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2170,7 +2178,7 @@ import 'aaa.dart';
     );
   }
 
-  test_relative_afterPackage() async {
+  Future<void> test_relative_afterPackage() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'package:foo/foo.dart';
@@ -2184,7 +2192,7 @@ import 'aaa.dart';
     );
   }
 
-  test_relative_beforeRelative() async {
+  Future<void> test_relative_beforeRelative() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2207,7 +2215,7 @@ import 'ccc.dart';
     );
   }
 
-  test_relative_beforeRelative_first() async {
+  Future<void> test_relative_beforeRelative_first() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2228,7 +2236,7 @@ import 'bbb.dart';
     );
   }
 
-  test_relative_last() async {
+  Future<void> test_relative_last() async {
     await _assertImportLibrary(
       initialCode: '''
 import 'dart:async';
@@ -2273,7 +2281,7 @@ import 'aaa.dart';
 @reflectiveTest
 class WriteOverrideTest extends AbstractContextTest
     with DartChangeBuilderMixin {
-  test_getter_abstract() async {
+  Future<void> test_getter_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2293,7 +2301,7 @@ class B extends A {
     );
   }
 
-  test_getter_concrete() async {
+  Future<void> test_getter_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2314,7 +2322,7 @@ class B extends A {
     );
   }
 
-  test_method_abstract() async {
+  Future<void> test_method_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2336,7 +2344,7 @@ class B extends A {
     );
   }
 
-  test_method_concrete() async {
+  Future<void> test_method_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2359,7 +2367,7 @@ class B extends A {
     );
   }
 
-  test_method_functionTypeAlias_abstract() async {
+  Future<void> test_method_functionTypeAlias_abstract() async {
     await _assertWriteOverride(
       content: '''
 typedef int F(int left, int right);
@@ -2380,7 +2388,7 @@ class B extends A {
     );
   }
 
-  test_method_functionTypeAlias_concrete() async {
+  Future<void> test_method_functionTypeAlias_concrete() async {
     await _assertWriteOverride(
       content: '''
 typedef int F(int left, int right);
@@ -2404,7 +2412,7 @@ class B extends A {
     );
   }
 
-  test_method_functionTypedParameter_abstract() async {
+  Future<void> test_method_functionTypedParameter_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2426,7 +2434,7 @@ class B extends A {
     );
   }
 
-  test_method_functionTypedParameter_concrete() async {
+  Future<void> test_method_functionTypedParameter_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2449,7 +2457,7 @@ class B extends A {
     );
   }
 
-  test_method_generic_noBounds_abstract() async {
+  Future<void> test_method_generic_noBounds_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2471,7 +2479,7 @@ class B implements A {
     );
   }
 
-  test_method_generic_noBounds_concrete() async {
+  Future<void> test_method_generic_noBounds_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2494,7 +2502,7 @@ class B implements A {
     );
   }
 
-  test_method_generic_withBounds_abstract() async {
+  Future<void> test_method_generic_withBounds_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A<K1, V1> {
@@ -2516,7 +2524,7 @@ class B<K2, V2> implements A<K2, V2> {
     );
   }
 
-  test_method_generic_withBounds_concrete() async {
+  Future<void> test_method_generic_withBounds_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A<K1, V1> {
@@ -2541,7 +2549,7 @@ class B<K2, V2> implements A<K2, V2> {
     );
   }
 
-  test_method_genericFunctionTypedParameter_abstract() async {
+  Future<void> test_method_genericFunctionTypedParameter_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2563,7 +2571,7 @@ class B extends A {
     );
   }
 
-  test_method_genericFunctionTypedParameter_concrete() async {
+  Future<void> test_method_genericFunctionTypedParameter_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2586,7 +2594,7 @@ class B extends A {
     );
   }
 
-  test_method_nullAsTypeArgument_abstract() async {
+  Future<void> test_method_nullAsTypeArgument_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2608,7 +2616,7 @@ class B extends A {
     );
   }
 
-  test_method_nullAsTypeArgument_concrete() async {
+  Future<void> test_method_nullAsTypeArgument_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2631,7 +2639,7 @@ class B extends A {
     );
   }
 
-  test_method_returnVoid_abstract() async {
+  Future<void> test_method_returnVoid_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2652,7 +2660,7 @@ class B extends A {
     );
   }
 
-  test_method_voidAsTypeArgument_abstract() async {
+  Future<void> test_method_voidAsTypeArgument_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2674,7 +2682,7 @@ class B extends A {
     );
   }
 
-  test_method_voidAsTypeArgument_concrete() async {
+  Future<void> test_method_voidAsTypeArgument_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2697,7 +2705,7 @@ class B extends A {
     );
   }
 
-  test_mixin_method_of_interface() async {
+  Future<void> test_mixin_method_of_interface() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2720,7 +2728,7 @@ mixin M implements A {
     );
   }
 
-  test_mixin_method_of_superclassConstraint() async {
+  Future<void> test_mixin_method_of_superclassConstraint() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2745,7 +2753,7 @@ mixin M on A {
     );
   }
 
-  test_setter_abstract() async {
+  Future<void> test_setter_abstract() async {
     await _assertWriteOverride(
       content: '''
 abstract class A {
@@ -2766,7 +2774,7 @@ class B extends A {
     );
   }
 
-  test_setter_concrete() async {
+  Future<void> test_setter_concrete() async {
     await _assertWriteOverride(
       content: '''
 class A {
@@ -2796,7 +2804,7 @@ class B extends A {
   /// (modulo white space). Assert that the generated display text matches the
   /// given [displayText]. If a [selection] is provided, assert that the
   /// generated selection range matches it.
-  _assertWriteOverride({
+  Future<void> _assertWriteOverride({
     String content,
     String nameToOverride,
     String expected,

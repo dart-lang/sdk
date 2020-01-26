@@ -81,7 +81,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
     testFile = convertPath('/test.dart');
   }
 
-  test_convertAnalysisError_contextMessages() {
+  void test_convertAnalysisError_contextMessages() {
     analyzer.AnalysisError analyzerError =
         createError(13, contextMessage: 'here');
     analyzer.LineInfo lineInfo = analyzer.LineInfo([0, 10, 20]);
@@ -100,7 +100,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
     expect(message.location.length, 7);
   }
 
-  test_convertAnalysisError_lineInfo_noSeverity() {
+  void test_convertAnalysisError_lineInfo_noSeverity() {
     analyzer.AnalysisError analyzerError = createError(13);
     analyzer.LineInfo lineInfo = analyzer.LineInfo([0, 10, 20]);
 
@@ -111,7 +111,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
         startLine: 2);
   }
 
-  test_convertAnalysisError_lineInfo_severity() {
+  void test_convertAnalysisError_lineInfo_severity() {
     analyzer.AnalysisError analyzerError = createError(13);
     analyzer.LineInfo lineInfo = analyzer.LineInfo([0, 10, 20]);
     analyzer.ErrorSeverity severity = analyzer.ErrorSeverity.WARNING;
@@ -125,13 +125,13 @@ class AnalyzerConverterTest extends AbstractContextTest {
         severity: severity);
   }
 
-  test_convertAnalysisError_noLineInfo_noSeverity() {
+  void test_convertAnalysisError_noLineInfo_noSeverity() {
     analyzer.AnalysisError analyzerError = createError(11);
 
     assertError(converter.convertAnalysisError(analyzerError), analyzerError);
   }
 
-  test_convertAnalysisError_noLineInfo_severity() {
+  void test_convertAnalysisError_noLineInfo_severity() {
     analyzer.AnalysisError analyzerError = createError(11);
     analyzer.ErrorSeverity severity = analyzer.ErrorSeverity.WARNING;
 
@@ -141,7 +141,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
         severity: severity);
   }
 
-  test_convertAnalysisErrors_lineInfo_noOptions() {
+  void test_convertAnalysisErrors_lineInfo_noOptions() {
     List<analyzer.AnalysisError> analyzerErrors = <analyzer.AnalysisError>[
       createError(13),
       createError(25)
@@ -157,7 +157,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
         startColumn: 6, startLine: 3);
   }
 
-  test_convertAnalysisErrors_lineInfo_options() {
+  void test_convertAnalysisErrors_lineInfo_options() {
     List<analyzer.AnalysisError> analyzerErrors = <analyzer.AnalysisError>[
       createError(13),
       createError(25)
@@ -180,7 +180,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
         startColumn: 6, startLine: 3, severity: severity);
   }
 
-  test_convertAnalysisErrors_noLineInfo_noOptions() {
+  void test_convertAnalysisErrors_noLineInfo_noOptions() {
     List<analyzer.AnalysisError> analyzerErrors = <analyzer.AnalysisError>[
       createError(11),
       createError(25)
@@ -193,7 +193,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
     assertError(pluginErrors[1], analyzerErrors[1]);
   }
 
-  test_convertAnalysisErrors_noLineInfo_options() {
+  void test_convertAnalysisErrors_noLineInfo_options() {
     List<analyzer.AnalysisError> analyzerErrors = <analyzer.AnalysisError>[
       createError(13),
       createError(25)
@@ -211,7 +211,7 @@ class AnalyzerConverterTest extends AbstractContextTest {
     assertError(pluginErrors[1], analyzerErrors[1], severity: severity);
   }
 
-  test_convertElement_class() async {
+  Future<void> test_convertElement_class() async {
     analyzer.Source source = addSource(testFile, '''
 @deprecated
 abstract class _A {}
@@ -252,7 +252,7 @@ class B<K, V> {}''');
     }
   }
 
-  test_convertElement_constructor() async {
+  Future<void> test_convertElement_constructor() async {
     analyzer.Source source = addSource(testFile, '''
 class A {
   const A.myConstructor(int a, [String b]);
@@ -290,7 +290,7 @@ class A {
     expect(element.flags, 0);
   }
 
-  test_convertElement_enum() async {
+  Future<void> test_convertElement_enum() async {
     analyzer.Source source = addSource(testFile, '''
 @deprecated
 enum _E1 { one, two }
@@ -331,7 +331,7 @@ enum E2 { three, four }''');
     }
   }
 
-  test_convertElement_enumConstant() async {
+  Future<void> test_convertElement_enumConstant() async {
     analyzer.Source source = addSource(testFile, '''
 @deprecated
 enum _E1 { one, two }
@@ -424,7 +424,7 @@ enum E2 { three, four }''');
     }
   }
 
-  test_convertElement_field() async {
+  Future<void> test_convertElement_field() async {
     analyzer.Source source = addSource(testFile, '''
 class A {
   static const myField = 42;
@@ -450,7 +450,7 @@ class A {
         element.flags, plugin.Element.FLAG_CONST | plugin.Element.FLAG_STATIC);
   }
 
-  test_convertElement_functionTypeAlias() async {
+  Future<void> test_convertElement_functionTypeAlias() async {
     analyzer.Source source = addSource(testFile, '''
 typedef int F<T>(String x);
 ''');
@@ -475,7 +475,7 @@ typedef int F<T>(String x);
     expect(element.flags, 0);
   }
 
-  test_convertElement_genericTypeAlias_function() async {
+  Future<void> test_convertElement_genericTypeAlias_function() async {
     analyzer.Source source = addSource(testFile, '''
 typedef F<T> = int Function(String x);
 ''');
@@ -500,7 +500,7 @@ typedef F<T> = int Function(String x);
     expect(element.flags, 0);
   }
 
-  test_convertElement_getter() async {
+  Future<void> test_convertElement_getter() async {
     analyzer.Source source = addSource(testFile, '''
 class A {
   String get myGetter => 42;
@@ -526,7 +526,7 @@ class A {
     expect(element.flags, 0);
   }
 
-  test_convertElement_method() async {
+  Future<void> test_convertElement_method() async {
     analyzer.Source source = addSource(testFile, '''
 class A {
   static List<String> myMethod(int a, {String b, int c}) {
@@ -553,7 +553,7 @@ class A {
     expect(element.flags, plugin.Element.FLAG_STATIC);
   }
 
-  test_convertElement_setter() async {
+  Future<void> test_convertElement_setter() async {
     analyzer.Source source = addSource(testFile, '''
 class A {
   set mySetter(String x) {}
@@ -614,7 +614,7 @@ class A {
         plugin.ElementKind.TYPE_PARAMETER);
   }
 
-  test_convertErrorSeverity() {
+  void test_convertErrorSeverity() {
     for (analyzer.ErrorSeverity severity in analyzer.ErrorSeverity.values) {
       if (severity != analyzer.ErrorSeverity.NONE) {
         expect(converter.convertErrorSeverity(severity), isNotNull,
@@ -623,13 +623,13 @@ class A {
     }
   }
 
-  test_convertErrorType() {
+  void test_convertErrorType() {
     for (analyzer.ErrorType type in analyzer.ErrorType.values) {
       expect(converter.convertErrorType(type), isNotNull, reason: type.name);
     }
   }
 
-  test_fromElement_LABEL() async {
+  Future<void> test_fromElement_LABEL() async {
     analyzer.Source source = addSource(testFile, '''
 main() {
 myLabel:

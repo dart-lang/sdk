@@ -4,12 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'completion_target_test.dart' as completion_target_test;
 import 'inherited_reference_contributor_test.dart'
     as inherited_reference_contributor_test;
 import 'type_member_contributor_test.dart' as type_member_contributor_test;
-import 'completion_target_test.dart' as completion_target_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     inherited_reference_contributor_test.main();
     type_member_contributor_test.main();

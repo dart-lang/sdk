@@ -40,7 +40,7 @@ class CompletionMixinTest with ResourceProviderMixin {
     plugin.start(channel);
   }
 
-  test_handleCompletionGetSuggestions() async {
+  Future<void> test_handleCompletionGetSuggestions() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 

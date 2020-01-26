@@ -20,7 +20,7 @@ void main() {
 class NavigationGeneratorTest with ResourceProviderMixin {
   ResolvedUnitResult resolvedUnit = MockResolvedUnitResult(path: 'a.dart');
 
-  test_none() {
+  void test_none() {
     NavigationGenerator generator = NavigationGenerator([]);
     NavigationRequest request =
         DartNavigationRequestImpl(resourceProvider, 0, 100, resolvedUnit);
@@ -28,7 +28,7 @@ class NavigationGeneratorTest with ResourceProviderMixin {
     expect(result.notifications, hasLength(1));
   }
 
-  test_normal() {
+  void test_normal() {
     TestContributor contributor = TestContributor();
     NavigationGenerator generator = NavigationGenerator([contributor]);
     NavigationRequest request =
@@ -41,7 +41,7 @@ class NavigationGeneratorTest with ResourceProviderMixin {
   /// This tests that we get an error notification for each contributor that
   /// throws an error and that an error in one contributor doesn't prevent other
   /// contributors from being called.
-  test_withException() {
+  void test_withException() {
     TestContributor contributor1 = TestContributor();
     TestContributor contributor2 = TestContributor(throwException: true);
     TestContributor contributor3 = TestContributor();

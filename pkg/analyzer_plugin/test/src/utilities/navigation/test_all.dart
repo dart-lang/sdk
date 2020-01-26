@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'navigation_test.dart' as navigation_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     navigation_test.main();
   }, name: 'navigation');

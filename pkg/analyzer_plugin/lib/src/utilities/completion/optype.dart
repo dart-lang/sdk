@@ -250,7 +250,7 @@ class OpType {
   }
 }
 
-class _OpTypeAstVisitor extends GeneralizingAstVisitor {
+class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   /// The entity (AstNode or Token) which will be replaced or displaced by the
   /// added text.
   final Object entity;
@@ -464,7 +464,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
@@ -472,7 +472,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitConstructorName(ConstructorName node) {
+  void visitConstructorName(ConstructorName node) {
     // some PrefixedIdentifier nodes are transformed into
     // ConstructorName nodes during the resolution process.
     if (identical(entity, node.name)) {
@@ -567,7 +567,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     if (offset <= node.semicolon.offset) {
       optype.includeVarNameSuggestions = true;
     }
@@ -584,7 +584,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForEachParts(ForEachParts node) {
+  void visitForEachParts(ForEachParts node) {
     if (node is ForEachPartsWithIdentifier &&
         identical(entity, node.identifier)) {
       optype.includeTypeNameSuggestions = true;
@@ -606,7 +606,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForElement(ForElement node) {
+  void visitForElement(ForElement node) {
     // for (^) {}
     // for (Str^ str = null;) {}
     // In theory it is possible to specify any expression in initializer,
@@ -658,7 +658,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForParts(ForParts node) {
+  void visitForParts(ForParts node) {
     var entity = this.entity;
     if (_isEntityPrevTokenSynthetic()) {
       // Actual: for (var v i^)
@@ -719,7 +719,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitIfElement(IfElement node) {
+  void visitIfElement(IfElement node) {
     if (identical(entity, node.condition)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
@@ -833,7 +833,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     // Make suggestions in the body of the mixin declaration
     if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
       optype.includeTypeNameSuggestions = true;
@@ -1019,7 +1019,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitSpreadElement(SpreadElement node) {
+  void visitSpreadElement(SpreadElement node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;

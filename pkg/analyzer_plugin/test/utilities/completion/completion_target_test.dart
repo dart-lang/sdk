@@ -39,7 +39,7 @@ class CompletionTargetTest {
     return parser.parseExpression(scanner.tokenize());
   }
 
-  test_danglingExpressionCompletionIsValid() {
+  void test_danglingExpressionCompletionIsValid() {
     // Test that users can parse dangling expressions of dart and autocomplete
     // them without crash/with the correct offset information.
     final snippet = wrapForCompliance(parseDanglingDart('identifier'));

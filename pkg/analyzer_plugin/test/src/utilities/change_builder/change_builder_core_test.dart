@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ChangeBuilderImplTest);
     defineReflectiveTests(EditBuilderImplTest);
@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class ChangeBuilderImplTest {
-  test_createFileEditBuilder() async {
+  Future<void> test_createFileEditBuilder() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     String path = '/test.dart';
     FileEditBuilderImpl fileEditBuilder =
@@ -66,7 +66,7 @@ class ChangeBuilderImplTest {
     expect(sourceChange.selection, isNull);
   }
 
-  test_sourceChange_oneChange() async {
+  Future<void> test_sourceChange_oneChange() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     String path = '/test.dart';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
@@ -86,7 +86,7 @@ class ChangeBuilderImplTest {
 class EditBuilderImplTest {
   String path = '/test.dart';
 
-  test_addLinkedEdit() async {
+  Future<void> test_addLinkedEdit() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     int offset = 10;
     String text = 'content';
@@ -111,7 +111,7 @@ class EditBuilderImplTest {
     expect(positions[0].offset, offset);
   }
 
-  test_addSimpleLinkedEdit() async {
+  Future<void> test_addSimpleLinkedEdit() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     int offset = 10;
     String text = 'content';
@@ -134,7 +134,7 @@ class EditBuilderImplTest {
     expect(positions[0].offset, offset);
   }
 
-  test_createLinkedEditBuilder() async {
+  Future<void> test_createLinkedEditBuilder() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
@@ -145,7 +145,7 @@ class EditBuilderImplTest {
     });
   }
 
-  test_selectHere() async {
+  Future<void> test_selectHere() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
@@ -155,7 +155,7 @@ class EditBuilderImplTest {
     expect(builder.sourceChange.selection.offset, 10);
   }
 
-  test_write() async {
+  Future<void> test_write() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     int offset = 10;
     String text = 'write';
@@ -183,7 +183,7 @@ class EditBuilderImplTest {
     expect(edit.replacement, text);
   }
 
-  test_writeln_withoutText() async {
+  Future<void> test_writeln_withoutText() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     int offset = 52;
     int length = 12;
@@ -212,7 +212,7 @@ class EditBuilderImplTest {
     expect(edit.replacement == '\n' || edit.replacement == '\r\n', isTrue);
   }
 
-  test_writeln_withText() async {
+  Future<void> test_writeln_withText() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     int offset = 52;
     int length = 12;
@@ -248,7 +248,7 @@ class EditBuilderImplTest {
 class FileEditBuilderImplTest {
   String path = '/test.dart';
 
-  test_addDeletion() async {
+  Future<void> test_addDeletion() async {
     int offset = 23;
     int length = 7;
     ChangeBuilderImpl builder = ChangeBuilderImpl();
@@ -262,7 +262,7 @@ class FileEditBuilderImplTest {
     expect(edits[0].replacement, isEmpty);
   }
 
-  test_addInsertion() async {
+  Future<void> test_addInsertion() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addInsertion(10, (EditBuilder builder) {
@@ -271,7 +271,7 @@ class FileEditBuilderImplTest {
     });
   }
 
-  test_addLinkedPosition() async {
+  Future<void> test_addLinkedPosition() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     String groupName = 'a';
     await builder.addFileEdit(path, (FileEditBuilder builder) {
@@ -287,7 +287,7 @@ class FileEditBuilderImplTest {
     expect(group.length, 6);
   }
 
-  test_addReplacement() async {
+  Future<void> test_addReplacement() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       builder.addReplacement(SourceRange(4, 5), (EditBuilder builder) {
@@ -296,7 +296,7 @@ class FileEditBuilderImplTest {
     });
   }
 
-  test_addSimpleInsertion() async {
+  Future<void> test_addSimpleInsertion() async {
     int offset = 23;
     String text = 'xyz';
     ChangeBuilderImpl builder = ChangeBuilderImpl();
@@ -310,7 +310,7 @@ class FileEditBuilderImplTest {
     expect(edits[0].replacement, text);
   }
 
-  test_addSimpleReplacement() async {
+  Future<void> test_addSimpleReplacement() async {
     int offset = 23;
     int length = 7;
     String text = 'xyz';
@@ -325,7 +325,7 @@ class FileEditBuilderImplTest {
     expect(edits[0].replacement, text);
   }
 
-  test_createEditBuilder() async {
+  Future<void> test_createEditBuilder() async {
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
       int offset = 4;
@@ -345,7 +345,7 @@ class FileEditBuilderImplTest {
 class LinkedEditBuilderImplTest {
   String path = '/test.dart';
 
-  test_addSuggestion() async {
+  Future<void> test_addSuggestion() async {
     String groupName = 'a';
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
@@ -361,7 +361,7 @@ class LinkedEditBuilderImplTest {
     expect(group.suggestions, hasLength(1));
   }
 
-  test_addSuggestion_zeroLength() async {
+  Future<void> test_addSuggestion_zeroLength() async {
     String groupName = 'a';
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {
@@ -375,7 +375,7 @@ class LinkedEditBuilderImplTest {
     expect(builder.sourceChange.linkedEditGroups, isEmpty);
   }
 
-  test_addSuggestions() async {
+  Future<void> test_addSuggestions() async {
     String groupName = 'a';
     ChangeBuilderImpl builder = ChangeBuilderImpl();
     await builder.addFileEdit(path, (FileEditBuilder builder) {

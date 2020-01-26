@@ -41,7 +41,7 @@ class NavigationMixinTest with ResourceProviderMixin {
     plugin.start(channel);
   }
 
-  test_handleAnalysisGetNavigation() async {
+  Future<void> test_handleAnalysisGetNavigation() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
@@ -54,7 +54,7 @@ class NavigationMixinTest with ResourceProviderMixin {
     expect(result.regions, hasLength(2));
   }
 
-  test_sendNavigationNotification() async {
+  Future<void> test_sendNavigationNotification() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
