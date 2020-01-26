@@ -277,6 +277,8 @@ class Exception {
   factory Exception([var message]) => null;
 }
 
+class FormatException implements Exception {}
+
 class Function {}
 
 abstract class int extends num {
