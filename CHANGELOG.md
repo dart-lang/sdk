@@ -1,3 +1,12 @@
+# 0.1.110
+
+* fixed flutter web plugin detection in `avoid_web_libraries_in_flutter`
+* new lint: `unnecessary_string_interpolations`
+* new lint: `missing_whitespace_between_adjacent_strings`
+* `avoid_unused_constructor_parameters` updated to ignore deprecated parameters
+* new lint: `no_runtimeType_toString`
+* miscellaneous doc fixes
+
 # 0.1.109
 
 * improved`prefer_single_quotes` lint message
