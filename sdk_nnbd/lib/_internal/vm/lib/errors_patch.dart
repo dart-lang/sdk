@@ -283,8 +283,8 @@ class NoSuchMethodError {
       // Use deprecated version of toString.
       return _toStringDeprecated();
     }
-    String memberName =
-        internal.Symbol.computeUnmangledName(localInvocation.memberName);
+    var internalName = localInvocation.memberName as internal.Symbol;
+    String memberName = internal.Symbol.computeUnmangledName(internalName);
 
     var level = (localInvocation._type >> _InvocationMirror._LEVEL_SHIFT) &
         _InvocationMirror._LEVEL_MASK;
@@ -325,7 +325,8 @@ class NoSuchMethodError {
         if (argumentCount > 0) {
           argumentsBuf.write(", ");
         }
-        argumentsBuf.write(internal.Symbol.computeUnmangledName(key));
+        var internalName = key as internal.Symbol;
+        argumentsBuf.write(internal.Symbol.computeUnmangledName(internalName));
         argumentsBuf.write(": ");
         argumentsBuf.write(Error.safeToString(value));
         argumentCount++;
@@ -437,7 +438,7 @@ class NoSuchMethodError {
     var type = _invocationType & _InvocationMirror._KIND_MASK;
     String memberName = (_memberName == null)
         ? ""
-        : internal.Symbol.computeUnmangledName(_memberName);
+        : internal.Symbol.computeUnmangledName(_memberName as internal.Symbol);
 
     if (type == _InvocationMirror._LOCAL_VAR) {
       return "NoSuchMethodError: Cannot assign to final variable '$memberName'";
@@ -458,7 +459,8 @@ class NoSuchMethodError {
       if (argumentCount > 0) {
         arguments.write(", ");
       }
-      arguments.write(internal.Symbol.computeUnmangledName(key));
+      var internalName = key as internal.Symbol;
+      arguments.write(internal.Symbol.computeUnmangledName(internalName));
       arguments.write(": ");
       arguments.write(Error.safeToString(value));
       argumentCount++;

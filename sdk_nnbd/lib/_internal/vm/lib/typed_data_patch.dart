@@ -3827,7 +3827,7 @@ class _TypedListIterator<E> implements Iterator<E> {
   int _position;
   E? _current;
 
-  _TypedListIterator(List array)
+  _TypedListIterator(List<E> array)
       : _array = array,
         _length = array.length,
         _position = -1 {

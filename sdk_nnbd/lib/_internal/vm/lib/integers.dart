@@ -637,10 +637,14 @@ class _Smi extends _IntegerImplementation {
     } while (smi >= 100);
     if (smi < 10) {
       // Character code for '0'.
-      result._setAt(index, DIGIT_ZERO + smi);
+      // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+      // result type as `num`.
+      result._setAt(index, unsafeCast<int>(DIGIT_ZERO + smi));
     } else {
       // No remainder for this case.
-      int digitIndex = smi * 2;
+      // Issue(https://dartbug.com/39639): The analyzer incorrectly reports the
+      // result type as `num`.
+      int digitIndex = unsafeCast<int>(smi * 2);
       result._setAt(index, _digitTable[digitIndex + 1]);
       result._setAt(index - 1, _digitTable[digitIndex]);
     }
@@ -694,7 +698,7 @@ class _Smi extends _IntegerImplementation {
     result._setAt(0, MINUS_SIGN); // '-'.
     int index = digitCount;
     do {
-      var twoDigits = negSmi.remainder(100);
+      int twoDigits = unsafeCast<int>(negSmi.remainder(100));
       negSmi = negSmi ~/ 100;
       int digitIndex = -twoDigits * 2;
       result._setAt(index, _digitTable[digitIndex + 1]);

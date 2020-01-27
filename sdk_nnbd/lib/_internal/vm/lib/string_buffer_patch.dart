@@ -127,7 +127,7 @@ class StringBuffer {
     final localParts = _parts;
     return (_partsCodeUnits == 0 || localParts == null)
         ? ""
-        : _StringBase._concatRange(_parts, 0, localParts.length);
+        : _StringBase._concatRange(localParts, 0, localParts.length);
   }
 
   /** Ensures that the buffer has enough capacity to add n code units. */

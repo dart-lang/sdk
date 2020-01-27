@@ -119,18 +119,18 @@ class DateTime {
     int days = daysSince1970;
     days += DAYS_OFFSET;
     resultYear = 400 * (days ~/ DAYS_IN_400_YEARS) - YEARS_OFFSET;
-    days = days.remainder(DAYS_IN_400_YEARS);
+    days = unsafeCast<int>(days.remainder(DAYS_IN_400_YEARS));
     days--;
     int yd1 = days ~/ DAYS_IN_100_YEARS;
-    days = days.remainder(DAYS_IN_100_YEARS);
+    days = unsafeCast<int>(days.remainder(DAYS_IN_100_YEARS));
     resultYear += 100 * yd1;
     days++;
     int yd2 = days ~/ DAYS_IN_4_YEARS;
-    days = days.remainder(DAYS_IN_4_YEARS);
+    days = unsafeCast<int>(days.remainder(DAYS_IN_4_YEARS));
     resultYear += 4 * yd2;
     days--;
     int yd3 = days ~/ 365;
-    days = days.remainder(365);
+    days = unsafeCast<int>(days.remainder(365));
     resultYear += yd3;
 
     bool isLeap = (yd1 == 0 || yd2 != 0) && yd3 == 0;

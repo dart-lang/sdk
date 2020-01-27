@@ -1,0 +1,2 @@
+ERROR|STATIC_WARNING|NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER|lib/core/core.dart|3894|7|16|Missing concrete implementations of 'getter Error._stackTrace' and 'setter Error._stackTrace'.
+ERROR|STATIC_WARNING|NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER|lib/core/core.dart|3902|7|18|Missing concrete implementations of 'getter Error._stackTrace' and 'setter Error._stackTrace'.

@@ -219,7 +219,7 @@ class _RegExp implements RegExp {
   RegExpMatch? firstMatch(String input) {
     // TODO: Remove these null checks once all code is opted into strong nonnullable mode.
     if (input == null) throw new ArgumentError.notNull('input');
-    List? match = _ExecuteMatch(input, 0);
+    final match = _ExecuteMatch(input, 0);
     if (match == null) {
       return null;
     }
@@ -243,7 +243,7 @@ class _RegExp implements RegExp {
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length);
     }
-    List? list = _ExecuteMatchSticky(string, start);
+    final list = _ExecuteMatchSticky(string, start);
     if (list == null) return null;
     return new _RegExpMatch._(this, string, list);
   }
@@ -344,9 +344,10 @@ class _RegExp implements RegExp {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   ];
 
-  List? _ExecuteMatch(String str, int start_index) native "RegExp_ExecuteMatch";
+  List<int>? _ExecuteMatch(String str, int start_index)
+      native "RegExp_ExecuteMatch";
 
-  List? _ExecuteMatchSticky(String str, int start_index)
+  List<int>? _ExecuteMatchSticky(String str, int start_index)
       native "RegExp_ExecuteMatchSticky";
 }
 
@@ -383,7 +384,7 @@ class _AllMatchesIterator implements Iterator<RegExpMatch> {
     final re = _re;
     if (re == null) return false; // Cleared after a failed match.
     if (_nextIndex <= _str.length) {
-      var match = re._ExecuteMatch(_str, _nextIndex);
+      final match = re._ExecuteMatch(_str, _nextIndex);
       if (match != null) {
         var current = new _RegExpMatch._(re, _str, match);
         _current = current;

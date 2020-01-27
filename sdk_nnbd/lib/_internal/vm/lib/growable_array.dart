@@ -77,11 +77,11 @@ class _GrowableList<T> extends ListBase<T> {
     final int actualEnd = RangeError.checkValidRange(start, end, this.length);
     int length = actualEnd - start;
     if (length == 0) return <T>[];
-    List list = new _List(length);
+    final list = new _List(length);
     for (int i = 0; i < length; i++) {
       list[i] = this[start + i];
     }
-    var result = new _GrowableList<T>._withData(list);
+    final result = new _GrowableList<T>._withData(list);
     result._setLength(length);
     return result;
   }

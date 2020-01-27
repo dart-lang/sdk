@@ -81,7 +81,7 @@ class List<E> {
     if (elements.isEmpty) {
       return new _GrowableList<E>(0);
     }
-    var result = new _GrowableList<E>._withData(elements);
+    final result = new _GrowableList<E>._withData(unsafeCast<_List>(elements));
     result._setLength(elements.length);
     return result;
   }

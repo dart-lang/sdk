@@ -134,9 +134,9 @@ class _InvocationMirror implements Invocation {
       final namedArguments = new Map<Symbol, dynamic>();
       for (int i = 0; i < numNamedArguments; i++) {
         int namedEntryIndex = _FIRST_NAMED_ENTRY + 2 * i;
+        int pos = argsDescriptor[namedEntryIndex + 1];
         String arg_name = argsDescriptor[namedEntryIndex];
-        var arg_value =
-            _arguments![receiverIndex + argsDescriptor[namedEntryIndex + 1]];
+        var arg_value = _arguments![receiverIndex + pos];
         namedArguments[new internal.Symbol.unvalidated(arg_name)] = arg_value;
       }
       _namedArguments = new Map.unmodifiable(namedArguments);

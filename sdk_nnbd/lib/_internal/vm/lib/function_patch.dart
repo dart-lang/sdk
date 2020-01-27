@@ -28,7 +28,7 @@ class Function {
     if (numNamedArguments > 0) {
       namedArguments?.forEach((name, value) {
         arguments[argumentIndex++] = value;
-        names[nameIndex++] = internal.Symbol.getName(name);
+        names[nameIndex++] = internal.Symbol.getName(name as internal.Symbol);
       });
     }
     return _apply(arguments, names);
