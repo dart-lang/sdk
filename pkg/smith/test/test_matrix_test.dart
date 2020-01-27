@@ -19,7 +19,8 @@ void main() {
               "enable-asserts": true
             },
           },
-        }
+        },
+        "builder_configurations": [],
       });
 
       expect(
@@ -58,6 +59,66 @@ void main() {
               },
             }
           });
+    });
+
+    test("two builders have same name", () {
+      expectJsonError('Duplicate builder name: "front-end-linux-release-x64"', {
+        "builder_configurations": [
+          {
+            "builders": [
+              "front-end-linux-release-x64",
+              "front-end-linux-release-x64"
+            ],
+          },
+        ]
+      });
+    });
+
+    test("two builders have same name in different configurations", () {
+      expectJsonError('Duplicate builder name: "front-end-linux-release-x64"', {
+        "builder_configurations": [
+          {
+            "builders": ["front-end-linux-release-x64"],
+          },
+          {
+            "builders": ["front-end-linux-release-x64"],
+          },
+        ]
+      });
+    });
+
+    test("a builder step refers to existing configuration", () {
+      TestMatrix.fromJson({
+        "configurations": {"fasta-linux": {}},
+        "builder_configurations": [
+          {
+            "builders": ["front-end-linux-release-x64"],
+            "steps": [
+              {
+                "name": "fasta sdk tests",
+                "arguments": [r"-nfasta-${system}"],
+              },
+            ],
+          },
+        ]
+      });
+    });
+
+    test("a builder step refers to non-existing configuration", () {
+      expectJsonError('Undefined configuration: fasta-linux', {
+        "configurations": {"fasta-win": {}},
+        "builder_configurations": [
+          {
+            "builders": ["front-end-linux-release-x64"],
+            "steps": [
+              {
+                "name": "fasta sdk tests",
+                "arguments": [r"-nfasta-${system}"],
+              },
+            ],
+          },
+        ]
+      });
     });
   });
 }
