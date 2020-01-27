@@ -13,6 +13,17 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'multi_future_tracker.dart';
+
+/// Maximum number of parallel subprocesses.  Use this to to avoid overloading
+/// your CPU.
+final MultiFutureTracker maxParallel =
+    MultiFutureTracker(Platform.numberOfProcessors * 2);
+
+/// Route all executions of pub through this [MultiFutureTracker] to avoid
+/// parallel executions of the pub command.
+final MultiFutureTracker pubTracker = MultiFutureTracker(1);
+
 final RegExp quotables = RegExp(r'[ "\r\n\$]');
 
 /// SubprocessLauncher manages one or more launched, non-interactive

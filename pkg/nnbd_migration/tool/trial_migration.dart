@@ -61,9 +61,8 @@ main(List<String> args) async {
   for (var package in packages) {
     print('Migrating $package');
     listener.currentPackage = package.name;
-    var testUri = thisSdkUri.resolve(package.packagePath);
     var contextCollection = AnalysisContextCollectionImpl(
-        includedPaths: [testUri.toFilePath()], sdkPath: sdk.sdkPath);
+        includedPaths: package.migrationPaths, sdkPath: sdk.sdkPath);
 
     var files = <String>{};
     var previousExceptionCount = listener.numExceptions;
