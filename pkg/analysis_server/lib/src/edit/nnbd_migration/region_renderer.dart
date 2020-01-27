@@ -58,7 +58,7 @@ class RegionRenderer {
         };
 
     var response = {
-      'path': pathMapper.map(unitInfo.path),
+      'path': unitInfo.path,
       'line': region.lineNumber,
       'explanation': region.explanation,
       'details': [
