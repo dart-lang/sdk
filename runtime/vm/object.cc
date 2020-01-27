@@ -1657,6 +1657,10 @@ RawError* Object::Init(Isolate* isolate,
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     object_store->set_array_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_array_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_array_type(type);
 
     cls = object_store->growable_object_array_class();  // Was allocated above.
     RegisterPrivateClass(cls, Symbols::_GrowableList(), core_lib);
@@ -1745,6 +1749,10 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_object_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_object_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_object_type(type);
 
     cls = Class::New<Bool>(isolate);
     object_store->set_bool_class(cls);
@@ -1968,12 +1976,20 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_function_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_function_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_function_type(type);
 
     cls = Class::New<Number>(isolate);
     RegisterClass(cls, Symbols::Number(), core_lib);
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_number_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_number_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_number_type(type);
 
     cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
                                /*is_abstract=*/true);
@@ -1983,6 +1999,10 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_int_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_int_type(type);
 
     cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
                                /*is_abstract=*/true);
@@ -1992,6 +2012,10 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_double_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_double_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_double_type(type);
 
     name = Symbols::_String().raw();
     cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
@@ -2002,18 +2026,34 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_string_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_string_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_string_type(type);
 
     cls = object_store->bool_class();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_bool_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_bool_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_bool_type(type);
 
     cls = object_store->smi_class();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_smi_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_smi_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_smi_type(type);
 
     cls = object_store->mint_class();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_mint_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_mint_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_mint_type(type);
 
     // The classes 'void' and 'dynamic' are phony classes to make type checking
     // more regular; they live in the VM isolate. The class 'void' is not
@@ -2040,18 +2080,48 @@ RawError* Object::Init(Isolate* isolate,
     type_args.SetTypeAt(0, type);
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_int(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->legacy_int_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_int(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->non_nullable_int_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_int(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->double_type();
     type_args.SetTypeAt(0, type);
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_double(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->legacy_double_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_double(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->non_nullable_double_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_double(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_string(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->legacy_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_string(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->non_nullable_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_string(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
@@ -2059,6 +2129,18 @@ RawError* Object::Init(Isolate* isolate,
     type_args.SetTypeAt(1, Object::dynamic_type());
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_string_dynamic(type_args);
+    type_args = TypeArguments::New(2);
+    type = object_store->legacy_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, Object::dynamic_type());
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_string_dynamic(type_args);
+    type_args = TypeArguments::New(2);
+    type = object_store->non_nullable_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, Object::dynamic_type());
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_string_dynamic(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
@@ -2066,6 +2148,19 @@ RawError* Object::Init(Isolate* isolate,
     type_args.SetTypeAt(1, type);
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_string_string(type_args);
+    type_args = TypeArguments::New(2);
+    type = object_store->legacy_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_string_legacy_string(type_args);
+    type_args = TypeArguments::New(2);
+    type = object_store->non_nullable_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_string_non_nullable_string(
+        type_args);
 
     lib = Library::LookupLibrary(thread, Symbols::DartFfi());
     if (lib.IsNull()) {

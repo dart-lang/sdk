@@ -51,7 +51,9 @@ static bool IsBootstrapedClassId(intptr_t class_id) {
 
 static bool IsObjectStoreTypeId(intptr_t index) {
   // Check if this is a type which is stored in the object store.
-  return (index >= kObjectType && index <= kStringStringTypeArguments);
+  static_assert(kFirstTypeArgumentsSnapshotId == kLastTypeSnapshotId + 1,
+                "Type and type arguments snapshot ids should be adjacent");
+  return index >= kFirstTypeSnapshotId && index <= kLastTypeArgumentsSnapshotId;
 }
 
 static bool IsSplitClassId(intptr_t class_id) {
@@ -76,38 +78,69 @@ static intptr_t ObjectIdFromClassId(intptr_t class_id) {
 
 static RawObject* GetType(ObjectStore* object_store, intptr_t index) {
   switch (index) {
-    case kObjectType:
-      return object_store->object_type();
+    case kLegacyObjectType:
+      return object_store->legacy_object_type();
     case kNullType:
       return object_store->null_type();
-    case kFunctionType:
-      return object_store->function_type();
-    case kNumberType:
-      return object_store->number_type();
-    case kSmiType:
-      return object_store->smi_type();
-    case kMintType:
-      return object_store->mint_type();
-    case kDoubleType:
-      return object_store->double_type();
-    case kIntType:
-      return object_store->int_type();
-    case kBoolType:
-      return object_store->bool_type();
-    case kStringType:
-      return object_store->string_type();
-    case kArrayType:
-      return object_store->array_type();
-    case kIntTypeArguments:
-      return object_store->type_argument_int();
-    case kDoubleTypeArguments:
-      return object_store->type_argument_double();
-    case kStringTypeArguments:
-      return object_store->type_argument_string();
-    case kStringDynamicTypeArguments:
-      return object_store->type_argument_string_dynamic();
-    case kStringStringTypeArguments:
-      return object_store->type_argument_string_string();
+    case kLegacyFunctionType:
+      return object_store->legacy_function_type();
+    case kLegacyNumberType:
+      return object_store->legacy_number_type();
+    case kLegacySmiType:
+      return object_store->legacy_smi_type();
+    case kLegacyMintType:
+      return object_store->legacy_mint_type();
+    case kLegacyDoubleType:
+      return object_store->legacy_double_type();
+    case kLegacyIntType:
+      return object_store->legacy_int_type();
+    case kLegacyBoolType:
+      return object_store->legacy_bool_type();
+    case kLegacyStringType:
+      return object_store->legacy_string_type();
+    case kLegacyArrayType:
+      return object_store->legacy_array_type();
+    case kLegacyIntTypeArguments:
+      return object_store->type_argument_legacy_int();
+    case kLegacyDoubleTypeArguments:
+      return object_store->type_argument_legacy_double();
+    case kLegacyStringTypeArguments:
+      return object_store->type_argument_legacy_string();
+    case kLegacyStringDynamicTypeArguments:
+      return object_store->type_argument_legacy_string_dynamic();
+    case kLegacyStringLegacyStringTypeArguments:
+      return object_store->type_argument_legacy_string_legacy_string();
+    case kNonNullableObjectType:
+      return object_store->non_nullable_object_type();
+    case kNonNullableFunctionType:
+      return object_store->non_nullable_function_type();
+    case kNonNullableNumberType:
+      return object_store->non_nullable_number_type();
+    case kNonNullableSmiType:
+      return object_store->non_nullable_smi_type();
+    case kNonNullableMintType:
+      return object_store->non_nullable_mint_type();
+    case kNonNullableDoubleType:
+      return object_store->non_nullable_double_type();
+    case kNonNullableIntType:
+      return object_store->non_nullable_int_type();
+    case kNonNullableBoolType:
+      return object_store->non_nullable_bool_type();
+    case kNonNullableStringType:
+      return object_store->non_nullable_string_type();
+    case kNonNullableArrayType:
+      return object_store->non_nullable_array_type();
+    case kNonNullableIntTypeArguments:
+      return object_store->type_argument_non_nullable_int();
+    case kNonNullableDoubleTypeArguments:
+      return object_store->type_argument_non_nullable_double();
+    case kNonNullableStringTypeArguments:
+      return object_store->type_argument_non_nullable_string();
+    case kNonNullableStringDynamicTypeArguments:
+      return object_store->type_argument_non_nullable_string_dynamic();
+    case kNonNullableStringNonNullableStringTypeArguments:
+      return object_store
+          ->type_argument_non_nullable_string_non_nullable_string();
     default:
       break;
   }
@@ -117,38 +150,72 @@ static RawObject* GetType(ObjectStore* object_store, intptr_t index) {
 
 static intptr_t GetTypeIndex(ObjectStore* object_store,
                              const RawObject* raw_type) {
-  if (raw_type == object_store->object_type()) {
-    return kObjectType;
+  if (raw_type == object_store->legacy_object_type()) {
+    return kLegacyObjectType;
   } else if (raw_type == object_store->null_type()) {
     return kNullType;
-  } else if (raw_type == object_store->function_type()) {
-    return kFunctionType;
-  } else if (raw_type == object_store->number_type()) {
-    return kNumberType;
-  } else if (raw_type == object_store->smi_type()) {
-    return kSmiType;
-  } else if (raw_type == object_store->mint_type()) {
-    return kMintType;
-  } else if (raw_type == object_store->double_type()) {
-    return kDoubleType;
-  } else if (raw_type == object_store->int_type()) {
-    return kIntType;
-  } else if (raw_type == object_store->bool_type()) {
-    return kBoolType;
-  } else if (raw_type == object_store->string_type()) {
-    return kStringType;
-  } else if (raw_type == object_store->array_type()) {
-    return kArrayType;
-  } else if (raw_type == object_store->type_argument_int()) {
-    return kIntTypeArguments;
-  } else if (raw_type == object_store->type_argument_double()) {
-    return kDoubleTypeArguments;
-  } else if (raw_type == object_store->type_argument_string()) {
-    return kStringTypeArguments;
-  } else if (raw_type == object_store->type_argument_string_dynamic()) {
-    return kStringDynamicTypeArguments;
-  } else if (raw_type == object_store->type_argument_string_string()) {
-    return kStringStringTypeArguments;
+  } else if (raw_type == object_store->legacy_function_type()) {
+    return kLegacyFunctionType;
+  } else if (raw_type == object_store->legacy_number_type()) {
+    return kLegacyNumberType;
+  } else if (raw_type == object_store->legacy_smi_type()) {
+    return kLegacySmiType;
+  } else if (raw_type == object_store->legacy_mint_type()) {
+    return kLegacyMintType;
+  } else if (raw_type == object_store->legacy_double_type()) {
+    return kLegacyDoubleType;
+  } else if (raw_type == object_store->legacy_int_type()) {
+    return kLegacyIntType;
+  } else if (raw_type == object_store->legacy_bool_type()) {
+    return kLegacyBoolType;
+  } else if (raw_type == object_store->legacy_string_type()) {
+    return kLegacyStringType;
+  } else if (raw_type == object_store->legacy_array_type()) {
+    return kLegacyArrayType;
+  } else if (raw_type == object_store->type_argument_legacy_int()) {
+    return kLegacyIntTypeArguments;
+  } else if (raw_type == object_store->type_argument_legacy_double()) {
+    return kLegacyDoubleTypeArguments;
+  } else if (raw_type == object_store->type_argument_legacy_string()) {
+    return kLegacyStringTypeArguments;
+  } else if (raw_type == object_store->type_argument_legacy_string_dynamic()) {
+    return kLegacyStringDynamicTypeArguments;
+  } else if (raw_type ==
+             object_store->type_argument_legacy_string_legacy_string()) {
+    return kLegacyStringLegacyStringTypeArguments;
+  } else if (raw_type == object_store->non_nullable_object_type()) {
+    return kNonNullableObjectType;
+  } else if (raw_type == object_store->non_nullable_function_type()) {
+    return kNonNullableFunctionType;
+  } else if (raw_type == object_store->non_nullable_number_type()) {
+    return kNonNullableNumberType;
+  } else if (raw_type == object_store->non_nullable_smi_type()) {
+    return kNonNullableSmiType;
+  } else if (raw_type == object_store->non_nullable_mint_type()) {
+    return kNonNullableMintType;
+  } else if (raw_type == object_store->non_nullable_double_type()) {
+    return kNonNullableDoubleType;
+  } else if (raw_type == object_store->non_nullable_int_type()) {
+    return kNonNullableIntType;
+  } else if (raw_type == object_store->non_nullable_bool_type()) {
+    return kNonNullableBoolType;
+  } else if (raw_type == object_store->non_nullable_string_type()) {
+    return kNonNullableStringType;
+  } else if (raw_type == object_store->non_nullable_array_type()) {
+    return kNonNullableArrayType;
+  } else if (raw_type == object_store->type_argument_non_nullable_int()) {
+    return kNonNullableIntTypeArguments;
+  } else if (raw_type == object_store->type_argument_non_nullable_double()) {
+    return kNonNullableDoubleTypeArguments;
+  } else if (raw_type == object_store->type_argument_non_nullable_string()) {
+    return kNonNullableStringTypeArguments;
+  } else if (raw_type ==
+             object_store->type_argument_non_nullable_string_dynamic()) {
+    return kNonNullableStringDynamicTypeArguments;
+  } else if (raw_type ==
+             object_store
+                 ->type_argument_non_nullable_string_non_nullable_string()) {
+    return kNonNullableStringNonNullableStringTypeArguments;
   }
   return kInvalidIndex;
 }
