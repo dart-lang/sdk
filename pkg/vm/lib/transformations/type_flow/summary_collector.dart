@@ -10,9 +10,9 @@ import 'dart:core' hide Type;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
 import 'package:kernel/type_environment.dart'
-    show StaticTypeContext, TypeEnvironment;
+    show StaticTypeContext, SubtypeCheckMode, TypeEnvironment;
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import 'calls.dart';
@@ -478,7 +478,7 @@ enum FieldSummaryType { kFieldGuard, kInitializer }
 class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final Target target;
   final TypeEnvironment _environment;
-  final ClassHierarchy _hierarchy;
+  final ClosedWorldClassHierarchy _hierarchy;
   final EntryPointsListener _entryPointsListener;
   final TypesBuilder _typesBuilder;
   final NativeCodeOracle _nativeCodeOracle;
@@ -905,18 +905,44 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   void _mergeVariableValues(List<TypeExpr> dst, List<TypeExpr> src) {
     assertx(dst.length == src.length);
     for (int i = 0; i < dst.length; ++i) {
-      if (!identical(dst[i], src[i])) {
-        if (dst[i] == null || src[i] == null) {
-          dst[i] = null;
-        } else if (dst[i] is EmptyType) {
-          dst[i] = src[i];
-        } else if (src[i] is! EmptyType) {
-          final Join join = _makeJoin(i, dst[i]);
-          join.values.add(src[i]);
-          dst[i] = join;
-        }
+      final TypeExpr dstValue = dst[i];
+      final TypeExpr srcValue = src[i];
+      if (identical(dstValue, srcValue)) {
+        continue;
+      }
+      if (dstValue == null || srcValue == null) {
+        dst[i] = null;
+      } else if (dstValue is EmptyType) {
+        dst[i] = srcValue;
+      } else if (dstValue is Join && dstValue.values.contains(srcValue)) {
+        continue;
+      } else if (srcValue is EmptyType) {
+        continue;
+      } else if (srcValue is Join && srcValue.values.contains(dstValue)) {
+        dst[i] = srcValue;
+      } else {
+        final Join join = _makeJoin(i, dst[i]);
+        join.values.add(src[i]);
+        dst[i] = join;
       }
     }
+  }
+
+  void _copyVariableValues(List<TypeExpr> dst, List<TypeExpr> src) {
+    assertx(dst.length == src.length);
+    for (int i = 0; i < dst.length; ++i) {
+      dst[i] = src[i];
+    }
+  }
+
+  bool _isIdenticalState(List<TypeExpr> state1, List<TypeExpr> state2) {
+    assertx(state1.length == state2.length);
+    for (int i = 0; i < state1.length; ++i) {
+      if (!identical(state1[i], state2[i])) {
+        return false;
+      }
+    }
+    return true;
   }
 
   List<Join> _insertJoinsForModifiedVariables(TreeNode node, bool isTry) {
@@ -1000,11 +1026,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   TypeExpr _makeNarrow(TypeExpr arg, Type type) {
-    if (arg is Type) {
-      // TODO(alexmarkov): more constant folding
+    if (arg is Narrow) {
+      if (arg.type == type) {
+        return arg;
+      }
+      if (type == const AnyType() && arg.type is! NullableType) {
+        return arg;
+      }
+    } else if (arg is Type) {
       if ((arg is NullableType) && (arg.baseType == const AnyType())) {
-        debugPrint("Optimized _Narrow of dynamic");
         return type;
+      }
+      if (type == const AnyType()) {
+        return (arg is NullableType) ? arg.baseType : arg;
       }
     }
     Narrow narrow = new Narrow(arg, type);
@@ -1126,6 +1160,136 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     _returnValue = savedReturn;
   }
 
+  // Tests subtypes ignoring any nullabilities.
+  bool _isSubtype(DartType subtype, DartType supertype) => _environment
+      .isSubtypeOf(subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
+
+  static final Name _equalsName = new Name('==');
+  final _cachedHasOverriddenEquals = <Class, bool>{};
+
+  bool _hasOverriddenEquals(DartType type) {
+    if (type is InterfaceType) {
+      final Class cls = type.classNode;
+      final cachedResult = _cachedHasOverriddenEquals[cls];
+      if (cachedResult != null) {
+        return cachedResult;
+      }
+      for (Class c
+          in _hierarchy.computeSubtypesInformation().getSubtypesOf(cls)) {
+        if (!c.isAbstract) {
+          final candidate = _hierarchy.getDispatchTarget(c, _equalsName);
+          assertx(candidate != null);
+          assertx(!candidate.isAbstract);
+          if (candidate != _environment.coreTypes.objectEquals) {
+            _cachedHasOverriddenEquals[cls] = true;
+            return true;
+          }
+        }
+      }
+      _cachedHasOverriddenEquals[cls] = false;
+      return false;
+    }
+    return true;
+  }
+
+  // Visits bool expression and updates trueState and falseState with
+  // variable values in case of `true` and `false` outcomes.
+  // On entry _variableValues, trueState and falseState should be the same.
+  // On exit _variableValues is null, so caller should explicitly pick
+  // either trueState or falseState.
+  void _visitCondition(
+      Expression node, List<TypeExpr> trueState, List<TypeExpr> falseState) {
+    assertx(_isIdenticalState(_variableValues, trueState));
+    assertx(_isIdenticalState(_variableValues, falseState));
+    if (node is Not) {
+      _visitCondition(node.operand, falseState, trueState);
+      _variableValues = null;
+      return;
+    } else if (node is LogicalExpression) {
+      assertx(node.operator == '||' || node.operator == '&&');
+      final isOR = (node.operator == '||');
+      _visitCondition(node.left, trueState, falseState);
+      if (isOR) {
+        // expr1 || expr2
+        _variableValues = _cloneVariableValues(falseState);
+        final trueStateAfterRHS = _cloneVariableValues(_variableValues);
+        _visitCondition(node.right, trueStateAfterRHS, falseState);
+        _mergeVariableValues(trueState, trueStateAfterRHS);
+      } else {
+        // expr1 && expr2
+        _variableValues = _cloneVariableValues(trueState);
+        final falseStateAfterRHS = _cloneVariableValues(_variableValues);
+        _visitCondition(node.right, trueState, falseStateAfterRHS);
+        _mergeVariableValues(falseState, falseStateAfterRHS);
+      }
+      _variableValues = null;
+      return;
+    } else if (node is VariableGet ||
+        (node is AsExpression && node.operand is VariableGet)) {
+      // 'x' or 'x as{TypeError} core::bool', where x is a variable.
+      _addUse(_visit(node));
+      final variableGet =
+          (node is AsExpression ? node.operand : node) as VariableGet;
+      final int varIndex = _variablesInfo.varIndex[variableGet.variable];
+      if (_variableCells[varIndex] == null) {
+        trueState[varIndex] = _boolTrue;
+        falseState[varIndex] = _boolFalse;
+      }
+      _variableValues = null;
+      return;
+    } else if (node is MethodInvocation &&
+        node.receiver is VariableGet &&
+        node.name.name == '==') {
+      assertx(node.arguments.positional.length == 1 &&
+          node.arguments.types.isEmpty &&
+          node.arguments.named.isEmpty);
+      final lhs = node.receiver as VariableGet;
+      final rhs = node.arguments.positional.single;
+      if (rhs is NullLiteral) {
+        // 'x == null', where x is a variable.
+        _addUse(_visit(node));
+        final int varIndex = _variablesInfo.varIndex[lhs.variable];
+        if (_variableCells[varIndex] == null) {
+          trueState[varIndex] = _nullType;
+          falseState[varIndex] = _makeNarrow(_visit(lhs), const AnyType());
+        }
+        _variableValues = null;
+        return;
+      } else if ((rhs is IntLiteral &&
+              _isSubtype(lhs.variable.type,
+                  _environment.coreTypes.intLegacyRawType)) ||
+          (rhs is StringLiteral &&
+              _isSubtype(lhs.variable.type,
+                  _environment.coreTypes.stringLegacyRawType)) ||
+          (rhs is ConstantExpression &&
+              !_hasOverriddenEquals(lhs.variable.type))) {
+        // 'x == c', where x is a variable and c is a constant.
+        _addUse(_visit(node));
+        final int varIndex = _variablesInfo.varIndex[lhs.variable];
+        if (_variableCells[varIndex] == null) {
+          trueState[varIndex] = _visit(rhs);
+        }
+        _variableValues = null;
+        return;
+      }
+    } else if (node is IsExpression && node.operand is VariableGet) {
+      // Handle 'x is T', where x is a variable.
+      final operand = node.operand as VariableGet;
+      _addUse(_visit(operand));
+      final int varIndex = _variablesInfo.varIndex[operand.variable];
+      if (_variableCells[varIndex] == null) {
+        trueState[varIndex] = _makeNarrow(
+            _visit(operand), _typesBuilder.fromStaticType(node.type, false));
+      }
+      _variableValues = null;
+      return;
+    }
+    _addUse(_visit(node));
+    _copyVariableValues(trueState, _variableValues);
+    _copyVariableValues(falseState, _variableValues);
+    _variableValues = null;
+  }
+
   @override
   defaultTreeNode(TreeNode node) =>
       throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
@@ -1155,14 +1319,20 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitConditionalExpression(ConditionalExpression node) {
-    _addUse(_visit(node.condition));
-    final stateBefore = _cloneVariableValues(_variableValues);
-    Join v = new Join(null, _staticDartType(node));
+    final trueState = _cloneVariableValues(_variableValues);
+    final falseState = _cloneVariableValues(_variableValues);
+    _visitCondition(node.condition, trueState, falseState);
+
+    final Join v = new Join(null, _staticDartType(node));
     _summary.add(v);
+
+    _variableValues = trueState;
     v.values.add(_visit(node.then));
     final stateAfter = _variableValues;
-    _variableValues = stateBefore;
+
+    _variableValues = falseState;
     v.values.add(_visit(node.otherwise));
+
     _mergeVariableValues(stateAfter, _variableValues);
     _variableValues = stateAfter;
     return _makeNarrow(v, _staticType(node));
@@ -1279,10 +1449,11 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitLogicalExpression(LogicalExpression node) {
-    _addUse(_visit(node.left));
-    final stateAfterShortCircuit = _cloneVariableValues(_variableValues);
-    _addUse(_visit(node.right));
-    _mergeVariableValues(_variableValues, stateAfterShortCircuit);
+    final trueState = _cloneVariableValues(_variableValues);
+    final falseState = _cloneVariableValues(_variableValues);
+    _visitCondition(node, trueState, falseState);
+    _variableValues = trueState;
+    _mergeVariableValues(_variableValues, falseState);
     return _boolType;
   }
 
@@ -1639,8 +1810,15 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitDoStatement(DoStatement node) {
     final List<Join> joins = _insertJoinsForModifiedVariables(node, false);
     _visit(node.body);
-    _visit(node.condition);
-    _mergeVariableValuesToJoins(_variableValues, joins);
+    final trueState = _cloneVariableValues(_variableValues);
+    final falseState = _cloneVariableValues(_variableValues);
+    _visitCondition(node.condition, trueState, falseState);
+    _mergeVariableValuesToJoins(trueState, joins);
+    // Kernel represents 'break;' as a BreakStatement referring to a
+    // LabeledStatement. We are therefore guaranteed to always have the
+    // condition be false after the 'do/while'.
+    // Any break would jump to the LabeledStatement outside the do/while.
+    _variableValues = falseState;
     return null;
   }
 
@@ -1671,14 +1849,20 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   TypeExpr visitForStatement(ForStatement node) {
     node.variables.forEach(visitVariableDeclaration);
     final List<Join> joins = _insertJoinsForModifiedVariables(node, false);
+    final trueState = _cloneVariableValues(_variableValues);
+    final falseState = _cloneVariableValues(_variableValues);
     if (node.condition != null) {
-      _addUse(_visit(node.condition));
+      _visitCondition(node.condition, trueState, falseState);
     }
-    final stateAfterLoop = _cloneVariableValues(_variableValues);
+    _variableValues = trueState;
     _visit(node.body);
     node.updates.forEach(_visit);
     _mergeVariableValuesToJoins(_variableValues, joins);
-    _variableValues = stateAfterLoop;
+    // Kernel represents 'break;' as a BreakStatement referring to a
+    // LabeledStatement. We are therefore guaranteed to always have the
+    // condition be false after the 'for'.
+    // Any break would jump to the LabeledStatement outside the 'for'.
+    _variableValues = falseState;
     return null;
   }
 
@@ -1692,15 +1876,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
 
   @override
   TypeExpr visitIfStatement(IfStatement node) {
-    _addUse(_visit(node.condition));
+    final trueState = _cloneVariableValues(_variableValues);
+    final falseState = _cloneVariableValues(_variableValues);
+    _visitCondition(node.condition, trueState, falseState);
 
-    final stateBefore = _cloneVariableValues(_variableValues);
+    _variableValues = trueState;
     _visit(node.then);
     final stateAfter = _variableValues;
-    _variableValues = stateBefore;
+
+    _variableValues = falseState;
     if (node.otherwise != null) {
       _visit(node.otherwise);
     }
+
     _mergeVariableValues(stateAfter, _variableValues);
     _variableValues = stateAfter;
     return null;
@@ -1802,11 +1990,17 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   @override
   TypeExpr visitWhileStatement(WhileStatement node) {
     final List<Join> joins = _insertJoinsForModifiedVariables(node, false);
-    _addUse(_visit(node.condition));
-    final stateAfterLoop = _cloneVariableValues(_variableValues);
+    final trueState = _cloneVariableValues(_variableValues);
+    final falseState = _cloneVariableValues(_variableValues);
+    _visitCondition(node.condition, trueState, falseState);
+    _variableValues = trueState;
     _visit(node.body);
     _mergeVariableValuesToJoins(_variableValues, joins);
-    _variableValues = stateAfterLoop;
+    // Kernel represents 'break;' as a BreakStatement referring to a
+    // LabeledStatement. We are therefore guaranteed to always have the
+    // condition be false after the 'while'.
+    // Any break would jump to the LabeledStatement outside the while.
+    _variableValues = falseState;
     return null;
   }
 

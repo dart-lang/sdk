@@ -92,7 +92,7 @@ RESULT: _T {}?
 RESULT: _T {}?
 ------------ #lib::if5 ------------
 %c = _Parameter #0 [_T (dart.core::bool)+?]
-t1* = _Call direct [#lib::if5] (%c)
+t1* = _Call direct [#lib::if5] (_T (dart.core::bool, true))
 t2* = _Call direct [#lib::if5] (_T (dart.core::bool))
 %result = _Join [void] (t1, t2, _T {}?)
 RESULT: %result
