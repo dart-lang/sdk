@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import '../utils.dart';
 
 void main() {
-  group('dartdev', help);
+  group('flag', help);
 }
 
 void help() {
