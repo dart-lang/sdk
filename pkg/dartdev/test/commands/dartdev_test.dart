@@ -5,13 +5,13 @@
 import 'package:dartdev/dartdev.dart';
 import 'package:test/test.dart';
 
-import 'utils.dart';
+import '../utils.dart';
 
 void main() {
-  group('flag', flags);
+  group('dartdev', help);
 }
 
-void flags() {
+void help() {
   TestProject p;
   tearDown(() => p?.dispose());
   test('--help', () {
