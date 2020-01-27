@@ -56,7 +56,7 @@ void if_then_elseTypeVariableWithNullableBound<T extends int?>(T x) {
   if (x == null) {
     x;
   } else {
-    /*cfe.nonNullable*/ x;
+    /*nonNullable*/ x;
   }
 }
 

@@ -14,7 +14,7 @@ void bang_promotesNullableTypeVariable<E>(E? x) {
 
 void bang_promotesNonNullableTypeVariable<E>(E x) {
   x!;
-  /*cfe.nonNullable*/ x;
+  /*nonNullable*/ x;
 }
 
 void bang_promotesNullableTypeVariableWithNullableBound<E extends int?>(E? x) {
@@ -25,7 +25,7 @@ void bang_promotesNullableTypeVariableWithNullableBound<E extends int?>(E? x) {
 void bang_promotesNonNullableTypeVariableWithNullableBound<E extends int?>(
     E x) {
   x!;
-  /*cfe.nonNullable*/ x;
+  /*nonNullable*/ x;
 }
 
 void bang_promotesNullableTypeVariableWithNonNullableBound<E extends int>(
