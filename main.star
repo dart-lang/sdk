@@ -387,8 +387,6 @@ def dart_builder(name,
             builder = name + "-" + channel if channel else name
             branch = channel if channel else "master"
             channel_properties = dict(properties)
-            if channel in ['dev', 'stable']:
-                channel_properties['no_approvals'] = True
             if enabled and schedule == "triggered":
                 if not triggered_by:
                     triggered_by = ["dart-gitiles-trigger-%s"]
