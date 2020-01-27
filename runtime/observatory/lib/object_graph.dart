@@ -500,7 +500,7 @@ class _SnapshotClass implements SnapshotClass {
   Iterable<SnapshotObject> get instances sync* {
     final N = _graph._N;
     for (var id = 1; id <= N; id++) {
-      if (_graph._cids[id] == _cid) {
+      if (_graph._cids[id] == _cid && _graph._retainedSizes[id] > 0) {
         yield _SnapshotObject._new(id, _graph, "");
       }
     }
@@ -569,7 +569,9 @@ class _SnapshotGraph implements SnapshotGraph {
   Iterable<SnapshotObject> get objects sync* {
     final N = _N;
     for (var id = 1; id <= N; id++) {
-      yield _SnapshotObject._new(id, this, "");
+      if (_retainedSizes[id] > 0) {
+        yield _SnapshotObject._new(id, this, "");
+      }
     }
   }
 
@@ -1302,10 +1304,14 @@ class _SnapshotGraph implements SnapshotGraph {
       cls.liveInstanceCount++;
     }
 
-    // Start with retained size as shallow size + external size.
-    final retainedSizes = _newUint32Array(N + 1);
-    for (var i = 0; i < N + 1; i++) {
-      retainedSizes[i] = internalSizes[i] + externalSizes[i];
+    // Start with retained size as shallow size + external size. For reachable
+    // objects only; leave unreachable objects with a retained size of 0 so
+    // they can be filtered during graph iterations.
+    var retainedSizes = new Uint32List(N + 1);
+    assert(Nconnected <= N);
+    for (var i = 0; i <= Nconnected; i++) {
+      var v = vertex[i];
+      retainedSizes[v] = internalSizes[v] + externalSizes[v];
     }
 
     // In post order (bottom up), add retained size to dominator's retained

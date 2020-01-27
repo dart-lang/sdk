@@ -110,11 +110,15 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
                         PageSpace* old_space,
                         HeapPage* first,
                         HeapPage* last,
+                        HeapPage* large_first,
+                        HeapPage* large_last,
                         FreeList* freelist)
       : task_isolate_(isolate),
         old_space_(old_space),
         first_(first),
         last_(last),
+        large_first_(large_first),
+        large_last_(large_last),
         freelist_(freelist) {
     ASSERT(task_isolate_ != NULL);
     ASSERT(first_ != NULL);
@@ -123,7 +127,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
     ASSERT(freelist_ != NULL);
     MonitorLocker ml(old_space_->tasks_lock());
     old_space_->set_tasks(old_space_->tasks() + 1);
-    old_space_->set_phase(PageSpace::kSweeping);
+    old_space_->set_phase(PageSpace::kSweepingLarge);
   }
 
   virtual void Run() {
@@ -132,14 +136,42 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
+      ASSERT(thread->BypassSafepoints());  // Or we should be checking in.
       TIMELINE_FUNCTION_GC_DURATION(thread, "ConcurrentSweep");
       GCSweeper sweeper;
 
-      HeapPage* page = first_;
+      HeapPage* page = large_first_;
       HeapPage* prev_page = NULL;
-
       while (page != NULL) {
-        ASSERT(thread->BypassSafepoints());  // Or we should be checking in.
+        HeapPage* next_page;
+        if (page == large_last_) {
+          // Don't access page->next(), which would be a race with mutator
+          // allocating new pages.
+          next_page = NULL;
+        } else {
+          next_page = page->next();
+        }
+        ASSERT(page->type() == HeapPage::kData);
+        const intptr_t words_to_end = sweeper.SweepLargePage(page);
+        if (words_to_end == 0) {
+          old_space_->FreeLargePage(page, prev_page);
+        } else {
+          old_space_->TruncateLargePage(page, words_to_end << kWordSizeLog2);
+          prev_page = page;
+        }
+        page = next_page;
+      }
+
+      {
+        MonitorLocker ml(old_space_->tasks_lock());
+        ASSERT(old_space_->phase() == PageSpace::kSweepingLarge);
+        old_space_->set_phase(PageSpace::kSweepingRegular);
+        ml.NotifyAll();
+      }
+
+      page = first_;
+      prev_page = NULL;
+      while (page != NULL) {
         HeapPage* next_page;
         if (page == last_) {
           // Don't access page->next(), which would be a race with mutator
@@ -170,7 +202,7 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
     {
       MonitorLocker ml(old_space_->tasks_lock());
       old_space_->set_tasks(old_space_->tasks() - 1);
-      ASSERT(old_space_->phase() == PageSpace::kSweeping);
+      ASSERT(old_space_->phase() == PageSpace::kSweepingRegular);
       old_space_->set_phase(PageSpace::kDone);
       ml.NotifyAll();
     }
@@ -181,15 +213,20 @@ class ConcurrentSweeperTask : public ThreadPool::Task {
   PageSpace* old_space_;
   HeapPage* first_;
   HeapPage* last_;
+  HeapPage* large_first_;
+  HeapPage* large_last_;
   FreeList* freelist_;
 };
 
 void GCSweeper::SweepConcurrent(Isolate* isolate,
                                 HeapPage* first,
                                 HeapPage* last,
+                                HeapPage* large_first,
+                                HeapPage* large_last,
                                 FreeList* freelist) {
   bool result = Dart::thread_pool()->Run<ConcurrentSweeperTask>(
-      isolate, isolate->heap()->old_space(), first, last, freelist);
+      isolate, isolate->heap()->old_space(), first, last, large_first,
+      large_last, freelist);
   ASSERT(result);
 }
 
