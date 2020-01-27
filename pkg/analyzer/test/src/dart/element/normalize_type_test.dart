@@ -404,6 +404,12 @@ class NormalizeTypeTest with ElementsTypesMixin {
     _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
   }
 
+  test_typeParameter_bound_recursive() {
+    var T = typeParameter('T');
+    T.bound = iterableNone(typeParameterTypeNone(T));
+    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
+  }
+
   test_typeParameter_promoted() {
     var T = typeParameter('T');
 

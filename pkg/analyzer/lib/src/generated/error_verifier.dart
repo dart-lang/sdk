@@ -1967,16 +1967,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       visitedClasses.add(element);
 
       if (element.typeParameters.isNotEmpty) {
-        type = _toLegacyType(type);
-        var oldType = interfaces[element];
-        if (oldType == null) {
-          interfaces[element] = type;
-        } else if (type != oldType) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-            node,
-            [_enclosingClass.name, oldType, type],
-          );
+        if (_typeSystem.isNonNullableByDefault) {
+          type = _typeSystem.normalize(type);
+          var oldType = interfaces[element];
+          if (oldType == null) {
+            interfaces[element] = type;
+          } else {
+            try {
+              var result = _typeSystem.topMerge(oldType, type);
+              interfaces[element] = result;
+            } catch (_) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+                node,
+                [_enclosingClass.name, oldType, type],
+              );
+            }
+          }
+        } else {
+          type = _toLegacyType(type);
+          var oldType = interfaces[element];
+          if (oldType == null) {
+            interfaces[element] = type;
+          } else if (type != oldType) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+              node,
+              [_enclosingClass.name, oldType, type],
+            );
+          }
         }
       }
 

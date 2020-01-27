@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -18,6 +19,8 @@ import 'package:analyzer/src/generated/type_system.dart';
 class NormalizeHelper {
   final TypeSystemImpl typeSystem;
   final TypeProviderImpl typeProvider;
+
+  final Set<TypeParameterElement> _typeParameters = {};
 
   NormalizeHelper(this.typeSystem) : typeProvider = typeSystem.typeProvider;
 
@@ -242,7 +245,13 @@ class NormalizeHelper {
     }
 
     // * let S be NORM(T)
-    var S = _normalize(bound);
+    DartType S;
+    if (_typeParameters.add(element)) {
+      S = _normalize(bound);
+      _typeParameters.remove(element);
+    } else {
+      return T;
+    }
 
     // * if S is Never then Never
     if (identical(S, NeverTypeImpl.instance)) {
