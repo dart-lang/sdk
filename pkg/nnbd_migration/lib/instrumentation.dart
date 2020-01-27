@@ -156,6 +156,7 @@ enum EdgeOriginKind {
   stackTraceTypeOrigin,
   thisOrSuper,
   throw_,
+  typedefReference,
   uninitializedRead,
 }
 

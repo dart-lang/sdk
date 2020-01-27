@@ -225,6 +225,19 @@ class InstantiateToBoundsOrigin extends EdgeOrigin {
   EdgeOriginKind get kind => EdgeOriginKind.instantiateToBounds;
 }
 
+/// Edge origin resulting from a usage of a typedef.
+///
+/// Since typedefs require multiple phases to resolve, they are represented by
+/// a set of inferred nodes. In the secondary phases of graph build, those get
+/// unioned with references to the nodes referring to source code. The origin of
+/// those union edges will be [TypedefReferenceOrigin].
+class TypedefReferenceOrigin extends EdgeOrigin {
+  TypedefReferenceOrigin(Source source, TypeName node) : super(source, node);
+
+  @override
+  EdgeOriginKind get kind => EdgeOriginKind.typedefReference;
+}
+
 /// Edge origin resulting from the use of a type as the main type in an 'is'
 /// check.
 ///

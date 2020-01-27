@@ -1493,7 +1493,25 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType visitTypeName(TypeName typeName) {
     var typeArguments = typeName.typeArguments?.arguments;
     var element = typeName.name.staticElement;
-    if (element is TypeParameterizedElement) {
+    if (element is GenericTypeAliasElement) {
+      final typedefType = _variables.decoratedElementType(element);
+      final typeNameType = _variables.decoratedTypeAnnotation(source, typeName);
+
+      Map<TypeParameterElement, DecoratedType> substitutions;
+      if (typeName.typeArguments == null) {
+        // TODO(mfairhurst): substitute instantiations to bounds
+        substitutions = {};
+      } else {
+        substitutions = Map<TypeParameterElement, DecoratedType>.fromIterables(
+            element.typeParameters,
+            typeName.typeArguments.arguments
+                .map((t) => _variables.decoratedTypeAnnotation(source, t)));
+      }
+
+      final decoratedType = typedefType.substitute(substitutions);
+      final origin = TypedefReferenceOrigin(source, typeName);
+      _linkDecoratedTypes(decoratedType, typeNameType, origin, isUnion: true);
+    } else if (element is TypeParameterizedElement) {
       if (typeArguments == null) {
         var instantiatedType =
             _variables.decoratedTypeAnnotation(source, typeName);

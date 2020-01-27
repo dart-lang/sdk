@@ -3854,6 +3854,300 @@ f(C<int?> c, D<int> d) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_typedef_assign_null_complex() async {
+    var content = '''
+typedef F<R> = Function(R);
+
+class C<T> {
+  F<T> _f;
+
+  C(this._f) {
+    f(null);
+  }
+
+  f(Object o) {
+    _f(o as T);
+  }
+}
+''';
+    var expected = '''
+typedef F<R> = Function(R);
+
+class C<T> {
+  F<T?> _f;
+
+  C(this._f) {
+    f(null);
+  }
+
+  f(Object? o) {
+    _f(o as T?);
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_parameter() async {
+    var content = '''
+typedef F = Function(int);
+
+F/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    var expected = '''
+typedef F = Function(int?);
+
+F/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_return() async {
+    var content = '''
+typedef F = int Function();
+
+F _f = () => null;
+''';
+    var expected = '''
+typedef F = int? Function();
+
+F _f = () => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_return_type_formal() async {
+    var content = '''
+typedef F = T Function<T>();
+
+F _f = <T>() => null;
+''';
+    var expected = '''
+typedef F = T? Function<T>();
+
+F _f = <T>() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_return_type_parameter() async {
+    var content = '''
+typedef F<T> = T Function();
+
+F<int> _f = () => null;
+''';
+    var expected = '''
+typedef F<T> = T Function();
+
+F<int?> _f = () => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_type_formal() async {
+    var content = '''
+typedef F = Function<T>(T);
+
+F/*!*/ _f;
+
+f() {
+  _f<int>(null);
+}
+''';
+    var expected = '''
+typedef F = Function<T>(T);
+
+F/*!*/ _f;
+
+f() {
+  _f<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_type_formal_with_paramter() async {
+    var content = '''
+typedef F<R> = Function<T>(T);
+
+F<Object>/*!*/ _f;
+
+f() {
+  _f<int>(null);
+}
+''';
+    var expected = '''
+typedef F<R> = Function<T>(T);
+
+F<Object>/*!*/ _f;
+
+f() {
+  _f<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_type_parameter() async {
+    var content = '''
+typedef F<T> = Function(T);
+
+F<int>/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    var expected = '''
+typedef F<T> = Function(T);
+
+F<int?>/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_type_parameter_non_null() async {
+    var content = '''
+typedef F<T> = Function(T);
+
+F<int>/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    var expected = '''
+typedef F<T> = Function(T);
+
+F<int?>/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_type_return_value_nested() async {
+    var content = '''
+typedef F<T> = T Function();
+
+F<F<int>> f = () => () => null;
+''';
+    var expected = '''
+typedef F<T> = T Function();
+
+F<F<int?>> f = () => () => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_old_assign_null_parameter() async {
+    var content = '''
+typedef F(int x);
+
+F/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    var expected = '''
+typedef F(int? x);
+
+F/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_old_assign_null_return() async {
+    var content = '''
+typedef int F();
+
+F _f = () => null;
+''';
+    var expected = '''
+typedef int? F();
+
+F _f = () => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_old_assign_null_return_type_parameter() async {
+    var content = '''
+typedef T F<T>();
+
+F<int> _f = () => null;
+''';
+    var expected = '''
+typedef T F<T>();
+
+F<int?> _f = () => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_old_assign_null_type_parameter() async {
+    var content = '''
+typedef F<T>(T t);
+
+F<int>/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    var expected = '''
+typedef F<T>(T t);
+
+F<int?>/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_old_assign_null_type_parameter_non_null() async {
+    var content = '''
+typedef F<T>(T t);
+
+F<int>/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    var expected = '''
+typedef F<T>(T t);
+
+F<int?>/*!*/ _f;
+
+f() {
+  _f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void>
       test_unconditional_assert_statement_implies_non_null_intent() async {
     var content = '''
