@@ -33,7 +33,7 @@ main() {
     await assertHasFix(r'''
 main() {
   var v = 42;
-  print('v: /*LINT*/$v');
+  print('v: $v');
 }
 ''', length: 4);
   }

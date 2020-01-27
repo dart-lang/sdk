@@ -28,7 +28,7 @@ class ConvertToListLiteralTest extends FixProcessorLintTest {
 List l = /*LINT*/List();
 ''');
     await assertHasFix('''
-List l = /*LINT*/[];
+List l = [];
 ''');
   }
 
@@ -37,7 +37,7 @@ List l = /*LINT*/[];
 var l = /*LINT*/List();
 ''');
     await assertHasFix('''
-var l = /*LINT*/[];
+var l = [];
 ''');
   }
 
@@ -46,7 +46,7 @@ var l = /*LINT*/[];
 var l = /*LINT*/new List();
 ''');
     await assertHasFix('''
-var l = /*LINT*/[];
+var l = [];
 ''');
   }
 
@@ -62,7 +62,7 @@ var l = /*LINT*/List(5);
 var l = /*LINT*/List<int>();
 ''');
     await assertHasFix('''
-var l = /*LINT*/<int>[];
+var l = <int>[];
 ''');
   }
 }

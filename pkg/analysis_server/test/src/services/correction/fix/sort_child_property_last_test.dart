@@ -44,7 +44,7 @@ import 'package:flutter/material.dart';
 main() {
   Column(
     crossAxisAlignment: CrossAxisAlignment.center,
-    /*LINT*/children: <Widget>[
+    children: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),

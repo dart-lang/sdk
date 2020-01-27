@@ -33,7 +33,7 @@ m(){
     await assertHasFix('''
 class A { A(); }
 m(){
-  final a = /*LINT*/A();
+  final a = A();
 }
 ''');
   }

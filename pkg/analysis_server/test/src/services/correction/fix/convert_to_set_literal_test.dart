@@ -28,7 +28,7 @@ class ConvertToSetLiteralTest extends FixProcessorLintTest {
 Set s = /*LINT*/Set();
 ''');
     await assertHasFix('''
-Set s = /*LINT*/{};
+Set s = {};
 ''');
   }
 
@@ -37,7 +37,7 @@ Set s = /*LINT*/{};
 var s = /*LINT*/Set();
 ''');
     await assertHasFix('''
-var s = /*LINT*/<dynamic>{};
+var s = <dynamic>{};
 ''');
   }
 
@@ -46,7 +46,7 @@ var s = /*LINT*/<dynamic>{};
 var s = /*LINT*/new Set();
 ''');
     await assertHasFix('''
-var s = /*LINT*/<dynamic>{};
+var s = <dynamic>{};
 ''');
   }
 
@@ -55,7 +55,7 @@ var s = /*LINT*/<dynamic>{};
 var s = /*LINT*/Set<int>();
 ''');
     await assertHasFix('''
-var s = /*LINT*/<int>{};
+var s = <int>{};
 ''');
   }
 
@@ -70,7 +70,7 @@ var s = /*LINT*/LinkedHashSet<int>();
     await assertHasFix('''
 import 'dart:collection';
 
-var s = /*LINT*/<int>{};
+var s = <int>{};
 ''');
   }
 
@@ -79,7 +79,7 @@ var s = /*LINT*/<int>{};
 var s = /*LINT*/Set.from([]);
 ''');
     await assertHasFix('''
-var s = /*LINT*/<dynamic>{};
+var s = <dynamic>{};
 ''');
   }
 
@@ -93,7 +93,7 @@ var s = f(/*LINT*/Set.from([]));
 ''');
     await assertHasFix('''
 void f(Set<int> s) {}
-var s = f(/*LINT*/{});
+var s = f({});
 ''');
   }
 
@@ -102,7 +102,7 @@ var s = f(/*LINT*/{});
 var s = /*LINT*/new Set.from([2, 3]);
 ''');
     await assertHasFix('''
-var s = /*LINT*/{2, 3};
+var s = {2, 3};
 ''');
   }
 
@@ -111,7 +111,7 @@ var s = /*LINT*/{2, 3};
 Set s = /*LINT*/Set.from([2, 3]);
 ''');
     await assertHasFix('''
-Set s = /*LINT*/{2, 3};
+Set s = {2, 3};
 ''');
   }
 
@@ -120,7 +120,7 @@ Set s = /*LINT*/{2, 3};
 var s = /*LINT*/Set<int>.from([2, 3]);
 ''');
     await assertHasFix('''
-var s = /*LINT*/<int>{2, 3};
+var s = <int>{2, 3};
 ''');
   }
 
@@ -129,7 +129,7 @@ var s = /*LINT*/<int>{2, 3};
 var s = /*LINT*/Set<int>.from(<num>[2, 3]);
 ''');
     await assertHasFix('''
-var s = /*LINT*/<int>{2, 3};
+var s = <int>{2, 3};
 ''');
   }
 
@@ -138,7 +138,7 @@ var s = /*LINT*/<int>{2, 3};
 var s = /*LINT*/Set.from(<int>[2, 3]);
 ''');
     await assertHasFix('''
-var s = /*LINT*/<int>{2, 3};
+var s = <int>{2, 3};
 ''');
   }
 
@@ -147,7 +147,7 @@ var s = /*LINT*/<int>{2, 3};
 var s = /*LINT*/Set.from([2, 3]);
 ''');
     await assertHasFix('''
-var s = /*LINT*/{2, 3};
+var s = {2, 3};
 ''');
   }
 
@@ -164,7 +164,7 @@ Set s = /*LINT*/new Set.from(l);
 var s = /*LINT*/Set.from([2, 3,]);
 ''');
     await assertHasFix('''
-var s = /*LINT*/{2, 3,};
+var s = {2, 3,};
 ''');
   }
 
@@ -173,7 +173,7 @@ var s = /*LINT*/{2, 3,};
 var s = /*LINT*/[].toSet();
 ''');
     await assertHasFix('''
-var s = /*LINT*/<dynamic>{};
+var s = <dynamic>{};
 ''');
   }
 
@@ -182,7 +182,7 @@ var s = /*LINT*/<dynamic>{};
 var s = /*LINT*/<int>[].toSet();
 ''');
     await assertHasFix('''
-var s = /*LINT*/<int>{};
+var s = <int>{};
 ''');
   }
 
@@ -191,7 +191,7 @@ var s = /*LINT*/<int>{};
 var s = /*LINT*/[2, 3].toSet();
 ''');
     await assertHasFix('''
-var s = /*LINT*/{2, 3};
+var s = {2, 3};
 ''');
   }
 
@@ -200,7 +200,7 @@ var s = /*LINT*/{2, 3};
 var s = /*LINT*/<int>[2, 3].toSet();
 ''');
     await assertHasFix('''
-var s = /*LINT*/<int>{2, 3};
+var s = <int>{2, 3};
 ''');
   }
 

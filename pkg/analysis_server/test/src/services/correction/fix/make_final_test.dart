@@ -31,7 +31,7 @@ class C {
 ''');
     await assertHasFix('''
 class C {
-  final int /*LINT*/f = 2;
+  final int f = 2;
 }
 ''');
   }
@@ -44,7 +44,7 @@ class C {
 ''');
     await assertHasFix('''
 class C {
-  final /*LINT*/f = 2;
+  final f = 2;
 }
 ''');
   }
@@ -57,7 +57,7 @@ bad() {
 ''');
     await assertHasFix('''
 bad() {
-  final int /*LINT*/x = 2;
+  final int x = 2;
 }
 ''');
   }
@@ -70,7 +70,7 @@ bad() {
 ''');
     await assertHasFix('''
 bad() {
-  final /*LINT*/x = 2;
+  final x = 2;
 }
 ''');
   }
@@ -83,7 +83,7 @@ class C {
 ''');
     await assertHasFix('''
 class C {
-  /*LINT*/final f = 2;
+  final f = 2;
 }
 ''');
   }
@@ -93,7 +93,7 @@ class C {
 int /*LINT*/x = 2;
 ''');
     await assertHasFix('''
-final int /*LINT*/x = 2;
+final int x = 2;
 ''');
   }
 
@@ -102,7 +102,7 @@ final int /*LINT*/x = 2;
 var /*LINT*/x = 2;
 ''');
     await assertHasFix('''
-final /*LINT*/x = 2;
+final x = 2;
 ''');
   }
 }

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core';
+import 'dart:math' as math;
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
@@ -210,8 +211,9 @@ class FixProcessor extends BaseProcessor {
 
   Future<List<Fix>> compute() async {
     node = NodeLocator2(errorOffset).searchWithin(unit);
-    coveredNode = NodeLocator2(errorOffset, errorOffset + errorLength - 1)
-        .searchWithin(unit);
+    coveredNode =
+        NodeLocator2(errorOffset, math.max(errorOffset + errorLength - 1, 0))
+            .searchWithin(unit);
     if (coveredNode == null) {
       // TODO(brianwilkerson) Figure out why the coveredNode is sometimes null.
       return fixes;

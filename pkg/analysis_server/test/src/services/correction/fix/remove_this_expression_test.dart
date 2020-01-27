@@ -33,7 +33,7 @@ class A {
     await assertHasFix('''
 class A {
   int x;
-  A(int x) : /*LINT*/x = x;
+  A(int x) : x = x;
 }
 ''');
   }
@@ -49,7 +49,7 @@ class A {
     await assertHasFix('''
 class A {
   void foo() {
-    /*LINT*/foo();
+    foo();
   }
 }
 ''');
@@ -66,7 +66,7 @@ class A {
     await assertHasFix('''
 class A {
   void foo() {
-    /*LINT*/foo();
+    foo();
   }
 }
 ''');
@@ -94,7 +94,7 @@ class A {
 class A {
   int x;
   void foo() {
-    /*LINT*/x = 2;
+    x = 2;
   }
 }
 ''');
@@ -113,7 +113,7 @@ class A {
 class A {
   int x;
   void foo() {
-    /*LINT*/x = 2;
+    x = 2;
   }
 }
 ''');

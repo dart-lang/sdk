@@ -30,7 +30,7 @@ final x = /*LINT*/(name) {
 };
 ''');
     await assertHasFix('''
-final x = /*LINT*/print;
+final x = print;
 ''');
   }
 
@@ -46,7 +46,7 @@ Function finalVar() {
     await assertHasFix('''
 void foo(){}
 Function finalVar() {
-  return /*LINT*/foo;
+  return foo;
 }
 ''');
   }
@@ -64,7 +64,7 @@ void foo() {
 void foo() {
   bool isPair(int a) => a % 2 == 0;
   final finalList = <int>[];
-  finalList.where(/*LINT*/isPair);
+  finalList.where(isPair);
 }
 ''');
   }
@@ -74,7 +74,7 @@ void foo() {
 var a = /*LINT*/(x) => finalList.remove(x);
 ''');
     await assertHasFix('''
-var a = /*LINT*/finalList.remove;
+var a = finalList.remove;
 ''');
   }
 
@@ -90,7 +90,7 @@ Function finalVar() {
     await assertHasFix('''
 final Object a;
 Function finalVar() {
-  return /*LINT*/a.toString;
+  return a.toString;
 }
 ''');
   }

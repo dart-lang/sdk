@@ -31,7 +31,7 @@ f(c) {
 ''');
     await assertHasFix('''
 f(c) {
-  if (/*LINT*/c.isNotEmpty) {}
+  if (c.isNotEmpty) {}
 }
 ''');
   }

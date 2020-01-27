@@ -33,7 +33,7 @@ void f(List<int> list) {
 ''');
     await assertHasFix('''
 void f(List<int> list) {
-  for (/*LINT*/var i = 0; i < list.length; i++) {
+  for (var i = 0; i < list.length; i++) {
     print(i);
   }
 }
@@ -50,7 +50,7 @@ void f(List<int> list) {
 ''');
     await assertHasFix('''
 void f(List<int> list) {
-  for (/*LINT*/var i in list) {
+  for (var i in list) {
     print(i);
   }
 }
@@ -67,7 +67,7 @@ class C<T> {}
 ''');
     await assertHasFix('''
 C<int> f() {
-  /*LINT*/var c = C<int>();
+  var c = C<int>();
   return c;
 }
 class C<T> {}
@@ -84,7 +84,7 @@ class C<T> {}
 ''');
     await assertHasFix('''
 C<int> f() {
-  /*LINT*/var c = C<int>();
+  var c = C<int>();
   return c;
 }
 class C<T> {}
@@ -100,7 +100,7 @@ List f() {
 ''');
     await assertHasFix('''
 List f() {
-  /*LINT*/var l = <int>[];
+  var l = <int>[];
   return l;
 }
 ''');
@@ -115,7 +115,7 @@ Map f() {
 ''');
     await assertHasFix('''
 Map f() {
-  /*LINT*/var m = <String, int>{};
+  var m = <String, int>{};
   return m;
 }
 ''');
@@ -130,7 +130,7 @@ Set f() {
 ''');
     await assertHasFix('''
 Set f() {
-  /*LINT*/var s = <int>{};
+  var s = <int>{};
   return s;
 }
 ''');
@@ -155,7 +155,7 @@ String f() {
 ''');
     await assertHasFix('''
 String f() {
-  /*LINT*/var s = '';
+  var s = '';
   return s;
 }
 ''');

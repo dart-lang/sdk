@@ -30,7 +30,7 @@ var b = /*LINT*/null ?? a;
 ''');
     await assertHasFix('''
 var a = '';
-var b = /*LINT*/a;
+var b = a;
 ''');
   }
 
@@ -41,7 +41,7 @@ var b = /*LINT*/a ?? null;
 ''');
     await assertHasFix('''
 var a = '';
-var b = /*LINT*/a;
+var b = a;
 ''');
   }
 }

@@ -31,7 +31,7 @@ f(List c) {
 ''');
     await assertHasFix('''
 f(List c) {
-  if (/*LINT*/c.isNotEmpty) {}
+  if (c.isNotEmpty) {}
 }
 ''');
   }
@@ -44,7 +44,7 @@ f(List c) {
 ''');
     await assertHasFix('''
 f(List c) {
-  if (/*LINT*/c.isNotEmpty) {}
+  if (c.isNotEmpty) {}
 }
 ''');
   }
@@ -57,7 +57,7 @@ f(List c) {
 ''');
     await assertHasFix('''
 f(List c) {
-  if (/*LINT*/c.isNotEmpty) {}
+  if (c.isNotEmpty) {}
 }
 ''');
   }
@@ -70,7 +70,7 @@ f(List c) {
 ''');
     await assertHasFix('''
 f(List c) {
-  if (/*LINT*/c.isNotEmpty) {}
+  if (c.isNotEmpty) {}
 }
 ''');
   }

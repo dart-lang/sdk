@@ -35,7 +35,7 @@ void main() async {
 Future doSomething() => new Future();
 
 void main() async {
-  await doSomething()/*LINT*/;
+  await doSomething();
 }
 ''');
   }

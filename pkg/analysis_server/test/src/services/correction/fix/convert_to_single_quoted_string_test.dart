@@ -32,7 +32,7 @@ main() {
 ''');
     await assertHasFix('''
 main() {
-  print(/*LINT*/'abc');
+  print('abc');
 }
 ''');
   }

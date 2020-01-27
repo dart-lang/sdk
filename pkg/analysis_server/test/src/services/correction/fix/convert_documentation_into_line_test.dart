@@ -23,7 +23,7 @@ class ConvertDocumentationIntoLineTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.slash_for_doc_comments;
 
-  // More coverage in the `convert_to_documentation_line_test.dart` assist test.
+  /// More coverage in the `convert_to_documentation_line_test.dart` assist test.
   test_onText() async {
     await resolveTestUnit('''
 class A {
@@ -37,7 +37,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  /// /*LINT*/AAAAAAA [int] AAAAAAA
+  /// AAAAAAA [int] AAAAAAA
   /// BBBBBBBB BBBB BBBB
   /// CCC [A] CCCCCCCCCCC
   mmm() {}

@@ -40,7 +40,7 @@ class Absorber extends Widget {
 class Absorber extends Widget {
   bool get absorbing => _absorbing;
   bool _absorbing;
-  bool /*LINT*/ignoringSemantics;
+  bool ignoringSemantics;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -62,7 +62,7 @@ class Absorber extends Widget {
 ''');
     await assertHasFix('''
 class Absorber extends Widget {
-  bool /*LINT*/ignoringSemantics;
+  bool ignoringSemantics;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     properties.add(DiagnosticsProperty<bool>('ignoringSemantics', ignoringSemantics));
@@ -82,7 +82,7 @@ class Absorber extends Widget {
 ''');
     await assertHasFix('''
 class Absorber extends Widget {
-  bool /*LINT*/ignoringSemantics;
+  bool ignoringSemantics;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder props) {
     props.add(DiagnosticsProperty<bool>('ignoringSemantics', ignoringSemantics));
@@ -104,7 +104,7 @@ class Absorber extends Widget {
 ''');
     await assertHasFix('''
 class Absorber extends Widget {
-  bool get /*LINT*/absorbing => _absorbing;
+  bool get absorbing => _absorbing;
   bool _absorbing;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -130,7 +130,7 @@ class A extends Widget {
     await assertHasFix('''
 import 'package:flutter/material.dart';
 class A extends Widget {
-  Color /*LINT*/field;
+  Color field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -152,7 +152,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  double /*LINT*/field;
+  double field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -174,7 +174,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  dynamic /*LINT*/field;
+  dynamic field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -198,7 +198,7 @@ class A extends Widget {
     await assertHasFix('''
 enum Foo {bar}
 class A extends Widget {
-  Foo /*LINT*/field;
+  Foo field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -229,7 +229,7 @@ import 'package:flutter/material.dart';
 typedef ValueChanged<T> = void Function(T value);
 
 class A extends Widget {
-  ValueChanged<double> /*LINT*/onChanged;
+  ValueChanged<double> onChanged;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -251,7 +251,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  int /*LINT*/field;
+  int field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -273,7 +273,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  Iterable<String> /*LINT*/field;
+  Iterable<String> field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -295,7 +295,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  List<List<String>> /*LINT*/field;
+  List<List<String>> field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -320,7 +320,7 @@ class A extends Widget {
     await assertHasFix('''
 import 'package:vector_math/vector_math_64.dart';
 class A extends Widget {
-  Matrix4 /*LINT*/field;
+  Matrix4 field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -342,7 +342,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  Object /*LINT*/field;
+  Object field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -364,7 +364,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  String /*LINT*/field;
+  String field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -382,7 +382,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  String /*LINT*/field;
+  String field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
@@ -405,7 +405,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  ClassNotInScope<bool> /*LINT*/onChanged;
+  ClassNotInScope<bool> onChanged;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -429,7 +429,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  ClassNotInScope<bool> get /*LINT*/onChanged => null;
+  ClassNotInScope<bool> get onChanged => null;
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -452,7 +452,7 @@ class A extends Widget {
 ''');
     await assertHasFix('''
 class A extends Widget {
-  var /*LINT*/field;
+  var field;
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);

@@ -37,7 +37,7 @@ class C {
   const C();
 }
 main() {
-  var c = const C/*LINT*/();
+  var c = const C();
 }
 ''');
   }

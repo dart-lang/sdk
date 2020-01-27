@@ -37,7 +37,7 @@ class C {
     await assertHasFix('''
 class C {
   @override
-  int get /*LINT*/hashCode => 13;
+  int get hashCode => 13;
 
   @override
   bool operator ==(Object other) {
@@ -58,7 +58,7 @@ class C {
     await assertHasFix('''
 class C {
   @override
-  bool operator /*LINT*/==(Object other) => false;
+  bool operator ==(Object other) => false;
 
   @override
   // TODO: implement hashCode

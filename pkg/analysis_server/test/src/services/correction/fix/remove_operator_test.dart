@@ -28,7 +28,7 @@ class RemoveOperatorTest extends FixProcessorLintTest {
 var s = 'a' /*LINT*/+ 'b';
 ''');
     await assertHasFix('''
-var s = 'a' /*LINT*/'b';
+var s = 'a' 'b';
 ''');
   }
 }

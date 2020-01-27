@@ -36,7 +36,7 @@ class A {
     await assertHasFix('''
 class A {
   void m() {
-    /*LINT*/String f() {
+    String f() {
       return '';
     }
   }
@@ -55,7 +55,7 @@ class A {
     await assertHasFix('''
 class A {
   void m() {
-    /*LINT*/String f() => '';
+    String f() => '';
   }
 }
 ''');
@@ -92,7 +92,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  /*LINT*/void m() {
+  void m() {
     return;
   }
 }
@@ -109,7 +109,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  /*LINT*/String m() {
+  String m() {
     return '';
   }
 }
@@ -124,7 +124,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  /*LINT*/String m() => '';
+  String m() => '';
 }
 ''');
   }
@@ -136,7 +136,7 @@ class A {
 }
 ''');
     await assertHasFix('''
-/*LINT*/String f() {
+String f() {
   return '';
 }
 ''');
@@ -147,7 +147,7 @@ class A {
 /*LINT*/f() => '';
 ''');
     await assertHasFix('''
-/*LINT*/String f() => '';
+String f() => '';
 ''');
   }
 }
