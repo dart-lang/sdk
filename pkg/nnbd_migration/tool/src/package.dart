@@ -8,9 +8,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
+import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
 import 'package:path/path.dart' as path;
-
-import 'subprocess_launcher.dart';
 
 /// Return a resolved path including the home directory in place of tilde
 /// references.

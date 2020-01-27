@@ -8,7 +8,6 @@ import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
 
-/// Represent a single [FantasyWorkspaceImpl].
 abstract class FantasyWorkspaceImpl extends FantasyWorkspace {
   @override
   final Directory workspaceRoot;
