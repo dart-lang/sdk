@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -242,40 +241,26 @@ class NormalizeHelper {
       return T;
     }
 
-    if (element is TypeParameterMember) {
-      return _typeParameterType_promoted(element, bound);
-    } else {
-      return _typeParameterType_extends(element, bound);
-    }
-  }
-
-  /// NORM(X extends T)
-  DartType _typeParameterType_extends(TypeParameterElement X, DartType T) {
     // * let S be NORM(T)
-    var S = _normalize(T);
+    var S = _normalize(bound);
 
     // * if S is Never then Never
     if (identical(S, NeverTypeImpl.instance)) {
       return NeverTypeImpl.instance;
     }
 
-    // * else X extends S
-    var promoted = TypeParameterMember(X, Substitution.empty, S);
-    return promoted.instantiate(
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    if (element is TypeParameterMember) {
+      return _typeParameterType_promoted(element, S);
+    } else {
+      // NORM(X extends T)
+      // * else X
+      return T;
+    }
   }
 
   /// NORM(X & T)
-  DartType _typeParameterType_promoted(TypeParameterMember X, DartType T) {
-    // * let S be NORM(T)
-    var S = _normalize(T);
-
-    // * if S is Never then Never
-    if (identical(S, NeverTypeImpl.instance)) {
-      return NeverTypeImpl.instance;
-    }
-
+  /// * let S be NORM(T)
+  DartType _typeParameterType_promoted(TypeParameterMember X, DartType S) {
     // * if S is a top type then X
     if (typeSystem.isTop(S)) {
       return X.declaration.instantiate(

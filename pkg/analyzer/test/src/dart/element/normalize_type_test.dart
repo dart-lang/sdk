@@ -44,6 +44,68 @@ class NormalizeTypeTest with ElementsTypesMixin {
     typeSystem = analysisContext.typeSystemNonNullableByDefault;
   }
 
+  test_functionType_parameter() {
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: objectNone),
+        ],
+      ),
+    );
+
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedParameter(name: 'a', type: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedParameter(name: 'a', type: objectNone),
+        ],
+      ),
+    );
+
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: objectNone),
+        ],
+      ),
+    );
+
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          positionalParameter(type: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          positionalParameter(type: objectNone),
+        ],
+      ),
+    );
+  }
+
   test_functionType_parameter_covariant() {
     _check(
       functionTypeNone(
@@ -61,24 +123,81 @@ class NormalizeTypeTest with ElementsTypesMixin {
     );
   }
 
-  test_functionType_typeParameter_bound_normalized() {
+  test_functionType_parameter_typeParameter() {
+    TypeParameterElement T;
+    TypeParameterElement T2;
+
+    T = typeParameter('T', bound: neverNone);
+    T2 = typeParameter('T2', bound: neverNone);
     _check(
       functionTypeNone(
-        returnType: futureOrNone(objectNone),
-        typeFormals: [
-          typeParameter('T', bound: futureOrNone(objectNone)),
-        ],
+        returnType: voidNone,
+        typeFormals: [T],
         parameters: [
-          requiredParameter(type: futureOrNone(objectNone)),
+          requiredParameter(type: typeParameterTypeNone(T)),
         ],
       ),
       functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [T2],
+        parameters: [
+          requiredParameter(type: neverNone),
+        ],
+      ),
+    );
+
+    T = typeParameter('T', bound: iterableNone(futureOrNone(dynamicNone)));
+    T2 = typeParameter('T2', bound: iterableNone(dynamicNone));
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [T],
+        parameters: [
+          requiredParameter(type: typeParameterTypeNone(T)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [T2],
+        parameters: [
+          requiredParameter(type: typeParameterTypeNone(T2)),
+        ],
+      ),
+    );
+  }
+
+  test_functionType_returnType() {
+    _check(
+      functionTypeNone(
+        returnType: futureOrNone(objectNone),
+      ),
+      functionTypeNone(
         returnType: objectNone,
+      ),
+    );
+
+    _check(
+      functionTypeNone(
+        returnType: intNone,
+      ),
+      functionTypeNone(
+        returnType: intNone,
+      ),
+    );
+  }
+
+  test_functionType_typeParameter_bound_normalized() {
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [
+          typeParameter('T', bound: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
         typeFormals: [
           typeParameter('T', bound: objectNone),
-        ],
-        parameters: [
-          requiredParameter(type: objectNone),
         ],
       ),
     );
@@ -91,17 +210,11 @@ class NormalizeTypeTest with ElementsTypesMixin {
         typeFormals: [
           typeParameter('T', bound: numNone),
         ],
-        parameters: [
-          requiredParameter(type: intNone),
-        ],
       ),
       functionTypeNone(
         returnType: intNone,
         typeFormals: [
           typeParameter('T', bound: numNone),
-        ],
-        parameters: [
-          requiredParameter(type: intNone),
         ],
       ),
     );
@@ -273,26 +386,24 @@ class NormalizeTypeTest with ElementsTypesMixin {
     check(intStar, intStar);
   }
 
+  /// NORM(X & T)
+  /// * let S be NORM(T)
   test_typeParameter_bound() {
     TypeParameterElement T;
 
+    // * if S is Never then Never
+    T = typeParameter('T', bound: neverNone);
+    _check(typeParameterTypeNone(T), neverNone);
+
+    // * else X
     T = typeParameter('T');
     _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
 
-    T = typeParameter('T', bound: numNone);
-    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
-
+    // * else X
     T = typeParameter('T', bound: futureOrNone(objectNone));
-    _check(
-      typeParameterTypeNone(T),
-      typeParameterTypeNone(
-        promoteTypeParameter(T, objectNone),
-      ),
-    );
+    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
   }
 
-  /// NORM(X & T)
-  /// * let S be NORM(T)
   test_typeParameter_promoted() {
     var T = typeParameter('T');
 
