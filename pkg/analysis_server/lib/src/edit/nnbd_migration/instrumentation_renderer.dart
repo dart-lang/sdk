@@ -29,7 +29,7 @@ mustache.Template _template = mustache.Template(r'''
     <div class="nav-panel">
       <div class="nav-inner">
         <p class="panel-heading">Navigation</p>
-        <p class="root">{{ root }}</p>
+        <p class="root">{{{ root }}}</p>
 {{{ links }}}
       </div><!-- /nav-inner -->
     </div><!-- /nav -->

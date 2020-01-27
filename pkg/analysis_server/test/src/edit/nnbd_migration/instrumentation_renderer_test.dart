@@ -32,7 +32,8 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
   test_navigation_containsRoot() async {
     var renderedView = await renderViewForTestFiles(
         {convertPath('/project/lib/a.dart'): 'int a = null;'});
-    expect(renderedView, contains('<p class="root">&#x2F;project</p>'));
+    var expectedPath = convertPath('/project');
+    expect(renderedView, contains('<p class="root">$expectedPath</p>'));
   }
 
   test_navigation_containsMultipleLinks_multipleRoots() async {
