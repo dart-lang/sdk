@@ -2607,13 +2607,13 @@ class RawDynamicLibrary : public RawInstance {
 };
 
 // VM implementations of the basic types in the isolate.
-class RawCapability : public RawInstance {
+class alignas(8) RawCapability : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Capability);
   VISIT_NOTHING();
   uint64_t id_;
 };
 
-class RawSendPort : public RawInstance {
+class alignas(8) RawSendPort : public RawInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(SendPort);
   VISIT_NOTHING();
   Dart_Port id_;

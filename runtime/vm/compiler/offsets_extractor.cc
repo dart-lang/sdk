@@ -82,8 +82,6 @@ class OffsetsExtractor : public AllStatic {
 
 #define PRECOMP_NO_CHECK(Code)
 
-#define PRECOMP_CALCULATE(Code) Code
-
 #else  // defined(DART_PRECOMPILED_RUNTIME)
 
 #define PRINT_FIELD_OFFSET(Class, Name)                                        \
@@ -129,14 +127,11 @@ class OffsetsExtractor : public AllStatic {
 
 #define PRECOMP_NO_CHECK(Code) Code
 
-#define PRECOMP_CALCULATE(Code) Code
-
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-    OFFSETS_LIST_EXTENDED(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT,
-                          PRINT_ARRAY_STRUCTFIELD_OFFSET, PRINT_SIZEOF,
-                          PRINT_RANGE, PRINT_CONSTANT, PRECOMP_NO_CHECK,
-                          PRECOMP_CALCULATE)
+    OFFSETS_LIST(PRINT_FIELD_OFFSET, PRINT_ARRAY_LAYOUT,
+                 PRINT_ARRAY_STRUCTFIELD_OFFSET, PRINT_SIZEOF, PRINT_RANGE,
+                 PRINT_CONSTANT, PRECOMP_NO_CHECK)
 
 #undef PRINT_FIELD_OFFSET
 #undef PRINT_ARRAY_LAYOUT
