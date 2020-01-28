@@ -110,36 +110,7 @@ class NullabilityGraph {
   /// A set containing all of the nodes in the graph.
   final Set<NullabilityNode> nodes = {};
 
-  /// After execution of [_propagateAlways], a list of all nodes reachable from
-  /// [always] via zero or more edges of kind [_NullabilityEdgeKind.union].
-  final List<NullabilityNode> _unionedWithAlways = [];
-
-  /// During any given stage of nullability propagation, a list of all the edges
-  /// that need to be examined before the stage is complete.
-  final List<NullabilityEdge> _pendingEdges = [];
-
-  /// During and after nullability propagation, a list of all edges that
-  /// couldn't be satisfied.
-  final List<NullabilityEdge> _unsatisfiedEdges = [];
-
-  /// During and after nullability propagation, a list of all substitution nodes
-  /// that couldn't be satisfied.
-  final List<NullabilityNodeForSubstitution> _unsatisfiedSubstitutions = [];
-
-  /// During execution of [_propagateDownstream], a list of all the substitution
-  /// nodes that have not yet been resolved.
-  List<NullabilityNodeForSubstitution> _pendingSubstitutions = [];
-
   NullabilityGraph({this.instrumentation});
-
-  /// After calling [propagate], this getter may be queried to access the set of
-  /// edges that could not be satisfied.
-  Iterable<NullabilityEdge> get unsatisfiedEdges => _unsatisfiedEdges;
-
-  /// After calling [propagate], this getter may be queried to access the set of
-  /// substitution nodes that could not be satisfied.
-  Iterable<NullabilityNodeForSubstitution> get unsatisfiedSubstitutions =>
-      _unsatisfiedSubstitutions;
 
   /// Records that [sourceNode] is immediately upstream from [destinationNode].
   ///
@@ -185,12 +156,12 @@ class NullabilityGraph {
 
   /// Determines the nullability of each node in the graph by propagating
   /// nullability information from one node to another.
-  void propagate() {
+  PropagationResult propagate() {
     if (_debugBeforePropagation) _debugDump();
-    _propagateAlways();
-    _propagateUpstream();
-    _propagateDownstream();
+    var propagationState =
+        _PropagationState(always, instrumentation, never).result;
     if (_debugAfterPropagation) _debugDump();
+    return propagationState;
   }
 
   /// Records that nodes [x] and [y] should have exactly the same nullability.
@@ -211,7 +182,6 @@ class NullabilityGraph {
     for (var node in nodes) {
       node.resetState();
     }
-    _unionedWithAlways.clear();
     //
     // Reset the state of the listener.
     //
@@ -303,172 +273,6 @@ class NullabilityGraph {
       visitNode(node);
     }
     print('}');
-  }
-
-  /// Propagates nullability downstream along union edges from "always".
-  void _propagateAlways() {
-    _unionedWithAlways.add(always);
-    _pendingEdges.addAll(always._downstreamEdges);
-    while (_pendingEdges.isNotEmpty) {
-      var edge = _pendingEdges.removeLast();
-      if (!edge.isUnion) continue;
-      // Union edges always have exactly one upstream node, so we don't need to
-      // check whether all upstream nodes are nullable.
-      assert(edge.upstreamNodes.length == 1);
-      var node = edge.destinationNode;
-      if (node is NullabilityNodeMutable && !node.isNullable) {
-        _unionedWithAlways.add(node);
-        _setState(_PropagationStep(
-            node, NullabilityState.ordinaryNullable, StateChangeReason.union,
-            edge: edge));
-        // Was not previously nullable, so we need to propagate.
-        _pendingEdges.addAll(node._downstreamEdges);
-      }
-    }
-  }
-
-  /// Propagates nullability downstream.
-  void _propagateDownstream() {
-    assert(_pendingEdges.isEmpty);
-    for (var node in _unionedWithAlways) {
-      _pendingEdges.addAll(node._downstreamEdges);
-    }
-    while (true) {
-      while (_pendingEdges.isNotEmpty) {
-        var edge = _pendingEdges.removeLast();
-        if (!edge.isTriggered) continue;
-        var node = edge.destinationNode;
-        if (node._state == NullabilityState.nonNullable) {
-          // The node has already been marked as non-nullable, so the edge can't
-          // be satisfied.
-          _unsatisfiedEdges.add(edge);
-          continue;
-        }
-        if (node is NullabilityNodeMutable && !node.isNullable) {
-          _setNullable(_PropagationStep(node, NullabilityState.ordinaryNullable,
-              StateChangeReason.downstream,
-              edge: edge));
-        }
-      }
-      if (_pendingSubstitutions.isEmpty) break;
-      var oldPendingSubstitutions = _pendingSubstitutions;
-      _pendingSubstitutions = [];
-      for (var node in oldPendingSubstitutions) {
-        _resolvePendingSubstitution(node);
-      }
-    }
-  }
-
-  /// Propagates non-null intent upstream along unconditional control flow
-  /// lines.
-  void _propagateUpstream() {
-    assert(_pendingEdges.isEmpty);
-    _pendingEdges.addAll(never._upstreamEdges);
-    while (_pendingEdges.isNotEmpty) {
-      var edge = _pendingEdges.removeLast();
-      // We only propagate for nodes that are "upstream triggered".  At this
-      // point of propagation, a node is upstream triggered if it is hard.
-      assert(edge.isUpstreamTriggered == edge.isHard);
-      if (!edge.isHard) continue;
-      var node = edge.sourceNode;
-      if (node is NullabilityNodeMutable &&
-          node._state == NullabilityState.undetermined) {
-        _setState(_PropagationStep(
-            node, NullabilityState.nonNullable, StateChangeReason.upstream,
-            edge: edge));
-        // Was not previously in the set of non-null intent nodes, so we need to
-        // propagate.
-        _pendingEdges.addAll(node._upstreamEdges);
-      }
-    }
-  }
-
-  void _resolvePendingSubstitution(
-      NullabilityNodeForSubstitution substitutionNode) {
-    assert(substitutionNode._state.isNullable);
-    // If both nodes pointed to by the substitution node are in the non-nullable
-    // state, then no resolution is needed; the substitution node can’t be
-    // satisfied.
-    if (substitutionNode.innerNode._state == NullabilityState.nonNullable &&
-        substitutionNode.outerNode._state == NullabilityState.nonNullable) {
-      _unsatisfiedSubstitutions.add(substitutionNode);
-      return;
-    }
-
-    // Otherwise, if the outer node is in a nullable state, then no resolution
-    // is needed because the substitution node is already satisfied.
-    if (substitutionNode.outerNode.isNullable) {
-      return;
-    }
-
-    // Otherwise, if the inner node is in the non-nullable state, then we set
-    // the outer node to the ordinary nullable state.
-    if (substitutionNode.innerNode._state == NullabilityState.nonNullable) {
-      _setNullable(_PropagationStep(
-          substitutionNode.outerNode as NullabilityNodeMutable,
-          NullabilityState.ordinaryNullable,
-          StateChangeReason.substituteOuter,
-          substitutionNode: substitutionNode));
-      return;
-    }
-
-    // Otherwise, we set the inner node to the exact nullable state, and we
-    // propagate this state upstream as far as possible using the following
-    // rule: if there is an edge A → B, where A is in the undetermined or
-    // ordinary nullable state, and B is in the exact nullable state, then A’s
-    // state is changed to exact nullable.
-    var pendingEdges = <NullabilityEdge>[];
-    var node = substitutionNode.innerNode;
-    if (node is NullabilityNodeMutable) {
-      var oldState = _setNullable(_PropagationStep(node,
-          NullabilityState.exactNullable, StateChangeReason.substituteInner,
-          substitutionNode: substitutionNode));
-      if (oldState != NullabilityState.exactNullable) {
-        // Was not previously in the "exact nullable" state.  Need to
-        // propagate.
-        for (var edge in node._upstreamEdges) {
-          pendingEdges.add(edge);
-        }
-
-        // TODO(mfairhurst): should this propagate back up outerContainerNodes?
-      }
-    }
-    while (pendingEdges.isNotEmpty) {
-      var edge = pendingEdges.removeLast();
-      var node = edge.sourceNode;
-      if (node is NullabilityNodeMutable) {
-        var oldState = _setNullable(_PropagationStep(node,
-            NullabilityState.exactNullable, StateChangeReason.exactUpstream,
-            edge: edge));
-        if (oldState != NullabilityState.exactNullable) {
-          // Was not previously in the "exact nullable" state.  Need to
-          // propagate.
-          for (var edge in node._upstreamEdges) {
-            pendingEdges.add(edge);
-          }
-        }
-      }
-    }
-  }
-
-  NullabilityState _setNullable(_PropagationStep propagationStep) {
-    var node = propagationStep.node;
-    assert(propagationStep.newState.isNullable);
-    var oldState = node._state;
-    _setState(propagationStep);
-    if (!oldState.isNullable) {
-      // Was not previously nullable, so we need to propagate.
-      _pendingEdges.addAll(node._downstreamEdges);
-      if (node is NullabilityNodeForSubstitution) {
-        _pendingSubstitutions.add(node);
-      }
-    }
-    return oldState;
-  }
-
-  void _setState(_PropagationStep propagationStep) {
-    propagationStep.node._state = propagationStep.newState;
-    instrumentation?.propagationStep(propagationStep);
   }
 }
 
@@ -733,6 +537,18 @@ abstract class NullabilityNodeMutable extends NullabilityNode {
   }
 }
 
+/// Information produced by [NullabilityGraph.propagate] about the results of
+/// graph propagation.
+class PropagationResult {
+  /// A list of all edges that couldn't be satisfied.
+  final List<NullabilityEdge> unsatisfiedEdges = [];
+
+  /// A list of all substitution nodes that couldn't be satisfied.
+  final List<NullabilityNodeForSubstitution> unsatisfiedSubstitutions = [];
+
+  PropagationResult._();
+}
+
 /// Kinds of nullability edges
 enum _NullabilityEdgeKind {
   /// Soft edge.  Propagates nullability downstream only.
@@ -798,6 +614,209 @@ class _NullabilityNodeSimple extends NullabilityNodeMutable {
 
   _NullabilityNodeSimple(this._debugPrefix)
       : super._(initialState: NullabilityState.undetermined);
+}
+
+/// Workspace for performing graph propagation.
+///
+/// Graph propagation is performed immediately upon construction, so as soon as
+/// the caller has constructed this object, the graph has been propagated and
+/// the results of propagation can be retrieved from [result].
+class _PropagationState {
+  /// The result of propagation, for sharing with the client.
+  final PropagationResult result = PropagationResult._();
+
+  /// The graph's one and only "always" node.
+  final NullabilityNode _always;
+
+  /// Instrumentation to report propagation steps to.
+  final NullabilityMigrationInstrumentation _instrumentation;
+
+  /// The graph's one and only "never" node.
+  final NullabilityNode _never;
+
+  /// During any given stage of nullability propagation, a list of all the edges
+  /// that need to be examined before the stage is complete.
+  final List<NullabilityEdge> _pendingEdges = [];
+
+  /// During execution of [_propagateDownstream], a list of all the substitution
+  /// nodes that have not yet been resolved.
+  List<NullabilityNodeForSubstitution> _pendingSubstitutions = [];
+
+  /// After execution of [_propagateAlways], a list of all nodes reachable from
+  /// [_always] via zero or more edges of kind [_NullabilityEdgeKind.union].
+  final List<NullabilityNode> _unionedWithAlways = [];
+
+  _PropagationState(this._always, this._instrumentation, this._never) {
+    _propagateAlways();
+    _propagateUpstream();
+    _propagateDownstream();
+  }
+
+  /// Propagates nullability downstream along union edges from "always".
+  void _propagateAlways() {
+    _unionedWithAlways.add(_always);
+    _pendingEdges.addAll(_always._downstreamEdges);
+    while (_pendingEdges.isNotEmpty) {
+      var edge = _pendingEdges.removeLast();
+      if (!edge.isUnion) continue;
+      // Union edges always have exactly one upstream node, so we don't need to
+      // check whether all upstream nodes are nullable.
+      assert(edge.upstreamNodes.length == 1);
+      var node = edge.destinationNode;
+      if (node is NullabilityNodeMutable && !node.isNullable) {
+        _unionedWithAlways.add(node);
+        _setState(_PropagationStep(
+            node, NullabilityState.ordinaryNullable, StateChangeReason.union,
+            edge: edge));
+        // Was not previously nullable, so we need to propagate.
+        _pendingEdges.addAll(node._downstreamEdges);
+      }
+    }
+  }
+
+  /// Propagates nullability downstream.
+  void _propagateDownstream() {
+    assert(_pendingEdges.isEmpty);
+    for (var node in _unionedWithAlways) {
+      _pendingEdges.addAll(node._downstreamEdges);
+    }
+    while (true) {
+      while (_pendingEdges.isNotEmpty) {
+        var edge = _pendingEdges.removeLast();
+        if (!edge.isTriggered) continue;
+        var node = edge.destinationNode;
+        if (node._state == NullabilityState.nonNullable) {
+          // The node has already been marked as non-nullable, so the edge can't
+          // be satisfied.
+          result.unsatisfiedEdges.add(edge);
+          continue;
+        }
+        if (node is NullabilityNodeMutable && !node.isNullable) {
+          _setNullable(_PropagationStep(node, NullabilityState.ordinaryNullable,
+              StateChangeReason.downstream,
+              edge: edge));
+        }
+      }
+      if (_pendingSubstitutions.isEmpty) break;
+      var oldPendingSubstitutions = _pendingSubstitutions;
+      _pendingSubstitutions = [];
+      for (var node in oldPendingSubstitutions) {
+        _resolvePendingSubstitution(node);
+      }
+    }
+  }
+
+  /// Propagates non-null intent upstream along unconditional control flow
+  /// lines.
+  void _propagateUpstream() {
+    assert(_pendingEdges.isEmpty);
+    _pendingEdges.addAll(_never._upstreamEdges);
+    while (_pendingEdges.isNotEmpty) {
+      var edge = _pendingEdges.removeLast();
+      // We only propagate for nodes that are "upstream triggered".  At this
+      // point of propagation, a node is upstream triggered if it is hard.
+      assert(edge.isUpstreamTriggered == edge.isHard);
+      if (!edge.isHard) continue;
+      var node = edge.sourceNode;
+      if (node is NullabilityNodeMutable &&
+          node._state == NullabilityState.undetermined) {
+        _setState(_PropagationStep(
+            node, NullabilityState.nonNullable, StateChangeReason.upstream,
+            edge: edge));
+        // Was not previously in the set of non-null intent nodes, so we need to
+        // propagate.
+        _pendingEdges.addAll(node._upstreamEdges);
+      }
+    }
+  }
+
+  void _resolvePendingSubstitution(
+      NullabilityNodeForSubstitution substitutionNode) {
+    assert(substitutionNode._state.isNullable);
+    // If both nodes pointed to by the substitution node are in the non-nullable
+    // state, then no resolution is needed; the substitution node can’t be
+    // satisfied.
+    if (substitutionNode.innerNode._state == NullabilityState.nonNullable &&
+        substitutionNode.outerNode._state == NullabilityState.nonNullable) {
+      result.unsatisfiedSubstitutions.add(substitutionNode);
+      return;
+    }
+
+    // Otherwise, if the outer node is in a nullable state, then no resolution
+    // is needed because the substitution node is already satisfied.
+    if (substitutionNode.outerNode.isNullable) {
+      return;
+    }
+
+    // Otherwise, if the inner node is in the non-nullable state, then we set
+    // the outer node to the ordinary nullable state.
+    if (substitutionNode.innerNode._state == NullabilityState.nonNullable) {
+      _setNullable(_PropagationStep(
+          substitutionNode.outerNode as NullabilityNodeMutable,
+          NullabilityState.ordinaryNullable,
+          StateChangeReason.substituteOuter,
+          substitutionNode: substitutionNode));
+      return;
+    }
+
+    // Otherwise, we set the inner node to the exact nullable state, and we
+    // propagate this state upstream as far as possible using the following
+    // rule: if there is an edge A → B, where A is in the undetermined or
+    // ordinary nullable state, and B is in the exact nullable state, then A’s
+    // state is changed to exact nullable.
+    var pendingEdges = <NullabilityEdge>[];
+    var node = substitutionNode.innerNode;
+    if (node is NullabilityNodeMutable) {
+      var oldState = _setNullable(_PropagationStep(node,
+          NullabilityState.exactNullable, StateChangeReason.substituteInner,
+          substitutionNode: substitutionNode));
+      if (oldState != NullabilityState.exactNullable) {
+        // Was not previously in the "exact nullable" state.  Need to
+        // propagate.
+        for (var edge in node._upstreamEdges) {
+          pendingEdges.add(edge);
+        }
+
+        // TODO(mfairhurst): should this propagate back up outerContainerNodes?
+      }
+    }
+    while (pendingEdges.isNotEmpty) {
+      var edge = pendingEdges.removeLast();
+      var node = edge.sourceNode;
+      if (node is NullabilityNodeMutable) {
+        var oldState = _setNullable(_PropagationStep(node,
+            NullabilityState.exactNullable, StateChangeReason.exactUpstream,
+            edge: edge));
+        if (oldState != NullabilityState.exactNullable) {
+          // Was not previously in the "exact nullable" state.  Need to
+          // propagate.
+          for (var edge in node._upstreamEdges) {
+            pendingEdges.add(edge);
+          }
+        }
+      }
+    }
+  }
+
+  NullabilityState _setNullable(_PropagationStep propagationStep) {
+    var node = propagationStep.node;
+    assert(propagationStep.newState.isNullable);
+    var oldState = node._state;
+    _setState(propagationStep);
+    if (!oldState.isNullable) {
+      // Was not previously nullable, so we need to propagate.
+      _pendingEdges.addAll(node._downstreamEdges);
+      if (node is NullabilityNodeForSubstitution) {
+        _pendingSubstitutions.add(node);
+      }
+    }
+    return oldState;
+  }
+
+  void _setState(_PropagationStep propagationStep) {
+    propagationStep.node._state = propagationStep.newState;
+    _instrumentation?.propagationStep(propagationStep);
+  }
 }
 
 class _PropagationStep implements PropagationInfo {
