@@ -92,10 +92,6 @@ class NullabilityGraph {
 
   final NullabilityMigrationInstrumentation /*?*/ instrumentation;
 
-  /// Set containing all [NullabilityNode]s that have been passed as the
-  /// `upstreamNode` argument to [connect].
-  final _allUpstreamNodes = Set<NullabilityNode>.identity();
-
   /// Returns a [NullabilityNode] that is a priori nullable.
   ///
   /// Propagation of nullability always proceeds downstream starting at this
@@ -243,7 +239,6 @@ class NullabilityGraph {
   }
 
   void _connectDownstream(NullabilityNode upstreamNode, NullabilityEdge edge) {
-    _allUpstreamNodes.add(upstreamNode);
     upstreamNode._downstreamEdges.add(edge);
     if (upstreamNode is _NullabilityNodeCompound) {
       for (var component in upstreamNode._components) {
@@ -253,23 +248,61 @@ class NullabilityGraph {
   }
 
   void _debugDump() {
-    for (var upstreamNode in _allUpstreamNodes) {
-      var edges = upstreamNode._downstreamEdges;
-      var destinations =
-          edges.where((edge) => edge.sourceNode == upstreamNode).map((edge) {
-        var suffixes = <Object>[];
-        if (edge.isUnion) {
-          suffixes.add('union');
-        } else if (edge.isHard) {
-          suffixes.add('hard');
+    Set<NullabilityNode> visitedNodes = {};
+    Map<NullabilityNode, String> shortNames = {};
+    int counter = 0;
+    String nameNode(NullabilityNode node) {
+      var name = shortNames[node];
+      if (name == null) {
+        shortNames[node] = name = 'n${counter++}';
+        String styleSuffix = node.isNullable ? 'style=filled' : '';
+        print('  $name [label="$node (${node._state})"$styleSuffix]');
+        if (node is _NullabilityNodeCompound) {
+          for (var component in node._components) {
+            print('  ${nameNode(component)} -> $name [style=dashed]');
+          }
         }
-        suffixes.addAll(edge.guards);
-        var suffix = suffixes.isNotEmpty ? ' (${suffixes.join(', ')})' : '';
-        return '${edge.destinationNode}$suffix';
-      });
-      var state = upstreamNode._state;
-      print('$upstreamNode ($state) -> ${destinations.join(', ')}');
+      } else if (node.isImmutable) {
+        shortNames[node] = name = 'n${counter++}';
+        print('  $name [label="$node" shape=none]');
+      }
+      return name;
     }
+
+    void visitNode(NullabilityNode node) {
+      if (!visitedNodes.add(node)) return;
+      for (var edge in node._upstreamEdges) {
+        String suffix;
+        if (edge.isUnion) {
+          suffix = ' [label="union"]';
+        } else if (edge.isHard) {
+          suffix = ' [label="hard"]';
+        } else {
+          suffix = '';
+        }
+        var upstreamNodes = edge.upstreamNodes;
+        if (upstreamNodes.length == 1) {
+          print(
+              '  ${nameNode(upstreamNodes.single)} -> ${nameNode(node)}$suffix');
+        } else {
+          var tmpName = 'n${counter++}';
+          print('  $tmpName [label=""]');
+          print('  $tmpName -> ${nameNode(node)}$suffix}');
+          for (var upstreamNode in upstreamNodes) {
+            print('  ${nameNode(upstreamNode)} -> $tmpName');
+          }
+        }
+      }
+    }
+
+    print('digraph G {');
+    print('  rankdir="LR"');
+    visitNode(always);
+    visitNode(never);
+    for (var node in nodes) {
+      visitNode(node);
+    }
+    print('}');
   }
 
   /// Propagates nullability downstream along union edges from "always".
