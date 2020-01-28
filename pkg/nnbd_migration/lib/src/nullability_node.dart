@@ -127,9 +127,21 @@ class NullabilityGraph {
   /// Returns the edge created by the connection.
   NullabilityEdge connect(NullabilityNode sourceNode,
       NullabilityNode destinationNode, EdgeOrigin origin,
-      {bool hard: false, List<NullabilityNode> guards: const []}) {
+      {bool hard: false,
+      bool checkable = true,
+      List<NullabilityNode> guards: const []}) {
+    // Hard nodes are always considered checkable, since the only time they
+    // arise is from an explicit use of an expression in a context that requires
+    // non-nullability (and hence, a null check could be added in that
+    // location).  Verify that the flags passed in by the caller are consistent
+    // with this.
+    assert(checkable || !hard);
     var upstreamNodes = [sourceNode]..addAll(guards);
-    var kind = hard ? _NullabilityEdgeKind.hard : _NullabilityEdgeKind.soft;
+    var kind = hard
+        ? _NullabilityEdgeKind.hard
+        : checkable
+            ? _NullabilityEdgeKind.soft
+            : _NullabilityEdgeKind.uncheckable;
     return _connect(upstreamNodes, destinationNode, kind, origin);
   }
 

@@ -4686,7 +4686,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_named_over_none() async {
@@ -4712,7 +4712,7 @@ class Derived extends Base {
 ''');
     var base1 = decoratedTypeAnnotation('Base/*1*/');
     var base2 = decoratedTypeAnnotation('Base/*2*/');
-    assertEdge(base1.node, base2.node, hard: true);
+    assertEdge(base1.node, base2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_optional() async {
@@ -4726,7 +4726,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_optional_over_none() async {
@@ -4752,7 +4752,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_required() async {
@@ -4766,7 +4766,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_setter() async {
@@ -4780,7 +4780,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_return_type_getter() async {

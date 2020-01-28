@@ -71,8 +71,9 @@ class AssignmentCheckerForTesting extends Object with _AssignmentChecker {
   @override
   void _connect(
       NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
-      {bool hard = false}) {
-    _graph.connect(source, destination, origin, hard: hard);
+      {bool hard = false, bool checkable = true}) {
+    _graph.connect(source, destination, origin,
+        hard: hard, checkable: checkable);
   }
 
   @override
@@ -1647,9 +1648,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   void _connect(
       NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
-      {bool hard = false}) {
+      {bool hard = false, bool checkable = true}) {
     var edge = _graph.connect(source, destination, origin,
-        hard: hard, guards: _guards);
+        hard: hard, checkable: checkable, guards: _guards);
     if (origin is ExpressionChecksOrigin) {
       origin.checks.edges.add(edge);
     }
@@ -2136,7 +2137,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               _checkAssignment(origin,
                   source: overriddenParameterType,
                   destination: currentParameterType,
-                  hard: true);
+                  hard: false,
+                  checkable: false);
             }
           }
         }
@@ -2566,7 +2568,8 @@ mixin _AssignmentChecker {
   void _checkAssignment(EdgeOrigin origin,
       {@required DecoratedType source,
       @required DecoratedType destination,
-      @required bool hard}) {
+      @required bool hard,
+      bool checkable = true}) {
     var sourceType = source.type;
     var destinationType = destination.type;
     if (!_typeSystem.isSubtypeOf(sourceType, destinationType)) {
@@ -2586,7 +2589,8 @@ mixin _AssignmentChecker {
       _connect(source.node, destination.node, origin, hard: hard);
       return;
     }
-    _connect(source.node, destination.node, origin, hard: hard);
+    _connect(source.node, destination.node, origin,
+        hard: hard, checkable: checkable);
     _checkAssignment_recursion(origin,
         source: source, destination: destination);
   }
@@ -2798,7 +2802,7 @@ mixin _AssignmentChecker {
 
   void _connect(
       NullabilityNode source, NullabilityNode destination, EdgeOrigin origin,
-      {bool hard = false});
+      {bool hard = false, bool checkable = true});
 
   /// Given a [type] representing a type parameter, retrieves the type's bound.
   DecoratedType _getTypeParameterTypeBound(DecoratedType type);

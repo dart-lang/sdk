@@ -3286,7 +3286,7 @@ abstract class Base {
 }
 class Derived extends Base {
   void f(int i) {
-    assert(i != null);
+    i + 1;
   }
 }
 void g(int i, bool b, Base base) {
@@ -3300,16 +3300,16 @@ void h(Base base) {
 ''';
     var expected = '''
 abstract class Base {
-  void f(int i);
+  void f(int? i);
 }
 class Derived extends Base {
-  void f(int i) {
-    assert(i != null);
+  void f(int? i) {
+    i! + 1;
   }
 }
 void g(int? i, bool b, Base base) {
   if (b) {
-    base.f(i!);
+    base.f(i);
   }
 }
 void h(Base base) {
