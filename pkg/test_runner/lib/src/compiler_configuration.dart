@@ -688,6 +688,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         }
       } else if (_configuration.builderTag == "crossword") {
         exec = "${buildDir}_X64/gen_snapshot";
+      } else if (_configuration.useQemu) {
+        // DebugXARM --> DebugSIMARM_X64
+        final simBuildDir = buildDir.replaceAll("XARM", "SIMARM_X64");
+        exec = "$simBuildDir/gen_snapshot";
       } else {
         exec = "$buildDir/gen_snapshot";
       }
@@ -706,7 +710,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ],
       if (_isAndroid && _isArm) '--no-sim-use-hardfp',
       if (_configuration.isMinified) '--obfuscate',
-      ..._replaceDartFiles(arguments, tempKernelFile(tempDir))
+      // The SIMARM precompiler assumes support for integer division, but the
+      // Qemu arm cpus do not support integer division.
+      if (_configuration.useQemu) '--no-use-integer-division',
+      ..._replaceDartFiles(arguments, tempKernelFile(tempDir)),
     ];
 
     return CompilationCommand('precompiler', tempDir, bootstrapDependencies(),
@@ -729,7 +736,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           "$host-x86_64/bin/$abiTriple-gcc";
       shared = '-shared';
     } else if (Platform.isLinux) {
-      if (_isSimArm) {
+      if (_isSimArm || _configuration.useQemu) {
         cc = 'arm-linux-gnueabihf-gcc';
       } else {
         cc = 'gcc';
