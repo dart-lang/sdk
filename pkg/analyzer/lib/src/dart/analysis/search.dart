@@ -704,18 +704,21 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor {
       if (node.staticElement == importElement.prefix) {
         AstNode parent = node.parent;
         if (parent is PrefixedIdentifier && parent.prefix == node) {
-          if (importedElements.contains(parent.staticElement)) {
+          var element = parent.staticElement?.declaration;
+          if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.identifier);
           }
         }
         if (parent is MethodInvocation && parent.target == node) {
-          if (importedElements.contains(parent.methodName.staticElement)) {
+          var element = parent.methodName.staticElement?.declaration;
+          if (importedElements.contains(element)) {
             _addResultForPrefix(node, parent.methodName);
           }
         }
       }
     } else {
-      if (importedElements.contains(node.staticElement)) {
+      var element = node.staticElement?.declaration;
+      if (importedElements.contains(element)) {
         _addResult(node.offset, 0);
       }
     }
