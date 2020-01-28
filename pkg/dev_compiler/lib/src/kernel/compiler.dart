@@ -4838,12 +4838,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         else
           _visitExpression(arg),
       if (node.named.isNotEmpty)
-        js_ast.ObjectInitializer(node.named.map(_emitNamedExpression).toList()),
+        js_ast.ObjectInitializer([
+          for (var arg in node.named) _emitNamedExpression(arg, isJsInterop)
+        ]),
     ];
   }
 
-  js_ast.Property _emitNamedExpression(NamedExpression arg) {
-    return js_ast.Property(propertyName(arg.name), _visitExpression(arg.value));
+  js_ast.Property _emitNamedExpression(NamedExpression arg,
+      [bool isJsInterop = false]) {
+    var value = isJsInterop ? _assertInterop(arg.value) : arg.value;
+    return js_ast.Property(propertyName(arg.name), _visitExpression(value));
   }
 
   /// Emits code for the `JS(...)` macro.
@@ -4958,9 +4962,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass;
     var args = node.arguments;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args);
+    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
     var result = js_ast.New(_emitConstructorName(node.constructedType, ctor),
-        _emitArgumentList(args, types: false));
+        _emitArgumentList(args, types: false, target: ctor));
 
     return node.isConst ? canonicalizeConstObject(result) : result;
   }
@@ -5025,10 +5029,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitJSInteropNew(Member ctor, Arguments args) {
     var ctorClass = ctor.enclosingClass;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args);
+    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
     return js_ast.New(
         _emitConstructorName(_coreTypes.legacyRawType(ctorClass), ctor),
-        _emitArgumentList(args, types: false));
+        _emitArgumentList(args, types: false, target: ctor));
   }
 
   js_ast.Expression _emitMapImplType(InterfaceType type, {bool identity}) {
@@ -5053,8 +5057,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         emitNullability: false);
   }
 
-  js_ast.Expression _emitObjectLiteral(Arguments node) {
-    var args = _emitArgumentList(node, types: false);
+  js_ast.Expression _emitObjectLiteral(Arguments node, Member ctor) {
+    var args = _emitArgumentList(node, types: false, target: ctor);
     if (args.isEmpty) return js.call('{}');
     assert(args.single is js_ast.ObjectInitializer);
     return args.single;

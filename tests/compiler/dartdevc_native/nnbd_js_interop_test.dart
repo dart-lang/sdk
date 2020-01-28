@@ -12,6 +12,8 @@ import 'dart:js' show context;
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
 
+// Requirements=nnbd
+
 @JS()
 class Console {
   @JS()
@@ -77,6 +79,8 @@ void main() {
 
   final Function localNonNullLegacy = () => 'hello';
   final String Function() localNonNull = () => 'hello';
+  final Function? localNullableLegacy = () => 'hello';
+  final String Function()? localNullable = () => 'hello';
 
   // Assigment to JS static field.
   Expect.throws(() {
@@ -90,6 +94,12 @@ void main() {
   });
   Expect.throws(() {
     _jsStaticVariable = localNonNull;
+  });
+  Expect.throws(() {
+    _jsStaticVariable = localNullableLegacy;
+  });
+  Expect.throws(() {
+    _jsStaticVariable = localNullable;
   });
   _jsStaticVariable = allowInterop(dartStaticMethod);
   _jsStaticVariable = wrappedDartStaticMethod;
@@ -109,6 +119,12 @@ void main() {
   Expect.throws(() {
     jsStaticFunction(localNonNull);
   });
+  Expect.throws(() {
+    jsStaticFunction(localNullableLegacy);
+  });
+  Expect.throws(() {
+    jsStaticFunction(localNullable);
+  });
   jsStaticFunction(allowInterop(() => 'hello'));
   jsStaticFunction(wrappedDartStaticMethod);
 
@@ -125,6 +141,12 @@ void main() {
   });
   Expect.throws(() {
     method(localNonNull);
+  });
+  Expect.throws(() {
+    method(localNullableLegacy);
+  });
+  Expect.throws(() {
+    method(localNullable);
   });
   method(allowInterop(() => 'hello'));
   method(wrappedDartStaticMethod);
@@ -147,6 +169,12 @@ void main() {
   Expect.throws((() {
     someClass.jsFunctionFieldSetter = localNonNull;
   }));
+  Expect.throws((() {
+    someClass.jsFunctionFieldSetter = localNullableLegacy;
+  }));
+  Expect.throws((() {
+    someClass.jsFunctionFieldSetter = localNullable;
+  }));
   someClass.jsFunctionFieldSetter = allowInterop(() => 'hello');
   someClass.jsFunctionFieldSetter = wrappedDartStaticMethod;
 
@@ -162,6 +190,12 @@ void main() {
   });
   Expect.throws(() {
     someClass.jsInstanceMethod(localNonNull);
+  });
+  Expect.throws(() {
+    someClass.jsInstanceMethod(localNullableLegacy);
+  });
+  Expect.throws(() {
+    someClass.jsInstanceMethod(localNullable);
   });
   someClass.jsInstanceMethod(allowInterop(() => 'hello'));
   someClass.jsInstanceMethod(wrappedDartStaticMethod);
@@ -180,6 +214,12 @@ void main() {
   Expect.throws(() {
     SomeClass(localNonNull);
   });
+  Expect.throws(() {
+    SomeClass(localNullableLegacy);
+  });
+  Expect.throws(() {
+    SomeClass(localNullable);
+  });
   SomeClass(allowInterop(() => 'hello'));
   SomeClass(wrappedDartStaticMethod);
 
@@ -195,6 +235,12 @@ void main() {
   });
   Expect.throws(() {
     NestedJs(constructorArg: localNonNull);
+  });
+  Expect.throws(() {
+    NestedJs(constructorArg: localNullableLegacy);
+  });
+  Expect.throws(() {
+    NestedJs(constructorArg: localNullable);
   });
   NestedJs(constructorArg: allowInterop(() => 'hello'));
   NestedJs(constructorArg: wrappedDartStaticMethod);
@@ -213,6 +259,12 @@ void main() {
   Expect.throws(() {
     method(localNonNull);
   });
+  Expect.throws(() {
+    method(localNullableLegacy);
+  });
+  Expect.throws(() {
+    method(localNullable);
+  });
   method(allowInterop(() => 'hello'));
   method(wrappedDartStaticMethod);
 
@@ -228,6 +280,12 @@ void main() {
   });
   Expect.throws(() {
     someClass.jsFunctionFieldGetter(localNonNull);
+  });
+  Expect.throws(() {
+    someClass.jsFunctionFieldGetter(localNullableLegacy);
+  });
+  Expect.throws(() {
+    someClass.jsFunctionFieldGetter(localNullable);
   });
   someClass.jsFunctionFieldGetter(allowInterop(() => 'hello'));
   someClass.jsFunctionFieldGetter(wrappedDartStaticMethod);
@@ -249,6 +307,12 @@ void main() {
   //});
   //Expect.throws(() {
   //  method(localNonNull);
+  //});
+  //Expect.throws(() {
+  //  method(localNullableLegacy);
+  //});
+  //Expect.throws(() {
+  //  method(localNullable);
   //});
   method(allowInterop(() => 'hello'));
   method(wrappedDartStaticMethod);
