@@ -54,6 +54,32 @@ class PrefixedIdentifierResolutionWithNnbdTest
   @override
   bool get typeToStringWithNullability => true;
 
+  test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart' deferred as a;
+
+main() {
+  a.loadLibrary;
+}
+''');
+
+    var import = findElement.importFind('package:test/a.dart');
+
+    assertPrefixedIdentifier(
+      findNode.prefixed('a.loadLibrary'),
+      element: elementMatcher(
+        import.importedLibrary.loadLibraryFunction,
+        isLegacy: true,
+      ),
+      type: 'Future<dynamic>* Function()*',
+    );
+  }
+
   test_implicitCall_tearOff_nullable() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {

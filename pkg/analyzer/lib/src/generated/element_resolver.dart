@@ -505,7 +505,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (identifier.name == FunctionElement.LOAD_LIBRARY_NAME &&
         _isDeferredPrefix(prefix)) {
       LibraryElement importedLibrary = _getImportedLibrary(prefix);
-      identifier.staticElement = importedLibrary?.loadLibraryFunction;
+      var element = importedLibrary?.loadLibraryFunction;
+      element = _resolver.toLegacyElement(element);
+      identifier.staticElement = element;
       return;
     }
     //
