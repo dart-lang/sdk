@@ -47,6 +47,7 @@ class CompletionMetricsComputer {
     var completionKindCounter = Counter('completion kind counter');
     var completionElementKindCounter =
         Counter('completion element kind counter');
+    var mRRComputer = MeanReciprocalRankComputer();
 
     print('Analyzing root: \"$_rootPath\"');
 
@@ -84,13 +85,20 @@ class CompletionMetricsComputer {
                   expectedCompletion.offset,
                   declarationsTracker);
 
-              var fraction =
+              var place =
                   _placementInSuggestionList(suggestions, expectedCompletion);
 
-              if (fraction.denominator != 0) {
+              mRRComputer.addReciprocalRank(place);
+
+              if (place.denominator != 0) {
                 includedCount++;
               } else {
                 notIncludedCount++;
+
+                completionKindCounter.count(expectedCompletion.kind.toString());
+                completionElementKindCounter
+                    .count(expectedCompletion.elementKind.toString());
+
                 if (_verbose) {
                   // The format "/file/path/foo.dart:3:4" makes for easier input
                   // with the Files dialog in IntelliJ
@@ -99,11 +107,6 @@ class CompletionMetricsComputer {
                   print(
                       '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
                   print('');
-
-                  completionKindCounter
-                      .count(expectedCompletion.kind.toString());
-                  completionElementKindCounter
-                      .count(expectedCompletion.elementKind.toString());
                 }
               }
             }
@@ -120,7 +123,14 @@ class CompletionMetricsComputer {
     final percentNotIncluded = 1 - percentIncluded;
 
     completionKindCounter.printCounterValues();
+    print('');
+
     completionElementKindCounter.printCounterValues();
+    print('');
+
+    mRRComputer.printMean();
+    print('');
+
     print('Summary for $_rootPath:');
     print('Total number of completion tests   = $totalCompletionCount');
     print(
@@ -132,6 +142,7 @@ class CompletionMetricsComputer {
     notIncludedCount = 0;
     completionKindCounter.clear();
     completionElementKindCounter.clear();
+    mRRComputer.clear();
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(

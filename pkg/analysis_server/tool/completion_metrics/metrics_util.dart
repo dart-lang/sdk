@@ -52,7 +52,37 @@ class Counter {
     print('Counts for \'$name\':');
     _buckets.forEach((id, count) =>
         print('[$id] $count (${printPercentage(count / _totalCount, 2)})'));
-    print('');
+  }
+}
+
+/// A computer for the mean reciprocal rank,
+/// https://en.wikipedia.org/wiki/Mean_reciprocal_rank.
+class MeanReciprocalRankComputer {
+  final List<double> _ranks = [];
+  MeanReciprocalRankComputer();
+
+  double get mean {
+    double sum = 0;
+    _ranks.forEach((rank) {
+      sum += rank;
+    });
+    return rankCount == 0 ? 0 : sum / rankCount;
+  }
+
+  int get rankCount => _ranks.length;
+
+  int get ranks => _ranks.length;
+
+  void addReciprocalRank(Place place) {
+    _ranks.add(place.reciprocalRank);
+  }
+
+  void clear() => _ranks.clear();
+
+  void printMean() {
+    var mrr = mean;
+    print('Mean Reciprocal Rank    = ${mrr.toStringAsFixed(5)}');
+    print('Harmonic Mean (inverse) = ${(1 / mrr).toStringAsFixed(1)}');
   }
 }
 
@@ -79,6 +109,8 @@ class Place {
   int get hashCode => JenkinsSmiHash.hash2(_numerator, _denominator);
 
   int get numerator => _numerator;
+
+  double get reciprocalRank => denominator == 0 ? 0 : numerator / denominator;
 
   @override
   bool operator ==(dynamic other) =>
