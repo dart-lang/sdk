@@ -65,7 +65,6 @@ general/type_variable_bound_access: TypeCheckError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
-general/with_dependencies/variance_from_dill/variance_from_dill: Crash
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/accessors: RuntimeError
 general_nnbd_opt_out/ambiguous_exports: RuntimeError # Expected, this file exports two main methods.

@@ -11,6 +11,7 @@ import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
+import '../builder/type_variable_builder.dart';
 
 import '../problems.dart' show unimplemented;
 
@@ -24,6 +25,16 @@ class DillTypeAliasBuilder extends TypeAliasBuilder {
   List<MetadataBuilder> get metadata {
     return unimplemented("metadata", -1, null);
   }
+
+  List<TypeVariableBuilder> get typeVariables {
+    return unimplemented("typeVariables", -1, null);
+  }
+
+  int varianceAt(int index) {
+    return typedef.typeParameters[index].variance;
+  }
+
+  bool get fromDill => true;
 
   @override
   int get typeVariablesCount => typedef.typeParameters.length;
