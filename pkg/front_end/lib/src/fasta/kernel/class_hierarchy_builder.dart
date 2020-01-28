@@ -736,6 +736,13 @@ class ClassHierarchyNodeBuilder {
       if (substitution != null) {
         bType = substitution.substituteType(bType);
       }
+      if (enableNonNullable &&
+          !a.classBuilder.library.isNonNullableByDefault &&
+          b.member == hierarchy.coreTypes.objectEquals) {
+        // In legacy code we special case `Object.==` to infer `dynamic` instead
+        // `Object!`.
+        bType = const DynamicType();
+      }
       if (aType != bType) {
         if (a.parent == classBuilder && a.formals[i].type == null) {
           result = inferParameterType(classBuilder, a, a.formals[i], bType,

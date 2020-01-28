@@ -800,6 +800,7 @@ recreate
 recursion
 red
 redeclared
+redefine
 redirectee
 redirector
 reexports
@@ -976,6 +977,7 @@ t
 tagged
 tagger
 tags
+tailor
 taking
 talks
 tb

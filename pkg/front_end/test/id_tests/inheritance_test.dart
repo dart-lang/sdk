@@ -15,10 +15,6 @@ import 'package:kernel/ast.dart';
 
 const String cfeFromBuilderMarker = 'cfe:builder';
 
-const TestConfig cfeFromBuilder = const TestConfig(
-    cfeFromBuilderMarker, 'cfe from builder',
-    experimentalFlags: const {ExperimentalFlag.nonNullable: true});
-
 main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/inheritance/data'));
@@ -27,8 +23,17 @@ main(List<String> args) async {
       supportedMarkers: [cfeMarker, cfeFromBuilderMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const InheritanceDataComputer(),
-          [cfeNonNullableOnlyConfig, cfeFromBuilder]));
+      runTest: runTestFor(const InheritanceDataComputer(), [
+        new TestConfig(cfeMarker, 'cfe with nnbd',
+            experimentalFlags: const {ExperimentalFlag.nonNullable: true},
+            librariesSpecificationUri: createUriForFileName('libraries.json'),
+            compileSdk: true),
+        new TestConfig(
+            cfeFromBuilderMarker, 'cfe from builder',
+            experimentalFlags: const {ExperimentalFlag.nonNullable: true},
+            librariesSpecificationUri: createUriForFileName('libraries.json'),
+            compileSdk: true)
+      ]));
 }
 
 class InheritanceDataComputer extends DataComputer<String> {
