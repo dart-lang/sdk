@@ -115,9 +115,6 @@ template("_application_snapshot") {
       "--no-link-platform",
       "--output=" + rebase_path(output),
     ]
-    if (use_nnbd) {
-      args += [ "--enable-experiment=non-nullable" ]
-    }
     if (dart_platform_bytecode) {
       args += [
         "--gen-bytecode",
@@ -149,10 +146,6 @@ template("_application_snapshot") {
                 "--snapshot=$abs_output",
                 "--snapshot-depfile=$abs_depfile",
               ] + snapshot_vm_args
-
-    if (use_nnbd) {
-      vm_args += [ "--enable-experiment=non-nullable" ]
-    }
 
     if (dart_snapshot_kind == "kernel") {
       vm_args += [ "--snapshot-kind=kernel" ]
