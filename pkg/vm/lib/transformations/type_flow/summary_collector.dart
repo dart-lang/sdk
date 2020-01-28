@@ -10,7 +10,8 @@ import 'dart:core' hide Type;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement, StatementVisitor;
-import 'package:kernel/class_hierarchy.dart' show ClosedWorldClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClosedWorldClassHierarchy;
 import 'package:kernel/type_environment.dart'
     show StaticTypeContext, SubtypeCheckMode, TypeEnvironment;
 import 'package:kernel/type_algebra.dart' show Substitution;
@@ -112,6 +113,13 @@ class _SummaryNormalizer extends StatementVisitor {
                 return first;
               }
             }
+          }
+        } else if (st is Narrow) {
+          // This pattern may appear after approximations during summary
+          // normalization (so it's not enough to handle it in _makeNarrow).
+          final arg = st.arg;
+          if (arg is Type && st.type == const AnyType()) {
+            return (arg is NullableType) ? arg.baseType : arg;
           }
         }
 
@@ -472,6 +480,12 @@ class _VariablesInfoCollector extends RecursiveVisitor<Null> {
   }
 }
 
+Iterable<Name> getSelectors(ClassHierarchy hierarchy, Class cls,
+        {bool setters = false}) =>
+    hierarchy
+        .getInterfaceMembers(cls, setters: setters)
+        .map((Member m) => m.name);
+
 enum FieldSummaryType { kFieldGuard, kInitializer }
 
 /// Create a type flow summary for a member from the kernel AST.
@@ -488,6 +502,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   final Map<AsExpression, TypeCheck> explicitCasts =
       <AsExpression, TypeCheck>{};
   final _FallthroughDetector _fallthroughDetector = new _FallthroughDetector();
+  final Set<Name> _nullMethodsAndGetters = <Name>{};
+  final Set<Name> _nullSetters = <Name>{};
 
   Summary _summary;
   _VariablesInfoCollector _variablesInfo;
@@ -542,6 +558,12 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
       this._genericInterfacesInfo) {
     assertx(_genericInterfacesInfo != null);
     constantAllocationCollector = new ConstantAllocationCollector(this);
+    _nullMethodsAndGetters.addAll(getSelectors(
+        _hierarchy, _environment.coreTypes.nullClass,
+        setters: false));
+    _nullSetters.addAll(getSelectors(
+        _hierarchy, _environment.coreTypes.nullClass,
+        setters: true));
   }
 
   Summary createSummary(Member member,
@@ -1041,6 +1063,9 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         return (arg is NullableType) ? arg.baseType : arg;
       }
     }
+    if (type is NullableType && type.baseType == const AnyType()) {
+      return arg;
+    }
     Narrow narrow = new Narrow(arg, type);
     _summary.add(narrow);
     return narrow;
@@ -1290,15 +1315,37 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     _variableValues = null;
   }
 
+  void _updateReceiverAfterCall(
+      TreeNode receiverNode, TypeExpr receiverValue, Name selector,
+      {bool isSetter = false}) {
+    if (receiverNode is VariableGet) {
+      final nullSelectors = isSetter ? _nullSetters : _nullMethodsAndGetters;
+      if (!nullSelectors.contains(selector)) {
+        final int varIndex = _variablesInfo.varIndex[receiverNode.variable];
+        if (_variableCells[varIndex] == null) {
+          _variableValues[varIndex] =
+              _makeNarrow(receiverValue, const AnyType());
+        }
+      }
+    }
+  }
+
   @override
   defaultTreeNode(TreeNode node) =>
       throw 'Unexpected node ${node.runtimeType}: $node at ${node.location}';
 
   @override
   TypeExpr visitAsExpression(AsExpression node) {
-    final TypeExpr operand = _visit(node.operand);
+    final operandNode = node.operand;
+    final TypeExpr operand = _visit(operandNode);
     final TypeExpr result = _typeCheck(operand, node.type, node);
     explicitCasts[node] = result;
+    if (operandNode is VariableGet) {
+      final int varIndex = _variablesInfo.varIndex[operandNode.variable];
+      if (_variableCells[varIndex] == null) {
+        _variableValues[varIndex] = result;
+      }
+    }
     return result;
   }
 
@@ -1485,6 +1532,7 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
         return _handleIndexingIntoListConstant(constant);
       }
     }
+    TypeExpr result;
     if (target == null) {
       if (node.name.name == '==') {
         assertx(args.values.length == 2);
@@ -1502,32 +1550,35 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
           return _staticType(node);
         }
       }
-      return _makeCall(
+      result = _makeCall(
           node, new DynamicSelector(CallKind.Method, node.name), args);
-    }
-    // TODO(dartbug.com/34497): Once front-end desugars calls via
-    // fields/getters, handling of field and getter targets here
-    // can be turned into assertions.
-    if ((target is Field) || ((target is Procedure) && target.isGetter)) {
-      // Call via field/getter.
-      final value = _makeCall(
-          null,
-          (node.receiver is ThisExpression)
-              ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
-              : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
-          new Args<TypeExpr>([receiver]));
-      _makeCall(
-          null, DynamicSelector.kCall, new Args.withReceiver(args, value));
-      return _staticType(node);
     } else {
-      // TODO(alexmarkov): overloaded arithmetic operators
-      return _makeCall(
-          node,
-          (node.receiver is ThisExpression)
-              ? new VirtualSelector(target)
-              : new InterfaceSelector(target),
-          args);
+      // TODO(dartbug.com/34497): Once front-end desugars calls via
+      // fields/getters, handling of field and getter targets here
+      // can be turned into assertions.
+      if ((target is Field) || ((target is Procedure) && target.isGetter)) {
+        // Call via field/getter.
+        final value = _makeCall(
+            null,
+            (receiverNode is ThisExpression)
+                ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
+                : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
+            new Args<TypeExpr>([receiver]));
+        _makeCall(
+            null, DynamicSelector.kCall, new Args.withReceiver(args, value));
+        result = _staticType(node);
+      } else {
+        // TODO(alexmarkov): overloaded arithmetic operators
+        result = _makeCall(
+            node,
+            (node.receiver is ThisExpression)
+                ? new VirtualSelector(target)
+                : new InterfaceSelector(target),
+            args);
+      }
     }
+    _updateReceiverAfterCall(receiverNode, receiver, node.name);
+    return result;
   }
 
   TypeExpr _handleIndexingIntoListConstant(ListConstant list) {
@@ -1553,16 +1604,20 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
     var receiver = _visit(node.receiver);
     var args = new Args<TypeExpr>([receiver]);
     final target = node.interfaceTarget;
+    TypeExpr result;
     if (target == null) {
-      return _makeCall(
+      result = _makeCall(
           node, new DynamicSelector(CallKind.PropertyGet, node.name), args);
+    } else {
+      result = _makeCall(
+          node,
+          (node.receiver is ThisExpression)
+              ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
+              : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
+          args);
     }
-    return _makeCall(
-        node,
-        (node.receiver is ThisExpression)
-            ? new VirtualSelector(target, callKind: CallKind.PropertyGet)
-            : new InterfaceSelector(target, callKind: CallKind.PropertyGet),
-        args);
+    _updateReceiverAfterCall(node.receiver, receiver, node.name);
+    return result;
   }
 
   @override
@@ -1583,6 +1638,8 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
               : new InterfaceSelector(target, callKind: CallKind.PropertySet),
           args);
     }
+    _updateReceiverAfterCall(node.receiver, receiver, node.name,
+        isSetter: true);
     return value;
   }
 

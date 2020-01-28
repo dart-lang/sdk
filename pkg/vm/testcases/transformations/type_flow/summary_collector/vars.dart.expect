@@ -34,7 +34,7 @@ t2 = _Call direct [#lib::loop1] (%a1, %a1)
 RESULT: %a2
 ------------ #lib::loop2 ------------
 %x = _Parameter #0 [_T (dart.core::int)+?]
-t1* = _Call [dart.core::num::+] (_T (dart.core::int)+?, _T (dart.core::_Smi, 1))
+t1* = _Call [dart.core::num::+] (_T (dart.core::int)+, _T (dart.core::_Smi, 1))
 i_0 = _Join [dart.core::int*] (_T (dart.core::_Smi, 0), t1)
 t3* = _Call [dart.core::num::<] (i_0, _T (dart.core::_Smi, 5))
 t4* = _Call [dart.core::num::+] (_T (dart.core::int)+?, _T (dart.core::_Smi, 10))

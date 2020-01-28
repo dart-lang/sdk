@@ -36,12 +36,13 @@ RESULT: _T {}?
 %a4 = _Parameter #4 [_T (dart.core::Object)+?]
 t5 = _Call direct [#lib::B::] (_T (#lib::B))
 t6 = _Call [#lib::A::foo1] (%aa, _T (#lib::B))
-t7* = _Call get [#lib::A::foo2] (%aa)
-t8 = _TypeCheck (t7 against dart.core::int) (for aa.{#lib::A::foo2} as{TypeError} dart.core::int*)
-t9 = _Call set [#lib::A::foo3] (%aa, t8)
-t10* = _Call get [#lib::A::foo1] (%aa)
-t11* = _Call get [#lib::A::foo2] (%aa)
-t12 = _Call dynamic [call] (t11, %a2, %a3, t10)
+t7 = _Narrow (%aa to _T ANY)
+t8* = _Call get [#lib::A::foo2] (t7)
+t9 = _TypeCheck (t8 against dart.core::int) (for aa.{#lib::A::foo2} as{TypeError} dart.core::int*)
+t10 = _Call set [#lib::A::foo3] (t7, t9)
+t11* = _Call get [#lib::A::foo1] (t7)
+t12* = _Call get [#lib::A::foo2] (t7)
+t13 = _Call dynamic [call] (t12, %a2, %a3, t11)
 RESULT: _T ANY?
 ------------ #lib::C::dynamicCalls ------------
 %this = _Parameter #0 [_T (#lib::C)+]
@@ -51,11 +52,12 @@ RESULT: _T ANY?
 %a4 = _Parameter #4 [_T (dart.core::Object)+?]
 t5 = _Call direct [#lib::B::] (_T (#lib::B))
 t6 = _Call dynamic [foo1] (%aa, _T (#lib::B))
-t7* = _Call dynamic get [foo2] (%aa)
-t8 = _Call dynamic set [foo3] (%aa, t7)
-t9* = _Call dynamic get [foo1] (%aa)
-t10* = _Call dynamic [foo2] (%aa, %a2, %a3, t9)
-RESULT: t10
+t7 = _Narrow (%aa to _T ANY)
+t8* = _Call dynamic get [foo2] (t7)
+t9 = _Call dynamic set [foo3] (t7, t8)
+t10* = _Call dynamic get [foo1] (t7)
+t11* = _Call dynamic [foo2] (t7, %a2, %a3, t10)
+RESULT: t11
 ------------ #lib::D:: ------------
 %this = _Parameter #0 [_T (#lib::D)+]
 t1 = _Call direct [#lib::B::] (%this)

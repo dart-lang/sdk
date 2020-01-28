@@ -159,8 +159,7 @@ t7 = _Call direct [#lib::C4::] (_T (#lib::C4))
 t8* = _Call direct [#lib::foo] (_T (dart.core::_GrowableList<#lib::C4>))
 t9 = _Call direct [#lib::foo] (_T (#lib::C3))
 t10 = _Join [dynamic] (_T (#lib::C3), t8)
-t11 = _Narrow (t10 to _T ANY?)
-t12 = _Call direct [#lib::bar] (t11)
+t11 = _Call direct [#lib::bar] (t10)
 RESULT: _T {}?
 ------------ #lib::loop1 ------------
 t0 = _Call direct [#lib::C1::] (_T (#lib::C1))
@@ -195,10 +194,11 @@ t2 = _Call direct [#lib::foo] (_T (#lib::C2))
 t3* = _Call direct [dart._internal::unsafeCast] (_T (dart.core::_GrowableList<dynamic>))
 t4* = _Call get [dart.core::Iterable::iterator] (t3)
 t5* = _Call [dart.core::Iterator::moveNext] (t4)
-t6 = _Call get [dart.core::Iterator::current] (t4)
+t6 = _Narrow (t4 to _T ANY)
+t7 = _Call get [dart.core::Iterator::current] (t6)
 x_0 = _Join [dynamic] (_T (#lib::C2), _T (#lib::C3))
-t8 = _Call direct [#lib::foo] (x_0)
-t9 = _Call direct [#lib::C3::] (_T (#lib::C3))
+t9 = _Call direct [#lib::foo] (x_0)
+t10 = _Call direct [#lib::C3::] (_T (#lib::C3))
 RESULT: x_0
 ------------ #lib::loop5 ------------
 t0 = _Call direct [#lib::C1::] (_T (#lib::C1))
@@ -270,6 +270,12 @@ t4 = _Call direct [#lib::foo] (x_1)
 t5 = _Call direct [#lib::C3::] (_T (#lib::C3))
 x_2 = _Join [dynamic] (_T (#lib::C1), _T (#lib::C3))
 RESULT: x_2
+------------ #lib::cast1 ------------
+%x = _Parameter #0 [_T ANY?]
+t1 = _TypeCheck (%x against #lib::C1) (for x as #lib::C1*)
+t2 = _Call direct [#lib::foo] (t1)
+t3 = _Call direct [#lib::bar] (t1)
+RESULT: _T {}?
 ------------ #lib::main ------------
 
 RESULT: _T {}?

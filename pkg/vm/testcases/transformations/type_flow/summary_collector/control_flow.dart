@@ -257,4 +257,9 @@ switch3(int selector) {
   return x;
 }
 
+void cast1(x) {
+  foo(x as C1);
+  bar(x);
+}
+
 main() {}
