@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart' as element;
 
 class ExpectedCompletion {
   final SyntacticEntity _entity;
@@ -638,6 +639,18 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
     // such identifiers.
     if (node.thisOrAncestorOfType<CommentReference>() != null) {
       return _doExpectCommentRefs;
+    }
+
+    // TODO (jwren) If there is a mode of completing at a token location where
+    //  the token is removed before the completion query happens, then this
+    //  should be disabled in such a case:
+    // Named arguments, i.e. the 'foo' in 'method_call(foo: 1)' should not be
+    // included, by design, the completion engine won't suggest named arguments
+    // already it the source.
+    if (node.staticElement?.kind == element.ElementKind.PARAMETER &&
+        node.parent is Label &&
+        node.thisOrAncestorOfType<ArgumentList>() != null) {
+      return false;
     }
     return true;
   }
