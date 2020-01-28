@@ -68,7 +68,8 @@ class TestConfiguration {
       this.outputDirectory,
       this.reproducingArguments,
       this.fastTestsOnly,
-      this.printPassingStdout})
+      this.printPassingStdout,
+      this.useQemu})
       : _packages = packages;
 
   final Map<String, RegExp> selectors;
@@ -97,6 +98,7 @@ class TestConfiguration {
   final bool writeResults;
   final bool writeLogs;
   final bool printPassingStdout;
+  final bool useQemu;
 
   Architecture get architecture => configuration.architecture;
   Compiler get compiler => configuration.compiler;
