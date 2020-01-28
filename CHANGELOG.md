@@ -41,12 +41,14 @@ additional details see the [announcement].
 
 #### Linter
 
-The Linter was updated to `0.1.109`, which includes:
+The Linter was updated to `0.1.110`, which includes:
 
-* an improved `prefer_single_quotes` lint message
-* `unnecessary_finals` fixed to not flag fields
-* `unnecessary_lambdas` fixed to work with type arguments
-* (internal) migration to use analyzer `LinterContext.resolveNameInScope()` API
+* fixed flutter web plugin detection in `avoid_web_libraries_in_flutter`
+* new lint: `unnecessary_string_interpolations`
+* new lint: `missing_whitespace_between_adjacent_strings`
+* `avoid_unused_constructor_parameters` updated to ignore deprecated parameters
+* new lint: `no_runtimeType_toString`
+* miscellaneous doc fixes
 
 #### Pub
 
