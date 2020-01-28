@@ -29,6 +29,7 @@ import 'package:kernel/ast.dart'
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/dynamic_type_builder.dart';
+import '../builder/extension_builder.dart';
 import '../builder/never_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -323,9 +324,15 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
             -1,
             fileUri);
       }
-      assert((declaration is ClassBuilder && node == declaration.cls) ||
-          (declaration is TypeAliasBuilder && node == declaration.typedef) ||
-          (declaration is MemberBuilder && node == declaration.member));
+      assert(
+          (declaration is ClassBuilder && node == declaration.cls) ||
+              (declaration is TypeAliasBuilder &&
+                  node == declaration.typedef) ||
+              (declaration is MemberBuilder && node == declaration.member) ||
+              (declaration is ExtensionBuilder &&
+                  node == declaration.extension),
+          "Unexpected declaration ${declaration} (${declaration.runtimeType}) "
+          "for node ${node} (${node.runtimeType}).");
     }
   }
 }
