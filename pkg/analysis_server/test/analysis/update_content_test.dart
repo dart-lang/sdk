@@ -16,7 +16,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
   });
@@ -44,7 +44,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     }
   }
 
-  test_illegal_ChangeContentOverlay() {
+  void test_illegal_ChangeContentOverlay() {
     // It should be illegal to send a ChangeContentOverlay for a file that
     // doesn't have an overlay yet.
     createProject();
@@ -61,7 +61,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     }
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = AnalysisUpdateContentParams(
       {'test.dart': AddContentOverlay('')},
     ).toRequest('0');
@@ -72,7 +72,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = AnalysisUpdateContentParams(
       {convertPath('/foo/../bar/test.dart'): AddContentOverlay('')},
     ).toRequest('0');
@@ -83,7 +83,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     );
   }
 
-  test_multiple_contexts() async {
+  Future<void> test_multiple_contexts() async {
     String project1path = convertPath('/project1');
     String project2path = convertPath('/project2');
     String fooPath = newFile('/project1/foo.dart', content: '''
@@ -126,7 +126,7 @@ f() {}
   }
 
   @failingTest
-  test_overlay_addPreviouslyImported() async {
+  Future<void> test_overlay_addPreviouslyImported() async {
     // The list of errors doesn't include errors for '/project/target.dart'.
     Folder project = newFolder('/project');
     handleSuccessfulRequest(
@@ -150,7 +150,7 @@ f() {}
     });
   }
 
-  test_overlayOnly() async {
+  Future<void> test_overlayOnly() async {
     var filePath1 = convertPath('/User/project1/test.dart');
     var filePath2 = convertPath('/User/project2/test.dart');
     var folderPath1 = newFolder('/User/project1').path;
@@ -184,7 +184,7 @@ f() {}
   }
 
   @failingTest
-  test_sendNoticesAfterNopChange() async {
+  Future<void> test_sendNoticesAfterNopChange() async {
     // The errors are empty on the last line.
     createProject();
     addTestFile('');
@@ -204,7 +204,7 @@ f() {}
   }
 
   @failingTest
-  test_sendNoticesAfterNopChange_flushedUnit() async {
+  Future<void> test_sendNoticesAfterNopChange_flushedUnit() async {
     // The list of errors is empty on the last line.
     createProject();
     addTestFile('');
@@ -223,7 +223,7 @@ f() {}
     expect(filesErrors, isNotEmpty);
   }
 
-  test_sentToPlugins() {
+  void test_sentToPlugins() {
     String filePath = convertPath('/project/target.dart');
     String fileContent = 'import "none.dart";';
     //

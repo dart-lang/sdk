@@ -35,7 +35,7 @@ import 'signature_help_test.dart' as signature_help;
 import 'super_test.dart' as get_super;
 import 'workspace_symbols_test.dart' as workspace_symbols;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     analyzer_status.main();
     cancel_request.main();

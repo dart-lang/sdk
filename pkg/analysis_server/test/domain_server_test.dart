@@ -16,7 +16,7 @@ import 'package:test/test.dart';
 import 'constants.dart';
 import 'mocks.dart';
 
-main() {
+void main() {
   AnalysisServer server;
   ServerDomainHandler handler;
   MockServerChannel serverChannel;

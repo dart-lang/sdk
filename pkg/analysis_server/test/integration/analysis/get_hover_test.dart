@@ -11,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetHoverIntegrationTest);
   });
@@ -135,13 +135,13 @@ main() {
   }
 
   @override
-  setUp() {
+  Future<void> setUp() {
     return super.setUp().then((_) {
       pathname = sourcePath('test.dart');
     });
   }
 
-  test_getHover() {
+  Future<void> test_getHover() {
     writeFile(pathname, text);
     standardAnalysisSetup();
 

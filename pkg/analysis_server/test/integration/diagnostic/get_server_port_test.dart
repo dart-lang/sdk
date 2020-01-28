@@ -11,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetServerPortTest);
   });
@@ -19,7 +19,7 @@ main() {
 
 @reflectiveTest
 class GetServerPortTest extends AbstractAnalysisServerIntegrationTest {
-  test_connect() async {
+  Future<void> test_connect() async {
     standardAnalysisSetup();
 
     DiagnosticGetServerPortResult result = await sendDiagnosticGetServerPort();

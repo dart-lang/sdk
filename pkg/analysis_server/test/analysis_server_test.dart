@@ -19,7 +19,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisServerTest);
   });
@@ -129,7 +129,8 @@ class AnalysisServerTest with ResourceProviderMixin {
     });
   }
 
-  test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
+  Future<void>
+      test_setAnalysisSubscriptions_fileInIgnoredFolder_newOptions() async {
     String path = convertPath('/project/samples/sample.dart');
     newFile(path);
     newFile('/project/analysis_options.yaml', content: r'''
@@ -149,7 +150,8 @@ analyzer:
     }), isTrue);
   }
 
-  test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
+  Future<void>
+      test_setAnalysisSubscriptions_fileInIgnoredFolder_oldOptions() async {
     String path = convertPath('/project/samples/sample.dart');
     newFile(path);
     newFile('/project/.analysis_options', content: r'''

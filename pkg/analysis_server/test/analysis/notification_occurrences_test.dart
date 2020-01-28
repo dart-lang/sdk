@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationOccurrencesTest);
   });
@@ -99,7 +99,7 @@ class AnalysisNotificationOccurrencesTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_afterAnalysis() async {
+  Future<void> test_afterAnalysis() async {
     addTestFile('''
 main() {
   var vvv = 42;
@@ -115,7 +115,7 @@ main() {
     assertHasOffset('vvv);');
   }
 
-  test_field() async {
+  Future<void> test_field() async {
     addTestFile('''
 class A {
   int fff;
@@ -134,7 +134,7 @@ class A {
     assertHasOffset('fff); // print');
   }
 
-  test_field_unresolved() async {
+  Future<void> test_field_unresolved() async {
     addTestFile('''
 class A {
   A(this.noSuchField);
@@ -144,7 +144,7 @@ class A {
     await prepareOccurrences();
   }
 
-  test_localVariable() async {
+  Future<void> test_localVariable() async {
     addTestFile('''
 main() {
   var vvv = 42;
@@ -161,7 +161,7 @@ main() {
     assertHasOffset('vvv);');
   }
 
-  test_memberField() async {
+  Future<void> test_memberField() async {
     addTestFile('''
 class A<T> {
   T fff;
@@ -180,7 +180,7 @@ main() {
     assertHasOffset('fff = 2;');
   }
 
-  test_memberMethod() async {
+  Future<void> test_memberMethod() async {
     addTestFile('''
 class A<T> {
   T mmm() {}
@@ -199,7 +199,7 @@ main() {
     assertHasOffset('mmm(); // b');
   }
 
-  test_topLevelVariable() async {
+  Future<void> test_topLevelVariable() async {
     addTestFile('''
 var VVV = 1;
 main() {
@@ -214,7 +214,7 @@ main() {
     assertHasOffset('VVV);');
   }
 
-  test_type_class() async {
+  Future<void> test_type_class() async {
     addTestFile('''
 main() {
   int a = 1;
@@ -233,7 +233,7 @@ int VVV = 4;
     assertHasOffset('int VVV');
   }
 
-  test_type_dynamic() async {
+  Future<void> test_type_dynamic() async {
     addTestFile('''
 main() {
   dynamic a = 1;
@@ -246,7 +246,7 @@ dynamic V = 3;
     findRegion(offset, 'dynamic'.length, false);
   }
 
-  test_type_void() async {
+  Future<void> test_type_void() async {
     addTestFile('''
 void main() {
 }

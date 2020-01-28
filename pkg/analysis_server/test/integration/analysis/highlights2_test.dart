@@ -11,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHighlightsTest);
   });
@@ -26,7 +26,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
     highlights.remove(type);
   }
 
-  computeHighlights(String pathname, String text) async {
+  Future<void> computeHighlights(String pathname, String text) async {
     writeFile(pathname, text);
     standardAnalysisSetup();
     sendAnalysisSetSubscriptions({
@@ -61,7 +61,7 @@ class AnalysisHighlightsTest extends AbstractAnalysisServerIntegrationTest {
         useAnalysisHighlight2: true);
   }
 
-  test_highlights() async {
+  Future<void> test_highlights() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 import 'dart:async' as async;
@@ -165,7 +165,7 @@ int topLevelVariable;
     expect(highlights, isEmpty);
   }
 
-  test_highlights_mixin() async {
+  Future<void> test_highlights_mixin() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 mixin M on A implements B {}

@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainGetErrorsTest);
   });

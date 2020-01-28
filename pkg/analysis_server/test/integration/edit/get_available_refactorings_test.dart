@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetAvailableRefactoringsTest);
   });
@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class GetAvailableRefactoringsTest
     extends AbstractAnalysisServerIntegrationTest {
-  test_has_refactorings() async {
+  Future<void> test_has_refactorings() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 void foo() { }

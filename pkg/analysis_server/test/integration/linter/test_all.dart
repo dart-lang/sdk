@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'lint_names_test.dart' as lint_names;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     lint_names.main();
   }, name: 'linter');

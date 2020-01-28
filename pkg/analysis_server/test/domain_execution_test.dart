@@ -17,7 +17,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'analysis_abstract.dart';
 import 'mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExecutionDomainTest);
   });
@@ -176,7 +176,7 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
     super.tearDown();
   }
 
-  test_getSuggestions() async {
+  Future<void> test_getSuggestions() async {
     var code = r'''
 class A {
   int foo;

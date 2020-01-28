@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DartfixTest);
   });
@@ -25,7 +25,7 @@ class C with B {}
     standardAnalysisSetup();
   }
 
-  test_dartfix_exclude() async {
+  Future<void> test_dartfix_exclude() async {
     setupTarget();
     EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
         excludedFixes: ['convert_class_to_mixin']);
@@ -34,7 +34,7 @@ class C with B {}
     expect(result.edits.length, 0);
   }
 
-  test_dartfix_include() async {
+  Future<void> test_dartfix_include() async {
     setupTarget();
     EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
         includedFixes: ['convert_class_to_mixin']);
@@ -43,7 +43,7 @@ class C with B {}
     expect(result.edits.length, greaterThanOrEqualTo(1));
   }
 
-  test_dartfix_include_other() async {
+  Future<void> test_dartfix_include_other() async {
     setupTarget();
     EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
         includedFixes: ['prefer_int_literals']);

@@ -14,7 +14,7 @@ import 'sort_members_test.dart' as sort_members;
 import 'statement_completion_test.dart' as statement_completion;
 import 'token_details_test.dart' as token_details;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     assists.main();
     fixes.main();

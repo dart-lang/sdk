@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationOutlineTest);
   });
@@ -59,7 +59,7 @@ class AnalysisNotificationOutlineTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_afterAnalysis() async {
+  Future<void> test_afterAnalysis() async {
     addTestFile('''
 class AAA {
 }
@@ -74,7 +74,7 @@ class BBB {
     expect(outlines, hasLength(2));
   }
 
-  test_libraryName_hasLibraryDirective() async {
+  Future<void> test_libraryName_hasLibraryDirective() async {
     addTestFile('''
 library my.lib;
 ''');
@@ -104,7 +104,7 @@ part of my.lib;
     expect(libraryName, 'my.lib');
   }
 
-  test_libraryName_noDirectives() async {
+  Future<void> test_libraryName_noDirectives() async {
     addTestFile('''
 class A {}
 ''');
@@ -113,7 +113,7 @@ class A {}
     expect(libraryName, isNull);
   }
 
-  test_subscribeWhenCachedResultIsAvailable() async {
+  Future<void> test_subscribeWhenCachedResultIsAvailable() async {
     // https://github.com/dart-lang/sdk/issues/30238
     // We need to get notifications for new subscriptions even when the
     // file is a priority file, and there is a cached result available.

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OutlineTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class OutlineTest extends AbstractAnalysisServerIntegrationTest {
-  test_outline() {
+  Future<void> test_outline() {
     String pathname = sourcePath('test.dart');
     String text = r'''
 class Class1 {

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListPostfixCompletionTemplatesTest);
   });
@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class ListPostfixCompletionTemplatesTest
     extends AbstractAnalysisServerIntegrationTest {
-  test_list_postfix_completion_templates() async {
+  Future<void> test_list_postfix_completion_templates() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 void bar() {

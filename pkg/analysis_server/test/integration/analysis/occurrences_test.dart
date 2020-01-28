@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OccurrencesTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class OccurrencesTest extends AbstractAnalysisServerIntegrationTest {
-  test_occurrences() {
+  Future<void> test_occurrences() {
     String pathname = sourcePath('test.dart');
     String text = r'''
 main() {

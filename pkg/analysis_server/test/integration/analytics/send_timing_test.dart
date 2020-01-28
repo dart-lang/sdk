@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SendTimingTest);
   });
@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class SendTimingTest extends AbstractAnalysisServerIntegrationTest {
-  test_send_timing() async {
+  Future<void> test_send_timing() async {
     standardAnalysisSetup();
 
     // Disable analytics.

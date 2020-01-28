@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class OrganizeDirectivesTest extends AbstractAnalysisServerIntegrationTest {
-  test_organize_directives() async {
+  Future<void> test_organize_directives() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 import 'dart:math';
@@ -37,7 +37,7 @@ int minified(int x, int y) => min(x, y);
         "import 'dart:async';\nimport 'dart:math");
   }
 
-  test_organize_directives_no_changes() async {
+  Future<void> test_organize_directives_no_changes() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 import 'dart:async';
@@ -55,7 +55,7 @@ int minified(int x, int y) => min(x, y);
     expect(edit.edits, isEmpty);
   }
 
-  test_organize_directives_with_errors() async {
+  Future<void> test_organize_directives_with_errors() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 import 'dart:async'

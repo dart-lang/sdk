@@ -21,7 +21,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'domain_completion_util.dart';
 import 'mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionDomainHandlerGetSuggestionsTest);
     defineReflectiveTests(CompletionDomainHandlerListTokenDetailsTest);
@@ -31,7 +31,7 @@ main() {
 @reflectiveTest
 class CompletionDomainHandlerGetSuggestionsTest
     extends AbstractCompletionDomainTest {
-  test_ArgumentList_constructor_named_fieldFormalParam() async {
+  Future<void> test_ArgumentList_constructor_named_fieldFormalParam() async {
     // https://github.com/dart-lang/sdk/issues/31023
     addTestFile('''
 main() { new A(field: ^);}
@@ -42,7 +42,7 @@ class A {
     await getSuggestions();
   }
 
-  test_ArgumentList_constructor_named_param_label() async {
+  Future<void> test_ArgumentList_constructor_named_param_label() async {
     addTestFile('main() { new A(^);}'
         'class A { A({one, two}) {} }');
     await getSuggestions();
@@ -53,7 +53,7 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
-  test_ArgumentList_factory_named_param_label() async {
+  Future<void> test_ArgumentList_factory_named_param_label() async {
     addTestFile('main() { new A(^);}'
         'class A { factory A({one, two}) => null; }');
     await getSuggestions();
@@ -64,7 +64,7 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
-  test_ArgumentList_imported_function_named_param() async {
+  Future<void> test_ArgumentList_imported_function_named_param() async {
     addTestFile('main() { int.parse("16", ^);}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
@@ -74,7 +74,7 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
-  test_ArgumentList_imported_function_named_param1() async {
+  Future<void> test_ArgumentList_imported_function_named_param1() async {
     addTestFile('main() { foo(o^);} foo({one, two}) {}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
@@ -84,7 +84,7 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
-  test_ArgumentList_imported_function_named_param2() async {
+  Future<void> test_ArgumentList_imported_function_named_param2() async {
     addTestFile('mainx() {A a = new A(); a.foo(one: 7, ^);}'
         'class A { foo({one, two}) {} }');
     await getSuggestions();
@@ -93,7 +93,7 @@ class A {
     expect(suggestions, hasLength(1));
   }
 
-  test_ArgumentList_imported_function_named_param_label1() async {
+  Future<void> test_ArgumentList_imported_function_named_param_label1() async {
     addTestFile('main() { int.parse("16", r^: 16);}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix',
@@ -103,7 +103,7 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
-  test_ArgumentList_imported_function_named_param_label3() async {
+  Future<void> test_ArgumentList_imported_function_named_param_label3() async {
     addTestFile('main() { int.parse("16", ^: 16);}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
@@ -113,7 +113,7 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
-  test_catch() async {
+  Future<void> test_catch() async {
     addTestFile('main() {try {} ^}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
@@ -125,7 +125,7 @@ class A {
     expect(suggestions, hasLength(3));
   }
 
-  test_catch2() async {
+  Future<void> test_catch2() async {
     addTestFile('main() {try {} on Foo {} ^}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
@@ -143,7 +143,7 @@ class A {
     });
   }
 
-  test_catch3() async {
+  Future<void> test_catch3() async {
     addTestFile('main() {try {} catch (e) {} finally {} ^}');
     await getSuggestions();
     assertNoResult('on');
@@ -158,7 +158,7 @@ class A {
     });
   }
 
-  test_catch4() async {
+  Future<void> test_catch4() async {
     addTestFile('main() {try {} finally {} ^}');
     await getSuggestions();
     assertNoResult('on');
@@ -173,7 +173,7 @@ class A {
     });
   }
 
-  test_catch5() async {
+  Future<void> test_catch5() async {
     addTestFile('main() {try {} ^ finally {}}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'on',
@@ -183,7 +183,7 @@ class A {
     expect(suggestions, hasLength(2));
   }
 
-  test_constructor() async {
+  Future<void> test_constructor() async {
     addTestFile('class A {bool foo; A() : ^;}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
@@ -192,7 +192,7 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  test_constructor2() async {
+  Future<void> test_constructor2() async {
     addTestFile('class A {bool foo; A() : s^;}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
@@ -201,7 +201,7 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  test_constructor3() async {
+  Future<void> test_constructor3() async {
     addTestFile('class A {bool foo; A() : a=7,^;}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
@@ -210,7 +210,7 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  test_constructor4() async {
+  Future<void> test_constructor4() async {
     addTestFile('class A {bool foo; A() : a=7,s^;}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
@@ -219,7 +219,7 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  test_constructor5() async {
+  Future<void> test_constructor5() async {
     addTestFile('class A {bool foo; A() : a=7,s^}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
@@ -228,7 +228,7 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  test_constructor6() async {
+  Future<void> test_constructor6() async {
     addTestFile('class A {bool foo; A() : a=7,^ void bar() {}}');
     await getSuggestions();
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'super',
@@ -237,7 +237,7 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FIELD);
   }
 
-  test_html() {
+  Future<void> test_html() {
     //
     // We no longer support the analysis of non-dart files.
     //
@@ -252,7 +252,7 @@ class A {
     });
   }
 
-  test_import_uri_with_trailing() {
+  Future<void> test_import_uri_with_trailing() {
     final filePath = '/project/bin/testA.dart';
     final incompleteImportText = toUriStr('/project/bin/t');
     newFile(filePath, content: 'library libA;');
@@ -268,7 +268,7 @@ class A {
     });
   }
 
-  test_imports() {
+  Future<void> test_imports() {
     addTestFile('''
       import 'dart:html';
       main() {^}
@@ -284,7 +284,7 @@ class A {
     });
   }
 
-  test_imports_aborted_new_request() async {
+  Future<void> test_imports_aborted_new_request() async {
     addTestFile('''
         class foo { }
         c^''');
@@ -325,7 +325,7 @@ class A {
   }
 
   @failingTest
-  test_imports_aborted_source_changed() async {
+  Future<void> test_imports_aborted_source_changed() async {
     // TODO(brianwilkerson) Figure out whether this test makes sense when
     // running the new driver. It waits for an initial empty notification then
     // waits for a new notification. But I think that under the driver we only
@@ -359,7 +359,7 @@ class A {
     expect(suggestions, hasLength(0));
   }
 
-  test_imports_incremental() async {
+  Future<void> test_imports_incremental() async {
     addTestFile('''library foo;
       e^
       import "dart:async";
@@ -382,7 +382,7 @@ class A {
     assertNoResult('library');
   }
 
-  test_imports_partial() async {
+  Future<void> test_imports_partial() async {
     addTestFile('''^
       import "package:foo/foo.dart";
       import "package:bar/bar.dart";
@@ -423,7 +423,7 @@ class A {
     assertNoResult('extends');
   }
 
-  test_imports_prefixed() {
+  Future<void> test_imports_prefixed() {
     addTestFile('''
       import 'dart:html' as foo;
       main() {^}
@@ -439,7 +439,7 @@ class A {
     });
   }
 
-  test_imports_prefixed2() {
+  Future<void> test_imports_prefixed2() {
     addTestFile('''
       import 'dart:html' as foo;
       main() {foo.^}
@@ -452,7 +452,7 @@ class A {
     });
   }
 
-  test_inComment_block_beforeNode() async {
+  Future<void> test_inComment_block_beforeNode() async {
     addTestFile('''
   main(aaa, bbb) {
     /* text ^ */
@@ -463,7 +463,7 @@ class A {
     expect(suggestions, isEmpty);
   }
 
-  test_inComment_endOfLine_beforeNode() async {
+  Future<void> test_inComment_endOfLine_beforeNode() async {
     addTestFile('''
   main(aaa, bbb) {
     // text ^
@@ -474,7 +474,7 @@ class A {
     expect(suggestions, isEmpty);
   }
 
-  test_inComment_endOfLine_beforeToken() async {
+  Future<void> test_inComment_endOfLine_beforeToken() async {
     addTestFile('''
   main(aaa, bbb) {
     // text ^
@@ -484,7 +484,7 @@ class A {
     expect(suggestions, isEmpty);
   }
 
-  test_inDartDoc1() async {
+  Future<void> test_inDartDoc1() async {
     addTestFile('''
   /// ^
   main(aaa, bbb) {}
@@ -493,7 +493,7 @@ class A {
     expect(suggestions, isEmpty);
   }
 
-  test_inDartDoc2() async {
+  Future<void> test_inDartDoc2() async {
     addTestFile('''
   /// Some text^
   main(aaa, bbb) {}
@@ -502,7 +502,7 @@ class A {
     expect(suggestions, isEmpty);
   }
 
-  test_inDartDoc_reference1() async {
+  Future<void> test_inDartDoc_reference1() async {
     newFile('/testA.dart', content: '''
   part of libA;
   foo(bar) => 0;''');
@@ -521,7 +521,7 @@ class A {
     assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'min');
   }
 
-  test_inDartDoc_reference2() async {
+  Future<void> test_inDartDoc_reference2() async {
     addTestFile('''
   /// The [m^]
   main(aaa, bbb) {}
@@ -531,7 +531,7 @@ class A {
         relevance: DART_RELEVANCE_LOCAL_FUNCTION);
   }
 
-  test_inherited() {
+  Future<void> test_inherited() {
     addTestFile('''
 class A {
   m() {}
@@ -547,7 +547,7 @@ class B extends A {
     });
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = CompletionGetSuggestionsParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -556,7 +556,7 @@ class B extends A {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
         CompletionGetSuggestionsParams(convertPath('/foo/../bar/test.dart'), 0)
             .toRequest('0');
@@ -567,7 +567,7 @@ class B extends A {
     );
   }
 
-  test_invocation() {
+  Future<void> test_invocation() {
     addTestFile('class A {b() {}} main() {A a; a.^}');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
@@ -576,7 +576,7 @@ class B extends A {
     });
   }
 
-  test_invocation_sdk_relevancy_off() {
+  Future<void> test_invocation_sdk_relevancy_off() {
     var originalSorter = DartCompletionManager.contributionSorter;
     var mockSorter = MockRelevancySorter();
     DartCompletionManager.contributionSorter = mockSorter;
@@ -590,7 +590,7 @@ class B extends A {
     });
   }
 
-  test_invocation_sdk_relevancy_on() {
+  Future<void> test_invocation_sdk_relevancy_on() {
     addTestFile('main() {Map m; m.^}');
     return getSuggestions().then((_) {
       // Assert that the CommonUsageComputer is working
@@ -599,7 +599,7 @@ class B extends A {
     });
   }
 
-  test_invocation_withTrailingStmt() {
+  Future<void> test_invocation_withTrailingStmt() {
     addTestFile('class A {b() {}} main() {A a; a.^ int x = 7;}');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
@@ -608,7 +608,7 @@ class B extends A {
     });
   }
 
-  test_is_asPrefixedIdentifierStart() async {
+  Future<void> test_is_asPrefixedIdentifierStart() async {
     addTestFile('''
 class A { var isVisible;}
 main(A p) { var v1 = p.is^; }''');
@@ -617,7 +617,7 @@ main(A p) { var v1 = p.is^; }''');
         relevance: DART_RELEVANCE_DEFAULT);
   }
 
-  test_keyword() {
+  Future<void> test_keyword() {
     addTestFile('library A; cl^');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset - 2));
@@ -629,7 +629,7 @@ main(A p) { var v1 = p.is^; }''');
     });
   }
 
-  test_local_implicitCreation() async {
+  Future<void> test_local_implicitCreation() async {
     addTestFile('''
 class A {
   A();
@@ -655,7 +655,7 @@ main() {
         elementKind: ElementKind.CONSTRUCTOR);
   }
 
-  test_local_named_constructor() {
+  Future<void> test_local_named_constructor() {
     addTestFile('class A {A.c(); x() {new A.^}}');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
@@ -665,7 +665,7 @@ main() {
     });
   }
 
-  test_local_override() {
+  Future<void> test_local_override() {
     newFile('/project/bin/a.dart', content: 'class A {m() {}}');
     addTestFile('''
 import 'a.dart';
@@ -682,7 +682,7 @@ class B extends A {
     });
   }
 
-  test_local_shadowClass() async {
+  Future<void> test_local_shadowClass() async {
     addTestFile('''
 class A {
   A();
@@ -708,7 +708,7 @@ main() {
     assertNoResult('A.named', elementKind: ElementKind.CONSTRUCTOR);
   }
 
-  test_locals() {
+  Future<void> test_locals() {
     addTestFile('class A {var a; x() {var b;^}} class DateTime { }');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
@@ -726,7 +726,7 @@ main() {
     });
   }
 
-  test_offset_past_eof() async {
+  Future<void> test_offset_past_eof() async {
     addTestFile('main() { }', offset: 300);
     Request request = CompletionGetSuggestionsParams(testFile, completionOffset)
         .toRequest('0');
@@ -735,7 +735,7 @@ main() {
     expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
   }
 
-  test_overrides() {
+  Future<void> test_overrides() {
     newFile('/project/bin/a.dart', content: 'class A {m() {}}');
     addTestFile('''
 import 'a.dart';
@@ -749,7 +749,7 @@ class B extends A {m() {^}}
     });
   }
 
-  test_partFile() {
+  Future<void> test_partFile() {
     newFile('/project/bin/a.dart', content: '''
       library libA;
       import 'dart:html';
@@ -772,7 +772,7 @@ class B extends A {m() {^}}
     });
   }
 
-  test_partFile2() {
+  Future<void> test_partFile2() {
     newFile('/project/bin/a.dart', content: '''
       part of libA;
       class A { }''');
@@ -795,7 +795,7 @@ class B extends A {m() {^}}
     });
   }
 
-  test_sentToPlugins() async {
+  Future<void> test_sentToPlugins() async {
     addTestFile('''
       void main() {
         ^
@@ -816,7 +816,7 @@ class B extends A {m() {^}}
         selectionOffset: 3);
   }
 
-  test_simple() {
+  Future<void> test_simple() {
     addTestFile('''
       void main() {
         ^
@@ -832,7 +832,7 @@ class B extends A {m() {^}}
     });
   }
 
-  test_static() {
+  Future<void> test_static() {
     addTestFile('class A {static b() {} c() {}} main() {A.^}');
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset));
@@ -842,7 +842,7 @@ class B extends A {m() {^}}
     });
   }
 
-  test_topLevel() {
+  Future<void> test_topLevel() {
     addTestFile('''
       typedef foo();
       var test = '';
@@ -879,7 +879,7 @@ class CompletionDomainHandlerListTokenDetailsTest
     testFileUri = toUriStr(testFile);
   }
 
-  test_classDeclaration() async {
+  Future<void> test_classDeclaration() async {
     await expectTokens('''
 class A {}
 class B extends A {}
@@ -921,7 +921,7 @@ class D with C {}
     ]);
   }
 
-  test_genericType() async {
+  Future<void> test_genericType() async {
     await expectTokens('''
 List<int> x = null;
 ''', [
@@ -941,7 +941,7 @@ List<int> x = null;
     ]);
   }
 
-  test_getterInvocation() async {
+  Future<void> test_getterInvocation() async {
     await expectTokens('''
 var x = 'a'.length;
 ''', [
@@ -958,7 +958,7 @@ var x = 'a'.length;
     ]);
   }
 
-  test_literal_bool() async {
+  Future<void> test_literal_bool() async {
     await expectTokens('''
 var x = true;
 ''', [
@@ -972,7 +972,7 @@ var x = true;
     ]);
   }
 
-  test_literal_double() async {
+  Future<void> test_literal_double() async {
     await expectTokens('''
 var x = 3.4;
 ''', [
@@ -987,7 +987,7 @@ var x = 3.4;
     ]);
   }
 
-  test_literal_int() async {
+  Future<void> test_literal_int() async {
     await expectTokens('''
 var x = 7;
 ''', [
@@ -1000,7 +1000,7 @@ var x = 7;
     ]);
   }
 
-  test_literal_list() async {
+  Future<void> test_literal_list() async {
     await expectTokens('''
 var x = <int>[];
 ''', [
@@ -1019,7 +1019,7 @@ var x = <int>[];
     ]);
   }
 
-  test_literal_map() async {
+  Future<void> test_literal_map() async {
     await expectTokens('''
 var x = <int, int>{};
 ''', [
@@ -1042,7 +1042,7 @@ var x = <int, int>{};
     ]);
   }
 
-  test_literal_null() async {
+  Future<void> test_literal_null() async {
     await expectTokens('''
 var x = null;
 ''', [
@@ -1054,7 +1054,7 @@ var x = null;
     ]);
   }
 
-  test_literal_set() async {
+  Future<void> test_literal_set() async {
     await expectTokens('''
 var x = <int>{};
 ''', [
@@ -1073,7 +1073,7 @@ var x = <int>{};
     ]);
   }
 
-  test_literal_string() async {
+  Future<void> test_literal_string() async {
     await expectTokens('''
 var x = 'a';
 ''', [
@@ -1088,7 +1088,7 @@ var x = 'a';
     ]);
   }
 
-  test_methodDeclaration() async {
+  Future<void> test_methodDeclaration() async {
     await expectTokens('''
 class A {
   String c(int x, int y) {}
@@ -1123,7 +1123,7 @@ class A {
     ]);
   }
 
-  test_methodInvocation() async {
+  Future<void> test_methodInvocation() async {
     await expectTokens('''
 var x = 'radar'.indexOf('r', 1);
 ''', [
@@ -1147,7 +1147,7 @@ var x = 'radar'.indexOf('r', 1);
     ]);
   }
 
-  test_mixinDeclaration() async {
+  Future<void> test_mixinDeclaration() async {
     await expectTokens('''
 class A {}
 class B {}
@@ -1179,7 +1179,7 @@ mixin D on A implements B {}
     ]);
   }
 
-  test_parameterReference() async {
+  Future<void> test_parameterReference() async {
     await expectTokens('''
 int f(int p) {
   return p;
@@ -1207,7 +1207,7 @@ int f(int p) {
     ]);
   }
 
-  test_topLevelVariable_withDocComment() async {
+  Future<void> test_topLevelVariable_withDocComment() async {
     await expectTokens('''
 /// Doc comment [x] with reference.
 int x;

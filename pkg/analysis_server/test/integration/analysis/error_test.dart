@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisErrorIntegrationTest);
   });
@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class AnalysisErrorIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
-  test_analysisRootDoesNotExist() async {
+  Future<void> test_analysisRootDoesNotExist() async {
     String packagePath = sourcePath('package');
     String filePath = sourcePath('package/lib/test.dart');
     String content = '''
@@ -36,7 +36,7 @@ main() {
     expect(errors[0].location.file, equals(filePath));
   }
 
-  test_detect_simple_error() {
+  Future<void> test_detect_simple_error() {
     String pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 main() {
@@ -51,7 +51,7 @@ main() {
     });
   }
 
-  test_super_mixins_disabled() async {
+  Future<void> test_super_mixins_disabled() async {
     String pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 class Test extends Object with C {
@@ -84,7 +84,7 @@ abstract class C extends B {
   }
 
   @failingTest
-  test_super_mixins_enabled() async {
+  Future<void> test_super_mixins_enabled() async {
     // We see errors here with the new driver (#28870).
     //  Expected: empty
     //    Actual: [

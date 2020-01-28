@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetStatementCompletionTest);
   });
@@ -18,7 +18,7 @@ main() {
 @reflectiveTest
 class GetStatementCompletionTest extends AbstractAnalysisServerIntegrationTest {
   @TestTimeout(Timeout.factor(2))
-  test_statement_completion() async {
+  Future<void> test_statement_completion() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 void bar() { foo() } // missing semi-colon

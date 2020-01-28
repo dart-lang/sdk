@@ -14,7 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetErrorsTest);
   });
@@ -33,7 +33,7 @@ class GetErrorsTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_afterAnalysisComplete() async {
+  Future<void> test_afterAnalysisComplete() async {
     addTestFile('''
 main() {
   print(42)
@@ -44,7 +44,7 @@ main() {
     expect(errors, hasLength(1));
   }
 
-  test_errorInPart() async {
+  Future<void> test_errorInPart() async {
     String libPath = join(testFolder, 'main.dart');
     String partPath = join(testFolder, 'main_part.dart');
     newFile(libPath, content: r'''
@@ -68,7 +68,7 @@ class A {}
   }
 
   @failingTest
-  test_fileWithoutContext() {
+  Future<void> test_fileWithoutContext() async {
     // Broken under the new driver.
     String file = convertPath('/outside.dart');
     newFile(file, content: '''
@@ -76,10 +76,10 @@ main() {
   print(42);
 }
 ''');
-    return _checkInvalid(file);
+    await _checkInvalid(file);
   }
 
-  test_hasErrors() async {
+  Future<void> test_hasErrors() async {
     addTestFile('''
 main() {
   print(42)
@@ -96,7 +96,7 @@ main() {
     }
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = _createGetErrorsRequest('test.dart');
     var response = await waitResponse(request);
     expect(
@@ -105,7 +105,7 @@ main() {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = _createGetErrorsRequest(convertPath('/foo/../bar/test.dart'));
     var response = await waitResponse(request);
     expect(
@@ -114,7 +114,7 @@ main() {
     );
   }
 
-  test_noErrors() async {
+  Future<void> test_noErrors() async {
     addTestFile('''
 main() {
   print(42);
@@ -124,7 +124,7 @@ main() {
     expect(errors, isEmpty);
   }
 
-  Future _checkInvalid(String file) async {
+  Future<void> _checkInvalid(String file) async {
     Request request = _createGetErrorsRequest(file);
     Response response = await serverChannel.sendRequest(request);
     expect(response.error, isNotNull);
