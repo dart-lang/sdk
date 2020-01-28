@@ -2671,10 +2671,7 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @failingTest
   Future<void> test_map_nullable_input() async {
-    // TODO(paulberry): we're currently migrating this example incorrectly.
-    // See discussion at https://dart-review.googlesource.com/c/sdk/+/115766
     var content = '''
 Iterable<int> f(List<int> x) => x.map((y) => g(y));
 int g(int x) => x + 1;
@@ -2685,6 +2682,24 @@ main() {
     var expected = '''
 Iterable<int> f(List<int?> x) => x.map((y) => g(y!));
 int g(int x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_map_nullable_input_tearoff() async {
+    var content = '''
+Iterable<int> f(List<int> x) => x.map(g);
+int g(int x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    var expected = '''
+Iterable<int> f(List<int?> x) => x.map(g);
+int g(int? x) => x! + 1;
 main() {
   f([null]);
 }
@@ -3749,6 +3764,36 @@ int f() => null;
 ''';
     var expected = '''
 int? f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_tearoff_parameter_matching_named() async {
+    var content = '''
+void f(int x, void Function({int x}) callback) {
+  callback(x: x);
+}
+void g({int x}) {
+  assert(x != null);
+}
+void h() {
+  f(null, g);
+}
+''';
+    // Normally the assertion in g would cause g's `x` argument to be
+    // non-nullable (and thus required).  However, since g is torn off and
+    // passed to f, which requires a callback that accepts null, g's `x`
+    // argument is nullable (and thus not required).
+    var expected = '''
+void f(int? x, void Function({int? x}) callback) {
+  callback(x: x);
+}
+void g({int? x}) {
+  assert(x != null);
+}
+void h() {
+  f(null, g);
+}
 ''';
     await _checkSingleFileChanges(content, expected);
   }

@@ -2721,14 +2721,16 @@ mixin _AssignmentChecker {
         _checkAssignment(origin,
             source: destination.positionalParameters[i],
             destination: source.positionalParameters[i],
-            hard: false);
+            hard: false,
+            checkable: false);
       }
       for (var entry in destination.namedParameters.entries) {
         // Note: source and destination are swapped due to contravariance.
         _checkAssignment(origin,
             source: entry.value,
             destination: source.namedParameters[entry.key],
-            hard: false);
+            hard: false,
+            checkable: false);
       }
     } else if (destinationType.isDynamic || sourceType.isDynamic) {
       // ok; nothing further to do.

@@ -133,7 +133,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.namedParameters['x'].node, t1.namedParameters['x'].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_function_type_named_to_no_parameter() {
@@ -149,7 +149,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_function_type_positional_to_no_parameter() {
@@ -165,7 +165,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_function_type_required_parameter() {
@@ -174,7 +174,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_function_type_return_type() {
@@ -1262,8 +1262,9 @@ void Function(int) f(void Function(int) x, void Function(int) y) => x ??= y;
     var yParamNullable = decoratedTypeAnnotation('int) y').node;
     var returnParamNullable = decoratedTypeAnnotation('int) f').node;
     assertEdge(xParamNullable, yParamNullable,
-        hard: false, guards: [xNullable]);
-    assertEdge(returnParamNullable, xParamNullable, hard: false);
+        hard: false, checkable: false, guards: [xNullable]);
+    assertEdge(returnParamNullable, xParamNullable,
+        hard: false, checkable: false);
   }
 
   Future<void> test_assignmentExpression_nullAware_complex_covariant() async {
@@ -2613,10 +2614,10 @@ class C {
         hard: false);
     assertEdge(fieldType.positionalParameters[0].node,
         ctorParamType.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
     assertEdge(fieldType.namedParameters['j'].node,
         ctorParamType.namedParameters['j'].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_fieldFormalParameter_typed() async {
@@ -5697,7 +5698,7 @@ int Function(int) g(C c) => c.f;
     assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_prefixExpression_bang() async {
@@ -6401,7 +6402,7 @@ int Function(int) g() => f;
     assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_simpleIdentifier_tearoff_method() async {
@@ -6417,7 +6418,7 @@ abstract class C {
     assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_skipDirectives() async {
