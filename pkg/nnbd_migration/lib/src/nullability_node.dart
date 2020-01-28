@@ -29,8 +29,15 @@ class NullabilityEdge implements EdgeInfo {
   @override
   Iterable<NullabilityNode> get guards => upstreamNodes.skip(1);
 
+  /// Indicates whether it's possible for migration to cope with this edge being
+  /// unsatisfied by inserting a null check.  Graph propagation favors
+  /// satisfying uncheckable edges over satisfying hard edges.
+  bool get isCheckable =>
+      _kind == _NullabilityEdgeKind.soft || _kind == _NullabilityEdgeKind.hard;
+
   @override
-  bool get isHard => _kind != _NullabilityEdgeKind.soft;
+  bool get isHard =>
+      _kind == _NullabilityEdgeKind.hard || _kind == _NullabilityEdgeKind.union;
 
   @override
   bool get isSatisfied {
@@ -64,6 +71,9 @@ class NullabilityEdge implements EdgeInfo {
     var edgeDecorations = <Object>[];
     switch (_kind) {
       case _NullabilityEdgeKind.soft:
+        break;
+      case _NullabilityEdgeKind.uncheckable:
+        edgeDecorations.add('uncheckable');
         break;
       case _NullabilityEdgeKind.hard:
         edgeDecorations.add('hard');
@@ -247,8 +257,10 @@ class NullabilityGraph {
           suffix = ' [label="union"]';
         } else if (edge.isHard) {
           suffix = ' [label="hard"]';
-        } else {
+        } else if (edge.isCheckable) {
           suffix = '';
+        } else {
+          suffix = ' [label="uncheckable"]';
         }
         var upstreamNodes = edge.upstreamNodes;
         if (upstreamNodes.length == 1) {
@@ -551,8 +563,13 @@ class PropagationResult {
 
 /// Kinds of nullability edges
 enum _NullabilityEdgeKind {
-  /// Soft edge.  Propagates nullability downstream only.
+  /// Soft edge.  Propagates nullability downstream only.  May be overridden by
+  /// suggestions that the user intends non-nullability.
   soft,
+
+  /// Uncheckable edge.  Propagates nullability downstream only.  May not be
+  /// overridden by suggestions that the user intends non-nullability.
+  uncheckable,
 
   /// Hard edge.  Propagates nullability downstream and non-nullability
   /// upstream.
@@ -642,50 +659,21 @@ class _PropagationState {
   /// nodes that have not yet been resolved.
   List<NullabilityNodeForSubstitution> _pendingSubstitutions = [];
 
-  /// After execution of [_propagateAlways], a list of all nodes reachable from
-  /// [_always] via zero or more edges of kind [_NullabilityEdgeKind.union].
-  final List<NullabilityNode> _unionedWithAlways = [];
-
   _PropagationState(this._always, this._instrumentation, this._never) {
-    _propagateAlways();
     _propagateUpstream();
     _propagateDownstream();
-  }
-
-  /// Propagates nullability downstream along union edges from "always".
-  void _propagateAlways() {
-    _unionedWithAlways.add(_always);
-    _pendingEdges.addAll(_always._downstreamEdges);
-    while (_pendingEdges.isNotEmpty) {
-      var edge = _pendingEdges.removeLast();
-      if (!edge.isUnion) continue;
-      // Union edges always have exactly one upstream node, so we don't need to
-      // check whether all upstream nodes are nullable.
-      assert(edge.upstreamNodes.length == 1);
-      var node = edge.destinationNode;
-      if (node is NullabilityNodeMutable && !node.isNullable) {
-        _unionedWithAlways.add(node);
-        _setState(_PropagationStep(
-            node, NullabilityState.ordinaryNullable, StateChangeReason.union,
-            edge: edge));
-        // Was not previously nullable, so we need to propagate.
-        _pendingEdges.addAll(node._downstreamEdges);
-      }
-    }
   }
 
   /// Propagates nullability downstream.
   void _propagateDownstream() {
     assert(_pendingEdges.isEmpty);
-    for (var node in _unionedWithAlways) {
-      _pendingEdges.addAll(node._downstreamEdges);
-    }
+    _pendingEdges.addAll(_always._downstreamEdges);
     while (true) {
       while (_pendingEdges.isNotEmpty) {
         var edge = _pendingEdges.removeLast();
         if (!edge.isTriggered) continue;
         var node = edge.destinationNode;
-        if (node._state == NullabilityState.nonNullable) {
+        if (node._state == NullabilityState.nonNullable && edge.isCheckable) {
           // The node has already been marked as non-nullable, so the edge can't
           // be satisfied.
           result.unsatisfiedEdges.add(edge);
