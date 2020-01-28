@@ -140,7 +140,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   List<RefactoringMethodParameter> get parameters => _parameters;
 
   @override
-  void set parameters(List<RefactoringMethodParameter> parameters) {
+  set parameters(List<RefactoringMethodParameter> parameters) {
     _parameters = parameters.toList();
   }
 
