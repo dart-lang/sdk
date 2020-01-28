@@ -64,6 +64,7 @@ atom
 atoms
 attributes
 automagically
+auxiliary
 awaiting
 b
 b0i
@@ -357,6 +358,7 @@ fcon
 fcov
 fe
 feff
+fetched
 ff
 fff
 ffff
@@ -422,6 +424,7 @@ gzip
 gzipped
 h
 hadn't
+hang
 harness
 hashes
 hashing
@@ -606,6 +609,7 @@ mk
 mm
 mn
 mockito
+momentarily
 monomorphic
 morebottom
 moretop
@@ -966,6 +970,7 @@ sw
 swapped
 sweep
 synchronously
+syncs
 synth
 t
 tagged

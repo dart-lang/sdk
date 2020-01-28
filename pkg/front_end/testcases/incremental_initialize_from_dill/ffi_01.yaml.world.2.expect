@@ -1,0 +1,64 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib.dart" as lib {
+
+  import "dart:ffi";
+
+  @#C3
+  class Coordinate extends dart.ffi::Struct {
+    @#C3
+    static final field dart.core::int* #sizeOf = (#C6).{dart.core::List::[]}(dart.ffi::_abi());
+    @#C3
+    constructor #fromPointer(dynamic #pointer) → dynamic
+      : super dart.ffi::Struct::_fromPointer(#pointer)
+      ;
+    static factory allocate(dart.core::double* x, dart.core::double* y, dart.ffi::Pointer<lib::Coordinate*>* next) → lib::Coordinate* {
+      return null;
+    }
+    get #_ptr_x() → dart.ffi::Pointer<dart.ffi::Double*>*
+      return this.{dart.ffi::Struct::_addressOf}.{dart.ffi::Pointer::cast}<dart.ffi::Double*>();
+    get x() → dart.core::double*
+      return dart.ffi::_loadDouble(this.{lib::Coordinate::#_ptr_x}, #C7);
+    set x(dart.core::double* #v) → void
+      return dart.ffi::_storeDouble(this.{lib::Coordinate::#_ptr_x}, #C7, #v);
+    get #_ptr_y() → dart.ffi::Pointer<dart.ffi::Double*>*
+      return this.{dart.ffi::Struct::_addressOf}.{dart.ffi::Pointer::_offsetBy}((#C9).{dart.core::List::[]}(dart.ffi::_abi())).{dart.ffi::Pointer::cast}<dart.ffi::Double*>();
+    get y() → dart.core::double*
+      return dart.ffi::_loadDouble(this.{lib::Coordinate::#_ptr_y}, #C7);
+    set y(dart.core::double* #v) → void
+      return dart.ffi::_storeDouble(this.{lib::Coordinate::#_ptr_y}, #C7, #v);
+    get #_ptr_next() → dart.ffi::Pointer<dart.ffi::Pointer<lib::Coordinate*>*>*
+      return this.{dart.ffi::Struct::_addressOf}.{dart.ffi::Pointer::_offsetBy}((#C11).{dart.core::List::[]}(dart.ffi::_abi())).{dart.ffi::Pointer::cast}<dart.ffi::Pointer<lib::Coordinate*>*>();
+    get next() → dart.ffi::Pointer<lib::Coordinate*>*
+      return dart.ffi::_loadPointer<dart.ffi::Pointer<lib::Coordinate*>*>(this.{lib::Coordinate::#_ptr_next}, #C7);
+    set next(dart.ffi::Pointer<lib::Coordinate*>* #v) → void
+      return dart.ffi::_storePointer<dart.ffi::Pointer<lib::Coordinate*>*>(this.{lib::Coordinate::#_ptr_next}, #C7, #v);
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib.dart";
+
+  static method main() → dynamic {
+    lib::Coordinate* coordinate = lib::Coordinate::allocate(42.0, 42.0, null);
+    dart.core::print(coordinate.{lib::Coordinate::x});
+    dart.core::print(coordinate.{lib::Coordinate::y});
+    dart.core::print(coordinate.{lib::Coordinate::next});
+    main::done();
+  }
+  static method done() → dynamic {
+    dart.core::print("Done!");
+  }
+}
+constants  {
+  #C1 = "vm:entry-point"
+  #C2 = null
+  #C3 = dart.core::pragma {name:#C1, options:#C2}
+  #C4 = 24
+  #C5 = 20
+  #C6 = <dart.core::int*>[#C4, #C5, #C4]
+  #C7 = 0
+  #C8 = 8
+  #C9 = <dart.core::int*>[#C8, #C8, #C8]
+  #C10 = 16
+  #C11 = <dart.core::int*>[#C10, #C10, #C10]
+}

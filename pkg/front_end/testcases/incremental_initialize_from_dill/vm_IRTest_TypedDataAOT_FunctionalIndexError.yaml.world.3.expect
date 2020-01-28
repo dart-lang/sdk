@@ -1,0 +1,9 @@
+main = <No Member>;
+library from "org-dartlang-test:///set-Uint8List.dart" as set {
+
+  import "dart:typed_data";
+
+  static method setUint8List(dart.typed_data::Uint8List* list, dart.core::int* index, dart.core::int* value) → void {
+    list.{dart.core::List::[]=}(index, value);
+  }
+}
