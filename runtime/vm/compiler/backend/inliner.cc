@@ -3572,6 +3572,13 @@ static bool InlineMathCFunction(FlowGraph* flow_graph,
   if (!CanUnboxDouble()) {
     return false;
   }
+
+  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+    if (call->ArgumentAt(i)->Type()->ToCid() != kDoubleCid) {
+      return false;
+    }
+  }
+
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
