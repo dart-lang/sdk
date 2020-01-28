@@ -520,8 +520,8 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type is determined by type inference.
-  factory NullabilityNode.forInferredType() =>
-      _NullabilityNodeSimple('inferred');
+  factory NullabilityNode.forInferredType({int offset}) =>
+      _NullabilityNodeSimple('inferred${offset == null ? '' : '($offset)'}');
 
   /// Creates a [NullabilityNode] representing the nullability of an
   /// expression which is nullable iff either [a] or [b] is nullable.

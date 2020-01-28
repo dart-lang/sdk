@@ -621,7 +621,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         decoratedType = type.accept(this);
       } else {
         decoratedType = DecoratedType.forImplicitType(
-            _typeProvider, declaredElement.type, _graph);
+            _typeProvider, declaredElement.type, _graph,
+            offset: node.offset);
         instrumentation?.implicitType(source, node, decoratedType);
       }
     } else {

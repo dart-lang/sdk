@@ -149,8 +149,8 @@ class DecoratedType implements DecoratedTypeInfo {
   /// nodes can later be unioned with other nodes.
   factory DecoratedType.forImplicitType(
       TypeProvider typeProvider, DartType type, NullabilityGraph graph,
-      {List<DecoratedType> typeArguments}) {
-    var nullabilityNode = NullabilityNode.forInferredType();
+      {List<DecoratedType> typeArguments, int offset}) {
+    var nullabilityNode = NullabilityNode.forInferredType(offset: offset);
     if (type is InterfaceType) {
       assert(() {
         if (typeArguments != null) {
@@ -163,7 +163,8 @@ class DecoratedType implements DecoratedTypeInfo {
       }());
 
       typeArguments ??= type.typeArguments
-          .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph))
+          .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph,
+              offset: offset))
           .toList();
       return DecoratedType(type, nullabilityNode, typeArguments: typeArguments);
     } else if (type is FunctionType) {
