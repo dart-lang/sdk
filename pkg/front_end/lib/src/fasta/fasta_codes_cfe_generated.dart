@@ -2001,6 +2001,79 @@ Message _withArgumentsNullableMethodCallWarning(
 const Template<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>
+    templateNullableOperatorCallError = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Operator '#name' cannot be called on '#type' because it is potentially null.""",
+        withArguments: _withArgumentsNullableOperatorCallError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeNullableOperatorCallError = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "NullableOperatorCallError",
+  templateNullableOperatorCallError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableOperatorCallError(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeNullableOperatorCallError,
+      message:
+          """Operator '${name}' cannot be called on '${type}' because it is potentially null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateNullableOperatorCallWarning = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Operator '#name' is called on '#type' which is potentially null.""",
+        withArguments: _withArgumentsNullableOperatorCallWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeNullableOperatorCallWarning = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "NullableOperatorCallWarning", templateNullableOperatorCallWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableOperatorCallWarning(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeNullableOperatorCallWarning,
+      message:
+          """Operator '${name}' is called on '${type}' which is potentially null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
     templateNullablePropertyAccessError = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(
@@ -2071,6 +2144,82 @@ Message _withArgumentsNullablePropertyAccessWarning(
           """Property '${name}' is accessed on '${type}' which is potentially null.""" +
               labeler.originMessages,
       tip: """Try accessing using ?. instead.""",
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateOptionalNonNullableWithoutInitializerError = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Optional parameter '#name' should have a default value because its type '#type' doesn't allow null.""",
+        withArguments:
+            _withArgumentsOptionalNonNullableWithoutInitializerError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeOptionalNonNullableWithoutInitializerError = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "OptionalNonNullableWithoutInitializerError",
+  templateOptionalNonNullableWithoutInitializerError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOptionalNonNullableWithoutInitializerError(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeOptionalNonNullableWithoutInitializerError,
+      message:
+          """Optional parameter '${name}' should have a default value because its type '${type}' doesn't allow null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateOptionalNonNullableWithoutInitializerWarning = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Optional parameter '#name' doesn't have a default value and its type '#type' doesn't allow null.""",
+        withArguments:
+            _withArgumentsOptionalNonNullableWithoutInitializerWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeOptionalNonNullableWithoutInitializerWarning = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "OptionalNonNullableWithoutInitializerWarning",
+        templateOptionalNonNullableWithoutInitializerWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOptionalNonNullableWithoutInitializerWarning(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeOptionalNonNullableWithoutInitializerWarning,
+      message:
+          """Optional parameter '${name}' doesn't have a default value and its type '${type}' doesn't allow null.""" +
+              labeler.originMessages,
       arguments: {'name': name, 'type': _type});
 }
 
@@ -2224,6 +2373,60 @@ Message _withArgumentsOverrideTypeMismatchSetter(String name, DartType _type,
         'type': _type,
         'type2': _type2,
         'name2': name2
+      });
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(DartType _type, String name, String name2,
+            DartType _type2, String name3, bool isNonNullableByDefault)>
+    templateOverrideTypeVariablesBoundMismatch = const Template<
+            Message Function(DartType _type, String name, String name2,
+                DartType _type2, String name3, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'.""",
+        withArguments: _withArgumentsOverrideTypeVariablesBoundMismatch);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(DartType _type, String name, String name2,
+            DartType _type2, String name3, bool isNonNullableByDefault)>
+    codeOverrideTypeVariablesBoundMismatch = const Code<
+        Message Function(DartType _type, String name, String name2,
+            DartType _type2, String name3, bool isNonNullableByDefault)>(
+  "OverrideTypeVariablesBoundMismatch",
+  templateOverrideTypeVariablesBoundMismatch,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOverrideTypeVariablesBoundMismatch(
+    DartType _type,
+    String name,
+    String name2,
+    DartType _type2,
+    String name3,
+    bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  if (name3.isEmpty) throw 'No name provided';
+  name3 = demangleMixinApplicationName(name3);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeOverrideTypeVariablesBoundMismatch,
+      message:
+          """Declared bound '${type}' of type variable '${name}' of '${name2}' doesn't match the bound '${type2}' on overridden method '${name3}'.""" +
+              labeler.originMessages,
+      arguments: {
+        'type': _type,
+        'name': name,
+        'name2': name2,
+        'type2': _type2,
+        'name3': name3
       });
 }
 

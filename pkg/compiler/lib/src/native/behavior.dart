@@ -762,8 +762,8 @@ abstract class BehaviorBuilder {
   /// Returns a list of type constraints from the annotations of
   /// [annotationClass].
   /// Returns `null` if no constraints.
-  List _collect(Iterable<String> annotations, TypeLookup lookupType) {
-    var types = null;
+  List<dynamic> _collect(Iterable<String> annotations, TypeLookup lookupType) {
+    List<dynamic> types = null;
     for (String specString in annotations) {
       for (final typeString in specString.split('|')) {
         var type = NativeBehavior._parseType(typeString, lookupType);
@@ -835,6 +835,14 @@ abstract class BehaviorBuilder {
     }
   }
 
+  void _handleSideEffects() {
+    // TODO(sra): We can probably assume DOM getters are idempotent.
+    // TODO(sra): Add an annotation that includes other attributes, for example,
+    // a @Behavior() annotation that supports the same language as JS().
+    _behavior.sideEffects.setDependsOnSomething();
+    _behavior.sideEffects.setAllSideEffects();
+  }
+
   NativeBehavior buildFieldLoadBehavior(
       DartType type,
       Iterable<String> createsAnnotations,
@@ -851,6 +859,7 @@ abstract class BehaviorBuilder {
     _capture(type, isJsInterop);
     _overrideWithAnnotations(
         createsAnnotations, returnsAnnotations, lookupType);
+    _handleSideEffects();
     return _behavior;
   }
 
@@ -859,6 +868,7 @@ abstract class BehaviorBuilder {
     _escape(type, false);
     // We don't override the default behaviour - the annotations apply to
     // loading the field.
+    _handleSideEffects();
     return _behavior;
   }
 
@@ -896,6 +906,8 @@ abstract class BehaviorBuilder {
     }
 
     _overrideWithAnnotations(createAnnotations, returnsAnnotations, lookupType);
+    _handleSideEffects();
+
     return _behavior;
   }
 }

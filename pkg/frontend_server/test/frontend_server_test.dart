@@ -1235,6 +1235,77 @@ true
       expect(await starter(args), 0);
     });
 
+    group('http uris', () {
+      var host = 'localhost';
+      File dillFile;
+      int port;
+      HttpServer server;
+
+      setUp(() async {
+        dillFile = File('${tempDir.path}/app.dill');
+        server = await HttpServer.bind(host, 0);
+        port = server.port;
+        server.listen((request) {
+          var path = request.uri.path;
+          var file = File('${tempDir.path}$path');
+          var response = request.response;
+          if (!file.existsSync()) {
+            response.statusCode = 404;
+          } else {
+            response.statusCode = 200;
+            response.add(file.readAsBytesSync());
+          }
+          response.close();
+        });
+        var main = File('${tempDir.path}/foo.dart')..createSync();
+        main.writeAsStringSync(
+            "import 'package:foo/foo.dart'; main() {print(foo);}\n");
+        File('${tempDir.path}/.packages')
+          ..createSync()
+          ..writeAsStringSync("\nfoo:http://$host:$port/packages/foo");
+        File('${tempDir.path}/packages/foo/foo.dart')
+          ..createSync(recursive: true)
+          ..writeAsStringSync("var foo = 'hello';");
+      });
+
+      tearDown(() async {
+        await server.close();
+        print('closed');
+      });
+
+      test('compile with http uris', () async {
+        expect(dillFile.existsSync(), equals(false));
+        final List<String> args = <String>[
+          '--sdk-root=${sdkRoot.toFilePath()}',
+          '--incremental',
+          '--platform=${platformKernel.path}',
+          '--output-dill=${dillFile.path}',
+          '--enable-http-uris',
+          '--packages=http://$host:$port/.packages',
+          'http://$host:$port/foo.dart',
+        ];
+        expect(await starter(args), 0);
+        expect(dillFile.existsSync(), equals(true));
+      });
+
+      test('compile with an http file system root', () async {
+        expect(dillFile.existsSync(), equals(false));
+        final List<String> args = <String>[
+          '--sdk-root=${sdkRoot.toFilePath()}',
+          '--incremental',
+          '--platform=${platformKernel.path}',
+          '--output-dill=${dillFile.path}',
+          '--enable-http-uris',
+          '--packages=test-app:///.packages',
+          '--filesystem-root=http://$host:$port/',
+          '--filesystem-scheme=test-app',
+          'test-app:///foo.dart',
+        ];
+        expect(await starter(args), 0);
+        expect(dillFile.existsSync(), equals(true));
+      });
+    });
+
     test('compile to JavaScript', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");

@@ -148,7 +148,8 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
-  Expression createVariableGet(VariableDeclaration variable, int charOffset);
+  Expression createVariableGet(VariableDeclaration variable, int charOffset,
+      {bool forNullGuardedAccess: false});
 
   /// Registers that [variable] is assigned to.
   ///

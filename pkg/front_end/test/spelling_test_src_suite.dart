@@ -15,10 +15,13 @@ main([List<String> arguments = const []]) =>
 
 Future<SpellContext> createContext(
     Chain suite, Map<String, String> environment) async {
-  return new SpellContextSource();
+  bool interactive = environment["interactive"] == "true";
+  return new SpellContextSource(interactive: interactive);
 }
 
 class SpellContextSource extends SpellContext {
+  SpellContextSource({bool interactive}) : super(interactive: interactive);
+
   @override
   List<spell.Dictionaries> get dictionaries => const <spell.Dictionaries>[
         spell.Dictionaries.common,

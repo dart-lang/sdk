@@ -44,7 +44,7 @@ class FixesMixinTest with ResourceProviderMixin {
     plugin.start(channel);
   }
 
-  test_handleEditGetFixes() async {
+  Future<void> test_handleEditGetFixes() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 

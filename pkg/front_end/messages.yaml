@@ -2021,6 +2021,9 @@ OverrideTypeVariablesMismatch:
   template: "Declared type variables of '#name' doesn't match those on overridden method '#name2'."
   analyzerCode: INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS
 
+OverrideTypeVariablesBoundMismatch:
+  template: "Declared bound '#type' of type variable '#name' of '#name2' doesn't match the bound '#type2' on overridden method '#name3'."
+
 OverriddenMethodCause:
   template: "This is the overridden method ('#name')."
   severity: CONTEXT
@@ -3781,6 +3784,13 @@ NullableExpressionCallWarning:
   tip: "Try calling using ?.call instead."
   severity: WARNING
 
+NullableOperatorCallError:
+  template: "Operator '#name' cannot be called on '#type' because it is potentially null."
+
+NullableOperatorCallWarning:
+  template: "Operator '#name' is called on '#type' which is potentially null."
+  severity: WARNING
+
 ThrowingNotAssignableToObjectError:
   template: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
 
@@ -3789,10 +3799,10 @@ ThrowingNotAssignableToObjectWarning:
   severity: WARNING
 
 RequiredNamedParameterHasDefaultValueError:
-  template: "Required named parameter '#name' can't have a default value."
+  template: "Named parameter '#name' is required and can't have a default value."
 
 RequiredNamedParameterHasDefaultValueWarning:
-  template: "Required named parameter '#name' has a default value."
+  template: "Named parameter '#name' is required and has a default value."
   severity: WARNING
 
 ValueForRequiredParameterNotProvidedError:
@@ -3800,6 +3810,13 @@ ValueForRequiredParameterNotProvidedError:
 
 ValueForRequiredParameterNotProvidedWarning:
   template: "Missing required named parameter '#name'."
+  severity: WARNING
+
+OptionalNonNullableWithoutInitializerError:
+  template: "Optional parameter '#name' should have a default value because its type '#type' doesn't allow null."
+
+OptionalNonNullableWithoutInitializerWarning:
+  template: "Optional parameter '#name' doesn't have a default value and its type '#type' doesn't allow null."
   severity: WARNING
 
 NonNullableOptOut:
@@ -3812,3 +3829,24 @@ NonNullableOptOutComment:
 
 AwaitInLateLocalInitializer:
   template: "`await` expressions are not supported in late local initializers."
+
+NullableSuperclassError:
+  template: "Can't extend '#name' because it's marked with '?'."
+
+NullableSuperclassWarning:
+  template: "Extending '#name' marked with '?'."
+  severity: WARNING
+
+NullableInterfaceError:
+  template: "Can't implement '#name' because it's marked with '?'."
+
+NullableInterfaceWarning:
+  template: "Implementing '#name' marked with '?'."
+  severity: WARNING
+
+NullableMixinError:
+  template: "Can't mix '#name' in because it's marked with '?'."
+
+NullableMixinWarning:
+  template: "Mixing in '#name' marked with '?'."
+  severity: WARNING

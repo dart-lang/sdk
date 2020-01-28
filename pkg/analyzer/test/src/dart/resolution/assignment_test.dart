@@ -26,7 +26,13 @@ main() {
 }
 ''');
     AssignmentExpression assignment = findNode.assignment('+= 4');
-    assertElement(assignment, numElement.getMethod('+'));
+    assertElement(
+      assignment,
+      elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+    );
     assertType(assignment, 'num'); // num + int = num
 
     IndexExpression indexed = assignment.leftHandSide;
@@ -52,7 +58,13 @@ main() {
 }
 ''');
     var assignment = findNode.assignment('v += 3');
-    assertElement(assignment, numElement.getMethod('+'));
+    assertElement(
+      assignment,
+      elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+    );
     assertType(assignment, 'num'); // num + int = num
 
     SimpleIdentifier left = assignment.leftHandSide;
@@ -74,7 +86,13 @@ class C {
 }
 ''');
     var assignment = findNode.assignment('c.f += 2');
-    assertElement(assignment, numElement.getMethod('+'));
+    assertElement(
+      assignment,
+      elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+    );
     assertType(assignment, 'num'); // num + int = num
 
     PrefixedIdentifier left = assignment.leftHandSide;
@@ -102,7 +120,13 @@ class C {
 }
 ''');
     var assignment = findNode.assignment('f += 2');
-    assertElement(assignment, numElement.getMethod('+'));
+    assertElement(
+      assignment,
+      elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+    );
     assertType(assignment, 'num'); // num + int = num
 
     PropertyAccess left = assignment.leftHandSide;

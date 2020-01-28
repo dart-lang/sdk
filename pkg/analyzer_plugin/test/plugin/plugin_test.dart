@@ -48,7 +48,7 @@ class ServerPluginTest with ResourceProviderMixin {
     plugin.start(channel);
   }
 
-  test_contextRootContaining_insideRoot() async {
+  Future<void> test_contextRootContaining_insideRoot() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
@@ -59,26 +59,26 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(plugin.contextRootContaining(filePath1), isNull);
   }
 
-  test_contextRootContaining_outsideRoot() async {
+  Future<void> test_contextRootContaining_outsideRoot() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
     expect(plugin.contextRootContaining(filePath2), isNull);
   }
 
-  test_handleAnalysisGetNavigation() async {
+  Future<void> test_handleAnalysisGetNavigation() async {
     var result = await plugin
         .handleAnalysisGetNavigation(AnalysisGetNavigationParams('', 1, 2));
     expect(result, isNotNull);
   }
 
-  test_handleAnalysisHandleWatchEvents() async {
+  Future<void> test_handleAnalysisHandleWatchEvents() async {
     var result = await plugin
         .handleAnalysisHandleWatchEvents(AnalysisHandleWatchEventsParams([]));
     expect(result, isNotNull);
   }
 
-  test_handleAnalysisSetContextRoots() async {
+  Future<void> test_handleAnalysisSetContextRoots() async {
     var result = await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
     expect(result, isNotNull);
@@ -87,7 +87,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect((driver as MockAnalysisDriver).addedFiles, hasLength(1));
   }
 
-  test_handleAnalysisSetPriorityFiles() async {
+  Future<void> test_handleAnalysisSetPriorityFiles() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
@@ -96,7 +96,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_handleAnalysisSetSubscriptions() async {
+  Future<void> test_handleAnalysisSetSubscriptions() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
     expect(plugin.subscriptionManager.servicesForFile(filePath1), isEmpty);
@@ -110,7 +110,7 @@ class ServerPluginTest with ResourceProviderMixin {
         [AnalysisService.OUTLINE]);
   }
 
-  test_handleAnalysisUpdateContent_addChangeRemove() async {
+  Future<void> test_handleAnalysisUpdateContent_addChangeRemove() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
     var addResult = await plugin.handleAnalysisUpdateContent(
@@ -127,7 +127,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(removeResult, isNotNull);
   }
 
-  test_handleAnalysisUpdateContent_changeNoAdd() async {
+  Future<void> test_handleAnalysisUpdateContent_changeNoAdd() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
     try {
@@ -140,7 +140,7 @@ class ServerPluginTest with ResourceProviderMixin {
     }
   }
 
-  test_handleAnalysisUpdateContent_invalidChange() async {
+  Future<void> test_handleAnalysisUpdateContent_invalidChange() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
     await plugin.handleAnalysisUpdateContent(AnalysisUpdateContentParams(
@@ -155,7 +155,7 @@ class ServerPluginTest with ResourceProviderMixin {
     }
   }
 
-  test_handleCompletionGetSuggestions() async {
+  Future<void> test_handleCompletionGetSuggestions() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
@@ -165,7 +165,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_handleEditGetAssists() async {
+  Future<void> test_handleEditGetAssists() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
@@ -174,7 +174,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_handleEditGetAvailableRefactorings() async {
+  Future<void> test_handleEditGetAvailableRefactorings() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
@@ -184,7 +184,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_handleEditGetFixes() async {
+  Future<void> test_handleEditGetFixes() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
@@ -194,7 +194,7 @@ class ServerPluginTest with ResourceProviderMixin {
   }
 
   @failingTest
-  test_handleEditGetRefactoring() async {
+  Future<void> test_handleEditGetRefactoring() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 
@@ -204,12 +204,12 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_handlePluginShutdown() async {
+  Future<void> test_handlePluginShutdown() async {
     var result = await plugin.handlePluginShutdown(PluginShutdownParams());
     expect(result, isNotNull);
   }
 
-  test_handlePluginVersionCheck() async {
+  Future<void> test_handlePluginVersionCheck() async {
     PluginVersionCheckResult result = await plugin.handlePluginVersionCheck(
         PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0'));
     expect(result, isNotNull);
@@ -232,18 +232,18 @@ class ServerPluginTest with ResourceProviderMixin {
     channel.sendError(ArgumentError(), StackTrace.fromString(''));
   }
 
-  test_onRequest_analysisGetNavigation() async {
+  Future<void> test_onRequest_analysisGetNavigation() async {
     var result =
         await channel.sendRequest(AnalysisGetNavigationParams('', 1, 2));
     expect(result, isNotNull);
   }
 
-  test_onRequest_analysisHandleWatchEvents() async {
+  Future<void> test_onRequest_analysisHandleWatchEvents() async {
     var result = await channel.sendRequest(AnalysisHandleWatchEventsParams([]));
     expect(result, isNotNull);
   }
 
-  test_onRequest_analysisSetContextRoots() async {
+  Future<void> test_onRequest_analysisSetContextRoots() async {
     var result = await channel
         .sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
     expect(result, isNotNull);
@@ -252,7 +252,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect((driver as MockAnalysisDriver).addedFiles, hasLength(1));
   }
 
-  test_onRequest_analysisSetPriorityFiles() async {
+  Future<void> test_onRequest_analysisSetPriorityFiles() async {
     await channel.sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
 
     var result =
@@ -260,7 +260,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_onRequest_analysisSetSubscriptions() async {
+  Future<void> test_onRequest_analysisSetSubscriptions() async {
     await channel.sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
     expect(plugin.subscriptionManager.servicesForFile(filePath1), isEmpty);
 
@@ -272,7 +272,7 @@ class ServerPluginTest with ResourceProviderMixin {
         [AnalysisService.OUTLINE]);
   }
 
-  test_onRequest_analysisUpdateContent_addChangeRemove() async {
+  Future<void> test_onRequest_analysisUpdateContent_addChangeRemove() async {
     await channel.sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
     var addResult = await channel.sendRequest(AnalysisUpdateContentParams(
         {filePath1: AddContentOverlay('class C {}')}));
@@ -286,7 +286,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(removeResult, isNotNull);
   }
 
-  test_onRequest_completionGetSuggestions() async {
+  Future<void> test_onRequest_completionGetSuggestions() async {
     await channel.sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
 
     var result = await channel
@@ -294,7 +294,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_onRequest_editGetAssists() async {
+  Future<void> test_onRequest_editGetAssists() async {
     await channel.sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
 
     var result =
@@ -302,7 +302,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_onRequest_editGetAvailableRefactorings() async {
+  Future<void> test_onRequest_editGetAvailableRefactorings() async {
     await channel.sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
 
     var result = await channel
@@ -310,14 +310,14 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_onRequest_editGetFixes() async {
+  Future<void> test_onRequest_editGetFixes() async {
     await channel.sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
 
     var result = await channel.sendRequest(EditGetFixesParams(filePath1, 13));
     expect(result, isNotNull);
   }
 
-  test_onRequest_editGetRefactoring() async {
+  Future<void> test_onRequest_editGetRefactoring() async {
     await channel.sendRequest(AnalysisSetContextRootsParams([contextRoot1]));
 
     var result = await channel.sendRequest(EditGetRefactoringParams(
@@ -325,12 +325,12 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result, isNotNull);
   }
 
-  test_onRequest_pluginShutdown() async {
+  Future<void> test_onRequest_pluginShutdown() async {
     var result = await channel.sendRequest(PluginShutdownParams());
     expect(result, isNotNull);
   }
 
-  test_onRequest_pluginVersionCheck() async {
+  Future<void> test_onRequest_pluginVersionCheck() async {
     var response = (await channel.sendRequest(
         PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0')));
     PluginVersionCheckResult result =
@@ -342,7 +342,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(result.version, '0.1.0');
   }
 
-  test_sendNotificationsForFile() {
+  void test_sendNotificationsForFile() {
     AnalysisService service1 = AnalysisService.FOLDING;
     AnalysisService service2 = AnalysisService.NAVIGATION;
     AnalysisService service3 = AnalysisService.OUTLINE;
@@ -358,7 +358,7 @@ class ServerPluginTest with ResourceProviderMixin {
     expect(services, unorderedEquals([service1, service2]));
   }
 
-  test_sendNotificationsForSubscriptions() {
+  void test_sendNotificationsForSubscriptions() {
     Map<String, List<AnalysisService>> subscriptions =
         <String, List<AnalysisService>>{};
 

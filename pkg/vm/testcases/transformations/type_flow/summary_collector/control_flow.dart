@@ -10,8 +10,11 @@ class C3 {}
 
 class C4 {}
 
+enum TestEnum { v1, v2 }
+
 foo(x) {}
 bar(x) {}
+baz(x) {}
 
 sequence() {
   dynamic x = C1();
@@ -65,6 +68,45 @@ if5(bool cond) {
     return;
   }
   foo(x);
+}
+
+if6a(bool x) {
+  if (x) {
+    foo(x);
+  } else {
+    bar(x);
+  }
+  baz(x);
+}
+
+if6b(x) {
+  if (x) {
+    foo(x);
+  } else {
+    bar(x);
+  }
+  baz(x);
+}
+
+if7(int x, String y, dynamic z) {
+  if ((x == 5) && (y == 'hi') && (z != null)) {
+    foo(x);
+    foo(y);
+    foo(z);
+  }
+}
+
+if8(x) {
+  if (x is String) {
+    foo(x);
+    x = 42;
+  }
+}
+
+if9(TestEnum x) {
+  if (x == TestEnum.v1) {
+    foo(x);
+  }
 }
 
 conditional1(bool cond1, bool cond2) {

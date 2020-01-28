@@ -2,6 +2,9 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE.md file.
 
+# Note that test/spelling: Status will have no effect. Spelling errors can
+# always be fixed by either spelling correctly or updating the dictionary.
+
 AbstractClassInstantiation/example: Fail
 AbstractClassMember/part_wrapped_script5: Fail
 AbstractClassMember/part_wrapped_script6: Fail
@@ -351,7 +354,6 @@ InterfaceCheck/example: Fail
 InterpolationInUri/example: Fail
 InvalidAssignmentWarning/analyzerCode: Fail
 InvalidAssignmentWarning/example: Fail
-InvalidAssignmentWarning/spelling: Fail
 InvalidBreakTarget/analyzerCode: Fail
 InvalidBreakTarget/example: Fail
 InvalidCastFunctionExpr/example: Fail
@@ -447,7 +449,6 @@ NonInstanceTypeVariableUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonNullableOptOut/analyzerCode: Fail
 NonNullableOptOut/example: Fail
-NonNullableOptOutComment/spelling: Fail
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail
 NonPartOfDirectiveInPart/script1: Fail
 NotAConstantExpression/example: Fail
@@ -460,14 +461,30 @@ NullableExpressionCallError/analyzerCode: Fail
 NullableExpressionCallError/example: Fail
 NullableExpressionCallWarning/analyzerCode: Fail
 NullableExpressionCallWarning/example: Fail
+NullableInterfaceError/analyzerCode: Fail
+NullableInterfaceError/example: Fail
+NullableInterfaceWarning/analyzerCode: Fail
+NullableInterfaceWarning/example: Fail
 NullableMethodCallError/analyzerCode: Fail
 NullableMethodCallError/example: Fail
 NullableMethodCallWarning/analyzerCode: Fail
 NullableMethodCallWarning/example: Fail
+NullableMixinError/analyzerCode: Fail
+NullableMixinError/example: Fail
+NullableMixinWarning/analyzerCode: Fail
+NullableMixinWarning/example: Fail
+NullableOperatorCallError/analyzerCode: Fail
+NullableOperatorCallError/example: Fail
+NullableOperatorCallWarning/analyzerCode: Fail
+NullableOperatorCallWarning/example: Fail
 NullablePropertyAccessError/analyzerCode: Fail
 NullablePropertyAccessError/example: Fail
 NullablePropertyAccessWarning/analyzerCode: Fail
 NullablePropertyAccessWarning/example: Fail
+NullableSuperclassError/analyzerCode: Fail
+NullableSuperclassError/example: Fail
+NullableSuperclassWarning/analyzerCode: Fail
+NullableSuperclassWarning/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail
@@ -475,6 +492,10 @@ OperatorParameterMismatch1/example: Fail
 OperatorParameterMismatch2/example: Fail
 OperatorWithOptionalFormals/analyzerCode: Fail
 OperatorWithOptionalFormals/example: Fail
+OptionalNonNullableWithoutInitializerError/analyzerCode: Fail
+OptionalNonNullableWithoutInitializerError/example: Fail
+OptionalNonNullableWithoutInitializerWarning/analyzerCode: Fail
+OptionalNonNullableWithoutInitializerWarning/example: Fail
 OverrideFewerNamedArguments/example: Fail
 OverrideFewerPositionalArguments/example: Fail
 OverrideMismatchNamedParameter/example: Fail
@@ -482,6 +503,8 @@ OverrideMoreRequiredArguments/example: Fail
 OverrideTypeMismatchParameter/example: Fail
 OverrideTypeMismatchReturnType/example: Fail
 OverrideTypeMismatchSetter/example: Fail
+OverrideTypeVariablesBoundMismatch/analyzerCode: Fail
+OverrideTypeVariablesBoundMismatch/example: Fail
 OverrideTypeVariablesMismatch/example: Fail
 PackageNotFound/analyzerCode: Fail
 PackageNotFound/example: Fail

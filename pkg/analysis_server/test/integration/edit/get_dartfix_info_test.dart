@@ -20,7 +20,5 @@ class GetDartfixInfoTest extends AbstractAnalysisServerIntegrationTest {
     standardAnalysisSetup();
     EditGetDartfixInfoResult info = await sendEditGetDartfixInfo();
     expect(info.fixes.length, greaterThanOrEqualTo(3));
-    var fix = info.fixes.firstWhere((f) => f.name == 'use-mixin');
-    expect(fix.isRequired, isTrue);
   }
 }

@@ -41,7 +41,7 @@ class OccurrencesMixinTest with ResourceProviderMixin {
     plugin.start(channel);
   }
 
-  test_sendOccurrencesNotification() async {
+  Future<void> test_sendOccurrencesNotification() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 

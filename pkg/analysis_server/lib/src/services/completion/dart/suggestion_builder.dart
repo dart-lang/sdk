@@ -308,6 +308,13 @@ class MemberSuggestionBuilder {
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 
   /**
+   * Add the given completion [suggestion].
+   */
+  void addCompletionSuggestion(CompletionSuggestion suggestion) {
+    _suggestionMap[suggestion.completion] = suggestion;
+  }
+
+  /**
    * Add a suggestion based upon the given element, provided that it is not
    * shadowed by a previously added suggestion.
    */
@@ -368,7 +375,7 @@ class MemberSuggestionBuilder {
     CompletionSuggestion suggestion =
         createSuggestion(element, relevance: relevance);
     if (suggestion != null) {
-      _suggestionMap[suggestion.completion] = suggestion;
+      addCompletionSuggestion(suggestion);
     }
   }
 }

@@ -447,6 +447,69 @@ void f(int i, String callback()) {
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a < b | c;');
   }
 
+  Future<void> test_removeNullAwarenessFromMethodInvocation() async {
+    await analyze('f(x) => x?.m();');
+    var methodInvocation = findNode.methodInvocation('?.');
+    var previewInfo = run(
+        {methodInvocation: const RemoveNullAwarenessFromMethodInvocation()});
+    expect(previewInfo.applyTo(code), 'f(x) => x.m();');
+  }
+
+  Future<void>
+      test_removeNullAwarenessFromMethodInvocation_changeArgument() async {
+    await analyze('f(x) => x?.m(x);');
+    var methodInvocation = findNode.methodInvocation('?.');
+    var argument = findNode.simple('x);');
+    var previewInfo = run({
+      methodInvocation: const RemoveNullAwarenessFromMethodInvocation(),
+      argument: const NullCheck(null)
+    });
+    expect(previewInfo.applyTo(code), 'f(x) => x.m(x!);');
+  }
+
+  Future<void>
+      test_removeNullAwarenessFromMethodInvocation_changeTarget() async {
+    await analyze('f(x) => (x as dynamic)?.m();');
+    var methodInvocation = findNode.methodInvocation('?.');
+    var cast = findNode.as_('as');
+    var previewInfo = run({
+      methodInvocation: const RemoveNullAwarenessFromMethodInvocation(),
+      cast: const RemoveAs()
+    });
+    expect(previewInfo.applyTo(code), 'f(x) => x.m();');
+  }
+
+  Future<void>
+      test_removeNullAwarenessFromMethodInvocation_changeTypeArgument() async {
+    await analyze('f(x) => x?.m<int>();');
+    var methodInvocation = findNode.methodInvocation('?.');
+    var typeAnnotation = findNode.typeAnnotation('int');
+    var previewInfo = run({
+      methodInvocation: const RemoveNullAwarenessFromMethodInvocation(),
+      typeAnnotation: const MakeNullable(MockDecoratedType(MockDartType()))
+    });
+    expect(previewInfo.applyTo(code), 'f(x) => x.m<int?>();');
+  }
+
+  Future<void> test_removeNullAwarenessFromPropertyAccess() async {
+    await analyze('f(x) => x?.y;');
+    var propertyAccess = findNode.propertyAccess('?.');
+    var previewInfo =
+        run({propertyAccess: const RemoveNullAwarenessFromPropertyAccess()});
+    expect(previewInfo.applyTo(code), 'f(x) => x.y;');
+  }
+
+  Future<void> test_removeNullAwarenessFromPropertyAccess_changeTarget() async {
+    await analyze('f(x) => (x as dynamic)?.y;');
+    var propertyAccess = findNode.propertyAccess('?.');
+    var cast = findNode.as_('as');
+    var previewInfo = run({
+      propertyAccess: const RemoveNullAwarenessFromPropertyAccess(),
+      cast: const RemoveAs()
+    });
+    expect(previewInfo.applyTo(code), 'f(x) => x.y;');
+  }
+
   Future<void> test_requiredAnnotationToRequiredKeyword_prefixed() async {
     addMetaPackage();
     await analyze('''
@@ -513,6 +576,8 @@ class FixAggregatorTestBase extends AbstractSingleUnitTest {
 }
 
 class MockDartType implements DartType {
+  const MockDartType();
+
   @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
@@ -523,7 +588,7 @@ class MockDecoratedType implements DecoratedType {
   @override
   final DartType type;
 
-  MockDecoratedType(this.type);
+  const MockDecoratedType(this.type);
 
   @override
   NullabilityNode get node => NullabilityNode.forTypeAnnotation(0);

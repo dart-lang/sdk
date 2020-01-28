@@ -10,6 +10,22 @@ import 'package:test/test.dart';
 
 import 'test_context.dart';
 
+void main() {
+  defineDriverTests(
+    name: 'default',
+    options: [
+      '--fix',
+      'prefer_int_literals',
+      '--fix',
+      'convert_class_to_mixin'
+    ],
+    expectedSuggestions: [
+      'Convert MyMixin to a mixin',
+      'Convert to an int literal',
+    ],
+  );
+}
+
 void defineDriverTests({
   String name,
   List<String> options,
@@ -17,7 +33,7 @@ void defineDriverTests({
   bool debug = false,
   bool updateExample = false,
 }) {
-  var fixFileName = 'example_${name.replaceAll('-', '_')}.dart';
+  var fixFileName = 'example_$name.dart';
 
   File exampleFile;
   File exampleFixedFile;
@@ -93,17 +109,6 @@ void defineDriverTests({
     }
     expect(stdout1, stdout2);
   });
-}
-
-void main() {
-  defineDriverTests(
-    name: 'default',
-    options: ['--fix', 'double-to-int', '--fix', 'use-mixin'],
-    expectedSuggestions: [
-      'Convert MyMixin to a mixin',
-      'Convert to an int literal',
-    ],
-  );
 }
 
 String replaceLeadingComment(String source) => source.replaceAll(

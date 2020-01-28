@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
+import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
@@ -54,6 +55,8 @@ class MethodInvocationResolver {
   final ElementTypeProvider _elementTypeProvider;
   final InvocationInferenceHelper _inferenceHelper;
 
+  final MigratableAstInfoProvider _migratableAstInfoProvider;
+
   /// The invocation being resolved.
   MethodInvocationImpl _invocation;
 
@@ -62,7 +65,8 @@ class MethodInvocationResolver {
 
   MethodInvocationResolver(
     this._resolver,
-    this._elementTypeProvider, {
+    this._elementTypeProvider,
+    this._migratableAstInfoProvider, {
     @required InvocationInferenceHelper inferenceHelper,
   })  : _typeType = _resolver.typeProvider.typeType,
         _inheritance = _resolver.inheritance,
@@ -142,7 +146,8 @@ class MethodInvocationResolver {
     DartType receiverType = receiver.staticType;
     receiverType = _resolveTypeParameter(receiverType);
 
-    if (node.isNullAware && _typeSystem.isNonNullableByDefault) {
+    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
+        _typeSystem.isNonNullableByDefault) {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
@@ -298,7 +303,8 @@ class MethodInvocationResolver {
     if (!inferred) {
       DartType staticStaticType = _inferenceHelper.computeInvokeReturnType(
         node.staticInvokeType,
-        isNullAware: node.isNullAware,
+        isNullAware:
+            _migratableAstInfoProvider.isMethodInvocationNullAware(node),
       );
       _inferenceHelper.recordStaticType(node, staticStaticType);
     }

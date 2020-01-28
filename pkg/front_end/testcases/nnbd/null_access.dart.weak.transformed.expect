@@ -1,0 +1,128 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:18:3: Warning: Operator 'unary-' is called on 'int?' which is potentially null.
+//   -nullableInt; // error
+//   ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:19:15: Warning: Operator '+' is called on 'int?' which is potentially null.
+//   nullableInt + 2; // error
+//               ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:20:16: Warning: Operator '[]' is called on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+//   nullableClass[nonNullableInt]; // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:21:16: Warning: Operator '[]=' is called on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+//   nullableClass[nonNullableInt] = nonNullableInt; // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:22:16: Warning: Operator '[]' is called on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+//   nullableClass[nonNullableInt] += nonNullableInt; // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:22:16: Warning: Operator '[]=' is called on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+//   nullableClass[nonNullableInt] += nonNullableInt; // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:23:16: Warning: Operator '[]' is called on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+//   nullableClass[nonNullableInt] ??= nonNullableInt; // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:23:16: Warning: Operator '[]=' is called on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+//   nullableClass[nonNullableInt] ??= nonNullableInt; // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:30:17: Warning: Property 'nonNullableField' is accessed on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+// Try accessing using ?. instead.
+//   nullableClass.nonNullableField; // error
+//                 ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:31:17: Warning: Property 'nonNullableField' is accessed on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+// Try accessing using ?. instead.
+//   nullableClass.nonNullableField = 2; // error
+//                 ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:32:17: Warning: Property 'nonNullableField' is accessed on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+// Try accessing using ?. instead.
+//   nullableClass.nonNullableField += 2; // error
+//                 ^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:41:34: Warning: Operator '+' is called on 'int?' which is potentially null.
+//   nonNullableClass.nullableField += 2; // error
+//                                  ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:42:32: Warning: Operator '+' is called on 'int?' which is potentially null.
+//   nullableClass?.nullableField += 2; // error
+//                                ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:50:16: Warning: Method 'call' is called on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+// Try calling using ?. instead.
+//   nullableClass(); // error
+//                ^
+//
+// pkg/front_end/testcases/nnbd/null_access.dart:50:16: Warning: Expression of type 'Class?' is used as a function, but it's potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/null_access.dart'.
+// Try calling using ?.call instead.
+//   nullableClass(); // error
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int nonNullableField = 0;
+  field core::int? nullableField = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  operator [](core::int key) → core::int
+    return key;
+  operator []=(core::int key, core::int value) → void {}
+  get nonNullableClass() → self::Class
+    return this;
+  method call() → self::Class
+    return this;
+}
+static method main() → dynamic {}
+static method errors(self::Class? nullableClass, self::Class nonNullableClass, core::int? nullableInt, core::int nonNullableInt) → dynamic {
+  nullableInt.{core::int::unary-}();
+  nullableInt.{core::num::+}(2);
+  nullableClass.{self::Class::[]}(nonNullableInt);
+  nullableClass.{self::Class::[]=}(nonNullableInt, nonNullableInt);
+  let final self::Class? #t1 = nullableClass in let final core::int #t2 = nonNullableInt in #t1.{self::Class::[]=}(#t2, #t1.{self::Class::[]}(#t2).{core::num::+}(nonNullableInt));
+  let final self::Class? #t3 = nullableClass in let final core::int #t4 = nonNullableInt in #t3.{self::Class::[]}(#t4).{core::num::==}(null) ?{core::int} #t3.{self::Class::[]=}(#t4, nonNullableInt) : null;
+  let final self::Class? #t5 = nullableClass in #t5.{core::Object::==}(null) ?{core::int?} null : #t5{self::Class}.{self::Class::nonNullableClass}.{self::Class::[]}(nonNullableInt);
+  let final self::Class? #t6 = nullableClass in #t6.{core::Object::==}(null) ?{core::int?} null : #t6{self::Class}.{self::Class::nonNullableClass}.{self::Class::[]=}(nonNullableInt, nonNullableInt);
+  let final self::Class? #t7 = nullableClass in #t7.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t8 = #t7{self::Class}.{self::Class::nonNullableClass} in let final core::int #t9 = nonNullableInt in #t8.{self::Class::[]=}(#t9, #t8.{self::Class::[]}(#t9).{core::num::+}(nonNullableInt));
+  let final self::Class? #t10 = nullableClass in #t10.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t11 = #t10{self::Class}.{self::Class::nonNullableClass} in let final core::int #t12 = nonNullableInt in #t11.{self::Class::[]}(#t12).{core::num::==}(null) ?{core::int} #t11.{self::Class::[]=}(#t12, nonNullableInt) : null;
+  nullableClass.{self::Class::nonNullableField};
+  nullableClass.{self::Class::nonNullableField} = 2;
+  let final self::Class? #t13 = nullableClass in #t13.{self::Class::nonNullableField} = #t13.{self::Class::nonNullableField}.{core::num::+}(2);
+  let final self::Class? #t14 = nullableClass in #t14.{core::Object::==}(null) ?{core::int?} null : #t14{self::Class}.{self::Class::nonNullableField};
+  let final self::Class? #t15 = nullableClass in #t15.{core::Object::==}(null) ?{core::int?} null : #t15{self::Class}.{self::Class::nonNullableField} = 2;
+  let final self::Class? #t16 = nullableClass in #t16.{core::Object::==}(null) ?{core::int?} null : #t16.{self::Class::nonNullableField} = #t16.{self::Class::nonNullableField}.{core::num::+}(2);
+  let final self::Class? #t17 = nullableClass in #t17.{core::Object::==}(null) ?{core::int?} null : #t17{self::Class}.{self::Class::nonNullableClass}.{self::Class::nonNullableField};
+  let final self::Class? #t18 = nullableClass in #t18.{core::Object::==}(null) ?{core::int?} null : #t18{self::Class}.{self::Class::nonNullableClass}.{self::Class::nonNullableField} = 2;
+  let final self::Class #t19 = nonNullableClass in #t19.{self::Class::nullableField} = #t19.{self::Class::nullableField}.{core::num::+}(2);
+  let final self::Class? #t20 = nullableClass in #t20.{core::Object::==}(null) ?{core::int?} null : #t20.{self::Class::nullableField} = #t20.{self::Class::nullableField}.{core::num::+}(2);
+  let final self::Class? #t21 = nullableClass in #t21.{core::Object::==}(null) ?{core::int?} null : #t21.{self::Class::nonNullableField}.{core::num::==}(null) ?{core::int} #t21.{self::Class::nonNullableField} = 0 : null;
+  let final self::Class? #t22 = nullableClass in #t22.{core::Object::==}(null) ?{core::int?} null : #t22.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t22.{self::Class::nullableField} = 0 : null;
+  let final self::Class? #t23 = nullableClass in #t23.{core::Object::==}(null) ?{core::int?} null : let final self::Class? #t24 = #t23{self::Class}.{self::Class::nonNullableClass} in #t24{self::Class}.{self::Class::nonNullableField}.{core::num::==}(null) ?{core::int} #t24{self::Class}.{self::Class::nonNullableField} = 0 : null;
+  let final self::Class? #t25 = nullableClass in #t25.{core::Object::==}(null) ?{core::int?} null : let final self::Class? #t26 = #t25{self::Class}.{self::Class::nonNullableClass} in #t26{self::Class}.{self::Class::nullableField}.{core::num::==}(null) ?{core::int} #t26{self::Class}.{self::Class::nullableField} = 0 : null;
+  nullableClass.{self::Class::call}();
+  nonNullableClass.{self::Class::call}();
+  let final self::Class #t27 = nonNullableClass in #t27.{core::Object::==}(null) ?{self::Class?} null : #t27.{self::Class::nonNullableClass}();
+  let final self::Class #t28 = nonNullableClass in #t28.{core::Object::==}(null) ?{self::Class?} null : #t28.{self::Class::nonNullableClass}.{self::Class::nonNullableClass}();
+}

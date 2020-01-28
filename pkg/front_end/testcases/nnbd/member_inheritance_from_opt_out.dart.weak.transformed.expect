@@ -98,9 +98,9 @@ class Class2b extends opt::LegacyClass implements self::Interface {
     return 0;
   method method3a(core::int a, core::int b) → core::int
     return 0;
-  method method3b(core::int a, [core::int b = #C1]) → core::int
+  method method3b(core::int a, [core::int b = #C3]) → core::int
     return 0;
-  method method3c([core::int a = #C1, core::int b = #C1]) → core::int
+  method method3c([core::int a = #C3, core::int b = #C3]) → core::int
     return 0;
   method method4a(core::int? a, core::int? b) → core::int?
     return 0;
@@ -226,4 +226,5 @@ class GenericLegacyClass<T extends core::Object* = dynamic> extends core::Object
 constants  {
   #C1 = null
   #C2 = 0
+  #C3 = 42
 }

@@ -31,7 +31,7 @@ void f(String s) {
 ''');
     await assertHasFix('''
 void f(String s) {
-  print(/*LINT*/s ?? 'default');
+  print(s ?? 'default');
 }
 ''');
   }
@@ -44,7 +44,7 @@ void f(String s) {
 ''');
     await assertHasFix('''
 void f(String s) {
-  print(/*LINT*/s ?? 'default');
+  print(s ?? 'default');
 }
 ''');
   }

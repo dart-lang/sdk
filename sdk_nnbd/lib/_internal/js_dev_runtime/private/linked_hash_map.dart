@@ -99,7 +99,6 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       key = JS('', 'null');
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
-      @notNull
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {
@@ -141,7 +140,6 @@ class LinkedMap<K, V> extends InternalMap<K, V> {
       key = JS('', 'null');
     } else if (JS<bool>('!', '#[#] !== #', key, dart.extensionSymbol('_equals'),
         dart.identityEquals)) {
-      @notNull
       var buckets = JS('', '#.get(# & 0x3ffffff)', _keyMap, key.hashCode);
       if (buckets != null) {
         for (int i = 0, n = JS('!', '#.length', buckets); i < n; i++) {

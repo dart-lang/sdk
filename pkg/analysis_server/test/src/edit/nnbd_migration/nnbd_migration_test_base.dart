@@ -24,15 +24,16 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// Uses the InfoBuilder to build information for [testFile].
   ///
   /// The information is stored in [infos].
-  Future<void> buildInfo() async {
+  Future<void> buildInfo({bool removeViaComments = true}) async {
     var includedRoot = resourceProvider.pathContext.dirname(testFile);
-    await _buildMigrationInfo([testFile], includedRoot: includedRoot);
+    await _buildMigrationInfo([testFile],
+        includedRoot: includedRoot, removeViaComments: removeViaComments);
   }
 
   /// Uses the InfoBuilder to build information for files at [testPaths], which
   /// should all share a common parent directory, [includedRoot].
   Future<void> _buildMigrationInfo(List<String> testPaths,
-      {String includedRoot}) async {
+      {String includedRoot, bool removeViaComments = true}) async {
     // Compute the analysis results.
     server.setAnalysisRoots('0', [includedRoot], [], {});
     // Run the migration engine.
@@ -41,7 +42,8 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
     NullabilityMigration migration = NullabilityMigration(
         NullabilityMigrationAdapter(listener),
         permissive: false,
-        instrumentation: instrumentationListener);
+        instrumentation: instrumentationListener,
+        removeViaComments: removeViaComments);
     for (var testPath in testPaths) {
       var result = await server
           .getAnalysisDriver(testPath)
@@ -84,9 +86,9 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
   /// Asserts that [originalContent] is migrated to [migratedContent]. Returns
   /// the singular UnitInfo which was built.
   Future<UnitInfo> buildInfoForSingleTestFile(String originalContent,
-      {@required String migratedContent}) async {
+      {@required String migratedContent, bool removeViaComments = true}) async {
     addTestFile(originalContent);
-    await buildInfo();
+    await buildInfo(removeViaComments: removeViaComments);
     // Ignore info for dart:core.
     var filteredInfos = [
       for (var info in infos) if (info.path.indexOf('core.dart') == -1) info

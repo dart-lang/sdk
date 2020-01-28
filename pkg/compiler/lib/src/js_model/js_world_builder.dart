@@ -327,6 +327,7 @@ class JsClosedWorldBuilder {
       newBehavior.throwBehavior = behavior.throwBehavior;
       newBehavior.isAllocation = behavior.isAllocation;
       newBehavior.useGvn = behavior.useGvn;
+      newBehavior.sideEffects.add(behavior.sideEffects);
       return newBehavior;
     }
 

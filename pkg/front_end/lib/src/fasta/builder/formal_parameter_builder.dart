@@ -119,7 +119,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           isConst: isConst,
           isFieldFormal: isInitializingFormal,
           isCovariant: isCovariant,
-          isRequired: isNamedRequired)
+          isRequired: isNamedRequired,
+          hasDeclaredInitializer: hasDeclaredInitializer)
         ..fileOffset = charOffset;
     }
     return variable;

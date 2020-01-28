@@ -113,8 +113,15 @@ static void CheckOffsets() {
                Class##_elements_start_offset)                                  \
   CHECK_OFFSET(Class::ArrayLayout::kElementSize, Class##_element_size)
 #define CHECK_ARRAY_STRUCTFIELD(Class, Name, ElementOffsetName, FieldOffset)
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+#define CHECK_SIZEOF(Class, Name, What)                                        \
+  CHECK_OFFSET(sizeof(What), AOT_##Class##_##Name)
+#else
 #define CHECK_SIZEOF(Class, Name, What)                                        \
   CHECK_OFFSET(sizeof(What), Class##_##Name)
+#endif
+
 #define CHECK_RANGE(Class, Name, Type, First, Last, Filter)
 #define CHECK_CONSTANT(Class, Name) CHECK_OFFSET(Class::Name, Class##_##Name)
 

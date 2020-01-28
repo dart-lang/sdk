@@ -378,7 +378,7 @@ void _checkViewArguments(buffer, offsetInBytes, length) {
 // returns a copy of the list.
 List _ensureNativeList(List list) {
   if (list is JSIndexable) return list;
-  List result = new List(list.length);
+  List result = List.filled(list.length, null);
   for (int i = 0; i < list.length; i++) {
     result[i] = list[i];
   }

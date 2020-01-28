@@ -73,7 +73,7 @@ The analyzer produces this diagnostic when an inherited member is
 referenced using `super`, but there is no concrete implementation of the
 member in the superclass chain. Abstract members can't be invoked.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `B` doesn't inherit a
 concrete implementation of `a`:
@@ -112,7 +112,7 @@ The analyzer produces this diagnostic when none of the extensions has an
 extended type that's more specific than the extended types of all of the
 other extensions, making the reference to the member ambiguous.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because there's no way to
 choose between the member in `E1` and the member in `E2`:
@@ -161,7 +161,7 @@ _The name '{0}' is defined in the libraries {1}._
 The analyzer produces this diagnostic when a name is referenced that is
 declared in two or more imported libraries.
 
-#### Example
+#### Examples
 
 Given a library (`a.dart`) that defines a class (`C` in this example):
 
@@ -238,7 +238,7 @@ spread have the type `Iterable` and others have the type `Map`, making it
 impossible for the analyzer to determine whether you are writing a map
 literal or a set literal.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic:
 
@@ -290,7 +290,7 @@ This diagnostic is produced when none of the expressions being spread have
 a type that allows the analyzer to decide whether you were writing a map
 literal or a set literal.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic:
 
@@ -354,7 +354,7 @@ _The argument type '{0}' can't be assigned to the parameter type '{1}'._
 The analyzer produces this diagnostic when the static type of an argument
 can't be assigned to the static type of the corresponding parameter.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because a `num` can't be
 assigned to a `String`:
@@ -409,7 +409,7 @@ The analyzer produces this diagnostic when it finds an invocation of a
 setter, but there's no setter because the field with the same name was
 declared to be `final` or `const`.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `v` is final:
 
@@ -438,6 +438,41 @@ f(C c) {
 }
 {% endprettify %}
 
+### assignment_to_final_local
+
+_The final variable '{0}' can only be set once._
+
+#### Description
+
+The analyzer produces this diagnostic when a local variable that was
+declared to be final is assigned after it was initialized.
+
+#### Examples
+
+The following code produces this diagnostic because `x` is final, so it
+can't have a value assigned to it after it was initialized:
+
+{% prettify dart %}
+void f() {
+  final x = 0;
+  [!x!] = 3;
+  print(x);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the keyword `final`, and replace it with `var` if there's no type
+annotation:
+
+{% prettify dart %}
+void f() {
+  var x = 0;
+  x = 3;
+  print(x);
+}
+{% endprettify %}
+
 ### assignment_to_final_no_setter
 
 _There isn’t a setter named '{0}' in class '{1}'._
@@ -448,7 +483,7 @@ The analyzer produces this diagnostic when a reference to a setter is
 found; there is no setter defined for the type; but there is a getter
 defined with the same name.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because there is no setter
 named `x` in `C`, but there is a getter named `x`:
@@ -494,6 +529,34 @@ void f(C c) {
 }
 {% endprettify %}
 
+### assignment_to_method
+
+_Methods can't be assigned a value._
+
+#### Description
+
+The analyzer produces this diagnostic when the target of an assignment is a
+method.
+
+#### Examples
+
+The following code produces this diagnostic because `f` can't be assigned a
+value because it's a method:
+
+{% prettify dart %}
+class C {
+  void f() {}
+
+  void g() {
+    [!f!] = null;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rewrite the code so that there isn't an assignment to a method.
+
 ### built_in_identifier_as_extension_name
 
 _The built-in identifier '{0}' can't be used as an extension name._
@@ -503,7 +566,7 @@ _The built-in identifier '{0}' can't be used as an extension name._
 The analyzer produces this diagnostic when the name of an extension is a
 built-in identifier. Built-in identifiers can’t be used as extension names.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `mixin` is a built-in
 identifier:
@@ -516,6 +579,75 @@ extension [!mixin!] on int {}
 
 Choose a different name for the extension.
 
+### built_in_identifier_as_type
+
+_The built-in identifier '{0}' can't be used as a type._
+
+#### Description
+
+The analyzer produces this diagnostic when a built-in identifier is used
+where a type name is expected.
+
+#### Examples
+
+The following code produces this diagnostic because `import` can't be used
+as a type because it's a built-in identifier:
+
+{% prettify dart %}
+[!import!]<int> x;
+{% endprettify %}
+
+#### Common fixes
+
+Replace the built-in identifier with the name of a valid type:
+
+{% prettify dart %}
+List<int> x;
+{% endprettify %}
+
+### case_block_not_terminated
+
+_The last statement of the 'case' should be 'break', 'continue', 'rethrow',
+'return', or 'throw'._
+
+#### Description
+
+The analyzer produces this diagnostic when the last statement in a case
+block isn't one of the required terminators: `break`, `continue`,
+`rethrow`, `return`, or `throw`.
+
+#### Examples
+
+The following code produces this diagnostic because the case block ends
+with an assignment:
+
+{% prettify dart %}
+void f(int x) {
+  switch (x) {
+    [!case!] 0:
+      x += 2;
+    default:
+      x += 1;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add one of the required terminators:
+
+{% prettify dart %}
+void f(int x) {
+  switch (x) {
+    case 0:
+      x += 2;
+      break;
+    default:
+      x += 1;
+  }
+}
+{% endprettify %}
+
 ### cast_to_non_type
 
 _The name '{0}' isn't a type, so it can't be used in an 'as' expression._
@@ -525,7 +657,7 @@ _The name '{0}' isn't a type, so it can't be used in an 'as' expression._
 The analyzer produces this diagnostic when the name following the `as` in a
 cast expression is defined to be something other than a type.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` is a variable, not
 a type:
@@ -554,7 +686,7 @@ The analyzer produces this diagnostic when a member of a concrete class is
 found that doesn't have a concrete implementation. Concrete classes aren't
 allowed to contain abstract members.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `m` is an abstract
 method but `C` isn't an abstract class:
@@ -585,6 +717,52 @@ abstract class C {
 }
 {% endprettify %}
 
+### const_constructor_with_non_final_field
+
+_Can't define a const constructor for a class with non-final fields._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor is marked as a
+const constructor, but the constructor is defined in a class that has at
+least one non-final instance field (either directly or by inheritance).
+
+#### Examples
+
+The following code produces this diagnostic because the field `x` isn't
+final:
+
+{% prettify dart %}
+class C {
+  int x;
+
+  const [!C!](this.x);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If it's possible to mark all of the fields as final, then do so:
+
+{% prettify dart %}
+class C {
+  final int x;
+
+  const C(this.x);
+}
+{% endprettify %}
+
+If it isn't possible to mark all of the fields as final, then remove the
+keyword `const` from the constructor:
+
+{% prettify dart %}
+class C {
+  int x;
+
+  C(this.x);
+}
+{% endprettify %}
+
 ### const_initialized_with_non_constant_value
 
 _Const variables must be initialized with a constant value._
@@ -595,7 +773,7 @@ The analyzer produces this diagnostic when a value that isn't statically
 known to be a constant is assigned to a variable that's declared to be a
 'const' variable.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` isn't declared to
 be `const`:
@@ -632,7 +810,7 @@ _Only static fields can be declared as const._
 The analyzer produces this diagnostic when an instance field is marked as
 being const.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` is an instance
 field:
@@ -671,7 +849,7 @@ _The constant '{0}' must be initialized._
 The analyzer produces this diagnostic when a variable that is declared to
 be a constant doesn't have an initializer.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `c` isn't initialized:
 
@@ -697,7 +875,7 @@ The analyzer produces this diagnostic when the expression of a spread
 operator in a constant list or set evaluates to something other than a list
 or a set.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the value of `list1` is
 `null`, which is neither a list nor a set:
@@ -726,7 +904,7 @@ _A map is expected in this spread._
 The analyzer produces this diagnostic when the expression of a spread
 operator in a constant map evaluates to something other than a map.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the value of `map1` is
 `null`, which isn't a map:
@@ -754,7 +932,7 @@ _The constructor being called isn't a const constructor._
 The analyzer produces this diagnostic when the keyword `const` is used to
 invoke a constructor that isn't marked with `const`.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the constructor in `A`
 isn't a const constructor:
@@ -800,7 +978,7 @@ _Arguments of a constant creation must be constant expressions._
 The analyzer produces this diagnostic when a const constructor is invoked
 with an argument that isn't a constant expression.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `i` isn't a constant:
 
@@ -834,7 +1012,7 @@ _Dead code._
 The analyzer produces this diagnostic when code is found that won't be
 executed because execution will never reach the code.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the invocation of
 `print` occurs after the function has returned:
@@ -890,7 +1068,7 @@ or `on Object catch (e)`. The first catch clause that matches the thrown
 object is selected, and both of those forms will match any object, so no
 catch clauses that follow them will be selected.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic:
 
@@ -941,7 +1119,7 @@ that matches the thrown object is selected, and the earlier clause l always
 matches anything matchable by the highlighted clause, so the highlighted
 clause will never be selected.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic:
 
@@ -989,7 +1167,7 @@ _'{0}' is deprecated and shouldn't be used. {1}._
 The analyzer produces this diagnostic when a deprecated library or class
 member is used in a different package.
 
-#### Example
+#### Examples
 
 If the method `m` in the class `C` is annotated with `@deprecated`, then
 the following code produces this diagnostic:
@@ -1016,7 +1194,7 @@ _'{0}' is deprecated and shouldn't be used. {1}._
 The analyzer produces this diagnostic when a deprecated library member or
 class member is used in the same package in which it's declared.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` is deprecated:
 
@@ -1032,6 +1210,84 @@ The fix depends on what's been deprecated and what the replacement is. The
 documentation for deprecated declarations should indicate what code to use
 in place of the deprecated code.
 
+### duplicate_constructor
+
+_The constructor with name '{0}' is already defined._
+
+_The default constructor is already defined._
+
+#### Description
+
+The analyzer produces this diagnostic when a class declares more than one
+unnamed constructor or when it declares more than one constructor with the
+same name.
+
+#### Examples
+
+The following code produces this diagnostic because there are two
+declarations for the unnamed constructor:
+
+{% prettify dart %}
+class C {
+  C();
+
+  [!C!]();
+}
+{% endprettify %}
+
+The following code produces this diagnostic because there are two
+declarations for the constructor named `m`:
+
+{% prettify dart %}
+class C {
+  C.m();
+
+  [!C.m!]();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there are multiple unnamed constructors and all of the constructors are
+needed, then give all of them, or all except one of them, a name:
+
+{% prettify dart %}
+class C {
+  C();
+
+  C.n();
+}
+{% endprettify %}
+
+If there are multiple unnamed constructors and all except one of them are
+unneeded, then remove the constructors that aren't needed:
+
+{% prettify dart %}
+class C {
+  C();
+}
+{% endprettify %}
+
+If there are multiple named constructors and all of the constructors are
+needed, then rename all except one of them:
+
+{% prettify dart %}
+class C {
+  C.m();
+
+  C.n();
+}
+{% endprettify %}
+
+If there are multiple named constructors and all except one of them are
+unneeded, then remove the constructorsthat aren't needed:
+
+{% prettify dart %}
+class C {
+  C.m();
+}
+{% endprettify %}
+
 ### duplicate_definition
 
 _The name '{0}' is already defined._
@@ -1041,7 +1297,7 @@ _The name '{0}' is already defined._
 The analyzer produces this diagnostic when a name is declared, and there is
 a previous declaration with the same name in the same scope.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the name `x` is
 declared twice:
@@ -1070,7 +1326,7 @@ The analyzer produces this diagnostic when an import directive is found
 that is the same as an import before it in the file. The second import
 doesn’t add value and should be removed.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic:
 
@@ -1091,6 +1347,56 @@ import 'package:meta/meta.dart';
 @sealed class C {}
 {% endprettify %}
 
+### duplicate_named_argument
+
+_The argument for the named parameter '{0}' was already specified._
+
+#### Description
+
+The analyzer produces this diagnostic when an invocation has two or more
+named arguments that have the same name.
+
+#### Examples
+
+The following code produces this diagnostic because there are two arguments
+with the name `a`:
+
+{% prettify dart %}
+void f(C c) {
+  c.m(a: 0, [!a!]: 1);
+}
+
+class C {
+  void m({int a, int b}) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If one of the arguments should have a different name, then change the name:
+
+{% prettify dart %}
+void f(C c) {
+  c.m(a: 0, b: 1);
+}
+
+class C {
+  void m({int a, int b}) {}
+}
+{% endprettify %}
+
+If one of the arguments is wrong, then remove it:
+
+{% prettify dart %}
+void f(C c) {
+  c.m(a: 1);
+}
+
+class C {
+  void m({int a, int b}) {}
+}
+{% endprettify %}
+
 ### equal_elements_in_const_set
 
 _Two values in a constant set can't be equal._
@@ -1101,7 +1407,7 @@ The analyzer produces this diagnostic when two elements in a constant set
 literal have the same value. The set can only contain each value once,
 which means that one of the values is unnecessary.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the string `'a'` is
 specified twice:
@@ -1133,7 +1439,7 @@ same as a previous key in the same map. If two keys are the same, then the
 second value would overwrite the first value, which makes having both pairs
 pointless.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the key `1` is used
 twice:
@@ -1171,7 +1477,7 @@ _Expressions can't be used in a map literal._
 The analyzer produces this diagnostic when the analyzer finds an
 expression, rather than a map entry, in what appears to be a map literal.
 
-#### Example
+#### Examples
 
 The following code generates this diagnostic:
 
@@ -1198,7 +1504,7 @@ _Classes can only extend other classes._
 The analyzer produces this diagnostic when an extends clause contains a
 name that is declared to be something other than a class.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` is declared to be a
 function:
@@ -1243,7 +1549,7 @@ the name of a class can be used to refer to the instance of `Type`
 representing the type of the class. Extensions, on the other hand, don't
 define a type and can't be used as a type literal.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `E` is an extension:
 
@@ -1281,7 +1587,7 @@ name. The instance member and the static member can't have the same name
 because it's unclear which member is being referenced by an unqualified use
 of the name within the body of the extension.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the name `a` is being
 used for two different members:
@@ -1313,7 +1619,7 @@ _Extensions can't declare abstract members._
 The analyzer produces this diagnostic when an abstract declaration is
 declared in an extension. Extensions can declare only concrete members.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the method `a` doesn't
 have a body:
@@ -1339,7 +1645,7 @@ found in an extension. It isn't valid to define a constructor because
 extensions aren't classes, and it isn't possible to create an instance of
 an extension.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because there is a constructor
 declaration in `E`:
@@ -1364,7 +1670,7 @@ The analyzer produces this diagnostic when an instance field declaration is
 found in an extension. It isn't valid to define an instance field because
 extensions can only add behavior, not state.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `s` is an instance
 field:
@@ -1392,7 +1698,7 @@ declares a member with the same name as a member declared in the class
 `Object`. Such a member can never be used because the member in `Object` is
 always found first.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `toString` is defined
 by `Object`:
@@ -1426,7 +1732,7 @@ target of the invocation of a static member. Similar to static members in
 classes, the static members of an extension should be accessed using the
 name of the extension, not an extension override.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `m` is static:
 
@@ -1464,7 +1770,7 @@ the extended type '{1}'._
 The analyzer produces this diagnostic when the argument to an extension
 override isn't assignable to the type being extended by the extension.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `3` isn't a `String`:
 
@@ -1508,7 +1814,7 @@ that isn't being used to access one of the members of the extension. The
 extension override syntax doesn't have any runtime semantics; it only
 controls which member is selected at compile time.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `E(i)` isn't an
 expression:
@@ -1562,7 +1868,7 @@ the target of a cascade expression. The value of a cascade expression
 `e..m` is the value of the target `e`, but extension overrides are not
 expressions and don't have a value.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `E(3)` isn't an
 expression:
@@ -1601,7 +1907,7 @@ _Too many positional arguments: {0} expected, but {1} found._
 The analyzer produces this diagnostic when a method or function invocation
 has more positional arguments than the method or function allows.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` defines 2
 parameters but is invoked with 3 arguments:
@@ -1634,7 +1940,7 @@ The analyzer produces this diagnostic when a method or function invocation
 has more positional arguments than the method or function allows, but the
 method or function defines named parameters.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` defines 2
 positional parameters but has a named parameter that could be used for the
@@ -1678,7 +1984,7 @@ _The final variable '{0}' must be initialized._
 The analyzer produces this diagnostic when a final field or variable isn't
 initialized.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` doesn't have an
 initializer:
@@ -1733,7 +2039,7 @@ that doesn't initialize those fields. All final instance fields must be
 initialized when the instance is created, either by the field's initializer
 or by the constructor.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic:
 
@@ -1816,7 +2122,7 @@ _The type '{0}' used in the 'for' loop must implement {1}._
 The analyzer produces this diagnostic when the expression following `in` in
 a for-in loop has a type that isn't a subclass of `Iterable`.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `m` is a `Map`, and
 `Map` isn't a subclass of `Iterable`:
@@ -1851,7 +2157,7 @@ The analyzer produces this diagnostic when a name used in the implements
 clause of a class or mixin declaration is defined to be something other
 than a class or mixin.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` is a variable
 rather than a class or mixin:
@@ -1884,7 +2190,7 @@ _'{0}' can only be implemented once._
 The analyzer produces this diagnostic when a single class is specified more
 than once in an implements clause.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `A` is in the list
 twice:
@@ -1912,7 +2218,7 @@ _Only static members can be accessed in initializers._
 The analyzer produces this diagnostic when it finds a reference to an
 instance member in a constructor's initializer list.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `defaultX` is an
 instance member:
@@ -1965,7 +2271,7 @@ field that isn't declared in the class containing the constructor.
 Constructors can't initialize fields that aren't declared and fields that
 are inherited from superclasses.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the initializer is
 initializing `x`, but `x` isn't a field in the class:
@@ -2013,7 +2319,7 @@ found in a constructor in a class that doesn't declare the field being
 initialized. Constructors can't initialize fields that aren't declared and
 fields that are inherited from superclasses.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the field `x` isn't
 defined:
@@ -2072,6 +2378,44 @@ class C {
 }
 {% endprettify %}
 
+### instance_access_to_static_member
+
+_Static {1} '{0}' can't be accessed through an instance._
+
+#### Description
+
+The analyzer produces this diagnostic when an access operator is used to
+access a static member through an instance of the class.
+
+#### Examples
+
+The following code produces this diagnostic because `zero` is a static
+field, but it’s being accessed as if it were an instance field:
+
+{% prettify dart %}
+void f(C c) {
+  c.[!zero!];
+}
+
+class C {
+  static int zero = 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use the class to access the static member:
+
+{% prettify dart %}
+void f(C c) {
+  C.zero;
+}
+
+class C {
+  static int zero = 0;
+}
+{% endprettify %}
+
 ### instance_member_access_from_factory
 
 _Instance members can't be accessed from a factory constructor._
@@ -2086,7 +2430,7 @@ the body of the constructor is executed, so the instance can be bound to
 factory constructor, the instance isn't created before executing the body,
 so `this` can't be used to reference it.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` isn't in scope in
 the factory constructor:
@@ -2124,7 +2468,7 @@ _Instance members can't be accessed from a static method._
 The analyzer produces this diagnostic when a static method contains an
 unqualified reference to an instance member.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the instance field `x`
 is being referenced in a static method:
@@ -2178,7 +2522,7 @@ invocation and the constructor is declared in an abstract class. Even
 though you can't create an instance of an abstract class, abstract classes
 can declare constructors that can be invoked by subclasses.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `C` is an abstract
 class:
@@ -2204,7 +2548,7 @@ The analyzer produces this diagnostic when the static type of an expression
 that is assigned to a variable isn't assignable to the type of the
 variable.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the type of the
 initializer (`int`) isn't assignable to the type of the variable
@@ -2248,7 +2592,7 @@ have exactly one argument. The argument is the expression used to compute
 the value of `this` within the extension method, so there must be one
 argument.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because there are no arguments:
 
@@ -2299,7 +2643,7 @@ immediately enclosing class._
 The analyzer produces this diagnostic when the name of a factory
 constructor isn't the same as the name of the surrounding class.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the name of the factory
 constructor (`A`) isn't the same as the surrounding class (`C`):
@@ -2357,7 +2701,7 @@ _Only const constructors can have the `@literal` annotation._
 The analyzer produces this diagnostic when the `@literal` annotation is
 applied to anything other than a const constructor.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the constructor is not
 a `const` constructor:
@@ -2422,7 +2766,7 @@ override is valid if all of these are true:
 * The return type of the override is assignable to the return type of the
   overridden member.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the type of the
 parameter `s` (`String`) isn't assignable to the type of the parameter `i`
@@ -2477,7 +2821,7 @@ instance method or a generative constructor. The reserved word `this` is
 only defined in the context of an instance method or a generative
 constructor.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `v` is a top-level
 variable:
@@ -2499,6 +2843,28 @@ C f(C c) => c;
 class C {}
 {% endprettify %}
 
+### invalid_uri
+
+_Invalid URI syntax: '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a URI in a directive doesn't
+conform to the syntax of a valid URI.
+
+#### Examples
+
+The following code produces this diagnostic because `'#'` isn't a valid
+URI:
+
+{% prettify dart %}
+import [!'#'!];
+{% endprettify %}
+
+#### Common fixes
+
+Replace the invalid URI with a valid URI.
+
 ### invalid_use_of_covariant_in_extension
 
 _Can't have modifier '#lexeme' in an extension._
@@ -2510,7 +2876,7 @@ extension uses the keyword `covariant` in the declaration of a parameter.
 Extensions aren't classes and don't have subclasses, so the keyword serves
 no purpose.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `i` is marked as being
 covariant:
@@ -2541,7 +2907,7 @@ meaningful on declarations of public members._
 The analyzer produces this diagnostic when either the `@visibleForTemplate`
 or `@visibleForTesting` annotation is applied to a non-public declaration.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic:
 
@@ -2586,7 +2952,7 @@ used in an invocation._
 The analyzer produces this diagnostic when an extension override is used to
 invoke a function but the extension doesn't declare a `call` method.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the extension `E`
 doesn't define a `call` method:
@@ -2629,7 +2995,7 @@ The analyzer produces this diagnostic when it finds a function invocation,
 but the name of the function being invoked is defined to be something other
 than a function.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `Binary` is the name of
 a function type, not a function:
@@ -2656,7 +3022,7 @@ The analyzer produces this diagnostic when a function invocation is found,
 but the name being referenced isn't the name of a function, or when the
 expression computing the function doesn't compute a function.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` isn't a function:
 
@@ -2702,7 +3068,7 @@ _The element type '{0}' can't be assigned to the list type '{1}'._
 The analyzer produces this diagnostic when the type of an element in a list
 literal isn't assignable to the element type of the list.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `2.5` is a double, and
 the list can hold only integers:
@@ -2742,7 +3108,7 @@ _Map entries can only be used in a map literal._
 The analyzer produces this diagnostic when a map entry (a key/value pair)
 is found in a set literal.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the literal has a map
 entry even though it's a set literal:
@@ -2781,7 +3147,7 @@ _The element type '{0}' can't be assigned to the map key type '{1}'._
 The analyzer produces this diagnostic when a key of a key-value pair in a
 map literal has a type that isn't assignable to the key type of the map.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `2` is an `int`, but
 the keys of the map are required to be `String`s:
@@ -2815,7 +3181,7 @@ The analyzer produces this diagnostic when a value of a key-value pair in a
 map literal has a type that isn't assignable to the the value type of the
 map.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `2` is an `int`, but/
 the values of the map are required to be `String`s:
@@ -2851,7 +3217,7 @@ doesn't include an option for one of the values in the enumeration.
 Note that `null` is always a possible value for an enum and therefore also
 must be handled.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the enum constant `e2`
 isn't handled:
@@ -2913,7 +3279,7 @@ The analyzer produces this diagnostic when a method or function with a
 named parameter that is annotated as being required is invoked without
 providing a value for the parameter.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the named parameter `x`
 is required:
@@ -2953,7 +3319,7 @@ Any function or method that doesn't end with either an explicit return or a
 throw implicitly returns `null`. This is rarely the desired behavior. The
 analyzer produces this diagnostic when it finds an implicit return.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` doesn't end with a
 return:
@@ -2980,7 +3346,7 @@ _Classes can only mix in mixins and classes._
 The analyzer produces this diagnostic when a name in a mixin clause is
 defined to be something other than a mixin or a class.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `F` is defined to be a
 function type:
@@ -3013,7 +3379,7 @@ mixin is a class from a different package that was marked as `@sealed`.
 Classes that are sealed can't be extended, implemented, mixed in, or used
 as a superclass constraint.
 
-#### Example
+#### Examples
 
 If the package 'p' defines a sealed class:
 
@@ -3048,7 +3414,7 @@ _Only classes and mixins can be used as superclass constraints._
 The analyzer produces this diagnostic when a type following the `on`
 keyword in a mixin declaration is neither a class nor a mixin.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `F` is neither a class
 nor a mixin:
@@ -3078,7 +3444,7 @@ or more instance fields that aren't final. A class is immutable if it's
 marked as being immutable using the annotation `@immutable` or if it's a
 subclass of an immutable class.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the field `x` isn't
 final:
@@ -3120,6 +3486,56 @@ class C {
 }
 {% endprettify %}
 
+### must_call_super
+
+_This method overrides a method annotated as '@mustCallSuper' in '{0}', but
+doesn't invoke the overridden method._
+
+#### Description
+
+The analyzer produces this diagnostic when a method that overrides a method
+that is annotated as `@mustCallSuper` doesn't invoke the overridden method
+as required.
+
+#### Examples
+
+The following code produces this diagnostic because the method `m` in `B`
+doesn't invoke the overridden method `m` in `A`:
+
+{% prettify dart %}
+import 'package:meta/meta.dart';
+
+class A {
+  @mustCallSuper
+  m() {}
+}
+
+class B extends A {
+  @override
+  [!m!]() {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add an invocation of the overridden method in the overriding method:
+
+{% prettify dart %}
+import 'package:meta/meta.dart';
+
+class A {
+  @mustCallSuper
+  m() {}
+}
+
+class B extends A {
+  @override
+  m() {
+    super.m();
+  }
+}
+{% endprettify %}
+
 ### new_with_undefined_constructor_default
 
 _The class '{0}' doesn't have a default constructor._
@@ -3130,7 +3546,7 @@ The analyzer produces this diagnostic when an unnamed constructor is
 invoked on a class that defines named constructors but the class doesn’t
 have an unnamed constructor.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `A` doesn't define an
 unnamed constructor:
@@ -3185,7 +3601,7 @@ The analyzer produces this diagnostic when a concrete class inherits one or
 more abstract members, and doesn't provide or inherit an implementation for
 at least one of those abstract members.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the class `B` doesn't
 have a concrete implementation of `m`:
@@ -3248,7 +3664,7 @@ _Conditions must have a static type of 'bool'._
 The analyzer produces this diagnostic when a condition, such as an `if` or
 `while` loop, doesn't have the static type `bool`.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` has the static type
 `int`:
@@ -3282,7 +3698,7 @@ _The expression in an assert must be of type 'bool'._
 The analyzer produces this diagnostic when the first expression in an
 assert has a type other than `bool`.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the type of `p` is
 `int`, but a `bool` is required:
@@ -3312,7 +3728,7 @@ _A negation operand must have a static type of 'bool'._
 The analyzer produces this diagnostic when the operand of the unary
 negation operator (`!`) doesn't have the type `bool`.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` is an `int` when it
 must be a `bool`:
@@ -3340,7 +3756,7 @@ _The operands of the operator '{0}' must be assignable to 'bool'._
 The analyzer produces this diagnostic when one of the operands of either
 the `&&` or `||` operator doesn't have the type `bool`.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `a` isn't a Boolean
 value:
@@ -3368,7 +3784,7 @@ _Case expressions must be constant._
 The analyzer produces this diagnostic when the expression in a case clause
 isn't a constant expression.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `j` isn't a constant:
 
@@ -3405,7 +3821,7 @@ The analyzer produces this diagnostic when an optional parameter, either
 named or positional, has a default value that isn't a compile-time
 constant.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic:
 
@@ -3447,7 +3863,7 @@ literal isn't a constant value. The list literal can be constant either
 explicitly (because it's prefixed by the `const` keyword) or implicitly
 (because it appears in a [constant context](#constant-context)).
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` isn't a constant,
 even though it appears in an implicitly constant list literal:
@@ -3487,7 +3903,7 @@ _The elements in a const map literal must be constant._
 The analyzer produces this diagnostic when an if element or a spread
 element in a constant map isn't a constant element.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because it is attempting to
 spread a non-constant map:
@@ -3533,7 +3949,7 @@ _The keys in a const map literal must be constant._
 The analyzer produces this diagnostic when a key in a constant map literal
 isn't a constant value.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic beause `a` isn't a constant:
 
@@ -3568,7 +3984,7 @@ _The values in a const map literal must be constant._
 The analyzer produces this diagnostic when a value in a constant map
 literal isn't a constant value.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `a` isn't a constant:
 
@@ -3603,7 +4019,7 @@ _The values in a const set literal must be constants._
 The analyzer produces this diagnostic when a constant set literal contains
 an element that isn't a compile-time constant.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `i` isn't a constant:
 
@@ -3647,7 +4063,7 @@ of the arguments to the constructor are constants. The annotation indicates
 that the constructor should be used to create a constant value whenever
 possible.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic:
 
@@ -3686,7 +4102,7 @@ _The name '{0}' isn't a type so it can't be used as a type argument._
 The analyzer produces this diagnostic when an identifier that isn't a type
 is used as a type argument.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` is a variable, not
 a type:
@@ -3705,6 +4121,44 @@ var x = 0;
 List<int> xList = [];
 {% endprettify %}
 
+### non_type_in_catch_clause
+
+_The name '{0}' isn't a type and can't be used in an on-catch clause._
+
+#### Description
+
+The analyzer produces this diagnostic when the identifier following the
+`on` in a catch clause is defined to be something other than a type.
+
+#### Examples
+
+The following code produces this diagnostic because `f` is a function, not
+a type:
+
+{% prettify dart %}
+void f() {
+  try {
+    // ...
+  } on [!f!] {
+    // ...
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the name to the type of object that should be caught:
+
+{% prettify dart %}
+void f() {
+  try {
+    // ...
+  } on FormatException {
+    // ...
+  }
+}
+{% endprettify %}
+
 ### not_a_type
 
 _{0} isn't a type._
@@ -3714,7 +4168,7 @@ _{0} isn't a type._
 The analyzer produces this diagnostic when a name is used as a type but
 declared to be something other than a type.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` is a function:
 
@@ -3737,7 +4191,7 @@ The analyzer produces this diagnostic when a method or function invocation
 has fewer positional arguments than the number of required positional
 parameters.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` declares two
 required parameters, but only one argument is provided:
@@ -3770,7 +4224,7 @@ The analyzer produces this diagnostic when the static type of the
 expression of a spread element that appears in either a list literal or a
 set literal doesn't implement the type `Iterable`.
 
-#### Example
+#### Examples
 
 The following code generates this diagnostic:
 
@@ -3799,7 +4253,7 @@ The analyzer produces this diagnostic when the static type of the
 expression of a spread element that appears in a map literal doesn't
 implement the type `Map`.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `l` isn't a `Map`:
 
@@ -3818,6 +4272,45 @@ var l =  <String>['a', 'b'];
 var m = <int, String>{...l.asMap()};
 {% endprettify %}
 
+### no_annotation_constructor_arguments
+
+_Annotation creation must have arguments._
+
+#### Description
+
+The analyzer produces this diagnostic when an annotation consists of a
+single identifier, but that identifier is the name of a class rather than a
+variable. To create an instance of the class, the identifier must be
+followed by an argument list.
+
+#### Examples
+
+The following code produces this diagnostic because `C` is a class, and a
+class can't be used as an annotation without invoking a `const` constructor
+from the class:
+
+{% prettify dart %}
+class C {
+  const C();
+}
+
+[!@C!]
+var x;
+{% endprettify %}
+
+#### Common fixes
+
+Add the missing argument list:
+
+{% prettify dart %}
+class C {
+  const C();
+}
+
+@C()
+var x;
+{% endprettify %}
+
 ### override_on_non_overriding_member
 
 _The field doesn't override an inherited getter or setter._
@@ -3834,7 +4327,7 @@ The analyzer produces this diagnostic when a class member is annotated with
 the `@override` annotation, but the member isn’t declared in any of the
 supertypes of the class.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `m` isn't declared in
 any of the supertypes of `C`:
@@ -3872,7 +4365,7 @@ _The included part '{0}' must have a part-of directive._
 The analyzer produces this diagnostic when a part directive is found and
 the referenced file doesn't have a part-of directive.
 
-#### Example
+#### Examples
 
 Given a file (`a.dart`) containing:
 
@@ -3905,6 +4398,132 @@ directive with an import directive:
 import 'a.dart';
 {% endprettify %}
 
+### redirect_to_invalid_function_type
+
+_The redirected constructor '{0}' has incompatible parameters with '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a factory constructor attempts
+to redirect to another constructor, but the two have incompatible
+parameters. The parameters are compatible if all of the parameters of the
+redirecting constructor can be passed to the other constructor and if the
+other constructor doesn't require any parameters that aren't declared by
+the redirecting constructor.
+
+#### Examples
+
+The following code produces this diagnostic because the constructor for `A`
+doesn't declare a parameter that the constructor for `B` requires:
+
+{% prettify dart %}
+abstract class A {
+  factory A() = [!B!];
+}
+
+class B implements A {
+  B(int x);
+  B.zero();
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the constructor for `A`
+declares a named parameter (`y`) that the constructor for `B` doesn't
+allow:
+
+{% prettify dart %}
+abstract class A {
+  factory A(int x, {int y}) = [!B!];
+}
+
+class B implements A {
+  B(int x);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If there's a different constructor that is compatible with the redirecting
+constructor, then redirect to that constructor:
+
+{% prettify dart %}
+abstract class A {
+  factory A() = B.zero;
+}
+
+class B implements A {
+  B(int x);
+  B.zero();
+}
+{% endprettify %}
+
+Otherwise, update the redirecting constructor to be compatible:
+
+{% prettify dart %}
+abstract class A {
+  factory A(int x) = B;
+}
+
+class B implements A {
+  B(int x);
+}
+{% endprettify %}
+
+### redirect_to_invalid_return_type
+
+_The return type '{0}' of the redirected constructor isn't assignable to '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a factory constructor redirects
+to a constructor whose return type isn't a subtype of the type that the
+factory constructor is declared to produce.
+
+#### Examples
+
+The following code produces this diagnostic because `A` isn't a subclass
+of `C`, which means that the value returned by the constructor `A()`
+couldn't be returned from the constructor `C()`:
+
+{% prettify dart %}
+class A {}
+
+class B implements C {}
+
+class C {
+  factory C() = [!A!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the factory constructor is redirecting to a constructor in the wrong
+class, then update the factory constructor to redirect to the correct
+constructor:
+
+{% prettify dart %}
+class A {}
+
+class B implements C {}
+
+class C {
+  factory C() = B;
+}
+{% endprettify %}
+
+If the class defining the constructor being redirected to is the class that
+should be returned, then make it a subtype of the factory's return type:
+
+{% prettify dart %}
+class A implements C {}
+
+class B implements C {}
+
+class C {
+  factory C() = A;
+}
+{% endprettify %}
+
 ### redirect_to_non_class
 
 _The name '{0}' isn't a type and can't be used in a redirected constructor._
@@ -3916,7 +4535,7 @@ constructor by referencing the name of the constructor. The analyzer
 produces this diagnostic when the redirect is to something other than a
 constructor.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` is a function:
 
@@ -3961,7 +4580,7 @@ declared.
 The analyzer also produces a context message that indicates where the
 declaration is located.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `i` is used before it
 is declared:
@@ -4010,7 +4629,7 @@ return type of '{1}'._
 The analyzer produces this diagnostic when a method or function returns a
 value whose type isn't assignable to the declared return type.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` has a return type
 of `String` but is returning an `int`:
@@ -4044,7 +4663,7 @@ The analyzer produces this diagnostic when the static type of a returned
 expression isn't assignable to the return type that the closure is required
 to have.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` is defined to be a
 function that returns a `String`, but the closure assigned to it returns an
@@ -4063,6 +4682,36 @@ of the correct type, possibly by converting the existing value:
 String Function(String) f = (s) => 3.toString();
 {% endprettify %}
 
+### return_without_value
+
+_The  return value is missing after 'return'._
+
+#### Description
+
+The analyzer produces this diagnostic when it finds a return statement
+without an expression in a function that declares a return type.
+
+#### Examples
+
+The following code produces this diagnostic because the function `f` is
+expected to return an `int`, but no value is being returned:
+
+{% prettify dart %}
+int f() {
+  [!return!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+Add an expression that computes the value to be returned:
+
+{% prettify dart %}
+int f() {
+  return 0;
+}
+{% endprettify %}
+
 ### sdk_version_async_exported_from_core
 
 _The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this
@@ -4076,7 +4725,7 @@ code that has an SDK constraint whose lower bound is less than 2.1.0. In
 earlier versions, these classes weren't defined in `dart:core`, so the
 import was necessary.
 
-#### Example
+#### Examples
 
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.1.0:
@@ -4126,7 +4775,7 @@ a [constant context](#constant-context) wasn't supported in earlier
 versions, so this code won't be able to run against earlier versions of the
 SDK.
 
-#### Example
+#### Examples
 
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
@@ -4177,7 +4826,7 @@ constraint whose lower bound is less than 2.3.2. Using these operators in a
 [constant context](#constant-context) wasn't supported in earlier versions,
 so this code won't be able to run against earlier versions of the SDK.
 
-#### Example
+#### Examples
 
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
@@ -4230,7 +4879,7 @@ Using this operator in a [constant context](#constant-context) wasn't
 supported in earlier versions, so this code won't be able to run against
 earlier versions of the SDK.
 
-#### Example
+#### Examples
 
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
@@ -4284,7 +4933,7 @@ bound is less than 2.6.0. Using extensions wasn't supported in earlier
 versions, so this code won't be able to run against earlier versions of the
 SDK.
 
-#### Example
+#### Examples
 
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.6.0:
@@ -4340,7 +4989,7 @@ a [constant context](#constant-context) wasn't supported in earlier
 versions, so this code won't be able to run against earlier versions of the
 SDK.
 
-#### Example
+#### Examples
 
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
@@ -4390,7 +5039,7 @@ that has an SDK constraint whose lower bound is less than 2.2.0. Set
 literals weren't supported in earlier versions, so this code won't be able
 to run against earlier versions of the SDK.
 
-#### Example
+#### Examples
 
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.2.0:
@@ -4437,7 +5086,7 @@ found in code that has an SDK constraint whose lower bound is less than
 versions, so this code won't be able to run against earlier versions of the
 SDK.
 
-#### Example
+#### Examples
 
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.0:
@@ -4493,7 +5142,7 @@ spread element inside a [constant context](#constant-context) wasn't
 supported in earlier versions, so this code won't be able to run against
 earlier versions of the SDK.
 
-#### Example
+#### Examples
 
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.5.0:
@@ -4547,7 +5196,7 @@ The analyzer produces this diagnostic when a class name is used to access
 an instance field. Instance fields don't exist on a class; they exist only
 on an instance of the class.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `x` is an instance
 field:
@@ -4601,7 +5250,7 @@ The analyzer produces this diagnostic when a member declared inside an
 extension uses the `super` keyword . Extensions aren't classes and don't
 have superclasses, so the `super` keyword serves no purpose.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `super` can't be used
 in an extension:
@@ -4622,6 +5271,30 @@ extension E on Object {
 }
 {% endprettify %}
 
+### super_in_invalid_context
+
+_Invalid context for 'super' invocation._
+
+#### Description
+
+The analyzer produces this diagnostic when the keyword `super` is used
+outside of a instance method.
+
+#### Examples
+
+The following code produces this diagnostic because `super` is used in a
+top-level function:
+
+{% prettify dart %}
+void f() {
+  [!super!].f();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Rewrite the code to not use `super`.
+
 ### type_argument_not_matching_bounds
 
 _'{0}' doesn't extend '{1}'._
@@ -4631,7 +5304,7 @@ _'{0}' doesn't extend '{1}'._
 The analyzer produces this diagnostic when a type argument isn't the same
 as or a subclass of the bounds of the corresponding type parameter.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `String` isn't a
 subclass of `num`:
@@ -4661,7 +5334,7 @@ _The name '{0}' isn't defined, so it can't be used in an 'is' expression._
 The analyzer produces this diagnostic when the name following the `is` in a
 type test expression isn't defined.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the name `Srting` isn't
 defined:
@@ -4695,7 +5368,7 @@ _Undefined name '{0}' used as an annotation._
 The analyzer produces this diagnostic when a name that isn't defined is
 used as an annotation.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the name `undefined`
 isn't defined:
@@ -4736,7 +5409,7 @@ The analyzer produces this diagnostic when it encounters an identifier that
 appears to be the name of a class but either isn't defined or isn't visible
 in the scope in which it's being referenced.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `Piont` isn't defined:
 
@@ -4761,6 +5434,71 @@ void f(Point p) {}
 If the class is defined but isn't visible, then you probably need to add an
 import.
 
+### undefined_constructor_in_initializer
+
+_The class '{0}' doesn't have a constructor named '{1}'._
+
+_The class '{0}' doesn't have an unnamed constructor._
+
+#### Description
+
+The analyzer produces this diagnostic when a superclass constructor is
+invoked in the initializer list of a constructor, but the superclass
+doesn't define the constructor being invoked.
+
+#### Examples
+
+The following code produces this diagnostic because `A` doesn't have an
+unnamed constructor:
+
+{% prettify dart %}
+class A {
+  A.n();
+}
+class B extends A {
+  B() : [!super()!];
+}
+{% endprettify %}
+
+The following code produces this diagnostic because `A` doesn't have a
+constructor named `m`:
+
+{% prettify dart %}
+class A {
+  A.n();
+}
+class B extends A {
+  B() : [!super.m()!];
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the superclass defines a constructor that should be invoked, then change
+the constructor being invoked:
+
+{% prettify dart %}
+class A {
+  A.n();
+}
+class B extends A {
+  B() : super.n();
+}
+{% endprettify %}
+
+If the superclass doesn't define an appropriate constructor, then define
+the constructor being invoked:
+
+{% prettify dart %}
+class A {
+  A.m();
+  A.n();
+}
+class B extends A {
+  B() : super.m();
+}
+{% endprettify %}
+
 ### undefined_extension_getter
 
 _The getter '{0}' isn't defined for the extension '{1}'._
@@ -4772,7 +5510,7 @@ invoke a getter, but the getter isn't defined by the specified extension.
 The analyzer also produces this diagnostic when a static getter is
 referenced but isn't defined by the specified extension.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the extension `E`
 doesn't declare an instance getter named `b`:
@@ -4865,7 +5603,7 @@ invoke a method, but the method isn't defined by the specified extension.
 The analyzer also produces this diagnostic when a static method is
 referenced but isn't defined by the specified extension.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the extension `E`
 doesn't declare an instance method named `b`:
@@ -4958,7 +5696,7 @@ invoke a setter, but the setter isn't defined by the specified extension.
 The analyzer also produces this diagnostic when a static setter is
 referenced but isn't defined by the specified extension.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the extension `E`
 doesn't declare an instance setter named `b`:
@@ -5052,7 +5790,7 @@ The analyzer produces this diagnostic when it encounters an identifier that
 appears to be the name of a function but either isn't defined or isn't
 visible in the scope in which it's being referenced.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the name `emty` isn't
 defined:
@@ -5092,7 +5830,7 @@ The analyzer produces this diagnostic when it encounters an identifier that
 appears to be the name of a getter but either isn't defined or isn't
 visible in the scope in which it's being referenced.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `String` has no member
 named `len`:
@@ -5111,6 +5849,37 @@ fixing the spelling of the getter:
 int f(String s) => s.length;
 {% endprettify %}
 
+### undefined_hidden_name
+
+_The library '{0}' doesn't export a member with the hidden name '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a hide combinator includes a
+name that isn't defined by the library being imported.
+
+#### Examples
+
+The following code produces this diagnostic because `dart:math` doesn't
+define the name `String`:
+
+{% prettify dart %}
+import 'dart:math' hide [!String!], max;
+
+var x = min(0, 1);
+{% endprettify %}
+
+#### Common fixes
+
+If a different name should be hidden, then correct the name. Otherwise,
+remove the name from the list:
+
+{% prettify dart %}
+import 'dart:math' hide max;
+
+var x = min(0, 1);
+{% endprettify %}
+
 ### undefined_identifier
 
 _Undefined name '{0}'._
@@ -5121,7 +5890,7 @@ The analyzer produces this diagnostic when it encounters an identifier that
 either isn't defined or isn't visible in the scope in which it's being
 referenced.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the name `rihgt` isn't
 defined:
@@ -5153,7 +5922,7 @@ The analyzer produces this diagnostic when it encounters an identifier that
 appears to be the name of a method but either isn't defined or isn't
 visible in the scope in which it's being referenced.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the identifier
 `removeMiddle` isn't defined:
@@ -5182,7 +5951,7 @@ The analyzer produces this diagnostic when a method or function invocation
 has a named argument, but the method or function being invoked doesn't
 define a parameter with the same name.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `m` doesn't declare a
 named parameter named `a`:
@@ -5250,7 +6019,7 @@ _The operator '{0}' isn't defined for the class '{1}'._
 The analyzer produces this diagnostic when a user-definable operator is
 invoked on an object for which the operator isn't defined.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the class `C` doesn't
 define the operator `+`:
@@ -5284,7 +6053,7 @@ The analyzer produces this diagnostic when a prefixed identifier is found
 where the prefix is valid, but the identifier isn't declared in any of the
 libraries imported using that prefix.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `dart:core` doesn't
 define anything named `a`:
@@ -5315,7 +6084,7 @@ The analyzer produces this diagnostic when it encounters an identifier that
 appears to be the name of a setter but either isn't defined or isn't
 visible in the scope in which the identifier is being referenced.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because there isn't a setter
 named `z`:
@@ -5344,6 +6113,37 @@ class C {
 }
 {% endprettify %}
 
+### undefined_shown_name
+
+_The library '{0}' doesn't export a member with the shown name '{1}'._
+
+#### Description
+
+The analyzer produces this diagnostic when a show combinator includes a
+name that isn't defined by the library being imported.
+
+#### Examples
+
+The following code produces this diagnostic because `dart:math` doesn't
+define the name `String`:
+
+{% prettify dart %}
+import 'dart:math' show min, [!String!];
+
+var x = min(0, 1);
+{% endprettify %}
+
+#### Common fixes
+
+If a different name should be shown, then correct the name. Otherwise,
+remove the name from the list:
+
+{% prettify dart %}
+import 'dart:math' show min;
+
+var x = min(0, 1);
+{% endprettify %}
+
 ### undefined_super_method
 
 _The method '{0}' isn't defined in a superclass of '{1}'._
@@ -5354,7 +6154,7 @@ The analyzer produces this diagnostic when an inherited method is
 referenced using `super`, but there’s no method with that name in the
 superclass chain.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `Object` doesn't define
 a member named `n`:
@@ -5378,6 +6178,40 @@ remove the `super.`.
 If not, then either add the method to one of the superclasses or remove the
 invocation.
 
+### unnecessary_cast
+
+_Unnecessary cast._
+
+#### Description
+
+The analyzer produces this diagnostic when the value being cast is already
+known to be of the type that it's being cast to.
+
+#### Examples
+
+The following code produces this diagnostic because `n` is already known to
+be an `int` as a result of the `is` test:
+
+{% prettify dart %}
+void f(num n) {
+  if (n is int) {
+    ([!n as int!]).isEven;
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the unnecessary cast:
+
+{% prettify dart %}
+void f(num n) {
+  if (n is int) {
+    n.isEven;
+  }
+}
+{% endprettify %}
+
 ### unqualified_reference_to_static_member_of_extended_type
 
 _Static members from the extended type or one of its superclasses must be
@@ -5389,7 +6223,7 @@ The analyzer produces this diagnostic when an undefined name is found, and
 the name is the same as a static member of the extended type or one of its
 superclasses.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `m` is a static member
 of the extended type `C`:
@@ -5440,6 +6274,83 @@ extension E on C {
 }
 {% endprettify %}
 
+### unused_catch_clause
+
+_The exception variable '{0}' isn't used, so the 'catch' clause can be removed._
+
+#### Description
+
+The analyzer produces this diagnostic when a catch clause is found, and
+neither the exception parameter nor the optional stack trace parameter are
+used in the catch block.
+
+#### Examples
+
+The following code produces this diagnostic because `e` isn't referenced:
+
+{% prettify dart %}
+void f() {
+  try {
+    int.parse(';');
+  } on FormatException catch ([!e!]) {
+    // ignored
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the unused catch clause:
+
+{% prettify dart %}
+void f() {
+  try {
+    int.parse(';');
+  } on FormatException {
+    // ignored
+  }
+}
+{% endprettify %}
+
+### unused_catch_stack
+
+_The stack trace variable '{0}' isn't used and can be removed._
+
+#### Description
+
+The analyzer produces this diagnostic when the stack trace parameter in a
+catch clause isn't referenced within the body of the catch block.
+
+#### Examples
+
+The following code produces this diagnostic because `stackTrace` isn't
+referenced:
+
+{% prettify dart %}
+void f() {
+  try {
+    // ...
+  } catch (exception, [!stackTrace!]) {
+    // ...
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need to reference the stack trace parameter, then add a reference to
+it. Otherwise, remove it:
+
+{% prettify dart %}
+void f() {
+  try {
+    // ...
+  } catch (exception) {
+    // ...
+  }
+}
+{% endprettify %}
+
 ### unused_element
 
 _The declaration '{0}' isn't referenced._
@@ -5450,7 +6361,7 @@ The analyzer produces this diagnostic when a private class, enum, mixin,
 typedef, top level variable, top level function, or method is declared but
 never referenced.
 
-#### Example
+#### Examples
 
 Assuming that no code in the library references `_C`, the following code
 produces this diagnostic:
@@ -5474,7 +6385,7 @@ _The value of the field '{0}' isn't used._
 The analyzer produces this diagnostic when a private field is declared but
 never read, even if it's written in one or more places.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `_x` isn't referenced
 anywhere in the library:
@@ -5501,7 +6412,7 @@ The analyzer produces this diagnostic when an import isn't needed because
 none of the names that are imported are referenced within the importing
 library.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because nothing defined in
 `dart:async` is referenced in the library:
@@ -5519,6 +6430,51 @@ If the import isn't needed, then remove it.
 If some of the imported names are intended to be used, then add the missing
 code.
 
+### unused_label
+
+_The label '{0}' isn't used._
+
+#### Description
+
+The analyzer produces this diagnostic when a label that isn't used is
+found.
+
+#### Examples
+
+The following code produces this diagnostic because the label `loop` isn't
+referenced anywhere in the method:
+
+{% prettify dart %}
+void f(int limit) {
+  [!loop:!] for (int i = 0; i < limit; i++) {
+    print(i);
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the label isn't needed, then remove it:
+
+{% prettify dart %}
+void f(int limit) {
+  for (int i = 0; i < limit; i++) {
+    print(i);
+  }
+}
+{% endprettify %}
+
+If the label is needed, then use it:
+
+{% prettify dart %}
+void f(int limit) {
+  loop: for (int i = 0; i < limit; i++) {
+    print(i);
+    break loop;
+  }
+}
+{% endprettify %}
+
 ### unused_local_variable
 
 _The value of the local variable '{0}' isn't used._
@@ -5528,7 +6484,7 @@ _The value of the local variable '{0}' isn't used._
 The analyzer produces this diagnostic when a local variable is declared but
 never read, even if it's written in one or more places.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the value of `count` is
 never read:
@@ -5545,6 +6501,37 @@ If the variable isn't needed, then remove it.
 
 If the variable was intended to be used, then add the missing code.
 
+### unused_shown_name
+
+_The name {0} is shown, but isn’t used._
+
+#### Description
+
+The analyzer produces this diagnostic when a show combinator includes a
+name that isn't used within the library. Because it isn't referenced, the
+name can be removed.
+
+#### Examples
+
+The following code produces this diagnostic because the function `max`
+isn't used:
+
+{% prettify dart %}
+import 'dart:math' show min, [!max!];
+
+var x = min(0, 1);
+{% endprettify %}
+
+#### Common fixes
+
+Either use the name or remove it:
+
+{% prettify dart %}
+import 'dart:math' show min;
+
+var x = min(0, 1);
+{% endprettify %}
+
 ### uri_does_not_exist
 
 _Target of URI doesn't exist: '{0}'._
@@ -5554,7 +6541,7 @@ _Target of URI doesn't exist: '{0}'._
 The analyzer produces this diagnostic when an import, export, or part
 directive is found where the URI refers to a file that doesn't exist.
 
-#### Example
+#### Examples
 
 If the file `lib.dart` doesn't exist, the following code produces this
 diagnostic:
@@ -5586,7 +6573,7 @@ generators, such as one of the following:
 - `.pbjson.dart`
 - `.template.dart`
 
-#### Example
+#### Examples
 
 If the file `lib.g.dart` doesn't exist, the following code produces this
 diagnostic:
@@ -5614,7 +6601,7 @@ type is `void`, and the expression is used in a place where a value is
 expected, such as before a member access or on the right-hand side of an
 assignment.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `f` doesn't produce an
 object on which `toString` can be invoked:
@@ -5641,7 +6628,7 @@ _A value of type '{0}' can't be assigned to a variable of type '{1}'._
 The analyzer produces this diagnostic when the evaluation of a constant
 expression would result in a `CastException`.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the value of `x` is an
 `int`, which can't be assigned to `y` because an `int` isn't a `String`:
@@ -5678,7 +6665,7 @@ _Operator '{0}' should declare exactly {1} parameters, but {2} found._
 The analyzer produces this diagnostic when a declaration of an operator has
 the wrong number of parameters.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because the operator `+` must
 have a single parameter corresponding to the right operand:
@@ -5699,6 +6686,46 @@ class C {
 }
 {% endprettify %}
 
+### wrong_number_of_parameters_for_setter
+
+_Setters must declare exactly one required positional parameter._
+
+#### Description
+
+The analyzer produces this diagnostic when a setter is found that doesn't
+declare exactly one required positional parameter.
+
+#### Examples
+
+The following code produces this diagnostic because the setter `s` declares
+two required parameters:
+
+{% prettify dart %}
+class C {
+  set [!s!](int x, int y) {}
+}
+{% endprettify %}
+
+The following code produces this diagnostic because the setter `s` declares
+one optional parameter:
+
+{% prettify dart %}
+class C {
+  set [!s!]([int x]) {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the declaration so that there's exactly one required positional
+parameter:
+
+{% prettify dart %}
+class C {
+  set s(int x) {}
+}
+{% endprettify %}
+
 ### wrong_number_of_type_arguments
 
 _The type '{0}' is declared with {1} type parameters, but {2} type arguments
@@ -5710,7 +6737,7 @@ The analyzer produces this diagnostic when a type that has type parameters
 is used and type arguments are provided, but the number of type arguments
 isn't the same as the number of type parameters.
 
-#### Example
+#### Examples
 
 The following code produces this diagnostic because `C` has one type
 parameter but two type arguments are provided:

@@ -191,7 +191,7 @@ class JsInstanceMirror extends JsObjectMirror implements InstanceMirror {
     return reflect(field);
   }
 
-  InstanceMirror setField(Symbol symbol, Object value) {
+  InstanceMirror setField(Symbol symbol, dynamic value) {
     var name = _getMember(symbol);
     dart.dputMirror(reflectee, name, value);
     return reflect(value);
@@ -390,7 +390,7 @@ class JsClassMirror extends JsMirror implements ClassMirror {
     return reflect(JS('', '#[#]', dart.unwrapType(_cls), name));
   }
 
-  InstanceMirror setField(Symbol symbol, Object value) {
+  InstanceMirror setField(Symbol symbol, dynamic value) {
     var name = getName(symbol);
     JS('', '#[#] = #', dart.unwrapType(_cls), name, value);
     return reflect(value);
@@ -571,7 +571,7 @@ class JsMethodMirror extends JsMirror implements MethodMirror {
     // TODO(vsm): Add named args.
     List args = ftype.args;
     List opts = ftype.optionals;
-    var params = List<ParameterMirror>(args.length + opts.length);
+    var params = List<ParameterMirror>.filled(args.length + opts.length, null);
 
     for (var i = 0; i < args.length; ++i) {
       var type = args[i];

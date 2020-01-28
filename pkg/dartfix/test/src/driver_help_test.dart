@@ -28,7 +28,6 @@ void main() {
     expect(errText, isEmpty);
     expect(outText, contains('--$excludeFixOption'));
     expect(outText, isNot(contains('Use --help to display the fixes')));
-    expect(outText, contains('use-mixin'));
   });
 
   test('help implicit', () async {
@@ -52,6 +51,5 @@ void main() {
     expect(errText, isEmpty);
     expect(outText, contains('--$excludeFixOption'));
     expect(outText, isNot(contains('Use --help to display the fixes')));
-    expect(outText, contains('use-mixin'));
   });
 }

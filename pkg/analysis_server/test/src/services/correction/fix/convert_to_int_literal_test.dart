@@ -29,7 +29,7 @@ class ConvertToIntLiteralTest extends FixProcessorLintTest {
 const double myDouble = /*LINT*/42.0;
 ''');
     await assertHasFix('''
-const double myDouble = /*LINT*/42;
+const double myDouble = 42;
 ''');
   }
 }

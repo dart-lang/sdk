@@ -10,12 +10,12 @@ import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:cli_util/cli_util.dart' show getSdkPath;
 import 'package:front_end/src/api_unstable/ddc.dart' as fe;
+import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide MapEntry;
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/text/ast_to_text.dart' as kernel show Printer;
-import 'package:kernel/binary/ast_to_binary.dart' as kernel show BinaryPrinter;
 import 'package:path/path.dart' as p;
 import 'package:source_maps/source_maps.dart' show SourceMapBuilder;
 
@@ -26,7 +26,6 @@ import '../compiler/shared_compiler.dart';
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 import '../js_ast/source_map_printer.dart' show SourceMapPrintingContext;
-
 import 'compiler.dart';
 import 'target.dart';
 
@@ -389,10 +388,22 @@ Future<CompilerResult> _compile(List<String> args,
     outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
   }
 
-  var compiler = ProgramCompiler(component, result.classHierarchy, options);
+  final importToSummary = Map<Library, Component>.identity();
+  final summaryToModule = Map<Component, String>.identity();
+  for (var i = 0; i < result.inputSummaries.length; i++) {
+    var summary = result.inputSummaries[i];
+    var moduleImport = summaryModules[inputSummaries[i]];
+    for (var l in summary.libraries) {
+      assert(!importToSummary.containsKey(l));
+      importToSummary[l] = summary;
+      summaryToModule[summary] = moduleImport;
+    }
+  }
 
-  var jsModule = compiler.emitModule(
-      compiledLibraries, result.inputSummaries, inputSummaries, summaryModules);
+  var compiler = ProgramCompiler(component, result.classHierarchy, options,
+      importToSummary, summaryToModule);
+
+  var jsModule = compiler.emitModule(compiledLibraries);
 
   // Also the old Analyzer backend had some code to make debugging better when
   // --single-out-file is used, but that option does not appear to be used by
@@ -488,9 +499,10 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
   var multiRootOutputPath = argResults['multi-root-output-path'] as String;
   var options = SharedCompilerOptions.fromArguments(argResults);
 
-  var compiler =
-      ProgramCompiler(component, hierarchy, options, coreTypes: coreTypes);
-  var jsModule = compiler.emitModule(component, const [], const [], const {});
+  var compiler = ProgramCompiler(
+      component, hierarchy, options, const {}, const {},
+      coreTypes: coreTypes);
+  var jsModule = compiler.emitModule(component);
   var outFiles = <Future>[];
 
   // Also the old Analyzer backend had some code to make debugging better when

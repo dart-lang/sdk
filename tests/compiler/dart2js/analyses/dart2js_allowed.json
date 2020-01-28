@@ -149,9 +149,6 @@
   "pkg/compiler/lib/src/serialization/binary_sink.dart": {
     "Dynamic access of 'index'.": 1
   },
-  "pkg/compiler/lib/src/native/behavior.dart": {
-    "Dynamic invocation of 'add'.": 1
-  },
   "pkg/compiler/lib/src/util/enumset.dart": {
     "Dynamic access of 'index'.": 4
   },
@@ -239,10 +236,6 @@
     "Dynamic access of 'length'.": 2,
     "Dynamic access of 'named'.": 2,
     "Dynamic invocation of '[]'.": 2
-  },
-  "pkg/compiler/lib/src/universe/function_set.dart": {
-    "Dynamic access of 'selector'.": 1,
-    "Dynamic access of 'receiver'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/startup_emitter/fragment_emitter.dart": {
     "Dynamic access of 'superclass'.": 1,

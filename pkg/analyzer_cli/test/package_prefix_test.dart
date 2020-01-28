@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 
 import 'utils.dart' show testDirectory;
 
-main() {
+void main() {
   group('--x-package-warnings-prefix', () {
     _Runner runner;
 

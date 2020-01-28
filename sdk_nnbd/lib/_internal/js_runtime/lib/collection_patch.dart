@@ -237,7 +237,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
 
   List _computeKeys() {
     if (_keys != null) return _keys;
-    List result = new List(_length);
+    List result = List.filled(_length, null);
     int index = 0;
 
     // Add all string keys to the list.
@@ -986,7 +986,7 @@ class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
 
   List _computeElements() {
     if (_elements != null) return _elements;
-    List result = new List(_length);
+    List result = List.filled(_length, null);
     int index = 0;
 
     // Add all string elements to the list.

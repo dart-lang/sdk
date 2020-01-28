@@ -188,6 +188,8 @@ test options, specifying how tests should be run.''',
     _Option.bool('use_elf',
         'Directly generate an ELF shared libraries for precompilation.',
         hide: true),
+    _Option.bool('use_qemu', 'Use qemu to test arm32 on x64 host machines.',
+        hide: true),
     _Option.bool('keep_generated_files', 'Keep any generated files.',
         abbr: 'k'),
     _Option.int('timeout', 'Timeout in seconds.', abbr: 't'),
@@ -749,7 +751,8 @@ compiler.''',
           reproducingArguments:
               _reproducingCommand(data, namedConfiguration != null),
           fastTestsOnly: data["fast_tests"] as bool,
-          printPassingStdout: data["print_passing_stdout"] as bool);
+          printPassingStdout: data["print_passing_stdout"] as bool,
+          useQemu: data["use_qemu"] as bool);
 
       if (configuration.validate()) {
         result.add(configuration);

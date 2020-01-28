@@ -33,7 +33,7 @@ class RawSocket {
 @patch
 class RawSocketOption {
   static final List<int> _optionsCache =
-      List<int>(_RawSocketOptions.values.length);
+      List<int>.filled(_RawSocketOptions.values.length, null);
 
   @patch
   static int _getOptionValue(int key) {
@@ -351,7 +351,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   Completer closeCompleter = new Completer.sync();
 
   // Handlers and receive port for socket events from the event handler.
-  final List eventHandlers = new List(eventCount + 1);
+  final List eventHandlers = new List.filled(eventCount + 1, null);
   RawReceivePort eventPort;
   bool flagsSent = false;
 

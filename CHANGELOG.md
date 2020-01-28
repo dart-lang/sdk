@@ -127,6 +127,17 @@ representation soon.
 
 [17207]: https://github.com/dart-lang/sdk/issues/17207
 
+## 2.7.1 - 2020-01-23
+
+This is a patch release that improves dart2js compile-time (issue [40217][]).
+
+[40217]: https://github.com/dart-lang/sdk/issues/40217
+
+**Breaking Change**:
+The Dart SDK for macOS is now only available for x64 (issue [39810][]).
+
+[39810]: https://github.com/dart-lang/sdk/issues/39810
+
 ## 2.7.0 - 2019-12-11
 
 **Extension methods** -- which we shipped in preview in 2.6.0 -- are no longer
@@ -170,6 +181,12 @@ even when imported with a prefix.
 
 * **Breaking change**: Added `IOOverrides.serverSocketBind` to aid in writing
   tests that wish to mock `ServerSocket.bind`.
+
+#### `dart:typed_data`
+
+* Added new constructors, `.sublistView(TypedData, [start, end])` to all
+  `TypedData` classes. The constructor makes it easier, and less error-prone,
+  to create a view of (a slice of) another `TypedData` object.
 
 ### Dart VM
 

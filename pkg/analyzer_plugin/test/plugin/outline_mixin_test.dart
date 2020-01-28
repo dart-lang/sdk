@@ -41,7 +41,7 @@ class OutlineMixinTest with ResourceProviderMixin {
     plugin.start(channel);
   }
 
-  test_sendOutlineNotification() async {
+  Future<void> test_sendOutlineNotification() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 

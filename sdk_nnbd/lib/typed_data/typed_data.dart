@@ -12,7 +12,7 @@
 /// {@category Core}
 library dart.typed_data;
 
-import "dart:_internal" show UnmodifiableListBase;
+import "dart:_internal" show Since, UnmodifiableListBase;
 
 part "unmodifiable_typed_data.dart";
 
@@ -440,15 +440,28 @@ class Endian {
  * with ordinary [List] implementations.
  * `ByteData` can save space, by eliminating the need for object headers,
  * and time, by eliminating the need for data copies.
+ *
+ * If data comes in as bytes, they can be converted to `ByteData` by
+ * sharing the same buffer.
+ * ```dart
+ * Uint8List bytes = ...;
+ * var blob = ByteData.sublistView(bytes);
+ * if (blob.getUint32(0, Endian.little) == 0x04034b50) { // Zip file marker
+ *   ...
+ * }
+ *
+ * ```
+ *
  * Finally, `ByteData` may be used to intentionally reinterpret the bytes
  * representing one arithmetic type as another.
  * For example this code fragment determine what 32-bit signed integer
- * is represented by the bytes of a 32-bit floating point number:
- *
- *     var buffer = new Uint8List(8).buffer;
- *     var bdata = new ByteData.view(buffer);
- *     bdata.setFloat32(0, 3.04);
- *     int huh = bdata.getInt32(0);
+ * is represented by the bytes of a 32-bit floating point number
+ * (both stored as big endian):
+ * ```dart
+ * var bdata = new ByteData(8);
+ * bdata.setFloat32(0, 3.04);
+ * int huh = bdata.getInt32(0); // 0x40428f5c
+ * ```
  */
 abstract class ByteData implements TypedData {
   /**
@@ -471,10 +484,56 @@ abstract class ByteData implements TypedData {
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
    * the length of [buffer].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `ByteData.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * ByteData.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [ByteData.sublistView]
+   * which includes this computation:
+   * ```dart
+   * ByteData.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory ByteData.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asByteData(offsetInBytes, length);
+  }
+
+  /**
+   * Creates a [ByteData] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   */
+  @Since("2.8")
+  factory ByteData.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null)
+      throw "unreachable"; // TODO(38725): Remove when promotion works.
+    return data.buffer.asByteData(
+        data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
 
   /**
@@ -741,6 +800,8 @@ abstract class Int8List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int8List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely [length] bytes.
    */
   external factory Int8List(int length);
 
@@ -750,6 +811,9 @@ abstract class Int8List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely `elements.length`
+   * bytes.
    */
   external factory Int8List.fromList(List<int> elements);
 
@@ -766,10 +830,55 @@ abstract class Int8List implements List<int>, _TypedIntList {
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
    * the length of [buffer].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Int8List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Int8List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Int8List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Int8List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Int8List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asInt8List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates an [Int8List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   */
+  @Since("2.8")
+  factory Int8List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    return data.buffer.asInt8List(
+        data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
 
   /**
@@ -814,6 +923,8 @@ abstract class Uint8List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint8List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely [length] bytes.
    */
   external factory Uint8List(int length);
 
@@ -823,6 +934,9 @@ abstract class Uint8List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely `elements.length`
+   * bytes.
    */
   external factory Uint8List.fromList(List<int> elements);
 
@@ -839,10 +953,55 @@ abstract class Uint8List implements List<int>, _TypedIntList {
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
    * the length of [buffer].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Uint8List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Uint8List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Uint8List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Uint8List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Uint8List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asUint8List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates a [Uint8List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   */
+  @Since("2.8")
+  factory Uint8List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    return data.buffer.asUint8List(
+        data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
 
   /**
@@ -896,6 +1055,8 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint8ClampedList] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely [length] bytes.
    */
   external factory Uint8ClampedList(int length);
 
@@ -905,6 +1066,9 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
    *
    * Values are clamped to fit in the list when they are copied,
    * the same way storing values clamps them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely `elements.length`
+   * bytes.
    */
   external factory Uint8ClampedList.fromList(List<int> elements);
 
@@ -922,10 +1086,56 @@ abstract class Uint8ClampedList implements List<int>, _TypedIntList {
    * Throws [RangeError] if [offsetInBytes] or [length] are negative, or
    * if [offsetInBytes] + ([length] * elementSizeInBytes) is greater than
    * the length of [buffer].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Uint8ClampedList.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Uint8ClampedList.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Uint8ClampedList.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Uint8ClampedList.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Uint8ClampedList.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asUint8ClampedList(offsetInBytes, length);
+  }
+
+  /**
+   * Creates a [Uint8ClampedList] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   */
+  @Since("2.8")
+  factory Uint8ClampedList.sublistView(TypedData data,
+      [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    return data.buffer.asUint8ClampedList(
+        data.offsetInBytes + start * elementSize, (end - start) * elementSize);
   }
 
   /**
@@ -971,6 +1181,9 @@ abstract class Int16List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int16List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 2 bytes.
    */
   external factory Int16List(int length);
 
@@ -980,6 +1193,9 @@ abstract class Int16List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 2 bytes.
    */
   external factory Int16List.fromList(List<int> elements);
 
@@ -999,10 +1215,63 @@ abstract class Int16List implements List<int>, _TypedIntList {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Int16List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Int16List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Int16List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Int16List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Int16List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asInt16List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates an [Int16List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of two.
+   */
+  @Since("2.8")
+  factory Int16List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asInt16List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1048,6 +1317,9 @@ abstract class Uint16List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint16List] of the specified length (in elements), all
    * of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 2 bytes.
    */
   external factory Uint16List(int length);
 
@@ -1057,6 +1329,9 @@ abstract class Uint16List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 2 bytes.
    */
   external factory Uint16List.fromList(List<int> elements);
 
@@ -1077,10 +1352,63 @@ abstract class Uint16List implements List<int>, _TypedIntList {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Uint16List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Uint16List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Uint16List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Uint16List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Uint16List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asUint16List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates a [Uint16List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of two.
+   */
+  @Since("2.8")
+  factory Uint16List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asUint16List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1126,6 +1454,9 @@ abstract class Int32List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int32List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 4 bytes.
    */
   external factory Int32List(int length);
 
@@ -1135,6 +1466,9 @@ abstract class Int32List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 4 bytes.
    */
   external factory Int32List.fromList(List<int> elements);
 
@@ -1154,10 +1488,63 @@ abstract class Int32List implements List<int>, _TypedIntList {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Int32List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Int32List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Int32List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Int32List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Int32List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asInt32List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates an [Int32List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of four.
+   */
+  @Since("2.8")
+  factory Int32List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asInt32List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1203,6 +1590,9 @@ abstract class Uint32List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint32List] of the specified length (in elements), all
    * of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 4 bytes.
    */
   external factory Uint32List(int length);
 
@@ -1212,6 +1602,9 @@ abstract class Uint32List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 4 bytes.
    */
   external factory Uint32List.fromList(List<int> elements);
 
@@ -1232,10 +1625,63 @@ abstract class Uint32List implements List<int>, _TypedIntList {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Uint32List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Uint32List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Uint32List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Uint32List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Uint32List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asUint32List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates a [Uint32List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of four.
+   */
+  @Since("2.8")
+  factory Uint32List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asUint32List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1281,6 +1727,9 @@ abstract class Int64List implements List<int>, _TypedIntList {
   /**
    * Creates an [Int64List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 8 bytes.
    */
   external factory Int64List(int length);
 
@@ -1290,6 +1739,9 @@ abstract class Int64List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 8 bytes.
    */
   external factory Int64List.fromList(List<int> elements);
 
@@ -1309,10 +1761,63 @@ abstract class Int64List implements List<int>, _TypedIntList {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Int64List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Int64List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Int64List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Int64List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Int64List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asInt64List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates an [Int64List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of eight.
+   */
+  @Since("2.8")
+  factory Int64List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asInt64List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1358,6 +1863,9 @@ abstract class Uint64List implements List<int>, _TypedIntList {
   /**
    * Creates a [Uint64List] of the specified length (in elements), all
    * of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 8 bytes.
    */
   external factory Uint64List(int length);
 
@@ -1367,6 +1875,9 @@ abstract class Uint64List implements List<int>, _TypedIntList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 8 bytes.
    */
   external factory Uint64List.fromList(List<int> elements);
 
@@ -1387,10 +1898,63 @@ abstract class Uint64List implements List<int>, _TypedIntList {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Uint64List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Uint64List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Uint64List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Uint64List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Uint64List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asUint64List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates a [Uint64List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of eight.
+   */
+  @Since("2.8")
+  factory Uint64List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asUint64List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1437,6 +2001,9 @@ abstract class Float32List implements List<double>, _TypedFloatList {
   /**
    * Creates a [Float32List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 4 bytes.
    */
   external factory Float32List(int length);
 
@@ -1446,6 +2013,9 @@ abstract class Float32List implements List<double>, _TypedFloatList {
    *
    * Values are truncated to fit in the list when they are copied,
    * the same way storing values truncates them.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 4 bytes.
    */
   external factory Float32List.fromList(List<double> elements);
 
@@ -1465,10 +2035,63 @@ abstract class Float32List implements List<double>, _TypedFloatList {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Float32List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Float32List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Float32List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Float32List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Float32List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat32List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates an [Float32List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of four.
+   */
+  @Since("2.8")
+  factory Float32List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asFloat32List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1511,12 +2134,18 @@ abstract class Float64List implements List<double>, _TypedFloatList {
   /**
    * Creates a [Float64List] of the specified length (in elements), all of
    * whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 8 bytes.
    */
   external factory Float64List(int length);
 
   /**
    * Creates a [Float64List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 8 bytes.
    */
   external factory Float64List.fromList(List<double> elements);
 
@@ -1536,10 +2165,63 @@ abstract class Float64List implements List<double>, _TypedFloatList {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Float64List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Float64List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Float64List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Float64List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Float64List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat64List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates a [Float64List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of eight.
+   */
+  @Since("2.8")
+  factory Float64List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asFloat64List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1581,12 +2263,18 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
   /**
    * Creates a [Float32x4List] of the specified length (in elements),
    * all of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 16 bytes.
    */
   external factory Float32x4List(int length);
 
   /**
    * Creates a [Float32x4List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 16 bytes.
    */
   external factory Float32x4List.fromList(List<Float32x4> elements);
 
@@ -1606,10 +2294,63 @@ abstract class Float32x4List implements List<Float32x4>, TypedData {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Float32x4List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Float32x4List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Float32x4List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Float32x4List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Float32x4List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat32x4List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates a [Float32x4List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of sixteen.
+   */
+  @Since("2.8")
+  factory Float32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asFloat32x4List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1659,12 +2400,18 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
   /**
    * Creates a [Int32x4List] of the specified length (in elements),
    * all of whose elements are initially zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 16 bytes.
    */
   external factory Int32x4List(int length);
 
   /**
    * Creates a [Int32x4List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 16 bytes.
    */
   external factory Int32x4List.fromList(List<Int32x4> elements);
 
@@ -1684,10 +2431,63 @@ abstract class Int32x4List implements List<Int32x4>, TypedData {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Int32x4List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Int32x4List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Int32x4List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Int32x4List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Int32x4List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asInt32x4List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates an [Int32x4List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of sixteen.
+   */
+  @Since("2.8")
+  factory Int32x4List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asInt32x4List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**
@@ -1737,12 +2537,18 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
   /**
    * Creates a [Float64x2List] of the specified length (in elements),
    * all of whose elements have all lanes set to zero.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * [length] times 16 bytes.
    */
   external factory Float64x2List(int length);
 
   /**
    * Creates a [Float64x2List] with the same length as the [elements] list
    * and copies over the elements.
+   *
+   * The list is backed by a [ByteBuffer] containing precisely
+   * `elements.length` times 16 bytes.
    */
   external factory Float64x2List.fromList(List<Float64x2> elements);
 
@@ -1770,10 +2576,63 @@ abstract class Float64x2List implements List<Float64x2>, TypedData {
    *
    * Throws [ArgumentError] if [offsetInBytes] is not a multiple of
    * [bytesPerElement].
+   *
+   * Note that when creating a view from a [TypedData] list or byte data,
+   * that list or byte data may itself be a view on a larger buffer
+   * with a [TypedData.offsetInBytes] greater than zero.
+   * Merely doing `Float64x2List.view(other.buffer, 0, count)` may not
+   * point to the bytes you intended. Instead you may need to do:
+   * ```dart
+   * Float64x2List.view(other.buffer, other.offsetInBytes, count)
+   * ```
+   * Alternatively, use [Float64x2List.sublistView]
+   * which includes this computation:
+   * ```dart
+   * Float64x2List.sublistView(other, 0, count);
+   * ```
+   * (The third argument is an end index rather than a length, so if
+   * you start from a position greater than zero, you need not
+   * reduce the count correspondingly).
    */
   factory Float64x2List.view(ByteBuffer buffer,
       [int offsetInBytes = 0, int? length]) {
     return buffer.asFloat64x2List(offsetInBytes, length);
+  }
+
+  /**
+   * Creates an [Float64x2List] view on a range of elements of [data].
+   *
+   * Creates a view on the range of `data.buffer` which corresponds
+   * to the elements of [data] from [start] until [end].
+   * If [data] is a typed data list, like [Uint16List], then the view is on
+   * the bytes of the elements with indices from [start] until [end].
+   * If [data] is a [ByteData], it's treated like a list of bytes.
+   *
+   * If provided, [start] and [end] must satisfy
+   *
+   * 0 &le; `start` &le; `end` &le; *elementCount*
+   *
+   * where *elementCount* is the number of elements in [data], which
+   * is the same as the [List.length] of a typed data list.
+   *
+   * If omitted, [start] defaults to zero and [end] to *elementCount*.
+   *
+   * The start and end indices of the range of bytes being viewed must be
+   * multiples of sixteen.
+   */
+  @Since("2.8")
+  factory Float64x2List.sublistView(TypedData data, [int start = 0, int? end]) {
+    int elementSize = data.elementSizeInBytes;
+    end = RangeError.checkValidRange(
+        start, end, data.lengthInBytes ~/ elementSize);
+    if (end == null) throw "unreachable"; // TODO(38725)
+    int byteLength = (end - start) * elementSize;
+    if (byteLength % bytesPerElement != 0) {
+      throw ArgumentError("The number of bytes to view must be a multiple of " +
+          "$bytesPerElement");
+    }
+    return data.buffer.asFloat64x2List(data.offsetInBytes + start * elementSize,
+        byteLength ~/ bytesPerElement);
   }
 
   /**

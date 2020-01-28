@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -126,7 +127,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
    */
   ElementResolver(this._resolver,
       {this.reportConstEvaluationErrors = true,
-      ElementTypeProvider elementTypeProvider = const ElementTypeProvider()})
+      ElementTypeProvider elementTypeProvider = const ElementTypeProvider(),
+      MigratableAstInfoProvider migratableAstInfoProvider =
+          const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
         _extensionResolver = _resolver.extensionResolver,
         _typePropertyResolver = _resolver.typePropertyResolver,
@@ -136,6 +139,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     _methodInvocationResolver = MethodInvocationResolver(
       _resolver,
       elementTypeProvider,
+      migratableAstInfoProvider,
       inferenceHelper: _resolver.inferenceHelper,
     );
   }
@@ -1094,6 +1098,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       if (element1 is ClassElement) {
         constructor = _instantiateAnnotationClass(element1)
             .lookUpConstructor(null, _definingLibrary);
+        constructor = _resolver.toLegacyElement(constructor);
       } else if (element1 == null) {
         undefined = true;
       }
@@ -1107,6 +1112,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
       // Class.CONST - not resolved yet
       if (element1 is ClassElement) {
         element2 = element1.lookUpGetter(nameNode2.name, _definingLibrary);
+        element2 = _resolver.toLegacyElement(element2);
       }
       // prefix.CONST or Class.CONST
       if (element2 is PropertyAccessorElement) {
@@ -1118,11 +1124,13 @@ class ElementResolver extends SimpleAstVisitor<void> {
       // prefix.Class()
       if (element2 is ClassElement) {
         constructor = element2.unnamedConstructor;
+        constructor = _resolver.toLegacyElement(constructor);
       }
       // Class.constructor(args)
       if (element1 is ClassElement) {
         constructor = _instantiateAnnotationClass(element1)
             .lookUpConstructor(nameNode2.name, _definingLibrary);
+        constructor = _resolver.toLegacyElement(constructor);
         nameNode2.staticElement = constructor;
       }
       if (element1 == null && element2 == null) {
@@ -1141,6 +1149,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         PropertyAccessorElement getter =
             element2.lookUpGetter(name3, _definingLibrary);
         if (getter != null) {
+          getter = _resolver.toLegacyElement(getter);
           nameNode3.staticElement = getter;
           annotation.element = getter;
           _resolveAnnotationElementGetter(annotation, getter);
@@ -1149,6 +1158,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
         // prefix.Class.constructor(args)
         constructor = _instantiateAnnotationClass(element2)
             .lookUpConstructor(name3, _definingLibrary);
+        constructor = _resolver.toLegacyElement(constructor);
         nameNode3.staticElement = constructor;
       } else if (element2 == null) {
         undefined = true;

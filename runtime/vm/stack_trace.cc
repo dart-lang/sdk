@@ -106,14 +106,16 @@ class CallerClosureFinder {
         controller_(Object::Handle(zone)),
         state_(Object::Handle(zone)),
         var_data_(Object::Handle(zone)),
+        callback_instance_(Object::Handle(zone)),
         future_impl_class(Class::Handle(zone)),
         async_await_completer_class(Class::Handle(zone)),
         future_listener_class(Class::Handle(zone)),
         async_start_stream_controller_class(Class::Handle(zone)),
         stream_controller_class(Class::Handle(zone)),
+        async_stream_controller_class(Class::Handle(zone)),
         controller_subscription_class(Class::Handle(zone)),
         buffering_stream_subscription_class(Class::Handle(zone)),
-        async_stream_controller_class(Class::Handle(zone)),
+        stream_iterator_class(Class::Handle(zone)),
         completer_is_sync_field(Field::Handle(zone)),
         completer_future_field(Field::Handle(zone)),
         future_result_or_listeners_field(Field::Handle(zone)),
@@ -121,7 +123,8 @@ class CallerClosureFinder {
         controller_controller_field(Field::Handle(zone)),
         var_data_field(Field::Handle(zone)),
         state_field(Field::Handle(zone)),
-        on_data_field(Field::Handle(zone)) {
+        on_data_field(Field::Handle(zone)),
+        state_data_field(Field::Handle(zone)) {
     const auto& async_lib = Library::Handle(zone, Library::AsyncLibrary());
     // Look up classes:
     // - async:
@@ -150,6 +153,9 @@ class CallerClosureFinder {
     buffering_stream_subscription_class = async_lib.LookupClassAllowPrivate(
         Symbols::_BufferingStreamSubscription());
     ASSERT(!buffering_stream_subscription_class.IsNull());
+    stream_iterator_class =
+        async_lib.LookupClassAllowPrivate(Symbols::_StreamIterator());
+    ASSERT(!stream_iterator_class.IsNull());
 
     // Look up fields:
     // - async:
@@ -180,15 +186,12 @@ class CallerClosureFinder {
     on_data_field = buffering_stream_subscription_class.LookupFieldAllowPrivate(
         Symbols::_onData());
     ASSERT(!on_data_field.IsNull());
+    state_data_field =
+        stream_iterator_class.LookupFieldAllowPrivate(Symbols::_stateData());
+    ASSERT(!state_data_field.IsNull());
   }
 
-  RawClosure* FindCallerInAsyncClosure(const Context& receiver_context) {
-    context_entry_ = receiver_context.At(Context::kAsyncCompleterIndex);
-    ASSERT(context_entry_.IsInstance());
-    ASSERT(context_entry_.GetClassId() == async_await_completer_class.id());
-
-    const Instance& completer = Instance::Cast(context_entry_);
-    future_ = completer.GetField(completer_future_field);
+  RawClosure* GetCallerInFutureImpl(const Object& future_) {
     ASSERT(!future_.IsNull());
     ASSERT(future_.GetClassId() == future_impl_class.id());
 
@@ -208,6 +211,16 @@ class CallerClosureFinder {
     return Closure::Cast(callback_).raw();
   }
 
+  RawClosure* FindCallerInAsyncClosure(const Context& receiver_context) {
+    context_entry_ = receiver_context.At(Context::kAsyncCompleterIndex);
+    ASSERT(context_entry_.IsInstance());
+    ASSERT(context_entry_.GetClassId() == async_await_completer_class.id());
+
+    const Instance& completer = Instance::Cast(context_entry_);
+    future_ = completer.GetField(completer_future_field);
+    return GetCallerInFutureImpl(future_);
+  }
+
   RawClosure* FindCallerInAsyncGenClosure(const Context& receiver_context) {
     context_entry_ = receiver_context.At(Context::kControllerIndex);
     ASSERT(context_entry_.IsInstance());
@@ -225,13 +238,37 @@ class CallerClosureFinder {
       return Closure::null();
     }
 
+    // _StreamController._varData
     var_data_ = Instance::Cast(controller_).GetField(var_data_field);
     ASSERT(var_data_.GetClassId() == controller_subscription_class.id());
 
+    // _ControllerSubscription<T>/_BufferingStreamSubscription.<T>_onData
     callback_ = Instance::Cast(var_data_).GetField(on_data_field);
     ASSERT(callback_.IsClosure());
 
-    return Closure::Cast(callback_).raw();
+    // If this is not the "_StreamIterator._onData" tear-off, we return the
+    // callback we found.
+    receiver_function_ = Closure::Cast(callback_).function();
+    if (!receiver_function_.IsImplicitInstanceClosureFunction() ||
+        receiver_function_.Owner() != stream_iterator_class.raw()) {
+      return Closure::Cast(callback_).raw();
+    }
+
+    // All implicit closure functions (tear-offs) have the "this" receiver
+    // captured.
+    receiver_context_ = Closure::Cast(callback_).context();
+    ASSERT(receiver_context_.num_variables() == 1);
+    callback_instance_ = receiver_context_.At(0);
+    ASSERT(callback_instance_.IsInstance());
+
+    // If the async* stream is await-for'd:
+    if (callback_instance_.GetClassId() == stream_iterator_class.id()) {
+      // _StreamIterator._stateData
+      future_ = Instance::Cast(callback_instance_).GetField(state_data_field);
+      return GetCallerInFutureImpl(future_);
+    }
+
+    UNREACHABLE();  // If no onData is found we have a bug.
   }
 
   RawClosure* FindCaller(const Closure& receiver_closure) {
@@ -284,15 +321,17 @@ class CallerClosureFinder {
   Object& controller_;
   Object& state_;
   Object& var_data_;
+  Object& callback_instance_;
 
   Class& future_impl_class;
   Class& async_await_completer_class;
   Class& future_listener_class;
   Class& async_start_stream_controller_class;
   Class& stream_controller_class;
+  Class& async_stream_controller_class;
   Class& controller_subscription_class;
   Class& buffering_stream_subscription_class;
-  Class& async_stream_controller_class;
+  Class& stream_iterator_class;
 
   Field& completer_is_sync_field;
   Field& completer_future_field;
@@ -302,6 +341,7 @@ class CallerClosureFinder {
   Field& var_data_field;
   Field& state_field;
   Field& on_data_field;
+  Field& state_data_field;
 };
 
 void StackTraceUtils::CollectFramesLazy(
@@ -309,11 +349,21 @@ void StackTraceUtils::CollectFramesLazy(
     const GrowableObjectArray& code_array,
     const GrowableObjectArray& pc_offset_array,
     int skip_frames,
-    std::function<void(StackFrame*)>* on_sync_frames) {
+    std::function<void(StackFrame*)>* on_sync_frames,
+    bool* has_async) {
+  if (has_async != nullptr) {
+    *has_async = false;
+  }
   Zone* zone = thread->zone();
   DartFrameIterator frames(thread, StackFrameIterator::kNoCrossThreadIteration);
   StackFrame* frame = frames.NextFrame();
-  ASSERT(frame != nullptr);  // We expect to find a dart invocation frame.
+
+  // If e.g. the isolate is paused before executing anything, we might not get
+  // any frames at all. Bail:
+  if (frame == nullptr) {
+    return;
+  }
+
   auto& function = Function::Handle(zone);
   auto& code = Code::Handle(zone);
   auto& bytecode = Bytecode::Handle(zone);
@@ -347,7 +397,7 @@ void StackTraceUtils::CollectFramesLazy(
     if (frame->is_interpreted()) {
       code_array.Add(bytecode);
       const intptr_t pc_offset = frame->pc() - bytecode.PayloadStart();
-      ASSERT(pc_offset >= 0 && pc_offset < bytecode.Size());
+      ASSERT(pc_offset >= 0 && pc_offset <= bytecode.Size());
       offset = Smi::New(pc_offset);
     } else {
       code = frame->LookupDartCode();
@@ -363,6 +413,10 @@ void StackTraceUtils::CollectFramesLazy(
     // Either continue the loop (sync-async case) or find all await'ers and
     // return.
     if (function.IsAsyncClosure() || function.IsAsyncGenClosure()) {
+      if (has_async != nullptr) {
+        *has_async = true;
+      }
+
       // Next, look up caller's closure on the stack and walk backwards through
       // the yields.
       frame = frames.NextFrame();

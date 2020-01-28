@@ -41,7 +41,7 @@ abstract class _HashFieldBase {
   // Note: All fields are initialized in a single constructor so that the VM
   // recognizes they cannot hold null values. This makes a big (20%) performance
   // difference on some operations.
-  _HashFieldBase(int dataSize) : this._data = new List(dataSize);
+  _HashFieldBase(int dataSize) : this._data = new List.filled(dataSize, null);
 }
 
 // Base class for VM-internal classes; keep in sync with _HashFieldBase.
@@ -157,7 +157,7 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
   _InternalLinkedHashMap() {
     _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
     _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
-    _data = new List(_HashBase._INITIAL_INDEX_SIZE);
+    _data = new List.filled(_HashBase._INITIAL_INDEX_SIZE, null);
     _usedData = 0;
     _deletedKeys = 0;
   }
@@ -191,12 +191,12 @@ abstract class _LinkedHashMapMixin<K, V> implements _HashBase {
   }
 
   // Allocate new _index and _data, and optionally copy existing contents.
-  void _init(int size, int hashMask, List oldData, int oldUsed) {
+  void _init(int size, int hashMask, List? oldData, int oldUsed) {
     assert(size & (size - 1) == 0);
     assert(_HashBase._UNUSED_PAIR == 0);
     _index = new Uint32List(size);
     _hashMask = hashMask;
-    _data = new List(size);
+    _data = new List.filled(size, null);
     _usedData = 0;
     _deletedKeys = 0;
     if (oldData != null) {
@@ -441,7 +441,7 @@ class _CompactIterator<E> implements Iterator<E> {
   int _offset;
   final int _step;
   final int _checkSum;
-  E current;
+  E? _current;
 
   _CompactIterator(
       _HashBase table, this._data, this._len, this._offset, this._step)
@@ -456,13 +456,15 @@ class _CompactIterator<E> implements Iterator<E> {
       _offset += _step;
     } while (_offset < _len && _HashBase._isDeleted(_data, _data[_offset]));
     if (_offset < _len) {
-      current = internal.unsafeCast<E>(_data[_offset]);
+      _current = internal.unsafeCast<E>(_data[_offset]);
       return true;
     } else {
-      current = null;
+      _current = null;
       return false;
     }
   }
+
+  E get current => _current as E;
 }
 
 // Set implementation, analogous to _CompactLinkedHashMap.
@@ -482,7 +484,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     for (int offset = 0; offset < _usedData; offset++) {
       Object current = _data[offset];
       if (!_HashBase._isDeleted(_data, current)) {
-        return current;
+        return current as E;
       }
     }
     throw IterableElementError.noElement();
@@ -492,7 +494,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     for (int offset = _usedData - 1; offset >= 0; offset--) {
       Object current = _data[offset];
       if (!_HashBase._isDeleted(_data, current)) {
-        return current;
+        return current as E;
       }
     }
     throw IterableElementError.noElement();
@@ -512,10 +514,10 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     }
   }
 
-  void _init(int size, int hashMask, List oldData, int oldUsed) {
+  void _init(int size, int hashMask, List? oldData, int oldUsed) {
     _index = new Uint32List(size);
     _hashMask = hashMask;
-    _data = new List(size >> 1);
+    _data = new List.filled(size >> 1, null);
     _usedData = 0;
     _deletedKeys = 0;
     if (oldData != null) {
@@ -588,7 +590,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   E? lookup(Object? key) {
     var k = _getKeyOrData(key);
-    return identical(_data, k) ? null : k;
+    return identical(_data, k) ? null : internal.unsafeCast<E>(k);
   }
 
   bool contains(Object? key) => !identical(_data, _getKeyOrData(key));

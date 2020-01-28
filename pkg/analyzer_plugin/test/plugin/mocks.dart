@@ -141,12 +141,12 @@ class MockResolvedUnitResult implements ResolvedUnitResult {
   MockResolvedUnitResult({this.errors, this.lineInfo, this.path});
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockResourceProvider implements ResourceProvider {
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// A concrete implementation of a server plugin that is suitable for testing.

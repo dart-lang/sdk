@@ -273,6 +273,10 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (type == 'application/kernel-ir-fully-linked') {
       executable = dartVmExecutableFileName;
     }
+    if (_configuration.useQemu) {
+      arguments.insertAll(0, ['-L', '/usr/arm-linux-gnueabihf/', executable]);
+      executable = 'qemu-arm';
+    }
     return [VMCommand(executable, arguments, environmentOverrides)];
   }
 }

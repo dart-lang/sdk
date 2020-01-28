@@ -31,6 +31,12 @@ Future testeeMain() async {
   dev.debugger();
 }
 
+@pragma("vm:entry-point")
+getSelfId() => selfId;
+
+@pragma("vm:entry-point")
+getChildId() => childId;
+
 // tester state:
 Service.Isolate initialIsolate;
 Service.Isolate localChildIsolate;
@@ -65,7 +71,7 @@ var tests = <VMTest>[
 
     // Grab self id.
     Service.Instance localSelfId =
-        await initialIsolate.eval(rootLbirary, 'selfId');
+        await initialIsolate.invoke(rootLbirary, 'getSelfId');
 
     // Check that the id reported from dart:developer matches the id reported
     // from the service protocol.
@@ -74,7 +80,7 @@ var tests = <VMTest>[
 
     // Grab the child isolate's id.
     Service.Instance localChildId =
-        await initialIsolate.eval(rootLbirary, 'childId');
+        await initialIsolate.invoke(rootLbirary, 'getChildId');
 
     // Check that the id reported from dart:developer matches the id reported
     // from the service protocol.

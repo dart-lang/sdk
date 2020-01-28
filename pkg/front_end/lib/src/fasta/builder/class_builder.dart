@@ -57,47 +57,7 @@ import '../../base/common.dart';
 
 import '../dill/dill_member_builder.dart' show DillMemberBuilder;
 
-import '../fasta_codes.dart'
-    show
-        LocatedMessage,
-        Message,
-        messageExtendsFutureOr,
-        messageExtendsNever,
-        messageExtendsVoid,
-        messageGenericFunctionTypeUsedAsActualTypeArgument,
-        messageImplementsFutureOr,
-        messageImplementsNever,
-        messageImplementsVoid,
-        messagePatchClassOrigin,
-        messagePatchClassTypeVariablesMismatch,
-        messagePatchDeclarationMismatch,
-        messagePatchDeclarationOrigin,
-        noLength,
-        templateGenericFunctionTypeInferredAsActualTypeArgument,
-        templateImplementsRepeated,
-        templateImplementsSuperClass,
-        templateImplicitMixinOverride,
-        templateIncompatibleRedirecteeFunctionType,
-        templateIncorrectTypeArgument,
-        templateIncorrectTypeArgumentInSupertype,
-        templateIncorrectTypeArgumentInSupertypeInferred,
-        templateInterfaceCheck,
-        templateInternalProblemNotFoundIn,
-        templateInvalidTypeVariableVariancePosition,
-        templateInvalidTypeVariableVariancePositionInReturnType,
-        templateMixinApplicationIncompatibleSupertype,
-        templateNamedMixinOverride,
-        templateOverriddenMethodCause,
-        templateOverrideFewerNamedArguments,
-        templateOverrideFewerPositionalArguments,
-        templateOverrideMismatchNamedParameter,
-        templateOverrideMoreRequiredArguments,
-        templateOverrideTypeMismatchParameter,
-        templateOverrideTypeMismatchReturnType,
-        templateOverrideTypeMismatchSetter,
-        templateOverrideTypeVariablesMismatch,
-        templateRedirectingFactoryIncompatibleTypeArgument,
-        templateTypeArgumentMismatch;
+import '../fasta_codes.dart';
 
 import '../kernel/redirecting_factory_body.dart' show getRedirectingFactoryBody;
 
@@ -852,6 +812,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           positionalParameters: redirecting.positionalParameters,
           namedParameters: redirecting.namedParameters);
     }
+
+    // Check initializers.
+    forEach((String name, Builder builder) {
+      if (builder is FunctionBuilder &&
+          !builder.isAbstract &&
+          builder.formals != null) {
+        library.checkInitializersInFormals(builder.formals);
+      }
+    });
   }
 
   void checkVarianceInField(Field field, TypeEnvironment typeEnvironment,
@@ -1090,6 +1059,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           types.hierarchy
               .getKernelTypeArgumentsAsInstanceOf(thisType, enclosingClass));
     }
+
     if (declaredFunction?.typeParameters?.length !=
         interfaceFunction?.typeParameters?.length) {
       reportInvalidOverride(
@@ -1130,15 +1100,21 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
                 interfaceSubstitution.substituteType(interfaceBound);
           }
           DartType computedBound = substitution.substituteType(interfaceBound);
-          if (declaredBound != computedBound) {
+          if (!types
+              .isSameTypeKernel(declaredBound, computedBound)
+              .isSubtypeWhenUsingNullabilities()) {
             reportInvalidOverride(
                 isInterfaceCheck,
                 declaredMember,
-                templateOverrideTypeVariablesMismatch.withArguments(
+                templateOverrideTypeVariablesBoundMismatch.withArguments(
+                    declaredBound,
+                    declaredParameter.name,
                     "${declaredMember.enclosingClass.name}."
                         "${declaredMember.name.name}",
+                    computedBound,
                     "${interfaceMember.enclosingClass.name}."
-                        "${interfaceMember.name.name}"),
+                        "${interfaceMember.name.name}",
+                    library.isNonNullableByDefault),
                 declaredMember.fileOffset,
                 noLength,
                 context: [

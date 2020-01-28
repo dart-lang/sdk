@@ -261,7 +261,8 @@ class TypeOperationsCfe
 
   @override
   DartType promoteToNonNull(DartType type) {
-    if (type is TypeParameterType) {
+    if (type is TypeParameterType &&
+        type.typeParameterTypeNullability != Nullability.nullable) {
       DartType bound = type.bound.withNullability(Nullability.nonNullable);
       if (bound != type.bound) {
         return new TypeParameterType(

@@ -28,7 +28,7 @@ class ReplaceWithIdentifierTest extends FixProcessorLintTest {
 var functionWithFunction = (/*LINT*/int f(int x)) => f(0);
 ''');
     await assertHasFix('''
-var functionWithFunction = (/*LINT*/f) => f(0);
+var functionWithFunction = (f) => f(0);
 ''');
   }
 }

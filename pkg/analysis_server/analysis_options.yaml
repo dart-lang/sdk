@@ -42,8 +42,8 @@ linter:
     - prefer_final_fields
     - prefer_for_elements_to_map_fromIterable
     - prefer_generic_function_type_aliases
-    #- prefer_if_null_operators # 22
+    - prefer_if_null_operators
     - prefer_single_quotes
-    #- prefer_spread_collections # 3
+    - prefer_spread_collections
     - unnecessary_this
     - use_function_type_syntax_for_parameters

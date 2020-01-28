@@ -31,7 +31,7 @@ bad() async {
 ''');
     await assertHasFix('''
 bad() async {
-  print(/*LINT*/23);
+  print(23);
 }
 ''');
   }
@@ -44,7 +44,7 @@ bad() async {
 ''');
     await assertHasFix('''
 bad() async {
-  print(/*LINT*/'hola');
+  print('hola');
 }
 ''');
   }

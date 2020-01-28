@@ -1,3 +1,10 @@
+## 0.39.5-dev
+* Deprecated `ClassElement.instantiateToBounds()` and
+  `FunctionTypeAliasElement.instantiateToBounds()`. With the null-safety
+  feature, type arguments derived from type parameter bounds cannot be used as
+  is, and might require erasing nullability, when the element is instantiated
+  from a legacy library. Use `TypeSystem.instantiateToBounds2()` instead.
+
 ## 0.39.4
 * Deprecated `DartType.name`, use `element` or `getDisplayString()` instead.
 * Fixed bugs 35108 and 39996.

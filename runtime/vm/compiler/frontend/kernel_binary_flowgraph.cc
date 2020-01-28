@@ -4,7 +4,7 @@
 
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 
-#include "vm/compiler/ffi.h"
+#include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/frontend/bytecode_flow_graph_builder.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For dart::FlowGraphBuilder::SimpleInstanceOfType.

@@ -12,8 +12,8 @@ import "dart:async";
 import "dart:io";
 
 import 'package:expect/expect.dart';
+import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:path/path.dart' as path;
-import 'package:vm/dwarf/convert.dart';
 
 import 'use_flag_test_helper.dart';
 

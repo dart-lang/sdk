@@ -28,7 +28,7 @@ class ConvertToMapLiteralTest extends FixProcessorLintTest {
 Map m = /*LINT*/Map();
 ''');
     await assertHasFix('''
-Map m = /*LINT*/{};
+Map m = {};
 ''');
   }
 
@@ -39,7 +39,7 @@ var m = /*LINT*/LinkedHashMap();
 ''');
     await assertHasFix('''
 import 'dart:collection';
-var m = /*LINT*/{};
+var m = {};
 ''');
   }
 
@@ -48,7 +48,7 @@ var m = /*LINT*/{};
 var m = /*LINT*/Map();
 ''');
     await assertHasFix('''
-var m = /*LINT*/{};
+var m = {};
 ''');
   }
 
@@ -57,7 +57,7 @@ var m = /*LINT*/{};
 var m = /*LINT*/new Map();
 ''');
     await assertHasFix('''
-var m = /*LINT*/{};
+var m = {};
 ''');
   }
 
@@ -66,7 +66,7 @@ var m = /*LINT*/{};
 var m = /*LINT*/Map<String, int>();
 ''');
     await assertHasFix('''
-var m = /*LINT*/<String, int>{};
+var m = <String, int>{};
 ''');
   }
 }

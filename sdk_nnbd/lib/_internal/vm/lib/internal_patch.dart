@@ -121,4 +121,4 @@ Int32List _growRegExpStack(Int32List stack) {
 // type of a value.
 //
 // Important: this is unsafe and must be used with care.
-T unsafeCast<T>(Object v) native "Internal_unsafeCast";
+T unsafeCast<T>(Object? v) native "Internal_unsafeCast";

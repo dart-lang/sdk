@@ -28,6 +28,7 @@ import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 /// Problem reported by [FixBuilder] when encountering a compound assignment
@@ -81,13 +82,21 @@ class FixBuilder {
 
   ResolverVisitor _resolver;
 
+  /// The listener to which exceptions should be reported.
+  final NullabilityMigrationListener listener;
+
+  /// The compilation unit for which fixes are being built.
+  final CompilationUnit unit;
+
   FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
       TypeProvider typeProvider,
       Dart2TypeSystem typeSystem,
       Variables variables,
-      LibraryElement definingLibrary)
+      LibraryElement definingLibrary,
+      NullabilityMigrationListener listener,
+      CompilationUnit unit)
       : this._(
             decoratedClassHierarchy,
             _makeNnbdTypeSystem(
@@ -95,14 +104,18 @@ class FixBuilder {
                 typeSystem),
             variables,
             source,
-            definingLibrary);
+            definingLibrary,
+            listener,
+            unit);
 
   FixBuilder._(
       DecoratedClassHierarchy decoratedClassHierarchy,
       this._typeSystem,
       this._variables,
       this.source,
-      LibraryElement definingLibrary)
+      LibraryElement definingLibrary,
+      this.listener,
+      this.unit)
       : typeProvider = _typeSystem.typeProvider {
     // TODO(paulberry): make use of decoratedClassHierarchy
     assert(_typeSystem.isNonNullableByDefault);
@@ -128,16 +141,32 @@ class FixBuilder {
 
   /// Visits the entire compilation [unit] using the analyzer's resolver and
   /// makes note of changes that need to be made.
-  void visitAll(CompilationUnit unit) {
-    unit.accept(_FixBuilderPreVisitor(this));
-    unit.accept(_resolver);
-    unit.accept(_FixBuilderPostVisitor(this));
+  void visitAll() {
+    try {
+      unit.accept(_FixBuilderPreVisitor(this));
+      unit.accept(_resolver);
+      unit.accept(_FixBuilderPostVisitor(this));
+    } catch (exception, stackTrace) {
+      if (listener != null) {
+        listener.reportException(source, unit, exception, stackTrace);
+      } else {
+        rethrow;
+      }
+    }
   }
 
   /// Called whenever an AST node is found that needs to be changed.
-  void _addChange(AstNode node, NodeChange change) {
-    assert(!changes.containsKey(node));
-    changes[node] = change;
+  ///
+  /// The [update] callback is passed whatever change had previously been
+  /// decided upon for this node, or an instance of [NoChange], if the node was
+  /// previously unchanged.
+  void _addChange(AstNode node,
+      NodeChange Function(NodeChange<NodeProducingEditPlan>) update) {
+    // The previous change had better be a NodeChange<NodeProducingEditPlan>
+    // because these are the only kinds of changes that are possible to stack
+    // on top of one another.
+    var previousChange = changes[node] as NodeChange<NodeProducingEditPlan>;
+    changes[node] = update(previousChange ?? const NoChange());
   }
 
   /// Called whenever an AST node is found that can't be automatically fixed.
@@ -182,6 +211,33 @@ class FixBuilder {
     }
   }
 
+  /// Determines whether the given [node], which is a null-aware method
+  /// invocation, property access, or index expression, should remain null-aware
+  /// after migration.
+  bool _shouldStayNullAware(Expression node) {
+    Expression target;
+    NodeChange<NodeProducingEditPlan> nodeChangeToUse;
+    if (node is PropertyAccess) {
+      target = node.target;
+      nodeChangeToUse = const RemoveNullAwarenessFromPropertyAccess();
+    } else if (node is MethodInvocation) {
+      target = node.target;
+      nodeChangeToUse = const RemoveNullAwarenessFromMethodInvocation();
+    } else {
+      throw StateError('Unexpected expression type: ${node.runtimeType}');
+    }
+    if (!_typeSystem.isPotentiallyNullable(target.staticType)) {
+      _addChange(node, (previousChange) {
+        // There should be no previous change because we decide what to do
+        // about `?.` before doing anything else.
+        assert(previousChange is NoChange);
+        return nodeChangeToUse;
+      });
+      return false;
+    }
+    return true;
+  }
+
   static TypeSystemImpl _makeNnbdTypeSystem(
       TypeProvider nnbdTypeProvider, Dart2TypeSystem typeSystem) {
     // TODO(paulberry): do we need to test both possible values of
@@ -201,30 +257,36 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   final Expando<List<CollectionElement>> _collectionElements = Expando();
 
+  final Expando<bool> _shouldStayNullAware = Expando();
+
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
 
   MigrationResolutionHooksImpl(this._fixBuilder);
 
   @override
-  bool getConditionalKnownValue(AstNode node) {
-    // TODO(paulberry): handle conditional expressions.
-    var conditionalDiscard =
-        _fixBuilder._variables.getConditionalDiscard(_fixBuilder.source, node);
-    if (conditionalDiscard == null) {
-      return null;
-    } else {
-      if (conditionalDiscard.keepTrue && conditionalDiscard.keepFalse) {
-        return null;
-      }
-      var conditionValue = conditionalDiscard.keepTrue;
-      _fixBuilder._addChange(
-          node,
-          EliminateDeadIf(conditionValue,
-              reasons: conditionalDiscard.reasons.toList()));
-      return conditionValue;
-    }
-  }
+  bool getConditionalKnownValue(AstNode node) =>
+      _wrapExceptions(node, () => null, () {
+        // TODO(paulberry): handle conditional expressions.
+        var conditionalDiscard = _fixBuilder._variables
+            .getConditionalDiscard(_fixBuilder.source, node);
+        if (conditionalDiscard == null) {
+          return null;
+        } else {
+          if (conditionalDiscard.keepTrue && conditionalDiscard.keepFalse) {
+            return null;
+          }
+          var conditionValue = conditionalDiscard.keepTrue;
+          _fixBuilder._addChange(node, (previousChange) {
+            // There shouldn't be a previous change for [node] because we
+            // check for dead code before making other modifications.
+            assert(previousChange is NoChange);
+            return EliminateDeadIf(conditionValue,
+                reasons: conditionalDiscard.reasons.toList());
+          });
+          return conditionValue;
+        }
+      });
 
   @override
   List<ParameterElement> getExecutableParameters(ExecutableElement element) =>
@@ -235,59 +297,85 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       getExecutableType(element).returnType;
 
   @override
-  FunctionType getExecutableType(FunctionTypedElement element) {
-    var type = _fixBuilder._computeMigratedType(element);
-    Element baseElement = element;
-    if (baseElement is Member) {
-      type = baseElement.substitution.substituteType(type);
-    }
-    return type as FunctionType;
+  FunctionType getExecutableType(FunctionTypedElement element) =>
+      _wrapExceptions(_fixBuilder.unit, () => element.type, () {
+        var type = _fixBuilder._computeMigratedType(element);
+        Element baseElement = element;
+        if (baseElement is Member) {
+          type = baseElement.substitution.substituteType(type);
+        }
+        return type as FunctionType;
+      });
+
+  @override
+  DartType getFieldType(FieldElement element) =>
+      _wrapExceptions(_fixBuilder.unit, () => element.type, () {
+        assert(!element.isSynthetic);
+        return _fixBuilder._computeMigratedType(element);
+      });
+
+  @override
+  List<CollectionElement> getListElements(ListLiteral node) => _wrapExceptions(
+      node,
+      () => node.elements,
+      () => _collectionElements[node] ??=
+          _transformCollectionElements(node.elements, node.typeArguments));
+
+  @override
+  List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) =>
+      _wrapExceptions(
+          node,
+          () => node.elements,
+          () => _collectionElements[node] ??=
+              _transformCollectionElements(node.elements, node.typeArguments));
+
+  @override
+  DartType getVariableType(VariableElement variable) =>
+      _wrapExceptions(_fixBuilder.unit, () => variable.type, () {
+        if (variable.library == null) {
+          // This is a synthetic variable created during resolution (e.g. a
+          // parameter of a function type), so the type it currently has is the
+          // correct post-migration type.
+          return variable.type;
+        }
+        return _fixBuilder._computeMigratedType(variable);
+      });
+
+  @override
+  bool isIndexExpressionNullAware(IndexExpression node) {
+    // Null-aware index expressions weren't supported prior to NNBD.
+    assert(!node.isNullAware);
+    return false;
   }
 
   @override
-  DartType getFieldType(FieldElement element) {
-    assert(!element.isSynthetic);
-    return _fixBuilder._computeMigratedType(element);
+  bool isMethodInvocationNullAware(MethodInvocation node) {
+    return node.isNullAware &&
+        (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
   }
 
   @override
-  List<CollectionElement> getListElements(ListLiteral node) {
-    return _collectionElements[node] ??=
-        _transformCollectionElements(node.elements, node.typeArguments);
+  bool isPropertyAccessNullAware(PropertyAccess node) {
+    return node.isNullAware &&
+        (_shouldStayNullAware[node] ??= _fixBuilder._shouldStayNullAware(node));
   }
 
   @override
-  List<CollectionElement> getSetOrMapElements(SetOrMapLiteral node) {
-    return _collectionElements[node] ??=
-        _transformCollectionElements(node.elements, node.typeArguments);
-  }
-
-  @override
-  DartType getVariableType(VariableElement variable) {
-    if (variable.library == null) {
-      // This is a synthetic variable created during resolution (e.g. a
-      // parameter of a function type), so the type it currently has is the
-      // correct post-migration type.
-      return variable.type;
-    }
-    return _fixBuilder._computeMigratedType(variable);
-  }
-
-  @override
-  DartType modifyExpressionType(Expression node, DartType type) {
-    if (type.isDynamic) return type;
-    if (!_fixBuilder._typeSystem.isNullable(type)) return type;
-    var ancestor = _findNullabilityContextAncestor(node);
-    if (_needsNullCheckDueToStructure(ancestor)) {
-      return _addNullCheck(node, type);
-    }
-    var context =
-        InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
-    if (!_fixBuilder._typeSystem.isNullable(context)) {
-      return _addNullCheck(node, type);
-    }
-    return type;
-  }
+  DartType modifyExpressionType(Expression node, DartType type) =>
+      _wrapExceptions(node, () => type, () {
+        if (type.isDynamic) return type;
+        if (!_fixBuilder._typeSystem.isNullable(type)) return type;
+        var ancestor = _findNullabilityContextAncestor(node);
+        if (_needsNullCheckDueToStructure(ancestor)) {
+          return _addNullCheck(node, type);
+        }
+        var context =
+            InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
+        if (!_fixBuilder._typeSystem.isNullable(context)) {
+          return _addNullCheck(node, type);
+        }
+        return type;
+      });
 
   @override
   void setFlowAnalysis(
@@ -303,7 +391,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         ? AtomicEditInfo(
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
-    _fixBuilder._addChange(node, NullCheck(info));
+    _fixBuilder._addChange(
+        node, (previousChange) => NullCheck(info, previousChange));
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }
@@ -385,6 +474,22 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         .where((e) => e != null)
         .toList();
   }
+
+  /// Runs the computation in [compute].  If an exception occurs and
+  /// [_fixBuilder.listener] is non-null, the exception is reported to the
+  /// listener and [fallback] is called to produce a result.  Otherwise the
+  /// exception is propagated normally.
+  T _wrapExceptions<T>(
+      AstNode node, T Function() fallback, T Function() compute) {
+    if (_fixBuilder.listener == null) return compute();
+    try {
+      return compute();
+    } catch (exception, stackTrace) {
+      _fixBuilder.listener
+          .reportException(_fixBuilder.source, node, exception, stackTrace);
+      return fallback();
+    }
+  }
 }
 
 /// Problem reported by [FixBuilder] when encountering a non-nullable unnamed
@@ -398,17 +503,25 @@ abstract class Problem {}
 
 /// Visitor that computes additional migrations on behalf of [FixBuilder] that
 /// should be run after resolution
-class _FixBuilderPostVisitor extends RecursiveAstVisitor<void> {
+class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
+    with PermissiveModeVisitor<void> {
   final FixBuilder _fixBuilder;
 
   _FixBuilderPostVisitor(this._fixBuilder);
+
+  @override
+  NullabilityMigrationListener get listener => _fixBuilder.listener;
+
+  @override
+  Source get source => _fixBuilder.source;
 
   @override
   void visitAsExpression(AsExpression node) {
     if (!_fixBuilder._variables.wasUnnecessaryCast(_fixBuilder.source, node) &&
         BestPracticesVerifier.isUnnecessaryCast(
             node, _fixBuilder._typeSystem)) {
-      _fixBuilder._addChange(node, const RemoveAs());
+      _fixBuilder._addChange(
+          node, (previousChange) => RemoveAs(previousChange));
     }
   }
 }
@@ -416,10 +529,17 @@ class _FixBuilderPostVisitor extends RecursiveAstVisitor<void> {
 /// Visitor that computes additional migrations on behalf of [FixBuilder] that
 /// don't need to be integrated into the resolver itself, and should be run
 /// prior to resolution
-class _FixBuilderPreVisitor extends RecursiveAstVisitor<void> {
+class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
+    with PermissiveModeVisitor<void> {
   final FixBuilder _fixBuilder;
 
   _FixBuilderPreVisitor(this._fixBuilder);
+
+  @override
+  NullabilityMigrationListener get listener => _fixBuilder.listener;
+
+  @override
+  Source get source => _fixBuilder.source;
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
@@ -444,7 +564,8 @@ class _FixBuilderPreVisitor extends RecursiveAstVisitor<void> {
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (decoratedType.node.isNullable) {
-      _fixBuilder._addChange(node, MakeNullable(decoratedType));
+      _fixBuilder._addChange(node,
+          (previousChange) => MakeNullable(decoratedType, previousChange));
     }
     (node as GenericFunctionTypeImpl).type =
         decoratedType.toFinalType(_fixBuilder.typeProvider);
@@ -457,7 +578,8 @@ class _FixBuilderPreVisitor extends RecursiveAstVisitor<void> {
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     var type = decoratedType.type;
     if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
-      _fixBuilder._addChange(node, MakeNullable(decoratedType));
+      _fixBuilder._addChange(node,
+          (previousChange) => MakeNullable(decoratedType, previousChange));
     }
     node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
     super.visitTypeName(node);
@@ -480,11 +602,14 @@ class _FixBuilderPreVisitor extends RecursiveAstVisitor<void> {
         // TODO(paulberry): what if `@required` isn't the first annotation?
         // Will we produce something that isn't grammatical?
         _fixBuilder._addChange(
-            annotation, RequiredAnnotationToRequiredKeyword(info));
+            annotation,
+            (previousChange) =>
+                RequiredAnnotationToRequiredKeyword(info, previousChange));
         return;
       }
     }
     // Otherwise create a new `required` keyword.
-    _fixBuilder._addChange(parameter, AddRequiredKeyword(info));
+    _fixBuilder._addChange(parameter,
+        (previousChange) => AddRequiredKeyword(info, previousChange));
   }
 }

@@ -223,7 +223,7 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
 
   _ObjectMirror._(this._reflectee);
 
-  InstanceMirror invoke(Symbol memberName, List positionalArguments,
+  InstanceMirror invoke(Symbol memberName, List<dynamic> positionalArguments,
       [Map<Symbol, dynamic> namedArguments]) {
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
@@ -247,7 +247,7 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
     return reflect(this._invokeGetter(_reflectee, _n(memberName)));
   }
 
-  InstanceMirror setField(Symbol memberName, Object value) {
+  InstanceMirror setField(Symbol memberName, dynamic value) {
     this._invokeSetter(_reflectee, _n(memberName), value);
     return reflect(value);
   }
@@ -307,13 +307,13 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
     return reflect(_invokeGetter(_reflectee, _n(memberName)));
   }
 
-  InstanceMirror setField(Symbol memberName, arg) {
+  InstanceMirror setField(Symbol memberName, dynamic arg) {
     _invokeSetter(_reflectee, _n(memberName), arg);
     return reflect(arg);
   }
 
   // Override to include the receiver in the arguments.
-  InstanceMirror invoke(Symbol memberName, List positionalArguments,
+  InstanceMirror invoke(Symbol memberName, List<dynamic> positionalArguments,
       [Map<Symbol, dynamic> namedArguments]) {
     int numPositionalArguments = positionalArguments.length + 1; // Receiver.
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
@@ -355,7 +355,7 @@ class _ClosureMirror extends _InstanceMirror implements ClosureMirror {
     return _function = _computeFunction(reflectee);
   }
 
-  InstanceMirror apply(List positionalArguments,
+  InstanceMirror apply(List<dynamic> positionalArguments,
       [Map<Symbol, dynamic> namedArguments]) {
     return this.invoke(#call, positionalArguments, namedArguments);
   }
@@ -646,7 +646,8 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
 
   String toString() => "ClassMirror on '${MirrorSystem.getName(simpleName)}'";
 
-  InstanceMirror newInstance(Symbol constructorName, List positionalArguments,
+  InstanceMirror newInstance(
+      Symbol constructorName, List<dynamic> positionalArguments,
       [Map<Symbol, dynamic> namedArguments]) {
     // Native code will add the 1 or 2 implicit arguments depending on whether
     // we end up invoking a factory or constructor respectively.
@@ -1442,7 +1443,7 @@ class _Mirrors {
   }
 
   // Creates a new local mirror for some Object.
-  static InstanceMirror reflect(Object reflectee) {
+  static InstanceMirror reflect(dynamic reflectee) {
     return reflectee is Function
         ? new _ClosureMirror._(reflectee)
         : new _InstanceMirror._(reflectee);

@@ -44,6 +44,22 @@ void if_then_else(int? x) {
   }
 }
 
+void if_then_elseNullableTypeVariableWithNonNullableBound<T extends int>(T? x) {
+  if (x == null) {
+    x;
+  } else {
+    /*nonNullable*/ x;
+  }
+}
+
+void if_then_elseTypeVariableWithNullableBound<T extends int?>(T x) {
+  if (x == null) {
+    x;
+  } else {
+    /*nonNullable*/ x;
+  }
+}
+
 class C {
   void method_if_then_else(int? x) {
     if (x == null) {

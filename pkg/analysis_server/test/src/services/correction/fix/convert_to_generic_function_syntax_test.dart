@@ -45,7 +45,7 @@ typedef F = String Function(int x);
 typedef /*LINT*/F<P, R>(P x);
 ''');
     await assertHasFix('''
-typedef /*LINT*/F<P, R> = Function(P x);
+typedef F<P, R> = Function(P x);
 ''');
   }
 

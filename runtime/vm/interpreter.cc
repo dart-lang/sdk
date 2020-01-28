@@ -5,7 +5,6 @@
 #include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
-#include "vm/compiler/ffi.h"
 #include "vm/globals.h"
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -14,6 +13,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
+#include "vm/compiler/ffi/abi.h"
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"

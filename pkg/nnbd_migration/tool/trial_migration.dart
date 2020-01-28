@@ -17,9 +17,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:args/args.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
+import 'package:nnbd_migration/src/utilities/multi_future_tracker.dart';
 import 'package:path/path.dart' as path;
 
-import 'src/multi_future_tracker.dart';
 import 'src/package.dart';
 
 main(List<String> args) async {
@@ -61,9 +61,8 @@ main(List<String> args) async {
   for (var package in packages) {
     print('Migrating $package');
     listener.currentPackage = package.name;
-    var testUri = thisSdkUri.resolve(package.packagePath);
     var contextCollection = AnalysisContextCollectionImpl(
-        includedPaths: [testUri.toFilePath()], sdkPath: sdk.sdkPath);
+        includedPaths: package.migrationPaths, sdkPath: sdk.sdkPath);
 
     var files = <String>{};
     var previousExceptionCount = listener.numExceptions;

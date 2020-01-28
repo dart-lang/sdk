@@ -34,7 +34,6 @@ void foo() {
     await assertHasFix('''
 void foo() {
   while(true) {
-    /*LINT*/
   }
 }
 ''');

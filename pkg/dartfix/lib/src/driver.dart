@@ -80,10 +80,6 @@ class Driver {
       _unsupportedOption(includeFixOption);
       return false;
     }
-    if (options.requiredFixes) {
-      _unsupportedOption(requiredOption);
-      return false;
-    }
     if (options.showHelp) {
       return false;
     }
@@ -116,7 +112,6 @@ class Driver {
     Options options, {
     Progress progress,
   }) async {
-    logger.trace('Requesting fixes');
     Future isAnalysisComplete = handler.analysisComplete();
 
     final params = EditDartfixParams(options.targets);
@@ -125,9 +120,6 @@ class Driver {
     }
     if (options.includeFixes.isNotEmpty) {
       params.includedFixes = options.includeFixes;
-    }
-    if (options.requiredFixes) {
-      params.includeRequiredFixes = true;
     }
     if (options.pedanticFixes) {
       params.includePedanticFixes = true;
@@ -221,16 +213,9 @@ Analysis Details:
 
     logger.stdout('''
 
-The following fixes are automatically applied unless at least one --$includeFixOption option is specified
-(and --$requiredOption is not specified). They may be individually disabled using --$excludeFixOption.''');
+These fixes can be enabled using --$includeFixOption:''');
 
-    fixes.where((fix) => fix.isRequired).forEach(showFix);
-
-    logger.stdout('''
-
-These fixes are NOT automatically applied, but may be enabled using --$includeFixOption:''');
-
-    fixes.where((fix) => !fix.isRequired).toList()
+    fixes
       ..sort(compareFixes)
       ..forEach(showFix);
 
@@ -278,6 +263,11 @@ These fixes are NOT automatically applied, but may be enabled using --$includeFi
         await server.stop();
       }
       context.exit(0);
+    }
+
+    if (options.includeFixes.isEmpty && !options.pedanticFixes) {
+      logger.stdout('No fixes specified.');
+      context.exit(1);
     }
 
     Future serverStopped;

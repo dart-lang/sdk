@@ -48,7 +48,6 @@
       "tests/ffi/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
-      "third_party/node-source-map-support/",
       "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -90,7 +89,6 @@
       "tests/ffi/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
-      "third_party/node-source-map-support/",
       "third_party/observatory_pub_packages/packages/web_components/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -131,7 +129,6 @@
       "tests/standalone_2/",
       "tests/ffi/",
       "third_party/d8/",
-      "third_party/node-source-map-support/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/requirejs/",
@@ -212,7 +209,6 @@
       "tests/standalone_2/",
       "tests/ffi/",
       "third_party/d8/",
-      "third_party/node-source-map-support/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/requirejs/",
@@ -314,11 +310,13 @@
       "pkg/build_integration/",
       "pkg/dart_internal/",
       "pkg/dart2native/",
+      "pkg/dart2js_tools/",
       "pkg/expect/",
       "pkg/front_end/",
       "pkg/js/",
       "pkg/kernel/",
       "pkg/meta/",
+      "pkg/native_stack_traces/",
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",
@@ -1290,7 +1288,8 @@
           "name": "vm weak tests with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
-            "language"
+            "language",
+            "lib/mirrors"
           ]
         }
       ]
@@ -1569,6 +1568,13 @@
             "corelib",
             "lib",
             "dartdevc_native"
+          ]
+        },
+        {
+          "name": "ddc nnbd strong co19 tests",
+          "arguments": [
+            "-ndartdevk-strong-linux-release-chrome",
+            "co19/LanguageFeatures/nnbd"
           ]
         }
       ]
@@ -2331,13 +2337,17 @@
           "name": "analyze nnbd strong tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
-            "language"]
+            "language",
+            "lib/mirrors"
+          ]
         },
         {
           "name": "analyze nnbd weak tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-weak-${system}",
-            "language"]
+            "language",
+            "lib/mirrors"
+          ]
         },
         {
           "name": "analyze nnbd strong co19 tests",
@@ -2456,6 +2466,11 @@
           "name": "analyze pkg/meta",
           "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
           "arguments": ["--fatal-warnings", "pkg/meta"]
+        },
+        {
+          "name": "analyze pkg/native_stack_traces",
+          "script": "out/ReleaseX64/dart-sdk/bin/dartanalyzer",
+          "arguments": ["--fatal-warnings", "pkg/native_stack_traces"]
         },
         {
           "name": "analyze pkg/smith",

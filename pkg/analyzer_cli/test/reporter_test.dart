@@ -11,7 +11,7 @@ import 'package:test/test.dart' hide ErrorFormatter;
 
 import 'mocks.dart';
 
-main() {
+void main() {
   group('reporter', () {
     StringBuffer out;
     AnalysisStats stats;

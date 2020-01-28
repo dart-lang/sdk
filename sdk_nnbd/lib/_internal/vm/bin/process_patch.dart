@@ -85,7 +85,7 @@ class Process {
   }
 }
 
-List<_SignalController> _signalControllers = new List(32);
+List<_SignalController> _signalControllers = new List.filled(32, null);
 
 class _SignalController {
   final ProcessSignal signal;
@@ -248,7 +248,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       throw new ArgumentError("Arguments is not a List: $arguments");
     }
     int len = arguments.length;
-    _arguments = new List<String>(len);
+    _arguments = new List<String>.filled(len, "");
     for (int i = 0; i < len; i++) {
       var arg = arguments[i];
       if (arg is! String) {
@@ -446,7 +446,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       if (_modeIsAttached(_mode)) {
         int exitDataRead = 0;
         final int EXIT_DATA_SIZE = 8;
-        List<int> exitDataBuffer = new List<int>(EXIT_DATA_SIZE);
+        List<int> exitDataBuffer = new List<int>.filled(EXIT_DATA_SIZE, 0);
         _exitHandler.listen((data) {
           int exitCode(List<int> ints) {
             var code = _intFromBytes(ints, 0);

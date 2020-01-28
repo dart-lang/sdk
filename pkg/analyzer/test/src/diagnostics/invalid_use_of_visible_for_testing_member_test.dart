@@ -211,7 +211,8 @@ void main() {
       error(HintCode.UNUSED_FIELD, 49, 2),
     ]);
     await _resolveFile('/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 1),
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER, 40, 12,
+          messageContains: 'A.forTesting'),
     ]);
   }
 

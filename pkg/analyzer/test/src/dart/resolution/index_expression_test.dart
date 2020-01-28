@@ -90,7 +90,13 @@ main(A a) {
     assertType(indexExpression, 'num');
 
     var assignment = indexExpression.parent as AssignmentExpression;
-    assertElement(assignment, numPlusElement);
+    assertElement(
+      assignment,
+      elementMatcher(
+        numPlusElement,
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+    );
     assertType(assignment, 'num');
     assertParameterElement(
       assignment.rightHandSide,
@@ -124,7 +130,13 @@ main(A<double> a) {
     assertType(indexExpression, 'double');
 
     var assignment = indexExpression.parent as AssignmentExpression;
-    assertElement(assignment, doublePlusElement);
+    assertElement(
+      assignment,
+      elementMatcher(
+        doublePlusElement,
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+    );
     assertType(assignment, 'double');
     assertParameterElement(
       assignment.rightHandSide,

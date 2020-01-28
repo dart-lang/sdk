@@ -28,7 +28,7 @@ final Map<String, _TargetBuilder> targets = <String, _TargetBuilder>{
 };
 
 Target getTarget(String name, TargetFlags flags) {
-  var builder = targets[name];
+  _TargetBuilder builder = targets[name];
   if (builder == null) return null;
   return builder(flags);
 }
@@ -283,12 +283,19 @@ class NoneConstantsBackend extends ConstantsBackend {
 
 class NoneTarget extends Target {
   final TargetFlags flags;
-  final bool supportsLateFields;
 
-  NoneTarget(this.flags, {this.supportsLateFields: true});
+  NoneTarget(this.flags);
 
+  @override
+  bool get supportsLateFields => !flags.forceLateLoweringForTesting;
+
+  @override
   String get name => 'none';
+
+  @override
   List<String> get extraRequiredLibraries => <String>[];
+
+  @override
   void performModularTransformationsOnLibraries(
       Component component,
       CoreTypes coreTypes,

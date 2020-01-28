@@ -62,8 +62,6 @@ static constexpr Representation kUnboxedFfiIntPtr =
 static constexpr Representation kUnboxedIntPtr =
     compiler::target::kWordSize == 4 ? kUnboxedInt32 : kUnboxedInt64;
 
-class FrameRebase;
-
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
 // LocationSummary object which specifies expected location for every input
@@ -393,8 +391,6 @@ class TemplateLocation : public ValueObject {
       : value_(KindField::encode(kind) | PayloadField::encode(payload)) {}
 
   uword payload() const { return PayloadField::decode(value_); }
-
-  friend class FrameRebase;
 
   class KindField : public BitField<uword, Kind, kKindBitsPos, kKindBitsSize> {
   };
@@ -802,36 +798,6 @@ class LocationSummary : public ZoneAllocated {
 #if defined(DEBUG)
   intptr_t writable_inputs_;
 #endif
-};
-
-// Describes a change of stack frame where the stack or base register or stack
-// offset may change. This class allows easily rebasing stack locations across
-// frame manipulations.
-//
-// If the stack offset register matches 'old_base', it is changed to 'new_base'
-// and 'stack_delta' (# of slots) is applied.
-class FrameRebase : public ValueObject {
- public:
-  FrameRebase(Register old_base, Register new_base, intptr_t stack_delta)
-      : old_base_(old_base), new_base_(new_base), stack_delta_(stack_delta) {}
-
-  Location Rebase(Location loc) const {
-    if (loc.IsPairLocation()) {
-      return Location::Pair(Rebase(loc.Component(0)), Rebase(loc.Component(1)));
-    }
-    if (!loc.HasStackIndex() || loc.base_reg() != old_base_) {
-      return loc;
-    }
-
-    loc.set_base_reg(new_base_);
-    loc.set_stack_index(loc.stack_index() + stack_delta_);
-    return loc;
-  }
-
- private:
-  Register old_base_;
-  Register new_base_;
-  intptr_t stack_delta_;
 };
 
 }  // namespace dart

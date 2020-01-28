@@ -4003,6 +4003,34 @@ class ObjectAccumulator : public ObjectVisitor {
   GrowableArray<Object*>* objects_;
 };
 
+ISOLATE_UNIT_TEST_CASE(ToCString) {
+  // Set native resolvers in case we need to read native methods.
+  {
+    TransitionVMToNative transition(thread);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kBuiltinLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kIOLibrary);
+    bin::Builtin::SetNativeResolver(bin::Builtin::kCLILibrary);
+    bin::VmService::SetNativeResolver();
+  }
+
+  GCTestHelper::CollectAllGarbage();
+  GrowableArray<Object*> objects;
+  {
+    HeapIterationScope iteration(Thread::Current());
+    ObjectAccumulator acc(&objects);
+    iteration.IterateObjects(&acc);
+  }
+  for (intptr_t i = 0; i < objects.length(); ++i) {
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+
+    // All ToCString implementations should not allocate on the Dart heap so
+    // they remain useful in all parts of the VM.
+    NoSafepointScope no_safepoint;
+    objects[i]->ToCString();
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(PrintJSON) {
   // Set native resolvers in case we need to read native methods.
   {
@@ -4544,11 +4572,11 @@ ISOLATE_UNIT_TEST_CASE(String_ScrubName) {
       {"_MyClass@6328321.named", "_MyClass.named"},
   };
   String& test = String::Handle();
-  String& result = String::Handle();
+  const char* result;
   for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
     test = String::New(tests[i].in);
     result = String::ScrubName(test);
-    EXPECT_STREQ(tests[i].out, result.ToCString());
+    EXPECT_STREQ(tests[i].out, result);
   }
 }
 

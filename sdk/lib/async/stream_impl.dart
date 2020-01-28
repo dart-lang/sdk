@@ -962,6 +962,7 @@ class _StreamIterator<T> implements StreamIterator<T> {
   ///
   /// After calling [moveNext] and the returned future has completed
   /// with `false`, or after calling [cancel]: `null`.
+  @pragma("vm:entry-point")
   Object _stateData;
 
   /// Whether the iterator is between calls to `moveNext`.

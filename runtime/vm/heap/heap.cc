@@ -161,7 +161,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
       return addr;
     }
     // Before throwing an out-of-memory error try a synchronous GC.
-    CollectAllGarbage();
+    CollectAllGarbage(kLowMemory);
     WaitForSweeperTasks(thread);
   }
   addr = old_space_.TryAllocate(size, type, PageSpace::kForceGrowth);

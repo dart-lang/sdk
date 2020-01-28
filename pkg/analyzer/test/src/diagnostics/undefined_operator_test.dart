@@ -18,6 +18,20 @@ main() {
 
 @reflectiveTest
 class UndefinedOperatorTest extends DriverResolutionTest {
+  test_assignmentExpression_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {
+  f(A a) {
+    A a2 = new A();
+    a += a2;
+  }
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 58, 2),
+    ]);
+  }
+
   test_binaryExpression() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -107,6 +121,40 @@ f(A a) {
     ]);
   }
 
+  test_indexBoth_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(A a) {
+  a[0]++;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+    ]);
+  }
+
+  test_indexGetter_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(A a) {
+  a[0];
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+    ]);
+  }
+
+  test_indexSetter_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(A a) {
+  a[0] = 1;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
+    ]);
+  }
+
   test_minus_null() async {
     await assertErrorsInCode(r'''
 m() {
@@ -138,6 +186,17 @@ m() {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 20, 1),
+    ]);
+  }
+
+  test_plus_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(A a) {
+  a + 1;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 1),
     ]);
   }
 
@@ -190,6 +249,17 @@ f(var a) {
 ''');
   }
 
+  test_postfixExpression_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(A a) {
+  a++;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 2),
+    ]);
+  }
+
   test_postfixInc_null() async {
     await assertErrorsInCode(r'''
 m() {
@@ -237,6 +307,17 @@ f(var a) {
   }
 }
 ''');
+  }
+
+  test_prefixExpression_undefined() async {
+    await assertErrorsInCode(r'''
+class A {}
+f(A a) {
+  ++a;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 22, 2),
+    ]);
   }
 
   test_prefixInc_null() async {

@@ -10,41 +10,27 @@
 import 'dart:io';
 import 'dart:ffi';
 import 'dart:isolate';
+
 import "package:expect/expect.dart";
+
+import 'callback_tests_utils.dart';
 import 'dylib_utils.dart';
 
-typedef NativeCallbackTest = Int32 Function(Pointer);
-typedef NativeCallbackTestFn = int Function(Pointer);
-final DynamicLibrary testLibrary = dlopenPlatformSpecific("ffi_test_functions");
-
-class Test {
-  final String name;
-  final Pointer callback;
-  final bool skip;
-  Test(this.name, this.callback, {bool skipIf: false}) : skip = skipIf {}
-  void run() {
-    if (skip) return;
-    print("Test $name.");
-    final NativeCallbackTestFn tester = testLibrary
-        .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>("Test$name");
-    final int testCode = tester(callback);
-    if (testCode != 0) {
-      Expect.fail("Test $name failed.");
-    }
-  }
-}
+final testLibrary = dlopenPlatformSpecific("ffi_test_functions");
 
 typedef ReturnVoid = Void Function();
 void returnVoid() {}
 testCallbackWrongThread() {
   print("Test CallbackWrongThread.");
-  Test("CallbackWrongThread", Pointer.fromFunction<ReturnVoid>(returnVoid))
+  CallbackTest(
+          "CallbackWrongThread", Pointer.fromFunction<ReturnVoid>(returnVoid))
       .run();
 }
 
 testCallbackOutsideIsolate() {
   print("Test CallbackOutsideIsolate.");
-  Test("CallbackOutsideIsolate", Pointer.fromFunction<ReturnVoid>(returnVoid))
+  CallbackTest("CallbackOutsideIsolate",
+          Pointer.fromFunction<ReturnVoid>(returnVoid))
       .run();
 }
 

@@ -41,7 +41,7 @@ class FoldingMixinTest with ResourceProviderMixin {
     plugin.start(channel);
   }
 
-  test_sendFoldingNotification() async {
+  Future<void> test_sendFoldingNotification() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 

@@ -262,20 +262,22 @@ class EditPlanner {
   /// If no changes are required to the AST node that is being extracted, the
   /// caller may create innerPlan using [EditPlan.passThrough].
   ///
-  /// Optional argument [info] contains information about why the change was
-  /// made.
+  /// Optional parameters [infoBefore] and [infoAfter] contain information about
+  /// why the change was made.  The reason there are two of these parameters is
+  /// because in general, two chunks of source code will be removed: the code
+  /// coming before [innerPlan.sourceNode] and the code coming after it.
   ///
   /// [innerPlan] will be finalized as a side effect (either immediately or when
   /// the newly created plan is finalized), so it should not be re-used by the
   /// caller.
   NodeProducingEditPlan extract(
       AstNode sourceNode, NodeProducingEditPlan innerPlan,
-      {AtomicEditInfo info}) {
+      {AtomicEditInfo infoBefore, AtomicEditInfo infoAfter}) {
     var parent = innerPlan.sourceNode.parent;
     if (!identical(parent, sourceNode) && parent is ParenthesizedExpression) {
       innerPlan = _ProvisionalParenEditPlan(parent, innerPlan);
     }
-    return _ExtractEditPlan(sourceNode, innerPlan, this, info);
+    return _ExtractEditPlan(sourceNode, innerPlan, this, infoBefore, infoAfter);
   }
 
   /// Converts [plan] to a representation of the concrete edits that need
@@ -415,6 +417,68 @@ class EditPlanner {
     var lastIndex = sequenceNodes.indexOf(lastSourceNode, firstIndex);
     assert(lastIndex >= firstIndex);
     return _RemoveEditPlan(parent, firstIndex, lastIndex, info);
+  }
+
+  /// Creates a new edit plan that removes null awareness from [sourceNode].
+  ///
+  /// Optional arguments [targetPlan], [methodNamePlan], [typeArgumentsPlan],
+  /// and [argumentListPlan] indicate what changes should be made to the node's
+  /// target, method name, type arguments, and argument list, respectively.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan removeNullAwarenessFromMethodInvocation(
+      MethodInvocation sourceNode,
+      {NodeProducingEditPlan targetPlan,
+      NodeProducingEditPlan methodNamePlan,
+      NodeProducingEditPlan typeArgumentsPlan,
+      NodeProducingEditPlan argumentListPlan,
+      AtomicEditInfo info}) {
+    assert(sourceNode.operator.type == TokenType.QUESTION_PERIOD);
+    var builder = _PassThroughBuilderImpl(sourceNode);
+    if (targetPlan != null) {
+      builder._handleNodeProducingEditPlan(targetPlan);
+    }
+    builder.changes += {
+      sourceNode.operator.offset: [AtomicEdit.delete(1, info: info)]
+    };
+    if (methodNamePlan != null) {
+      builder._handleNodeProducingEditPlan(methodNamePlan);
+    }
+    if (typeArgumentsPlan != null) {
+      builder._handleNodeProducingEditPlan(typeArgumentsPlan);
+    }
+    if (argumentListPlan != null) {
+      builder._handleNodeProducingEditPlan(argumentListPlan);
+    }
+    return builder.finish(this);
+  }
+
+  /// Creates a new edit plan that removes null awareness from [sourceNode].
+  ///
+  /// Optional arguments [targetPlan] and, [propertyNamePlan] indicate what
+  /// changes should be made to the node's target and property name,
+  /// respectively.
+  ///
+  /// Optional argument [info] contains information about why the change was
+  /// made.
+  NodeProducingEditPlan removeNullAwarenessFromPropertyAccess(
+      PropertyAccess sourceNode,
+      {NodeProducingEditPlan targetPlan,
+      NodeProducingEditPlan propertyNamePlan,
+      AtomicEditInfo info}) {
+    assert(sourceNode.operator.type == TokenType.QUESTION_PERIOD);
+    var builder = _PassThroughBuilderImpl(sourceNode);
+    if (targetPlan != null) {
+      builder._handleNodeProducingEditPlan(targetPlan);
+    }
+    builder.changes += {
+      sourceNode.operator.offset: [AtomicEdit.delete(1, info: info)]
+    };
+    if (propertyNamePlan != null) {
+      builder._handleNodeProducingEditPlan(propertyNamePlan);
+    }
+    return builder.finish(this);
   }
 
   /// Creates a new edit plan that replaces the contents of [sourceNode] with
@@ -721,10 +785,12 @@ class _EndsInCascadeVisitor extends UnifyingAstVisitor<void> {
 class _ExtractEditPlan extends _NestedEditPlan {
   final EditPlanner _planner;
 
-  final AtomicEditInfo _info;
+  final AtomicEditInfo _infoBefore;
+
+  final AtomicEditInfo _infoAfter;
 
   _ExtractEditPlan(AstNode sourceNode, NodeProducingEditPlan innerPlan,
-      this._planner, this._info)
+      this._planner, this._infoBefore, this._infoAfter)
       : super(sourceNode, innerPlan);
 
   @override
@@ -741,7 +807,7 @@ class _ExtractEditPlan extends _NestedEditPlan {
             _planner.removeViaComments
                 ? _RemovalStyle.commentSpace
                 : _RemovalStyle.delete,
-            _info) +
+            _infoBefore) +
         changes +
         _removeCode(
             innerPlan.sourceNode.end,
@@ -749,7 +815,7 @@ class _ExtractEditPlan extends _NestedEditPlan {
             _planner.removeViaComments
                 ? _RemovalStyle.spaceComment
                 : _RemovalStyle.delete,
-            _info);
+            _infoAfter);
     // Apply parens if needed.
     if (parens && !useInnerParens) {
       changes = _createAddParenChanges(changes);

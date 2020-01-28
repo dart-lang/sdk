@@ -1967,16 +1967,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       visitedClasses.add(element);
 
       if (element.typeParameters.isNotEmpty) {
-        type = _toLegacyType(type);
-        var oldType = interfaces[element];
-        if (oldType == null) {
-          interfaces[element] = type;
-        } else if (type != oldType) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
-            node,
-            [_enclosingClass.name, oldType, type],
-          );
+        if (_typeSystem.isNonNullableByDefault) {
+          type = _typeSystem.normalize(type);
+          var oldType = interfaces[element];
+          if (oldType == null) {
+            interfaces[element] = type;
+          } else {
+            try {
+              var result = _typeSystem.topMerge(oldType, type);
+              interfaces[element] = result;
+            } catch (_) {
+              _errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+                node,
+                [_enclosingClass.name, oldType, type],
+              );
+            }
+          }
+        } else {
+          type = _toLegacyType(type);
+          var oldType = interfaces[element];
+          if (oldType == null) {
+            interfaces[element] = type;
+          } else if (type != oldType) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES,
+              node,
+              [_enclosingClass.name, oldType, type],
+            );
+          }
         }
       }
 
@@ -5261,9 +5280,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!_isNonNullableByDefault) return;
 
     var parent = node.parent;
-    var defaultValuesAreAllowed = parent is ConstructorDeclaration ||
+    var defaultValuesAreExpected = parent is ConstructorDeclaration ||
         parent is FunctionExpression ||
-        parent is MethodDeclaration;
+        parent is MethodDeclaration &&
+            !parent.isAbstract &&
+            parent.externalKeyword == null &&
+            parent.body is! NativeFunctionBody;
 
     for (var parameter in node.parameters) {
       if (parameter is DefaultFormalParameter) {
@@ -5275,7 +5297,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               parameterName ?? parameter,
             );
           }
-        } else if (defaultValuesAreAllowed && parameter.defaultValue == null) {
+        } else if (defaultValuesAreExpected && parameter.defaultValue == null) {
           var type = parameter.declaredElement.type;
           if (_typeSystem.isPotentiallyNonNullable(type)) {
             var parameterName = _parameterName(parameter);

@@ -1052,6 +1052,9 @@ class VariableDeclarationImpl extends VariableDeclaration {
   /// the kernel.
   final bool isImplicitlyTyped;
 
+  /// True if the initializer was specified by the programmer.
+  final bool hasDeclaredInitializer;
+
   // TODO(ahe): Remove this field. We can get rid of it by recording closure
   // mutation in [BodyBuilder].
   final int functionNestingLevel;
@@ -1075,6 +1078,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
 
   VariableDeclarationImpl(String name, this.functionNestingLevel,
       {this.forSyntheticToken: false,
+      this.hasDeclaredInitializer: false,
       Expression initializer,
       DartType type,
       bool isFinal: false,
@@ -1101,6 +1105,7 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = false,
         isLocalFunction = false,
+        hasDeclaredInitializer = true,
         super.forValue(initializer);
 
   VariableDeclarationImpl.forValue(Expression initializer)
@@ -1108,10 +1113,27 @@ class VariableDeclarationImpl extends VariableDeclaration {
         functionNestingLevel = 0,
         isImplicitlyTyped = true,
         isLocalFunction = false,
+        hasDeclaredInitializer = true,
         super.forValue(initializer);
 
+  // The synthesized local getter function for a lowered late variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
   VariableDeclaration lateGetter;
+
+  // The synthesized local setter function for an assignable lowered late
+  // variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
   VariableDeclaration lateSetter;
+
+  // The original type (declared or inferred) of a lowered late variable.
+  //
+  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  // lowering is enabled.
+  DartType lateType;
 }
 
 /// Front end specific implementation of [VariableGet].
@@ -1120,8 +1142,14 @@ class VariableGetImpl extends VariableGet {
 
   final TypePromotionScope scope;
 
-  VariableGetImpl(VariableDeclaration variable, this.fact, this.scope)
-      : super(variable);
+  // TODO(johnniwinther): Remove the need for this by encoding all null aware
+  // expressions explicitly.
+  final bool forNullGuardedAccess;
+
+  VariableGetImpl(VariableDeclaration variable, this.fact, this.scope,
+      {this.forNullGuardedAccess})
+      : assert(forNullGuardedAccess != null),
+        super(variable);
 }
 
 /// Front end specific implementation of [LoadLibrary].

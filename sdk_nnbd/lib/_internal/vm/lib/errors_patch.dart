@@ -17,7 +17,7 @@ class Error {
   }
 
   @patch
-  StackTrace get stackTrace => _stackTrace!;
+  StackTrace? get stackTrace => _stackTrace;
 
   @pragma("vm:entry-point")
   StackTrace? _stackTrace;
@@ -32,11 +32,11 @@ class _AssertionError extends Error implements AssertionError {
   // out of the script. It expects a Dart stack frame from class
   // _AssertionError. Thus we need a Dart stub that calls the native code.
   @pragma("vm:entry-point", "call")
-  static _throwNew(int assertionStart, int assertionEnd, Object message) {
+  static _throwNew(int assertionStart, int assertionEnd, Object? message) {
     _doThrowNew(assertionStart, assertionEnd, message);
   }
 
-  static _doThrowNew(int assertionStart, int assertionEnd, Object message)
+  static _doThrowNew(int assertionStart, int assertionEnd, Object? message)
       native "AssertionError_throwNew";
 
   @pragma("vm:entry-point", "call")
@@ -54,9 +54,10 @@ class _AssertionError extends Error implements AssertionError {
   }
 
   String get _messageString {
-    if (message == null) return "is not true.";
-    if (message is String) return message;
-    return Error.safeToString(message);
+    final msg = message;
+    if (msg == null) return "is not true.";
+    if (msg is String) return msg;
+    return Error.safeToString(msg);
   }
 
   String toString() {
@@ -77,7 +78,7 @@ class _AssertionError extends Error implements AssertionError {
   final String _url;
   final int _line;
   final int _column;
-  final Object message;
+  final Object? message;
 }
 
 class _TypeError extends _AssertionError implements TypeError {
@@ -88,7 +89,7 @@ class _TypeError extends _AssertionError implements TypeError {
   static _throwNew(int location, Object srcValue, _Type dstType, String dstName)
       native "TypeError_throwNew";
 
-  String toString() => super.message;
+  String toString() => super.message as String;
 }
 
 class _CastError extends Error implements CastError {
@@ -224,7 +225,7 @@ class NoSuchMethodError {
   @patch
   NoSuchMethodError(Object receiver, Symbol memberName,
       List positionalArguments, Map<Symbol, dynamic> namedArguments,
-      [List existingArgumentNames = null])
+      [List? existingArgumentNames = null])
       : _receiver = receiver,
         _invocation = null,
         _memberName = memberName,
@@ -277,34 +278,37 @@ class NoSuchMethodError {
   @patch
   String toString() {
     // TODO(regis): Remove this null check once dart2js is updated.
-    if (_invocation == null) {
+    final localInvocation = _invocation;
+    if (localInvocation == null) {
       // Use deprecated version of toString.
       return _toStringDeprecated();
     }
-    String memberName =
-        internal.Symbol.computeUnmangledName(_invocation.memberName);
-    var level = (_invocation._type >> _InvocationMirror._LEVEL_SHIFT) &
+    var internalName = localInvocation.memberName as internal.Symbol;
+    String memberName = internal.Symbol.computeUnmangledName(internalName);
+
+    var level = (localInvocation._type >> _InvocationMirror._LEVEL_SHIFT) &
         _InvocationMirror._LEVEL_MASK;
-    var kind = _invocation._type & _InvocationMirror._KIND_MASK;
+    var kind = localInvocation._type & _InvocationMirror._KIND_MASK;
     if (kind == _InvocationMirror._LOCAL_VAR) {
       return "NoSuchMethodError: Cannot assign to final variable '$memberName'";
     }
 
-    StringBuffer typeArgumentsBuf = null;
-    var typeArguments = _invocation.typeArguments;
+    StringBuffer? typeArgumentsBuf = null;
+    final typeArguments = localInvocation.typeArguments;
     if ((typeArguments != null) && (typeArguments.length > 0)) {
-      typeArgumentsBuf = new StringBuffer();
-      typeArgumentsBuf.write("<");
+      final argsBuf = new StringBuffer();
+      argsBuf.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
         if (i > 0) {
-          typeArgumentsBuf.write(", ");
+          argsBuf.write(", ");
         }
-        typeArgumentsBuf.write(Error.safeToString(typeArguments[i]));
+        argsBuf.write(Error.safeToString(typeArguments[i]));
       }
-      typeArgumentsBuf.write(">");
+      argsBuf.write(">");
+      typeArgumentsBuf = argsBuf;
     }
     StringBuffer argumentsBuf = new StringBuffer();
-    var positionalArguments = _invocation.positionalArguments;
+    var positionalArguments = localInvocation.positionalArguments;
     int argumentCount = 0;
     if (positionalArguments != null) {
       for (; argumentCount < positionalArguments.length; argumentCount++) {
@@ -315,20 +319,21 @@ class NoSuchMethodError {
             .write(Error.safeToString(positionalArguments[argumentCount]));
       }
     }
-    var namedArguments = _invocation.namedArguments;
+    var namedArguments = localInvocation.namedArguments;
     if (namedArguments != null) {
       namedArguments.forEach((Symbol key, var value) {
         if (argumentCount > 0) {
           argumentsBuf.write(", ");
         }
-        argumentsBuf.write(internal.Symbol.computeUnmangledName(key));
+        var internalName = key as internal.Symbol;
+        argumentsBuf.write(internal.Symbol.computeUnmangledName(internalName));
         argumentsBuf.write(": ");
         argumentsBuf.write(Error.safeToString(value));
         argumentCount++;
       });
     }
     String existingSig =
-        _existingMethodSignature(_receiver, memberName, _invocation._type);
+        _existingMethodSignature(_receiver, memberName, localInvocation._type);
     String argsMsg = existingSig != null ? " with matching arguments" : "";
 
     assert(kind >= 0 && kind < 5);
@@ -433,7 +438,7 @@ class NoSuchMethodError {
     var type = _invocationType & _InvocationMirror._KIND_MASK;
     String memberName = (_memberName == null)
         ? ""
-        : internal.Symbol.computeUnmangledName(_memberName);
+        : internal.Symbol.computeUnmangledName(_memberName as internal.Symbol);
 
     if (type == _InvocationMirror._LOCAL_VAR) {
       return "NoSuchMethodError: Cannot assign to final variable '$memberName'";
@@ -441,25 +446,25 @@ class NoSuchMethodError {
 
     StringBuffer arguments = new StringBuffer();
     int argumentCount = 0;
-    if (_arguments != null) {
-      for (; argumentCount < _arguments.length; argumentCount++) {
+    final args = _arguments;
+    if (args != null) {
+      for (; argumentCount < args.length; argumentCount++) {
         if (argumentCount > 0) {
           arguments.write(", ");
         }
-        arguments.write(Error.safeToString(_arguments[argumentCount]));
+        arguments.write(Error.safeToString(args[argumentCount]));
       }
     }
-    if (_namedArguments != null) {
-      _namedArguments.forEach((Symbol key, var value) {
-        if (argumentCount > 0) {
-          arguments.write(", ");
-        }
-        arguments.write(internal.Symbol.computeUnmangledName(key));
-        arguments.write(": ");
-        arguments.write(Error.safeToString(value));
-        argumentCount++;
-      });
-    }
+    _namedArguments?.forEach((Symbol key, var value) {
+      if (argumentCount > 0) {
+        arguments.write(", ");
+      }
+      var internalName = key as internal.Symbol;
+      arguments.write(internal.Symbol.computeUnmangledName(internalName));
+      arguments.write(": ");
+      arguments.write(Error.safeToString(value));
+      argumentCount++;
+    });
     bool argsMismatch = _existingArgumentNames != null;
     String argsMessage = argsMismatch ? " with matching arguments" : "";
 
@@ -549,11 +554,12 @@ class NoSuchMethodError {
 
     if (argsMismatch) {
       StringBuffer formalParameters = new StringBuffer();
-      for (int i = 0; i < _existingArgumentNames.length; i++) {
+      final argumentNames = _existingArgumentNames!;
+      for (int i = 0; i < argumentNames.length; i++) {
         if (i > 0) {
           formalParameters.write(", ");
         }
-        formalParameters.write(_existingArgumentNames[i]);
+        formalParameters.write(argumentNames[i]);
       }
       msgBuf.write("\nFound: $memberName($formalParameters)");
     }

@@ -33,7 +33,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  /*LINT*/final int f = 0;
+  final int f = 0;
 }
 ''');
   }

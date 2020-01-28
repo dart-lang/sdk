@@ -40,7 +40,7 @@ class AssistsMixinTest with ResourceProviderMixin {
     plugin.start(channel);
   }
 
-  test_handleEditGetAssists() async {
+  Future<void> test_handleEditGetAssists() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 

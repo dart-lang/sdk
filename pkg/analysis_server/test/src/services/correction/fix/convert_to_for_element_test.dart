@@ -23,7 +23,7 @@ class ConvertToForElementTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_for_elements_to_map_fromIterable;
 
-  // More coverage in the `convert_to_for_element_line_test.dart` assist test.
+  /// More coverage in the `convert_to_for_element_line_test.dart` assist test.
   test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {

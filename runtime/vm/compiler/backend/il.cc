@@ -16,7 +16,8 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/loops.h"
 #include "vm/compiler/backend/range_analysis.h"
-#include "vm/compiler/ffi.h"
+#include "vm/compiler/ffi/frame_rebase.h"
+#include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/method_recognizer.h"
@@ -4088,8 +4089,9 @@ void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // the top of stack from above the entry frame, we add a constant to account
   // for the the two frame pointers and two return addresses of the entry frame.
   constexpr intptr_t kEntryFramePadding = 4;
-  FrameRebase rebase(/*old_base=*/SPREG, /*new_base=*/FPREG,
-                     -kExitLinkSlotFromEntryFp + kEntryFramePadding);
+  compiler::ffi::FrameRebase rebase(
+      /*old_base=*/SPREG, /*new_base=*/FPREG,
+      -kExitLinkSlotFromEntryFp + kEntryFramePadding);
   const Location dst = locs()->out(0);
   const Location src = rebase.Rebase(loc_);
   NoTemporaryAllocator no_temp;

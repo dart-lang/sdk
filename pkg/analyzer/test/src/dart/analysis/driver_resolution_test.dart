@@ -2,28 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/test_utilities/find_element.dart';
-import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/elements_types_mixin.dart';
 import '../../../utils.dart';
+import '../resolution/driver_resolution.dart';
 import 'base.dart';
 
 main() {
@@ -43,37 +39,8 @@ final isVoidType = TypeMatcher<VoidTypeImpl>();
  * Integration tests for resolution.
  */
 @reflectiveTest
-class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
+class AnalysisDriverResolutionTest extends DriverResolutionTest
     with ElementsTypesMixin {
-  ResolvedUnitResult result;
-  FindNode findNode;
-  FindElement findElement;
-
-  ClassElement get boolElement => typeProvider.boolType.element;
-
-  ClassElement get doubleElement => typeProvider.doubleType.element;
-
-  InterfaceType get doubleType => typeProvider.doubleType;
-
-  ClassElement get futureElement => typeProvider.futureElement;
-
-  ClassElement get intElement => typeProvider.intType.element;
-
-  InterfaceType get intType => typeProvider.intType;
-
-  ClassElement get listElement => typeProvider.listElement;
-
-  ClassElement get mapElement => typeProvider.mapElement;
-
-  ClassElement get numElement => typeProvider.numType.element;
-
-  InterfaceType get numType => typeProvider.numType;
-
-  ClassElement get stringElement => typeProvider.stringType.element;
-
-  @override
-  TypeProvider get typeProvider => result.typeProvider;
-
   void assertDeclaredVariableType(SimpleIdentifier node, String expected) {
     VariableElement element = node.staticElement;
     assertType(element.type, expected);
@@ -84,80 +51,6 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
     expect(element.type, isDynamicType);
   }
 
-  void assertElement(AstNode node, Element expected) {
-    Element actual = getNodeElement(node);
-    expect(actual, same(expected));
-  }
-
-  void assertElementNull(Expression node) {
-    Element actual = getNodeElement(node);
-    expect(actual, isNull);
-  }
-
-  void assertIdentifierTopGetRef(SimpleIdentifier ref, String name) {
-    var getter = findElement.topGet(name);
-    assertElement(ref, getter);
-
-    expect(ref.staticType, getter.returnType);
-  }
-
-  void assertInvokeType(InvocationExpression expression, String expected) {
-    DartType actual = expression.staticInvokeType;
-    assertType(actual, expected);
-  }
-
-  void assertInvokeTypeDynamic(InvocationExpression node) {
-    DartType actual = node.staticInvokeType;
-    expect(actual, isDynamicType);
-  }
-
-  void assertMember(
-    Object elementOrNode,
-    Element expectedBase,
-    Map<String, String> expectedSubstitution,
-  ) {
-    Member actual;
-    if (elementOrNode is Member) {
-      actual = elementOrNode;
-    } else {
-      actual = getNodeElement(elementOrNode as AstNode);
-    }
-
-    expect(actual.declaration, same(expectedBase));
-
-    var actualMapString = actual.substitution.map.map(
-      (k, v) => MapEntry(k.name, v.getDisplayString(withNullability: false)),
-    );
-    expect(actualMapString, expectedSubstitution);
-  }
-
-  void assertTopGetRef(String search, String name) {
-    var ref = findNode.simple(search);
-    assertIdentifierTopGetRef(ref, name);
-  }
-
-  void assertType(Object typeOrNode, String expected) {
-    DartType actual;
-    if (typeOrNode is DartType) {
-      actual = typeOrNode;
-    } else if (typeOrNode is Expression) {
-      actual = typeOrNode.staticType;
-    } else if (typeOrNode is GenericFunctionType) {
-      actual = typeOrNode.type;
-    } else if (typeOrNode is TypeName) {
-      actual = typeOrNode.type;
-    } else {
-      fail('Unsupported node: (${typeOrNode.runtimeType}) $typeOrNode');
-    }
-
-    if (expected == null) {
-      expect(actual, isNull);
-    } else {
-      var typeStr = actual.getDisplayString(withNullability: false);
-      expect(typeStr, expected);
-    }
-  }
-
   /// Test that [argumentList] has exactly two type items `int` and `double`.
   void assertTypeArguments(
       TypeArgumentList argumentList, List<DartType> expectedTypes) {
@@ -165,35 +58,6 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
     for (int i = 0; i < expectedTypes.length; i++) {
       _assertTypeNameSimple(argumentList.arguments[i], expectedTypes[i]);
     }
-  }
-
-  void assertTypeDynamic(Expression expression) {
-    DartType actual = expression.staticType;
-    expect(actual, isDynamicType);
-  }
-
-  void assertTypeName(
-      TypeName node, Element expectedElement, String expectedType,
-      {PrefixElement expectedPrefix}) {
-    assertType(node, expectedType);
-
-    if (expectedPrefix == null) {
-      var name = node.name as SimpleIdentifier;
-      assertElement(name, expectedElement);
-      assertTypeNull(name);
-    } else {
-      var name = node.name as PrefixedIdentifier;
-
-      assertElement(name.prefix, expectedPrefix);
-      expect(name.prefix.staticType, isNull);
-
-      assertElement(name.identifier, expectedElement);
-      expect(name.identifier.staticType, isNull);
-    }
-  }
-
-  void assertTypeNull(Identifier node) {
-    expect(node.staticType, isNull);
   }
 
   void assertUnresolvedInvokeType(DartType invokeType) {
@@ -228,30 +92,6 @@ class AnalysisDriverResolutionTest extends BaseAnalysisDriverTest
       expect(expression.staticElement, same(variable.getter));
       expect(expression.staticType, variable.type);
     };
-  }
-
-  Element getNodeElement(Expression node) {
-    if (node is AssignmentExpression) {
-      return node.staticElement;
-    } else if (node is Identifier) {
-      return node.staticElement;
-    } else if (node is IndexExpression) {
-      return node.staticElement;
-    } else if (node is InstanceCreationExpression) {
-      return node.staticElement;
-    } else if (node is PostfixExpression) {
-      return node.staticElement;
-    } else if (node is PrefixExpression) {
-      return node.staticElement;
-    } else {
-      fail('Unsupported node: (${node.runtimeType}) $node');
-    }
-  }
-
-  Future resolveTestFile() async {
-    result = await driver.getResult(testFile);
-    findNode = FindNode(result.content, result.unit);
-    findElement = FindElement(result.unit);
   }
 
   test_adjacentStrings() async {
@@ -875,17 +715,12 @@ void main() {
   }
 
   test_asExpression() async {
-    String content = r'''
+    await assertNoErrorsInCode(r'''
 void main() {
   num v = 42;
   v as int;
 }
-''';
-    addTestFile(content);
-
-    await resolveTestFile();
-    expect(result.path, testFile);
-    expect(result.errors, isEmpty);
+''');
 
     NodeList<Statement> statements = _getMainStatements(result);
 
@@ -3901,17 +3736,12 @@ main() {
   }
 
   test_isExpression() async {
-    String content = r'''
+    await assertNoErrorsInCode(r'''
 void main() {
   var v = 42;
   v is num;
 }
-''';
-    addTestFile(content);
-
-    await resolveTestFile();
-    expect(result.path, testFile);
-    expect(result.errors, isEmpty);
+''');
 
     NodeList<Statement> statements = _getMainStatements(result);
 
@@ -3940,17 +3770,12 @@ void main() {
   }
 
   test_isExpression_not() async {
-    String content = r'''
+    await assertNoErrorsInCode(r'''
 void main() {
   var v = 42;
   v is! num;
 }
-''';
-    addTestFile(content);
-
-    await resolveTestFile();
-    expect(result.path, testFile);
-    expect(result.errors, isEmpty);
+''');
 
     NodeList<Statement> statements = _getMainStatements(result);
 
@@ -4478,16 +4303,11 @@ void f() {
   }
 
   test_local_parameter() async {
-    String content = r'''
+    await assertNoErrorsInCode(r'''
 void main(int p) {
   p;
 }
-''';
-    addTestFile(content);
-
-    await resolveTestFile();
-    expect(result.path, testFile);
-    expect(result.errors, isEmpty);
+''');
 
     InterfaceType intType = typeProvider.intType;
 
@@ -4871,15 +4691,12 @@ void main() {
   }
 
   test_local_variable() async {
-    addTestFile(r'''
+    await assertNoErrorsInCode(r'''
 void main() {
   var v = 42;
   v;
 }
 ''');
-    await resolveTestFile();
-    expect(result.path, testFile);
-    expect(result.errors, isEmpty);
 
     InterfaceType intType = typeProvider.intType;
 
@@ -6658,18 +6475,13 @@ main() {
   }
 
   test_stringInterpolation() async {
-    String content = r'''
+    await assertNoErrorsInCode(r'''
 void main() {
   var v = 42;
   '$v$v $v';
   ' ${v + 1} ';
 }
-''';
-    addTestFile(content);
-
-    await resolveTestFile();
-    expect(result.path, testFile);
-    expect(result.errors, isEmpty);
+''');
 
     FunctionDeclaration main = result.unit.declarations[0];
     expect(main.declaredElement, isNotNull);
@@ -7181,7 +6993,7 @@ enum MyEnum {
   }
 
   test_top_executables_class() async {
-    String content = r'''
+    await assertNoErrorsInCode(r'''
 class C {
   C(int p);
   C.named(int p);
@@ -7190,11 +7002,7 @@ class C {
   int get publicGetter => 0;
   void set publicSetter(double p) {}
 }
-''';
-    addTestFile(content);
-
-    await resolveTestFile();
-    expect(result.path, testFile);
+''');
 
     InterfaceType doubleType = typeProvider.doubleType;
     InterfaceType intType = typeProvider.intType;
@@ -7313,15 +7121,11 @@ class C {
   }
 
   test_top_executables_top() async {
-    String content = r'''
+    await assertNoErrorsInCode(r'''
 int topFunction(double p) => 0;
 int get topGetter => 0;
 void set topSetter(double p) {}
-''';
-    addTestFile(content);
-
-    await resolveTestFile();
-    expect(result.path, testFile);
+''');
 
     InterfaceType doubleType = typeProvider.doubleType;
     InterfaceType intType = typeProvider.intType;

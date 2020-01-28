@@ -10,7 +10,7 @@ import 'navigation_test.dart' as navigation_test;
 import 'range_factory_test.dart' as range_factory_test;
 import 'subscriptions/test_all.dart' as subscriptions;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     analyzer_converter_test.main();
     completion.main();

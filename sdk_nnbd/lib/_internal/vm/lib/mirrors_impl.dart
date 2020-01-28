@@ -70,7 +70,7 @@ SourceLocation? _location(reflectee) native "DeclarationMirror_location";
 List<dynamic> _metadata(reflectee) native 'DeclarationMirror_metadata';
 
 List<InstanceMirror> _wrapMetadata(List reflectees) {
-  var mirrors = new List<InstanceMirror>();
+  var mirrors = <InstanceMirror>[];
   for (var reflectee in reflectees) {
     mirrors.add(reflect(reflectee));
   }
@@ -226,9 +226,9 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -245,7 +245,7 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
     return reflect(this._invokeGetter(_reflectee, _n(memberName)));
   }
 
-  InstanceMirror setField(Symbol memberName, Object value) {
+  InstanceMirror setField(Symbol memberName, dynamic value) {
     this._invokeSetter(_reflectee, _n(memberName), value);
     return reflect(value);
   }
@@ -291,7 +291,7 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
 
   String toString() => 'InstanceMirror on ${Error.safeToString(_reflectee)}';
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is _InstanceMirror && identical(_reflectee, other._reflectee);
   }
 
@@ -305,7 +305,7 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
     return reflect(_invokeGetter(_reflectee, _n(memberName)));
   }
 
-  InstanceMirror setField(Symbol memberName, arg) {
+  InstanceMirror setField(Symbol memberName, dynamic arg) {
     _invokeSetter(_reflectee, _n(memberName), arg);
     return reflect(arg);
   }
@@ -316,10 +316,10 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
     int numPositionalArguments = positionalArguments.length + 1; // Receiver.
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List.filled(numArguments, null);
     arguments[0] = _reflectee; // Receiver.
     arguments.setRange(1, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -471,7 +471,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     if (_isTransformedMixinApplication) {
       interfaceTypes = interfaceTypes.sublist(0, interfaceTypes.length - 1);
     }
-    var interfaceMirrors = new List<ClassMirror>();
+    var interfaceMirrors = <ClassMirror>[];
     for (var interfaceType in interfaceTypes) {
       interfaceMirrors.add(reflectType(interfaceType) as ClassMirror);
     }
@@ -480,7 +480,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
   }
 
   Symbol get _mixinApplicationName {
-    var mixins = new List<ClassMirror>();
+    var mixins = <ClassMirror>[];
     var klass = this;
     while (_nativeMixin(klass._reflectedType) != null) {
       mixins.add(klass.mixin);
@@ -605,7 +605,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     if (!_isTransformedMixinApplication && _isAnonymousMixinApplication) {
       return _typeVariables = const <TypeVariableMirror>[];
     }
-    var result = new List<TypeVariableMirror>();
+    var result = <TypeVariableMirror>[];
 
     List params = _ClassMirror_type_variables(_reflectee);
     ClassMirror owner = originalDeclaration;
@@ -651,9 +651,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List(numArguments);
+    List arguments = new List.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List(numNamedArguments);
+    List names = new List.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -671,8 +671,8 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     return _wrapMetadata(_metadata(_reflectee));
   }
 
-  bool operator ==(other) {
-    return this.runtimeType == other.runtimeType &&
+  bool operator ==(Object other) {
+    return other is _ClassMirror &&
         this._reflectee == other._reflectee &&
         this._reflectedType == other._reflectedType &&
         this._isGenericDeclaration == other._isGenericDeclaration;
@@ -834,9 +834,8 @@ abstract class _DeclarationMirror extends Mirror implements DeclarationMirror {
     return _wrapMetadata(_metadata(_reflectee));
   }
 
-  bool operator ==(other) {
-    return this.runtimeType == other.runtimeType &&
-        this._reflectee == other._reflectee;
+  bool operator ==(Object other) {
+    return other is _DeclarationMirror && this._reflectee == other._reflectee;
   }
 
   int get hashCode => simpleName.hashCode;
@@ -881,7 +880,7 @@ class _TypeVariableMirror extends _DeclarationMirror
 
   String toString() => "TypeVariableMirror on '${_n(simpleName)}'";
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     return other is TypeVariableMirror &&
         simpleName == other.simpleName &&
         owner == other.owner;
@@ -963,7 +962,7 @@ class _TypedefMirror extends _DeclarationMirror
     var v = _typeVariables;
     if (v != null) return v;
 
-    var result = new List<TypeVariableMirror>();
+    var result = <TypeVariableMirror>[];
     List params = _ClassMirror._ClassMirror_type_variables(_reflectee);
     TypedefMirror owner = originalDeclaration;
     var mirror;
@@ -1059,9 +1058,8 @@ class _LibraryMirror extends _ObjectMirror implements LibraryMirror {
     return _wrapMetadata(_metadata(_reflectee));
   }
 
-  bool operator ==(other) {
-    return this.runtimeType == other.runtimeType &&
-        this._reflectee == other._reflectee;
+  bool operator ==(Object other) {
+    return other is _LibraryMirror && this._reflectee == other._reflectee;
   }
 
   int get hashCode => simpleName.hashCode;
@@ -1414,7 +1412,7 @@ class _SpecialTypeMirror extends Mirror
 
   Symbol get qualifiedName => simpleName;
 
-  bool operator ==(other) {
+  bool operator ==(Object other) {
     if (other is! _SpecialTypeMirror) {
       return false;
     }
@@ -1441,7 +1439,7 @@ class _Mirrors {
   }
 
   // Creates a new local mirror for some Object.
-  static InstanceMirror reflect(Object reflectee) {
+  static InstanceMirror reflect(dynamic reflectee) {
     return reflectee is Function
         ? new _ClosureMirror._(reflectee)
         : new _InstanceMirror._(reflectee);

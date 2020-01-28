@@ -37,6 +37,7 @@ import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 // ignore: deprecated_member_use
 import 'package:analyzer/source/analysis_options_provider.dart';
@@ -109,10 +110,15 @@ class EditDomainHandler extends AbstractRequestHandler {
     //
     // Compute fixes
     //
-    var dartFix = EditDartFix(server, request);
-    Response response = await dartFix.compute();
+    try {
+      var dartFix = EditDartFix(server, request);
+      Response response = await dartFix.compute();
 
-    server.sendResponse(response);
+      server.sendResponse(response);
+    } catch (exception, stackTrace) {
+      server.sendServerErrorNotification('Exception while running dartfix',
+          CaughtException(exception, stackTrace), stackTrace);
+    }
   }
 
   Response format(Request request) {

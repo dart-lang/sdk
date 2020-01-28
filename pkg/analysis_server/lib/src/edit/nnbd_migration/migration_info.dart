@@ -154,6 +154,9 @@ class RegionInfo {
   /// The length of the region.
   final int length;
 
+  /// The line number of the beginning of the region.
+  final int lineNumber;
+
   /// The explanation to be displayed for the region.
   final String explanation;
 
@@ -164,8 +167,8 @@ class RegionInfo {
   List<EditDetail> edits;
 
   /// Initialize a newly created region.
-  RegionInfo(
-      this.regionType, this.offset, this.length, this.explanation, this.details,
+  RegionInfo(this.regionType, this.offset, this.length, this.lineNumber,
+      this.explanation, this.details,
       {this.edits = const []});
 }
 

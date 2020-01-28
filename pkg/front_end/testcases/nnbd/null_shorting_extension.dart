@@ -2,195 +2,256 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Class {
-  Class? _field;
+class Class1 {
+  Class1? get property => null;
+
+  void set property(Class1? value) {}
+
+  Class1 get property1 => new Class1();
+
+  Class2 get property2 => new Class2();
 }
 
-extension Extension on Class {
-  Class? get field => _field;
-  void set field(Class? value) {
-    _field = value;
+extension Extension1 on Class1 {
+  Class1? get nullable1 => property1;
+
+  void set nullable1(Class1? value) {
+    property = value;
   }
 
-  Class method() => property;
+  Class1 nonNullable1Method() => nonNullable1;
 
-  Class? operator [](Class? key) => field;
-  void operator []=(Class? key, Class? value) {
-    field = value;
+  Class1? operator [](Class1? key) => nullable1;
+
+  void operator []=(Class1? key, Class1? value) {
+    property = value;
   }
 
-  Class? operator +(int value) => field;
+  Class1? operator +(int value) => nullable1;
 
-  Class? operator -() => field;
+  Class1? operator -() => nullable1;
 
-  Class get property => this;
+  Class1 get nonNullable1 => property1;
+
+  Class2 get nonNullable2 => property2;
+}
+
+class Class2 {
+  Class2 get property => this;
+
+  void set property(Class2 value) {}
+}
+
+extension Extension2 on Class2 {
+  Class2 nonNullable2Method() => nonNullable2;
+
+  Class2 operator [](Class2? key) => property;
+
+  void operator []=(Class2? key, Class2? value) => property;
+
+  Class2 operator +(int value) => property;
+
+  Class2 operator -() => property;
+
+  Class2 get nonNullable2 => property;
+
+  void set nonNullable2(Class2 value) {
+    property = value;
+  }
+}
+
+class Class3 {
+  Class2? get property => null;
+}
+
+extension Extension3 on Class3 {
+  Class2? operator [](Class3? key) => property;
 }
 
 main() {
   propertyAccess(null);
-  indexAccess(null);
-  operatorAccess(null);
+  indexAccess(null, null, null);
+  operatorAccess(null, null);
   ifNull(null);
 }
 
-void propertyAccess(Class? c) {
-  c?.field;
-  c?.field = new Class();
-  c = c?.field = new Class();
-  c?.method();
+void propertyAccess(Class1? n1) {
+  Class1? nullable1 = n1;
 
-  c?.property.field;
-  c?.field?.field;
-  c?.property.field?.field;
-  c?.property.field = new Class();
-  c?.field?.field = new Class();
-  c?.property.field?.field = new Class();
-  (c?.field)?.field;
-  throws(() => (c?.field = new Class()).field);
-  throws(() => (c?.method()).field);
-  c = c?.property.field = new Class();
-  c = c?.field?.field = new Class();
-  c = c?.property.field?.field = new Class();
-  c?.property.method();
-  c?.field = new Class().field;
-  c = c?.field = new Class().field;
-  c?.field = new Class().field = new Class();
-  c = c?.field = new Class().field = new Class();
-  c?.field = new Class().method();
-  c = c?.field = new Class().method();
-  c?.method().field;
-  c?.method().field = new Class();
-  c?.method().method();
+  n1?.nullable1;
+  n1?.nullable1 = new Class1();
+  nullable1 = n1?.nullable1 = new Class1();
+  n1?.nonNullable1Method();
 
-  c?.property.property.field;
-  c?.property.property.field = new Class();
-  c = c?.property.property.field = new Class();
-  c?.property.property.method();
-  c?.field = new Class().property.field;
-  c = c?.field = new Class().property.field;
-  c?.field = new Class().property.field = new Class();
-  c = c?.field = new Class().property.field = new Class();
-  c?.field = new Class().property.method();
-  c = c?.field = new Class().property.method();
-  c?.method().property.field;
-  c?.method().property.field = new Class();
-  c?.method().property.method();
+  n1?.nonNullable1.nullable1;
+  n1?.nullable1?.nullable1;
+  n1?.nonNullable1.nullable1?.nullable1;
+  n1?.nonNullable1.nullable1 = new Class1();
+  n1?.nullable1?.nullable1 = new Class1();
+  n1?.nonNullable1.nullable1?.nullable1 = new Class1();
+  (n1?.nullable1)?.nullable1;
+  throws(() => (n1?.nullable1 = new Class1()).nullable1);
+  throws(() => (n1?.nonNullable1Method()).nullable1);
+  nullable1 = n1?.nonNullable1.nullable1 = new Class1();
+  nullable1 = n1?.nullable1?.nullable1 = new Class1();
+  nullable1 = n1?.nonNullable1.nullable1?.nullable1 = new Class1();
+  n1?.nullable1?.nonNullable1Method();
+  n1?.nullable1 = new Class1().nullable1;
+  nullable1 = n1?.nullable1 = new Class1().nullable1;
+  n1?.nullable1 = new Class1().nullable1 = new Class1();
+  nullable1 = n1?.nullable1 = new Class1().nullable1 = new Class1();
+  n1?.nullable1 = new Class1().nonNullable1Method();
+  nullable1 = n1?.nullable1 = new Class1().nonNullable1Method();
+  n1?.nonNullable1Method().nullable1;
+  n1?.nonNullable1Method().nullable1 = new Class1();
+  n1?.nonNullable1Method().nonNullable1Method();
 
-  c?.property.field = new Class().field;
-  c = c?.property.field = new Class().field;
-  c?.property.field = new Class().field = new Class();
-  c = c?.property.field = new Class().field = new Class();
-  c?.property.field = new Class().method();
-  c = c?.property.field = new Class().method();
-  c?.field = new Class().field = new Class().field;
-  c = c?.field = new Class().field = new Class().field;
-  c?.field = new Class().field = new Class().field = new Class();
-  c = c?.field = new Class().field = new Class().field = new Class();
-  c?.field = new Class().field = new Class().method();
-  c = c?.field = new Class().field = new Class().method();
-  c?.method().field = new Class().field;
-  c = c?.method().field = new Class().field;
-  c?.method().field = new Class().field = new Class();
-  c = c?.method().field = new Class().field = new Class();
-  c?.method().field = new Class().method();
-  c = c?.method().field = new Class().method();
+  n1?.nonNullable1.nonNullable1.nullable1;
+  n1?.nonNullable1.nonNullable1.nullable1 = new Class1();
+  nullable1 = n1?.nonNullable1.nonNullable1.nullable1 = new Class1();
+  n1?.nonNullable1.nullable1?.nonNullable1Method();
+  n1?.nullable1 = new Class1().nonNullable1.nullable1;
+  nullable1 = n1?.nullable1 = new Class1().nonNullable1.nullable1;
+  n1?.nullable1 = new Class1().nonNullable1.nullable1 = new Class1();
+  nullable1 =
+      n1?.nullable1 = new Class1().nonNullable1.nullable1 = new Class1();
+  n1?.nullable1 = new Class1().nonNullable1.nonNullable1Method();
+  nullable1 = n1?.nullable1 = new Class1().nonNullable1.nonNullable1Method();
+  n1?.nonNullable1Method().nonNullable1.nullable1;
+  n1?.nonNullable1Method().nonNullable1.nullable1 = new Class1();
+  n1?.nonNullable1Method().nonNullable1.nonNullable1Method();
 
-  c?.field?.method().field;
-  c?.field?.method().field = new Class();
-  c = c?.field?.method().field = new Class();
-  c?.field?.method().method();
-  c?.field = new Class().method().field;
-  c = c?.field = new Class().method().field;
-  c?.field = new Class().method().field = new Class();
-  c = c?.field = new Class().method().field = new Class();
-  c?.field = new Class().method().method();
-  c = c?.field = new Class().method().method();
-  c?.method().method().field;
-  c?.method().method().field = new Class();
-  c?.method().method().method();
+  n1?.nonNullable1.nullable1 = new Class1().nullable1;
+  nullable1 = n1?.nonNullable1.nullable1 = new Class1().nullable1;
+  n1?.nonNullable1.nullable1 = new Class1().nullable1 = new Class1();
+  nullable1 =
+      n1?.nonNullable1.nullable1 = new Class1().nullable1 = new Class1();
+  n1?.nonNullable1.nullable1 = new Class1().nonNullable1Method();
+  nullable1 = n1?.nonNullable1.nullable1 = new Class1().nonNullable1Method();
+  n1?.nullable1 = new Class1().nullable1 = new Class1().nullable1;
+  nullable1 = n1?.nullable1 = new Class1().nullable1 = new Class1().nullable1;
+  n1?.nullable1 =
+      new Class1().nullable1 = new Class1().nullable1 = new Class1();
+  nullable1 = n1?.nullable1 =
+      new Class1().nullable1 = new Class1().nullable1 = new Class1();
+  n1?.nullable1 = new Class1().nullable1 = new Class1().nonNullable1Method();
+  nullable1 = n1?.nullable1 =
+      new Class1().nullable1 = new Class1().nonNullable1Method();
+  n1?.nonNullable1Method().nullable1 = new Class1().nullable1;
+  nullable1 = n1?.nonNullable1Method().nullable1 = new Class1().nullable1;
+  n1?.nonNullable1Method().nullable1 = new Class1().nullable1 = new Class1();
+  nullable1 = n1?.nonNullable1Method().nullable1 =
+      new Class1().nullable1 = new Class1();
+  n1?.nonNullable1Method().nullable1 = new Class1().nonNullable1Method();
+  nullable1 =
+      n1?.nonNullable1Method().nullable1 = new Class1().nonNullable1Method();
 
-  c?.method()?.method();
+  n1?.nonNullable1.nonNullable1Method().nullable1;
+  n1?.nonNullable1.nonNullable1Method().nullable1 = new Class1();
+  nullable1 = n1?.nonNullable1.nonNullable1Method().nullable1 = new Class1();
+  n1?.nonNullable1.nonNullable1Method().nonNullable1Method();
+  n1?.nullable1 = new Class1().nonNullable1Method().nullable1;
+  nullable1 = n1?.nullable1 = new Class1().nonNullable1Method().nullable1;
+  n1?.nullable1 = new Class1().nonNullable1Method().nullable1 = new Class1();
+  nullable1 = n1?.nullable1 =
+      new Class1().nonNullable1Method().nullable1 = new Class1();
+  n1?.nullable1 = new Class1().nonNullable1Method().nonNullable1Method();
+  nullable1 =
+      n1?.nullable1 = new Class1().nonNullable1Method().nonNullable1Method();
+  n1?.nonNullable1Method().nonNullable1Method().nullable1;
+  n1?.nonNullable1Method().nonNullable1Method().nullable1 = new Class1();
+  n1?.nonNullable1Method().nonNullable1Method().nonNullable1Method();
+
+  n1?.nonNullable1Method()?.nonNullable1Method();
 }
 
-void indexAccess(Class? c) {
-  c?.[c];
-  c?.[c] = new Class();
-  c?.[c]?.method();
-  c?.field[c];
-  c?.field[c] = new Class();
-  c = c?.field[c] = new Class();
-  c?.field[c]?.method();
-  c?.field[c] += 0;
-  c = c?.field[c] += 0;
-  c?.[c] ??= c;
-  c = c?.[c] ??= c;
-  c?.[c] += 0;
-  c = c?.[c] += 0;
-  c?.[c] += 0;
-  c = c?.[c] += 0;
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  // update.
-  c?.[c]++;
-  c = c?.[c]++;
-  ++c?.[c];
-  c = ++c?.[c];
-  c?.field[c]++;
-  c = c?.field[c]++;
-  ++c?.field[c];
-  c = ++c?.field[c];
+void indexAccess(Class1? n1, Class2? n2, Class3? n3) {
+  Class1? nullable1 = n1;
+  Class2? nullable2 = n2;
+  Class3? nullable3 = n3;
 
-  c?.field[c][c];
-  c?.field[c][c] = new Class();
-  c = c?.field[c][c] = new Class();
-  c?.field[c][c]?.method();
-  c?.field[c][c] += 0;
-  c = c?.field[c][c] += 0;
+  n1?.[nullable1];
+  n1?.[nullable1] = new Class1();
+  n1?.[nullable1]?.nonNullable1Method();
+  n1?.nonNullable1[nullable1];
+  n1?.nonNullable1[nullable1] = new Class1();
+  nullable1 = n1?.nonNullable1[nullable1] = new Class1();
+  n1?.nonNullable1[nullable1]?.nonNullable1Method();
+  n1?.nonNullable2[nullable2] += 0;
+  nullable2 = n1?.nonNullable2[nullable2] += 0;
+  n1?.[nullable1] ??= nullable1;
+  nullable1 = n1?.[nullable1] ??= nullable1;
+  n2?.[nullable2] += 0;
+  nullable2 = n2?.[nullable2] += 0;
+  n2?.[nullable2] += 0;
+  nullable2 = n2?.[nullable2] += 0;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   //  update.
-  c?.field[c][c]++;
-  c = c?.field[c][c]++;
-  ++c?.field[c][c];
-  c = ++c?.field[c][c];
+  n2?.[nullable2]++;
+  nullable2 = n2?.[nullable2]++;
+  ++n2?.[nullable2];
+  nullable2 = ++n2?.[nullable2];
+  n1?.nonNullable2[nullable2]++;
+  nullable2 = n1?.nonNullable2[nullable2]++;
+  ++n1?.nonNullable2[nullable2];
+  nullable2 = ++n1?.nonNullable2[nullable2];
 
-  c?.[c]?.[c];
-  c?.[c]?.[c] = new Class();
-  c = c?.[c]?.[c] = new Class();
-  c?.[c]?.[c]?.method();
-  c = c?.[c]?.[c]?.method();
-  c?.[c]?.[c] ??= c;
-  c = c?.[c]?.[c] ??= c;
-  c?.[c]?.[c] += 0;
-  c = c?.[c]?.[c] += 0;
+  n1?.nonNullable2[nullable2][nullable2];
+  n1?.nonNullable2[nullable2][nullable2] = new Class2();
+  nullable2 = n1?.nonNullable2[nullable2][nullable2] = new Class2();
+  n1?.nonNullable2[nullable2][nullable2]?.nonNullable2Method();
+  n1?.nonNullable2[nullable2][nullable2] += 0;
+  nullable2 = n1?.nonNullable2[nullable2][nullable2] += 0;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
   //  update.
-  c?.[c]?.[c]++;
-  c = c?.[c]?.[c]++;
-  ++c?.[c]?.[c];
-  c = ++c?.[c]?.[c];
-}
+  n1?.nonNullable2[nullable2][nullable2]++;
+  nullable2 = n1?.nonNullable2[nullable2][nullable2]++;
+  ++n1?.nonNullable2[nullable2][nullable2];
+  nullable2 = ++n1?.nonNullable2[nullable2][nullable2];
 
-void operatorAccess(Class? c) {
-  throws(() => c?.field + 0);
-  throws(() => -c?.field);
-  c?.field += 0;
-  c = c?.field += 0;
-  c?.property.field += 0;
-  c = c?.property.field += 0;
+  n1?.[nullable1]?.[nullable1];
+  n1?.[nullable1]?.[nullable1] = new Class1();
+  nullable1 = n1?.[nullable1]?.[nullable1] = new Class1();
+  n1?.[nullable1]?.[nullable1]?.nonNullable1Method();
+  nullable1 = n1?.[nullable1]?.[nullable1]?.nonNullable1Method();
+  n1?.[nullable1]?.[nullable1] ??= nullable1;
+  nullable1 = n1?.[nullable1]?.[nullable1] ??= nullable1;
+  n3?.[nullable3]?.[nullable2] += 0;
+  nullable2 = n3?.[nullable3]?.[nullable2] += 0;
   // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  // update.
-  c?.field++;
-  c = c?.field++;
-  ++c?.field;
-  c = ++c?.field;
+  //  update.
+  n3?.[nullable3]?.[nullable2]++;
+  nullable2 = n3?.[nullable3]?.[nullable2]++;
+  ++n3?.[nullable3]?.[nullable2];
+  nullable2 = ++n3?.[nullable3]?.[nullable2];
 }
 
-void ifNull(Class? c) {
-  c?.field ??= c;
-  c = c?.field ??= c;
-  c?.property.field ??= c;
-  c = c?.property.field ??= c;
-  c?.field[c] ??= c;
-  c = c?.field[c] ??= c;
+void operatorAccess(Class1? n1, Class2? n2) {
+  Class2? nullable2 = n2;
+
+  throws(() => n1?.nonNullable1 + 0);
+  throws(() => -n1?.nonNullable1);
+  n2?.nonNullable2 += 0;
+  nullable2 = n2?.nonNullable2 += 0;
+  n2?.nonNullable2.nonNullable2 += 0;
+  nullable2 = n2?.nonNullable2.nonNullable2 += 0;
+  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
+  //  update.
+  n2?.nonNullable2++;
+  nullable2 = n2?.nonNullable2++;
+  ++n2?.nonNullable2;
+  nullable2 = ++n2?.nonNullable2;
+}
+
+void ifNull(Class1? n1) {
+  Class1? nullable1 = n1;
+
+  n1?.nullable1 ??= n1;
+  n1 = n1?.nullable1 ??= n1;
+  n1?.nonNullable1.nullable1 ??= n1;
+  n1 = n1?.nonNullable1.nullable1 ??= n1;
+  n1?.nonNullable1[n1] ??= n1;
+  n1 = n1?.nonNullable1[n1] ??= n1;
 }
 
 void throws(void Function() f) {

@@ -25,36 +25,19 @@ class C with B {}
     standardAnalysisSetup();
   }
 
-  test_dartfix() async {
-    setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)]);
-    expect(result.hasErrors, isFalse);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.edits.length, greaterThanOrEqualTo(1));
-  }
-
   test_dartfix_exclude() async {
     setupTarget();
     EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        excludedFixes: ['use-mixin']);
+        excludedFixes: ['convert_class_to_mixin']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, 0);
     expect(result.edits.length, 0);
   }
 
-  test_dartfix_exclude_other() async {
-    setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        excludedFixes: ['double-to-int']);
-    expect(result.hasErrors, isFalse);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.edits.length, greaterThanOrEqualTo(1));
-  }
-
   test_dartfix_include() async {
     setupTarget();
     EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        includedFixes: ['use-mixin']);
+        includedFixes: ['convert_class_to_mixin']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, greaterThanOrEqualTo(1));
     expect(result.edits.length, greaterThanOrEqualTo(1));
@@ -63,18 +46,9 @@ class C with B {}
   test_dartfix_include_other() async {
     setupTarget();
     EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        includedFixes: ['double-to-int']);
+        includedFixes: ['prefer_int_literals']);
     expect(result.hasErrors, isFalse);
     expect(result.suggestions.length, 0);
     expect(result.edits.length, 0);
-  }
-
-  test_dartfix_required() async {
-    setupTarget();
-    EditDartfixResult result = await sendEditDartfix([(sourceDirectory.path)],
-        includeRequiredFixes: true);
-    expect(result.hasErrors, isFalse);
-    expect(result.suggestions.length, greaterThanOrEqualTo(1));
-    expect(result.edits.length, greaterThanOrEqualTo(1));
   }
 }

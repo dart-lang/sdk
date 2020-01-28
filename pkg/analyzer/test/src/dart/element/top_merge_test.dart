@@ -71,6 +71,50 @@ class TopMergeTest extends _Base {
     );
   }
 
+  test_function_covariant() {
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: objectQuestion, isCovariant: true),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: dynamicNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: objectQuestion, isCovariant: true),
+        ],
+      ),
+    );
+
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: intNone, isCovariant: true),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: numNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: numNone, isCovariant: true),
+        ],
+      ),
+    );
+  }
+
   test_function_parameters_mismatch() {
     _check(
       functionTypeNone(
@@ -223,6 +267,16 @@ class TopMergeTest extends _Base {
     // NNBD_TOP_MERGE(dynamic, Object?) = Object?
     _check(objectQuestion, dynamicNone, objectQuestion);
     _check(dynamicNone, objectQuestion, objectQuestion);
+  }
+
+  test_objectStar() {
+    // NNBD_TOP_MERGE(Object*, void) = void
+    // NNBD_TOP_MERGE(void, Object*) = void
+    _check(objectStar, voidNone, voidNone);
+
+    // NNBD_TOP_MERGE(Object*, dynamic) = Object?
+    // NNBD_TOP_MERGE(dynamic, Object*) = Object?
+    _check(objectStar, dynamicNone, objectQuestion);
   }
 
   test_typeParameter() {

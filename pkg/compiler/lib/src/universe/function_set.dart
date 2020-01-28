@@ -123,7 +123,9 @@ class SelectorMask {
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    return selector == other.selector && receiver == other.receiver;
+    return other is SelectorMask &&
+        selector == other.selector &&
+        receiver == other.receiver;
   }
 
   @override

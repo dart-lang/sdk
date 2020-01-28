@@ -268,12 +268,12 @@ Object nullable(type) {
 // TODO(nshahan): Update after the normalization doc PR lands.
 @notNull
 Object legacy(type) {
-  // TODO(nshahan) Maybe normailize never*,  Null*.
-  if (_isLegacy(type) || _isNullable(type) || _isTop(type)) return type;
+  if (_isLegacy(type) || _isNullable(type) || _isTop(type) || _isNullType(type))
+    return type;
 
   // Check if a legacy version of this type has already been created.
   if (JS<bool>('!', '#.hasOwnProperty(#)', type, _cachedLegacy)) {
-    return JS<NullableType>('!', '#[#]', type, _cachedLegacy);
+    return JS<LegacyType>('!', '#[#]', type, _cachedLegacy);
   }
   // Cache a canonical legacy version of this type on this type.
   var cachedType = LegacyType(type);
@@ -324,10 +324,14 @@ class LegacyType extends DartType {
   String toString() => name;
 
   @JSExportName('is')
-  // Object is the only legacy type that should return true if obj is `null`.
-  bool is_T(obj) => obj == null
-      ? type == unwrapType(Object)
-      : JS<bool>('!', '#.is(#)', type, obj);
+  bool is_T(obj) {
+    if (obj == null) {
+      // Object and Never are the only legacy types that should return true if
+      // obj is `null`.
+      return type == unwrapType(Object) || type == unwrapType(Never);
+    }
+    return JS<bool>('!', '#.is(#)', type, obj);
+  }
 
   @JSExportName('as')
   as_T(obj) => obj == null || JS<bool>('!', '#.is(#)', type, obj)
@@ -455,11 +459,12 @@ Type _canonicalizeNormalizedTypeObject(type) {
   return wrapType(normType, isNormalized: true);
 }
 
-/// Generates new values by applying [transform] to the keys of [srcObject],
-/// storing them in [dstObject].
+/// Generates new values by applying [transform] to the values of [srcObject],
+/// storing them in [dstObject] with the same key.
 void _transformJSObject(srcObject, dstObject, Function transform) {
   for (Object key in JS('!', '#.Object.keys(#)', global_, srcObject)) {
-    JS('', '#[#] = #', dstObject, key, transform(key));
+    JS('', '#[#] = #', dstObject, key,
+        transform(JS('', '#[#]', srcObject, key)));
   }
 }
 
@@ -696,7 +701,7 @@ class FunctionType extends AbstractFunctionType {
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
         buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
-      if (JS('!', '#.length > 0', names)) buffer += ', ';
+      if (JS('!', '#.length > 0', requiredNamed)) buffer += ', ';
       names = getOwnPropertyNames(requiredNamed);
       JS('', '#.sort()', names);
       for (var i = 0; JS<bool>('!', '# < #.length', i, names); i++) {
@@ -841,7 +846,7 @@ class GenericFunctionType extends AbstractFunctionType {
     // formal if known, or it will be the original TypeVariable if we are still
     // solving for it. This array is passed to `instantiateToBounds` as we are
     // progressively solving for type variables.
-    var defaults = List<Object?>(typeFormals.length);
+    var defaults = List<Object?>.filled(typeFormals.length, null);
     // not ground
     var partials = Map<TypeVariable, Object>.identity();
 
@@ -1475,7 +1480,7 @@ class _TypeInferrer {
 
   /// Returns the inferred types based on the current constraints.
   List<Object>? getInferredTypes() {
-    var result = List<Object>();
+    var result = <Object>[];
     for (var constraint in _typeVariables.values) {
       // Prefer the known bound, if any.
       if (constraint.lower != null) {

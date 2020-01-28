@@ -32,7 +32,7 @@ class C {}
 ''');
     await assertHasFix('''
 Iterable<C> f(List<Object> list) {
-  return list./*LINT*/whereType<C>();
+  return list.whereType<C>();
 }
 class C {}
 ''');

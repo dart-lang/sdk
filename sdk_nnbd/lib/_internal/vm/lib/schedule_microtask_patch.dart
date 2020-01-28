@@ -8,17 +8,18 @@
 class _AsyncRun {
   @patch
   static void _scheduleImmediate(void callback()) {
-    if (_ScheduleImmediate._closure == null) {
+    final closure = _ScheduleImmediate._closure;
+    if (closure == null) {
       throw new UnsupportedError("Microtasks are not supported");
     }
-    _ScheduleImmediate._closure(callback);
+    closure(callback);
   }
 }
 
 typedef void _ScheduleImmediateClosure(void callback());
 
 class _ScheduleImmediate {
-  static _ScheduleImmediateClosure _closure;
+  static _ScheduleImmediateClosure? _closure;
 }
 
 @pragma("vm:entry-point", "call")

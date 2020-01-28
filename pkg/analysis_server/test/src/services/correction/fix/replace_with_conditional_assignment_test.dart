@@ -41,7 +41,7 @@ class Person {
   String _fullName;
   void foo() {
     print('hi');
-    /*LINT*/_fullName ??= getFullUserName(this);
+    _fullName ??= getFullUserName(this);
     print('hi');
   }
 }
@@ -63,7 +63,7 @@ class Person {
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/_fullName ??= getFullUserName(this);
+    _fullName ??= getFullUserName(this);
   }
 }
 ''');
@@ -83,7 +83,7 @@ class Person {
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/_fullName ??= getFullUserName(this);
+    _fullName ??= getFullUserName(this);
   }
 }
 ''');
@@ -104,7 +104,7 @@ class Person {
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/_fullName ??= getFullUserName(this);
+    _fullName ??= getFullUserName(this);
   }
 }
 ''');

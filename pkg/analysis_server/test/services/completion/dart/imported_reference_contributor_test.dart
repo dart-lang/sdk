@@ -2670,12 +2670,7 @@ main() {
     assertSuggestConstructor('D', elemOffset: -1);
   }
 
-  @failingTest
   test_InstanceCreationExpression_imported() async {
-    // This is failing because the constructor for Future is added twice. I
-    // suspect that we're adding it from both dart:core and dart:async and are
-    // not noticing that it's the same element.
-
     // SimpleIdentifier  TypeName  ConstructorName  InstanceCreationExpression
     addSource('/home/test/lib/a.dart', '''
         int T1;
@@ -2693,7 +2688,13 @@ main() {
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertSuggestConstructor('Object');
+    // Exported by dart:core and dart:async
     assertSuggestConstructor('Future');
+    assertSuggestConstructor('Future.delayed');
+    assertSuggestConstructor('Future.microtask');
+    assertSuggestConstructor('Future.value');
+    assertSuggestConstructor('Stream.fromIterable');
+    // ...
     assertSuggestConstructor('A');
     // Suggested by ConstructorContributor
     assertNotSuggested('B');

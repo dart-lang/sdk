@@ -29,7 +29,7 @@ class MirrorSystem {
 MirrorSystem currentMirrorSystem() => js.currentJsMirrorSystem;
 
 @patch
-InstanceMirror reflect(Object reflectee) => js.reflect(reflectee);
+InstanceMirror reflect(dynamic reflectee) => js.reflect(reflectee);
 
 @patch
 ClassMirror reflectClass(Type key) {
@@ -66,7 +66,7 @@ Type _instantiateClass(Type type, List<Type> typeArguments) {
   }
 
   var typeArgsLenth = typeArguments.length;
-  var unwrappedArgs = List(typeArgsLenth);
+  var unwrappedArgs = List.filled(typeArgsLenth, null);
   for (int i = 0; i < typeArgsLenth; i++) {
     unwrappedArgs[i] = dart.unwrapType(typeArguments[i]);
   }

@@ -21,7 +21,7 @@ import 'package:kernel/ast.dart' show Location, Source;
 import "package:kernel/target/targets.dart" show TargetFlags;
 
 import "package:testing/testing.dart"
-    show Chain, ChainContext, Result, Step, TestDescription, runMe;
+    show Chain, ChainContext, Expectation, Result, Step, TestDescription, runMe;
 
 import "package:vm/target/vm.dart" show VmTarget;
 
@@ -80,6 +80,15 @@ class MessageTestSuite extends ChainContext {
   MessageTestSuite(this.fastOnly)
       : fileSystem = new MemoryFileSystem(Uri.parse("org-dartlang-fasta:///")),
         compiler = new BatchCompiler(null);
+
+  @override
+  Set<Expectation> processExpectedOutcomes(
+      Set<Expectation> outcomes, TestDescription description) {
+    if (description.shortName.contains("/spelling")) {
+      return {Expectation.Pass};
+    }
+    return outcomes;
+  }
 
   /// Convert all the examples found in `messages.yaml` to a test
   /// description. In addition, create a test description for each kind of

@@ -19,7 +19,6 @@ import 'api_test_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(_InstrumentationTest);
-    defineReflectiveTests(_InstrumentationTestWithFixBuilder);
   });
 }
 
@@ -94,16 +93,19 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   }
 
   @override
+  void prepareForUpdate() {
+    test.changes = null;
+    test.propagationSteps.clear();
+  }
+
+  @override
   void propagationStep(PropagationInfo info) {
     test.propagationSteps.add(info);
   }
 }
 
 @reflectiveTest
-class _InstrumentationTest extends _InstrumentationTestBase {
-  @override
-  bool get useFixBuilder => false;
-}
+class _InstrumentationTest extends _InstrumentationTestBase {}
 
 abstract class _InstrumentationTestBase extends AbstractContextTest {
   NullabilityNodeInfo always;
@@ -135,15 +137,13 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
 
   Source source;
 
-  bool get useFixBuilder;
-
-  Future<void> analyze(String content) async {
+  Future<void> analyze(String content, {bool removeViaComments = false}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     newFile(sourcePath, content: content);
     var listener = new TestMigrationListener();
     var migration = NullabilityMigration(listener,
         instrumentation: _InstrumentationClient(this),
-        useFixBuilder: useFixBuilder);
+        removeViaComments: removeViaComments);
     var result = await session.getResolvedUnit(sourcePath);
     source = result.unit.declaredElement.source;
     findNode = FindNode(content, result.unit);
@@ -295,16 +295,20 @@ _f(int/*!*/ i) {
 }
 ''');
     var intAnnotation = findNode.typeAnnotation('int');
-    expect(changes, isNotEmpty);
-    for (var change in changes.values) {
-      expect(change, isNotEmpty);
-      for (var edit in change) {
-        var info = edit.info;
-        expect(info.description, NullabilityFixDescription.discardElse);
-        expect(info.fixReasons.single,
-            same(explicitTypeNullability[intAnnotation]));
-      }
-    }
+    expect(changes, hasLength(2));
+    // Change #1: drop the if-condition.
+    var dropCondition = changes[findNode.statement('if').offset].single;
+    expect(dropCondition.isDeletion, true);
+    expect(dropCondition.info.description,
+        NullabilityFixDescription.discardCondition);
+    expect(dropCondition.info.fixReasons.single,
+        same(explicitTypeNullability[intAnnotation]));
+    // Change #2: drop the else.
+    var dropElse = changes[findNode.statement('return i').end].single;
+    expect(dropElse.isDeletion, true);
+    expect(dropElse.info.description, NullabilityFixDescription.discardElse);
+    expect(dropElse.info.fixReasons.single,
+        same(explicitTypeNullability[intAnnotation]));
   }
 
   Future<void> test_fix_reason_discard_else_empty_then() async {
@@ -321,7 +325,7 @@ _f(int/*!*/ i) {
       expect(change, isNotEmpty);
       for (var edit in change) {
         var info = edit.info;
-        expect(info.description, NullabilityFixDescription.discardElse);
+        expect(info.description, NullabilityFixDescription.discardIf);
         expect(info.fixReasons.single,
             same(explicitTypeNullability[intAnnotation]));
       }
@@ -351,7 +355,6 @@ _f(int/*!*/ i) {
     }
   }
 
-  @FailingTest(reason: 'Produces no changes')
   Future<void> test_fix_reason_discard_then_no_else() async {
     await analyze('''
 _f(int/*!*/ i) {
@@ -366,7 +369,7 @@ _f(int/*!*/ i) {
       expect(change, isNotEmpty);
       for (var edit in change) {
         var info = edit.info;
-        expect(info.description, NullabilityFixDescription.discardThen);
+        expect(info.description, NullabilityFixDescription.discardIf);
         expect(info.fixReasons.single,
             same(explicitTypeNullability[intAnnotation]));
       }
@@ -422,7 +425,33 @@ int x = null;
     expect(reasons.single, same(explicitTypeNullability[intAnnotation]));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38472')
+  Future<void> test_fix_reason_remove_question_from_question_dot() async {
+    await analyze('_f(int/*!*/ i) => i?.isEven;');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.removeNullAwareness);
+        expect(info.fixReasons, isEmpty);
+      }
+    }
+  }
+
+  Future<void>
+      test_fix_reason_remove_question_from_question_dot_method() async {
+    await analyze('_f(int/*!*/ i) => i?.abs();');
+    expect(changes, isNotEmpty);
+    for (var change in changes.values) {
+      expect(change, isNotEmpty);
+      for (var edit in change) {
+        var info = edit.info;
+        expect(info.description, NullabilityFixDescription.removeNullAwareness);
+        expect(info.fixReasons, isEmpty);
+      }
+    }
+  }
+
   Future<void> test_fix_reason_remove_unnecessary_cast() async {
     await analyze('''
 _f(Object x) {
@@ -451,7 +480,6 @@ _f(Object x) {
     expect(dropTrailingParen.info, null);
   }
 
-  @FailingTest(reason: 'Produces no changes')
   Future<void> test_fix_reason_rewrite_required() async {
     addMetaPackage();
     await analyze('''
@@ -1208,7 +1236,7 @@ void f(int x) {
 class C<T> {
   void f(T t) {}
 }
-voig g(C<int> x, int y) {
+void g(C<int> x, int y) {
   x.f(y);
 }
 ''');
@@ -1230,25 +1258,4 @@ voig g(C<int> x, int y) {
     return edges.any(
         (e) => e.sourceNode == node && e.destinationNode == never && e.isHard);
   }
-}
-
-@reflectiveTest
-class _InstrumentationTestWithFixBuilder extends _InstrumentationTestBase {
-  @override
-  bool get useFixBuilder => true;
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_fix_reason_discard_then_no_else() =>
-      super.test_fix_reason_discard_then_no_else();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_fix_reason_remove_unnecessary_cast() =>
-      super.test_fix_reason_remove_unnecessary_cast();
-
-  /// Test fails under the pre-FixBuilder implementation; passes now.
-  @override
-  Future<void> test_fix_reason_rewrite_required() =>
-      super.test_fix_reason_rewrite_required();
 }

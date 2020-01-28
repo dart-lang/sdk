@@ -80,7 +80,10 @@ class StrongComponents {
         computeStrongComponents(_LibraryGraph(entrypoint, loadedLibraries));
     for (List<Library> component in results) {
       assert(component.length > 0);
-      final Uri moduleUri = component.first.importUri;
+      final Uri moduleUri = component
+          .firstWhere((lib) => lib.importUri == mainUri,
+              orElse: () => component.first)
+          .importUri;
       modules[moduleUri] = component;
       for (Library componentLibrary in component) {
         moduleAssignment[componentLibrary.importUri] = moduleUri;

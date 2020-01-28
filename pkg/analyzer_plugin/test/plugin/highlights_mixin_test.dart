@@ -41,7 +41,7 @@ class HighlightsMixinTest with ResourceProviderMixin {
     plugin.start(channel);
   }
 
-  test_sendHighlightsNotification() async {
+  Future<void> test_sendHighlightsNotification() async {
     await plugin.handleAnalysisSetContextRoots(
         AnalysisSetContextRootsParams([contextRoot1]));
 

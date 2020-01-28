@@ -63,7 +63,7 @@ static method test6() → dynamic {
   core::String s = let final core::double #t15 = 3.14 in let final core::int #t16 = 0 in let final core::String? #t17 = self::E6|[](#t15, #t16) in #t17.{core::String::==}(null) ?{core::String} let final core::String #t18 = "bar" in let final void #t19 = self::E6|[]=(#t15, #t16, #t18) in #t18 : #t17{core::String};
 }
 static method test7(self::A7? a) → dynamic {
-  core::String s = let final self::A7? #t20 = a in #t20.{core::Object::==}(null) ?{core::String} null : let final core::String #t21 = #t20.{self::A7::foo} in #t21.{core::String::==}(null) ?{core::String} #t20.{self::A7::foo} = "bar" : #t21;
-  core::String s2 = let final self::A7? #t22 = a in #t22.{core::Object::==}(null) ?{core::String} null : let final core::String? #t23 = #t22.{self::A7::bar} in #t23.{core::String::==}(null) ?{core::String} #t22.{self::A7::bar} = "bar" : #t23{core::String};
+  core::String? s = let final self::A7? #t20 = a in #t20.{core::Object::==}(null) ?{core::String?} null : let final core::String #t21 = #t20.{self::A7::foo} in #t21.{core::String::==}(null) ?{core::String} #t20.{self::A7::foo} = "bar" : #t21;
+  core::String? s2 = let final self::A7? #t22 = a in #t22.{core::Object::==}(null) ?{core::String?} null : let final core::String? #t23 = #t22.{self::A7::bar} in #t23.{core::String::==}(null) ?{core::String} #t22.{self::A7::bar} = "bar" : #t23{core::String};
 }
 static method main() → dynamic {}

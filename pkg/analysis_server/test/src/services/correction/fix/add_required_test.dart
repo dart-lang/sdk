@@ -30,7 +30,7 @@ void function({String /*LINT*/param}) {
 }
 ''');
     await assertHasFix('''
-void function({@required String /*LINT*/param}) {
+void function({@required String param}) {
   assert(param != null);
 }
 ''');

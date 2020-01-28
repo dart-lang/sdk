@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalDeclarationVisitorTest);
   });
@@ -35,7 +35,7 @@ class LocalDeclarationVisitorTest {
     return unit;
   }
 
-  test_visitForEachStatement() {
+  void test_visitForEachStatement() {
     CompilationUnit unit = parseCompilationUnit('''
 class MyClass {}
 f(List<MyClass> list) {

@@ -17,6 +17,8 @@ dependencies:
     path: ../smith
   status_file:
     path: ../status_file
+  dart2js_tools:
+    path: ../dart2js_tools
 dependency_overrides:
   # Other packages in the dependency graph have normal hosted dependencies on
   # this, so just override it to force the local one.

@@ -127,6 +127,12 @@ Stream<Future> asyncStarThrowAsync() async* {
   }
 }
 
+Future listenAsyncStarThrowAsync() async {
+  // Listening to an async* doesn't create the usual await-for StreamIterator.
+  StreamSubscription ss = asyncStarThrowAsync().listen((Future f) {});
+  await ss.asFuture();
+}
+
 // Helpers:
 
 void assertStack(List<String> expects, StackTrace stackTrace) {
@@ -472,6 +478,50 @@ Future<void> doTestsCausal() async {
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
             r'^$',
           ]);
+
+  final listenAsyncStartExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:11)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      listenAsyncStarThrowAsync \(.+/utils.dart:132(:27)?\)$',
+  ];
+  await doTestAwait(
+      listenAsyncStarThrowAsync,
+      listenAsyncStartExpected +
+          const <String>[
+            r'^#3      doTestAwait \(.+\)$',
+            r'^#4      doTestsCausal \(.+\)$',
+            r'^<asynchronous suspension>$',
+            r'^#5      main \(.+\)$',
+            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
+            r'^$',
+          ]);
+  await doTestAwaitThen(
+      listenAsyncStarThrowAsync,
+      listenAsyncStartExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen \(.+\)$',
+            r'^#4      doTestsCausal \(.+\)$',
+            r'^<asynchronous suspension>$',
+            r'^#5      main \(.+\)$',
+            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
+            r'^$',
+          ]);
+  await doTestAwaitCatchError(
+      listenAsyncStarThrowAsync,
+      listenAsyncStartExpected +
+          const <String>[
+            r'^#3      doTestAwaitCatchError \(.+\)$',
+            r'^#4      doTestsCausal \(.+\)$',
+            r'^<asynchronous suspension>$',
+            r'^#5      main \(.+\)$',
+            r'^#6      _startIsolate.<anonymous closure> \(.+\)$',
+            r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
+            r'^$',
+          ]);
 }
 
 // For: --no-causal-async-stacks
@@ -745,6 +795,25 @@ Future<void> doTestsNoCausal() async {
       awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
   await doTestAwaitCatchError(
       awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
+
+  final listenAsyncStartExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^#1      _RootZone.runUnary ',
+    r'^#2      _FutureListener.handleValue ',
+    r'^#3      Future._propagateToListeners.handleValueCallback ',
+    r'^#4      Future._propagateToListeners ',
+    // TODO(dart-vm): Figure out why this is inconsistent:
+    r'^#5      Future.(_addListener|_prependListeners).<anonymous closure> ',
+    r'^#6      _microtaskLoop ',
+    r'^#7      _startMicrotaskLoop ',
+    r'^#8      _runPendingImmediateCallback ',
+    r'^#9      _RawReceivePortImpl._handleMessage ',
+    r'^$',
+  ];
+  await doTestAwait(listenAsyncStarThrowAsync, listenAsyncStartExpected);
+  await doTestAwaitThen(listenAsyncStarThrowAsync, listenAsyncStartExpected);
+  await doTestAwaitCatchError(
+      listenAsyncStarThrowAsync, listenAsyncStartExpected);
 }
 
 // For: --lazy-async-stacks
@@ -947,27 +1016,82 @@ Future<void> doTestsLazy() async {
     r'^#0      throwSync \(.+/utils.dart:16(:3)?\)$',
     r'^#1      asyncStarThrowSync \(.+/utils.dart:112(:11)?\)$',
     r'^<asynchronous suspension>$',
-    // Non-visible _onData frame.
+    r'^#2      awaitEveryAsyncStarThrowSync \(.+/utils.dart:104(:3)?\)$',
     r'^<asynchronous suspension>$',
-    r'^$',
   ];
-  await doTestAwait(awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
+  await doTestAwait(
+      awaitEveryAsyncStarThrowSync,
+      asyncStarThrowSyncExpected +
+          const <String>[
+            r'^#3      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#4      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#5      main ',
+            r'^<asynchronous suspension>$',
+            r'^$',
+          ]);
   await doTestAwaitThen(
-      awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
+      awaitEveryAsyncStarThrowSync,
+      asyncStarThrowSyncExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+            r'^$',
+          ]);
   await doTestAwaitCatchError(
-      awaitEveryAsyncStarThrowSync, asyncStarThrowSyncExpected);
+      awaitEveryAsyncStarThrowSync,
+      asyncStarThrowSyncExpected +
+          const <String>[
+            r'^$',
+          ]);
 
   final asyncStarThrowAsyncExpected = const <String>[
     r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
     r'^<asynchronous suspension>$',
     r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
     r'^<asynchronous suspension>$',
-    // Non-visible _onData frame.
+    r'^#2      awaitEveryAsyncStarThrowAsync \(.+/utils.dart:117(:3)?\)$',
     r'^<asynchronous suspension>$',
   ];
-  await doTestAwait(awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
+  await doTestAwait(
+      awaitEveryAsyncStarThrowAsync,
+      asyncStarThrowAsyncExpected +
+          const <String>[
+            r'^#3      doTestAwait ',
+            r'^<asynchronous suspension>$',
+            r'^#4      doTestsLazy ',
+            r'^<asynchronous suspension>$',
+            r'^#5      main ',
+            r'^<asynchronous suspension>$',
+            r'^$',
+          ]);
   await doTestAwaitThen(
-      awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
+      awaitEveryAsyncStarThrowAsync,
+      asyncStarThrowAsyncExpected +
+          const <String>[
+            r'^#3      doTestAwaitThen.<anonymous closure> ',
+            r'^<asynchronous suspension>$',
+            r'^$',
+          ]);
   await doTestAwaitCatchError(
-      awaitEveryAsyncStarThrowAsync, asyncStarThrowAsyncExpected);
+      awaitEveryAsyncStarThrowAsync,
+      asyncStarThrowAsyncExpected +
+          const <String>[
+            r'^$',
+          ]);
+
+  final listenAsyncStartExpected = const <String>[
+    r'^#0      throwAsync \(.*/utils.dart:21(:3)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#1      asyncStarThrowAsync \(.*/utils.dart:126(:5)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^#2      listenAsyncStarThrowAsync.<anonymous closure> \(.+/utils.dart(:0)?\)$',
+    r'^<asynchronous suspension>$',
+    r'^$',
+  ];
+  await doTestAwait(listenAsyncStarThrowAsync, listenAsyncStartExpected);
+  await doTestAwaitThen(listenAsyncStarThrowAsync, listenAsyncStartExpected);
+  await doTestAwaitCatchError(
+      listenAsyncStarThrowAsync, listenAsyncStartExpected);
 }

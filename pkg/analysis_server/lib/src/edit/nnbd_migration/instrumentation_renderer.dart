@@ -29,7 +29,7 @@ mustache.Template _template = mustache.Template(r'''
     <div class="nav-panel">
       <div class="nav-inner">
         <p class="panel-heading">Navigation</p>
-        <p class="root">{{ root }}</p>
+        <p class="root">{{{ root }}}</p>
 {{{ links }}}
       </div><!-- /nav-inner -->
     </div><!-- /nav -->
@@ -39,7 +39,7 @@ mustache.Template _template = mustache.Template(r'''
     '{{! Compilation unit content is written here. }}'
     '<p class="welcome">'
     '{{! TODO(srawlins): More welcome text! }}'
-    'Select a source file on the left to preview the modifications.'
+    'Select a source file on the left to preview the edits.'
     '</p>'
     '</div>'
     '<div class="regions">'
@@ -50,16 +50,22 @@ mustache.Template _template = mustache.Template(r'''
     '</div><!-- /content -->'
     '''
     <div class="info-panel">
-      <div class="info-panel-inner">
-        <p class="panel-heading">Modification info</p>
-        <div class="info">
-          <p>
-          Hover over modified regions to see why the migration tool chose to
-          make the modification.
-          </p>
-        </div><!-- /info -->
-      </div><!-- /info-panel-inner -->
-    </div><!-- info-panel -->
+      <div class="panel-container">
+        <div class="edit-panel">
+          <p class="panel-heading">Edit info</p>
+          <div class="panel-content">
+            <p>
+            Click a modified region of code to see why the migration tool chose
+            to make the edit.
+            </p>
+          </div><!-- /panel-content -->
+        </div><!-- /edit-panel -->
+        <div class="edit-list">
+          <p class="panel-heading">Edits</p>
+          <div class="panel-content"></div>
+        </div><!-- /edit-list -->
+      </div><!-- /panel-container -->
+    </div><!-- /info-panel -->
     </div><!-- /horizontal -->
     </div><!-- /panels -->
   </body>
@@ -68,9 +74,6 @@ mustache.Template _template = mustache.Template(r'''
 /// Instrumentation display output for a library that was migrated to use
 /// non-nullable types.
 class InstrumentationRenderer {
-  /// A flag indicating whether the incremental workflow is currently supported.
-  static const bool supportsIncrementalWorkflow = false;
-
   /// Information for a whole migration, so that libraries can reference each
   /// other.
   final MigrationInfo migrationInfo;
@@ -119,7 +122,9 @@ class InstrumentationRenderer {
     buffer.writeln('$indent<ul>');
     linksGroupedByDirectory
         .forEach((String directoryName, Iterable<UnitLink> groupedLinks) {
-      buffer.writeln('$indent  <li class="dir"><span>📁$directoryName</span>');
+      buffer.write('$indent  <li class="dir">');
+      buffer.writeln(
+          '<span class="arrow">&#x25BC;</span>&#x1F4C1;$directoryName');
       _renderNavigationSubtree(groupedLinks, depth + 1, buffer);
       buffer.writeln('$indent  </li>');
     });
@@ -127,7 +132,7 @@ class InstrumentationRenderer {
       var modifications =
           link.modificationCount == 1 ? 'modification' : 'modifications';
       buffer.writeln('$indent  <li>'
-          '<a href="${link.url}" class="nav-link" data-name="${link.relativePath}">'
+          '&#x1F4C4;<a href="${link.url}" class="nav-link" data-name="${link.relativePath}">'
           '${link.fileName}</a> (${link.modificationCount} $modifications)'
           '</li>');
     }

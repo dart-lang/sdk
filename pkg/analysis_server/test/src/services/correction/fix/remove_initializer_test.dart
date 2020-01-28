@@ -31,7 +31,7 @@ class Test {
 ''');
     await assertHasFix('''
 class Test {
-  int /*LINT*/x;
+  int x;
 }
 ''');
   }
@@ -45,7 +45,7 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  for (var /*LINT*/i; i != null; i++) {
+  for (var i; i != null; i++) {
   }
 }
 ''');
@@ -56,7 +56,7 @@ void f() {
 String a = 'a', /*LINT*/b = null, c = 'c';
 ''');
     await assertHasFix('''
-String a = 'a', /*LINT*/b, c = 'c';
+String a = 'a', b, c = 'c';
 ''');
   }
 
@@ -65,7 +65,7 @@ String a = 'a', /*LINT*/b, c = 'c';
 void f({String /*LINT*/s = null}) {}
 ''');
     await assertHasFix('''
-void f({String /*LINT*/s}) {}
+void f({String s}) {}
 ''');
   }
 
@@ -74,7 +74,7 @@ void f({String /*LINT*/s}) {}
 void f([String /*LINT*/s = null]) {}
 ''');
     await assertHasFix('''
-void f([String /*LINT*/s]) {}
+void f([String s]) {}
 ''');
   }
 
@@ -83,7 +83,7 @@ void f([String /*LINT*/s]) {}
 var /*LINT*/x = null;
 ''');
     await assertHasFix('''
-var /*LINT*/x;
+var x;
 ''');
   }
 }

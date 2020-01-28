@@ -61,7 +61,7 @@ class PrintSummaries extends RecursiveVisitor<Null> {
   final StringBuffer _buf = new StringBuffer();
 
   PrintSummaries(Target target, TypeEnvironment environment,
-      CoreTypes coreTypes, ClassHierarchy hierarchy) {
+      CoreTypes coreTypes, ClosedWorldClassHierarchy hierarchy) {
     final typesBuilder = new FakeTypesBuilder(coreTypes);
     _summaryCollector = new SummaryCollector(
         target,

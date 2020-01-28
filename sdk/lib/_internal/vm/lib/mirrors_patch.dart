@@ -36,7 +36,7 @@ MirrorSystem currentMirrorSystem() {
  * current running isolate.
  */
 @patch
-InstanceMirror reflect(Object reflectee) {
+InstanceMirror reflect(dynamic reflectee) {
   return _Mirrors.reflect(reflectee);
 }
 

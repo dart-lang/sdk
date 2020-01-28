@@ -26,7 +26,10 @@ f(int a, int b) {
 
     assertBinaryExpression(
       findNode.binary('a != b'),
-      element: numElement.getMethod('=='),
+      element: elementMatcher(
+        numElement.getMethod('=='),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'bool',
     );
   }
@@ -40,7 +43,10 @@ f(int a, int b) {
 
     assertBinaryExpression(
       findNode.binary('a == b'),
-      element: numElement.getMethod('=='),
+      element: elementMatcher(
+        numElement.getMethod('=='),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'bool',
     );
   }
@@ -96,7 +102,10 @@ f(int a, double b) {
 
     assertBinaryExpression(
       findNode.binary('a + b'),
-      element: numElement.getMethod('+'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'double',
     );
   }
@@ -110,7 +119,10 @@ f(int a, int b) {
 
     assertBinaryExpression(
       findNode.binary('a + b'),
-      element: numElement.getMethod('+'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'int',
     );
   }
@@ -138,7 +150,10 @@ f<T extends num>(T a) {
 
     assertBinaryExpression(
       findNode.binary('a + 0'),
-      element: numElement.getMethod('+'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'num',
     );
   }
@@ -152,7 +167,10 @@ f(int a, int b) {
 
     assertBinaryExpression(
       findNode.binary('a / b'),
-      element: numElement.getMethod('/'),
+      element: elementMatcher(
+        numElement.getMethod('/'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'double',
     );
   }
@@ -166,7 +184,10 @@ f(int a, double b) {
 
     assertBinaryExpression(
       findNode.binary('a * b'),
-      element: numElement.getMethod('*'),
+      element: elementMatcher(
+        numElement.getMethod('*'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'double',
     );
   }
@@ -180,7 +201,10 @@ f(int a, int b) {
 
     assertBinaryExpression(
       findNode.binary('a * b'),
-      element: numElement.getMethod('*'),
+      element: elementMatcher(
+        numElement.getMethod('*'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'int',
     );
   }

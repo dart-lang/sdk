@@ -49,8 +49,9 @@ class DateTime {
       int second, int millisecond, int microsecond, bool isUtc)
       : this.isUtc = isUtc,
         this._value = _brokenDownDateToValue(year, month, day, hour, minute,
-            second, millisecond, microsecond, isUtc) {
-    if (_value == null) throw new ArgumentError();
+                second, millisecond, microsecond, isUtc) ??
+            -1 {
+    if (_value == -1) throw new ArgumentError();
     if (isUtc == null) throw new ArgumentError();
   }
 
@@ -99,7 +100,7 @@ class DateTime {
     const [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]
   ];
 
-  static List _computeUpperPart(int localMicros) {
+  static List<int> _computeUpperPart(int localMicros) {
     const int DAYS_IN_4_YEARS = 4 * 365 + 1;
     const int DAYS_IN_100_YEARS = 25 * DAYS_IN_4_YEARS - 1;
     const int DAYS_IN_400_YEARS = 4 * DAYS_IN_100_YEARS + 1;
@@ -118,18 +119,18 @@ class DateTime {
     int days = daysSince1970;
     days += DAYS_OFFSET;
     resultYear = 400 * (days ~/ DAYS_IN_400_YEARS) - YEARS_OFFSET;
-    days = days.remainder(DAYS_IN_400_YEARS);
+    days = unsafeCast<int>(days.remainder(DAYS_IN_400_YEARS));
     days--;
     int yd1 = days ~/ DAYS_IN_100_YEARS;
-    days = days.remainder(DAYS_IN_100_YEARS);
+    days = unsafeCast<int>(days.remainder(DAYS_IN_100_YEARS));
     resultYear += 100 * yd1;
     days++;
     int yd2 = days ~/ DAYS_IN_4_YEARS;
-    days = days.remainder(DAYS_IN_4_YEARS);
+    days = unsafeCast<int>(days.remainder(DAYS_IN_4_YEARS));
     resultYear += 4 * yd2;
     days--;
     int yd3 = days ~/ 365;
-    days = days.remainder(365);
+    days = unsafeCast<int>(days.remainder(365));
     resultYear += yd3;
 
     bool isLeap = (yd1 == 0 || yd2 != 0) && yd3 == 0;
@@ -166,7 +167,7 @@ class DateTime {
             DateTime.daysPerWeek) +
         DateTime.monday;
 
-    List list = new List(_YEAR_INDEX + 1);
+    List<int> list = new List<int>.filled(_YEAR_INDEX + 1, 0);
     list[_MICROSECOND_INDEX] = resultMicrosecond;
     list[_MILLISECOND_INDEX] = resultMillisecond;
     list[_SECOND_INDEX] = resultSecond;

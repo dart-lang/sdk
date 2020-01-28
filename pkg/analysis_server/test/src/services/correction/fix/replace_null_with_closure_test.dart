@@ -23,49 +23,6 @@ class ReplaceNullWithClosureTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.null_closures;
 
-  test_null_closure_named_expression() async {
-    await resolveTestUnit('''
-main() {
-  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: /*LINT*/null);
-}
-''');
-    await assertHasFix('''
-main() {
-  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: /*LINT*/() => null);
-}
-''');
-  }
-
-  test_null_closure_named_expression_with_args() async {
-    await resolveTestUnit('''
-void f({int closure(x, y)}) { }
-main() {
-  f(closure: /*LINT*/null);
-}
-''');
-    await assertHasFix('''
-void f({int closure(x, y)}) { }
-main() {
-  f(closure: /*LINT*/(x, y) => null);
-}
-''');
-  }
-
-  test_null_closure_named_expression_with_args_2() async {
-    await resolveTestUnit('''
-void f({int closure(x, y, {z})}) { }
-main() {
-  f(closure: /*LINT*/null);
-}
-''');
-    await assertHasFix('''
-void f({int closure(x, y, {z})}) { }
-main() {
-  f(closure: /*LINT*/(x, y, {z}) => null);
-}
-''');
-  }
-
   /// Currently failing since the LINT annotation is tagging the ArgumentList
   /// where the fix (and lint) expect a NullLiteral.
   /// todo (pq): re-write FixProcessorLintTest to run the actual lints.
@@ -80,7 +37,50 @@ main() {
     await assertHasFix('''
 void f(dynamic x) { }
 main() {
-  f(/*LINT*/() => null);
+  f(() => null);
+}
+''');
+  }
+
+  test_null_closure_named_expression() async {
+    await resolveTestUnit('''
+main() {
+  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: /*LINT*/null);
+}
+''');
+    await assertHasFix('''
+main() {
+  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: () => null);
+}
+''');
+  }
+
+  test_null_closure_named_expression_with_args() async {
+    await resolveTestUnit('''
+void f({int closure(x, y)}) { }
+main() {
+  f(closure: /*LINT*/null);
+}
+''');
+    await assertHasFix('''
+void f({int closure(x, y)}) { }
+main() {
+  f(closure: (x, y) => null);
+}
+''');
+  }
+
+  test_null_closure_named_expression_with_args_2() async {
+    await resolveTestUnit('''
+void f({int closure(x, y, {z})}) { }
+main() {
+  f(closure: /*LINT*/null);
+}
+''');
+    await assertHasFix('''
+void f({int closure(x, y, {z})}) { }
+main() {
+  f(closure: (x, y, {z}) => null);
 }
 ''');
   }

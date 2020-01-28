@@ -187,31 +187,11 @@ RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 
 const double MegamorphicCache::kLoadFactor = 0.50;
 
-static void AppendSubString(Zone* zone,
-                            GrowableArray<const char*>* segments,
+static void AppendSubString(ZoneTextBuffer* buffer,
                             const char* name,
                             intptr_t start_pos,
                             intptr_t len) {
-  char* segment = zone->Alloc<char>(len + 1);  // '\0'-terminated.
-  memmove(segment, name + start_pos, len);
-  segment[len] = '\0';
-  segments->Add(segment);
-}
-
-static const char* MergeSubStrings(Zone* zone,
-                                   const GrowableArray<const char*>& segments,
-                                   intptr_t alloc_len) {
-  char* result = zone->Alloc<char>(alloc_len + 1);  // '\0'-terminated
-  intptr_t pos = 0;
-  for (intptr_t k = 0; k < segments.length(); k++) {
-    const char* piece = segments[k];
-    const intptr_t piece_len = strlen(segments[k]);
-    memmove(result + pos, piece, piece_len);
-    pos += piece_len;
-    ASSERT(pos <= alloc_len);
-  }
-  result[pos] = '\0';
-  return result;
+  buffer->Printf("%.*s", static_cast<int>(len), &name[start_pos]);
 }
 
 // Remove private keys, but retain getter/setter/constructor/mixin manglings.
@@ -269,14 +249,16 @@ RawString* String::RemovePrivateKey(const String& name) {
 //   get:ext|sprop -> ext.sprop (static extension getter)
 //   set:ext|sprop -> ext.sprop= (static extension setter)
 //
-RawString* String::ScrubName(const String& name, bool is_extension) {
+const char* String::ScrubName(const String& name, bool is_extension) {
   Thread* thread = Thread::Current();
+  NoSafepointScope no_safepoint(thread);
   Zone* zone = thread->zone();
+  ZoneTextBuffer printer(zone);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (name.Equals(Symbols::TopLevel())) {
     // Name of invisible top-level class.
-    return Symbols::Empty().raw();
+    return "";
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -286,7 +268,6 @@ RawString* String::ScrubName(const String& name, bool is_extension) {
   // First remove all private name mangling and if 'is_extension' is true
   // substitute the first '|' character with '.'.
   intptr_t start_pos = 0;
-  GrowableArray<const char*> unmangled_segments;
   intptr_t sum_segment_len = 0;
   for (intptr_t i = 0; i < name_len; i++) {
     if ((cname[i] == '@') && ((i + 1) < name_len) && (cname[i + 1] >= '0') &&
@@ -294,7 +275,7 @@ RawString* String::ScrubName(const String& name, bool is_extension) {
       // Append the current segment to the unmangled name.
       const intptr_t segment_len = i - start_pos;
       sum_segment_len += segment_len;
-      AppendSubString(zone, &unmangled_segments, cname, start_pos, segment_len);
+      AppendSubString(&printer, cname, start_pos, segment_len);
       // Advance until past the name mangling. The private keys are only
       // numbers so we skip until the first non-number.
       i++;  // Skip the '@'.
@@ -307,9 +288,9 @@ RawString* String::ScrubName(const String& name, bool is_extension) {
     } else if (is_extension && cname[i] == '|') {
       // Append the current segment to the unmangled name.
       const intptr_t segment_len = i - start_pos;
-      AppendSubString(zone, &unmangled_segments, cname, start_pos, segment_len);
+      AppendSubString(&printer, cname, start_pos, segment_len);
       // Append the '.' character (replaces '|' with '.').
-      AppendSubString(zone, &unmangled_segments, ".", 0, 1);
+      AppendSubString(&printer, ".", 0, 1);
       start_pos = i + 1;
       // Account for length of segments added so far.
       sum_segment_len += (segment_len + 1);
@@ -325,14 +306,14 @@ RawString* String::ScrubName(const String& name, bool is_extension) {
     // Append the last segment.
     const intptr_t segment_len = name.Length() - start_pos;
     sum_segment_len += segment_len;
-    AppendSubString(zone, &unmangled_segments, cname, start_pos, segment_len);
+    AppendSubString(&printer, cname, start_pos, segment_len);
   }
   if (unmangled_name == NULL) {
     // Merge unmangled_segments.
-    unmangled_name = MergeSubStrings(zone, unmangled_segments, sum_segment_len);
+    unmangled_name = printer.buffer();
   }
 
-  unmangled_segments.Clear();
+  printer.Clear();
   intptr_t start = 0;
   intptr_t final_len = 0;
   intptr_t len = sum_segment_len;
@@ -343,7 +324,7 @@ RawString* String::ScrubName(const String& name, bool is_extension) {
       if (unmangled_name[i] == '.') {
         intptr_t slen = i + 1;
         intptr_t plen = slen - start;
-        AppendSubString(zone, &unmangled_segments, unmangled_name, start, plen);
+        AppendSubString(&printer, unmangled_name, start, plen);
         final_len = plen;
         unmangled_name += slen;
         len -= slen;
@@ -393,7 +374,7 @@ RawString* String::ScrubName(const String& name, bool is_extension) {
 
   if (!is_extension && (start == 0) && (dot_pos == -1)) {
     // This unmangled_name is fine as it is.
-    return Symbols::New(thread, unmangled_name, sum_segment_len);
+    return unmangled_name;
   }
 
   // Drop the trailing dot if needed.
@@ -401,17 +382,15 @@ RawString* String::ScrubName(const String& name, bool is_extension) {
 
   intptr_t substr_len = end - start;
   final_len += substr_len;
-  AppendSubString(zone, &unmangled_segments, unmangled_name, start, substr_len);
+  AppendSubString(&printer, unmangled_name, start, substr_len);
   if (is_setter) {
     const char* equals = Symbols::Equals().ToCString();
     const intptr_t equals_len = strlen(equals);
-    AppendSubString(zone, &unmangled_segments, equals, 0, equals_len);
+    AppendSubString(&printer, equals, 0, equals_len);
     final_len += equals_len;
   }
 
-  unmangled_name = MergeSubStrings(zone, unmangled_segments, final_len);
-
-  return Symbols::New(thread, unmangled_name);
+  return printer.buffer();
 }
 
 RawString* String::ScrubNameRetainPrivate(const String& name,
@@ -1678,6 +1657,10 @@ RawError* Object::Init(Isolate* isolate,
     type.SetIsFinalized();
     type ^= type.Canonicalize();
     object_store->set_array_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_array_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_array_type(type);
 
     cls = object_store->growable_object_array_class();  // Was allocated above.
     RegisterPrivateClass(cls, Symbols::_GrowableList(), core_lib);
@@ -1766,6 +1749,10 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_object_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_object_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_object_type(type);
 
     cls = Class::New<Bool>(isolate);
     object_store->set_bool_class(cls);
@@ -1989,12 +1976,20 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_function_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_function_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_function_type(type);
 
     cls = Class::New<Number>(isolate);
     RegisterClass(cls, Symbols::Number(), core_lib);
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_number_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_number_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_number_type(type);
 
     cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
                                /*is_abstract=*/true);
@@ -2004,6 +1999,10 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_int_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_int_type(type);
 
     cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
                                /*is_abstract=*/true);
@@ -2013,6 +2012,10 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_double_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_double_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_double_type(type);
 
     name = Symbols::_String().raw();
     cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
@@ -2023,18 +2026,34 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
     object_store->set_string_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_string_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_string_type(type);
 
     cls = object_store->bool_class();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_bool_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_bool_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_bool_type(type);
 
     cls = object_store->smi_class();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_smi_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_smi_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_smi_type(type);
 
     cls = object_store->mint_class();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_mint_type(type);
+    type = type.ToNullability(Nullability::kLegacy, Heap::kOld);
+    object_store->set_legacy_mint_type(type);
+    type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+    object_store->set_non_nullable_mint_type(type);
 
     // The classes 'void' and 'dynamic' are phony classes to make type checking
     // more regular; they live in the VM isolate. The class 'void' is not
@@ -2061,18 +2080,48 @@ RawError* Object::Init(Isolate* isolate,
     type_args.SetTypeAt(0, type);
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_int(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->legacy_int_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_int(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->non_nullable_int_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_int(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->double_type();
     type_args.SetTypeAt(0, type);
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_double(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->legacy_double_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_double(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->non_nullable_double_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_double(type_args);
 
     type_args = TypeArguments::New(1);
     type = object_store->string_type();
     type_args.SetTypeAt(0, type);
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_string(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->legacy_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_string(type_args);
+    type_args = TypeArguments::New(1);
+    type = object_store->non_nullable_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_string(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
@@ -2080,6 +2129,18 @@ RawError* Object::Init(Isolate* isolate,
     type_args.SetTypeAt(1, Object::dynamic_type());
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_string_dynamic(type_args);
+    type_args = TypeArguments::New(2);
+    type = object_store->legacy_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, Object::dynamic_type());
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_string_dynamic(type_args);
+    type_args = TypeArguments::New(2);
+    type = object_store->non_nullable_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, Object::dynamic_type());
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_string_dynamic(type_args);
 
     type_args = TypeArguments::New(2);
     type = object_store->string_type();
@@ -2087,6 +2148,19 @@ RawError* Object::Init(Isolate* isolate,
     type_args.SetTypeAt(1, type);
     type_args = type_args.Canonicalize();
     object_store->set_type_argument_string_string(type_args);
+    type_args = TypeArguments::New(2);
+    type = object_store->legacy_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_legacy_string_legacy_string(type_args);
+    type_args = TypeArguments::New(2);
+    type = object_store->non_nullable_string_type();
+    type_args.SetTypeAt(0, type);
+    type_args.SetTypeAt(1, type);
+    type_args = type_args.Canonicalize();
+    object_store->set_type_argument_non_nullable_string_non_nullable_string(
+        type_args);
 
     lib = Library::LookupLibrary(thread, Symbols::DartFfi());
     if (lib.IsNull()) {
@@ -2517,6 +2591,10 @@ RawString* Class::Name() const {
 }
 
 RawString* Class::ScrubbedName() const {
+  return Symbols::New(Thread::Current(), ScrubbedNameCString());
+}
+
+const char* Class::ScrubbedNameCString() const {
   return String::ScrubName(String::Handle(Name()));
 }
 
@@ -2524,6 +2602,15 @@ RawString* Class::UserVisibleName() const {
 #if !defined(PRODUCT)
   ASSERT(raw_ptr()->user_name_ != String::null());
   return raw_ptr()->user_name_;
+#endif  // !defined(PRODUCT)
+  // No caching in PRODUCT, regenerate.
+  return Symbols::New(Thread::Current(), GenerateUserVisibleName());
+}
+
+const char* Class::UserVisibleNameCString() const {
+#if !defined(PRODUCT)
+  ASSERT(raw_ptr()->user_name_ != String::null());
+  return String::Handle(raw_ptr()->user_name_).ToCString();
 #endif                               // !defined(PRODUCT)
   return GenerateUserVisibleName();  // No caching in PRODUCT, regenerate.
 }
@@ -4129,7 +4216,8 @@ void Class::set_name(const String& value) const {
     // TODO(johnmccutchan): Eagerly set user name for VM isolate classes,
     // lazily set user name for the other classes.
     // Generate and set user_name.
-    const String& user_name = String::Handle(GenerateUserVisibleName());
+    const String& user_name = String::Handle(
+        Symbols::New(Thread::Current(), GenerateUserVisibleName()));
     set_user_name(user_name);
   }
 #endif  // !defined(PRODUCT)
@@ -4141,164 +4229,164 @@ void Class::set_user_name(const String& value) const {
 }
 #endif  // !defined(PRODUCT)
 
-RawString* Class::GenerateUserVisibleName() const {
+const char* Class::GenerateUserVisibleName() const {
   if (FLAG_show_internal_names) {
-    return Name();
+    return String::Handle(Name()).ToCString();
   }
   switch (id()) {
     case kFloat32x4Cid:
-      return Symbols::Float32x4().raw();
+      return Symbols::Float32x4().ToCString();
     case kInt32x4Cid:
-      return Symbols::Int32x4().raw();
+      return Symbols::Int32x4().ToCString();
     case kTypedDataInt8ArrayCid:
     case kExternalTypedDataInt8ArrayCid:
-      return Symbols::Int8List().raw();
+      return Symbols::Int8List().ToCString();
     case kTypedDataUint8ArrayCid:
     case kExternalTypedDataUint8ArrayCid:
-      return Symbols::Uint8List().raw();
+      return Symbols::Uint8List().ToCString();
     case kTypedDataUint8ClampedArrayCid:
     case kExternalTypedDataUint8ClampedArrayCid:
-      return Symbols::Uint8ClampedList().raw();
+      return Symbols::Uint8ClampedList().ToCString();
     case kTypedDataInt16ArrayCid:
     case kExternalTypedDataInt16ArrayCid:
-      return Symbols::Int16List().raw();
+      return Symbols::Int16List().ToCString();
     case kTypedDataUint16ArrayCid:
     case kExternalTypedDataUint16ArrayCid:
-      return Symbols::Uint16List().raw();
+      return Symbols::Uint16List().ToCString();
     case kTypedDataInt32ArrayCid:
     case kExternalTypedDataInt32ArrayCid:
-      return Symbols::Int32List().raw();
+      return Symbols::Int32List().ToCString();
     case kTypedDataUint32ArrayCid:
     case kExternalTypedDataUint32ArrayCid:
-      return Symbols::Uint32List().raw();
+      return Symbols::Uint32List().ToCString();
     case kTypedDataInt64ArrayCid:
     case kExternalTypedDataInt64ArrayCid:
-      return Symbols::Int64List().raw();
+      return Symbols::Int64List().ToCString();
     case kTypedDataUint64ArrayCid:
     case kExternalTypedDataUint64ArrayCid:
-      return Symbols::Uint64List().raw();
+      return Symbols::Uint64List().ToCString();
     case kTypedDataInt32x4ArrayCid:
     case kExternalTypedDataInt32x4ArrayCid:
-      return Symbols::Int32x4List().raw();
+      return Symbols::Int32x4List().ToCString();
     case kTypedDataFloat32x4ArrayCid:
     case kExternalTypedDataFloat32x4ArrayCid:
-      return Symbols::Float32x4List().raw();
+      return Symbols::Float32x4List().ToCString();
     case kTypedDataFloat64x2ArrayCid:
     case kExternalTypedDataFloat64x2ArrayCid:
-      return Symbols::Float64x2List().raw();
+      return Symbols::Float64x2List().ToCString();
     case kTypedDataFloat32ArrayCid:
     case kExternalTypedDataFloat32ArrayCid:
-      return Symbols::Float32List().raw();
+      return Symbols::Float32List().ToCString();
     case kTypedDataFloat64ArrayCid:
     case kExternalTypedDataFloat64ArrayCid:
-      return Symbols::Float64List().raw();
+      return Symbols::Float64List().ToCString();
 
     case kFfiPointerCid:
-      return Symbols::FfiPointer().raw();
+      return Symbols::FfiPointer().ToCString();
     case kFfiDynamicLibraryCid:
-      return Symbols::FfiDynamicLibrary().raw();
+      return Symbols::FfiDynamicLibrary().ToCString();
 
 #if !defined(PRODUCT)
     case kNullCid:
-      return Symbols::Null().raw();
+      return Symbols::Null().ToCString();
     case kDynamicCid:
-      return Symbols::Dynamic().raw();
+      return Symbols::Dynamic().ToCString();
     case kVoidCid:
-      return Symbols::Void().raw();
+      return Symbols::Void().ToCString();
     case kNeverCid:
-      return Symbols::Never().raw();
+      return Symbols::Never().ToCString();
     case kClassCid:
-      return Symbols::Class().raw();
+      return Symbols::Class().ToCString();
     case kTypeArgumentsCid:
-      return Symbols::TypeArguments().raw();
+      return Symbols::TypeArguments().ToCString();
     case kPatchClassCid:
-      return Symbols::PatchClass().raw();
+      return Symbols::PatchClass().ToCString();
     case kFunctionCid:
-      return Symbols::Function().raw();
+      return Symbols::Function().ToCString();
     case kClosureDataCid:
-      return Symbols::ClosureData().raw();
+      return Symbols::ClosureData().ToCString();
     case kSignatureDataCid:
-      return Symbols::SignatureData().raw();
+      return Symbols::SignatureData().ToCString();
     case kRedirectionDataCid:
-      return Symbols::RedirectionData().raw();
+      return Symbols::RedirectionData().ToCString();
     case kFfiTrampolineDataCid:
-      return Symbols::FfiTrampolineData().raw();
+      return Symbols::FfiTrampolineData().ToCString();
     case kFieldCid:
-      return Symbols::Field().raw();
+      return Symbols::Field().ToCString();
     case kScriptCid:
-      return Symbols::Script().raw();
+      return Symbols::Script().ToCString();
     case kLibraryCid:
-      return Symbols::Library().raw();
+      return Symbols::Library().ToCString();
     case kLibraryPrefixCid:
-      return Symbols::LibraryPrefix().raw();
+      return Symbols::LibraryPrefix().ToCString();
     case kNamespaceCid:
-      return Symbols::Namespace().raw();
+      return Symbols::Namespace().ToCString();
     case kKernelProgramInfoCid:
-      return Symbols::KernelProgramInfo().raw();
+      return Symbols::KernelProgramInfo().ToCString();
     case kCodeCid:
-      return Symbols::Code().raw();
+      return Symbols::Code().ToCString();
     case kBytecodeCid:
-      return Symbols::Bytecode().raw();
+      return Symbols::Bytecode().ToCString();
     case kInstructionsCid:
-      return Symbols::Instructions().raw();
+      return Symbols::Instructions().ToCString();
     case kObjectPoolCid:
-      return Symbols::ObjectPool().raw();
+      return Symbols::ObjectPool().ToCString();
     case kCodeSourceMapCid:
-      return Symbols::CodeSourceMap().raw();
+      return Symbols::CodeSourceMap().ToCString();
     case kPcDescriptorsCid:
-      return Symbols::PcDescriptors().raw();
+      return Symbols::PcDescriptors().ToCString();
     case kCompressedStackMapsCid:
-      return Symbols::CompressedStackMaps().raw();
+      return Symbols::CompressedStackMaps().ToCString();
     case kLocalVarDescriptorsCid:
-      return Symbols::LocalVarDescriptors().raw();
+      return Symbols::LocalVarDescriptors().ToCString();
     case kExceptionHandlersCid:
-      return Symbols::ExceptionHandlers().raw();
+      return Symbols::ExceptionHandlers().ToCString();
     case kContextCid:
-      return Symbols::Context().raw();
+      return Symbols::Context().ToCString();
     case kContextScopeCid:
-      return Symbols::ContextScope().raw();
+      return Symbols::ContextScope().ToCString();
     case kParameterTypeCheckCid:
-      return Symbols::ParameterTypeCheck().raw();
+      return Symbols::ParameterTypeCheck().ToCString();
     case kSingleTargetCacheCid:
-      return Symbols::SingleTargetCache().raw();
+      return Symbols::SingleTargetCache().ToCString();
     case kICDataCid:
-      return Symbols::ICData().raw();
+      return Symbols::ICData().ToCString();
     case kMegamorphicCacheCid:
-      return Symbols::MegamorphicCache().raw();
+      return Symbols::MegamorphicCache().ToCString();
     case kSubtypeTestCacheCid:
-      return Symbols::SubtypeTestCache().raw();
+      return Symbols::SubtypeTestCache().ToCString();
     case kApiErrorCid:
-      return Symbols::ApiError().raw();
+      return Symbols::ApiError().ToCString();
     case kLanguageErrorCid:
-      return Symbols::LanguageError().raw();
+      return Symbols::LanguageError().ToCString();
     case kUnhandledExceptionCid:
-      return Symbols::UnhandledException().raw();
+      return Symbols::UnhandledException().ToCString();
     case kUnwindErrorCid:
-      return Symbols::UnwindError().raw();
+      return Symbols::UnwindError().ToCString();
     case kIntegerCid:
     case kSmiCid:
     case kMintCid:
-      return Symbols::Int().raw();
+      return Symbols::Int().ToCString();
     case kDoubleCid:
-      return Symbols::Double().raw();
+      return Symbols::Double().ToCString();
     case kOneByteStringCid:
     case kTwoByteStringCid:
     case kExternalOneByteStringCid:
     case kExternalTwoByteStringCid:
-      return Symbols::_String().raw();
+      return Symbols::_String().ToCString();
     case kArrayCid:
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
-      return Symbols::List().raw();
+      return Symbols::List().ToCString();
 #endif  // !defined(PRODUCT)
   }
   String& name = String::Handle(Name());
-  name = String::ScrubName(name);
+  name = Symbols::New(Thread::Current(), String::ScrubName(name));
   if (name.raw() == Symbols::FutureImpl().raw() &&
       library() == Library::AsyncLibrary()) {
-    return Symbols::Future().raw();
+    return Symbols::Future().ToCString();
   }
-  return name.raw();
+  return name.ToCString();
 }
 
 void Class::set_script(const Script& value) const {
@@ -4984,6 +5072,7 @@ RawField* Class::LookupStaticFieldAllowPrivate(const String& name) const {
 }
 
 const char* Class::ToCString() const {
+  NoSafepointScope no_safepoint;
   const Library& lib = Library::Handle(library());
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
   const char* patch_prefix = is_patch() ? "Patch " : "";
@@ -5286,32 +5375,38 @@ RawTypeArguments* TypeArguments::ConcatenateTypeParameters(
   return result.raw();
 }
 
-RawString* TypeArguments::SubvectorName(intptr_t from_index,
-                                        intptr_t len,
-                                        NameVisibility name_visibility) const {
+RawString* TypeArguments::Name() const {
   Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-  String& name = String::Handle(zone);
-  const intptr_t num_strings =
-      (len == 0) ? 2 : 2 * len + 1;  // "<""T"", ""T"">".
-  GrowableHandlePtrArray<const String> pieces(zone, num_strings);
-  pieces.Add(Symbols::LAngleBracket());
-  AbstractType& type = AbstractType::Handle(zone);
+  ZoneTextBuffer printer(thread->zone());
+  PrintSubvectorName(0, Length(), kInternalName, &printer);
+  return Symbols::New(thread, printer.buffer());
+}
+
+RawString* TypeArguments::UserVisibleName() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintSubvectorName(0, Length(), kUserVisibleName, &printer);
+  return Symbols::New(thread, printer.buffer());
+}
+
+void TypeArguments::PrintSubvectorName(intptr_t from_index,
+                                       intptr_t len,
+                                       NameVisibility name_visibility,
+                                       ZoneTextBuffer* printer) const {
+  printer->AddString("<");
+  AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     if (from_index + i < Length()) {
       type = TypeAt(from_index + i);
-      name = type.BuildName(name_visibility);
+      type.PrintName(name_visibility, printer);
     } else {
-      name = Symbols::Dynamic().raw();
+      printer->AddString("dynamic");
     }
-    pieces.Add(name);
     if (i < len - 1) {
-      pieces.Add(Symbols::CommaSpace());
+      printer->AddString(", ");
     }
   }
-  pieces.Add(Symbols::RAngleBracket());
-  ASSERT(pieces.length() == num_strings);
-  return Symbols::FromConcatAll(thread, pieces);
+  printer->AddString(">");
 }
 
 bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
@@ -7439,7 +7534,10 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
       ASSERT(bound.IsFinalized());
       other_bound = other_type_param.bound();
       ASSERT(other_bound.IsFinalized());
-      if (!bound.Equals(other_bound)) {
+      // TODO(dartbug.com/40259): Treat top types as equivalent and disregard
+      // nullability in weak mode.
+      const bool syntactically = !FLAG_strong_non_nullable_type_checks;
+      if (!bound.IsEquivalent(other_bound, syntactically)) {
         return false;
       }
     }
@@ -7827,11 +7925,24 @@ void Function::DropUncompiledImplicitClosureFunction() const {
   }
 }
 
-void Function::BuildSignatureParameters(
-    Thread* thread,
-    Zone* zone,
-    NameVisibility name_visibility,
-    GrowableHandlePtrArray<const String>* pieces) const {
+RawString* Function::Signature() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintSignature(kInternalName, &printer);
+  return Symbols::New(thread, printer.buffer());
+}
+
+RawString* Function::UserVisibleSignature() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintSignature(kUserVisibleName, &printer);
+  return Symbols::New(thread, printer.buffer());
+}
+
+void Function::PrintSignatureParameters(Thread* thread,
+                                        Zone* zone,
+                                        NameVisibility name_visibility,
+                                        ZoneTextBuffer* printer) const {
   AbstractType& param_type = AbstractType::Handle(zone);
   const intptr_t num_params = NumParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
@@ -7848,39 +7959,37 @@ void Function::BuildSignatureParameters(
   while (i < num_fixed_params) {
     param_type = ParameterTypeAt(i);
     ASSERT(!param_type.IsNull());
-    name = param_type.BuildName(name_visibility);
-    pieces->Add(name);
+    param_type.PrintName(name_visibility, printer);
     if (i != (num_params - 1)) {
-      pieces->Add(Symbols::CommaSpace());
+      printer->AddString(", ");
     }
     i++;
   }
   if (num_opt_params > 0) {
     if (num_opt_pos_params > 0) {
-      pieces->Add(Symbols::LBracket());
+      printer->AddString("[");
     } else {
-      pieces->Add(Symbols::LBrace());
+      printer->AddString("{");
     }
     for (intptr_t i = num_fixed_params; i < num_params; i++) {
       param_type = ParameterTypeAt(i);
       ASSERT(!param_type.IsNull());
-      name = param_type.BuildName(name_visibility);
-      pieces->Add(name);
+      param_type.PrintName(name_visibility, printer);
       // The parameter name of an optional positional parameter does not need
       // to be part of the signature, since it is not used.
       if (num_opt_named_params > 0) {
         name = ParameterNameAt(i);
-        pieces->Add(Symbols::Blank());
-        pieces->Add(name);
+        printer->AddString(" ");
+        printer->AddString(name);
       }
       if (i != (num_params - 1)) {
-        pieces->Add(Symbols::CommaSpace());
+        printer->AddString(", ");
       }
     }
     if (num_opt_pos_params > 0) {
-      pieces->Add(Symbols::RBracket());
+      printer->AddString("]");
     } else {
-      pieces->Add(Symbols::RBrace());
+      printer->AddString("}");
     }
   }
 }
@@ -7922,10 +8031,10 @@ intptr_t Function::ComputeClosureHash() const {
   return result;
 }
 
-RawString* Function::BuildSignature(NameVisibility name_visibility) const {
+void Function::PrintSignature(NameVisibility name_visibility,
+                              ZoneTextBuffer* printer) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  GrowableHandlePtrArray<const String> pieces(zone, 4);
   String& name = String::Handle(zone);
   const TypeArguments& type_params =
       TypeArguments::Handle(zone, type_parameters());
@@ -7934,30 +8043,27 @@ RawString* Function::BuildSignature(NameVisibility name_visibility) const {
     ASSERT(num_type_params > 0);
     TypeParameter& type_param = TypeParameter::Handle(zone);
     AbstractType& bound = AbstractType::Handle(zone);
-    pieces.Add(Symbols::LAngleBracket());
+    printer->AddString("<");
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       name = type_param.name();
-      pieces.Add(name);
+      printer->AddString(name.ToCString());
       bound = type_param.bound();
       if (!bound.IsNull() && !bound.IsObjectType()) {
-        pieces.Add(Symbols::SpaceExtendsSpace());
-        name = bound.BuildName(name_visibility);
-        pieces.Add(name);
+        printer->AddString(" extends ");
+        bound.PrintName(name_visibility, printer);
       }
       if (i < num_type_params - 1) {
-        pieces.Add(Symbols::CommaSpace());
+        printer->AddString(", ");
       }
     }
-    pieces.Add(Symbols::RAngleBracket());
+    printer->AddString(">");
   }
-  pieces.Add(Symbols::LParen());
-  BuildSignatureParameters(thread, zone, name_visibility, &pieces);
-  pieces.Add(Symbols::RParenArrow());
+  printer->AddString("(");
+  PrintSignatureParameters(thread, zone, name_visibility, printer);
+  printer->AddString(") => ");
   const AbstractType& res_type = AbstractType::Handle(zone, result_type());
-  name = res_type.BuildName(name_visibility);
-  pieces.Add(name);
-  return Symbols::FromConcatAll(thread, pieces);
+  res_type.PrintName(name_visibility, printer);
 }
 
 bool Function::HasInstantiatedSignature(Genericity genericity,
@@ -8157,14 +8263,38 @@ bool Function::ShouldCompilerOptimize() const {
          ForceOptimize();
 }
 
-RawString* Function::UserVisibleName() const {
+const char* Function::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
-    return name();
+    return String::Handle(name()).ToCString();
   }
   return String::ScrubName(String::Handle(name()), is_extension_member());
 }
 
-RawString* Function::QualifiedName(NameVisibility name_visibility) const {
+RawString* Function::UserVisibleName() const {
+  if (FLAG_show_internal_names) {
+    return name();
+  }
+  return Symbols::New(
+      Thread::Current(),
+      String::ScrubName(String::Handle(name()), is_extension_member()));
+}
+
+RawString* Function::QualifiedScrubbedName() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintQualifiedName(kScrubbedName, &printer);
+  return Symbols::New(thread, printer.buffer());
+}
+
+RawString* Function::QualifiedUserVisibleName() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintQualifiedName(kUserVisibleName, &printer);
+  return Symbols::New(thread, printer.buffer());
+}
+
+void Function::PrintQualifiedName(NameVisibility name_visibility,
+                                  ZoneTextBuffer* printer) const {
   ASSERT(name_visibility != kInternalName);  // We never request it.
   // If |this| is the generated asynchronous body closure, use the
   // name of the parent function.
@@ -8180,37 +8310,36 @@ RawString* Function::QualifiedName(NameVisibility name_visibility) const {
       fun = raw();
     }
   }
-  // A function's scrubbed name and its user visible name are identical.
-  String& result = String::Handle(fun.UserVisibleName());
   if (IsClosureFunction()) {
-    while (fun.IsLocalFunction() && !fun.IsImplicitClosureFunction()) {
-      fun = fun.parent_function();
-      if (fun.IsAsyncClosure() || fun.IsSyncGenClosure() ||
-          fun.IsAsyncGenClosure()) {
+    if (fun.IsLocalFunction() && !fun.IsImplicitClosureFunction()) {
+      Function& parent = Function::Handle(fun.parent_function());
+      if (parent.IsAsyncClosure() || parent.IsSyncGenClosure() ||
+          parent.IsAsyncGenClosure()) {
         // Skip the closure and use the real function name found in
         // the parent.
-        fun = fun.parent_function();
+        parent = parent.parent_function();
       }
-      result = String::Concat(Symbols::Dot(), result, Heap::kOld);
-      result = String::Concat(String::Handle(fun.UserVisibleName()), result,
-                              Heap::kOld);
+      parent.PrintQualifiedName(name_visibility, printer);
+      // A function's scrubbed name and its user visible name are identical.
+      printer->AddString(".");
+      printer->AddString(fun.UserVisibleNameCString());
+      return;
     }
   }
   const Class& cls = Class::Handle(Owner());
   if (!cls.IsTopLevel()) {
     if (fun.kind() == RawFunction::kConstructor) {
-      result = String::Concat(Symbols::ConstructorStacktracePrefix(), result,
-                              Heap::kOld);
+      printer->AddString("new ");
     } else {
       const Class& mixin = Class::Handle(cls.Mixin());
-      result = String::Concat(Symbols::Dot(), result, Heap::kOld);
-      const String& cls_name = String::Handle(name_visibility == kScrubbedName
-                                                  ? cls.ScrubbedName()
-                                                  : mixin.UserVisibleName());
-      result = String::Concat(cls_name, result, Heap::kOld);
+      printer->AddString(name_visibility == kScrubbedName
+                             ? cls.ScrubbedNameCString()
+                             : mixin.UserVisibleNameCString());
+      printer->AddString(".");
     }
   }
-  return result.raw();
+  // A function's scrubbed name and its user visible name are identical.
+  printer->AddString(fun.UserVisibleNameCString());
 }
 
 RawString* Function::GetSource() const {
@@ -8445,6 +8574,7 @@ bool Function::MayHaveUncheckedEntryPoint(Isolate* I) const {
 }
 
 const char* Function::ToCString() const {
+  NoSafepointScope no_safepoint;
   if (IsNull()) {
     return "Function: null";
   }
@@ -8971,11 +9101,21 @@ RawString* Field::InitializingExpression() const {
   return String::null();
 }
 
+const char* Field::UserVisibleNameCString() const {
+  NoSafepointScope no_safepoint;
+  if (FLAG_show_internal_names) {
+    return String::Handle(name()).ToCString();
+  }
+  return String::ScrubName(String::Handle(name()), is_extension_member());
+}
+
 RawString* Field::UserVisibleName() const {
   if (FLAG_show_internal_names) {
     return name();
   }
-  return String::ScrubName(String::Handle(name()), is_extension_member());
+  return Symbols::New(
+      Thread::Current(),
+      String::ScrubName(String::Handle(name()), is_extension_member()));
 }
 
 intptr_t Field::guarded_list_length() const {
@@ -9037,6 +9177,7 @@ bool Field::NeedsGetter() const {
 }
 
 const char* Field::ToCString() const {
+  NoSafepointScope no_safepoint;
   if (IsNull()) {
     return "Field: null";
   }
@@ -12050,6 +12191,7 @@ RawLibrary* Library::WasmLibrary() {
 }
 
 const char* Library::ToCString() const {
+  NoSafepointScope no_safepoint;
   const String& name = String::Handle(url());
   return OS::SCreate(Thread::Current()->zone(), "Library:'%s'",
                      name.ToCString());
@@ -12344,7 +12486,7 @@ RawKernelProgramInfo* KernelProgramInfo::New(
 }
 
 const char* KernelProgramInfo::ToCString() const {
-  return OS::SCreate(Thread::Current()->zone(), "[KernelProgramInfo]");
+  return "[KernelProgramInfo]";
 }
 
 RawScript* KernelProgramInfo::ScriptAt(intptr_t index) const {
@@ -15343,11 +15485,10 @@ const char* Code::QualifiedName() const {
   Zone* zone = Thread::Current()->zone();
   const Object& obj = Object::Handle(zone, owner());
   if (obj.IsFunction()) {
-    const char* opt = is_optimized() ? "[Optimized]" : "[Unoptimized]";
-    const char* function_name =
-        String::Handle(zone, Function::Cast(obj).QualifiedUserVisibleName())
-            .ToCString();
-    return zone->PrintToString("%s %s", opt, function_name);
+    ZoneTextBuffer printer(zone);
+    printer.AddString(is_optimized() ? "[Optimized] " : "[Unoptimized] ");
+    Function::Cast(obj).PrintQualifiedName(kUserVisibleName, &printer);
+    return printer.buffer();
   }
   return Name();
 }
@@ -17662,33 +17803,47 @@ RawString* AbstractType::PrintURIs(URIs* uris) {
   return Symbols::FromConcatAll(thread, pieces);
 }
 
-static const String& NullabilitySuffix(Nullability value) {
+static const char* NullabilitySuffix(Nullability value) {
   // Keep in sync with Nullability enum in runtime/vm/object.h.
   switch (value) {
     case Nullability::kUndetermined:
-      return Symbols::Percent();
+      return "%";
     case Nullability::kNullable:
-      return Symbols::QuestionMark();
+      return "?";
     case Nullability::kNonNullable:
-      return Symbols::Empty();
+      return "";
     case Nullability::kLegacy:
-      return Symbols::Star();
+      return "*";
     default:
       UNREACHABLE();
   }
 }
 
-RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
+RawString* AbstractType::Name() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintName(kInternalName, &printer);
+  return Symbols::New(thread, printer.buffer());
+}
+
+RawString* AbstractType::UserVisibleName() const {
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  PrintName(kUserVisibleName, &printer);
+  return Symbols::New(thread, printer.buffer());
+}
+
+void AbstractType::PrintName(NameVisibility name_visibility,
+                             ZoneTextBuffer* printer) const {
   ASSERT(name_visibility != kScrubbedName);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   if (IsTypeParameter()) {
+    printer->AddString(String::Handle(zone, TypeParameter::Cast(*this).name()));
     if (FLAG_show_nullability) {
-      return Symbols::FromConcat(
-          thread, String::Handle(zone, TypeParameter::Cast(*this).name()),
-          NullabilitySuffix(nullability()));
+      printer->AddString(NullabilitySuffix(nullability()));
     }
-    return TypeParameter::Cast(*this).name();
+    return;
   }
   const TypeArguments& args = TypeArguments::Handle(zone, arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
@@ -17700,25 +17855,22 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     const Function& signature_function =
         Function::Handle(zone, Type::Cast(*this).signature());
     if (!cls.IsTypedefClass()) {
+      signature_function.PrintSignature(kUserVisibleName, printer);
       if (FLAG_show_nullability) {
-        return Symbols::FromConcat(
-            thread,
-            String::Handle(zone, signature_function.UserVisibleSignature()),
-            NullabilitySuffix(nullability()));
+        printer->AddString(NullabilitySuffix(nullability()));
       }
-      return signature_function.UserVisibleSignature();
+      return;
     }
     // Instead of printing the actual signature, use the typedef name with
     // its type arguments, if any.
     class_name = cls.Name();  // Typedef name.
     if (!IsFinalized() || IsBeingFinalized()) {
       // TODO(regis): Check if this is dead code.
+      printer->AddString(class_name);
       if (FLAG_show_nullability) {
-        return Symbols::FromConcat(thread,
-                                   String::Handle(zone, class_name.raw()),
-                                   NullabilitySuffix(nullability()));
+        printer->AddString(NullabilitySuffix(nullability()));
       }
-      return class_name.raw();
+      return;
     }
     // Print the name of a typedef as a regular, possibly parameterized, class.
   }
@@ -17726,10 +17878,11 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   num_type_params = cls.NumTypeParameters();
   if (name_visibility == kInternalName) {
     class_name = cls.Name();
+    printer->AddString(class_name);
   } else {
     ASSERT(name_visibility == kUserVisibleName);
     // Map internal types to their corresponding public interfaces.
-    class_name = cls.UserVisibleName();
+    printer->AddString(cls.UserVisibleNameCString());
   }
   if (num_type_params > num_args) {
     first_type_param_index = 0;
@@ -17748,23 +17901,18 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
       first_type_param_index = num_args - num_type_params;
     }
   }
-  GrowableHandlePtrArray<const String> pieces(zone, 4);
-  pieces.Add(class_name);
   if (num_type_params == 0) {
     // Do nothing.
   } else {
-    const String& args_name = String::Handle(
-        zone, args.SubvectorName(first_type_param_index, num_type_params,
-                                 name_visibility));
-    pieces.Add(args_name);
+    args.PrintSubvectorName(first_type_param_index, num_type_params,
+                            name_visibility, printer);
   }
   if (FLAG_show_nullability) {
-    pieces.Add(NullabilitySuffix(nullability()));
+    printer->AddString(NullabilitySuffix(nullability()));
   }
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
-  return Symbols::FromConcatAll(thread, pieces);
 }
 
 RawString* AbstractType::ClassName() const {
@@ -18841,13 +18989,14 @@ const char* Type::ToCString() const {
   class_name = name.IsNull() ? "<null>" : name.ToCString();
   if (IsFunctionType()) {
     const Function& sig_fun = Function::Handle(zone, signature());
-    const String& sig = String::Handle(zone, sig_fun.Signature());
+    ZoneTextBuffer sig(zone);
+    sig_fun.PrintSignature(kInternalName, &sig);
     if (cls.IsClosureClass()) {
       ASSERT(type_args.IsNull());
-      return OS::SCreate(zone, "Function Type: %s", sig.ToCString());
+      return OS::SCreate(zone, "Function Type: %s", sig.buffer());
     }
     return OS::SCreate(zone, "Function Type: %s (class: %s, args: %s)",
-                       sig.ToCString(), class_name, args_cstr);
+                       sig.buffer(), class_name, args_cstr);
   }
   if (type_args.IsNull()) {
     return OS::SCreate(zone, "Type: class '%s'", class_name);
@@ -19002,13 +19151,14 @@ const char* TypeRef::ToCString() const {
   if (ref_type.IsNull()) {
     return "TypeRef: null";
   }
-  const char* type_cstr = String::Handle(zone, ref_type.Name()).ToCString();
+  ZoneTextBuffer printer(zone);
+  printer.AddString("TypeRef: ");
+  ref_type.PrintName(kInternalName, &printer);
   if (ref_type.IsFinalized()) {
     const intptr_t hash = ref_type.Hash();
-    return OS::SCreate(zone, "TypeRef: %s (H%" Px ")", type_cstr, hash);
-  } else {
-    return OS::SCreate(zone, "TypeRef: %s", type_cstr);
+    printer.Printf(" (H%" Px ")", hash);
   }
+  return printer.buffer();
 }
 
 void TypeParameter::SetIsFinalized() const {
@@ -19264,37 +19414,28 @@ void TypeParameter::set_flags(uint8_t flags) const {
 }
 
 const char* TypeParameter::ToCString() const {
-  const char* name_cstr = String::Handle(Name()).ToCString();
-  const AbstractType& upper_bound = AbstractType::Handle(bound());
-  const char* bound_cstr = upper_bound.IsNull()
-                               ? "<null>"
-                               : String::Handle(upper_bound.Name()).ToCString();
+  Thread* thread = Thread::Current();
+  ZoneTextBuffer printer(thread->zone());
+  printer.Printf("TypeParameter: name ");
+  printer.AddString(String::Handle(Name()));
+  printer.Printf("; index: %" Pd ";", index());
   if (IsFunctionTypeParameter()) {
-    const char* format =
-        "TypeParameter: name %s; index: %d; function: %s; bound: %s";
     const Function& function = Function::Handle(parameterized_function());
-    const char* fun_cstr = String::Handle(function.name()).ToCString();
-    intptr_t len = Utils::SNPrint(NULL, 0, format, name_cstr, index(), fun_cstr,
-                                  bound_cstr) +
-                   1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    Utils::SNPrint(chars, len, format, name_cstr, index(), fun_cstr,
-                   bound_cstr);
-    return chars;
+    printer.Printf(" function: ");
+    printer.AddString(String::Handle(function.name()));
   } else {
-    const char* format =
-        "TypeParameter: name %s; index: %d; class: %s; bound: %s";
     const Class& cls = Class::Handle(parameterized_class());
-    const char* cls_cstr =
-        cls.IsNull() ? " null" : String::Handle(cls.Name()).ToCString();
-    intptr_t len = Utils::SNPrint(NULL, 0, format, name_cstr, index(), cls_cstr,
-                                  bound_cstr) +
-                   1;
-    char* chars = Thread::Current()->zone()->Alloc<char>(len);
-    Utils::SNPrint(chars, len, format, name_cstr, index(), cls_cstr,
-                   bound_cstr);
-    return chars;
+    printer.Printf(" class: ");
+    printer.AddString(String::Handle(cls.Name()));
   }
+  printer.Printf("; bound: ");
+  const AbstractType& upper_bound = AbstractType::Handle(bound());
+  if (upper_bound.IsNull()) {
+    printer.AddString("<null>");
+  } else {
+    upper_bound.PrintName(kInternalName, &printer);
+  }
+  return printer.buffer();
 }
 
 RawInstance* Number::CheckAndCanonicalize(Thread* thread,

@@ -30,7 +30,7 @@ bad(void foo(/*LINT*/dynamic x)) {
 }
 ''');
     await assertHasFix('''
-bad(void foo(/*LINT*/x)) {
+bad(void foo(x)) {
   return null;
 }
 ''');
@@ -43,7 +43,7 @@ bad({/*LINT*/dynamic defaultValue}) {
 }
 ''');
     await assertHasFix('''
-bad({/*LINT*/defaultValue}) {
+bad({defaultValue}) {
   return null;
 }
 ''');
@@ -56,7 +56,7 @@ bad(/*LINT*/dynamic defaultValue) {
 }
 ''');
     await assertHasFix('''
-bad(/*LINT*/defaultValue) {
+bad(defaultValue) {
   return null;
 }
 ''');
@@ -69,7 +69,7 @@ bad([/*LINT*/dynamic defaultValue]) {
 }
 ''');
     await assertHasFix('''
-bad([/*LINT*/defaultValue]) {
+bad([defaultValue]) {
   return null;
 }
 ''');
@@ -86,7 +86,7 @@ class AvoidReturnTypesOnSettersTest extends RemoveTypeAnnotationTest {
 /*LINT*/void set speed2(int ms) {}
 ''');
     await assertHasFix('''
-/*LINT*/set speed2(int ms) {}
+set speed2(int ms) {}
 ''');
   }
 }
@@ -103,7 +103,7 @@ var x = ({/*LINT*/Future<int> defaultValue}) {
 };
 ''');
     await assertHasFix('''
-var x = ({/*LINT*/defaultValue}) {
+var x = ({defaultValue}) {
   return null;
 };
 ''');
@@ -116,7 +116,7 @@ var x = (/*LINT*/Future<int> defaultValue) {
 };
 ''');
     await assertHasFix('''
-var x = (/*LINT*/defaultValue) {
+var x = (defaultValue) {
   return null;
 };
 ''');
@@ -129,11 +129,17 @@ var x = ([/*LINT*/Future<int> defaultValue]) {
 };
 ''');
     await assertHasFix('''
-var x = ([/*LINT*/defaultValue]) {
+var x = ([defaultValue]) {
   return null;
 };
 ''');
   }
+}
+
+@reflectiveTest
+abstract class RemoveTypeAnnotationTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
 }
 
 @reflectiveTest
@@ -151,14 +157,8 @@ class C {
     await assertHasFix('''
 class C {
   int f;
-  C(/*LINT*/this.f);
+  C(this.f);
 }
 ''');
   }
-}
-
-@reflectiveTest
-abstract class RemoveTypeAnnotationTest extends FixProcessorLintTest {
-  @override
-  FixKind get kind => DartFixKind.REMOVE_TYPE_ANNOTATION;
 }

@@ -21,7 +21,7 @@ namespace dart {
 // Native implementations for the dart:developer library.
 DEFINE_NATIVE_ENTRY(Developer_debugger, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, when, arguments->NativeArgAt(0));
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   GET_NATIVE_ARGUMENT(String, msg, arguments->NativeArgAt(1));
   Debugger* debugger = isolate->debugger();
   if (debugger == nullptr) {
@@ -140,6 +140,7 @@ DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 0, 1) {
   SendNull(port);
   return Object::null();
 #else
+  ServiceIsolate::WaitForServiceIsolateStartup();
   if (!ServiceIsolate::IsRunning()) {
     SendNull(port);
   } else {
@@ -156,6 +157,7 @@ DEFINE_NATIVE_ENTRY(Developer_webServerControl, 0, 2) {
   return Object::null();
 #else
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, enabled, arguments->NativeArgAt(1));
+  ServiceIsolate::WaitForServiceIsolateStartup();
   if (!ServiceIsolate::IsRunning()) {
     SendNull(port);
   } else {

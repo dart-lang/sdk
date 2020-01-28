@@ -31,31 +31,30 @@ import /*LINT*/'package:test/foo.dart';
 ''');
 
     await assertHasFix('''
-import /*LINT*/'../foo.dart';
+import '../foo.dart';
 ''');
   }
 
-  test_relativeImportSameDirectory() async {
+  test_relativeImportDifferentPackages() async {
+    // Validate we don't get a fix with imports referencing different packages.
+    addSource('/home/test1/lib/foo.dart', '');
+    testFile = convertPath('/home/test2/lib/bar.dart');
+    await resolveTestUnit('''
+import /*LINT*/'package:test1/foo.dart';
+''');
+
+    await assertNoFix();
+  }
+
+  test_relativeImportGarbledUri() async {
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestUnit('''
-import /*LINT*/'package:test/foo.dart';
+import /*LINT*/'package:test/foo';
 ''');
 
     await assertHasFix('''
-import /*LINT*/'foo.dart';
-''');
-  }
-
-  test_relativeImportSubDirectory() async {
-    addSource('/home/test/lib/baz/foo.dart', '');
-    testFile = convertPath('/home/test/lib/test.dart');
-    await resolveTestUnit('''
-import /*LINT*/'package:test/baz/foo.dart';
-''');
-
-    await assertHasFix('''
-import /*LINT*/'baz/foo.dart';
+import 'foo';
 ''');
   }
 
@@ -67,30 +66,31 @@ import /*LINT*/"package:test/foo.dart";
 ''');
 
     await assertHasFix('''
-import /*LINT*/"foo.dart";
+import "foo.dart";
 ''');
   }
 
-  test_relativeImportGarbledUri() async {
+  test_relativeImportSameDirectory() async {
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestUnit('''
-import /*LINT*/'package:test/foo';
+import /*LINT*/'package:test/foo.dart';
 ''');
 
     await assertHasFix('''
-import /*LINT*/'foo';
+import 'foo.dart';
 ''');
   }
 
-  // Validate we don't get a fix with imports referencing different packages.
-  test_relativeImportDifferentPackages() async {
-    addSource('/home/test1/lib/foo.dart', '');
-    testFile = convertPath('/home/test2/lib/bar.dart');
+  test_relativeImportSubDirectory() async {
+    addSource('/home/test/lib/baz/foo.dart', '');
+    testFile = convertPath('/home/test/lib/test.dart');
     await resolveTestUnit('''
-import /*LINT*/'package:test1/foo.dart';
+import /*LINT*/'package:test/baz/foo.dart';
 ''');
 
-    await assertNoFix();
+    await assertHasFix('''
+import 'baz/foo.dart';
+''');
   }
 }

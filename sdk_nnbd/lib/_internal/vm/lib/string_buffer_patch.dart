@@ -127,7 +127,7 @@ class StringBuffer {
     final localParts = _parts;
     return (_partsCodeUnits == 0 || localParts == null)
         ? ""
-        : _StringBase._concatRange(_parts, 0, localParts.length);
+        : _StringBase._concatRange(localParts, 0, localParts.length);
   }
 
   /** Ensures that the buffer has enough capacity to add n code units. */
@@ -148,7 +148,7 @@ class StringBuffer {
   void _consumeBuffer() {
     if (_bufferPosition == 0) return;
     bool isLatin1 = _bufferCodeUnitMagnitude <= 0xFF;
-    String str = _create(_buffer, _bufferPosition, isLatin1);
+    String str = _create(_buffer!, _bufferPosition, isLatin1);
     _bufferPosition = _bufferCodeUnitMagnitude = 0;
     _addPart(str);
   }

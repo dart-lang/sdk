@@ -16,33 +16,7 @@
 
 import 'dart:ffi';
 
-import "package:expect/expect.dart";
-
-import 'dylib_utils.dart';
-
-typedef NativeCallbackTest = Int32 Function(Pointer);
-typedef NativeCallbackTestFn = int Function(Pointer);
-
-final DynamicLibrary testLibrary = dlopenPlatformSpecific("ffi_test_functions");
-
-class Test {
-  final String name;
-  final Pointer callback;
-  final bool skip;
-
-  Test(this.name, this.callback, {bool skipIf: false}) : skip = skipIf {}
-
-  void run() {
-    if (skip) return;
-
-    final NativeCallbackTestFn tester = testLibrary
-        .lookupFunction<NativeCallbackTest, NativeCallbackTestFn>("Test$name");
-    final int testCode = tester(callback);
-    if (testCode != 0) {
-      Expect.fail("Test $name failed.");
-    }
-  }
-}
+import 'callback_tests_utils.dart';
 
 typedef SimpleAdditionType = Int32 Function(Int32, Int32);
 int simpleAddition(int x, int y) => x + y;
@@ -1064,6 +1038,6 @@ void testManyCallbacks() {
   pointers.add(Pointer.fromFunction<SimpleAdditionType>(simpleAddition, 999));
 
   for (final pointer in pointers) {
-    Test("SimpleAddition", pointer).run();
+    CallbackTest("SimpleAddition", pointer).run();
   }
 }

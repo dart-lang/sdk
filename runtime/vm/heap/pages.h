@@ -275,7 +275,13 @@ class PageSpaceController {
 class PageSpace {
  public:
   enum GrowthPolicy { kControlGrowth, kForceGrowth };
-  enum Phase { kDone, kMarking, kAwaitingFinalization, kSweeping };
+  enum Phase {
+    kDone,
+    kMarking,
+    kAwaitingFinalization,
+    kSweepingLarge,
+    kSweepingRegular
+  };
 
   PageSpace(Heap* heap, intptr_t max_capacity_in_words);
   ~PageSpace();
@@ -479,10 +485,19 @@ class PageSpace {
 
   // Makes bump block walkable; do not call concurrently with mutator.
   void MakeIterable() const;
+
+  void AddPageLocked(HeapPage* page);
+  void AddLargePageLocked(HeapPage* page);
+  void AddExecPageLocked(HeapPage* page);
+  void RemovePageLocked(HeapPage* page, HeapPage* previous_page);
+  void RemoveLargePageLocked(HeapPage* page, HeapPage* previous_page);
+  void RemoveExecPageLocked(HeapPage* page, HeapPage* previous_page);
+
   HeapPage* AllocatePage(HeapPage::PageType type, bool link = true);
-  void FreePage(HeapPage* page, HeapPage* previous_page);
   HeapPage* AllocateLargePage(intptr_t size, HeapPage::PageType type);
+
   void TruncateLargePage(HeapPage* page, intptr_t new_object_size_in_bytes);
+  void FreePage(HeapPage* page, HeapPage* previous_page);
   void FreeLargePage(HeapPage* page, HeapPage* previous_page);
   void FreePages(HeapPage* pages);
 
@@ -490,7 +505,8 @@ class PageSpace {
                                  bool finalize,
                                  int64_t pre_wait_for_sweepers,
                                  int64_t pre_safe_point);
-  void BlockingSweep();
+  void SweepLarge();
+  void Sweep();
   void ConcurrentSweep(Isolate* isolate);
   void Compact(Thread* thread);
 
@@ -513,12 +529,13 @@ class PageSpace {
 
   // Use ExclusivePageIterator for safe access to these.
   mutable Mutex pages_lock_;
-  HeapPage* pages_;
-  HeapPage* pages_tail_;
-  HeapPage* exec_pages_;
-  HeapPage* exec_pages_tail_;
-  HeapPage* large_pages_;
-  HeapPage* image_pages_;
+  HeapPage* pages_ = nullptr;
+  HeapPage* pages_tail_ = nullptr;
+  HeapPage* exec_pages_ = nullptr;
+  HeapPage* exec_pages_tail_ = nullptr;
+  HeapPage* large_pages_ = nullptr;
+  HeapPage* large_pages_tail_ = nullptr;
+  HeapPage* image_pages_ = nullptr;
 
   // A block of memory in a data page, managed by bump allocation. The remainder
   // is kept formatted as a FreeListElement, but is not in any freelist.

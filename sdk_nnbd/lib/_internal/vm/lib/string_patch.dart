@@ -125,20 +125,22 @@ abstract class _StringBase implements String {
         (ccid != ClassID.cidGrowableObjectArray) &&
         (ccid != ClassID.cidImmutableArray)) {
       if (charCodes is Uint8List) {
-        final actualEnd = RangeError.checkValidRange(start, end, charCodes.length);
+        final actualEnd =
+            RangeError.checkValidRange(start, end, charCodes.length);
         return _createOneByteString(charCodes, start, actualEnd - start);
       } else if (charCodes is! Uint16List) {
         return _createStringFromIterable(charCodes, start, end);
       }
     }
     final int codeCount = charCodes.length;
-    final int actualEnd = RangeError.checkValidRange(start, end, codeCount);
+    final actualEnd = RangeError.checkValidRange(start, end, codeCount);
     final len = actualEnd - start;
     if (len == 0) return "";
 
     final typedCharCodes = unsafeCast<List<int>>(charCodes);
 
-    final int actualLimit = limit ?? _scanCodeUnits(typedCharCodes, start, actualEnd);
+    final int actualLimit =
+        limit ?? _scanCodeUnits(typedCharCodes, start, actualEnd);
     if (actualLimit < 0) {
       throw new ArgumentError(typedCharCodes);
     }
@@ -146,8 +148,8 @@ abstract class _StringBase implements String {
       return _createOneByteString(typedCharCodes, start, len);
     }
     if (actualLimit <= _maxUtf16) {
-      return _TwoByteString._allocateFromTwoByteList(typedCharCodes, start,
-          actualEnd);
+      return _TwoByteString._allocateFromTwoByteList(
+          typedCharCodes, start, actualEnd);
     }
     // TODO(lrn): Consider passing limit to _createFromCodePoints, because
     // the function is currently fully generic and doesn't know that its
@@ -170,9 +172,10 @@ abstract class _StringBase implements String {
     // Treat charCodes as Iterable.
     if (charCodes is EfficientLengthIterable) {
       int length = charCodes.length;
-      end = RangeError.checkValidRange(start, end, length);
-      final charCodeList =
-          new List<int>.from(charCodes.take(end).skip(start), growable: false);
+      final endVal = RangeError.checkValidRange(start, end, length);
+      final charCodeList = new List<int>.from(
+          charCodes.take(endVal).skip(start),
+          growable: false);
       return createFromCharCodes(charCodeList, 0, charCodeList.length, null);
     }
     // Don't know length of iterable, so iterate and see if all the values
@@ -186,7 +189,8 @@ abstract class _StringBase implements String {
     }
     List<int> charCodeList;
     int bits = 0; // Bitwise-or of all char codes in list.
-    if (end == null) {
+    final endVal = end;
+    if (endVal == null) {
       var list = <int>[];
       while (it.moveNext()) {
         int code = it.current;
@@ -195,21 +199,18 @@ abstract class _StringBase implements String {
       }
       charCodeList = makeListFixedLength<int>(list);
     } else {
-      if (end < start) {
-        throw new RangeError.range(end, start, charCodes.length);
+      if (endVal < start) {
+        throw new RangeError.range(endVal, start, charCodes.length);
       }
-      int len = end - start;
-      charCodeList = new List<int>.generate(
-        len,
-        (int i) {
-          if (!it.moveNext()) {
-            throw new RangeError.range(end, start, start + i);
-          }
-          int code = it.current;
-          bits |= code;
-          return code;
+      int len = endVal - start;
+      charCodeList = new List<int>.generate(len, (int i) {
+        if (!it.moveNext()) {
+          throw new RangeError.range(endVal, start, start + i);
         }
-      );
+        int code = it.current;
+        bits |= code;
+        return code;
+      });
     }
     int length = charCodeList.length;
     if (bits < 0) {
@@ -596,24 +597,24 @@ abstract class _StringBase implements String {
   }
 
   String replaceRange(int start, int? end, String replacement) {
-    int length = this.length;
-    end = RangeError.checkValidRange(start, end, length);
+    final length = this.length;
+    final localEnd = RangeError.checkValidRange(start, end, length);
     bool replacementIsOneByte = replacement._isOneByte;
-    if (start == 0 && end == length) return replacement;
+    if (start == 0 && localEnd == length) return replacement;
     int replacementLength = replacement.length;
-    int totalLength = start + (length - end) + replacementLength;
+    int totalLength = start + (length - localEnd) + replacementLength;
     if (replacementIsOneByte && this._isOneByte) {
       var result = _OneByteString._allocate(totalLength);
       int index = 0;
       index = result._setRange(index, this, 0, start);
       index = result._setRange(start, replacement, 0, replacementLength);
-      result._setRange(index, this, end, length);
+      result._setRange(index, this, localEnd, length);
       return result;
     }
     List slices = [];
     _addReplaceSlice(slices, 0, start);
     if (replacement.length > 0) slices.add(replacement);
-    _addReplaceSlice(slices, end, length);
+    _addReplaceSlice(slices, localEnd, length);
     return _joinReplaceAllResult(
         this, slices, totalLength, replacementIsOneByte);
   }
@@ -890,8 +891,8 @@ abstract class _StringBase implements String {
 
   List<String> split(Pattern pattern) {
     if ((pattern is String) && pattern.isEmpty) {
-      List<String> result = new List<String>.generate(
-        this.length, (int i) => this[i]);
+      List<String> result =
+          new List<String>.generate(this.length, (int i) => this[i]);
       return result;
     }
     int length = this.length;
@@ -900,7 +901,7 @@ abstract class _StringBase implements String {
       // A matched empty string input returns the empty list.
       return <String>[];
     }
-    List<String> result = new List<String>();
+    List<String> result = <String>[];
     int startIndex = 0;
     int previousIndex = 0;
     // 'pattern' may not be implemented correctly and therefore we cannot
@@ -1329,7 +1330,7 @@ class _StringMatch implements Match {
   }
 
   List<String> groups(List<int> groups) {
-    List<String> result = new List<String>();
+    List<String> result = <String>[];
     for (int g in groups) {
       result.add(group(g));
     }

@@ -20,7 +20,12 @@
 import 'dart:ffi';
 
 import 'ffi_test_helpers.dart';
-import 'function_callbacks_test.dart' show Test, testLibrary, ReturnVoid;
+import 'callback_tests_utils.dart';
+import 'dylib_utils.dart';
+
+typedef ReturnVoid = Void Function();
+
+final testLibrary = dlopenPlatformSpecific("ffi_test_functions");
 
 void testGC() {
   triggerGc();
@@ -35,9 +40,9 @@ void waitForHelper(Pointer<Void> helper) {
       "WaitForHelper")(helper);
 }
 
-final List<Test> testcases = [
-  Test("GC", Pointer.fromFunction<ReturnVoid>(testGC)),
-  Test("UnprotectCode",
+final testcases = [
+  CallbackTest("GC", Pointer.fromFunction<ReturnVoid>(testGC)),
+  CallbackTest("UnprotectCode",
       Pointer.fromFunction<WaitForHelperNative>(waitForHelper)),
 ];
 

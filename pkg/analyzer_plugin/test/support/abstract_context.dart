@@ -164,7 +164,7 @@ class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
   _ElementVisitorFunctionWrapper(this.function);
 
   @override
-  visitElement(Element element) {
+  void visitElement(Element element) {
     function(element);
     super.visitElement(element);
   }

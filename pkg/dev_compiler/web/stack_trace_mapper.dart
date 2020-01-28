@@ -24,10 +24,11 @@ library stack_trace_mapper;
 
 import 'package:js/js.dart';
 import 'package:path/path.dart' as p;
-import 'source_map_stack_trace.dart';
 import 'package:source_maps/source_maps.dart';
 import 'package:source_span/source_span.dart';
 import 'package:stack_trace/stack_trace.dart';
+
+import 'source_map_stack_trace.dart';
 
 typedef void ReadyCallback();
 

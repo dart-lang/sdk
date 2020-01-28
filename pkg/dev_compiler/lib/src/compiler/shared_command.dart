@@ -4,12 +4,14 @@
 
 import 'dart:async';
 import 'dart:io';
+
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/ddc.dart'
     show InitializedCompilerState, parseExperimentalArguments;
 import 'package:path/path.dart' as p;
-import 'module_builder.dart';
+
 import '../kernel/command.dart' as kernel_compiler;
+import 'module_builder.dart';
 
 // TODO(nshahan) Merge all of this file the locations where they are used in
 // the kernel (only) version of DDC.
@@ -343,22 +345,14 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
         var shortPath = uri.path
             .replaceAll('/sdk/', '/dart-sdk/')
             .replaceAll('/sdk_nnbd/', '/dart-sdk/');
-        // A multi-root uri starting with a path under `/lib` indicates that
-        // the multi-root is at the root of a package (typically, the
-        // application root package). These should be converted into a
-        // `/packages` path, we do that by stripping the `/lib` prefix and
-        // relying on the `multiRootOutputPath` to be set to the proper
-        // packages dir (so /packages/<package>).
-        if (shortPath.startsWith('/lib') &&
-            multiRootOutputPath.startsWith('/packages')) {
-          shortPath = shortPath.substring(4);
-        }
         var multiRootPath = "${multiRootOutputPath ?? ''}$shortPath";
         multiRootPath = p.url.relative(multiRootPath, from: sourceMapDir);
         return multiRootPath;
       }
       return sourcePath;
     }
+
+    if (uri.scheme == 'http') return sourcePath;
 
     // Convert to a local file path if it's not.
     sourcePath = sourcePathToUri(p.absolute(p.fromUri(uri))).path;

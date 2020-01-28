@@ -207,7 +207,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
 
   String join([String separator = ""]) {
     var length = this.length;
-    var list = List(length);
+    var list = List<String>.filled(length, "");
     for (int i = 0; i < length; i++) {
       list[i] = "${this[i]}";
     }

@@ -28,7 +28,7 @@ class ReplaceFinalWithConstTest extends FixProcessorLintTest {
 /*LINT*/final int a = 1;
 ''');
     await assertHasFix('''
-/*LINT*/const int a = 1;
+const int a = 1;
 ''');
   }
 }

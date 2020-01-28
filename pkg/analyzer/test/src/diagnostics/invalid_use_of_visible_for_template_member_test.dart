@@ -158,7 +158,7 @@ void main() {
       error(HintCode.UNUSED_FIELD, 65, 2),
     ]);
     await _resolveFile('/lib2.dart', [
-      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 41, 1),
+      error(HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER, 41, 13),
     ]);
   }
 

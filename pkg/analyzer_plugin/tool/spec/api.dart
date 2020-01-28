@@ -40,7 +40,7 @@ class ApiNode {
 /// Base class for visiting the API definition.
 abstract class ApiVisitor<T> {
   /// Dispatch the given [type] to the visitor.
-  T visitTypeDecl(TypeDecl type) => type.accept(this) as T;
+  T visitTypeDecl(TypeDecl type) => type.accept(this);
   T visitTypeEnum(TypeEnum typeEnum);
   T visitTypeList(TypeList typeList);
   T visitTypeMap(TypeMap typeMap);
@@ -284,7 +284,7 @@ abstract class TypeDecl extends ApiNode {
   TypeDecl(dom.Element html, bool experimental, bool deprecated)
       : super(html, experimental, deprecated);
 
-  accept(ApiVisitor visitor);
+  T accept<T>(ApiVisitor<T> visitor);
 }
 
 /// Description of a named type definition.
@@ -308,7 +308,7 @@ class TypeEnum extends TypeDecl {
       : super(html, experimental, deprecated);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeEnum(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeEnum(this);
 }
 
 /// Description of a single allowed value for an enum.
@@ -328,7 +328,7 @@ class TypeList extends TypeDecl {
       : super(html, experimental, false);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeList(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeList(this);
 }
 
 /// Type of a JSON map.
@@ -346,7 +346,7 @@ class TypeMap extends TypeDecl {
       : super(html, experimental, false);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeMap(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeMap(this);
 }
 
 /// Type of a JSON object with specified fields, some of which may be optional.
@@ -358,7 +358,7 @@ class TypeObject extends TypeDecl {
       : super(html, experimental, deprecated);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeObject(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeObject(this);
 
   /// Return the field with the given [name], or null if there is no such field.
   TypeObjectField getField(String name) {
@@ -398,7 +398,7 @@ class TypeReference extends TypeDecl {
   }
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeReference(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeReference(this);
 }
 
 /// A collection of type definitions.
@@ -431,5 +431,5 @@ class TypeUnion extends TypeDecl {
       : super(html, experimental, false);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeUnion(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeUnion(this);
 }

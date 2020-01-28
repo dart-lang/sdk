@@ -33,7 +33,7 @@ m(){
     await assertHasFix('''
 class A { const A(); }
 m(){
-  const a = /*LINT*/A();
+  const a = A();
 }
 ''');
   }
@@ -43,7 +43,7 @@ m(){
 const list = /*LINT*/const List();
 ''');
     await assertHasFix('''
-const list = /*LINT*/List();
+const list = List();
 ''', length: 5);
   }
 
@@ -52,7 +52,7 @@ const list = /*LINT*/List();
 const list = /*LINT*/const [];
 ''');
     await assertHasFix('''
-const list = /*LINT*/[];
+const list = [];
 ''', length: 5);
   }
 }

@@ -1,0 +1,85 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/shorting_stop.dart:18:33: Warning: Operator '+' is called on 'int?' which is potentially null.
+//   throwsInStrong(() => c?.field + 2); // error
+//                                 ^
+//
+// pkg/front_end/testcases/nnbd/shorting_stop.dart:22:34: Warning: Property 'field' is accessed on 'Class?' which is potentially null.
+//  - 'Class' is from 'pkg/front_end/testcases/nnbd/shorting_stop.dart'.
+// Try accessing using ?. instead.
+//   throwsInStrong(() => (c?.next).field); // error
+//                                  ^^^^^
+//
+// pkg/front_end/testcases/nnbd/shorting_stop.dart:25:35: Warning: Operator '+' is called on 'int?' which is potentially null.
+//   throwsInStrong(() => c?.next[0] + 2); // error
+//                                   ^
+//
+// pkg/front_end/testcases/nnbd/shorting_stop.dart:29:37: Warning: Property 'isEven' is accessed on 'int?' which is potentially null.
+// Try accessing using ?. instead.
+//   throwsInStrong(() => (c?.next[0]).isEven); // error
+//                                     ^^^^^^
+//
+// pkg/front_end/testcases/nnbd/shorting_stop.dart:36:7: Warning: Property 'length' is accessed on 'String?' which is potentially null.
+// Try accessing using ?. instead.
+//     s.length; // This will be an invalid expression in strong mode.
+//       ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::int field = 0;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get next() → self::Class
+    return this;
+  operator [](core::int key) → core::int
+    return key;
+  operator []=(core::int key, core::int value) → void {}
+}
+static final field core::bool inStrongMode = self::_inStrongMode();
+static method main() → dynamic {
+  self::test(new self::Class::•());
+}
+static method test(self::Class? c) → dynamic {
+  let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{core::int?} null : #t1{self::Class}.{self::Class::next}.{self::Class::field};
+  self::throwsInStrong(() → core::int => (let final self::Class? #t2 = c in #t2.{core::Object::==}(null) ?{core::int?} null : #t2{self::Class}.{self::Class::field}).{core::num::+}(2));
+  let final self::Class? #t3 = c in #t3.{core::Object::==}(null) ?{core::int?} null : let final core::int #t4 = #t3.{self::Class::field}.{core::num::+}(1) in let final void #t5 = #t3.{self::Class::field} = #t4 in #t4;
+  let final self::Class? #t6 = c in #t6.{core::Object::==}(null) ?{core::int?} null : #t6.{self::Class::field} = #t6.{self::Class::field}.{core::num::+}(1);
+  self::throwsInStrong(() → core::int => (let final self::Class? #t7 = c in #t7.{core::Object::==}(null) ?{self::Class?} null : #t7{self::Class}.{self::Class::next}).{self::Class::field});
+  let final self::Class? #t8 = c in #t8.{core::Object::==}(null) ?{core::bool?} null : #t8{self::Class}.{self::Class::next}.{self::Class::[]}(0).{core::int::isEven};
+  self::throwsInStrong(() → core::int => (let final self::Class? #t9 = c in #t9.{core::Object::==}(null) ?{core::int?} null : #t9{self::Class}.{self::Class::next}.{self::Class::[]}(0)).{core::num::+}(2));
+  let final self::Class? #t10 = c in #t10.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t11 = #t10{self::Class}.{self::Class::next} in let final core::int #t12 = 0 in let final core::int #t13 = #t11.{self::Class::[]}(#t12).{core::num::+}(1) in let final void #t14 = #t11.{self::Class::[]=}(#t12, #t13) in #t13;
+  let final self::Class? #t15 = c in #t15.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t16 = #t15{self::Class}.{self::Class::next} in let final core::int #t17 = 0 in #t16.{self::Class::[]=}(#t17, #t16.{self::Class::[]}(#t17).{core::num::+}(1));
+  self::throwsInStrong(() → core::bool* => (let final self::Class? #t18 = c in #t18.{core::Object::==}(null) ?{core::int?} null : #t18{self::Class}.{self::Class::next}.{self::Class::[]}(0)).{core::int::isEven});
+}
+static method _inStrongMode() → core::bool {
+  (core::String?) → core::Null? f = (core::String? s) → core::Null? {
+    s.{core::String::length};
+  };
+  try {
+    f.call("foo");
+  }
+  on dynamic catch(final dynamic e) {
+    return true;
+  }
+  return false;
+}
+static method throwsInStrong(() → void f) → void {
+  if(self::inStrongMode) {
+    try {
+      f.call();
+    }
+    on dynamic catch(final dynamic e) {
+      core::print(e);
+      return;
+    }
+    throw "Expected exception.";
+  }
+  else {
+    f.call();
+  }
+}

@@ -19,7 +19,7 @@ import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/expression_checks.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:nnbd_migration/src/potential_modification.dart';
-import 'package:nnbd_migration/src/utilities/annotation_tracker.dart';
+import 'package:nnbd_migration/src/utilities/completeness_tracker.dart';
 import 'package:nnbd_migration/src/utilities/permissive_mode.dart';
 
 import 'edge_origin.dart';
@@ -33,7 +33,7 @@ import 'edge_origin.dart';
 class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     with
         PermissiveModeVisitor<DecoratedType>,
-        AnnotationTracker<DecoratedType> {
+        CompletenessTracker<DecoratedType> {
   /// Constraint variables and decorated types are stored here.
   final VariableRecorder _variables;
 
@@ -486,7 +486,10 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   }
 
   @override
-  DecoratedType visitTypeName(TypeName node) => visitTypeAnnotation(node);
+  DecoratedType visitTypeName(TypeName node) {
+    typeNameVisited(node); // Note this has been visited to TypeNameTracker.
+    return visitTypeAnnotation(node);
+  }
 
   @override
   DecoratedType visitTypeParameter(TypeParameter node) {

@@ -1243,7 +1243,6 @@ abstract class HInstruction implements Spannable {
   /// Type of the instruction.
   AbstractValue instructionType;
 
-  Selector get selector => null;
   HInstruction getDartReceiver(JClosedWorld closedWorld) => null;
   bool onlyThrowsNSM() => false;
 
@@ -1760,15 +1759,22 @@ abstract class HInvoke extends HInstruction {
 
 abstract class HInvokeDynamic extends HInvoke {
   final InvokeDynamicSpecializer specializer;
-  @override
-  Selector selector;
+
+  Selector _selector;
   AbstractValue _receiverType;
   final AbstractValue _originalReceiverType;
+
+  // Cached target when non-nullable receiver type and selector determine a
+  // single target. This is in effect a direct call (except for a possible
+  // `null` receiver). The element should only be set if the inputs are correct
+  // for a direct call. These constraints exclude caching a target when the call
+  // needs defaulted arguments, is `noSuchMethod` (legacy), or is a call-through
+  // stub.
   MemberEntity element;
 
   HInvokeDynamic(Selector selector, this._receiverType, this.element,
       List<HInstruction> inputs, bool isIntercepted, AbstractValue resultType)
-      : this.selector = selector,
+      : this._selector = selector,
         this._originalReceiverType = _receiverType,
         specializer = isIntercepted
             ? InvokeDynamicSpecializer.lookupSpecializer(selector)
@@ -1777,6 +1783,13 @@ abstract class HInvokeDynamic extends HInvoke {
     assert(isIntercepted != null);
     assert(_receiverType != null);
     isInterceptedCall = isIntercepted;
+  }
+
+  Selector get selector => _selector;
+
+  set selector(Selector selector) {
+    _selector = selector;
+    element = null; // Cached element would no longer match new selector.
   }
 
   AbstractValue get receiverType => _receiverType;
@@ -1978,7 +1991,6 @@ class HInvokeSuper extends HInvokeStatic {
   /// The class where the call to super is being done.
   final ClassEntity caller;
   final bool isSetter;
-  @override
   final Selector selector;
 
   HInvokeSuper(
@@ -2387,7 +2399,6 @@ class HForeignCode extends HForeign {
 }
 
 abstract class HInvokeBinary extends HInstruction {
-  @override
   final Selector selector;
   HInvokeBinary(
       HInstruction left, HInstruction right, this.selector, AbstractValue type)
@@ -2628,7 +2639,6 @@ class HBitXor extends HBinaryBitOp {
 }
 
 abstract class HInvokeUnary extends HInstruction {
-  @override
   final Selector selector;
   HInvokeUnary(HInstruction input, this.selector, type)
       : super(<HInstruction>[input], type) {
@@ -3341,7 +3351,6 @@ class HLiteralList extends HInstruction {
 /// The primitive array indexing operation. Note that this instruction
 /// does not throw because we generate the checks explicitly.
 class HIndex extends HInstruction {
-  @override
   final Selector selector;
   HIndex(HInstruction receiver, HInstruction index, this.selector,
       AbstractValue type)
@@ -3384,7 +3393,6 @@ class HIndex extends HInstruction {
 /// The primitive array assignment operation. Note that this instruction
 /// does not throw because we generate the checks explicitly.
 class HIndexAssign extends HInstruction {
-  @override
   final Selector selector;
   HIndexAssign(AbstractValueDomain domain, HInstruction receiver,
       HInstruction index, HInstruction value, this.selector)
@@ -3810,7 +3818,6 @@ class HBoolConversion extends HCheck {
 /// field getter or setter when the receiver might be null. In these cases, the
 /// [selector] and [field] members are assigned.
 class HNullCheck extends HCheck {
-  @override
   Selector selector;
   FieldEntity field;
 

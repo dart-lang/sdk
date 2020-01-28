@@ -18,7 +18,9 @@ class NullabilityFixDescription {
   /// An if-test or conditional expression needs to have its condition and
   /// "then" branch discarded.
   static const discardThen = const NullabilityFixDescription._(
-    appliedMessage: 'Discarded an unreachable conditional then branch',
+    appliedMessage:
+        'Discarded a condition which is always false, and the "then" branch '
+        'that follows',
     kind: NullabilityFixKind.discardThen,
   );
 
@@ -36,6 +38,12 @@ class NullabilityFixDescription {
     kind: NullabilityFixKind.discardElse,
   );
 
+  /// An if-test needs to be discarded completely.
+  static const discardIf = const NullabilityFixDescription._(
+    appliedMessage: 'Discarded an if-test with no effect',
+    kind: NullabilityFixKind.discardIf,
+  );
+
   /// An expression's value needs to be null-checked.
   static const checkExpression = const NullabilityFixDescription._(
     appliedMessage: 'Added a non-null assertion to nullable expression',
@@ -47,6 +55,13 @@ class NullabilityFixDescription {
     appliedMessage: 'Discarded a downcast that is now unnecessary',
     kind: NullabilityFixKind.removeAs,
   );
+
+  /// A null-aware operator needs to be changed into its non-null-aware
+  /// equivalent.
+  static const removeNullAwareness = const NullabilityFixDescription._(
+      appliedMessage:
+          'Changed a null-aware access into an ordinary access, because the target cannot be null',
+      kind: NullabilityFixKind.removeNullAwareness);
 
   /// A message used by dartfix to indicate a fix has been applied.
   final String appliedMessage;
@@ -99,10 +114,12 @@ enum NullabilityFixKind {
   checkExpression,
   discardCondition,
   discardElse,
+  discardIf,
   discardThen,
   makeTypeNullable,
   noModification,
   removeAs,
+  removeNullAwareness,
 }
 
 /// Provisional API for DartFix to perform nullability migration.
@@ -119,17 +136,11 @@ abstract class NullabilityMigration {
   /// complete.  TODO(paulberry): remove this mode once the migration algorithm
   /// is fully implemented.
   ///
-  /// [useFixBuilder] indicates whether migration should use the new
-  /// [FixBuilder] infrastructure.  Once FixBuilder is at feature parity with
-  /// the old implementation, this option will be removed and FixBuilder will
-  /// be used unconditionally.
-  ///
   /// Optional parameter [removeViaComments] indicates whether dead code should
   /// be removed in its entirety (the default) or removed by commenting it out.
   factory NullabilityMigration(NullabilityMigrationListener listener,
       {bool permissive,
       NullabilityMigrationInstrumentation instrumentation,
-      bool useFixBuilder,
       bool removeViaComments}) = NullabilityMigrationImpl;
 
   void finalizeInput(ResolvedUnitResult result);
@@ -139,6 +150,9 @@ abstract class NullabilityMigration {
   void prepareInput(ResolvedUnitResult result);
 
   void processInput(ResolvedUnitResult result);
+
+  /// Update the migration after an edge has been added or removed.
+  void update();
 }
 
 /// [NullabilityMigrationListener] is used by [NullabilityMigration]

@@ -15,7 +15,7 @@ void main() {
 class NavigationCollectorImplTest {
   NavigationCollectorImpl collector = NavigationCollectorImpl();
 
-  test_createRegions_multiple() {
+  void test_createRegions_multiple() {
     // Two files, each with two targets.
     String fileA = 'a.dart';
     int targetOffsetA1 = 1;
@@ -95,14 +95,14 @@ class NavigationCollectorImplTest {
     ]);
   }
 
-  test_createRegions_none() {
+  void test_createRegions_none() {
     collector.createRegions();
     expect(collector.files, isEmpty);
     expect(collector.regions, isEmpty);
     expect(collector.targets, isEmpty);
   }
 
-  test_createRegions_single() {
+  void test_createRegions_single() {
     int regionOffset = 13;
     int regionLength = 7;
     ElementKind targetKind = ElementKind.CLASS;

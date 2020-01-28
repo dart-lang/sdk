@@ -758,7 +758,10 @@ abstract class _RecursiveMatcher extends Matcher {
   /// If it doesn't match, record a closure in [mismatches] which can describe
   /// the mismatch. [describeSubstructure] is used to describe which
   /// substructure did not match.
-  checkSubstructure(item, Matcher matcher, List<MismatchDescriber> mismatches,
+  void checkSubstructure(
+      item,
+      Matcher matcher,
+      List<MismatchDescriber> mismatches,
       Description Function(Description description) describeSubstructure) {
     Map subState = {};
     if (!matcher.matches(item, subState)) {

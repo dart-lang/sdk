@@ -167,357 +167,260 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     ticker.reset();
     entryPoints ??= context.options.inputs;
     return context.runInContext<Component>((CompilerContext c) async {
-      IncrementalCompilerData data = new IncrementalCompilerData();
+      // Initial setup: Load platform, initialize from dill or component etc.
+      UriTranslator uriTranslator = await setupPackagesAndUriTranslator(c);
+      IncrementalCompilerData data =
+          await ensurePlatformAndInitialize(uriTranslator, c);
 
-      bool bypassCache = false;
-      if (!identical(previousPackagesUri, c.options.packagesUriRaw)) {
-        previousPackagesUri = c.options.packagesUriRaw;
-        bypassCache = true;
-      } else if (this.invalidatedUris.contains(c.options.packagesUri)) {
-        bypassCache = true;
-      }
-      hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
-      UriTranslator uriTranslator =
-          await c.options.getUriTranslator(bypassCache: bypassCache);
-      previousPackagesMap = currentPackagesMap;
-      currentPackagesMap = uriTranslator.packages.asMap();
-      ticker.logMs("Read packages file");
-
-      if (dillLoadedData == null) {
-        int bytesLength = 0;
-        if (componentToInitializeFrom != null) {
-          // If initializing from a component it has to include the sdk,
-          // so we explicitly don't load it here.
-          initializeFromComponent(uriTranslator, c, data);
-        } else {
-          List<int> summaryBytes = await c.options.loadSdkSummaryBytes();
-          bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
-          if (initializeFromDillUri != null) {
-            try {
-              bytesLength += await initializeFromDill(uriTranslator, c, data);
-            } catch (e, st) {
-              // We might have loaded x out of y libraries into the component.
-              // To avoid any unforeseen problems start over.
-              bytesLength =
-                  prepareSummary(summaryBytes, uriTranslator, c, data);
-
-              if (e is InvalidKernelVersionError ||
-                  e is PackageChangedError ||
-                  e is CanonicalNameSdkError) {
-                // Don't report any warning.
-              } else {
-                Uri gzInitializedFrom;
-                if (c.options.writeFileOnCrashReport) {
-                  gzInitializedFrom = saveAsGzip(
-                      data.initializationBytes, "initialize_from.dill");
-                  recordTemporaryFileForTesting(gzInitializedFrom);
-                }
-                if (e is CanonicalNameError) {
-                  Message message = gzInitializedFrom != null
-                      ? templateInitializeFromDillNotSelfContained
-                          .withArguments(initializeFromDillUri.toString(),
-                              gzInitializedFrom)
-                      : templateInitializeFromDillNotSelfContainedNoDump
-                          .withArguments(initializeFromDillUri.toString());
-                  dillLoadedData.loader
-                      .addProblem(message, TreeNode.noOffset, 1, null);
-                } else {
-                  // Unknown error: Report problem as such.
-                  Message message = gzInitializedFrom != null
-                      ? templateInitializeFromDillUnknownProblem.withArguments(
-                          initializeFromDillUri.toString(),
-                          "$e",
-                          "$st",
-                          gzInitializedFrom)
-                      : templateInitializeFromDillUnknownProblemNoDump
-                          .withArguments(
-                              initializeFromDillUri.toString(), "$e", "$st");
-                  dillLoadedData.loader
-                      .addProblem(message, TreeNode.noOffset, 1, null);
-                }
-              }
-            }
-          }
-        }
-        appendLibraries(data, bytesLength);
-
-        await dillLoadedData.buildOutlines();
-        userBuilders = <Uri, LibraryBuilder>{};
-        platformBuilders = <LibraryBuilder>[];
-        dillLoadedData.loader.builders.forEach((uri, builder) {
-          if (builder.uri.scheme == "dart") {
-            platformBuilders.add(builder);
-          } else {
-            userBuilders[uri] = builder;
-          }
-        });
-        if (userBuilders.isEmpty) userBuilders = null;
-      }
-      data.initializationBytes = null;
-
+      // Figure out what to keep and what to throw away.
       Set<Uri> invalidatedUris = this.invalidatedUris.toSet();
-
       invalidateNotKeptUserBuilders(invalidatedUris);
+      ReusageResult reusedResult =
+          computeReusedLibraries(invalidatedUris, uriTranslator);
 
+      // Experimental invalidation initialization (e.g. figure out if we can).
+      ExperimentalInvalidation experimentalInvalidation =
+          await initializeExperimentalInvalidation(reusedResult, c);
+      recordRebuildBodiesCountForTesting(
+          experimentalInvalidation?.missingSources?.length ?? 0);
+
+      // Cleanup: After (potentially) removing builders we have stuff to cleanup
+      // to not leak, and we might need to re-create the dill target.
+      cleanupRemovedBuilders(reusedResult, uriTranslator);
+      recreateDillTargetIfPackageWasUpdated(uriTranslator, c);
       ClassHierarchy hierarchy = userCode?.loader?.hierarchy;
-      Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
-      List<LibraryBuilder> directlyInvalidated = new List<LibraryBuilder>();
-      // TODO(jensj): Do something smarter than this.
-      List<bool> invalidatedBecauseOfPackageUpdate = new List<bool>();
-      List<LibraryBuilder> reusedLibraries = computeReusedLibraries(
-          invalidatedUris, uriTranslator,
-          notReused: notReusedLibraries,
-          directlyInvalidated: directlyInvalidated,
-          invalidatedBecauseOfPackageUpdate: invalidatedBecauseOfPackageUpdate);
-
-      bool apiUnchanged = false;
-      Set<LibraryBuilder> rebuildBodies = new Set<LibraryBuilder>();
-      Set<LibraryBuilder> originalNotReusedLibraries;
-      Set<Uri> missingSources = new Set<Uri>();
-      if (useExperimentalInvalidation &&
-          modulesToLoad == null &&
-          directlyInvalidated.isNotEmpty &&
-          invalidatedBecauseOfPackageUpdate.isEmpty) {
-        // Figure out if the file(s) have changed outline, or we can just
-        // rebuild the bodies.
-        apiUnchanged = true;
-        apiUnchangedLoop:
-        for (int i = 0; i < directlyInvalidated.length; i++) {
-          LibraryBuilder builder = directlyInvalidated[i];
-          Iterator<Builder> iterator = builder.iterator;
-          while (iterator.moveNext()) {
-            Builder childBuilder = iterator.current;
-            if (childBuilder.isDuplicate) {
-              apiUnchanged = false;
-              break apiUnchangedLoop;
-            }
-          }
-
-          List<int> previousSource =
-              CompilerContext.current.uriToSource[builder.fileUri].source;
-          if (previousSource == null || previousSource.isEmpty) {
-            apiUnchanged = false;
-            break;
-          }
-          String before = textualOutline(previousSource);
-          if (before == null) {
-            apiUnchanged = false;
-            break;
-          }
-          String now;
-          FileSystemEntity entity =
-              c.options.fileSystem.entityForUri(builder.fileUri);
-          if (await entity.exists()) {
-            now = textualOutline(await entity.readAsBytes());
-          }
-          if (before != now) {
-            apiUnchanged = false;
-            break;
-          }
-          // TODO(jensj): We should only do this when we're sure we're going to
-          // do it!
-          CompilerContext.current.uriToSource.remove(builder.fileUri);
-          missingSources.add(builder.fileUri);
-          LibraryBuilder partOfLibrary = builder.partOfLibrary;
-          if (partOfLibrary != null) {
-            rebuildBodies.add(partOfLibrary);
-          } else {
-            rebuildBodies.add(builder);
-          }
-        }
-
-        if (apiUnchanged) {
-          // TODO(jensj): Check for mixins in a smarter and faster way.
-          apiUnchangedLoop:
-          for (LibraryBuilder builder in notReusedLibraries) {
-            if (missingSources.contains(builder.fileUri)) continue;
-            Library lib = builder.library;
-            for (Class c in lib.classes) {
-              if (!c.isAnonymousMixin && !c.isEliminatedMixin) continue;
-              for (Supertype supertype in c.implementedTypes) {
-                if (missingSources.contains(supertype.classNode.fileUri)) {
-                  // This is probably a mixin from one of the libraries we want
-                  // to rebuild only the body of.
-                  // TODO(jensj): We can probably add this to the rebuildBodies
-                  // list and just rebuild that library too.
-                  // print("Usage of mixin in ${lib.importUri}");
-                  apiUnchanged = false;
-                  continue apiUnchangedLoop;
-                }
-              }
-            }
-          }
-        }
-
-        if (apiUnchanged) {
-          originalNotReusedLibraries = new Set<LibraryBuilder>();
-          Set<Uri> seenUris = new Set<Uri>();
-          for (LibraryBuilder builder in notReusedLibraries) {
-            if (builder.isPart) continue;
-            if (builder.isPatch) continue;
-            if (rebuildBodies.contains(builder)) continue;
-            if (!seenUris.add(builder.uri)) continue;
-            reusedLibraries.add(builder);
-            originalNotReusedLibraries.add(builder);
-          }
-          notReusedLibraries.clear();
-          notReusedLibraries.addAll(rebuildBodies);
-        } else {
-          missingSources.clear();
-          rebuildBodies.clear();
-        }
-      }
-      recordRebuildBodiesCountForTesting(missingSources.length);
-
-      bool removedDillBuilders = false;
-      for (LibraryBuilder builder in notReusedLibraries) {
-        cleanupSourcesForBuilder(
-            builder, uriTranslator, CompilerContext.current.uriToSource);
-        incrementalSerializer?.invalidate(builder.fileUri);
-
-        LibraryBuilder dillBuilder =
-            dillLoadedData.loader.builders.remove(builder.uri);
-        if (dillBuilder != null) {
-          removedDillBuilders = true;
-          userBuilders?.remove(builder.uri);
-        }
-
-        // Remove component problems for libraries we don't reuse.
-        if (remainingComponentProblems.isNotEmpty) {
-          Library lib = builder.library;
-          removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
-        }
-      }
-
-      if (removedDillBuilders) {
-        dillLoadedData.loader.libraries.clear();
-        for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
-          dillLoadedData.loader.libraries.add(builder.library);
-        }
-      }
-
-      if (hasToCheckPackageUris) {
-        // The package file was changed.
-        // Make sure the dill loader is on the same page.
-        DillTarget oldDillLoadedData = dillLoadedData;
-        dillLoadedData =
-            new DillTarget(ticker, uriTranslator, c.options.target);
-        for (DillLibraryBuilder library
-            in oldDillLoadedData.loader.builders.values) {
-          library.loader = dillLoadedData.loader;
-          dillLoadedData.loader.builders[library.uri] = library;
-          if (library.uri.scheme == "dart" && library.uri.path == "core") {
-            dillLoadedData.loader.coreLibrary = library;
-          }
-        }
-        dillLoadedData.loader.first = oldDillLoadedData.loader.first;
-        dillLoadedData.loader.libraries
-            .addAll(oldDillLoadedData.loader.libraries);
-      }
-
-      if (hierarchy != null) {
-        List<Library> removedLibraries = new List<Library>();
-        // TODO(jensj): For now remove all the original from the class hierarchy
-        // to avoid the class hierarchy getting confused.
-        if (originalNotReusedLibraries != null) {
-          for (LibraryBuilder builder in originalNotReusedLibraries) {
-            Library lib = builder.library;
-            removedLibraries.add(lib);
-          }
-        }
-        for (LibraryBuilder builder in notReusedLibraries) {
-          Library lib = builder.library;
-          removedLibraries.add(lib);
-        }
-        hierarchy.applyTreeChanges(removedLibraries, const []);
-      }
-      notReusedLibraries = null;
+      cleanupHierarchy(hierarchy, experimentalInvalidation, reusedResult);
+      List<LibraryBuilder> reusedLibraries = reusedResult.reusedLibraries;
+      reusedResult = null;
 
       if (userCode != null) {
         ticker.logMs("Decided to reuse ${reusedLibraries.length}"
             " of ${userCode.loader.builders.length} libraries");
       }
 
+      // For modular compilation we can be asked to load components and track
+      // which libraries we actually use for the compilation. Set that up now.
       await loadEnsureLoadedComponents(reusedLibraries);
+      resetTrackingOfUsedLibraries(hierarchy);
 
+      // For each computeDelta call we create a new userCode object which needs
+      // to be setup, and in the case of experimental invalidation some of the
+      // builders needs to be patched up.
       KernelTarget userCodeOld = userCode;
-      userCode = new KernelTarget(
-          new HybridFileSystem(
-              new MemoryFileSystem(
-                  new Uri(scheme: "org-dartlang-debug", path: "/")),
-              c.fileSystem),
-          false,
-          dillLoadedData,
-          uriTranslator);
-      userCode.loader.hierarchy = hierarchy;
+      setupNewUserCode(c, uriTranslator, hierarchy, reusedLibraries,
+          experimentalInvalidation, entryPoints.first);
+      Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap =
+          experimentalInvalidationCreateRebuildBodiesBuilders(
+              experimentalInvalidation, uriTranslator);
+      entryPoints = userCode.setEntryPoints(entryPoints);
+      await userCode.loader.buildOutlines();
+      experimentalInvalidationPatchUpScopes(
+          experimentalInvalidation, rebuildBodiesMap);
 
-      if (trackNeededDillLibraries) {
-        // Reset dill loaders and kernel class hierarchy.
-        for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
-          if (builder is DillLibraryBuilder) {
-            if (builder.isBuiltAndMarked) {
-              // Clear cached calculations in classes which upon calculation can
-              // mark things as needed.
-              for (Builder builder in builder.scope.localMembers) {
-                if (builder is DillClassBuilder) {
-                  builder.supertype = null;
-                  builder.interfaces = null;
-                }
-              }
-              builder.isBuiltAndMarked = false;
-            }
+      // Checkpoint: Build the actual outline.
+      // Note that the [Component] is not the "full" component.
+      // It is a component consisting of all newly compiled libraries and all
+      // libraries loaded from .dill files or directly from components.
+      // Technically, it's the combination of userCode.loader.libraries and
+      // dillLoadedData.loader.libraries.
+      Component componentWithDill = await userCode.buildOutlines();
+
+      if (!outlineOnly) {
+        // Checkpoint: Build the actual bodies.
+        componentWithDill =
+            await userCode.buildComponent(verify: c.options.verify);
+      }
+      hierarchy ??= userCode.loader.hierarchy;
+      recordNonFullComponentForTesting(componentWithDill);
+
+      // Perform actual dill usage tracking.
+      performDillUsageTracking(hierarchy);
+
+      // If we actually got a result we can throw away the old userCode and the
+      // list of invalidated uris.
+      if (componentWithDill != null) {
+        this.invalidatedUris.clear();
+        hasToCheckPackageUris = false;
+        userCodeOld?.loader?.releaseAncillaryResources();
+        userCodeOld = null;
+      }
+
+      // Compute which libraries to output and which (previous) errors/warnings
+      // we have to reissue. In the process do some cleanup too.
+      List<Library> compiledLibraries =
+          new List<Library>.from(userCode.loader.libraries);
+      Map<Uri, Source> uriToSource = componentWithDill?.uriToSource;
+      experimentalCompilationPostCompilePatchup(
+          experimentalInvalidation, compiledLibraries, uriToSource);
+      List<Library> outputLibraries =
+          calculateOutputLibrariesAndIssueLibraryProblems(
+              data.component != null || fullComponent,
+              compiledLibraries,
+              entryPoints,
+              reusedLibraries,
+              hierarchy,
+              uriTranslator,
+              uriToSource,
+              c);
+      List<String> problemsAsJson = reissueComponentProblems(componentWithDill);
+
+      // If we didn't get a result, go back to the previous one so expression
+      // calculation has the potential to work.
+      if (componentWithDill == null) {
+        userCode.loader.builders.clear();
+        userCode = userCodeOld;
+      }
+
+      // Output result.
+      Procedure mainMethod = componentWithDill == null
+          ? data.userLoadedUriMain
+          : componentWithDill.mainMethod;
+      return context.options.target.configureComponent(
+          new Component(libraries: outputLibraries, uriToSource: uriToSource))
+        ..mainMethod = mainMethod
+        ..problemsAsJson = problemsAsJson;
+    });
+  }
+
+  /// Compute which libraries to output and which (previous) errors/warnings we
+  /// have to reissue. In the process do some cleanup too.
+  List<Library> calculateOutputLibrariesAndIssueLibraryProblems(
+      bool fullComponent,
+      List<Library> compiledLibraries,
+      List<Uri> entryPoints,
+      List<LibraryBuilder> reusedLibraries,
+      ClassHierarchy hierarchy,
+      UriTranslator uriTranslator,
+      Map<Uri, Source> uriToSource,
+      CompilerContext c) {
+    List<Library> outputLibraries;
+    Set<Library> allLibraries;
+    if (fullComponent) {
+      outputLibraries = computeTransitiveClosure(compiledLibraries, entryPoints,
+          reusedLibraries, hierarchy, uriTranslator, uriToSource);
+      allLibraries = outputLibraries.toSet();
+      if (!c.options.omitPlatform) {
+        for (int i = 0; i < platformBuilders.length; i++) {
+          Library lib = platformBuilders[i].library;
+          outputLibraries.add(lib);
+        }
+      }
+    } else {
+      outputLibraries = new List<Library>();
+      allLibraries = computeTransitiveClosure(
+              compiledLibraries,
+              entryPoints,
+              reusedLibraries,
+              hierarchy,
+              uriTranslator,
+              uriToSource,
+              outputLibraries)
+          .toSet();
+    }
+
+    reissueLibraryProblems(allLibraries, compiledLibraries);
+    return outputLibraries;
+  }
+
+  /// If doing experimental compilation, make sure [compiledLibraries] and
+  /// [uriToSource] looks as they would have if we hadn't done experimental
+  /// compilation, i.e. before this call [compiledLibraries] might only contain
+  /// the single Library we compiled again, but after this call, it will also
+  /// contain all the libraries that would normally have been recompiled.
+  /// This might be a temporary thing, but we need to figure out if the VM
+  /// can (always) work with only getting the actually rebuild stuff.
+  void experimentalCompilationPostCompilePatchup(
+      ExperimentalInvalidation experimentalInvalidation,
+      List<Library> compiledLibraries,
+      Map<Uri, Source> uriToSource) {
+    if (experimentalInvalidation != null) {
+      // Make sure "compiledLibraries" contains what it would have, had we not
+      // only re-done the bodies, but invalidated everything.
+      experimentalInvalidation.originalNotReusedLibraries
+          .removeAll(experimentalInvalidation.rebuildBodies);
+      for (LibraryBuilder builder
+          in experimentalInvalidation.originalNotReusedLibraries) {
+        compiledLibraries.add(builder.library);
+      }
+
+      // uriToSources are created in the outline stage which we skipped for
+      // some of the libraries.
+      for (Uri uri in experimentalInvalidation.missingSources) {
+        // TODO(jensj): KernelTargets "link" takes some "excludeSource"
+        // setting into account.
+        uriToSource[uri] = CompilerContext.current.uriToSource[uri];
+      }
+    }
+  }
+
+  /// Perform dill usage tracking if asked. Use the marking on dill builders as
+  /// well as the class hierarchy to figure out which dill libraries was
+  /// actually used by the compilation.
+  void performDillUsageTracking(ClassHierarchy hierarchy) {
+    if (trackNeededDillLibraries) {
+      // Which dill builders were built?
+      neededDillLibraries = new Set<Library>();
+      for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
+        if (builder is DillLibraryBuilder) {
+          if (builder.isBuiltAndMarked) {
+            neededDillLibraries.add(builder.library);
           }
         }
+      }
 
-        if (hierarchy is ClosedWorldClassHierarchy) {
-          hierarchy.resetUsed();
+      updateNeededDillLibrariesWithHierarchy(
+          hierarchy, userCode.loader.builderHierarchy);
+    }
+  }
+
+  /// Fill in the replacement maps that describe the replacements that need to
+  /// happen because of experimental invalidation.
+  void experimentalInvalidationFillReplacementMaps(
+      Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap,
+      Map<LibraryBuilder, Map<String, Builder>> replacementMap,
+      Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap) {
+    for (MapEntry<LibraryBuilder, List<SourceLibraryBuilder>> entry
+        in rebuildBodiesMap.entries) {
+      Map<String, Builder> childReplacementMap = {};
+      Map<String, Builder> childReplacementSettersMap = {};
+      List<SourceLibraryBuilder> builders = rebuildBodiesMap[entry.key];
+      replacementMap[entry.key] = childReplacementMap;
+      replacementSettersMap[entry.key] = childReplacementSettersMap;
+      for (SourceLibraryBuilder builder in builders) {
+        NameIterator iterator = builder.nameIterator;
+        while (iterator.moveNext()) {
+          Builder childBuilder = iterator.current;
+          String name = iterator.name;
+          Map<String, Builder> map;
+          if (childBuilder.isSetter) {
+            map = childReplacementSettersMap;
+          } else {
+            map = childReplacementMap;
+          }
+          assert(
+              !map.containsKey(name),
+              "Unexpected double-entry for $name in ${builder.uri} "
+              "(org from ${entry.key.uri}): $childBuilder and ${map[name]}");
+          map[name] = childBuilder;
         }
       }
+    }
+  }
 
-      // Re-use the libraries we've deemed re-usable.
-      for (LibraryBuilder library in reusedLibraries) {
-        userCode.loader.builders[library.uri] = library;
-        if (library.uri.scheme == "dart" && library.uri.path == "core") {
-          userCode.loader.coreLibrary = library;
-        }
-      }
-
-      // The entry point(s) has to be set first for loader.first to be setup
-      // correctly. If the first one is in the rebuildBodies, we have to add it
-      // from there first.
-      Uri firstEntryPoint = entryPoints.first;
-      Uri firstEntryPointImportUri =
-          userCode.getEntryPointUri(firstEntryPoint, issueProblem: false);
-      bool wasFirstSet = false;
-      for (LibraryBuilder library in rebuildBodies) {
-        if (library.uri == firstEntryPointImportUri) {
-          userCode.loader.read(library.uri, -1,
-              accessor: userCode.loader.first,
-              fileUri: library.fileUri,
-              referencesFrom: library.library);
-          wasFirstSet = true;
-          break;
-        }
-      }
-      if (!wasFirstSet) {
-        userCode.loader.read(firstEntryPointImportUri, -1,
-            accessor: userCode.loader.first,
-            fileUri: firstEntryPointImportUri != firstEntryPoint
-                ? firstEntryPoint
-                : null);
-      }
-      if (userCode.loader.first == null &&
-          userCode.loader.builders[firstEntryPointImportUri] != null) {
-        userCode.loader.first =
-            userCode.loader.builders[firstEntryPointImportUri];
-      }
-
-      // Any builder(s) in [rebuildBodies] should be semi-reused: Create source
-      // builders based on the underlying libraries.
-      // Maps from old library builder to list of new library builder(s).
-      Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap =
-          new Map<LibraryBuilder, List<SourceLibraryBuilder>>.identity();
-      for (LibraryBuilder library in rebuildBodies) {
+  /// When doing experimental invalidation, we have some builders that needs to
+  /// be rebuild special, namely they have to be [userCode.loader.read] with
+  /// references from the original [Library] for things to work.
+  Map<LibraryBuilder, List<SourceLibraryBuilder>>
+      experimentalInvalidationCreateRebuildBodiesBuilders(
+          ExperimentalInvalidation experimentalInvalidation,
+          UriTranslator uriTranslator) {
+    // Any builder(s) in [rebuildBodies] should be semi-reused: Create source
+    // builders based on the underlying libraries.
+    // Maps from old library builder to list of new library builder(s).
+    Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap =
+        new Map<LibraryBuilder, List<SourceLibraryBuilder>>.identity();
+    if (experimentalInvalidation != null) {
+      for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
         LibraryBuilder newBuilder = userCode.loader.read(library.uri, -1,
             accessor: userCode.loader.first,
             fileUri: library.fileUri,
@@ -540,218 +443,454 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           builders.add(newPartBuilder);
         }
       }
+    }
+    return rebuildBodiesMap;
+  }
 
-      entryPoints = userCode.setEntryPoints(entryPoints);
-      if (userCode.loader.first == null &&
-          userCode.loader.builders[entryPoints.first] != null) {
-        userCode.loader.first = userCode.loader.builders[entryPoints.first];
-      }
-
-      // Create builders for the new entries.
-      await userCode.loader.buildOutlines();
-
+  /// When doing experimental invalidation we have to patch up the scopes of the
+  /// the libraries we're not recompiling but should have recompiled if we
+  /// didn't do anything special.
+  void experimentalInvalidationPatchUpScopes(
+      ExperimentalInvalidation experimentalInvalidation,
+      Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap) {
+    if (experimentalInvalidation != null) {
       // Maps from old library builder to map of new content.
       Map<LibraryBuilder, Map<String, Builder>> replacementMap = {};
+
       // Maps from old library builder to map of new content.
       Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap = {};
-      for (MapEntry<LibraryBuilder, List<SourceLibraryBuilder>> entry
-          in rebuildBodiesMap.entries) {
-        Map<String, Builder> childReplacementMap = {};
-        Map<String, Builder> childReplacementSettersMap = {};
-        List<SourceLibraryBuilder> builders = rebuildBodiesMap[entry.key];
-        replacementMap[entry.key] = childReplacementMap;
-        replacementSettersMap[entry.key] = childReplacementSettersMap;
-        for (SourceLibraryBuilder builder in builders) {
-          NameIterator iterator = builder.nameIterator;
+
+      experimentalInvalidationFillReplacementMaps(
+          rebuildBodiesMap, replacementMap, replacementSettersMap);
+
+      for (LibraryBuilder builder
+          in experimentalInvalidation.originalNotReusedLibraries) {
+        if (builder is SourceLibraryBuilder) {
+          builder.clearExtensionsInScopeCache();
+          for (Import import in builder.imports) {
+            assert(import.importer == builder);
+            List<LibraryBuilder> replacements =
+                rebuildBodiesMap[import.imported];
+            if (replacements != null) {
+              import.imported = replacements.first;
+            }
+            if (import.prefixBuilder?.exportScope != null) {
+              Scope scope = import.prefixBuilder?.exportScope;
+              scope.patchUpScope(replacementMap, replacementSettersMap);
+            }
+          }
+          for (Export export in builder.exports) {
+            assert(export.exporter == builder);
+            List<LibraryBuilder> replacements =
+                rebuildBodiesMap[export.exported];
+
+            if (replacements != null) {
+              export.exported = replacements.first;
+            }
+          }
+          builder.exportScope
+              .patchUpScope(replacementMap, replacementSettersMap);
+          builder.importScope
+              .patchUpScope(replacementMap, replacementSettersMap);
+
+          Iterator<Builder> iterator = builder.iterator;
           while (iterator.moveNext()) {
             Builder childBuilder = iterator.current;
-            String name = iterator.name;
-            Map<String, Builder> map;
-            if (childBuilder.isSetter) {
-              map = childReplacementSettersMap;
-            } else {
-              map = childReplacementMap;
-            }
-            assert(
-                !map.containsKey(name),
-                "Unexpected double-entry for $name in ${builder.uri} "
-                "(org from ${entry.key.uri}): $childBuilder and ${map[name]}");
-            map[name] = childBuilder;
-          }
-        }
-      }
-
-      // We have to reset the import and export scopes and force
-      // re-calculation of those for the libraries we're not recompiling but
-      // should have recompiled if we didn't do special a special
-      // "only-body-change" operation.
-      // We also have to patch up imports and exports to point to the correct
-      // builders, and further more setup the "wrong-way-links" between
-      // exporters and exportees.
-      if (originalNotReusedLibraries != null) {
-        for (LibraryBuilder builder in originalNotReusedLibraries) {
-          if (builder is SourceLibraryBuilder) {
-            builder.clearExtensionsInScopeCache();
-            for (Import import in builder.imports) {
-              assert(import.importer == builder);
-              List<LibraryBuilder> replacements =
-                  rebuildBodiesMap[import.imported];
-              if (replacements != null) {
-                import.imported = replacements.first;
-              }
-              if (import.prefixBuilder?.exportScope != null) {
-                Scope scope = import.prefixBuilder?.exportScope;
-                scope.patchUpScope(replacementMap, replacementSettersMap);
-              }
-            }
-            for (Export export in builder.exports) {
-              assert(export.exporter == builder);
-              List<LibraryBuilder> replacements =
-                  rebuildBodiesMap[export.exported];
-
-              if (replacements != null) {
-                export.exported = replacements.first;
-              }
-            }
-            builder.exportScope
-                .patchUpScope(replacementMap, replacementSettersMap);
-            builder.importScope
-                .patchUpScope(replacementMap, replacementSettersMap);
-
-            Iterator<Builder> iterator = builder.iterator;
-            while (iterator.moveNext()) {
-              Builder childBuilder = iterator.current;
-              if (childBuilder is SourceClassBuilder) {
-                TypeBuilder typeBuilder = childBuilder.supertype;
-                replaceTypeBuilder(
-                    replacementMap, replacementSettersMap, typeBuilder);
-                typeBuilder = childBuilder.mixedInType;
-                replaceTypeBuilder(
-                    replacementMap, replacementSettersMap, typeBuilder);
-                if (childBuilder.onTypes != null) {
-                  for (typeBuilder in childBuilder.onTypes) {
-                    replaceTypeBuilder(
-                        replacementMap, replacementSettersMap, typeBuilder);
-                  }
+            if (childBuilder is SourceClassBuilder) {
+              TypeBuilder typeBuilder = childBuilder.supertype;
+              replaceTypeBuilder(
+                  replacementMap, replacementSettersMap, typeBuilder);
+              typeBuilder = childBuilder.mixedInType;
+              replaceTypeBuilder(
+                  replacementMap, replacementSettersMap, typeBuilder);
+              if (childBuilder.onTypes != null) {
+                for (typeBuilder in childBuilder.onTypes) {
+                  replaceTypeBuilder(
+                      replacementMap, replacementSettersMap, typeBuilder);
                 }
-                if (childBuilder.interfaces != null) {
-                  for (typeBuilder in childBuilder.interfaces) {
-                    replaceTypeBuilder(
-                        replacementMap, replacementSettersMap, typeBuilder);
-                  }
+              }
+              if (childBuilder.interfaces != null) {
+                for (typeBuilder in childBuilder.interfaces) {
+                  replaceTypeBuilder(
+                      replacementMap, replacementSettersMap, typeBuilder);
                 }
               }
             }
-          } else {
-            throw "Currently unsupported";
           }
+        } else {
+          throw "Currently unsupported";
         }
       }
+    }
+  }
 
-      Component componentWithDill = await userCode.buildOutlines();
+  /// Create a new [userCode] object, and add the reused builders to it.
+  void setupNewUserCode(
+      CompilerContext c,
+      UriTranslator uriTranslator,
+      ClassHierarchy hierarchy,
+      List<LibraryBuilder> reusedLibraries,
+      ExperimentalInvalidation experimentalInvalidation,
+      Uri firstEntryPoint) {
+    userCode = new KernelTarget(
+        new HybridFileSystem(
+            new MemoryFileSystem(
+                new Uri(scheme: "org-dartlang-debug", path: "/")),
+            c.fileSystem),
+        false,
+        dillLoadedData,
+        uriTranslator);
+    userCode.loader.hierarchy = hierarchy;
 
-      // This is not the full component. It is the component consisting of all
-      // newly compiled libraries and all libraries loaded from .dill files or
-      // directly from components.
-      // Technically, it's the combination of userCode.loader.libraries and
-      // dillLoadedData.loader.libraries.
-      if (!outlineOnly) {
-        componentWithDill =
-            await userCode.buildComponent(verify: c.options.verify);
+    // Re-use the libraries we've deemed re-usable.
+    for (LibraryBuilder library in reusedLibraries) {
+      userCode.loader.builders[library.uri] = library;
+      if (library.uri.scheme == "dart" && library.uri.path == "core") {
+        userCode.loader.coreLibrary = library;
       }
-      hierarchy ??= userCode.loader.hierarchy;
+    }
 
-      recordNonFullComponentForTesting(componentWithDill);
-      if (trackNeededDillLibraries) {
-        // Which dill builders were built?
-        neededDillLibraries = new Set<Library>();
-        for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
-          if (builder is DillLibraryBuilder) {
-            if (builder.isBuiltAndMarked) {
-              neededDillLibraries.add(builder.library);
+    // The entry point(s) has to be set first for loader.first to be setup
+    // correctly. If the first one is in the rebuildBodies, we have to add it
+    // from there first.
+    Uri firstEntryPointImportUri =
+        userCode.getEntryPointUri(firstEntryPoint, issueProblem: false);
+    bool wasFirstSet = false;
+    if (experimentalInvalidation != null) {
+      for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
+        if (library.uri == firstEntryPointImportUri) {
+          userCode.loader.read(library.uri, -1,
+              accessor: userCode.loader.first,
+              fileUri: library.fileUri,
+              referencesFrom: library.library);
+          wasFirstSet = true;
+          break;
+        }
+      }
+    }
+    if (!wasFirstSet) {
+      userCode.loader.read(firstEntryPointImportUri, -1,
+          accessor: userCode.loader.first,
+          fileUri: firstEntryPointImportUri != firstEntryPoint
+              ? firstEntryPoint
+              : null);
+    }
+    if (userCode.loader.first == null &&
+        userCode.loader.builders[firstEntryPointImportUri] != null) {
+      userCode.loader.first =
+          userCode.loader.builders[firstEntryPointImportUri];
+    }
+  }
+
+  /// When tracking used libraries we mark them when we use them. To track
+  /// correctly we have to unmark before the next iteration to not have too much
+  /// marked and therefore incorrectly marked something as used when it is not.
+  void resetTrackingOfUsedLibraries(ClassHierarchy hierarchy) {
+    if (trackNeededDillLibraries) {
+      // Reset dill loaders and kernel class hierarchy.
+      for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
+        if (builder is DillLibraryBuilder) {
+          if (builder.isBuiltAndMarked) {
+            // Clear cached calculations in classes which upon calculation can
+            // mark things as needed.
+            for (Builder builder in builder.scope.localMembers) {
+              if (builder is DillClassBuilder) {
+                builder.supertype = null;
+                builder.interfaces = null;
+              }
             }
+            builder.isBuiltAndMarked = false;
           }
         }
-
-        updateNeededDillLibrariesWithHierarchy(
-            hierarchy, userCode.loader.builderHierarchy);
       }
 
-      if (componentWithDill != null) {
-        this.invalidatedUris.clear();
-        hasToCheckPackageUris = false;
-        userCodeOld?.loader?.releaseAncillaryResources();
-        userCodeOld = null;
+      if (hierarchy is ClosedWorldClassHierarchy) {
+        hierarchy.resetUsed();
       }
+    }
+  }
 
-      List<Library> compiledLibraries =
-          new List<Library>.from(userCode.loader.libraries);
-      Map<Uri, Source> uriToSource = componentWithDill?.uriToSource;
-      if (originalNotReusedLibraries != null) {
-        // Make sure "compiledLibraries" contains what it would have, had we not
-        // only re-done the bodies, but invalidated everything.
-        originalNotReusedLibraries.removeAll(rebuildBodies);
-        for (LibraryBuilder builder in originalNotReusedLibraries) {
-          compiledLibraries.add(builder.library);
-        }
-
-        // uriToSources are created in the outline stage which we skipped for
-        // some of the libraries.
-        for (Uri uri in missingSources) {
-          // TODO(jensj): KernelTargets "link" takes some "excludeSource"
-          // setting into account.
-          uriToSource[uri] = CompilerContext.current.uriToSource[uri];
+  /// Cleanup the hierarchy to no longer reference libraries that we are
+  /// invalidating (or would normally have invalidated if we hadn't done any
+  /// experimental invalidation).
+  void cleanupHierarchy(
+      ClassHierarchy hierarchy,
+      ExperimentalInvalidation experimentalInvalidation,
+      ReusageResult reusedResult) {
+    if (hierarchy != null) {
+      List<Library> removedLibraries = new List<Library>();
+      // TODO(jensj): For now remove all the original from the class hierarchy
+      // to avoid the class hierarchy getting confused.
+      if (experimentalInvalidation != null) {
+        for (LibraryBuilder builder
+            in experimentalInvalidation.originalNotReusedLibraries) {
+          Library lib = builder.library;
+          removedLibraries.add(lib);
         }
       }
+      for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
+        Library lib = builder.library;
+        removedLibraries.add(lib);
+      }
+      hierarchy.applyTreeChanges(removedLibraries, const []);
+    }
+  }
 
-      Procedure mainMethod = componentWithDill == null
-          ? data.userLoadedUriMain
-          : componentWithDill.mainMethod;
-
-      List<Library> outputLibraries;
-      Set<Library> allLibraries;
-      if (data.component != null || fullComponent) {
-        outputLibraries = computeTransitiveClosure(
-            compiledLibraries,
-            entryPoints,
-            reusedLibraries,
-            hierarchy,
-            uriTranslator,
-            uriToSource);
-        allLibraries = outputLibraries.toSet();
-        if (!c.options.omitPlatform) {
-          for (int i = 0; i < platformBuilders.length; i++) {
-            Library lib = platformBuilders[i].library;
-            outputLibraries.add(lib);
-          }
+  /// If the package uris needs to be re-checked the uri translator has changed,
+  /// and the [DillTarget] needs to get the new uri translator. We do that
+  /// by creating a new one.
+  void recreateDillTargetIfPackageWasUpdated(
+      UriTranslator uriTranslator, CompilerContext c) {
+    if (hasToCheckPackageUris) {
+      // The package file was changed.
+      // Make sure the dill loader is on the same page.
+      DillTarget oldDillLoadedData = dillLoadedData;
+      dillLoadedData = new DillTarget(ticker, uriTranslator, c.options.target);
+      for (DillLibraryBuilder library
+          in oldDillLoadedData.loader.builders.values) {
+        library.loader = dillLoadedData.loader;
+        dillLoadedData.loader.builders[library.uri] = library;
+        if (library.uri.scheme == "dart" && library.uri.path == "core") {
+          dillLoadedData.loader.coreLibrary = library;
         }
+      }
+      dillLoadedData.loader.first = oldDillLoadedData.loader.first;
+      dillLoadedData.loader.libraries
+          .addAll(oldDillLoadedData.loader.libraries);
+    }
+  }
+
+  /// Builders we don't use again should be removed from places like
+  /// uriToSource (used in places for dependency tracking), the incremental
+  /// serializer (they are no longer kept up-to-date) and the DillTarget
+  /// (to avoid leaks).
+  /// We also have to remove any component problems beloning to any such
+  /// no-longer-used library (to avoid re-issuing errors about no longer
+  /// relevant stuff).
+  void cleanupRemovedBuilders(
+      ReusageResult reusedResult, UriTranslator uriTranslator) {
+    bool removedDillBuilders = false;
+    for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
+      cleanupSourcesForBuilder(
+          builder, uriTranslator, CompilerContext.current.uriToSource);
+      incrementalSerializer?.invalidate(builder.fileUri);
+
+      LibraryBuilder dillBuilder =
+          dillLoadedData.loader.builders.remove(builder.uri);
+      if (dillBuilder != null) {
+        removedDillBuilders = true;
+        userBuilders?.remove(builder.uri);
+      }
+
+      // Remove component problems for libraries we don't reuse.
+      if (remainingComponentProblems.isNotEmpty) {
+        Library lib = builder.library;
+        removeLibraryFromRemainingComponentProblems(lib, uriTranslator);
+      }
+    }
+
+    if (removedDillBuilders) {
+      dillLoadedData.loader.libraries.clear();
+      for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
+        dillLoadedData.loader.libraries.add(builder.library);
+      }
+    }
+  }
+
+  /// Figure out if we can (and was asked to) do experimental invalidation.
+  /// Note that this returns (future or) [null] if we're not doing experimental
+  /// invalidation.
+  Future<ExperimentalInvalidation> initializeExperimentalInvalidation(
+      ReusageResult reusedResult, CompilerContext c) async {
+    Set<LibraryBuilder> rebuildBodies;
+    Set<LibraryBuilder> originalNotReusedLibraries;
+    Set<Uri> missingSources;
+
+    if (!useExperimentalInvalidation) return null;
+    if (modulesToLoad != null) return null;
+    if (reusedResult.directlyInvalidated.isEmpty) return null;
+    if (reusedResult.invalidatedBecauseOfPackageUpdate) return null;
+
+    // Figure out if the file(s) have changed outline, or we can just
+    // rebuild the bodies.
+    for (int i = 0; i < reusedResult.directlyInvalidated.length; i++) {
+      LibraryBuilder builder = reusedResult.directlyInvalidated[i];
+      Iterator<Builder> iterator = builder.iterator;
+      while (iterator.moveNext()) {
+        Builder childBuilder = iterator.current;
+        if (childBuilder.isDuplicate) {
+          return null;
+        }
+      }
+
+      List<int> previousSource =
+          CompilerContext.current.uriToSource[builder.fileUri].source;
+      if (previousSource == null || previousSource.isEmpty) {
+        return null;
+      }
+      String before = textualOutline(previousSource);
+      if (before == null) {
+        return null;
+      }
+      String now;
+      FileSystemEntity entity =
+          c.options.fileSystem.entityForUri(builder.fileUri);
+      if (await entity.exists()) {
+        now = textualOutline(await entity.readAsBytes());
+      }
+      if (before != now) {
+        return null;
+      }
+      // TODO(jensj): We should only do this when we're sure we're going to
+      // do it!
+      CompilerContext.current.uriToSource.remove(builder.fileUri);
+      missingSources ??= new Set<Uri>();
+      missingSources.add(builder.fileUri);
+      LibraryBuilder partOfLibrary = builder.partOfLibrary;
+      rebuildBodies ??= new Set<LibraryBuilder>();
+      if (partOfLibrary != null) {
+        rebuildBodies.add(partOfLibrary);
       } else {
-        outputLibraries = new List<Library>();
-        allLibraries = computeTransitiveClosure(
-                compiledLibraries,
-                entryPoints,
-                reusedLibraries,
-                hierarchy,
-                uriTranslator,
-                uriToSource,
-                outputLibraries)
-            .toSet();
+        rebuildBodies.add(builder);
       }
+    }
 
-      List<String> problemsAsJson = reissueComponentProblems(componentWithDill);
-      reissueLibraryProblems(allLibraries, compiledLibraries);
-
-      if (componentWithDill == null) {
-        userCode.loader.builders.clear();
-        userCode = userCodeOld;
+    // TODO(jensj): Check for mixins in a smarter and faster way.
+    for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
+      if (missingSources.contains(builder.fileUri)) {
+        continue;
       }
+      Library lib = builder.library;
+      for (Class c in lib.classes) {
+        if (!c.isAnonymousMixin && !c.isEliminatedMixin) {
+          continue;
+        }
+        for (Supertype supertype in c.implementedTypes) {
+          if (missingSources.contains(supertype.classNode.fileUri)) {
+            // This is probably a mixin from one of the libraries we want
+            // to rebuild only the body of.
+            // TODO(jensj): We can probably add this to the rebuildBodies
+            // list and just rebuild that library too.
+            // print("Usage of mixin in ${lib.importUri}");
+            return null;
+          }
+        }
+      }
+    }
 
-      // This is the incremental component.
-      return context.options.target.configureComponent(
-          new Component(libraries: outputLibraries, uriToSource: uriToSource))
-        ..mainMethod = mainMethod
-        ..problemsAsJson = problemsAsJson;
-    });
+    originalNotReusedLibraries = new Set<LibraryBuilder>();
+    Set<Uri> seenUris = new Set<Uri>();
+    for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
+      if (builder.isPart) continue;
+      if (builder.isPatch) continue;
+      if (rebuildBodies.contains(builder)) continue;
+      if (!seenUris.add(builder.uri)) continue;
+      reusedResult.reusedLibraries.add(builder);
+      originalNotReusedLibraries.add(builder);
+    }
+    reusedResult.notReusedLibraries.clear();
+    reusedResult.notReusedLibraries.addAll(rebuildBodies);
+
+    return new ExperimentalInvalidation(
+        rebuildBodies, originalNotReusedLibraries, missingSources);
+  }
+
+  /// Get UriTranslator, and figure out if the packages file was (potentially)
+  /// changed.
+  Future<UriTranslator> setupPackagesAndUriTranslator(CompilerContext c) async {
+    bool bypassCache = false;
+    if (!identical(previousPackagesUri, c.options.packagesUriRaw)) {
+      previousPackagesUri = c.options.packagesUriRaw;
+      bypassCache = true;
+    } else if (this.invalidatedUris.contains(c.options.packagesUri)) {
+      bypassCache = true;
+    }
+    UriTranslator uriTranslator =
+        await c.options.getUriTranslator(bypassCache: bypassCache);
+    previousPackagesMap = currentPackagesMap;
+    currentPackagesMap = uriTranslator.packages.asMap();
+    // TODO(jensj): We can probably (from the maps above) figure out if anything
+    // changed and only set this to true if it did.
+    hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
+    ticker.logMs("Read packages file");
+    return uriTranslator;
+  }
+
+  /// Load platform and (potentially) initialize from dill,
+  /// or initialize from component.
+  Future<IncrementalCompilerData> ensurePlatformAndInitialize(
+      UriTranslator uriTranslator, CompilerContext c) async {
+    IncrementalCompilerData data = new IncrementalCompilerData();
+    if (dillLoadedData == null) {
+      int bytesLength = 0;
+      if (componentToInitializeFrom != null) {
+        // If initializing from a component it has to include the sdk,
+        // so we explicitly don't load it here.
+        initializeFromComponent(uriTranslator, c, data);
+      } else {
+        List<int> summaryBytes = await c.options.loadSdkSummaryBytes();
+        bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
+        if (initializeFromDillUri != null) {
+          try {
+            bytesLength += await initializeFromDill(uriTranslator, c, data);
+          } catch (e, st) {
+            // We might have loaded x out of y libraries into the component.
+            // To avoid any unforeseen problems start over.
+            bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
+
+            if (e is InvalidKernelVersionError ||
+                e is PackageChangedError ||
+                e is CanonicalNameSdkError) {
+              // Don't report any warning.
+            } else {
+              Uri gzInitializedFrom;
+              if (c.options.writeFileOnCrashReport) {
+                gzInitializedFrom = saveAsGzip(
+                    data.initializationBytes, "initialize_from.dill");
+                recordTemporaryFileForTesting(gzInitializedFrom);
+              }
+              if (e is CanonicalNameError) {
+                Message message = gzInitializedFrom != null
+                    ? templateInitializeFromDillNotSelfContained.withArguments(
+                        initializeFromDillUri.toString(), gzInitializedFrom)
+                    : templateInitializeFromDillNotSelfContainedNoDump
+                        .withArguments(initializeFromDillUri.toString());
+                dillLoadedData.loader
+                    .addProblem(message, TreeNode.noOffset, 1, null);
+              } else {
+                // Unknown error: Report problem as such.
+                Message message = gzInitializedFrom != null
+                    ? templateInitializeFromDillUnknownProblem.withArguments(
+                        initializeFromDillUri.toString(),
+                        "$e",
+                        "$st",
+                        gzInitializedFrom)
+                    : templateInitializeFromDillUnknownProblemNoDump
+                        .withArguments(
+                            initializeFromDillUri.toString(), "$e", "$st");
+                dillLoadedData.loader
+                    .addProblem(message, TreeNode.noOffset, 1, null);
+              }
+            }
+          }
+        }
+      }
+      appendLibraries(data, bytesLength);
+
+      await dillLoadedData.buildOutlines();
+      userBuilders = <Uri, LibraryBuilder>{};
+      platformBuilders = <LibraryBuilder>[];
+      dillLoadedData.loader.builders.forEach((uri, builder) {
+        if (builder.uri.scheme == "dart") {
+          platformBuilders.add(builder);
+        } else {
+          userBuilders[uri] = builder;
+        }
+      });
+      if (userBuilders.isEmpty) userBuilders = null;
+    }
+    data.initializationBytes = null;
+    return data;
   }
 
   void replaceTypeBuilder(
@@ -1340,16 +1479,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   }
 
   /// Internal method.
-  List<LibraryBuilder> computeReusedLibraries(
-      Set<Uri> invalidatedUris, UriTranslator uriTranslator,
-      {Set<LibraryBuilder> notReused,
-      List<LibraryBuilder> directlyInvalidated,
-      List<bool> invalidatedBecauseOfPackageUpdate}) {
-    List<LibraryBuilder> result = <LibraryBuilder>[];
-    result.addAll(platformBuilders);
+  ReusageResult computeReusedLibraries(
+      Set<Uri> invalidatedUris, UriTranslator uriTranslator) {
+    List<LibraryBuilder> reusedLibraries = <LibraryBuilder>[];
+    reusedLibraries.addAll(platformBuilders);
     if (userCode == null && userBuilders == null) {
-      return result;
+      return new ReusageResult({}, [], false, reusedLibraries);
     }
+    bool invalidatedBecauseOfPackageUpdate = false;
+    List<LibraryBuilder> directlyInvalidated = new List<LibraryBuilder>();
+    Set<LibraryBuilder> notReusedLibraries = new Set<LibraryBuilder>();
 
     // Maps all non-platform LibraryBuilders from their import URI.
     Map<Uri, LibraryBuilder> builders = <Uri, LibraryBuilder>{};
@@ -1375,7 +1514,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 currentPackagesMap[packageName])) {
           Uri newFileUri = uriTranslator.translate(importUri, false);
           if (newFileUri != fileUri) {
-            invalidatedBecauseOfPackageUpdate?.add(true);
+            invalidatedBecauseOfPackageUpdate = true;
             return true;
           }
         }
@@ -1386,7 +1525,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
       if (uri.scheme == "dart" && !libraryBuilder.isSynthetic) {
-        result.add(libraryBuilder);
+        reusedLibraries.add(libraryBuilder);
         return;
       }
       builders[uri] = libraryBuilder;
@@ -1425,10 +1564,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     recordInvalidatedImportUrisForTesting(invalidatedImportUris);
-    if (directlyInvalidated != null) {
-      for (Uri uri in invalidatedImportUris) {
-        directlyInvalidated.add(builders[uri]);
-      }
+    for (Uri uri in invalidatedImportUris) {
+      directlyInvalidated.add(builders[uri]);
     }
 
     BuilderGraph graph = new BuilderGraph(builders);
@@ -1464,7 +1601,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             workList.add(dependency);
           }
         }
-        notReused?.add(current);
+        notReusedLibraries.add(current);
       }
     }
 
@@ -1477,9 +1614,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // https://dart-review.googlesource.com/47442 lands.
       if (builder.isPatch) continue;
       if (!seenUris.add(builder.uri)) continue;
-      result.add(builder);
+      reusedLibraries.add(builder);
     }
-    return result;
+
+    return new ReusageResult(notReusedLibraries, directlyInvalidated,
+        invalidatedBecauseOfPackageUpdate, reusedLibraries);
   }
 
   @override
@@ -1530,4 +1669,30 @@ class IncrementalCompilerData {
   Procedure userLoadedUriMain = null;
   Component component = null;
   List<int> initializationBytes = null;
+}
+
+class ReusageResult {
+  final Set<LibraryBuilder> notReusedLibraries;
+  final List<LibraryBuilder> directlyInvalidated;
+  final bool invalidatedBecauseOfPackageUpdate;
+  final List<LibraryBuilder> reusedLibraries;
+
+  ReusageResult(this.notReusedLibraries, this.directlyInvalidated,
+      this.invalidatedBecauseOfPackageUpdate, this.reusedLibraries)
+      : assert(notReusedLibraries != null),
+        assert(directlyInvalidated != null),
+        assert(invalidatedBecauseOfPackageUpdate != null),
+        assert(reusedLibraries != null);
+}
+
+class ExperimentalInvalidation {
+  final Set<LibraryBuilder> rebuildBodies;
+  final Set<LibraryBuilder> originalNotReusedLibraries;
+  final Set<Uri> missingSources;
+
+  ExperimentalInvalidation(
+      this.rebuildBodies, this.originalNotReusedLibraries, this.missingSources)
+      : assert(rebuildBodies != null),
+        assert(originalNotReusedLibraries != null),
+        assert(missingSources != null);
 }

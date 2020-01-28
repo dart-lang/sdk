@@ -161,6 +161,14 @@ class TestOptions {
   }
 }
 
+class LinkDependenciesOptions {
+  final Set<Uri> content;
+  Component component;
+  String errors;
+
+  LinkDependenciesOptions(this.content) : assert(content != null);
+}
+
 class FastaContext extends ChainContext with MatchContext {
   final UriTranslator uriTranslator;
   final List<Step> steps;
@@ -176,6 +184,7 @@ class FastaContext extends ChainContext with MatchContext {
       <Component, StringBuffer>{};
   final Uri platformBinaries;
   final Map<Uri, TestOptions> _testOptions = {};
+  final Map<Uri, LinkDependenciesOptions> _linkDependencies = {};
 
   @override
   final bool updateExpectations;
@@ -296,6 +305,33 @@ class FastaContext extends ChainContext with MatchContext {
     return testOptions;
   }
 
+  /// Computes the link dependencies for [description].
+  LinkDependenciesOptions computeLinkDependenciesOptions(
+      TestDescription description) {
+    Directory directory = new File.fromUri(description.uri).parent;
+    LinkDependenciesOptions linkDependenciesOptions =
+        _linkDependencies[directory.uri];
+    if (linkDependenciesOptions == null) {
+      File optionsFile =
+          new File.fromUri(directory.uri.resolve('link.options'));
+      Set<Uri> content = new Set<Uri>();
+      if (optionsFile.existsSync()) {
+        for (String line in optionsFile.readAsStringSync().split('\n')) {
+          line = line.trim();
+          if (line.isEmpty) continue;
+          File f = new File.fromUri(description.uri.resolve(line));
+          if (!f.existsSync()) {
+            throw new UnsupportedError("No file found: $f ($line)");
+          }
+          content.add(f.uri);
+        }
+      }
+      linkDependenciesOptions = new LinkDependenciesOptions(content);
+      _linkDependencies[directory.uri] = linkDependenciesOptions;
+    }
+    return linkDependenciesOptions;
+  }
+
   Expectation get verificationError => expectationSet["VerificationError"];
 
   Future ensurePlatformUris() async {
@@ -327,7 +363,8 @@ class FastaContext extends ChainContext with MatchContext {
   }
 
   @override
-  Set<Expectation> processExpectedOutcomes(Set<Expectation> outcomes) {
+  Set<Expectation> processExpectedOutcomes(
+      Set<Expectation> outcomes, TestDescription description) {
     if (skipVm && outcomes.length == 1 && outcomes.single == runtimeError) {
       return new Set<Expectation>.from([Expectation.Pass]);
     } else {
@@ -439,6 +476,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
   Future<Result<Component>> run(
       TestDescription description, FastaContext context) async {
     StringBuffer errors = new StringBuffer();
+    LinkDependenciesOptions linkDependenciesOptions =
+        context.computeLinkDependenciesOptions(description);
     TestOptions testOptions = context.computeTestOptions(description);
     ProcessedOptions options = new ProcessedOptions(
         options: new CompilerOptions()
@@ -454,31 +493,44 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
           ..performNnbdChecks = testOptions.forceNnbdChecks
           ..nnbdStrongMode = !context.weak,
         inputs: <Uri>[description.uri]);
-    return await CompilerContext.runWithOptions(options, (_) async {
-      // Disable colors to ensure that expectation files are the same across
-      // platforms and independent of stdin/stderr.
-      colors.enableColors = false;
-      Component platform = await context.loadPlatform();
-      Ticker ticker = new Ticker();
-      DillTarget dillTarget = new DillTarget(
-        ticker,
-        context.uriTranslator,
-        new TestVmTarget(new TargetFlags(
-            forceLateLoweringForTesting: testOptions.forceLateLowering)),
-      );
-      dillTarget.loader.appendLibraries(platform);
-      // We create a new URI translator to avoid reading platform libraries from
-      // file system.
-      UriTranslator uriTranslator = new UriTranslator(
-          const TargetLibrariesSpecification('vm'),
-          context.uriTranslator.packages);
-      KernelTarget sourceTarget = new KernelTarget(
-          StandardFileSystem.instance, false, dillTarget, uriTranslator);
 
-      sourceTarget.setEntryPoints(<Uri>[description.uri]);
-      await dillTarget.buildOutlines();
-      ValidatingInstrumentation instrumentation;
-      instrumentation = new ValidatingInstrumentation();
+    // Disable colors to ensure that expectation files are the same across
+    // platforms and independent of stdin/stderr.
+    colors.enableColors = false;
+
+    if (linkDependenciesOptions.content.isNotEmpty &&
+        linkDependenciesOptions.component == null) {
+      // Compile linked dependency.
+      await CompilerContext.runWithOptions(options, (_) async {
+        KernelTarget sourceTarget = await outlineInitialization(
+            context, testOptions, linkDependenciesOptions.content.toList());
+        if (linkDependenciesOptions.errors != null) {
+          errors.write(linkDependenciesOptions.errors);
+        }
+        Component p = await sourceTarget.buildOutlines();
+        if (fullCompile) {
+          p = await sourceTarget.buildComponent(verify: context.verify);
+        }
+        linkDependenciesOptions.component = p;
+        List<Library> keepLibraries = new List<Library>();
+        for (Library lib in p.libraries) {
+          if (linkDependenciesOptions.content.contains(lib.fileUri)) {
+            keepLibraries.add(lib);
+          }
+        }
+        p.libraries.clear();
+        p.libraries.addAll(keepLibraries);
+        linkDependenciesOptions.errors = errors.toString();
+        errors.clear();
+      });
+    }
+
+    return await CompilerContext.runWithOptions(options, (_) async {
+      KernelTarget sourceTarget = await outlineInitialization(
+          context, testOptions, <Uri>[description.uri],
+          alsoAppend: linkDependenciesOptions.component);
+      ValidatingInstrumentation instrumentation =
+          new ValidatingInstrumentation();
       await instrumentation.loadExpectations(description.uri);
       sourceTarget.loader.instrumentation = instrumentation;
       Component p = await sourceTarget.buildOutlines();
@@ -488,8 +540,8 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       context.componentToDiagnostics[p] = errors;
       if (fullCompile) {
         p = await sourceTarget.buildComponent(verify: context.verify);
-        instrumentation?.finish();
-        if (instrumentation != null && instrumentation.hasProblems) {
+        instrumentation.finish();
+        if (instrumentation.hasProblems) {
           if (updateComments) {
             await instrumentation.fixSource(description.uri, false);
           } else {
@@ -503,6 +555,34 @@ class Outline extends Step<TestDescription, Component, FastaContext> {
       }
       return pass(p);
     });
+  }
+
+  Future<KernelTarget> outlineInitialization(
+      FastaContext context, TestOptions testOptions, List<Uri> entryPoints,
+      {Component alsoAppend}) async {
+    Component platform = await context.loadPlatform();
+    Ticker ticker = new Ticker();
+    DillTarget dillTarget = new DillTarget(
+      ticker,
+      context.uriTranslator,
+      new TestVmTarget(new TargetFlags(
+          forceLateLoweringForTesting: testOptions.forceLateLowering)),
+    );
+    dillTarget.loader.appendLibraries(platform);
+    if (alsoAppend != null) {
+      dillTarget.loader.appendLibraries(alsoAppend);
+    }
+    // We create a new URI translator to avoid reading platform libraries
+    // from file system.
+    UriTranslator uriTranslator = new UriTranslator(
+        const TargetLibrariesSpecification('vm'),
+        context.uriTranslator.packages);
+    KernelTarget sourceTarget = new KernelTarget(
+        StandardFileSystem.instance, false, dillTarget, uriTranslator);
+
+    sourceTarget.setEntryPoints(entryPoints);
+    await dillTarget.buildOutlines();
+    return sourceTarget;
   }
 }
 

@@ -66,6 +66,19 @@ class JavaScriptBundler {
     var sourceMapOffset = 0;
     final manifest = <String, Map<String, List<int>>>{};
     final Set<Uri> visited = <Uri>{};
+
+    final importToSummary = Map<Library, Component>.identity();
+    final summaryToModule = Map<Component, String>.identity();
+    for (var i = 0; i < _summaries.length; i++) {
+      var summary = _summaries[i];
+      var moduleImport = _moduleImportForSummary[_summaryUris[i]];
+      for (var l in summary.libraries) {
+        assert(!importToSummary.containsKey(l));
+        importToSummary[l] = summary;
+        summaryToModule[summary] = moduleImport;
+      }
+    }
+
     for (Library library in _originalComponent.libraries) {
       if (loadedLibraries.contains(library) ||
           library.importUri.scheme == 'dart') {
@@ -83,10 +96,12 @@ class JavaScriptBundler {
         _originalComponent,
         classHierarchy,
         SharedCompilerOptions(sourceMap: true, summarizeApi: false),
+        importToSummary,
+        summaryToModule,
         coreTypes: coreTypes,
       );
-      final jsModule = compiler.emitModule(
-          summaryComponent, _summaries, _summaryUris, _moduleImportForSummary);
+
+      final jsModule = compiler.emitModule(summaryComponent);
 
       final moduleUrl = urlForComponentUri(moduleUri);
       String sourceMapBase;
@@ -106,9 +121,6 @@ class JavaScriptBundler {
         mapUrl: '$moduleUrl.lib.js.map',
         sourceMapBase: sourceMapBase,
         customScheme: _fileSystemScheme,
-        multiRootOutputPath: moduleUri.scheme == 'package'
-            ? '/packages/${moduleUri.pathSegments.first}'
-            : null,
       );
       final codeBytes = utf8.encode(code.code);
       final sourceMapBytes = utf8.encode(json.encode(code.sourceMap));

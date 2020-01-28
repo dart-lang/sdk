@@ -78,7 +78,8 @@ class _SecureFilterImpl extends NativeFieldWrapperClass1
   static final int ENCRYPTED_SIZE = 10 * 1024;
 
   _SecureFilterImpl._() {
-    buffers = new List<_ExternalBuffer>(_RawSecureSocket.bufferCount);
+    buffers =
+        new List<_ExternalBuffer>.filled(_RawSecureSocket.bufferCount, null);
     for (int i = 0; i < _RawSecureSocket.bufferCount; ++i) {
       buffers[i] = new _ExternalBuffer(
           _RawSecureSocket._isBufferEncrypted(i) ? ENCRYPTED_SIZE : SIZE);

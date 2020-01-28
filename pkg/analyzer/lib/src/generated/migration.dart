@@ -6,12 +6,12 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/collection_element_provider.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
+import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 
 /// Hooks used by resolution to communicate with the migration engine.
 abstract class MigrationResolutionHooks
-    implements ElementTypeProvider, CollectionElementProvider {
+    implements ElementTypeProvider, MigratableAstInfoProvider {
   /// Called when the resolver is visiting an if statement, if element, or
   /// conditional expression, to determine whether the condition is known to
   /// evaluate to `true` or `false`.

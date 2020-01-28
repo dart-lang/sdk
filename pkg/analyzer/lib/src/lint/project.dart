@@ -106,7 +106,7 @@ class _ApiModel {
   final AnalysisDriver driver;
   final List<Source> sources;
   final Directory root;
-  final Set<LibraryElement> elements = <LibraryElement>{};
+  final Set<Element> elements = {};
 
   _ApiModel(this.driver, this.sources, this.root) {
     _calculate();

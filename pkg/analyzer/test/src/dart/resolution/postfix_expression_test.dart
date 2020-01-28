@@ -26,7 +26,10 @@ f(int x) {
 
     assertPostfixExpression(
       findNode.postfix('x--'),
-      element: numElement.getMethod('-'),
+      element: elementMatcher(
+        numElement.getMethod('-'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'int',
     );
   }
@@ -40,7 +43,10 @@ f(int x) {
 
     assertPostfixExpression(
       findNode.postfix('x++'),
-      element: numElement.getMethod('+'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'int',
     );
   }

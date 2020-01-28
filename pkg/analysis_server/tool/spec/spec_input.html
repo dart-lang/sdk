@@ -2171,13 +2171,13 @@
       of specified sources if a change in a specified source requires it.
     </p>
     <p>
-      If includedFixes is specified, then those fixes will be applied.
-      If includeRequiredFixes is specified, then "required" fixes will be applied
-      in addition to whatever fixes are specified in includedFixes if any.
-      If neither includedFixes nor includeRequiredFixes is specified,
-      then all fixes will be applied.
-      If excludedFixes is specified, then those fixes will not be applied
-      regardless of whether they are "required" or specified in includedFixes.
+      If includedFixes is specified, then those fixes will be applied. If
+      includePedanticFixes is specified, then fixes associated with the pedantic
+      rule set will be applied in addition to whatever fixes are specified in
+      includedFixes if any. If neither includedFixes nor includePedanticFixes is
+      specified, then no fixes will be applied. If excludedFixes is specified,
+      then those fixes will not be applied regardless of whether they are
+      specified in includedFixes.
     </p>
     <params>
       <field name="included">
@@ -2214,12 +2214,6 @@
         <ref>bool</ref>
         <p>
           A flag indicating whether "pedantic" fixes should be applied.
-        </p>
-      </field>
-      <field name="includeRequiredFixes" optional="true">
-        <ref>bool</ref>
-        <p>
-          A flag indicating whether "required" fixes should be applied.
         </p>
       </field>
       <field name="excludedFixes" optional="true">
@@ -5164,12 +5158,6 @@
         <ref>String</ref>
         <p>
           A human readable description of the fix.
-        </p>
-      </field>
-      <field name="isRequired" optional="true">
-        <ref>bool</ref>
-        <p>
-          `true` if the fix is in the "required" fixes group.
         </p>
       </field>
     </object>

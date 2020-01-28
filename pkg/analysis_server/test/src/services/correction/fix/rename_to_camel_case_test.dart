@@ -34,7 +34,7 @@ main() {
 ''');
     await assertHasFix('''
 main() {
-  int /*LINT*/myIntegerVariable = 42;
+  int myIntegerVariable = 42;
   int foo;
   print(myIntegerVariable);
   print(foo);
@@ -52,7 +52,7 @@ main() {
 ''');
     await assertHasFix('''
 main() {
-  [0, 1, 2].forEach((/*LINT*/myIntegerVariable) {
+  [0, 1, 2].forEach((myIntegerVariable) {
     print(myIntegerVariable);
   });
 }
@@ -66,7 +66,7 @@ main(int /*LINT*/my_integer_variable) {
 }
 ''');
     await assertHasFix('''
-main(int /*LINT*/myIntegerVariable) {
+main(int myIntegerVariable) {
   print(myIntegerVariable);
 }
 ''');
@@ -82,7 +82,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  main(int /*LINT*/myIntegerVariable) {
+  main(int myIntegerVariable) {
     print(myIntegerVariable);
   }
 }
@@ -105,7 +105,7 @@ main([int /*LINT*/my_integer_variable]) {
 }
 ''');
     await assertHasFix('''
-main([int /*LINT*/myIntegerVariable]) {
+main([int myIntegerVariable]) {
   print(myIntegerVariable);
 }
 ''');

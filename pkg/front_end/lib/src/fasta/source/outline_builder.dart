@@ -23,7 +23,8 @@ import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 
-import 'package:kernel/ast.dart' show InvalidType, ProcedureKind, Variance;
+import 'package:kernel/ast.dart'
+    show InvalidType, Nullability, ProcedureKind, Variance;
 
 import '../builder/constructor_reference_builder.dart';
 import '../builder/enum_builder.dart';
@@ -572,6 +573,80 @@ class OutlineBuilder extends StackListenerImpl {
     final int startCharOffset =
         metadata == null ? beginToken.charOffset : metadata.first.charOffset;
 
+    if (libraryBuilder.isNonNullableByDefault &&
+        libraryBuilder.loader.performNnbdChecks) {
+      String classNameForErrors = "${name}";
+      TypeBuilder supertypeForErrors = supertype is MixinApplicationBuilder
+          ? supertype.supertype
+          : supertype;
+      List<TypeBuilder> mixins =
+          supertype is MixinApplicationBuilder ? supertype.mixins : null;
+      if (supertypeForErrors != null) {
+        if (supertypeForErrors.nullabilityBuilder.build(libraryBuilder) ==
+            Nullability.nullable) {
+          if (libraryBuilder.loader.nnbdStrongMode) {
+            libraryBuilder.addProblem(
+                templateNullableSuperclassError
+                    .withArguments(supertypeForErrors.fullNameForErrors),
+                nameOffset,
+                classNameForErrors.length,
+                uri);
+          } else {
+            libraryBuilder.addProblem(
+                templateNullableSuperclassWarning
+                    .withArguments(supertypeForErrors.fullNameForErrors),
+                nameOffset,
+                classNameForErrors.length,
+                uri);
+          }
+        }
+      }
+      if (mixins != null) {
+        for (TypeBuilder mixin in mixins) {
+          if (mixin.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            if (libraryBuilder.loader.nnbdStrongMode) {
+              libraryBuilder.addProblem(
+                  templateNullableMixinError
+                      .withArguments(mixin.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            } else {
+              libraryBuilder.addProblem(
+                  templateNullableMixinWarning
+                      .withArguments(mixin.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
+          }
+        }
+      }
+      if (interfaces != null) {
+        for (TypeBuilder interface in interfaces) {
+          if (interface.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            if (libraryBuilder.loader.nnbdStrongMode) {
+              libraryBuilder.addProblem(
+                  templateNullableInterfaceError
+                      .withArguments(interface.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            } else {
+              libraryBuilder.addProblem(
+                  templateNullableInterfaceWarning
+                      .withArguments(interface.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
+          }
+        }
+      }
+    }
+
     libraryBuilder.addClass(
         documentationComment,
         metadata,
@@ -619,6 +694,56 @@ class OutlineBuilder extends StackListenerImpl {
             supertypeConstraints.first, supertypeConstraints.skip(1).toList());
       }
     }
+
+    if (libraryBuilder.isNonNullableByDefault &&
+        libraryBuilder.loader.performNnbdChecks) {
+      String classNameForErrors = "${name}";
+      if (supertypeConstraints != null) {
+        for (TypeBuilder supertype in supertypeConstraints) {
+          if (supertype.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            if (libraryBuilder.loader.nnbdStrongMode) {
+              libraryBuilder.addProblem(
+                  templateNullableSuperclassError
+                      .withArguments(supertype.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            } else {
+              libraryBuilder.addProblem(
+                  templateNullableSuperclassWarning
+                      .withArguments(supertype.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
+          }
+        }
+      }
+      if (interfaces != null) {
+        for (TypeBuilder interface in interfaces) {
+          if (interface.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            if (libraryBuilder.loader.nnbdStrongMode) {
+              libraryBuilder.addProblem(
+                  templateNullableInterfaceError
+                      .withArguments(interface.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            } else {
+              libraryBuilder.addProblem(
+                  templateNullableInterfaceWarning
+                      .withArguments(interface.fullNameForErrors),
+                  nameOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
+          }
+        }
+      }
+    }
+
     libraryBuilder.addMixinDeclaration(
         documentationComment,
         metadata,
@@ -1101,6 +1226,76 @@ class OutlineBuilder extends StackListenerImpl {
       libraryBuilder.endNestedDeclaration(
           TypeParameterScopeKind.namedMixinApplication, "<syntax-error>");
       return;
+    }
+
+    if (libraryBuilder.isNonNullableByDefault &&
+        libraryBuilder.loader.performNnbdChecks) {
+      String classNameForErrors = "${name}";
+      MixinApplicationBuilder mixinApplicationBuilder = mixinApplication;
+      TypeBuilder supertype = mixinApplicationBuilder.supertype;
+      List<TypeBuilder> mixins = mixinApplicationBuilder.mixins;
+      if (supertype != null && supertype is! MixinApplicationBuilder) {
+        if (supertype.nullabilityBuilder.build(libraryBuilder) ==
+            Nullability.nullable) {
+          if (libraryBuilder.loader.nnbdStrongMode) {
+            libraryBuilder.addProblem(
+                templateNullableSuperclassError
+                    .withArguments(supertype.fullNameForErrors),
+                charOffset,
+                classNameForErrors.length,
+                uri);
+          } else {
+            libraryBuilder.addProblem(
+                templateNullableSuperclassWarning
+                    .withArguments(supertype.fullNameForErrors),
+                charOffset,
+                classNameForErrors.length,
+                uri);
+          }
+        }
+      }
+      for (TypeBuilder mixin in mixins) {
+        if (mixin.nullabilityBuilder.build(libraryBuilder) ==
+            Nullability.nullable) {
+          if (libraryBuilder.loader.nnbdStrongMode) {
+            libraryBuilder.addProblem(
+                templateNullableMixinError
+                    .withArguments(mixin.fullNameForErrors),
+                charOffset,
+                classNameForErrors.length,
+                uri);
+          } else {
+            libraryBuilder.addProblem(
+                templateNullableMixinWarning
+                    .withArguments(mixin.fullNameForErrors),
+                charOffset,
+                classNameForErrors.length,
+                uri);
+          }
+        }
+      }
+      if (interfaces != null) {
+        for (TypeBuilder interface in interfaces) {
+          if (interface.nullabilityBuilder.build(libraryBuilder) ==
+              Nullability.nullable) {
+            if (libraryBuilder.loader.nnbdStrongMode) {
+              libraryBuilder.addProblem(
+                  templateNullableInterfaceError
+                      .withArguments(interface.fullNameForErrors),
+                  charOffset,
+                  classNameForErrors.length,
+                  uri);
+            } else {
+              libraryBuilder.addProblem(
+                  templateNullableInterfaceWarning
+                      .withArguments(interface.fullNameForErrors),
+                  charOffset,
+                  classNameForErrors.length,
+                  uri);
+            }
+          }
+        }
+      }
     }
 
     int startCharOffset = beginToken.charOffset;

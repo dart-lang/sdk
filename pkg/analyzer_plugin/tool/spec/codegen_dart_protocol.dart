@@ -662,7 +662,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
       if (type == null) {
         writeln('return ${className.hashCode};');
       } else {
-        writeln('int hash = 0;');
+        writeln('var hash = 0;');
         for (TypeObjectField field in type.fields) {
           String valueToCombine;
           if (field.value != null) {
@@ -830,7 +830,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('@override');
     writeln('Map<String, dynamic> toJson() {');
     indent(() {
-      writeln('Map<String, dynamic> result = {};');
+      writeln('var result = <String, dynamic>{};');
       for (TypeObjectField field in type.fields) {
         String fieldNameString = literalString(field.name);
         if (field.value != null) {
@@ -1094,7 +1094,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   }
 
   @override
-  visitApi() {
+  void visitApi() {
     outputHeader(year: '2017');
     writeln();
     emitImports();

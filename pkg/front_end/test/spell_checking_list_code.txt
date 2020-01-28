@@ -6,6 +6,9 @@
 # Comments can also be inline like 'correct # this is ok'.
 # Note that at least one space before the hash is required.
 
+# Comments on a line by itself will be considered a header of the file and
+# automatic tools might move it to the top of the file.
+
 a+b
 abbreviate
 abcdef
@@ -82,6 +85,7 @@ beforehand
 behave
 bellow
 belonging
+beloning
 benchmark
 benchmarks
 bf
@@ -138,6 +142,7 @@ channel
 char
 charcode
 chars
+checkpoint
 ci
 ck
 cl
@@ -416,6 +421,7 @@ gz
 gzip
 gzipped
 h
+hadn't
 harness
 hashes
 hashing
@@ -487,6 +493,7 @@ invariants
 io
 is64
 issuecomment
+issuing
 iterables
 iterating
 iterations
@@ -503,7 +510,6 @@ json
 juxtaposition
 juxtapositions
 k
-k’s
 kallentu
 kernel
 kernel's
@@ -512,6 +518,7 @@ klass
 kmillikin
 kustermann
 kv
+k’s
 l
 lacks
 lang
@@ -564,10 +571,14 @@ md
 me
 merely
 meta
+method10a
+method10b
 method1a
 method1b
+method1c
 method2a
 method2b
+method2c
 method3a
 method3b
 method3c
@@ -586,8 +597,6 @@ method8a
 method8b
 method9a
 method9b
-method10a
-method10b
 mi
 migration
 mime
@@ -633,6 +642,9 @@ nth
 nullabilities
 nullability
 nullable
+nullable1
+nullable2
+nullable3
 nullary
 nulls
 o
@@ -684,6 +696,7 @@ paren
 parens
 parenteses
 particularly
+patchup
 path
 paulberry
 pay
@@ -743,13 +756,13 @@ quick
 quiver
 quoted
 r
+r'$creation
 r'\f
 r'\r
 r'\s
 r'\t
 r'\u
 r'\v
-r'$creation
 r0i
 r1i
 r2i
@@ -818,6 +831,7 @@ respond
 restriction
 resumed
 ret
+reusage
 rewrites
 rewrote
 rf
@@ -1064,6 +1078,7 @@ unittest
 universally
 unlinked
 unlower
+unmark
 unordered
 unpaired
 unparsed

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show HtmlEscape, HtmlEscapeMode;
+import 'dart:convert' show jsonEncode;
 
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
@@ -10,11 +10,6 @@ import 'package:path/path.dart' as path;
 
 /// The HTML that is displayed for a region of code.
 class RegionRenderer {
-  /// A converter which only escapes "&", "<", and ">". Safe for use in HTML
-  /// text, between HTML elements.
-  static const HtmlEscape _htmlEscape =
-      HtmlEscape(HtmlEscapeMode(escapeLtGt: true));
-
   /// A flag indicating whether the incremental workflow is currently supported.
   static const bool supportsIncrementalWorkflow = false;
 
@@ -40,58 +35,45 @@ class RegionRenderer {
 
   String render() {
     var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
-    var buffer = StringBuffer();
-    buffer.write('<p class="region-location">');
-    // The line number is hard to compute here, but is known in the browser.
-    // The browser will write the line number at the end of this paragraph.
-    buffer.write(unitDir);
-    buffer.write('</p>');
-    buffer.write('<p>${_htmlEscape.convert(region.explanation)}</p>');
-    //
-    // Write out any details.
-    //
-    if (region.details.isNotEmpty) {
-      buffer.write('<ul>');
-      for (var detail in region.details) {
-        buffer.write('<li>');
-        buffer.write(detail.description);
-        NavigationTarget target = detail.target;
-        if (target != null) {
-          String relativePath = _relativePathToTarget(target, unitDir);
-          String targetUri = _uriForRelativePath(relativePath, target);
-          buffer.write(' (<a href="$targetUri" class="nav-link">');
-          buffer.write(relativePath);
-          // TODO(brianwilkerson) Add the line number to the link text. This
-          //  will require that either the contents of all navigation targets
-          //  have been set or that line information has been saved.
-          buffer.write('</a>)');
-        }
-        buffer.write('</li>');
-      }
-      buffer.write('</ul>');
+
+    Map<String, String> linkForTarget(NavigationTarget target) {
+      String relativePath = _relativePathToTarget(target, unitDir);
+      String targetUri = _uriForRelativePath(relativePath, target);
+      // TODO(brianwilkerson) Add the line number to the link text. This
+      //  will require that either the contents of all navigation targets
+      //  have been set or that line information has been saved.
+      return {'text': relativePath, 'href': targetUri};
     }
-    //
-    // Write out any edits.
-    //
-    if (supportsIncrementalWorkflow && region.edits.isNotEmpty) {
-      for (EditDetail edit in region.edits) {
-        int offset = edit.offset;
-        String targetUri = Uri(
-            scheme: 'http',
-            path: pathContext.basename(unitInfo.path),
-            queryParameters: {
-              'offset': offset.toString(),
-              'end': (offset + edit.length).toString(),
-              'replacement': edit.replacement
-            }).toString();
-        buffer.write('<p>');
-        buffer.write('<a href="$targetUri" class="nav-link">');
-        buffer.write(edit.description);
-        buffer.write('</a>');
-        buffer.write('</p>');
-      }
-    }
-    return buffer.toString();
+
+    Map<String, String> linkForEdit(EditDetail edit) => {
+          'text': edit.description,
+          'href': Uri(
+              scheme: 'http',
+              path: pathContext.basename(unitInfo.path),
+              queryParameters: {
+                'offset': edit.offset.toString(),
+                'end': (edit.offset + edit.length).toString(),
+                'replacement': edit.replacement
+              }).toString()
+        };
+
+    var response = {
+      'path': unitInfo.path,
+      'line': region.lineNumber,
+      'explanation': region.explanation,
+      'details': [
+        for (var detail in region.details)
+          {
+            'description': detail.description,
+            if (detail.target != null) 'link': linkForTarget(detail.target)
+          },
+      ],
+      if (supportsIncrementalWorkflow)
+        'edits': [
+          for (var edit in region.edits) linkForEdit(edit),
+        ],
+    };
+    return jsonEncode(response);
   }
 
   /// Returns the URL that will navigate to the given [target].

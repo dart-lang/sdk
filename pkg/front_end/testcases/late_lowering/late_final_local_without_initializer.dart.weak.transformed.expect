@@ -12,7 +12,7 @@ static method main() → dynamic {
       return lateLocal = #t2;
     else
       throw new _in::LateInitializationErrorImpl::•("Local 'lateLocal' has already been initialized.");
-  self::throws(() → core::int? => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
+  self::throws(() → core::int => #lateLocal#get.call(), "Read value from uninitialized lateLocal");
   self::expect(123, #lateLocal#set.call(123));
   self::expect(123, #lateLocal#get.call());
   self::throws(() → core::int => #lateLocal#set.call(124), "Write value to initialized lateLocal");
@@ -28,7 +28,7 @@ static method main() → dynamic {
         #lateGenericLocal#isSet = true;
         return lateGenericLocal = #t3;
       }
-    self::throws(() → T? => #lateGenericLocal#get.call(), "Read value from uninitialized lateGenericLocal");
+    self::throws(() → T% => #lateGenericLocal#get.call(), "Read value from uninitialized lateGenericLocal");
     self::expect(value, #lateGenericLocal#set.call(value));
     self::expect(value, #lateGenericLocal#get.call());
     self::throws(() → T% => #lateGenericLocal#set.call(value), "Write value to initialized lateGenericLocal");

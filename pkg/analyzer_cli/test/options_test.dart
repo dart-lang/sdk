@@ -12,7 +12,7 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   group('CommandLineOptions', () {
     group('parse', () {
       StringBuffer outStringBuffer = StringBuffer();
@@ -282,7 +282,7 @@ class AbstractStatusTest {
   int savedExitCode;
   ExitHandler savedExitHandler;
 
-  setUp() {
+  void setUp() {
     savedOutSink = outSink;
     savedErrorSink = errorSink;
     savedExitHandler = exitHandler;
@@ -294,7 +294,7 @@ class AbstractStatusTest {
     errorSink = errorStringBuffer;
   }
 
-  tearDown() {
+  void tearDown() {
     outSink = savedOutSink;
     errorSink = savedErrorSink;
     exitCode = savedExitCode;
@@ -306,7 +306,7 @@ class AbstractStatusTest {
 class CommandLineOptionsTest extends AbstractStatusTest {
   CommandLineOptions options;
 
-  test_buildAnalysisOutput() {
+  void test_buildAnalysisOutput() {
     _parse([
       '--build-mode',
       '--build-analysis-output=//path/to/output.analysis',
@@ -316,18 +316,18 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.buildAnalysisOutput, '//path/to/output.analysis');
   }
 
-  test_buildMode() {
+  void test_buildMode() {
     _parse(['--build-mode', 'package:p/foo.dart|/path/to/p/lib/foo.dart']);
     expect(options.buildMode, isTrue);
   }
 
-  test_buildMode_allowsEmptyFileList() {
+  void test_buildMode_allowsEmptyFileList() {
     _parse(['--build-mode']);
     expect(options.buildMode, isTrue);
     expect(options.sourceFiles, isEmpty);
   }
 
-  test_buildSummaryInputs_commaSeparated() {
+  void test_buildSummaryInputs_commaSeparated() {
     _parse([
       '--build-mode',
       '--build-summary-input=/path/to/aaa.sum,/path/to/bbb.sum',
@@ -338,7 +338,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
 
-  test_buildSummaryInputs_commaSeparated_normalMode() {
+  void test_buildSummaryInputs_commaSeparated_normalMode() {
     _parse([
       '--build-summary-input=/path/to/aaa.sum,/path/to/bbb.sum',
       '/path/to/p/lib/foo.dart'
@@ -348,7 +348,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
 
-  test_buildSummaryInputs_separateFlags() {
+  void test_buildSummaryInputs_separateFlags() {
     _parse([
       '--build-mode',
       '--build-summary-input=/path/to/aaa.sum',
@@ -360,7 +360,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
 
-  test_buildSummaryInputs_separateFlags_normalMode() {
+  void test_buildSummaryInputs_separateFlags_normalMode() {
     _parse([
       '--build-summary-input=/path/to/aaa.sum',
       '--build-summary-input=/path/to/bbb.sum',
@@ -371,7 +371,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
         options.buildSummaryInputs, ['/path/to/aaa.sum', '/path/to/bbb.sum']);
   }
 
-  test_buildSummaryOnly() {
+  void test_buildSummaryOnly() {
     _parse([
       '--build-mode',
       '--build-summary-output=/path/to/aaa.sum',
@@ -382,7 +382,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.buildSummaryOnly, isTrue);
   }
 
-  test_buildSummaryOutput() {
+  void test_buildSummaryOutput() {
     _parse([
       '--build-mode',
       '--build-summary-output=//path/to/output.sum',
@@ -392,7 +392,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.buildSummaryOutput, '//path/to/output.sum');
   }
 
-  test_buildSummaryOutputSemantic() {
+  void test_buildSummaryOutputSemantic() {
     _parse([
       '--build-mode',
       '--build-summary-output-semantic=//path/to/output.sum',
@@ -402,7 +402,7 @@ class CommandLineOptionsTest extends AbstractStatusTest {
     expect(options.buildSummaryOutputSemantic, '//path/to/output.sum');
   }
 
-  test_buildSuppressExitCode() {
+  void test_buildSuppressExitCode() {
     _parse([
       '--build-mode',
       '--build-suppress-exit-code',

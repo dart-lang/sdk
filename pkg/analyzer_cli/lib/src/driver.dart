@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:isolate';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -158,9 +159,12 @@ class Driver with HasContextMixin implements CommandLineStarter {
       print('\nGenerating strong mode summary...');
       final Stopwatch stopwatch = Stopwatch()..start();
 
-      SummaryBuilder.forSdk(options.dartSdkPath).build();
-      SummaryBuilder.forSdk(options.dartSdkPath).build();
-      SummaryBuilder.forSdk(options.dartSdkPath).build();
+      for (var i = 0; i < 3; i++) {
+        var featureSet = FeatureSet.fromEnableFlags([]);
+        SummaryBuilder.forSdk(options.dartSdkPath).build(
+          featureSet: featureSet,
+        );
+      }
 
       print('Done in ${stopwatch.elapsedMilliseconds} ms.');
     }

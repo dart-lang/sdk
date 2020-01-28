@@ -84,7 +84,10 @@ f(int x) {
 
     assertPrefixExpression(
       findNode.prefix('-x'),
-      element: intElement.getMethod('unary-'),
+      element: elementMatcher(
+        intElement.getMethod('unary-'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'int',
     );
   }
@@ -122,7 +125,10 @@ f(int x) {
 
     assertPrefixExpression(
       findNode.prefix('++x'),
-      element: numElement.getMethod('+'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'int',
     );
   }
@@ -140,7 +146,10 @@ class M1 {
 
     assertPrefixExpression(
       findNode.prefix('++x'),
-      element: numElement.getMethod('+'),
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'int',
     );
   }
@@ -154,7 +163,10 @@ f(int x) {
 
     assertPrefixExpression(
       findNode.prefix('~x'),
-      element: intElement.getMethod('~'),
+      element: elementMatcher(
+        intElement.getMethod('~'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
       type: 'int',
     );
   }

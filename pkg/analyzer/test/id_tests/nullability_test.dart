@@ -80,8 +80,8 @@ class _NullabilityDataExtractor extends AstDataExtractor<String> {
         TypeImpl declaredType = (element as VariableElement).type;
         var isPromoted = promotedType != declaredType;
         if (isPromoted &&
-            _typeSystem.isNullable(declaredType) &&
-            !_typeSystem.isNullable(promotedType)) {
+            _typeSystem.isPotentiallyNullable(declaredType) &&
+            !_typeSystem.isPotentiallyNullable(promotedType)) {
           return 'nonNullable';
         }
       }

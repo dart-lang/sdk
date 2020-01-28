@@ -27,19 +27,26 @@ void warmup() {
   fn = _TopLevelClosure;
 }
 
-eval(Isolate isolate, String expression) async {
+@pragma("vm:entry-point")
+getX() => x;
+
+@pragma("vm:entry-point")
+getFn() => fn;
+
+invoke(Isolate isolate, String selector) async {
   Map params = {
     'targetId': isolate.rootLibrary.id,
-    'expression': expression,
+    'selector': selector,
+    'argumentIds': <String>[],
   };
-  return await isolate.invokeRpcNoUpgrade('evaluate', params);
+  return await isolate.invokeRpcNoUpgrade('invoke', params);
 }
 
 var tests = <IsolateTest>[
   // Expect a simple path through variable x instead of long path filled
   // with VM objects
   (Isolate isolate) async {
-    var target1 = await eval(isolate, 'x');
+    var target1 = await invoke(isolate, 'getX');
     var params = {
       'targetId': target1['id'],
       'limit': 100,
@@ -54,7 +61,7 @@ var tests = <IsolateTest>[
   // Expect a simple path through variable fn instead of long path filled
   // with VM objects
   (Isolate isolate) async {
-    var target2 = await eval(isolate, 'fn');
+    var target2 = await invoke(isolate, 'getFn');
     var params = {
       'targetId': target2['id'],
       'limit': 100,

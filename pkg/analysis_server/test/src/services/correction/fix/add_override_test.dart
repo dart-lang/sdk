@@ -38,7 +38,7 @@ class abstract Test {
 }
 class Sub extends Test {
   @override
-  int /*LINT*/t = 42;
+  int t = 42;
 }
 ''');
   }
@@ -58,7 +58,7 @@ class Test {
 }
 class Sub extends Test {
   @override
-  int get /*LINT*/t => null;
+  int get t => null;
 }
 ''');
   }
@@ -78,7 +78,7 @@ class Test {
 }
 class Sub extends Test {
   @override
-  void /*LINT*/t() { }
+  void t() { }
 }
 ''');
   }
@@ -100,7 +100,7 @@ class Test {
 class Sub extends Test {
   /// Doc comment.
   @override
-  void /*LINT*/t() { }
+  void t() { }
 }
 ''');
   }
@@ -126,7 +126,7 @@ class Sub extends Test {
    * Doc comment.
    */
   @override
-  void /*LINT*/t() { }
+  void t() { }
 }
 ''');
   }
@@ -150,7 +150,7 @@ class Sub extends Test {
   /// Doc comment.
   @override
   @foo
-  void /*LINT*/t() { }
+  void t() { }
 }
 ''');
   }
@@ -172,7 +172,7 @@ class Test {
 class Sub extends Test {
   // Non-doc comment.
   @override
-  void /*LINT*/t() { }
+  void t() { }
 }
 ''');
   }

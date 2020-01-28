@@ -79,9 +79,9 @@ class Class2b extends LegacyClass implements Interface {
 
   int method3a(int a, int b) => 0;
 
-  int method3b(int a, [int b]) => 0;
+  int method3b(int a, [int b = 42]) => 0;
 
-  int method3c([int a, int b]) => 0;
+  int method3c([int a = 42, int b = 42]) => 0;
 
   int? method4a(int? a, int? b) => 0;
 

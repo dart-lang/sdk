@@ -199,7 +199,7 @@ class _Double implements double {
   static const int CACHE_LENGTH = 1 << (CACHE_SIZE_LOG2 + 1);
   static const int CACHE_MASK = CACHE_LENGTH - 1;
   // Each key (double) followed by its toString result.
-  static final List _cache = new List(CACHE_LENGTH);
+  static final List _cache = new List.filled(CACHE_LENGTH, null);
   static int _cacheEvictIndex = 0;
 
   String _toString() native "Double_toString";

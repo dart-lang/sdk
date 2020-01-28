@@ -572,7 +572,7 @@ class TakeWhileIterator<E> extends Iterator<E> {
   }
 
   E get current {
-    if (_isFinished) throw IterableElementError.noElement();
+    if (_isFinished) return null as E;
     return _iterator.current;
   }
 }

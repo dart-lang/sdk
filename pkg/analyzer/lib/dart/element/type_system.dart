@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:meta/meta.dart';
 
@@ -32,6 +34,17 @@ abstract class TypeSystem {
   ///
   /// Other type systems may define this operation differently.
   DartType flatten(DartType type);
+
+  /// Instantiate the given generic element using the type arguments that
+  /// correspond to the bounds of its type parameters.
+  ///
+  /// One and only one of [classElement] or [functionTypeAliasElement] must
+  /// be provided.
+  DartType instantiateToBounds2({
+    ClassElement classElement,
+    FunctionTypeAliasElement functionTypeAliasElement,
+    @required NullabilitySuffix nullabilitySuffix,
+  });
 
   /// Return `true` if the [leftType] is assignable to the [rightType].
   ///

@@ -34,8 +34,8 @@ class A extends core::Object {
 static method main() → dynamic {
   self::Class? c;
   self::throws(() → self::A => c.{self::Class::nonNullableField});
-  self::expect(null, let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::A} null : #t1{self::Class}.{self::Class::nonNullableField});
-  self::expect(null, let final self::Class? #t2 = c in #t2.{core::Object::==}(null) ?{self::A} null : #t2{self::Class}.{self::Class::nonNullableField}.{self::A::nonNullableProperty});
+  self::expect(null, let final self::Class? #t1 = c in #t1.{core::Object::==}(null) ?{self::A?} null : #t1{self::Class}.{self::Class::nonNullableField});
+  self::expect(null, let final self::Class? #t2 = c in #t2.{core::Object::==}(null) ?{self::A?} null : #t2{self::Class}.{self::Class::nonNullableField}.{self::A::nonNullableProperty});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!expected.{core::Object::==}(actual))

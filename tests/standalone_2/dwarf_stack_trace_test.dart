@@ -7,10 +7,9 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:native_stack_traces/native_stack_traces.dart';
 import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
-import 'package:vm/dwarf/convert.dart';
-import 'package:vm/dwarf/dwarf.dart';
 
 @pragma("vm:prefer-inline")
 bar() {
@@ -58,24 +57,28 @@ Future<void> checkStackTrace(String rawStack, Dwarf dwarf,
   final rawLines =
       await Stream.value(rawStack).transform(const LineSplitter()).toList();
 
-  final pcAddresses =
-      collectPCOffsets(rawLines).map((pc) => pc.virtualAddress(dwarf)).toList();
+  final pcOffsets = collectPCOffsets(rawLines).toList();
 
   // We should have at least enough PC addresses to cover the frames we'll be
   // checking.
-  expect(pcAddresses.length, greaterThanOrEqualTo(expectedAllCallsInfo.length));
+  expect(pcOffsets.length, greaterThanOrEqualTo(expectedAllCallsInfo.length));
 
-  final externalFramesInfo =
-      pcAddresses.map((i) => dwarf.callInfo(i)?.toList()).toList();
+  final virtualAddresses =
+      pcOffsets.map((o) => dwarf.virtualAddressOf(o)).toList();
 
-  final allFramesInfo = pcAddresses
-      .map((i) => dwarf.callInfo(i, includeInternalFrames: true)?.toList())
-      .toList();
+  final externalFramesInfo = <List<CallInfo>>[];
+  final allFramesInfo = <List<CallInfo>>[];
+
+  for (final addr in virtualAddresses) {
+    externalFramesInfo.add(dwarf.callInfoFor(addr)?.toList());
+    allFramesInfo
+        .add(dwarf.callInfoFor(addr, includeInternalFrames: true)?.toList());
+  }
 
   print("");
   print("Call information for PC addresses:");
-  for (var i = 0; i < pcAddresses.length; i++) {
-    print("For PC 0x${pcAddresses[i].toRadixString(16)}:");
+  for (var i = 0; i < virtualAddresses.length; i++) {
+    print("For PC 0x${virtualAddresses[i].toRadixString(16)}:");
     print("  Calls corresponding to user or library code:");
     externalFramesInfo[i]?.forEach((frame) => print("    ${frame}"));
     print("  All calls:");
@@ -144,12 +147,12 @@ final expectedCallsInfo = <List<CallInfo>>[
     CallInfo(
         function: "bar",
         filename: "dwarf_stack_trace_test.dart",
-        line: 18,
+        line: 17,
         inlined: true),
     CallInfo(
         function: "foo",
         filename: "dwarf_stack_trace_test.dart",
-        line: 24,
+        line: 23,
         inlined: false)
   ],
   // The second frame corresponds to call to foo in main.
@@ -157,7 +160,7 @@ final expectedCallsInfo = <List<CallInfo>>[
     CallInfo(
         function: "main",
         filename: "dwarf_stack_trace_test.dart",
-        line: 30,
+        line: 29,
         inlined: false)
   ],
   // Don't assume anything about any of the frames below the call to foo

@@ -43,7 +43,7 @@ class _TimerHeap {
   void remove(_Timer timer) {
     _used--;
     if (isEmpty) {
-      _list[0] = null;
+      _list[0] = _Timer._sentinelTimer;
       timer._indexOrNext = null;
       return;
     }
@@ -57,7 +57,7 @@ class _TimerHeap {
         _bubbleDown(last);
       }
     }
-    _list[_used] = null;
+    _list[_used] = _Timer._sentinelTimer;
     timer._indexOrNext = null;
   }
 
@@ -273,7 +273,7 @@ class _Timer implements Timer {
   // Handle the notification of a zero timer. Make sure to also execute non-zero
   // timers with a lower expiration time.
   static List _queueFromZeroEvent() {
-    var pendingTimers = [];
+    var pendingTimers = <dynamic>[];
     final firstTimer = _firstZeroTimer;
     if (firstTimer != null) {
       // Collect pending timers from the timer heap that have an expiration prior
@@ -324,7 +324,7 @@ class _Timer implements Timer {
   }
 
   static List _queueFromTimeoutEvent() {
-    var pendingTimers = new List();
+    var pendingTimers = [];
     final firstTimer = _firstZeroTimer;
     if (firstTimer != null) {
       // Collect pending timers from the timer heap that have an expiration

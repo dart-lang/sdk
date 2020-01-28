@@ -4,19 +4,19 @@
 
 import 'dart:async' show Future;
 
-import 'dart:io' show File;
+import 'dart:io' show File, Platform, stdin, stdout;
 
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show ErrorToken;
 
-import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
-    show Utf8BytesScanner;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, KeywordToken, BeginToken;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+
+import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
+    show Utf8BytesScanner;
 
 import 'package:front_end/src/fasta/command_line_reporting.dart'
     as command_line_reporting;
@@ -32,6 +32,10 @@ abstract class SpellContext extends ChainContext {
   final List<Step> steps = const <Step>[
     const SpellTest(),
   ];
+
+  final bool interactive;
+
+  SpellContext({this.interactive});
 
   // Override special handling of negative tests.
   @override
@@ -64,15 +68,91 @@ abstract class SpellContext extends ChainContext {
       print("================");
       print("The following word(s) were reported as unknown:");
       print("----------------");
-      for (String s in reportedWords) {
-        print("$s");
-      }
-      if (dictionaries.isNotEmpty) {
-        print("----------------");
-        print("If the word(s) are correctly spelled please add it to one of "
-            "these files:");
+
+      spell.Dictionaries dictionaryToUse;
+      if (dictionaries.contains(spell.Dictionaries.cfeTests)) {
+        dictionaryToUse = spell.Dictionaries.cfeTests;
+      } else if (dictionaries.contains(spell.Dictionaries.cfeMessages)) {
+        dictionaryToUse = spell.Dictionaries.cfeMessages;
+      } else if (dictionaries.contains(spell.Dictionaries.cfeCode)) {
+        dictionaryToUse = spell.Dictionaries.cfeCode;
+      } else {
         for (spell.Dictionaries dictionary in dictionaries) {
-          print(" - ${spell.dictionaryToUri(dictionary)}");
+          if (dictionaryToUse == null ||
+              dictionary.index < dictionaryToUse.index) {
+            dictionaryToUse = dictionary;
+          }
+        }
+      }
+
+      if (interactive && dictionaryToUse != null) {
+        List<String> addedWords = new List<String>();
+        for (String s in reportedWords) {
+          print("- $s");
+          stdout.write("Do you want to add the word to the dictionary "
+              "$dictionaryToUse (y/n)? ");
+          String answer = stdin.readLineSync().trim().toLowerCase();
+          bool add;
+          switch (answer) {
+            case "y":
+            case "yes":
+            case "true":
+              add = true;
+              break;
+            case "n":
+            case "no":
+            case "false":
+              add = false;
+              break;
+            default:
+              throw "Didn't understand '$answer'";
+          }
+          if (add) {
+            addedWords.add(s);
+          }
+        }
+        if (addedWords.isNotEmpty) {
+          File dictionaryFile =
+              new File.fromUri(spell.dictionaryToUri(dictionaryToUse));
+          List<String> lines = dictionaryFile.readAsLinesSync();
+          List<String> header = new List<String>();
+          List<String> sortThis = new List<String>();
+          for (String line in lines) {
+            if (line.startsWith("#")) {
+              header.add(line);
+            } else if (line.trim().isEmpty && sortThis.isEmpty) {
+              header.add(line);
+            } else if (line.trim().isNotEmpty) {
+              sortThis.add(line);
+            }
+          }
+          sortThis.addAll(addedWords);
+          sortThis.sort();
+          lines = new List<String>();
+          lines.addAll(header);
+          if (header.isEmpty || header.last.isNotEmpty) {
+            lines.add("");
+          }
+          lines.addAll(sortThis);
+          lines.add("");
+          dictionaryFile.writeAsStringSync(lines.join("\n"));
+        }
+      } else {
+        for (String s in reportedWords) {
+          print("$s");
+        }
+        if (dictionaries.isNotEmpty) {
+          print("----------------");
+          print("If the word(s) are correctly spelled please add it to one of "
+              "these files:");
+          for (spell.Dictionaries dictionary in dictionaries) {
+            print(" - ${spell.dictionaryToUri(dictionary)}");
+          }
+
+          print("");
+          print("To add words easily, try to run this script in interactive "
+              "mode via the command");
+          print("dart ${Platform.script.toFilePath()} -Dinteractive=true");
         }
       }
       print("================");

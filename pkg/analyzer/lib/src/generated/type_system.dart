@@ -16,6 +16,7 @@ import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
+import 'package:analyzer/src/dart/element/normalize.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -97,24 +98,24 @@ class Dart2TypeSystem extends TypeSystem {
     @required this.typeProvider,
   }) : super(isNonNullableByDefault: isNonNullableByDefault);
 
+  InterfaceTypeImpl get nullNone =>
+      _nullNoneCached ??= (typeProvider.nullType as TypeImpl)
+          .withNullability(NullabilitySuffix.none);
+
+  InterfaceTypeImpl get objectNone =>
+      _objectNoneCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.none);
+
+  InterfaceTypeImpl get objectQuestion =>
+      _objectQuestionCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.question);
+
   InterfaceType get _interfaceTypeFunctionNone {
     return typeProvider.functionType.element.instantiate(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
-
-  InterfaceTypeImpl get _nullNone =>
-      _nullNoneCached ??= (typeProvider.nullType as TypeImpl)
-          .withNullability(NullabilitySuffix.none);
-
-  InterfaceTypeImpl get _objectNone =>
-      _objectNoneCached ??= (typeProvider.objectType as TypeImpl)
-          .withNullability(NullabilitySuffix.none);
-
-  InterfaceTypeImpl get _objectQuestion =>
-      _objectQuestionCached ??= (typeProvider.objectType as TypeImpl)
-          .withNullability(NullabilitySuffix.question);
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -234,8 +235,8 @@ class Dart2TypeSystem extends TypeSystem {
     if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull) {
       // * Null if Null <: T2
       // * Never otherwise
-      if (isSubtypeOf(_nullNone, T2)) {
-        return _nullNone;
+      if (isSubtypeOf(nullNone, T2)) {
+        return nullNone;
       } else {
         return NeverTypeImpl.instance;
       }
@@ -245,8 +246,8 @@ class Dart2TypeSystem extends TypeSystem {
     if (T2_nullability == NullabilitySuffix.none && T2.isDartCoreNull) {
       // * Null if Null <: T1
       // * Never otherwise
-      if (isSubtypeOf(_nullNone, T1)) {
-        return _nullNone;
+      if (isSubtypeOf(nullNone, T1)) {
+        return nullNone;
       } else {
         return NeverTypeImpl.instance;
       }
@@ -580,7 +581,7 @@ class Dart2TypeSystem extends TypeSystem {
     // UP(T Function<...>(...), T2) = Object
     // UP(T1, T Function<...>(...)) = Object
     if (T1 is FunctionType || T2 is FunctionType) {
-      return _objectNone;
+      return objectNone;
     }
 
     // UP(T1, T2) = T2 if T1 <: T2
@@ -713,6 +714,35 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     return instantiateType(type, arguments);
+  }
+
+  @override
+  DartType instantiateToBounds2({
+    ClassElement classElement,
+    FunctionTypeAliasElement functionTypeAliasElement,
+    @required NullabilitySuffix nullabilitySuffix,
+  }) {
+    if (classElement != null) {
+      var typeParameters = classElement.typeParameters;
+      var typeArguments = _defaultTypeArguments(typeParameters);
+      var type = classElement.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
+      type = toLegacyType(type);
+      return type;
+    } else if (functionTypeAliasElement != null) {
+      var typeParameters = functionTypeAliasElement.typeParameters;
+      var typeArguments = _defaultTypeArguments(typeParameters);
+      var type = functionTypeAliasElement.instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: nullabilitySuffix,
+      );
+      type = toLegacyType(type);
+      return type;
+    } else {
+      throw ArgumentError('Missing element');
+    }
   }
 
   /**
@@ -1201,7 +1231,7 @@ class Dart2TypeSystem extends TypeSystem {
     //   then `T0 <: T1` if `Object? <: T1`.
     if (identical(T0, DynamicTypeImpl.instance) ||
         identical(T0, VoidTypeImpl.instance)) {
-      if (isSubtypeOf(_objectQuestion, T1)) {
+      if (isSubtypeOf(objectQuestion, T1)) {
         return true;
       }
     }
@@ -1221,8 +1251,8 @@ class Dart2TypeSystem extends TypeSystem {
       //   then `T0 <: T1`iff `S <: Object`.
       if (T0_nullability == NullabilitySuffix.none &&
           T0 is TypeParameterTypeImpl) {
-        var bound = T0.element.bound ?? _objectQuestion;
-        return isSubtypeOf(bound, _objectNone);
+        var bound = T0.element.bound ?? objectQuestion;
+        return isSubtypeOf(bound, objectNone);
       }
       // * if `T0` is `FutureOr<S>` for some `S`,
       //   then `T0 <: T1` iff `S <: Object`
@@ -1259,7 +1289,7 @@ class Dart2TypeSystem extends TypeSystem {
           T1 is InterfaceTypeImpl &&
           T1.isDartAsyncFutureOr) {
         var S = T1.typeArguments[0];
-        return isSubtypeOf(_nullNone, S);
+        return isSubtypeOf(nullNone, S);
       }
       // If `T1` is `Null`, `S?` or `S*` for some `S`, then the query is true.
       if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull ||
@@ -1309,15 +1339,15 @@ class Dart2TypeSystem extends TypeSystem {
     //   * `T0 <: T1` iff `S0 <: T1` and `Null <: T1`.
     if (T0_nullability == NullabilitySuffix.question) {
       var S0 = T0.withNullability(NullabilitySuffix.none);
-      return isSubtypeOf(S0, T1) && isSubtypeOf(_nullNone, T1);
+      return isSubtypeOf(S0, T1) && isSubtypeOf(nullNone, T1);
     }
 
     // Right Promoted Variable: if `T1` is a promoted type variable `X1 & S1`:
     //   * `T0 <: T1` iff `T0 <: X1` and `T0 <: S1`
     if (T0 is TypeParameterTypeImpl) {
       if (T1 is TypeParameterTypeImpl && T0.definition == T1.definition) {
-        var S0 = T0.element.bound ?? _objectQuestion;
-        var S1 = T1.element.bound ?? _objectQuestion;
+        var S0 = T0.element.bound ?? objectQuestion;
+        var S1 = T1.element.bound ?? objectQuestion;
         if (isSubtypeOf(S0, S1)) {
           return true;
         }
@@ -1350,7 +1380,7 @@ class Dart2TypeSystem extends TypeSystem {
       // * or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
       // * or `T0` is `X0 & S0` and `S0 <: T1`
       if (T0 is TypeParameterTypeImpl) {
-        var S0 = T0.element.bound ?? _objectQuestion;
+        var S0 = T0.element.bound ?? objectQuestion;
         if (isSubtypeOf(S0, T1)) {
           return true;
         }
@@ -1368,13 +1398,13 @@ class Dart2TypeSystem extends TypeSystem {
         return true;
       }
       // * or `T0 <: Null`
-      if (isSubtypeOf(T0, _nullNone)) {
+      if (isSubtypeOf(T0, nullNone)) {
         return true;
       }
       // or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
       // or `T0` is `X0 & S0` and `S0 <: T1`
       if (T0 is TypeParameterTypeImpl) {
-        var S0 = T0.element.bound ?? _objectQuestion;
+        var S0 = T0.element.bound ?? objectQuestion;
         return isSubtypeOf(S0, T1);
       }
       // iff
@@ -1393,7 +1423,7 @@ class Dart2TypeSystem extends TypeSystem {
     // Left Type Variable Bound: `T0` is a type variable `X0` with bound `B0`
     //   * and `B0 <: T1`
     if (T0 is TypeParameterTypeImpl) {
-      var S0 = T0.element.bound ?? _objectQuestion;
+      var S0 = T0.element.bound ?? objectQuestion;
       if (isSubtypeOf(S0, T1)) {
         return true;
       }
@@ -1453,235 +1483,7 @@ class Dart2TypeSystem extends TypeSystem {
    * See `resources/type-system/normalization.md`
    */
   DartType normalize(DartType T) {
-    var T_impl = T as TypeImpl;
-    var T_nullability = T_impl.nullabilitySuffix;
-
-    // NORM(T) = T if T is primitive
-    if (identical(T, DynamicTypeImpl.instance) ||
-        identical(T, NeverTypeImpl.instance) ||
-        identical(T, VoidTypeImpl.instance) ||
-        T is InterfaceType &&
-            T_nullability == NullabilitySuffix.none &&
-            T.typeArguments.isEmpty) {
-      return T;
-    }
-
-    // NORM(FutureOr<T>)
-    if (T is InterfaceType &&
-        T.isDartAsyncFutureOr &&
-        T_nullability == NullabilitySuffix.none) {
-      // * let S be NORM(T)
-      var S = normalize(T.typeArguments[0]);
-      var S_impl = S as TypeImpl;
-      var S_nullability = (S_impl).nullabilitySuffix;
-      // * if S is a top type then S
-      if (isTop(S)) {
-        return S;
-      }
-      // * if S is Object then S
-      // * if S is Object* then S
-      if (S.isDartCoreObject) {
-        if (S_nullability == NullabilitySuffix.none ||
-            S_nullability == NullabilitySuffix.star) {
-          return S;
-        }
-      }
-      // * if S is Never then Future<Never>
-      if (identical(S, NeverTypeImpl.instance)) {
-        return typeProvider.futureElement.instantiate(
-          typeArguments: [NeverTypeImpl.instance],
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
-      }
-      // * if S is Null then Future<Null>?
-      if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
-        return typeProvider.futureElement.instantiate(
-          typeArguments: [_nullNone],
-          nullabilitySuffix: NullabilitySuffix.question,
-        );
-      }
-      // * else FutureOr<S>
-      return typeProvider.futureOrElement.instantiate(
-        typeArguments: [S],
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }
-
-    // NORM(T?)
-    if (T_nullability == NullabilitySuffix.question) {
-      // * let S be NORM(T)
-      var T_none = T_impl.withNullability(NullabilitySuffix.none);
-      var S = normalize(T_none);
-      var S_impl = S as TypeImpl;
-      var S_nullability = (S_impl).nullabilitySuffix;
-      // * if S is a top type then S
-      if (isTop(S)) {
-        return S;
-      }
-      // * if S is Never then Null
-      if (identical(S, NeverTypeImpl.instance)) {
-        return _nullNone;
-      }
-      // * if S is Never* then Null
-      if (identical(S, NeverTypeImpl.instanceLegacy)) {
-        return _nullNone;
-      }
-      // * if S is Null then Null
-      if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
-        return _nullNone;
-      }
-      // * if S is FutureOr<R> and R is nullable then S
-      if (S is InterfaceType &&
-          S.isDartAsyncFutureOr &&
-          S_nullability == NullabilitySuffix.none) {
-        var R = S.typeArguments[0];
-        if (isNullable(R)) {
-          return S;
-        }
-      }
-      // * if S is FutureOr<R>* and R is nullable then FutureOr<R>
-      if (S is InterfaceType &&
-          S.isDartAsyncFutureOr &&
-          S_nullability == NullabilitySuffix.star) {
-        var R = S.typeArguments[0];
-        if (isNullable(R)) {
-          return typeProvider.futureOrElement.instantiate(
-            typeArguments: [R],
-            nullabilitySuffix: NullabilitySuffix.none,
-          );
-        }
-      }
-      // * if S is R? then R?
-      // * if S is R* then R?
-      // * else S?
-      return S_impl.withNullability(NullabilitySuffix.question);
-    }
-
-    // NORM(T*)
-    if (T_nullability == NullabilitySuffix.star) {
-      // * let S be NORM(T)
-      var T_none = T_impl.withNullability(NullabilitySuffix.none);
-      var S = normalize(T_none);
-      var S_impl = S as TypeImpl;
-      var S_nullability = (S_impl).nullabilitySuffix;
-      // * if S is a top type then S
-      if (isTop(S)) {
-        return S;
-      }
-      // * if S is Null then Null
-      if (S_nullability == NullabilitySuffix.none && S.isDartCoreNull) {
-        return _nullNone;
-      }
-      // * if S is R? then R?
-      if (S_nullability == NullabilitySuffix.question) {
-        return S;
-      }
-      // * if S is R* then R*
-      // * else S*
-      return S_impl.withNullability(NullabilitySuffix.star);
-    }
-
-    assert(T_nullability == NullabilitySuffix.none);
-
-    // NORM(X extends T)
-    // NORM(X & T)
-    if (T is TypeParameterType) {
-      var element = T.element;
-      var bound = element.bound;
-      if (bound != null) {
-        if (element is TypeParameterMember) {
-          // NORM(X & T)
-          // * let S be NORM(T)
-          var S = normalize(bound);
-          // * if S is Never then Never
-          if (identical(S, NeverTypeImpl.instance)) {
-            return NeverTypeImpl.instance;
-          }
-          // * if S is a top type then X
-          if (isTop(S)) {
-            return element.declaration.instantiate(
-              nullabilitySuffix: NullabilitySuffix.none,
-            );
-          }
-          // * if S is X then X
-          if (S is TypeParameterTypeImpl &&
-              S.nullabilitySuffix == NullabilitySuffix.none &&
-              S.element == element.declaration) {
-            return element.declaration.instantiate(
-              nullabilitySuffix: NullabilitySuffix.none,
-            );
-          }
-          // * if S is Object and NORM(B) is Object where B is the bound of X then X
-          if (S.nullabilitySuffix == NullabilitySuffix.none &&
-              S.isDartCoreObject) {
-            var B = element.declaration.bound;
-            if (B != null) {
-              var B_norm = normalize(B);
-              if (B_norm.nullabilitySuffix == NullabilitySuffix.none &&
-                  B_norm.isDartCoreObject) {
-                return element.declaration.instantiate(
-                  nullabilitySuffix: NullabilitySuffix.none,
-                );
-              }
-            }
-          }
-          // * else X & S
-          var promoted = TypeParameterMember(
-            element.declaration,
-            Substitution.empty,
-            S,
-          );
-          return promoted.instantiate(
-            nullabilitySuffix: NullabilitySuffix.none,
-          );
-        } else {
-          // NORM(X extends T)
-          // * let S be NORM(T)
-          var S = normalize(bound);
-          // * if S is Never then Never
-          if (identical(S, NeverTypeImpl.instance)) {
-            return NeverTypeImpl.instance;
-          }
-          // * else X extends S
-          var promoted = TypeParameterMember(element, Substitution.empty, S);
-          return promoted.instantiate(
-            nullabilitySuffix: NullabilitySuffix.none,
-          );
-        }
-      } else {
-        return T;
-      }
-    }
-
-    // NORM(C<T0, ..., Tn>) = C<R0, ..., Rn> where Ri is NORM(Ti)
-    if (T is InterfaceType) {
-      return T.element.instantiate(
-        typeArguments: T.typeArguments.map(normalize).toList(),
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-    }
-
-    // NORM(R Function<X extends B>(S)) = R1 Function(X extends B1>(S1)
-    var functionType = T as FunctionType;
-    return FunctionTypeImpl(
-      typeFormals: functionType.typeFormals.map((e) {
-        var newTypeParameter = TypeParameterElementImpl.synthetic(e.name);
-        if (e.bound != null) {
-          newTypeParameter.bound = normalize(e.bound);
-        }
-        return newTypeParameter;
-      }).toList(),
-      parameters: functionType.parameters.map((e) {
-        return ParameterElementImpl.synthetic(
-          e.name,
-          normalize(e.type),
-          // ignore: deprecated_member_use_from_same_package
-          e.parameterKind,
-        );
-      }).toList(),
-      returnType: normalize(functionType.returnType),
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    return NormalizeHelper(this).normalize(T);
   }
 
   @override
@@ -1719,6 +1521,11 @@ class Dart2TypeSystem extends TypeSystem {
         .refineBinaryExpressionType(leftType, operator, rightType, currentType);
   }
 
+  DartType toLegacyType(DartType type) {
+    if (isNonNullableByDefault) return type;
+    return NullabilityEliminator.perform(typeProvider, type);
+  }
+
   /**
    * Merges two types into a single type.
    * Compute the canonical representation of [T].
@@ -1728,7 +1535,7 @@ class Dart2TypeSystem extends TypeSystem {
    * See `#classes-defined-in-opted-in-libraries`
    */
   DartType topMerge(DartType T, DartType S) {
-    return TopMergeHelper.topMerge(T, S);
+    return TopMergeHelper(this).topMerge(T, S);
   }
 
   @override
@@ -1759,6 +1566,15 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     return null;
+  }
+
+  List<DartType> _defaultTypeArguments(
+    List<TypeParameterElement> typeParameters,
+  ) {
+    return typeParameters.map((typeParameter) {
+      var typeParameterImpl = typeParameter as TypeParameterElementImpl;
+      return typeParameterImpl.defaultType;
+    }).toList();
   }
 
   /**

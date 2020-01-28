@@ -83,7 +83,7 @@ class AnalysisErrorFixes implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['error'] = error.toJson();
     result['fixes'] =
         fixes.map((PrioritizedSourceChange value) => value.toJson()).toList();
@@ -105,7 +105,7 @@ class AnalysisErrorFixes implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, error.hashCode);
     hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -181,7 +181,7 @@ class AnalysisErrorsParams implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['errors'] =
         errors.map((AnalysisError value) => value.toJson()).toList();
@@ -207,7 +207,7 @@ class AnalysisErrorsParams implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, errors.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -283,7 +283,7 @@ class AnalysisFoldingParams implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['regions'] =
         regions.map((FoldingRegion value) => value.toJson()).toList();
@@ -309,7 +309,7 @@ class AnalysisFoldingParams implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, regions.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -405,7 +405,7 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -432,7 +432,7 @@ class AnalysisGetNavigationParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
@@ -541,7 +541,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['files'] = files;
     result['targets'] =
         targets.map((NavigationTarget value) => value.toJson()).toList();
@@ -572,7 +572,7 @@ class AnalysisGetNavigationResult implements ResponseResult {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, files.hashCode);
     hash = JenkinsSmiHash.combine(hash, targets.hashCode);
     hash = JenkinsSmiHash.combine(hash, regions.hashCode);
@@ -631,7 +631,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['events'] =
         events.map((WatchEvent value) => value.toJson()).toList();
     return result;
@@ -656,7 +656,7 @@ class AnalysisHandleWatchEventsParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, events.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -757,7 +757,7 @@ class AnalysisHighlightsParams implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['regions'] =
         regions.map((HighlightRegion value) => value.toJson()).toList();
@@ -783,7 +783,7 @@ class AnalysisHighlightsParams implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, regions.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -907,7 +907,7 @@ class AnalysisNavigationParams implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['regions'] =
         regions.map((NavigationRegion value) => value.toJson()).toList();
@@ -939,7 +939,7 @@ class AnalysisNavigationParams implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, regions.hashCode);
     hash = JenkinsSmiHash.combine(hash, targets.hashCode);
@@ -1018,7 +1018,7 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['occurrences'] =
         occurrences.map((Occurrences value) => value.toJson()).toList();
@@ -1044,7 +1044,7 @@ class AnalysisOccurrencesParams implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1120,7 +1120,7 @@ class AnalysisOutlineParams implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['outline'] = outline.map((Outline value) => value.toJson()).toList();
     return result;
@@ -1144,7 +1144,7 @@ class AnalysisOutlineParams implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, outline.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1272,7 +1272,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['roots'] = roots.map((ContextRoot value) => value.toJson()).toList();
     return result;
   }
@@ -1296,7 +1296,7 @@ class AnalysisSetContextRootsParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, roots.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -1376,7 +1376,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['files'] = files;
     return result;
   }
@@ -1399,7 +1399,7 @@ class AnalysisSetPriorityFilesParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, files.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -1486,7 +1486,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['subscriptions'] = mapMap(subscriptions,
         keyCallback: (AnalysisService value) => value.toJson());
     return result;
@@ -1514,7 +1514,7 @@ class AnalysisSetSubscriptionsParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -1605,7 +1605,7 @@ class AnalysisUpdateContentParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['files'] =
         mapMap(files, valueCallback: (dynamic value) => value.toJson());
     return result;
@@ -1629,7 +1629,7 @@ class AnalysisUpdateContentParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, files.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -1727,7 +1727,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -1751,7 +1751,7 @@ class CompletionGetSuggestionsParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -1873,7 +1873,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['replacementOffset'] = replacementOffset;
     result['replacementLength'] = replacementLength;
     result['results'] =
@@ -1902,7 +1902,7 @@ class CompletionGetSuggestionsResult implements ResponseResult {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, replacementOffset.hashCode);
     hash = JenkinsSmiHash.combine(hash, replacementLength.hashCode);
     hash = JenkinsSmiHash.combine(hash, results.hashCode);
@@ -1994,7 +1994,7 @@ class ContextRoot implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['root'] = root;
     result['exclude'] = exclude;
     if (optionsFile != null) {
@@ -2018,7 +2018,7 @@ class ContextRoot implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, root.hashCode);
     hash = JenkinsSmiHash.combine(hash, exclude.hashCode);
     hash = JenkinsSmiHash.combine(hash, optionsFile.hashCode);
@@ -2186,7 +2186,7 @@ class EditGetAssistsParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -2213,7 +2213,7 @@ class EditGetAssistsParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
@@ -2273,7 +2273,7 @@ class EditGetAssistsResult implements ResponseResult {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['assists'] =
         assists.map((PrioritizedSourceChange value) => value.toJson()).toList();
     return result;
@@ -2298,7 +2298,7 @@ class EditGetAssistsResult implements ResponseResult {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, assists.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -2389,7 +2389,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['offset'] = offset;
     result['length'] = length;
@@ -2416,7 +2416,7 @@ class EditGetAvailableRefactoringsParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
@@ -2487,7 +2487,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['kinds'] =
         kinds.map((RefactoringKind value) => value.toJson()).toList();
     return result;
@@ -2512,7 +2512,7 @@ class EditGetAvailableRefactoringsResult implements ResponseResult {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kinds.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -2583,7 +2583,7 @@ class EditGetFixesParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     result['offset'] = offset;
     return result;
@@ -2607,7 +2607,7 @@ class EditGetFixesParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -2666,7 +2666,7 @@ class EditGetFixesResult implements ResponseResult {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['fixes'] =
         fixes.map((AnalysisErrorFixes value) => value.toJson()).toList();
     return result;
@@ -2691,7 +2691,7 @@ class EditGetFixesResult implements ResponseResult {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -2853,7 +2853,7 @@ class EditGetRefactoringParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['kind'] = kind.toJson();
     result['file'] = file;
     result['offset'] = offset;
@@ -2888,7 +2888,7 @@ class EditGetRefactoringParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, kind.hashCode);
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
@@ -3090,7 +3090,7 @@ class EditGetRefactoringResult implements ResponseResult {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['initialProblems'] = initialProblems
         .map((RefactoringProblem value) => value.toJson())
         .toList();
@@ -3139,7 +3139,7 @@ class EditGetRefactoringResult implements ResponseResult {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, initialProblems.hashCode);
     hash = JenkinsSmiHash.combine(hash, optionsProblems.hashCode);
     hash = JenkinsSmiHash.combine(hash, finalProblems.hashCode);
@@ -3288,7 +3288,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     if (coveringExpressionOffsets != null) {
       result['coveringExpressionOffsets'] = coveringExpressionOffsets;
     }
@@ -3320,7 +3320,7 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, coveringExpressionOffsets.hashCode);
     hash = JenkinsSmiHash.combine(hash, coveringExpressionLengths.hashCode);
     hash = JenkinsSmiHash.combine(hash, names.hashCode);
@@ -3404,7 +3404,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['name'] = name;
     result['extractAll'] = extractAll;
     return result;
@@ -3423,7 +3423,7 @@ class ExtractLocalVariableOptions extends RefactoringOptions {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, extractAll.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -3637,7 +3637,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['offset'] = offset;
     result['length'] = length;
     result['returnType'] = returnType;
@@ -3675,7 +3675,7 @@ class ExtractMethodFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
     hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
@@ -3845,7 +3845,7 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['returnType'] = returnType;
     result['createGetter'] = createGetter;
     result['name'] = name;
@@ -3877,7 +3877,7 @@ class ExtractMethodOptions extends RefactoringOptions {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
     hash = JenkinsSmiHash.combine(hash, createGetter.hashCode);
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
@@ -3949,7 +3949,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['name'] = name;
     result['occurrences'] = occurrences;
     return result;
@@ -3968,7 +3968,7 @@ class InlineLocalVariableFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4079,7 +4079,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     if (className != null) {
       result['className'] = className;
     }
@@ -4103,7 +4103,7 @@ class InlineMethodFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, className.hashCode);
     hash = JenkinsSmiHash.combine(hash, methodName.hashCode);
     hash = JenkinsSmiHash.combine(hash, isDeclaration.hashCode);
@@ -4183,7 +4183,7 @@ class InlineMethodOptions extends RefactoringOptions {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['deleteSource'] = deleteSource;
     result['inlineAll'] = inlineAll;
     return result;
@@ -4202,7 +4202,7 @@ class InlineMethodOptions extends RefactoringOptions {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, deleteSource.hashCode);
     hash = JenkinsSmiHash.combine(hash, inlineAll.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4258,7 +4258,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['file'] = file;
     return result;
   }
@@ -4281,7 +4281,7 @@ class KytheGetKytheEntriesParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, file.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4366,7 +4366,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['entries'] =
         entries.map((KytheEntry value) => value.toJson()).toList();
     result['files'] = files;
@@ -4393,7 +4393,7 @@ class KytheGetKytheEntriesResult implements ResponseResult {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, entries.hashCode);
     hash = JenkinsSmiHash.combine(hash, files.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -4466,7 +4466,7 @@ class MoveFileOptions extends RefactoringOptions {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['newFile'] = newFile;
     return result;
   }
@@ -4484,7 +4484,7 @@ class MoveFileOptions extends RefactoringOptions {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, newFile.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -4585,7 +4585,7 @@ class PluginErrorParams implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['isFatal'] = isFatal;
     result['message'] = message;
     result['stackTrace'] = stackTrace;
@@ -4611,7 +4611,7 @@ class PluginErrorParams implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, isFatal.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     hash = JenkinsSmiHash.combine(hash, stackTrace.hashCode);
@@ -4765,7 +4765,7 @@ class PluginVersionCheckParams implements RequestParams {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['byteStorePath'] = byteStorePath;
     result['sdkPath'] = sdkPath;
     result['version'] = version;
@@ -4792,7 +4792,7 @@ class PluginVersionCheckParams implements RequestParams {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, byteStorePath.hashCode);
     hash = JenkinsSmiHash.combine(hash, sdkPath.hashCode);
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
@@ -4947,7 +4947,7 @@ class PluginVersionCheckResult implements ResponseResult {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['isCompatible'] = isCompatible;
     result['name'] = name;
     result['version'] = version;
@@ -4981,7 +4981,7 @@ class PluginVersionCheckResult implements ResponseResult {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, isCompatible.hashCode);
     hash = JenkinsSmiHash.combine(hash, name.hashCode);
     hash = JenkinsSmiHash.combine(hash, version.hashCode);
@@ -5055,7 +5055,7 @@ class PrioritizedSourceChange implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['priority'] = priority;
     result['change'] = change.toJson();
     return result;
@@ -5074,7 +5074,7 @@ class PrioritizedSourceChange implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, priority.hashCode);
     hash = JenkinsSmiHash.combine(hash, change.hashCode);
     return JenkinsSmiHash.finish(hash);
@@ -5098,7 +5098,7 @@ class RefactoringFeedback implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     return result;
   }
 
@@ -5115,7 +5115,7 @@ class RefactoringFeedback implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -5136,7 +5136,7 @@ class RefactoringOptions implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     return result;
   }
 
@@ -5153,7 +5153,7 @@ class RefactoringOptions implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     return JenkinsSmiHash.finish(hash);
   }
 }
@@ -5261,7 +5261,7 @@ class RenameFeedback extends RefactoringFeedback {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['offset'] = offset;
     result['length'] = length;
     result['elementKindName'] = elementKindName;
@@ -5285,7 +5285,7 @@ class RenameFeedback extends RefactoringFeedback {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, offset.hashCode);
     hash = JenkinsSmiHash.combine(hash, length.hashCode);
     hash = JenkinsSmiHash.combine(hash, elementKindName.hashCode);
@@ -5342,7 +5342,7 @@ class RenameOptions extends RefactoringOptions {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['newName'] = newName;
     return result;
   }
@@ -5360,7 +5360,7 @@ class RenameOptions extends RefactoringOptions {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, newName.hashCode);
     return JenkinsSmiHash.finish(hash);
   }
@@ -5447,7 +5447,7 @@ class RequestError implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['code'] = code.toJson();
     result['message'] = message;
     if (stackTrace != null) {
@@ -5471,7 +5471,7 @@ class RequestError implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, code.hashCode);
     hash = JenkinsSmiHash.combine(hash, message.hashCode);
     hash = JenkinsSmiHash.combine(hash, stackTrace.hashCode);
@@ -5621,7 +5621,7 @@ class WatchEvent implements HasToJson {
 
   @override
   Map<String, dynamic> toJson() {
-    Map<String, dynamic> result = {};
+    var result = <String, dynamic>{};
     result['type'] = type.toJson();
     result['path'] = path;
     return result;
@@ -5640,7 +5640,7 @@ class WatchEvent implements HasToJson {
 
   @override
   int get hashCode {
-    int hash = 0;
+    var hash = 0;
     hash = JenkinsSmiHash.combine(hash, type.hashCode);
     hash = JenkinsSmiHash.combine(hash, path.hashCode);
     return JenkinsSmiHash.finish(hash);

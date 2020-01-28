@@ -175,11 +175,11 @@ class _ImmutableList<E> extends UnmodifiableListBase<E> {
     final int actualEnd = RangeError.checkValidRange(start, end, this.length);
     int length = actualEnd - start;
     if (length == 0) return <E>[];
-    List list = new _List(length);
+    final list = new _List(length);
     for (int i = 0; i < length; i++) {
       list[i] = this[start + i];
     }
-    var result = new _GrowableList<E>._withData(list);
+    final result = new _GrowableList<E>._withData(list);
     result._setLength(length);
     return result;
   }
@@ -241,7 +241,7 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length; // Cache array length for faster access.
   int _index;
-  E _current;
+  E? _current;
 
   _FixedSizeArrayIterator(List<E> array)
       : _array = array,
@@ -250,7 +250,7 @@ class _FixedSizeArrayIterator<E> implements Iterator<E> {
     assert(array is _List<E> || array is _ImmutableList<E>);
   }
 
-  E get current => _current;
+  E get current => _current as E;
 
   @pragma("vm:prefer-inline")
   bool moveNext() {

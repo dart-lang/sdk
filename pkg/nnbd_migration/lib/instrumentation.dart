@@ -156,6 +156,7 @@ enum EdgeOriginKind {
   stackTraceTypeOrigin,
   thisOrSuper,
   throw_,
+  typedefReference,
   uninitializedRead,
 }
 
@@ -232,6 +233,10 @@ abstract class NullabilityMigrationInstrumentation {
   /// annotation.
   void implicitTypeArguments(
       Source source, AstNode node, Iterable<DecoratedTypeInfo> types);
+
+  /// Clear any data from the propagation step in preparation for that step
+  /// being re-run.
+  void prepareForUpdate();
 
   /// Called whenever the migration engine performs a step in the propagation of
   /// nullability information through the nullability graph, to report details

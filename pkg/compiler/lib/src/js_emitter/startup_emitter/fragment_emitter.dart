@@ -605,7 +605,6 @@ class FragmentEmitter {
   DartTypes get _dartTypes => _closedWorld.dartTypes;
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
-  NativeData get _nativeData => _closedWorld.nativeData;
   RuntimeTypesNeed get _rtiNeed => _closedWorld.rtiNeed;
 
   js.Name _call0Name, _call1Name, _call2Name;
@@ -1973,6 +1972,7 @@ class FragmentEmitter {
     if (!_options.useNewRti) return js.Block.empty();
 
     List<js.Statement> statements = [];
+
     bool addJsObjectRedirections = false;
     ClassEntity jsObjectClass = _commonElements.jsJavaScriptObjectClass;
     InterfaceType jsObjectType = _elementEnvironment.getThisType(jsObjectClass);
@@ -1993,7 +1993,7 @@ class FragmentEmitter {
         erasedTypes[element] = targetType.typeArguments.length;
       }
 
-      bool isInterop = _nativeData.isJsInteropClass(element);
+      bool isInterop = _classHierarchy.isSubclassOf(element, jsObjectClass);
 
       Iterable<TypeCheck> checks = cls.classChecksNewRti?.checks ?? [];
       Iterable<InterfaceType> supertypes = isInterop
@@ -2026,9 +2026,9 @@ class FragmentEmitter {
 
     if (addJsObjectRedirections) {
       _classHierarchy
-          .strictSubtypesOf(jsObjectClass)
-          .forEach((ClassEntity subtype) {
-        ruleset.addRedirection(subtype, jsObjectClass);
+          .strictSubclassesOf(jsObjectClass)
+          .forEach((ClassEntity subclass) {
+        ruleset.addRedirection(subclass, jsObjectClass);
       });
     }
 

@@ -325,10 +325,12 @@ class TypeNameResolver {
           node,
           element.typeParameters.length,
         );
-        return element.instantiate(
+        var type = element.instantiate(
           typeArguments: typeArguments,
           nullabilitySuffix: nullability,
         );
+        type = typeSystem.toLegacyType(type);
+        return type;
       } else if (element is NeverElementImpl) {
         _buildTypeArguments(node, 0);
         return element.instantiate(
@@ -358,13 +360,15 @@ class TypeNameResolver {
         return _inferRedirectedConstructor(element);
       }
 
-      return element.instantiateToBounds(
+      return typeSystem.instantiateToBounds2(
+        classElement: element,
         nullabilitySuffix: nullability,
       );
     } else if (element is DynamicElementImpl) {
       return DynamicTypeImpl.instance;
     } else if (element is FunctionTypeAliasElement) {
-      return element.instantiateToBounds(
+      return typeSystem.instantiateToBounds2(
+        functionTypeAliasElement: element,
         nullabilitySuffix: nullability,
       );
     } else if (element is NeverElementImpl) {

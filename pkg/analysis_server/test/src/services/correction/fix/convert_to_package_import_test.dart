@@ -32,7 +32,7 @@ import /*LINT*/'../lib/foo.dart';
 ''');
 
     await assertHasFix('''
-import /*LINT*/'package:test/lib/foo.dart';
+import 'package:test/lib/foo.dart';
 ''');
   }
 }

@@ -528,6 +528,13 @@ class TypeInferrerImpl implements TypeInferrer {
         library.loader.performNnbdChecks;
   }
 
+  DartType computeNullable(DartType type) {
+    if (type == coreTypes.nullType || type is NeverType) {
+      return coreTypes.nullType;
+    }
+    return type.withNullability(library.nullable);
+  }
+
   DartType computeNonNullable(DartType type) {
     if (type == coreTypes.nullType) {
       return isNonNullableByDefault
@@ -1831,6 +1838,21 @@ class TypeInferrerImpl implements TypeInferrer {
         variable, variable.fileOffset, equalsMember, this);
   }
 
+  ExpressionInferenceResult createNullAwareExpressionInferenceResult(
+      DartType inferredType,
+      Expression expression,
+      Link<NullAwareGuard> nullAwareGuards) {
+    if (nullAwareGuards != null && nullAwareGuards.isNotEmpty) {
+      return new NullAwareExpressionInferenceResult(
+          computeNullable(inferredType),
+          inferredType,
+          nullAwareGuards,
+          expression);
+    } else {
+      return new ExpressionInferenceResult(inferredType, expression);
+    }
+  }
+
   /// Performs type inference on the given [expression].
   ///
   /// [typeContext] is the expected type of the expression, based on surrounding
@@ -2404,6 +2426,59 @@ class TypeInferrerImpl implements TypeInferrer {
             'type', new InstrumentationValueForType(inferredType));
         formal.type = inferredType;
       }
+
+      if (isNonNullableByDefault && performNnbdChecks) {
+        // If a parameter is a positional or named optional parameter and its
+        // type is potentially non-nullable, it should have an initializer.
+        bool isOptionalPositional = function.requiredParameterCount <= i &&
+            i < function.positionalParameters.length;
+        bool isOptionalNamed =
+            i >= function.positionalParameters.length && !formal.isRequired;
+        if ((isOptionalPositional || isOptionalNamed) &&
+            formal.type.isPotentiallyNonNullable &&
+            !formal.hasDeclaredInitializer) {
+          if (nnbdStrongMode) {
+            library.addProblem(
+                templateOptionalNonNullableWithoutInitializerError
+                    .withArguments(
+                        formal.name, formal.type, isNonNullableByDefault),
+                formal.fileOffset,
+                formal.name.length,
+                library.uri);
+          } else {
+            library.addProblem(
+                templateOptionalNonNullableWithoutInitializerWarning
+                    .withArguments(
+                        formal.name, formal.type, isNonNullableByDefault),
+                formal.fileOffset,
+                formal.name.length,
+                library.uri);
+          }
+        }
+      }
+    }
+
+    if (isNonNullableByDefault && performNnbdChecks) {
+      for (VariableDeclarationImpl formal in function.namedParameters) {
+        // Required named parameters shouldn't have initializers.
+        if (formal.isRequired && formal.hasDeclaredInitializer) {
+          if (nnbdStrongMode) {
+            library.addProblem(
+                templateRequiredNamedParameterHasDefaultValueError
+                    .withArguments(formal.name),
+                formal.fileOffset,
+                formal.name.length,
+                library.uri);
+          } else {
+            library.addProblem(
+                templateRequiredNamedParameterHasDefaultValueWarning
+                    .withArguments(formal.name),
+                formal.fileOffset,
+                formal.name.length,
+                library.uri);
+          }
+        }
+      }
     }
 
     // Let `N'` be `N[T/S]`.  The [ClosureContext] constructor will adjust
@@ -2499,7 +2574,7 @@ class TypeInferrerImpl implements TypeInferrer {
         typeContext, fileOffset, unknownFunction, arguments, name,
         receiverType: const DynamicType());
     assert(name != equalsName);
-    return new ExpressionInferenceResult.nullAware(
+    return createNullAwareExpressionInferenceResult(
         result.inferredType,
         result.applyResult(new MethodInvocation(receiver, name, arguments)
           ..fileOffset = fileOffset),
@@ -2524,7 +2599,7 @@ class TypeInferrerImpl implements TypeInferrer {
         receiverType: receiverType);
     assert(name != equalsName);
     // TODO(johnniwinther): Use InvalidType instead.
-    return new ExpressionInferenceResult.nullAware(
+    return createNullAwareExpressionInferenceResult(
         const DynamicType(), error, nullAwareGuards);
   }
 
@@ -2562,7 +2637,7 @@ class TypeInferrerImpl implements TypeInferrer {
       library.checkBoundsInStaticInvocation(staticInvocation,
           typeSchemaEnvironment, helper.uri, getTypeArgumentsInfo(arguments));
     }
-    return new ExpressionInferenceResult.nullAware(result.inferredType,
+    return createNullAwareExpressionInferenceResult(result.inferredType,
         result.applyResult(staticInvocation), nullAwareGuards);
   }
 
@@ -2577,10 +2652,10 @@ class TypeInferrerImpl implements TypeInferrer {
     assert(target.isCallFunction);
     FunctionType functionType = getFunctionType(target, receiverType);
     InvocationInferenceResult result = inferInvocation(
-        typeContext, fileOffset, functionType, arguments, target.member?.name,
+        typeContext, fileOffset, functionType, arguments, callName,
         receiverType: receiverType);
     // TODO(johnniwinther): Check that type arguments against the bounds.
-    return new ExpressionInferenceResult.nullAware(
+    return createNullAwareExpressionInferenceResult(
         result.inferredType,
         result.applyResult(new MethodInvocation(receiver, callName, arguments)
           ..fileOffset = fileOffset),
@@ -2673,7 +2748,7 @@ class TypeInferrerImpl implements TypeInferrer {
         new MethodInvocation(receiver, methodName, arguments, method)
           ..fileOffset = fileOffset;
 
-    return new ExpressionInferenceResult.nullAware(
+    return createNullAwareExpressionInferenceResult(
         result.inferredType, result.applyResult(replacement), nullAwareGuards);
   }
 
@@ -2770,7 +2845,7 @@ class TypeInferrerImpl implements TypeInferrer {
         new MethodInvocation(receiver, getter.name, arguments, getter)
           ..fileOffset = fileOffset;
 
-    return new ExpressionInferenceResult.nullAware(
+    return createNullAwareExpressionInferenceResult(
         result.inferredType, result.applyResult(replacement), nullAwareGuards);
   }
 
@@ -2844,7 +2919,7 @@ class TypeInferrerImpl implements TypeInferrer {
     replacement ??= new MethodInvocation(receiver, field.name, arguments, field)
       ..fileOffset = fileOffset;
 
-    return new ExpressionInferenceResult.nullAware(
+    return createNullAwareExpressionInferenceResult(
         result.inferredType, result.applyResult(replacement), nullAwareGuards);
   }
 
@@ -3396,7 +3471,7 @@ class TypeInferrerImpl implements TypeInferrer {
           templateUndefinedMethod.withArguments(unaryName.name,
               resolveTypeParameter(expressionType), isNonNullableByDefault),
           fileOffset,
-          unaryName.name == unaryMinusName.name ? 1 : unaryName.name.length);
+          unaryName == unaryMinusName ? 1 : unaryName.name.length);
     }
   }
 }
@@ -3657,17 +3732,6 @@ class ExpressionInferenceResult {
   /// The inferred expression.
   final Expression expression;
 
-  factory ExpressionInferenceResult.nullAware(
-      DartType inferredType, Expression expression,
-      [Link<NullAwareGuard> nullAwareGuards = const Link<NullAwareGuard>()]) {
-    if (nullAwareGuards != null && nullAwareGuards.isNotEmpty) {
-      return new NullAwareExpressionInferenceResult(
-          inferredType, nullAwareGuards, expression);
-    } else {
-      return new ExpressionInferenceResult(inferredType, expression);
-    }
-  }
-
   ExpressionInferenceResult(this.inferredType, this.expression)
       : assert(expression != null);
 
@@ -3679,6 +3743,8 @@ class ExpressionInferenceResult {
   /// on the guarded variable, found as the first guard in [nullAwareGuards].
   /// Otherwise, this is the same as [expression].
   Expression get nullAwareAction => expression;
+
+  DartType get nullAwareActionType => inferredType;
 
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
 }
@@ -3750,6 +3816,9 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
   /// The inferred type of the expression.
   final DartType inferredType;
 
+  /// The inferred type of the [nullAwareAction].
+  final DartType nullAwareActionType;
+
   @override
   final Link<NullAwareGuard> nullAwareGuards;
 
@@ -3758,8 +3827,8 @@ class NullAwareExpressionInferenceResult implements ExpressionInferenceResult {
 
   Expression _expression;
 
-  NullAwareExpressionInferenceResult(
-      this.inferredType, this.nullAwareGuards, this.nullAwareAction)
+  NullAwareExpressionInferenceResult(this.inferredType,
+      this.nullAwareActionType, this.nullAwareGuards, this.nullAwareAction)
       : assert(nullAwareGuards.isNotEmpty),
         assert(nullAwareAction != null);
 

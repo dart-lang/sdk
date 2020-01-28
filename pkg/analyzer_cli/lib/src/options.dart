@@ -563,7 +563,7 @@ class CommandLineOptions {
     }
   }
 
-  static _showUsage(ArgParser parser, {bool fromHelp = false}) {
+  static void _showUsage(ArgParser parser, {bool fromHelp = false}) {
     errorSink.writeln(
         'Usage: $_binaryName [options...] <directory or list of files>');
 

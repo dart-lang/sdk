@@ -37,9 +37,6 @@ class EditDartFix
 
     // Determine the fixes to be applied
     final fixInfo = <DartFixInfo>[];
-    if (params.includeRequiredFixes == true) {
-      fixInfo.addAll(allFixes.where((i) => i.isRequired));
-    }
     if (params.includePedanticFixes == true) {
       for (var fix in allFixes) {
         if (fix.isPedantic && !fixInfo.contains(fix)) {
@@ -57,9 +54,6 @@ class EditDartFix
               request, 'includedFixes', 'Unknown fix: $key');
         }
       }
-    }
-    if (fixInfo.isEmpty) {
-      fixInfo.addAll(allFixes.where((i) => i.isDefault));
     }
     if (params.excludedFixes != null) {
       for (String key in params.excludedFixes) {

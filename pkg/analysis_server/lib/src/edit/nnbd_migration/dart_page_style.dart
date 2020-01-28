@@ -7,23 +7,20 @@ body {
   background-color: black;
   color: white;
   font-family: 'Open Sans', sans-serif;
-  /* This allows very small files to be displayed lower than the very top of the
-   * screen.
-   */
-  margin: 8px;
-  padding: 0.5em;
+  margin: 0;
+  padding: 0;
 }
 
 h1 {
   font-size: 2.4em;
   font-weight: 600;
-  margin: 0;
+  margin: 8px 8px 0 8px;
 }
 
 h2#unit-name {
   font-size: 1.2em;
   font-weight: 600;
-  margin-bottom: 0;
+  margin: 8px 8px 0 8px;
 }
 
 .horizontal {
@@ -79,19 +76,38 @@ h2#unit-name {
   list-style-type: none;
 }
 
-.nav-inner li.dir::before {
-  content: "▼";
-  font-size: 8px;
-  padding-right: 5px;
+.nav-inner li.dir {
+  margin-left: 5px;
 }
 
 .nav-inner li:not(.dir) {
-  padding-left: 5px;
+  margin-left: 20px;
+}
+
+.nav-inner li.dir .arrow {
+  cursor: pointer;
+  display: inline-block;
+  font-size: 10px;
+  margin-right: 4px;
+  transition: transform 0.5s ease-out;
+}
+
+.nav-inner li.dir .arrow.collapsed {
+  transform: rotate(-90deg);
+}
+
+.nav-inner ul {
+  max-height: 2000px;
+  transition: max-height 0.5s ease-out;
+}
+
+.nav-inner ul.collapsed {
+  max-height: 0 !important;
+  overflow: hidden;
 }
 
 .nav-inner .nav-link {
   color: #33ccff;
-  margin-left: 1em;
 }
 
 .nav-inner .selected-file {
@@ -232,27 +248,53 @@ h2#unit-name {
 }
 
 .info-panel {
-  background-color: #282b2e;
   flex: 1 1 270px;
   font-size: 14px;
   margin: 10px 0;
 }
 
-.info-panel .info {
+.info-panel .edit-panel {
+  background-color: #282b2e;
+  overflow: auto;
+}
+
+.info-panel .panel-content {
   font-size: 13px;
   padding: 7px;
 }
 
-.info-panel .info > :first-child {
+.info-panel .panel-content > :first-child {
   margin-top: 0;
 }
 
-.info-panel ul {
-  padding-left: 18px;
+.info-panel .region-location {
+  padding-left: 12px;
+  text-indent: -12px;
 }
 
-.info-panel .nav-link {
+.info-panel .nowrap {
+  white-space: nowrap;
+}
+
+.info-panel ul,
+.info-panel ol {
+  padding-left: 20px;
+}
+
+.info-panel a {
   color: #33ccff;
+}
+
+.info-panel .edit-list {
+  background-color: #282b2e;
+  margin-top: 12px;
+  overflow: auto;
+}
+
+.edit-list .edit {
+  margin: 3px 0;
+  padding-left: 21px;
+  text-indent: -21px;
 }
 
 .footer {

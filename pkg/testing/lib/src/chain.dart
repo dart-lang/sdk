@@ -147,7 +147,7 @@ abstract class ChainContext {
         continue;
       }
       final Set<Expectation> expectedOutcomes = processExpectedOutcomes(
-          expectations.expectations(description.shortName));
+          expectations.expectations(description.shortName), description);
       final StringBuffer sb = new StringBuffer();
       final Step lastStep = steps.isNotEmpty ? steps.last : null;
       final Iterator<Step> iterator = steps.iterator;
@@ -269,7 +269,8 @@ abstract class ChainContext {
     }
   }
 
-  Set<Expectation> processExpectedOutcomes(Set<Expectation> outcomes) {
+  Set<Expectation> processExpectedOutcomes(
+      Set<Expectation> outcomes, TestDescription description) {
     return outcomes;
   }
 

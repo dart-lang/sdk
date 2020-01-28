@@ -42,7 +42,7 @@ class StringMatch implements Match {
   }
 
   List<String> groups(List<int> groups_) {
-    List<String> result = new List<String>();
+    List<String> result = <String>[];
     for (int g in groups_) {
       result.add(group(g));
     }

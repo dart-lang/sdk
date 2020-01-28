@@ -67,6 +67,7 @@ mime:third_party/pkg/mime/lib
 mockito:third_party/pkg/mockito/lib
 modular_test:pkg/modular_test/lib
 mustache:third_party/pkg/mustache/lib
+native_stack_traces:pkg/native_stack_traces/lib
 nnbd_migration:pkg/nnbd_migration/lib
 oauth2:third_party/pkg/oauth2/lib
 observatory:runtime/observatory/lib

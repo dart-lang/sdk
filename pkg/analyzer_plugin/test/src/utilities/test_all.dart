@@ -10,7 +10,7 @@ import 'navigation/test_all.dart' as navigation;
 import 'string_utilities_test.dart' as string_utilities;
 import 'visitors/test_all.dart' as visitors;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     change_builder.main();
     completion.main();

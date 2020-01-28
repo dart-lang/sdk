@@ -12,7 +12,7 @@ class DeferredLibrary {
   Future<Null> load() {
     // Dummy implementation that should eventually be replaced by real
     // implementation.
-    Future future = new Future<Null>.value(null);
+    Future<Null> future = new Future<Null>.value(null);
     _loadedLibraries.add(libraryName);
     return future;
   }

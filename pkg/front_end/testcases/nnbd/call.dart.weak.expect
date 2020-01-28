@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/call.dart:12:4: Warning: Method 'call' is called on 'void Function()?' which is potentially null.
+// Try calling using ?. instead.
+//   f();
+//    ^
+//
+// pkg/front_end/testcases/nnbd/call.dart:12:4: Warning: Expression of type 'void Function()?' is used as a function, but it's potentially null.
+// Try calling using ?.call instead.
+//   f();
+//    ^
+//
+// pkg/front_end/testcases/nnbd/call.dart:13:5: Warning: Method 'call' is called on 'void Function()?' which is potentially null.
+// Try calling using ?. instead.
+//   f.call();
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field () →? void field = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get getter() → () →? void
+    return null;
+}
+static method error() → dynamic {
+  () →? void f;
+  f.call();
+  f.call();
+  self::Class c = new self::Class::•();
+  c.{self::Class::field}();
+  c.{self::Class::getter}();
+}
+static method main() → dynamic {}

@@ -13,7 +13,8 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/range_analysis.h"
-#include "vm/compiler/ffi.h"
+#include "vm/compiler/ffi/frame_rebase.h"
+#include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
@@ -944,8 +945,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ andl(SPREG, compiler::Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
-  FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
-                     /*stack_delta=*/0);
+  compiler::ffi::FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
+                                    /*stack_delta=*/0);
   for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
     const Location origin = rebase.Rebase(locs()->in(i));
     const Location target = arg_locations_[i];

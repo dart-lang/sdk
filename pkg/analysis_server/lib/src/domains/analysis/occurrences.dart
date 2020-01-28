@@ -28,6 +28,6 @@ class OccurrencesCollectorImpl implements OccurrencesCollector {
   }
 
   static List<int> _merge(List<int> a, List<int> b) {
-    return <int>[]..addAll(a)..addAll(b);
+    return <int>[...a, ...b];
   }
 }

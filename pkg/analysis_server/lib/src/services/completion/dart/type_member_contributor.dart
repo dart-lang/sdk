@@ -10,9 +10,11 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart';
 
-import '../../../protocol_server.dart' show CompletionSuggestion;
+import '../../../protocol_server.dart'
+    show CompletionSuggestion, CompletionSuggestionKind;
 
 /**
  * A contributor for calculating instance invocation / access suggestions
@@ -288,7 +290,32 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
           }
         }
       }
+      if (targetType.isDartCoreFunction) {
+        _addFunctionCallSuggestion();
+      }
     }
+  }
+
+  void _addFunctionCallSuggestion() {
+    const callString = 'call()';
+    final element = protocol.Element(
+        protocol.ElementKind.METHOD, callString, protocol.Element.makeFlags(),
+        location: null,
+        typeParameters: null,
+        parameters: null,
+        returnType: 'void');
+    addCompletionSuggestion(CompletionSuggestion(
+      CompletionSuggestionKind.INVOCATION,
+      DART_RELEVANCE_HIGH,
+      callString,
+      callString.length,
+      0,
+      false,
+      false,
+      displayText: callString,
+      element: element,
+      returnType: 'void',
+    ));
   }
 
   /**

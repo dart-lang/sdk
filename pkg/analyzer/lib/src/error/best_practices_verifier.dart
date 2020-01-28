@@ -1450,9 +1450,21 @@ class _InvalidAccessVerifier {
       return;
     }
     AstNode grandparent = parent?.parent;
-    Element element = grandparent is ConstructorName
-        ? grandparent.staticElement
-        : identifier.staticElement;
+
+    var element;
+    var name;
+    var node;
+
+    if (grandparent is ConstructorName) {
+      element = grandparent.staticElement;
+      name = grandparent.toSource();
+      node = grandparent;
+    } else {
+      element = identifier.staticElement;
+      name = identifier.name;
+      node = identifier;
+    }
+
     if (element == null || _inCurrentLibrary(element)) {
       return;
     }
@@ -1486,20 +1498,21 @@ class _InvalidAccessVerifier {
     if (hasProtected) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-          identifier,
-          [identifier.name, definingClass.source.uri]);
+          node,
+          [name, definingClass.source.uri]);
     }
     if (hasVisibleForTemplate) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER,
-          identifier,
-          [identifier.name, definingClass.source.uri]);
+          node,
+          [name, definingClass.source.uri]);
     }
+
     if (hasVisibleForTesting) {
       _errorReporter.reportErrorForNode(
           HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER,
-          identifier,
-          [identifier.name, definingClass.source.uri]);
+          node,
+          [name, definingClass.source.uri]);
     }
   }
 

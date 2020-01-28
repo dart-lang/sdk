@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -275,6 +276,8 @@ class Error {
 class Exception {
   factory Exception([var message]) => null;
 }
+
+class FormatException implements Exception {}
 
 class Function {}
 
@@ -1022,7 +1025,10 @@ class MockSdk implements DartSdk {
     List<Source> librarySources = sdkLibraries
         .map((SdkLibrary library) => mapDartUri(library.shortName))
         .toList();
-    return SummaryBuilder(librarySources, context).build();
+    var featureSet = FeatureSet.fromEnableFlags([]);
+    return SummaryBuilder(librarySources, context).build(
+      featureSet: featureSet,
+    );
   }
 }
 

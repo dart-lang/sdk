@@ -70,6 +70,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FORWARD_DECLARATION)
 #undef REUSABLE_FORWARD_DECLARATION
 
 class Symbols;
+class ZoneTextBuffer;
 
 #if defined(DEBUG)
 #define CHECK_HANDLE() CheckHandle();
@@ -931,7 +932,9 @@ class Class : public Object {
 
   RawString* Name() const;
   RawString* ScrubbedName() const;
+  const char* ScrubbedNameCString() const;
   RawString* UserVisibleName() const;
+  const char* UserVisibleNameCString() const;
 
   // The mixin for this class if one exists. Otherwise, returns a raw pointer
   // to this class.
@@ -1526,7 +1529,7 @@ class Class : public Object {
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
-  RawString* GenerateUserVisibleName() const;
+  const char* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
 
   RawArray* invocation_dispatcher_cache() const;
@@ -2238,12 +2241,13 @@ class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;  // Same as scrubbed name.
-  RawString* QualifiedScrubbedName() const {
-    return QualifiedName(kScrubbedName);
-  }
-  RawString* QualifiedUserVisibleName() const {
-    return QualifiedName(kUserVisibleName);
-  }
+  const char* UserVisibleNameCString() const;
+
+  void PrintQualifiedName(NameVisibility name_visibility,
+                          ZoneTextBuffer* printer) const;
+  RawString* QualifiedScrubbedName() const;
+  RawString* QualifiedUserVisibleName() const;
+
   virtual RawString* DictionaryName() const { return name(); }
 
   RawString* GetSource() const;
@@ -2303,16 +2307,17 @@ class Function : public Object {
   // internal signature of the given function. In this example, T is a type
   // parameter of this function and R is a type parameter of class C, the owner
   // of the function. B and C are not type parameters.
-  RawString* Signature() const { return BuildSignature(kInternalName); }
+  RawString* Signature() const;
 
   // Build a string of the form '<T>(T, {B b, C c}) => R' representing the
   // user visible signature of the given function. In this example, T is a type
   // parameter of this function and R is a type parameter of class C, the owner
   // of the function. B and C are not type parameters.
   // Implicit parameters are hidden.
-  RawString* UserVisibleSignature() const {
-    return BuildSignature(kUserVisibleName);
-  }
+  RawString* UserVisibleSignature() const;
+
+  void PrintSignature(NameVisibility name_visibility,
+                      ZoneTextBuffer* printer) const;
 
   // Returns true if the signature of this function is instantiated, i.e. if it
   // does not involve generic parameter types or generic result type.
@@ -3333,14 +3338,10 @@ class Function : public Object {
   void set_data(const Object& value) const;
   static RawFunction* New(Heap::Space space = Heap::kOld);
 
-  RawString* QualifiedName(NameVisibility name_visibility) const;
-
-  void BuildSignatureParameters(
-      Thread* thread,
-      Zone* zone,
-      NameVisibility name_visibility,
-      GrowableHandlePtrArray<const String>* pieces) const;
-  RawString* BuildSignature(NameVisibility name_visibility) const;
+  void PrintSignatureParameters(Thread* thread,
+                                Zone* zone,
+                                NameVisibility name_visibility,
+                                ZoneTextBuffer* printer) const;
 
   // Returns true if the type of the formal parameter at the given position in
   // this function is contravariant with the type of the other formal parameter
@@ -3507,6 +3508,7 @@ class Field : public Object {
 
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;  // Same as scrubbed name.
+  const char* UserVisibleNameCString() const;
   virtual RawString* DictionaryName() const { return name(); }
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
@@ -6818,13 +6820,11 @@ class TypeArguments : public Instance {
   };
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
-  RawString* Name() const { return SubvectorName(0, Length(), kInternalName); }
+  RawString* Name() const;
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
   // Names of internal classes are mapped to their public interfaces.
-  RawString* UserVisibleName() const {
-    return SubvectorName(0, Length(), kUserVisibleName);
-  }
+  RawString* UserVisibleName() const;
 
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType.
@@ -7004,9 +7004,10 @@ class TypeArguments : public Instance {
 
   // Return the internal or public name of a subvector of this type argument
   // vector, e.g. "<T, dynamic, List<T>, int>".
-  RawString* SubvectorName(intptr_t from_index,
-                           intptr_t len,
-                           NameVisibility name_visibility) const;
+  void PrintSubvectorName(intptr_t from_index,
+                          intptr_t len,
+                          NameVisibility name_visibility,
+                          ZoneTextBuffer* printer) const;
 
   RawArray* instantiations() const;
   void set_instantiations(const Array& value) const;
@@ -7139,13 +7140,15 @@ class AbstractType : public Instance {
   static RawString* PrintURIs(URIs* uris);
 
   // The name of this type, including the names of its type arguments, if any.
-  virtual RawString* Name() const { return BuildName(kInternalName); }
+  virtual RawString* Name() const;
 
   // The name of this type, including the names of its type arguments, if any.
   // Names of internal classes are mapped to their public interfaces.
-  virtual RawString* UserVisibleName() const {
-    return BuildName(kUserVisibleName);
-  }
+  virtual RawString* UserVisibleName() const;
+
+  // Return the internal or public name of this type, including the names of its
+  // type arguments, if any.
+  void PrintName(NameVisibility visibility, ZoneTextBuffer* printer) const;
 
   // Add the class name and URI of each occuring type to the uris
   // list and mark ambiguous triplets to be printed.
@@ -7260,10 +7263,6 @@ class AbstractType : public Instance {
                            NNBDMode mode,
                            const AbstractType& other,
                            Heap::Space space) const;
-
-  // Return the internal or public name of this type, including the names of its
-  // type arguments, if any.
-  RawString* BuildName(NameVisibility visibility) const;
 
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Instance);
@@ -8147,7 +8146,7 @@ class String : public Instance {
 
   static RawString* RemovePrivateKey(const String& name);
 
-  static RawString* ScrubName(const String& name, bool is_extension = false);
+  static const char* ScrubName(const String& name, bool is_extension = false);
   static RawString* ScrubNameRetainPrivate(const String& name,
                                            bool is_extension = false);
 

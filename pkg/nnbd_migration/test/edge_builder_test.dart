@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -698,6 +697,332 @@ main() {
     // TODO(paulberry): edge should be hard.
     assertEdge(inSet(alwaysPlus), decoratedTypeAnnotation('List').node,
         hard: false);
+  }
+
+  Future<void> test_assign_to_bound_as() async {
+    // TODO(mfairhurst): support downcast to type params with bounds
+    await analyze('''
+class C<T> {}
+void f(Object o) {
+  o as C<int>;
+}
+''');
+    // For now, edge to `anyNode`, because the true bound is inferred.
+    assertEdge(decoratedTypeAnnotation('int').node, anyNode, hard: true);
+  }
+
+  Future<void> test_assign_to_bound_class_alias() async {
+    await analyze('''
+class C<T extends Object/*1*/> {}
+class D<T extends Object/*2*/> {}
+mixin M<T extends Object/*3*/> {}
+class F = C<int> with M<String> implements D<num>;
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object/*1*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('num').node,
+        decoratedTypeAnnotation('Object/*2*/').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('String').node,
+        decoratedTypeAnnotation('Object/*3*/').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_class_extends() async {
+    await analyze('''
+class A<T extends Object> {}
+class C extends A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_class_implements() async {
+    await analyze('''
+class A<T extends Object> {}
+class C implements A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_class_with() async {
+    await analyze('''
+class A<T extends Object> {}
+class C extends Object with A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_extension_extended_type() async {
+    await analyze('''
+class C<T extends Object> {}
+extension E on C<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_field_formal_typed() async {
+    await analyze('''
+class C<T extends Object> {}
+class D {
+  dynamic i;
+  D(C<int> this.i);
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_field_formal_typed_function() async {
+    await analyze('''
+class C<T extends Object> {}
+class D {
+  dynamic i;
+  D(this.i(C<int> name));
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_for() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  for (C<int> c = null ;;) {}
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_for_element() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  [for (C<int> c = null ;;) c];
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_for_in() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  for (C<int> c in []) {}
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_for_in_element() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  [for (C<int> c in []) c];
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object>').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_function_invocation_type_argument() async {
+    await analyze('''
+void f<T extends Object>() {}
+void main() {
+  (f)<int>();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_in_type_argument() async {
+    await analyze('''
+class C<T extends Object> {}
+C<C<int>> f() => null;
+''');
+    assertEdge(decoratedTypeAnnotation('C<int>').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_in_return_type() async {
+    await analyze('''
+class C<T extends Object> {}
+C<int> f() => null;
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_instance_creation() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  C<int>();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_list_literal() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  <C<int>>[];
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_local_variable() async {
+    await analyze('''
+class C<T extends Object> {}
+main() {
+  C<int> c = null;
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_map_literal() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  <C<int>, C<String>>{};
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+    assertEdge(decoratedTypeAnnotation('String').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_method_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+class D {
+  f<U extends C<int>>() {}
+}
+''');
+  }
+
+  Future<void> test_assign_to_bound_method_call_type_argument() async {
+    await analyze('''
+void f<T extends Object>() {}
+void main() {
+  f<int>();
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_mixin_implements() async {
+    await analyze('''
+class A<T extends Object> {}
+mixin C implements A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_mixin_on() async {
+    await analyze('''
+class A<T extends Object> {}
+mixin C on A<int> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_mixin_type_parameter_bound() async {
+    await analyze('''
+class C<T extends Object> {}
+mixin M<T extends C<int>> {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_redirecting_constructor_argument() async {
+    await analyze('''
+class A<T extends Object> {}
+class C {
+  factory C() = D<A<int>>;
+}
+class D<U> implements C {}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_set_literal() async {
+    await analyze('''
+class C<T extends Object> {}
+void main() {
+  <C<int>>{};
+}
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
+  Future<void> test_assign_to_bound_within_bound() async {
+    await analyze('''
+class A<T extends Object> {}
+class B<T extends A<int>> {}
+  ''');
+    var aBound = decoratedTypeAnnotation('Object').node;
+    var aBoundInt = decoratedTypeAnnotation('int').node;
+    assertEdge(aBoundInt, aBound, hard: true);
+  }
+
+  Future<void> test_assign_to_bound_within_bound_method() async {
+    await analyze('''
+class C<T extends Object> {}
+void f<T extends C<int>>() {}
+''');
+    var cBound = decoratedTypeAnnotation('Object').node;
+    var fcInt = decoratedTypeAnnotation('int').node;
+    assertEdge(fcInt, cBound, hard: true);
   }
 
   Future<void> test_assign_type_parameter_to_bound() async {
@@ -1778,6 +2103,22 @@ A<num> f(bool b, A<num> x, B<num> y) {
         substitutionNode(bType.typeArguments[0].node, bInA.node));
   }
 
+  Future<void> test_conditionalExpression_generic_typeParameter_bound() async {
+    await analyze('''
+List<num> f<T extends List<num>>(bool b, List<num> x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('List<num> x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('List<num>>');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+    assertLUB(resultType.typeArguments[0].node, aType.typeArguments[0].node,
+        bBound.typeArguments[0].node);
+  }
+
   Future<void> test_conditionalExpression_left_non_null() async {
     await analyze('''
 int f(bool b, int i) {
@@ -1935,6 +2276,83 @@ T f<T>(bool b, T t) {
     var nullable_t = decoratedTypeAnnotation('T t').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
     assertLUB(nullable_conditional, nullable_t, inSet(alwaysPlus));
+  }
+
+  Future<void> test_conditionalExpression_typeParameter_bound() async {
+    await analyze('''
+num f<T extends num>(bool b, num x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('num x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('num>');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+  }
+
+  Future<void> test_conditionalExpression_typeParameter_bound_bound() async {
+    await analyze('''
+num f<T extends R, R extends num>(bool b, num x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('num x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('R,');
+    var bBoundBound = decoratedTypeAnnotation('num>');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node,
+        aType.node,
+        substitutionNode(
+            bBoundBound.node, substitutionNode(bBound.node, bType.node)));
+  }
+
+  Future<void> test_conditionalExpression_typeParameter_dynamic() async {
+    // "dynamic" can short circuit LUB, incorrectly we may lose nullabilities.
+    await analyze('''
+dynamic f<T extends num>(bool b, dynamic x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('dynamic x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('num>');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
+  }
+
+  Future<void> test_conditionalExpression_typeParameters_bound() async {
+    await analyze('''
+num f<T extends num, R extends num>(bool b, R x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('R x');
+    var bType = decoratedTypeAnnotation('T y');
+    var aBound = decoratedTypeAnnotation('num>');
+    var bBound = decoratedTypeAnnotation('num,');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(resultType.node, substitutionNode(aBound.node, aType.node),
+        substitutionNode(bBound.node, bType.node));
+  }
+
+  Future<void>
+      test_conditionalExpression_typeParameters_bound_left_to_right() async {
+    await analyze('''
+R f<T extends R, R>(bool b, R x, T y) {
+  return (b ? x : y);
+}
+''');
+    var aType = decoratedTypeAnnotation('R x');
+    var bType = decoratedTypeAnnotation('T y');
+    var bBound = decoratedTypeAnnotation('R,');
+    var resultType = decoratedExpressionType('(b ?');
+    assertLUB(
+        resultType.node, aType.node, substitutionNode(bBound.node, bType.node));
   }
 
   Future<void> test_constructor_default_parameter_value_bool() async {
@@ -5605,7 +6023,8 @@ class C {
     await analyze('''
 Future<int> f() async => throw '';
 ''');
-    assertNoEdge(always, anyNode);
+    assertNoEdge(always, decoratedTypeAnnotation('Future<int>').node);
+    assertNoEdge(always, decoratedTypeAnnotation('int').node);
   }
 
   Future<void> test_return_from_async_closureBody_future() async {
@@ -6415,28 +6834,29 @@ Type f() => M;
     assertNoUpstreamNullability(decoratedTypeAnnotation('Type').node);
   }
 
-  Future<void> test_typeName_union_with_bound() async {
+  Future<void> test_typeName_with_bound() async {
     await analyze('''
 class C<T extends Object> {}
 void f(C c) {}
 ''');
     var cType = decoratedTypeAnnotation('C c');
     var cBound = decoratedTypeAnnotation('Object');
-    assertUnion(cType.typeArguments[0].node, cBound.node);
+    assertEdge(cType.typeArguments[0].node, cBound.node, hard: true);
   }
 
-  Future<void> test_typeName_union_with_bound_function_type() async {
+  Future<void> test_typeName_with_bound_function_type() async {
     await analyze('''
 class C<T extends int Function()> {}
 void f(C c) {}
 ''');
     var cType = decoratedTypeAnnotation('C c');
     var cBound = decoratedGenericFunctionTypeAnnotation('int Function()');
-    assertUnion(cType.typeArguments[0].node, cBound.node);
-    assertUnion(cType.typeArguments[0].returnType.node, cBound.returnType.node);
+    assertEdge(cType.typeArguments[0].node, cBound.node, hard: true);
+    assertEdge(cType.typeArguments[0].returnType.node, cBound.returnType.node,
+        hard: true);
   }
 
-  Future<void> test_typeName_union_with_bounds() async {
+  Future<void> test_typeName_with_bounds() async {
     await analyze('''
 class C<T extends Object, U extends Object> {}
 void f(C c) {}
@@ -6444,8 +6864,8 @@ void f(C c) {}
     var cType = decoratedTypeAnnotation('C c');
     var tBound = decoratedTypeAnnotation('Object,');
     var uBound = decoratedTypeAnnotation('Object>');
-    assertUnion(cType.typeArguments[0].node, tBound.node);
-    assertUnion(cType.typeArguments[1].node, uBound.node);
+    assertEdge(cType.typeArguments[0].node, tBound.node, hard: true);
+    assertEdge(cType.typeArguments[1].node, uBound.node, hard: true);
   }
 
   Future<void> test_variableDeclaration() async {

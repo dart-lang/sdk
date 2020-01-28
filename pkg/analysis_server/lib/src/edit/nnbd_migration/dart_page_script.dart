@@ -50,8 +50,10 @@ function relativePath(path) {
 function writeCodeAndRegions(data) {
   const regions = document.querySelector(".regions");
   const code = document.querySelector(".code");
+  const editList = document.querySelector(".edit-list .panel-content");
   regions.innerHTML = data["regions"];
   code.innerHTML = data["navContent"];
+  editList.innerHTML = data["editList"];
   highlightAllCode();
   addClickHandlers(".code");
   addClickHandlers(".regions");
@@ -185,33 +187,115 @@ function addClickHandlers(parentSelector) {
     };
   });
   const regions = parentElement.querySelectorAll(".region");
-  const infoPanel = document.querySelector(".info-panel-inner");
   regions.forEach((region) => {
-    const tooltip = region.querySelector(".tooltip");
     region.onclick = (event) => {
       loadRegionExplanation(region);
     };
   });
+  const navArrows = parentElement.querySelectorAll(".arrow");
+  navArrows.forEach((arrow) => {
+    const childList = arrow.parentNode.querySelector(":scope > ul");
+    // Animating height from "auto" to "0" is not supported by CSS [1], so all
+    // we have are hacks. The `* 2` allows for events in which the list grows in
+    // height when resized, with additional text wrapping.
+    // [1] https://css-tricks.com/using-css-transitions-auto-dimensions/
+    childList.style.maxHeight = childList.offsetHeight * 2 + "px";
+    arrow.onclick = (event) => {
+      if (!childList.classList.contains("collapsed")) {
+        childList.classList.add("collapsed");
+        arrow.classList.add("collapsed");
+      } else {
+        childList.classList.remove("collapsed");
+        arrow.classList.remove("collapsed");
+      }
+    };
+  });
+  const postLinks = parentElement.querySelectorAll(".post-link");
+  postLinks.forEach((link) => {
+    link.onclick = (event) => {
+      // Directing the server to produce an edit; request it, then do work with
+      // the response.
+      const path = absolutePath(event.currentTarget.getAttribute("href"));
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", path);
+      xhr.setRequestHeader("Content-Type", "application/json");
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          // Likely request new navigation and file content.
+        } else {
+          alert("Request failed; status of " + xhr.status);
+        }
+      };
+      xhr.onerror = function(e) {
+        alert(`Could not load ${path}; preview server might be disconnected.`);
+      };
+      xhr.send();
+    };
+  });
 }
 
-// Load the explanation for [region], into the ".info" div.
+function writeRegionExplanation(response) {
+  const editPanel = document.querySelector(".edit-panel .panel-content");
+  editPanel.innerHTML = "";
+  const regionLocation = document.createElement("p");
+  regionLocation.classList.add("region-location");
+  // Insert a zero-width space after each "/", to allow lines to wrap after each
+  // directory name.
+  const path = response["path"].replace(/\//g, "/\u200B");
+  regionLocation.appendChild(document.createTextNode(`${path} `));
+  const regionLine = regionLocation.appendChild(document.createElement("span"));
+  regionLine.appendChild(document.createTextNode(`line ${response["line"]}`));
+  regionLine.classList.add("nowrap");
+  editPanel.appendChild(regionLocation);
+  const explanation = editPanel.appendChild(document.createElement("p"));
+  explanation.appendChild(document.createTextNode(response["explanation"]));
+  const detailCount = response["details"].length;
+  if (detailCount == 0) {
+    // Having 0 details is not necessarily an expected possibility, but handling
+    // the possibility prevents awkward text, "for 0 reasons:".
+    explanation.appendChild(document.createTextNode("."));
+  } else {
+    explanation.appendChild(document.createTextNode(
+        detailCount == 1
+            ? ` for ${detailCount} reason:` : ` for ${detailCount} reasons:`));
+    const detailList = editPanel.appendChild(document.createElement("ol"));
+    for (const detail of response["details"]) {
+      const detailItem = detailList.appendChild(document.createElement("li"));
+      detailItem.appendChild(document.createTextNode(detail["description"]));
+      if (detail["link"] !== undefined) {
+        detailItem.appendChild(document.createTextNode(" ("));
+        const a = detailItem.appendChild(document.createElement("a"));
+        a.appendChild(document.createTextNode(detail["link"]["text"]));
+        a.setAttribute("href", detail["link"]["href"]);
+        a.classList.add("post-link");
+        detailItem.appendChild(document.createTextNode(")"));
+      }
+    }
+  }
+  if (response["edits"] !== undefined) {
+    for (const edit of response["edits"]) {
+      const editParagraph = editPanel.appendChild(document.createElement("p"));
+      const a = editParagraph.appendChild(document.createElement("a"));
+      a.appendChild(document.createTextNode(edit["text"]));
+      a.setAttribute("href", edit["href"]);
+      a.classList.add("post-link");
+    }
+  }
+}
+
+// Load the explanation for [region], into the ".panel-content" div.
 function loadRegionExplanation(region) {
   // Request the region, then do work with the response.
   const xhr = new XMLHttpRequest();
   const path = window.location.pathname;
   const offset = region.dataset.offset;
   xhr.open("GET", path + `?region=region&offset=${offset}`);
-  xhr.setRequestHeader("Content-Type", "text/html");
+  xhr.setRequestHeader("Content-Type", "application/json");
   xhr.onload = function() {
     if (xhr.status === 200) {
-      const response = xhr.responseText;
-      const info = document.querySelector(".info-panel-inner .info");
-      info.innerHTML = response;
-      const line = region.dataset.line;
-      const regionLocation = info.querySelector(".region-location");
-      regionLocation.textContent =
-          regionLocation.textContent + ` line ${line}:`;
-      addClickHandlers(".info-panel .info");
+      const response = JSON.parse(xhr.responseText);
+      writeRegionExplanation(response);
+      addClickHandlers(".edit-panel .panel-content");
     } else {
       alert(`Request failed; status of ${xhr.status}`);
     }
@@ -238,13 +322,16 @@ function debounce(fn, delay) {
 // Resize the fixed-size and fixed-position navigation and information panels.
 function resizePanels() {
   const navInner = document.querySelector(".nav-inner");
-  // TODO(srawlins): I'm honestly not sure where 8 comes from; but without
-  // `- 8`, the navigation is too tall and the bottom cannot be seen.
-  const height = window.innerHeight - 8;
+  const height = window.innerHeight;
   navInner.style.height = height + "px";
 
-  const infoInner = document.querySelector(".info-panel-inner");
-  infoInner.style.height = height + "px";
+  const infoPanelHeight = height / 2 - 6;
+  const editPanel = document.querySelector(".edit-panel");
+  editPanel.style.height = infoPanelHeight + "px";
+
+  const editListHeight = height / 2 - 6;
+  const editList = document.querySelector(".edit-list");
+  editList.style.height = editListHeight + "px";
 }
 
 document.addEventListener("DOMContentLoaded", (event) => {
@@ -284,20 +371,21 @@ window.addEventListener("scroll", (event) => {
   const navPanel = document.querySelector(".nav-panel");
   const navInner = navPanel.querySelector(".nav-inner");
   const infoPanel = document.querySelector(".info-panel");
-  const infoInner = infoPanel.querySelector(".info-panel-inner");
+  const panelContainer = document.querySelector(".panel-container");
   const innerTopOffset = navPanel.offsetTop;
   if (window.pageYOffset > innerTopOffset) {
     if (!navInner.classList.contains("fixed")) {
-      navPanel.style.width = navPanel.offsetWidth + "px";
-      // Subtract 6px for nav-inner's padding.
-      navInner.style.width = (navInner.offsetWidth - 6) + "px";
+      const navPanelWidth = navPanel.offsetWidth - 14;
+      navPanel.style.width = navPanelWidth + "px";
+      // Subtract 7px for nav-inner's padding.
+      navInner.style.width = navPanelWidth + 7 + "px";
       navInner.classList.add("fixed");
     }
-    if (!infoInner.classList.contains("fixed")) {
-      infoPanel.style.width = infoPanel.offsetWidth + "px";
-      // Subtract 6px for info-panel-inner's padding.
-      infoInner.style.width = (infoInner.offsetWidth - 6) + "px";
-      infoInner.classList.add("fixed");
+    if (!panelContainer.classList.contains("fixed")) {
+      const infoPanelWidth = infoPanel.offsetWidth;
+      infoPanel.style.width = infoPanelWidth + "px";
+      panelContainer.style.width = infoPanelWidth + "px";
+      panelContainer.classList.add("fixed");
     }
   } else {
     if (navInner.classList.contains("fixed")) {
@@ -305,10 +393,10 @@ window.addEventListener("scroll", (event) => {
       navInner.style.width = "";
       navInner.classList.remove("fixed");
     }
-    if (infoInner.classList.contains("fixed")) {
+    if (panelContainer.classList.contains("fixed")) {
       infoPanel.style.width = "";
-      infoInner.style.width = "";
-      infoInner.classList.remove("fixed");
+      panelContainer.style.width = "";
+      panelContainer.classList.remove("fixed");
     }
   }
   debounce(resizePanels, 200)();

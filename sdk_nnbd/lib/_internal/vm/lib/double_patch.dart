@@ -93,9 +93,10 @@ class double {
 
   static double? _parse(String str) {
     int len = str.length;
-    int start = str._firstNonWhitespace();
+    final strbase = str as _StringBase;
+    int start = strbase._firstNonWhitespace();
     if (start == len) return null; // All whitespace.
-    int end = str._lastNonWhitespace() + 1;
+    int end = strbase._lastNonWhitespace() + 1;
     assert(start < end);
     var result = _tryParseDouble(str, start, end);
     if (result != null) return result;
@@ -104,7 +105,7 @@ class double {
 
   @patch
   static double parse(String source,
-      [@deprecated double onError(String source)]) {
+      [@deprecated double onError(String source)?]) {
     var result = _parse(source);
     if (result == null) {
       if (onError == null) throw new FormatException("Invalid double", source);

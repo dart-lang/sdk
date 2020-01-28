@@ -88,7 +88,7 @@ import '../identifiers.dart'
 import '../messages.dart' as messages show getLocationFromUri;
 
 import '../modifier.dart'
-    show Modifier, constMask, covariantMask, finalMask, lateMask;
+    show Modifier, constMask, covariantMask, finalMask, lateMask, requiredMask;
 
 import '../names.dart' show emptyName, minusName, plusName;
 
@@ -1011,6 +1011,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
           ..fileOffset = body.fileOffset;
       }
     }
+
     resolveRedirectingFactoryTargets();
     finishVariableMetadata();
   }
@@ -1884,11 +1885,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [charOffset] as the file offset.
   @override
-  VariableGet createVariableGet(VariableDeclaration variable, int charOffset) {
+  VariableGet createVariableGet(VariableDeclaration variable, int charOffset,
+      {bool forNullGuardedAccess: false}) {
     Object fact =
         typePromoter?.getFactForAccess(variable, functionNestingLevel);
     Object scope = typePromoter?.currentScope;
-    return new VariableGetImpl(variable, fact, scope)..fileOffset = charOffset;
+    return new VariableGetImpl(variable, fact, scope,
+        forNullGuardedAccess: forNullGuardedAccess)
+      ..fileOffset = charOffset;
   }
 
   /// Helper method to create a [ReadOnlyAccessGenerator] on the [variable]
@@ -2304,6 +2308,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     bool isConst = (currentLocalVariableModifiers & constMask) != 0;
     bool isFinal = (currentLocalVariableModifiers & finalMask) != 0;
     bool isLate = (currentLocalVariableModifiers & lateMask) != 0;
+    bool isRequired = (currentLocalVariableModifiers & requiredMask) != 0;
     assert(isConst == (constantContext == ConstantContext.inferred));
     VariableDeclaration variable = new VariableDeclarationImpl(
         identifier.name, functionNestingLevel,
@@ -2312,7 +2317,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         type: buildDartType(currentLocalVariableType),
         isFinal: isFinal,
         isConst: isConst,
-        isLate: isLate)
+        isLate: isLate,
+        isRequired: isRequired,
+        hasDeclaredInitializer: initializer != null)
       ..fileOffset = identifier.charOffset
       ..fileEqualsOffset = offsetForToken(equalsToken);
     typeInferrer?.assignedVariables?.declare(variable);
@@ -2521,13 +2528,17 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     }
   }
 
-  List<VariableDeclaration> buildVariableDeclarations(variableOrExpression) {
+  List<VariableDeclaration> _buildForLoopVariableDeclarations(
+      variableOrExpression) {
     // TODO(ahe): This can be simplified now that we have the events
     // `handleForInitializer...` events.
     if (variableOrExpression is Generator) {
       variableOrExpression = variableOrExpression.buildForEffect();
     }
     if (variableOrExpression is VariableDeclaration) {
+      // Late for loop variables are not supported. An error has already been
+      // reported by the parser.
+      variableOrExpression.isLate = false;
       return <VariableDeclaration>[variableOrExpression];
     } else if (variableOrExpression is Expression) {
       VariableDeclaration variable =
@@ -2543,7 +2554,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     } else if (variableOrExpression is List<Object>) {
       List<VariableDeclaration> variables = <VariableDeclaration>[];
       for (Object v in variableOrExpression) {
-        variables.addAll(buildVariableDeclarations(v));
+        variables.addAll(_buildForLoopVariableDeclarations(v));
       }
       return variables;
     } else if (variableOrExpression == null) {
@@ -2627,7 +2638,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     transformCollections = true;
     List<VariableDeclaration> variables =
-        buildVariableDeclarations(variableOrExpression);
+        _buildForLoopVariableDeclarations(variableOrExpression);
     Expression condition;
     if (conditionStatement is ExpressionStatement) {
       condition = conditionStatement.expression;
@@ -2692,7 +2703,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
 
     Object variableOrExpression = pop();
     List<VariableDeclaration> variables =
-        buildVariableDeclarations(variableOrExpression);
+        _buildForLoopVariableDeclarations(variableOrExpression);
     exitLocalScope();
     JumpTarget continueTarget = exitContinueTarget();
     JumpTarget breakTarget = exitBreakTarget();
@@ -3235,6 +3246,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       reportNonNullableModifierError(requiredToken);
     }
     push((covariantToken != null ? covariantMask : 0) |
+        (requiredToken != null ? requiredMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
   }
 
@@ -3291,7 +3303,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       }
     } else {
       parameter = new FormalParameterBuilder(null, modifiers, type?.builder,
-          name?.name, libraryBuilder, offsetForToken(nameToken), uri);
+          name?.name, libraryBuilder, offsetForToken(nameToken), uri)
+        ..hasDeclaredInitializer = (initializerStart != null);
     }
     VariableDeclaration variable =
         parameter.build(libraryBuilder, functionNestingLevel);
@@ -4660,6 +4673,9 @@ class BodyBuilder extends ScopeListener<JumpTarget>
       Token forToken, Token inToken, Object lvalue, Statement body) {
     ForInElements elements = new ForInElements();
     if (lvalue is VariableDeclaration) {
+      // Late for-in variables are not supported. An error has already been
+      // reported by the parser.
+      lvalue.isLate = false;
       elements.explicitVariableDeclaration = lvalue;
       typeInferrer?.assignedVariables?.write(lvalue);
       if (lvalue.isConst) {
@@ -4688,7 +4704,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
             typePromoter?.getFactForAccess(variable, functionNestingLevel);
         TypePromotionScope scope = typePromoter?.currentScope;
         elements.syntheticAssignment = lvalue.buildAssignment(
-            new VariableGetImpl(variable, fact, scope)
+            new VariableGetImpl(variable, fact, scope,
+                forNullGuardedAccess: false)
               ..fileOffset = inToken.offset,
             voidContext: true);
       } else {

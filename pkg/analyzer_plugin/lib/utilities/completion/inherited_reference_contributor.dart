@@ -83,7 +83,7 @@ class InheritedReferenceContributor
         skipChildClass: skipChildClass);
   }
 
-  _addSuggestionsForType(InterfaceType type, OpType optype,
+  void _addSuggestionsForType(InterfaceType type, OpType optype,
       {bool isFunctionalArgument = false}) {
     if (!isFunctionalArgument) {
       for (PropertyAccessorElement elem in type.accessors) {

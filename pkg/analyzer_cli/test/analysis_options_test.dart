@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'utils.dart' show recursiveCopy, testDirectory, withTempDirAsync;
 
-main() {
+void main() {
   defineReflectiveTests(OptionsTest);
 }
 
@@ -30,7 +30,7 @@ class OptionsTest {
     runner = null;
   }
 
-  test_options() async {
+  Future<void> test_options() async {
     // Copy to temp dir so that existing analysis options
     // in the test directory hierarchy do not interfere
     var projDir = path.join(testDirectory, 'data', 'flutter_analysis_options');

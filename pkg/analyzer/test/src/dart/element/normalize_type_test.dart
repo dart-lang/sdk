@@ -44,45 +44,235 @@ class NormalizeTypeTest with ElementsTypesMixin {
     typeSystem = analysisContext.typeSystemNonNullableByDefault;
   }
 
-  test_functionType() {
+  test_functionType_parameter() {
     _check(
       functionTypeNone(
-        returnType: intNone,
-        typeFormals: [
-          typeParameter('T', bound: numNone),
-        ],
+        returnType: voidNone,
         parameters: [
-          requiredParameter(type: intNone),
+          requiredParameter(type: futureOrNone(objectNone)),
         ],
       ),
       functionTypeNone(
-        returnType: intNone,
-        typeFormals: [
-          typeParameter('T', bound: numNone),
-        ],
+        returnType: voidNone,
         parameters: [
-          requiredParameter(type: intNone),
+          requiredParameter(type: objectNone),
         ],
       ),
     );
 
     _check(
       functionTypeNone(
-        returnType: futureOrNone(objectNone),
-        typeFormals: [
-          typeParameter('T', bound: futureOrNone(objectNone)),
-        ],
+        returnType: voidNone,
         parameters: [
-          requiredParameter(type: futureOrNone(objectNone)),
+          namedParameter(name: 'a', type: futureOrNone(objectNone)),
         ],
       ),
       functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedParameter(name: 'a', type: objectNone),
+        ],
+      ),
+    );
+
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          namedRequiredParameter(name: 'a', type: objectNone),
+        ],
+      ),
+    );
+
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          positionalParameter(type: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          positionalParameter(type: objectNone),
+        ],
+      ),
+    );
+  }
+
+  test_functionType_parameter_covariant() {
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: futureOrNone(objectNone), isCovariant: true),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        parameters: [
+          requiredParameter(type: objectNone, isCovariant: true),
+        ],
+      ),
+    );
+  }
+
+  test_functionType_parameter_typeParameter() {
+    TypeParameterElement T;
+    TypeParameterElement T2;
+
+    T = typeParameter('T', bound: neverNone);
+    T2 = typeParameter('T2', bound: neverNone);
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [T],
+        parameters: [
+          requiredParameter(type: typeParameterTypeNone(T)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [T2],
+        parameters: [
+          requiredParameter(type: neverNone),
+        ],
+      ),
+    );
+
+    T = typeParameter('T', bound: iterableNone(futureOrNone(dynamicNone)));
+    T2 = typeParameter('T2', bound: iterableNone(dynamicNone));
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [T],
+        parameters: [
+          requiredParameter(type: typeParameterTypeNone(T)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [T2],
+        parameters: [
+          requiredParameter(type: typeParameterTypeNone(T2)),
+        ],
+      ),
+    );
+  }
+
+  test_functionType_returnType() {
+    _check(
+      functionTypeNone(
+        returnType: futureOrNone(objectNone),
+      ),
+      functionTypeNone(
         returnType: objectNone,
+      ),
+    );
+
+    _check(
+      functionTypeNone(
+        returnType: intNone,
+      ),
+      functionTypeNone(
+        returnType: intNone,
+      ),
+    );
+  }
+
+  test_functionType_typeParameter_bound_normalized() {
+    _check(
+      functionTypeNone(
+        returnType: voidNone,
+        typeFormals: [
+          typeParameter('T', bound: futureOrNone(objectNone)),
+        ],
+      ),
+      functionTypeNone(
+        returnType: voidNone,
         typeFormals: [
           typeParameter('T', bound: objectNone),
         ],
+      ),
+    );
+  }
+
+  test_functionType_typeParameter_bound_unchanged() {
+    _check(
+      functionTypeNone(
+        returnType: intNone,
+        typeFormals: [
+          typeParameter('T', bound: numNone),
+        ],
+      ),
+      functionTypeNone(
+        returnType: intNone,
+        typeFormals: [
+          typeParameter('T', bound: numNone),
+        ],
+      ),
+    );
+  }
+
+  test_functionType_typeParameter_fresh() {
+    var T = typeParameter('T');
+    var T2 = typeParameter('T');
+    _check(
+      functionTypeNone(
+        returnType: typeParameterTypeNone(T),
+        typeFormals: [T],
         parameters: [
-          requiredParameter(type: objectNone),
+          requiredParameter(
+            type: typeParameterTypeNone(T),
+          ),
+        ],
+      ),
+      functionTypeNone(
+        returnType: typeParameterTypeNone(T2),
+        typeFormals: [T2],
+        parameters: [
+          requiredParameter(
+            type: typeParameterTypeNone(T2),
+          ),
+        ],
+      ),
+    );
+  }
+
+  test_functionType_typeParameter_fresh_bound() {
+    var T = typeParameter('T');
+    var S = typeParameter('S', bound: typeParameterTypeNone(T));
+    var T2 = typeParameter('T');
+    var S2 = typeParameter('S', bound: typeParameterTypeNone(T2));
+    _check(
+      functionTypeNone(
+        returnType: typeParameterTypeNone(T),
+        typeFormals: [T, S],
+        parameters: [
+          requiredParameter(
+            type: typeParameterTypeNone(T),
+          ),
+          requiredParameter(
+            type: typeParameterTypeNone(S),
+          ),
+        ],
+      ),
+      functionTypeNone(
+        returnType: typeParameterTypeNone(T2),
+        typeFormals: [T2, S2],
+        parameters: [
+          requiredParameter(
+            type: typeParameterTypeNone(T2),
+          ),
+          requiredParameter(
+            type: typeParameterTypeNone(S2),
+          ),
         ],
       ),
     );
@@ -196,26 +386,30 @@ class NormalizeTypeTest with ElementsTypesMixin {
     check(intStar, intStar);
   }
 
+  /// NORM(X & T)
+  /// * let S be NORM(T)
   test_typeParameter_bound() {
     TypeParameterElement T;
 
+    // * if S is Never then Never
+    T = typeParameter('T', bound: neverNone);
+    _check(typeParameterTypeNone(T), neverNone);
+
+    // * else X
     T = typeParameter('T');
     _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
 
-    T = typeParameter('T', bound: numNone);
-    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
-
+    // * else X
     T = typeParameter('T', bound: futureOrNone(objectNone));
-    _check(
-      typeParameterTypeNone(T),
-      typeParameterTypeNone(
-        promoteTypeParameter(T, objectNone),
-      ),
-    );
+    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
   }
 
-  /// NORM(X & T)
-  /// * let S be NORM(T)
+  test_typeParameter_bound_recursive() {
+    var T = typeParameter('T');
+    T.bound = iterableNone(typeParameterTypeNone(T));
+    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
+  }
+
   test_typeParameter_promoted() {
     var T = typeParameter('T');
 
@@ -293,6 +487,28 @@ class NormalizeTypeTest with ElementsTypesMixin {
 expected: $expectedStr
 actual: $resultStr
 ''');
+    _checkFormalParametersIsCovariant(result, expected);
+  }
+
+  void _checkFormalParametersIsCovariant(DartType T1, DartType T2) {
+    if (T1 is FunctionType && T2 is FunctionType) {
+      var parameters1 = T1.parameters;
+      var parameters2 = T2.parameters;
+      expect(parameters1, hasLength(parameters2.length));
+      for (var i = 0; i < parameters1.length; i++) {
+        var parameter1 = parameters1[i];
+        var parameter2 = parameters2[i];
+        if (parameter1.isCovariant != parameter2.isCovariant) {
+          fail('''
+parameter1: $parameter1, isCovariant: ${parameter1.isCovariant}
+parameter2: $parameter2, isCovariant: ${parameter2.isCovariant}
+T1: ${_typeString(T1 as TypeImpl)}
+T2: ${_typeString(T2 as TypeImpl)}
+''');
+        }
+        _checkFormalParametersIsCovariant(parameter1.type, parameter2.type);
+      }
+    }
   }
 
   String _typeParametersStr(TypeImpl type) {

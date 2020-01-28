@@ -22,6 +22,7 @@ import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/src/summary2/link.dart' as summary2;
 import 'package:analyzer/src/summary2/linked_element_factory.dart' as summary2;
 import 'package:analyzer/src/summary2/reference.dart' as summary2;
+import 'package:meta/meta.dart';
 
 class SummaryBuilder {
   final Iterable<Source> librarySources;
@@ -63,11 +64,16 @@ class SummaryBuilder {
   /**
    * Build the linked bundle and return its bytes.
    */
-  List<int> build() => _Builder(context, librarySources).build();
+  List<int> build({
+    @required FeatureSet featureSet,
+  }) {
+    return _Builder(context, featureSet, librarySources).build();
+  }
 }
 
 class _Builder {
   final AnalysisContext context;
+  final FeatureSet featureSet;
   final Iterable<Source> librarySources;
 
   final Set<String> libraryUris = <String>{};
@@ -75,7 +81,7 @@ class _Builder {
 
   final PackageBundleAssembler bundleAssembler = PackageBundleAssembler();
 
-  _Builder(this.context, this.librarySources);
+  _Builder(this.context, this.featureSet, this.librarySources);
 
   /**
    * Build the linked bundle and return its bytes.
@@ -132,14 +138,12 @@ class _Builder {
     AnalysisErrorListener errorListener = AnalysisErrorListener.NULL_LISTENER;
     String code = source.contents.data;
     CharSequenceReader reader = CharSequenceReader(code);
-    // TODO(paulberry): figure out the appropriate featureSet to use here
-    var featureSet = FeatureSet.fromEnableFlags([]);
     Scanner scanner = Scanner(source, reader, errorListener)
       ..configureFeatures(featureSet);
     Token token = scanner.tokenize();
     LineInfo lineInfo = LineInfo(scanner.lineStarts);
     Parser parser = Parser(source, errorListener,
-        featureSet: featureSet,
+        featureSet: scanner.featureSet,
         useFasta: context.analysisOptions.useFastaParser);
     parser.enableOptionalNewAndConst = true;
     CompilationUnit unit = parser.parseCompilationUnit(token);

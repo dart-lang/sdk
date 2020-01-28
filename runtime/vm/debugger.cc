@@ -1504,7 +1504,7 @@ RawTypeArguments* ActivationFrame::BuildParameters(
     } else if (!name.Equals(Symbols::This()) &&
                !IsSyntheticVariableName(name)) {
       if (IsPrivateVariableName(name)) {
-        name = String::ScrubName(name);
+        name = Symbols::New(Thread::Current(), String::ScrubName(name));
       }
       bool conflict = false;
       for (intptr_t j = 0; j < param_names.Length(); j++) {
@@ -1639,8 +1639,8 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
       if (!IsSyntheticVariableName(var_name)) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
-        var_name = String::ScrubName(var_name);
-        jsvar.AddProperty("name", var_name.ToCString());
+        const char* scrubbed_var_name = String::ScrubName(var_name);
+        jsvar.AddProperty("name", scrubbed_var_name);
         jsvar.AddProperty("value", var_value);
         // Where was the variable declared?
         jsvar.AddProperty("declarationTokenPos", declaration_token_pos);
@@ -2348,8 +2348,14 @@ DebuggerStackTrace* Debugger::CollectAsyncLazyStackTrace() {
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
   const auto& pc_offset_array = GrowableObjectArray::ZoneHandle(
       zone, GrowableObjectArray::New(kDefaultStackAllocation));
+  bool has_async = false;
   StackTraceUtils::CollectFramesLazy(thread, code_array, pc_offset_array,
-                                     /*skip_frames=*/0, &on_sync_frame);
+                                     /*skip_frames=*/0, &on_sync_frame,
+                                     &has_async);
+
+  if (!has_async) {
+    return nullptr;
+  }
 
   const intptr_t length = code_array.Length();
   for (intptr_t i = stack_trace->Length(); i < length; ++i) {

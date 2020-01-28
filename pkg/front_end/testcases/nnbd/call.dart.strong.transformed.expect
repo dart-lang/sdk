@@ -1,0 +1,48 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/call.dart:12:4: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+// Try calling using ?. instead.
+//   f();
+//    ^
+//
+// pkg/front_end/testcases/nnbd/call.dart:12:4: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+// Try calling using ?.call instead.
+//   f();
+//    ^
+//
+// pkg/front_end/testcases/nnbd/call.dart:13:5: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+// Try calling using ?. instead.
+//   f.call();
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field () →? void field = null;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  get getter() → () →? void
+    return null;
+}
+static method error() → dynamic {
+  () →? void f;
+  let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/call.dart:12:4: Error: Can't use an expression of type 'void Function()?' as a function because it's potentially null.
+Try calling using ?.call instead.
+  f();
+   ^" in let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/call.dart:12:4: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+Try calling using ?. instead.
+  f();
+   ^" in f.call();
+  let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/call.dart:13:5: Error: Method 'call' cannot be called on 'void Function()?' because it is potentially null.
+Try calling using ?. instead.
+  f.call();
+    ^" in f.call();
+  self::Class c = new self::Class::•();
+  c.{self::Class::field}();
+  c.{self::Class::getter}();
+}
+static method main() → dynamic {}

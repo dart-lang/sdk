@@ -1832,7 +1832,7 @@ class _BigIntImpl implements BigInt {
       }
       return z._revert(resultDigits, resultUsed);
     }
-    var k;
+    late int k;
     if (exponentBitlen < 18)
       k = 1;
     else if (exponentBitlen < 48)
@@ -1845,10 +1845,10 @@ class _BigIntImpl implements BigInt {
       k = 6;
     _BigIntReduction z = new _BigIntMontgomeryReduction(modulus);
     var n = 3;
-    final k1 = k - 1;
+    final int k1 = k - 1;
     final km = (1 << k) - 1;
-    List gDigits = new List(km + 1);
-    List gUsed = new List(km + 1);
+    List gDigits = new List.filled(km + 1, null);
+    List gUsed = new List.filled(km + 1, null);
     gDigits[1] = _newDigits(z._normModulusUsed);
     gUsed[1] = z._convert(this, gDigits[1]);
     if (k > 1) {
@@ -1869,7 +1869,7 @@ class _BigIntImpl implements BigInt {
     var result2Used;
     var exponentDigits = exponent._digits;
     var j = exponent._used - 1;
-    var i = exponentDigits[j].bitLength - 1;
+    int i = exponentDigits[j].bitLength - 1;
     while (j >= 0) {
       if (i >= k1) {
         w = (exponentDigits[j] >> (i - k1)) & km;

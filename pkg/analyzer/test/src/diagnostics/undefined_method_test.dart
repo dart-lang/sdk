@@ -18,6 +18,15 @@ main() {
 
 @reflectiveTest
 class UndefinedMethodTest extends DriverResolutionTest {
+  test_constructor_defined() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  C.m();
+}
+C c = C.m();
+''');
+  }
+
   test_functionExpression_callMethod_defined() async {
     await assertNoErrorsInCode(r'''
 main() {
@@ -32,6 +41,42 @@ main() {
   (() => null)();
 }
 ''');
+  }
+
+  test_ignoreTypePropagation() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B extends A {
+  m() {}
+}
+class C {
+  f() {
+    A a = new B();
+    a.m();
+  }
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 85, 1),
+    ]);
+  }
+
+  test_leastUpperBoundWithNull() async {
+    await assertErrorsInCode('''
+f(bool b, int i) => (b ? null : i).foo();
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 35, 3),
+    ]);
+  }
+
+  test_method_undefined_onNull() async {
+    await assertErrorsInCode(r'''
+Null f(int x) => null;
+main() {
+  f(42).abs();
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 40, 3),
+    ]);
   }
 
   test_static_conditionalAccess_defined() async {

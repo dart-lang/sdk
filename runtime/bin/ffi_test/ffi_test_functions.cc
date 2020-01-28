@@ -44,7 +44,7 @@ namespace dart {
 // int.
 DART_EXPORT int32_t SumPlus42(int32_t a, int32_t b) {
   std::cout << "SumPlus42(" << a << ", " << b << ")\n";
-  int32_t retval = 42 + a + b;
+  const int32_t retval = 42 + a + b;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -173,7 +173,7 @@ DART_EXPORT intptr_t TakeMaxUint8x10(uint8_t a,
 DART_EXPORT int64_t IntComputation(int8_t a, int16_t b, int32_t c, int64_t d) {
   std::cout << "IntComputation(" << static_cast<int>(a) << ", " << b << ", "
             << c << ", " << d << ")\n";
-  int64_t retval = d - c + b - a;
+  const int64_t retval = d - c + b - a;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -194,7 +194,7 @@ DART_EXPORT int64_t UintComputation(uint8_t a,
                                     uint64_t d) {
   std::cout << "UintComputation(" << static_cast<int>(a) << ", " << b << ", "
             << c << ", " << d << ")\n";
-  uint64_t retval = d - c + b - a;
+  const uint64_t retval = d - c + b - a;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -203,7 +203,7 @@ DART_EXPORT int64_t UintComputation(uint8_t a,
 // Used for testing pointer sized parameter and return value.
 DART_EXPORT intptr_t Times3(intptr_t a) {
   std::cout << "Times3(" << a << ")\n";
-  intptr_t retval = a * 3;
+  const intptr_t retval = a * 3;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -214,7 +214,7 @@ DART_EXPORT intptr_t Times3(intptr_t a) {
 // double.
 DART_EXPORT double Times1_337Double(double a) {
   std::cout << "Times1_337Double(" << a << ")\n";
-  double retval = a * 1.337;
+  const double retval = a * 1.337;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -223,7 +223,7 @@ DART_EXPORT double Times1_337Double(double a) {
 // Used for testing float parameter and return value.
 DART_EXPORT float Times1_337Float(float a) {
   std::cout << "Times1_337Float(" << a << ")\n";
-  float retval = a * 1.337f;
+  const float retval = a * 1.337f;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -244,7 +244,7 @@ DART_EXPORT intptr_t SumManyInts(intptr_t a,
   std::cout << "SumManyInts(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ")\n";
-  intptr_t retval = a + b + c + d + e + f + g + h + i + j;
+  const intptr_t retval = a + b + c + d + e + f + g + h + i + j;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -266,7 +266,146 @@ DART_EXPORT int16_t SumManySmallInts(int8_t a,
             << static_cast<int>(c) << ", " << d << ", " << static_cast<int>(e)
             << ", " << f << ", " << static_cast<int>(g) << ", " << h << ", "
             << static_cast<int>(i) << ", " << j << ")\n";
-  int16_t retval = a + b + c + d + e + f + g + h + i + j;
+  const int16_t retval = a + b + c + d + e + f + g + h + i + j;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Used for testing floating point argument backfilling on Arm32 in hardfp.
+DART_EXPORT double SumFloatsAndDoubles(float a, double b, float c) {
+  std::cout << "SumFloatsAndDoubles(" << a << ", " << b << ", " << c << ")\n";
+  const double retval = a + b + c;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Very many small integers, tests alignment on stack.
+DART_EXPORT int16_t SumVeryManySmallInts(int8_t a01,
+                                         int16_t a02,
+                                         int8_t a03,
+                                         int16_t a04,
+                                         int8_t a05,
+                                         int16_t a06,
+                                         int8_t a07,
+                                         int16_t a08,
+                                         int8_t a09,
+                                         int16_t a10,
+                                         int8_t a11,
+                                         int16_t a12,
+                                         int8_t a13,
+                                         int16_t a14,
+                                         int8_t a15,
+                                         int16_t a16,
+                                         int8_t a17,
+                                         int16_t a18,
+                                         int8_t a19,
+                                         int16_t a20,
+                                         int8_t a21,
+                                         int16_t a22,
+                                         int8_t a23,
+                                         int16_t a24,
+                                         int8_t a25,
+                                         int16_t a26,
+                                         int8_t a27,
+                                         int16_t a28,
+                                         int8_t a29,
+                                         int16_t a30,
+                                         int8_t a31,
+                                         int16_t a32,
+                                         int8_t a33,
+                                         int16_t a34,
+                                         int8_t a35,
+                                         int16_t a36,
+                                         int8_t a37,
+                                         int16_t a38,
+                                         int8_t a39,
+                                         int16_t a40) {
+  std::cout << "SumVeryManySmallInts(" << static_cast<int>(a01) << ", " << a02
+            << ", " << static_cast<int>(a03) << ", " << a04 << ", "
+            << static_cast<int>(a05) << ", " << a06 << ", "
+            << static_cast<int>(a07) << ", " << a08 << ", "
+            << static_cast<int>(a09) << ", " << a10 << ", "
+            << static_cast<int>(a11) << ", " << a12 << ", "
+            << static_cast<int>(a13) << ", " << a14 << ", "
+            << static_cast<int>(a15) << ", " << a16 << ", "
+            << static_cast<int>(a17) << ", " << a18 << ", "
+            << static_cast<int>(a19) << ", " << a20 << ", "
+            << static_cast<int>(a21) << ", " << a22 << ", "
+            << static_cast<int>(a23) << ", " << a24 << ", "
+            << static_cast<int>(a25) << ", " << a26 << ", "
+            << static_cast<int>(a27) << ", " << a28 << ", "
+            << static_cast<int>(a29) << ", " << a30 << ", "
+            << static_cast<int>(a31) << ", " << a32 << ", "
+            << static_cast<int>(a33) << ", " << a34 << ", "
+            << static_cast<int>(a35) << ", " << a36 << ", "
+            << static_cast<int>(a37) << ", " << a38 << ", "
+            << static_cast<int>(a39) << ", " << a40 << ")\n";
+  const int16_t retval = a01 + a02 + a03 + a04 + a05 + a06 + a07 + a08 + a09 +
+                         a10 + a11 + a12 + a13 + a14 + a15 + a16 + a17 + a18 +
+                         a19 + a20 + a21 + a22 + a23 + a24 + a25 + a26 + a27 +
+                         a28 + a29 + a30 + a31 + a32 + a33 + a34 + a35 + a36 +
+                         a37 + a38 + a39 + a40;
+  std::cout << "returning " << retval << "\n";
+  return retval;
+}
+
+// Very many floating points, tests alignment on stack, and packing in
+// floating point registers in hardfp.
+DART_EXPORT double SumVeryManyFloatsDoubles(float a01,
+                                            double a02,
+                                            float a03,
+                                            double a04,
+                                            float a05,
+                                            double a06,
+                                            float a07,
+                                            double a08,
+                                            float a09,
+                                            double a10,
+                                            float a11,
+                                            double a12,
+                                            float a13,
+                                            double a14,
+                                            float a15,
+                                            double a16,
+                                            float a17,
+                                            double a18,
+                                            float a19,
+                                            double a20,
+                                            float a21,
+                                            double a22,
+                                            float a23,
+                                            double a24,
+                                            float a25,
+                                            double a26,
+                                            float a27,
+                                            double a28,
+                                            float a29,
+                                            double a30,
+                                            float a31,
+                                            double a32,
+                                            float a33,
+                                            double a34,
+                                            float a35,
+                                            double a36,
+                                            float a37,
+                                            double a38,
+                                            float a39,
+                                            double a40) {
+  std::cout << "SumVeryManyFloatsDoubles(" << a01 << ", " << a02 << ", " << a03
+            << ", " << a04 << ", " << a05 << ", " << a06 << ", " << a07 << ", "
+            << a08 << ", " << a09 << ", " << a10 << ", " << a11 << ", " << a12
+            << ", " << a13 << ", " << a14 << ", " << a15 << ", " << a16 << ", "
+            << a17 << ", " << a18 << ", " << a19 << ", " << a20 << ", " << a21
+            << ", " << a22 << ", " << a23 << ", " << a24 << ", " << a25 << ", "
+            << a26 << ", " << a27 << ", " << a28 << ", " << a29 << ", " << a30
+            << ", " << a31 << ", " << a32 << ", " << a33 << ", " << a34 << ", "
+            << a35 << ", " << a36 << ", " << a37 << ", " << a38 << ", " << a39
+            << ", " << a40 << ")\n";
+  const double retval = a01 + a02 + a03 + a04 + a05 + a06 + a07 + a08 + a09 +
+                        a10 + a11 + a12 + a13 + a14 + a15 + a16 + a17 + a18 +
+                        a19 + a20 + a21 + a22 + a23 + a24 + a25 + a26 + a27 +
+                        a28 + a29 + a30 + a31 + a32 + a33 + a34 + a35 + a36 +
+                        a37 + a38 + a39 + a40;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -288,7 +427,7 @@ DART_EXPORT intptr_t SumManyIntsOdd(intptr_t a,
   std::cout << "SumManyInts(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ", " << k << ")\n";
-  intptr_t retval = a + b + c + d + e + f + g + h + i + j + k;
+  const intptr_t retval = a + b + c + d + e + f + g + h + i + j + k;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -309,7 +448,7 @@ DART_EXPORT double SumManyDoubles(double a,
   std::cout << "SumManyDoubles(" << a << ", " << b << ", " << c << ", " << d
             << ", " << e << ", " << f << ", " << g << ", " << h << ", " << i
             << ", " << j << ")\n";
-  double retval = a + b + c + d + e + f + g + h + i + j;
+  const double retval = a + b + c + d + e + f + g + h + i + j;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -342,8 +481,8 @@ DART_EXPORT double SumManyNumbers(intptr_t a,
             << ", " << j << ", " << k << ", " << l << ", " << m << ", " << n
             << ", " << o << ", " << p << ", " << q << ", " << r << ", " << s
             << ", " << t << ")\n";
-  double retval = a + b + c + d + e + f + g + h + i + j + k + l + m + n + o +
-                  p + q + r + s + t;
+  const double retval = a + b + c + d + e + f + g + h + i + j + k + l + m + n +
+                        o + p + q + r + s + t;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -581,7 +720,7 @@ DART_EXPORT void DevNullFloat(float a) {
 // Used for testing functions that do not take any arguments.
 DART_EXPORT float InventFloatValue() {
   std::cout << "InventFloatValue()\n";
-  float retval = 1337.0f;
+  const float retval = 1337.0f;
   std::cout << "returning " << retval << "\n";
   return retval;
 }
@@ -675,6 +814,111 @@ DART_EXPORT intptr_t TestManyArgs(double (*fn)(intptr_t a,
                                                double t)) {
   CHECK(210.0 == fn(1, 2.0, 3, 4.0, 5, 6.0, 7, 8.0, 9, 10.0, 11, 12.0, 13, 14.0,
                     15, 16.0, 17, 18.0, 19, 20.0));
+  return 0;
+}
+
+// Used for testing floating point argument backfilling on Arm32 in hardfp.
+DART_EXPORT intptr_t TestSumFloatsAndDoubles(double (*fn)(float,
+                                                          double,
+                                                          float)) {
+  CHECK_EQ(6.0, fn(1.0, 2.0, 3.0));
+  return 0;
+}
+
+// Very many small integers, tests alignment on stack.
+DART_EXPORT intptr_t TestSumVeryManySmallInts(int16_t (*fn)(int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t,
+                                                            int8_t,
+                                                            int16_t)) {
+  CHECK_EQ(40 * 41 / 2, fn(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+                           16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+                           29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40));
+  return 0;
+}
+
+// Very many floating points, tests alignment on stack, and packing in
+// floating point registers in hardfp.
+DART_EXPORT intptr_t TestSumVeryManyFloatsDoubles(double (*fn)(float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double,
+                                                               float,
+                                                               double)) {
+  CHECK_EQ(40 * 41 / 2,
+           fn(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0,
+              13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0, 21.0, 22.0, 23.0,
+              24.0, 25.0, 26.0, 27.0, 28.0, 29.0, 30.0, 31.0, 32.0, 33.0, 34.0,
+              35.0, 36.0, 37.0, 38.0, 39.0, 40.0));
   return 0;
 }
 
