@@ -5230,6 +5230,17 @@ Message _withArgumentsInvokeNonFunction(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropIndexNotSupported =
+    messageJsInteropIndexNotSupported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
+    "JsInteropIndexNotSupported",
+    message:
+        r"""JS interop classes do not support [] and []= operator methods.""",
+    tip: r"""Try replacing with a normal method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
         Message Function(String name)>(

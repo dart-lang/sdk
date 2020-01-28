@@ -3850,3 +3850,7 @@ NullableMixinError:
 NullableMixinWarning:
   template: "Mixing in '#name' marked with '?'."
   severity: WARNING
+
+JsInteropIndexNotSupported:
+  template: "JS interop classes do not support [] and []= operator methods."
+  tip: "Try replacing with a normal method."

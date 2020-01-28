@@ -5,12 +5,15 @@
 import 'dart:collection';
 import 'dart:core' hide MapEntry;
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show Message, LocatedMessage;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
+import 'package:_js_interop_checks/js_interop_checks.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
@@ -144,6 +147,9 @@ class DevCompilerTarget extends Target {
       {void logger(String msg)}) {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
+      JsInteropChecks(
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+          .visitLibrary(library);
     }
   }
 

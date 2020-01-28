@@ -36,6 +36,12 @@ additional details see the [announcement].
   `package:js` interop specification must now be wrapped with a call to
   `allowInterop`. This behavior was always enforced by `dart2js`, but was not
   enforced consistently in `ddc`. It will now be enforced in both.
+* JS interop classes with an index operator are now static errors.
+
+#### Dart2JS
+
+* JS interop classes with an index operator are now static errors instead of
+  causing invalid code in dart2js.
 
  [announcement]: https://github.com/dart-lang/sdk/issues/38994
 

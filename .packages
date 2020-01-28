@@ -7,6 +7,7 @@
 # Please update this file if you add a package to DEPS or /pkg
 #
 _fe_analyzer_shared:pkg/_fe_analyzer_shared/lib
+_js_interop_checks:pkg/_js_interop_checks/lib
 analysis_server:pkg/analysis_server/lib
 analysis_server_client:pkg/analysis_server_client/lib
 analysis_tool:pkg/analysis_tool/lib
