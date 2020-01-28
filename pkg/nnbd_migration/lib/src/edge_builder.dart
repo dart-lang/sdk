@@ -1337,6 +1337,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       return _makeNonNullLiteralType(node);
     } else if (staticElement == null) {
       assert(node.toString() == 'void');
+      return _makeNullableVoidType(node);
     } else if (staticElement.enclosingElement is ClassElement &&
         (staticElement.enclosingElement as ClassElement).isEnum) {
       return getOrComputeElementType(staticElement);
@@ -2455,6 +2456,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _makeNullableDynamicType(AstNode astNode) {
     var decoratedType = DecoratedType.forImplicitType(
         typeProvider, typeProvider.dynamicType, _graph);
+    _graph.makeNullable(
+        decoratedType.node, AlwaysNullableTypeOrigin(source, astNode));
+    return decoratedType;
+  }
+
+  DecoratedType _makeNullableVoidType(SimpleIdentifier astNode) {
+    var decoratedType = DecoratedType.forImplicitType(
+        typeProvider, typeProvider.voidType, _graph);
     _graph.makeNullable(
         decoratedType.node, AlwaysNullableTypeOrigin(source, astNode));
     return decoratedType;

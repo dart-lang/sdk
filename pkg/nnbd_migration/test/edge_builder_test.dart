@@ -1475,7 +1475,10 @@ void g(int j) {}
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    assertEdge(iNode, jNode, hard: false, guards: [alwaysPlus.toList()[1]]);
+    assertEdge(iNode, jNode,
+        hard: false,
+        guards: TypeMatcher<Iterable<NullabilityNode>>()
+            .having((g) => g.single, 'single value', isIn(alwaysPlus)));
   }
 
   Future<void> test_binaryExpression_equal_null_yoda_condition() async {

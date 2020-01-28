@@ -198,7 +198,7 @@ mixin EdgeTester {
   /// aren't already.  In practice this means that the caller can pass in either
   //  /// a [NodeMatcher] or a [NullabilityNode].
   NullabilityEdge assertEdge(Object source, Object destination,
-      {@required bool hard, List<NullabilityNode> guards = const []}) {
+      {@required bool hard, Object guards = isEmpty}) {
     var edges = getEdges(source, destination);
     if (edges.length == 0) {
       fail('Expected edge $source -> $destination, found none');
@@ -207,7 +207,7 @@ mixin EdgeTester {
     } else {
       var edge = edges[0];
       expect(edge.isHard, hard);
-      expect(edge.guards, unorderedEquals(guards));
+      expect(edge.guards, guards);
       return edge;
     }
   }
