@@ -44,6 +44,7 @@ class CompletionMetricsComputer {
   Future computeCompletionMetrics() async {
     int includedCount = 0;
     int notIncludedCount = 0;
+    var completionMissedTokenCounter = Counter('missing completion counter');
     var completionKindCounter = Counter('completion kind counter');
     var completionElementKindCounter =
         Counter('completion element kind counter');
@@ -95,6 +96,8 @@ class CompletionMetricsComputer {
               } else {
                 notIncludedCount++;
 
+                completionMissedTokenCounter
+                    .count(expectedCompletion.completion);
                 completionKindCounter.count(expectedCompletion.kind.toString());
                 completionElementKindCounter
                     .count(expectedCompletion.elementKind.toString());
@@ -122,6 +125,9 @@ class CompletionMetricsComputer {
     final percentIncluded = includedCount / totalCompletionCount;
     final percentNotIncluded = 1 - percentIncluded;
 
+    completionMissedTokenCounter.printCounterValues();
+    print('');
+
     completionKindCounter.printCounterValues();
     print('');
 
@@ -140,6 +146,7 @@ class CompletionMetricsComputer {
 
     includedCount = 0;
     notIncludedCount = 0;
+    completionMissedTokenCounter.clear();
     completionKindCounter.clear();
     completionElementKindCounter.clear();
     mRRComputer.clear();
