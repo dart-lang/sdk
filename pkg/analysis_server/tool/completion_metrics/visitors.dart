@@ -652,6 +652,11 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
         node.thisOrAncestorOfType<ArgumentList>() != null) {
       return false;
     }
+
+    // If the type of the SimpleIdentifier is dynamic, don't include.
+    if (node.staticType != null && node.staticType.isDynamic) {
+      return false;
+    }
     return true;
   }
 }
