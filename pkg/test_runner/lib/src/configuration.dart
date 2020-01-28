@@ -68,8 +68,7 @@ class TestConfiguration {
       this.outputDirectory,
       this.reproducingArguments,
       this.fastTestsOnly,
-      this.printPassingStdout,
-      this.useQemu})
+      this.printPassingStdout})
       : _packages = packages;
 
   final Map<String, RegExp> selectors;
@@ -98,7 +97,6 @@ class TestConfiguration {
   final bool writeResults;
   final bool writeLogs;
   final bool printPassingStdout;
-  final bool useQemu;
 
   Architecture get architecture => configuration.architecture;
   Compiler get compiler => configuration.compiler;
@@ -121,6 +119,7 @@ class TestConfiguration {
   bool get useElf => configuration.useElf;
   bool get useSdk => configuration.useSdk;
   bool get enableAsserts => configuration.enableAsserts;
+  bool get useQemu => configuration.useQemu;
 
   // Various file paths.
 

@@ -656,6 +656,16 @@
         "hot-reload-rollback": true
       }
     },
+    "dartk-linux-(debug|product|release)-arm-qemu": {
+      "options": {
+        "use-qemu": true
+      }
+    },
+    "dartkp-linux-(debug|product|release)-arm-qemu": {
+      "options": {
+        "use-qemu": true
+      }
+    },
     "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64)": {},
     "dartkb-interpret-(linux|mac|win)-product-(ia32|x64|arm|arm64|simarm|simarm64)": {
       "options": {
