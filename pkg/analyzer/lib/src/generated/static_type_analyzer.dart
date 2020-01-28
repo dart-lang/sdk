@@ -233,18 +233,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    // Await the Future. This results in whatever type is (ultimately) returned.
-    DartType awaitType(DartType awaitedType) {
-      if (awaitedType == null) {
-        return null;
-      }
-      if (awaitedType.isDartAsyncFutureOr) {
-        return awaitType((awaitedType as InterfaceType).typeArguments[0]);
-      }
-      return _typeSystem.flatten(awaitedType);
-    }
-
-    _recordStaticType(node, awaitType(_getStaticType(node.expression)));
+    DartType resultType = _getStaticType(node.expression);
+    if (resultType != null) resultType = _typeSystem.flatten(resultType);
+    _recordStaticType(node, resultType);
   }
 
   /**
