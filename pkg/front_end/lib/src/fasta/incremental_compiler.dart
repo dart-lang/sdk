@@ -143,6 +143,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
 
   KernelTarget userCode;
+  Set<Library> previousSourceBuilders;
 
   IncrementalCompiler.fromComponent(
       this.context, this.componentToInitializeFrom,
@@ -270,7 +271,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         userCode.loader.builders.clear();
         userCode = userCodeOld;
       } else {
-        await convertSourceLibraryBuildersToDill();
+        previousSourceBuilders = await convertSourceLibraryBuildersToDill();
       }
 
       // Output result.
@@ -286,8 +287,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Convert every SourceLibraryBuilder to a DillLibraryBuilder.
   /// As we always do this, this will only be the new ones.
-  void convertSourceLibraryBuildersToDill() async {
+  ///
+  /// Returns the set of Libraries that now has new (dill) builders.
+  Future<Set<Library>> convertSourceLibraryBuildersToDill() async {
     bool changed = false;
+    Set<Library> newDillLibraryBuilders = new Set<Library>();
     userBuilders ??= <Uri, LibraryBuilder>{};
     for (MapEntry<Uri, LibraryBuilder> entry
         in userCode.loader.builders.entries) {
@@ -297,6 +301,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             dillLoadedData.loader.appendLibrary(builder.library);
         userCode.loader.builders[entry.key] = dillBuilder;
         userBuilders[entry.key] = dillBuilder;
+        newDillLibraryBuilders.add(builder.library);
         changed = true;
       }
     }
@@ -304,6 +309,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       await dillLoadedData.buildOutlines();
     }
     if (userBuilders.isEmpty) userBuilders = null;
+    return newDillLibraryBuilders;
   }
 
   /// Compute which libraries to output and which (previous) errors/warnings we
@@ -993,17 +999,23 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // used class.
       for (Class c in classes) {
         Library library = c.enclosingLibrary;
-        // Only add if loaded from a dill file.
-        if (dillLoadedData.loader.builders.containsKey(library.importUri)) {
+        // Only add if loaded from a dill file (and wasn't a 'dill' that was
+        // converted from source builders to dill builders).
+        if (dillLoadedData.loader.builders.containsKey(library.importUri) &&
+            (previousSourceBuilders == null ||
+                !previousSourceBuilders.contains(library))) {
           neededDillLibraries.add(library);
         }
       }
     } else {
       // Cannot track in other kernel class hierarchies or
-      // if all bets are off: Add everything.
+      // if all bets are off: Add everything (except for the libraries we just
+      // converted from source builders to dill builders).
       neededDillLibraries = new Set<Library>();
       for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
-        if (builder is DillLibraryBuilder) {
+        if (builder is DillLibraryBuilder &&
+            (previousSourceBuilders == null ||
+                !previousSourceBuilders.contains(builder.library))) {
           neededDillLibraries.add(builder.library);
         }
       }
@@ -1669,6 +1681,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (userCode != null) {
       Set<Uri> uris = new Set<Uri>.from(userCode.loader.builders.keys);
       uris.removeAll(dillLoadedData.loader.builders.keys);
+      if (previousSourceBuilders != null) {
+        for(Library library in previousSourceBuilders) {
+          uris.add(library.importUri);
+        }
+      }
       invalidatedUris.addAll(uris);
     }
   }
