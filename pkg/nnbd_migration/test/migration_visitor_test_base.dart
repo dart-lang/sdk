@@ -394,6 +394,12 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
         testSource, findNode.typeAnnotation(text));
   }
 
+  /// Gets the [ConditionalDiscard] information associated with the collection
+  /// element whose text is [text].
+  ConditionalDiscard elementDiscard(String text) {
+    return variables.conditionalDiscard(findNode.collectionElement(text));
+  }
+
   NullabilityNode possiblyOptionalParameter(String text) {
     return variables.possiblyOptionalParameter(findNode.defaultParameter(text));
   }
@@ -402,12 +408,6 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// whose text is [text].
   ConditionalDiscard statementDiscard(String text) {
     return variables.conditionalDiscard(findNode.statement(text));
-  }
-
-  /// Gets the [ConditionalDiscard] information associated with the collection
-  /// element whose text is [text].
-  ConditionalDiscard elementDiscard(String text) {
-    return variables.conditionalDiscard(findNode.collectionElement(text));
   }
 }
 

@@ -855,6 +855,16 @@ void main() {
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_in_return_type() async {
+    await analyze('''
+class C<T extends Object> {}
+C<int> f() => null;
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_in_type_argument() async {
     await analyze('''
 class C<T extends Object> {}
@@ -863,16 +873,6 @@ C<C<int>> f() => null;
     assertEdge(decoratedTypeAnnotation('C<int>').node,
         decoratedTypeAnnotation('Object').node,
         hard: true);
-    assertEdge(decoratedTypeAnnotation('int').node,
-        decoratedTypeAnnotation('Object').node,
-        hard: true);
-  }
-
-  Future<void> test_assign_to_bound_in_return_type() async {
-    await analyze('''
-class C<T extends Object> {}
-C<int> f() => null;
-''');
     assertEdge(decoratedTypeAnnotation('int').node,
         decoratedTypeAnnotation('Object').node,
         hard: true);
