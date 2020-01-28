@@ -251,8 +251,6 @@ class HttpParserTest {
         }
       }
 
-      ;
-
       var subscription = httpParser.listen((incoming) {
         port.close();
         statusCode = incoming.statusCode;
@@ -313,7 +311,6 @@ class HttpParserTest {
       _HttpParser httpParser = new _HttpParser.responseParser();
       StreamController<Uint8List> controller = new StreamController(sync: true);
       bool errorCalled = false;
-      ;
 
       if (chunkSize == -1) chunkSize = requestData.length;
 
@@ -783,6 +780,9 @@ Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=\r
     _testParseInvalidResponse(response);
 
     response = "HTTP/1.1 OK\r\nContent-Length: 0\r\n\r\n";
+    _testParseInvalidResponse(response);
+
+    response = "HTTP/1.1 20A OK\r\nContent-Length: 0\r\n\r\n";
     _testParseInvalidResponse(response);
 
     response = "200 OK\r\nContent-Length: 0\r\n\r\n";
