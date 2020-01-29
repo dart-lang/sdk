@@ -1732,6 +1732,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     if (type.isDynamic || type.isVoid) {
       return DecoratedType(type, node);
+    } else if (leftType.isBottom) {
+      return right.withNode(node);
+    } else if (rightType.isBottom) {
+      return left.withNode(node);
     } else if (type is InterfaceType) {
       if (type.typeArguments.isEmpty) {
         return DecoratedType(type, node);

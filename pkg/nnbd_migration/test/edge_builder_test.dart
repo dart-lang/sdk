@@ -2123,6 +2123,21 @@ List<num> f<T extends List<num>>(bool b, List<num> x, T y) {
         bBound.typeArguments[0].node);
   }
 
+  Future<void> test_conditionalExpression_left_never() async {
+    await analyze('''
+List<int> f(bool b, List<int> i) {
+  return (b ? (throw i) : i);
+}
+''');
+
+    var nullable_i = decoratedTypeAnnotation('List<int> i').node;
+    var nullable_conditional =
+        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+    var nullable_throw = nullable_conditional.left;
+    assertNoUpstreamNullability(nullable_throw);
+    assertLUB(nullable_conditional, nullable_throw, nullable_i);
+  }
+
   Future<void> test_conditionalExpression_left_non_null() async {
     await analyze('''
 int f(bool b, int i) {
@@ -2215,6 +2230,21 @@ T g<T>(bool b, T x, T y) {
     var nullable_y = decoratedTypeAnnotation('T y').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
     assertLUB(nullable_conditional, nullable_x, nullable_y);
+  }
+
+  Future<void> test_conditionalExpression_right_never() async {
+    await analyze('''
+List<int> f(bool b, List<int> i) {
+  return (b ? i : (throw i));
+}
+''');
+
+    var nullable_i = decoratedTypeAnnotation('List<int> i').node;
+    var nullable_conditional =
+        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+    var nullable_throw = nullable_conditional.right;
+    assertNoUpstreamNullability(nullable_throw);
+    assertLUB(nullable_conditional, nullable_i, nullable_throw);
   }
 
   Future<void> test_conditionalExpression_right_non_null() async {
