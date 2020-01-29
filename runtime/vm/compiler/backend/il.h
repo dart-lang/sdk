@@ -511,6 +511,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 #define DEFINE_INSTRUCTION_TYPE_CHECK(type)                                    \
+  virtual type##Instr* As##type() { return this; }                             \
   virtual const type##Instr* As##type() const { return this; }                 \
   virtual const char* DebugName() const { return #type; }
 
