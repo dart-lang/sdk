@@ -261,6 +261,24 @@ class Generator {
     return 'Dart SDK: $version • <small>(Linter v${info.sinceLinter})</small>';
   }
 
+  String get incompatibleRuleDetails {
+    final sb = StringBuffer();
+    var incompatibleRules = rule.incompatibleRules;
+    if (incompatibleRules.isNotEmpty) {
+      sb.writeln('<p>');
+      sb.write('Incompatible with: ');
+      var rule = incompatibleRules.first;
+      sb.write('<a href = "$rule.html" >$rule</a>');
+      for (var i = 1; i < incompatibleRules.length; ++i) {
+        rule = incompatibleRules[i];
+        sb.write(', <a href = "$rule.html" >$rule</a>');
+      }
+      sb.writeln('.');
+      sb.writeln('</p>');
+    }
+    return sb.toString();
+  }
+
   void generate([String filePath]) {
     var generated = _generate();
     if (filePath != null) {
@@ -304,7 +322,7 @@ class Generator {
          <section>
 
             ${markdownToHtml(details)}
-
+            $incompatibleRuleDetails
          </section>
       </div>
       <footer>
