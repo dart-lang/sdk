@@ -67,10 +67,12 @@ library_prefixes: 0.1.1
 lines_longer_than_80_chars: 0.1.56
 list_remove_unrelated_type: 0.1.22
 literal_only_boolean_expressions: 0.1.25
+missing_whitespace_between_adjacent_strings : 0.1.110
 no_adjacent_strings_in_list: 0.1.30
 no_duplicate_case_values: 0.1.30
 no_logic_in_create_state : 0.1.106
 non_constant_identifier_names: 0.1.1
+no_runtimeType_toString : 0.1.110
 null_closures: 0.1.56
 one_member_abstracts: 0.1.1
 omit_local_variable_types: 0.1.30
@@ -145,6 +147,7 @@ unnecessary_null_in_if_null_operators: 0.1.30
 unnecessary_overrides: 0.1.31
 unnecessary_parenthesis: 0.1.44
 unnecessary_statements: 0.1.36
+unnecessary_string_interpolations : 0.1.110
 unnecessary_this: 0.1.30
 unrelated_type_equality_checks: 0.1.16
 unsafe_html : 0.1.90
