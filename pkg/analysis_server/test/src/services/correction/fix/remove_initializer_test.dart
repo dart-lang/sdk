@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveInitializerTest);
   });
@@ -23,7 +23,7 @@ class RemoveInitializerTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_init_to_null;
 
-  test_field() async {
+  Future<void> test_field() async {
     await resolveTestUnit('''
 class Test {
   int /*LINT*/x = null;
@@ -36,7 +36,7 @@ class Test {
 ''');
   }
 
-  test_forLoop() async {
+  Future<void> test_forLoop() async {
     await resolveTestUnit('''
 void f() {
   for (var /*LINT*/i = null; i != null; i++) {
@@ -51,7 +51,7 @@ void f() {
 ''');
   }
 
-  test_listOfVariableDeclarations() async {
+  Future<void> test_listOfVariableDeclarations() async {
     await resolveTestUnit('''
 String a = 'a', /*LINT*/b = null, c = 'c';
 ''');
@@ -60,7 +60,7 @@ String a = 'a', b, c = 'c';
 ''');
   }
 
-  test_parameter_optionalNamed() async {
+  Future<void> test_parameter_optionalNamed() async {
     await resolveTestUnit('''
 void f({String /*LINT*/s = null}) {}
 ''');
@@ -69,7 +69,7 @@ void f({String s}) {}
 ''');
   }
 
-  test_parameter_optionalPositional() async {
+  Future<void> test_parameter_optionalPositional() async {
     await resolveTestUnit('''
 void f([String /*LINT*/s = null]) {}
 ''');
@@ -78,7 +78,7 @@ void f([String s]) {}
 ''');
   }
 
-  test_topLevel() async {
+  Future<void> test_topLevel() async {
     await resolveTestUnit('''
 var /*LINT*/x = null;
 ''');

@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('ProcessProfiler', () {
     // Skip on windows.
     if (Platform.isWindows) {

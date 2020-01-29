@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToListLiteralTest);
   });
@@ -23,7 +23,7 @@ class ConvertToListLiteralTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_collection_literals;
 
-  test_default_declaredType() async {
+  Future<void> test_default_declaredType() async {
     await resolveTestUnit('''
 List l = /*LINT*/List();
 ''');
@@ -32,7 +32,7 @@ List l = [];
 ''');
   }
 
-  test_default_minimal() async {
+  Future<void> test_default_minimal() async {
     await resolveTestUnit('''
 var l = /*LINT*/List();
 ''');
@@ -41,7 +41,7 @@ var l = [];
 ''');
   }
 
-  test_default_newKeyword() async {
+  Future<void> test_default_newKeyword() async {
     await resolveTestUnit('''
 var l = /*LINT*/new List();
 ''');
@@ -50,14 +50,14 @@ var l = [];
 ''');
   }
 
-  test_default_tooManyArguments() async {
+  Future<void> test_default_tooManyArguments() async {
     await resolveTestUnit('''
 var l = /*LINT*/List(5);
 ''');
     await assertNoFix();
   }
 
-  test_default_typeArg() async {
+  Future<void> test_default_typeArg() async {
     await resolveTestUnit('''
 var l = /*LINT*/List<int>();
 ''');

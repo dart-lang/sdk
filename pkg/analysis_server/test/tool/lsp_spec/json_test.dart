@@ -9,7 +9,7 @@ import 'package:analysis_server/lsp_protocol/protocol_special.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('toJson', () {
     test('returns correct JSON for a union', () {
       final _num = Either2.t1(1);

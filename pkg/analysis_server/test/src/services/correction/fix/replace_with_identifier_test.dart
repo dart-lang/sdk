@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithIdentifierTest);
   });
@@ -23,7 +23,7 @@ class ReplaceWithIdentifierTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.avoid_types_on_closure_parameters;
 
-  test_functionTypedFormalParameter() async {
+  Future<void> test_functionTypedFormalParameter() async {
     await resolveTestUnit('''
 var functionWithFunction = (/*LINT*/int f(int x)) => f(0);
 ''');

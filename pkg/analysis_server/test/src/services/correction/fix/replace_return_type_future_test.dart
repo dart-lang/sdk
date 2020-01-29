@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceReturnTypeFutureTest);
   });
@@ -20,7 +20,7 @@ class ReplaceReturnTypeFutureTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_RETURN_TYPE_FUTURE;
 
-  test_adjacentNodes_withImport() async {
+  Future<void> test_adjacentNodes_withImport() async {
     await resolveTestUnit('''
 import 'dart:async';
 var v;int main() async => 0;
@@ -33,7 +33,7 @@ var v;Future<int> main() async => 0;
     });
   }
 
-  test_adjacentNodes_withoutImport() async {
+  Future<void> test_adjacentNodes_withoutImport() async {
     await resolveTestUnit('''
 var v;int main() async => 0;
 ''');
@@ -44,7 +44,7 @@ var v;Future<int> main() async => 0;
     });
   }
 
-  test_complexTypeName_withImport() async {
+  Future<void> test_complexTypeName_withImport() async {
     await resolveTestUnit('''
 import 'dart:async';
 List<int> main() async {
@@ -60,7 +60,7 @@ Future<List<int>> main() async {
   }
 
   @failingTest
-  test_complexTypeName_withoutImport() async {
+  Future<void> test_complexTypeName_withoutImport() async {
     await resolveTestUnit('''
 List<int> main() async {
 }
@@ -75,7 +75,7 @@ Future<List<int>> main() async {
     });
   }
 
-  test_importedWithPrefix() async {
+  Future<void> test_importedWithPrefix() async {
     await resolveTestUnit('''
 import 'dart:async' as al;
 int main() async {
@@ -90,7 +90,7 @@ al.Future<int> main() async {
     });
   }
 
-  test_simpleTypeName_withImport() async {
+  Future<void> test_simpleTypeName_withImport() async {
     await resolveTestUnit('''
 import 'dart:async';
 int main() async => 0;
@@ -104,7 +104,7 @@ Future<int> main() async => 0;
   }
 
   @failingTest
-  test_simpleTypeName_withoutImport() async {
+  Future<void> test_simpleTypeName_withoutImport() async {
     await resolveTestUnit('''
 int main() async => 0;
 ''');
@@ -117,7 +117,7 @@ Future<int> main() async => 0;
     });
   }
 
-  test_withLibraryDirective_withImport() async {
+  Future<void> test_withLibraryDirective_withImport() async {
     await resolveTestUnit('''
 library main;
 import 'dart:async';
@@ -134,7 +134,7 @@ Future<int> main() async {
     });
   }
 
-  test_withLibraryDirective_withoutImport() async {
+  Future<void> test_withLibraryDirective_withoutImport() async {
     await resolveTestUnit('''
 library main;
 int main() async {

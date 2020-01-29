@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceNewWithConstTest);
   });
@@ -23,7 +23,7 @@ class ReplaceNewWithConstTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_const_constructors;
 
-  test_basic() async {
+  Future<void> test_basic() async {
     await resolveTestUnit('''
 class C {
   const C();
@@ -42,7 +42,7 @@ main() {
 ''');
   }
 
-  test_not_present() async {
+  Future<void> test_not_present() async {
     await resolveTestUnit('''
 class C {
   const C();

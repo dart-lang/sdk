@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnnecessaryConstTest);
   });
@@ -23,7 +23,7 @@ class RemoveUnnecessaryConstTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_const;
 
-  test_constConstructor() async {
+  Future<void> test_constConstructor() async {
     await resolveTestUnit('''
 class A { const A(); }
 m(){
@@ -38,7 +38,7 @@ m(){
 ''');
   }
 
-  test_instanceCreation() async {
+  Future<void> test_instanceCreation() async {
     await resolveTestUnit('''
 const list = /*LINT*/const List();
 ''');
@@ -47,7 +47,7 @@ const list = List();
 ''', length: 5);
   }
 
-  test_typedLiteral() async {
+  Future<void> test_typedLiteral() async {
     await resolveTestUnit('''
 const list = /*LINT*/const [];
 ''');

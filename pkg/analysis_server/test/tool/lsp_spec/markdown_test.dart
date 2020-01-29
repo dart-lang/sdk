@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 import '../../../tool/lsp_spec/markdown.dart';
 
-main() {
+void main() {
   group('markdown parser', () {
     test('extracts a typescript fenced block from Markdown', () {
       final String input = '''

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceBooleanWithBoolTest);
   });
@@ -20,7 +20,7 @@ class ReplaceBooleanWithBoolTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_BOOLEAN_WITH_BOOL;
 
-  test_all() async {
+  Future<void> test_all() async {
     await resolveTestUnit('''
 main() {
   boolean v;
@@ -35,7 +35,7 @@ main() {
 ''');
   }
 
-  test_single() async {
+  Future<void> test_single() async {
     await resolveTestUnit('''
 main() {
   boolean v;

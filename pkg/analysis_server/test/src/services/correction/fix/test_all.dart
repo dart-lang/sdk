@@ -149,7 +149,7 @@ import 'use_is_not_empty_test.dart' as use_is_not_empty;
 import 'use_not_eq_null_test.dart' as use_not_eq_null;
 import 'use_rethrow_test.dart' as use_rethrow;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     add_async.main();
     add_await.main();

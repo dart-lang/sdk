@@ -25,7 +25,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'constants.dart';
 import 'mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisErrorTest);
     defineReflectiveTests(EnumTest);
@@ -334,7 +334,7 @@ class MockAnalysisSession implements AnalysisSession {
   FileResult getFile(String path) => fileResults[path];
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class MockErrorCode implements engine.ErrorCode {

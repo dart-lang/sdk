@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToRelativeImportTest);
   });
@@ -23,7 +23,7 @@ class ConvertToRelativeImportTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_relative_imports;
 
-  test_relativeImport() async {
+  Future<void> test_relativeImport() async {
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/src/test.dart');
     await resolveTestUnit('''
@@ -35,7 +35,7 @@ import '../foo.dart';
 ''');
   }
 
-  test_relativeImportDifferentPackages() async {
+  Future<void> test_relativeImportDifferentPackages() async {
     // Validate we don't get a fix with imports referencing different packages.
     addSource('/home/test1/lib/foo.dart', '');
     testFile = convertPath('/home/test2/lib/bar.dart');
@@ -46,7 +46,7 @@ import /*LINT*/'package:test1/foo.dart';
     await assertNoFix();
   }
 
-  test_relativeImportGarbledUri() async {
+  Future<void> test_relativeImportGarbledUri() async {
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestUnit('''
@@ -58,7 +58,7 @@ import 'foo';
 ''');
   }
 
-  test_relativeImportRespectQuoteStyle() async {
+  Future<void> test_relativeImportRespectQuoteStyle() async {
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestUnit('''
@@ -70,7 +70,7 @@ import "foo.dart";
 ''');
   }
 
-  test_relativeImportSameDirectory() async {
+  Future<void> test_relativeImportSameDirectory() async {
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestUnit('''
@@ -82,7 +82,7 @@ import 'foo.dart';
 ''');
   }
 
-  test_relativeImportSubDirectory() async {
+  Future<void> test_relativeImportSubDirectory() async {
     addSource('/home/test/lib/baz/foo.dart', '');
     testFile = convertPath('/home/test/lib/test.dart');
     await resolveTestUnit('''

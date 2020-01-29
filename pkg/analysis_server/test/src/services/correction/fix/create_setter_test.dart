@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateSetterTest);
     defineReflectiveTests(CreateSetterMixinTest);
@@ -21,7 +21,7 @@ class CreateSetterMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_SETTER;
 
-  test_qualified_instance() async {
+  Future<void> test_qualified_instance() async {
     await resolveTestUnit('''
 mixin M {
 }
@@ -41,7 +41,7 @@ main(M m) {
 ''');
   }
 
-  test_unqualified_instance_assignmentLhs() async {
+  Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestUnit('''
 mixin M {
   main() {
@@ -60,7 +60,7 @@ mixin M {
 ''');
   }
 
-  test_unqualified_instance_assignmentRhs() async {
+  Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestUnit('''
 mixin M {
   main() {
@@ -77,7 +77,7 @@ class CreateSetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_SETTER;
 
-  test_getterContext() async {
+  Future<void> test_getterContext() async {
     await resolveTestUnit('''
 class A {
 }
@@ -88,7 +88,7 @@ main(A a) {
     await assertNoFix();
   }
 
-  test_inferredTargetType() async {
+  Future<void> test_inferredTargetType() async {
     await resolveTestUnit('''
 class A {
 }
@@ -108,7 +108,7 @@ main(A a) {
 ''');
   }
 
-  test_inSDK() async {
+  Future<void> test_inSDK() async {
     await resolveTestUnit('''
 main(List p) {
   p.foo = 0;
@@ -117,7 +117,7 @@ main(List p) {
     await assertNoFix();
   }
 
-  test_location_afterLastAccessor() async {
+  Future<void> test_location_afterLastAccessor() async {
     await resolveTestUnit('''
 class A {
   int existingField;
@@ -146,7 +146,7 @@ main(A a) {
 ''');
   }
 
-  test_multiLevel() async {
+  Future<void> test_multiLevel() async {
     await resolveTestUnit('''
 class A {
 }
@@ -176,7 +176,7 @@ main(C c) {
 ''');
   }
 
-  test_qualified_instance() async {
+  Future<void> test_qualified_instance() async {
     await resolveTestUnit('''
 class A {
 }
@@ -194,7 +194,7 @@ main(A a) {
 ''');
   }
 
-  test_qualified_instance_differentLibrary() async {
+  Future<void> test_qualified_instance_differentLibrary() async {
     addSource('/home/test/lib/other.dart', '''
 /**
  * A comment to push the offset of the braces for the following class
@@ -227,7 +227,7 @@ class A {
 ''', target: '/home/test/lib/other.dart');
   }
 
-  test_qualified_instance_dynamicType() async {
+  Future<void> test_qualified_instance_dynamicType() async {
     await resolveTestUnit('''
 class A {
   B b;
@@ -251,7 +251,7 @@ class B {
 ''');
   }
 
-  test_qualified_propagatedType() async {
+  Future<void> test_qualified_propagatedType() async {
     await resolveTestUnit('''
 class A {
   A get self => this;
@@ -274,7 +274,7 @@ main() {
 ''');
   }
 
-  test_unqualified_instance_assignmentLhs() async {
+  Future<void> test_unqualified_instance_assignmentLhs() async {
     await resolveTestUnit('''
 class A {
   main() {
@@ -293,7 +293,7 @@ class A {
 ''');
   }
 
-  test_unqualified_instance_assignmentRhs() async {
+  Future<void> test_unqualified_instance_assignmentRhs() async {
     await resolveTestUnit('''
 class A {
   main() {
@@ -316,7 +316,7 @@ class CreateSetterWithExtensionMethodsTest extends FixProcessorTest {
     super.setUp();
   }
 
-  test_internal_instance() async {
+  Future<void> test_internal_instance() async {
     await resolveTestUnit('''
 extension E on String {
   int m(int x) => s = x;
@@ -331,7 +331,7 @@ extension E on String {
 ''');
   }
 
-  test_internal_static() async {
+  Future<void> test_internal_static() async {
     await resolveTestUnit('''
 extension E on String {
   static int m(int x) => s = x;
@@ -346,7 +346,7 @@ extension E on String {
 ''');
   }
 
-  test_override() async {
+  Future<void> test_override() async {
     await resolveTestUnit('''
 extension E on String {
 }
@@ -366,7 +366,7 @@ main(String s) {
 ''');
   }
 
-  test_static() async {
+  Future<void> test_static() async {
     await resolveTestUnit('''
 extension E on String {
 }

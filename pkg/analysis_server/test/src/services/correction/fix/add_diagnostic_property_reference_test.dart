@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddDiagnosticPropertyReferenceTest);
   });
@@ -23,7 +23,7 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.diagnostic_describe_all_properties;
 
-  test_boolField_debugFillProperties() async {
+  Future<void> test_boolField_debugFillProperties() async {
     await resolveTestUnit('''
 class Absorber extends Widget {
   bool get absorbing => _absorbing;
@@ -51,7 +51,7 @@ class Absorber extends Widget {
 ''');
   }
 
-  test_boolField_debugFillProperties_empty() async {
+  Future<void> test_boolField_debugFillProperties_empty() async {
     await resolveTestUnit('''
 class Absorber extends Widget {
   bool /*LINT*/ignoringSemantics;
@@ -71,7 +71,8 @@ class Absorber extends Widget {
 ''');
   }
 
-  test_boolField_debugFillProperties_empty_customParamName() async {
+  Future<void>
+      test_boolField_debugFillProperties_empty_customParamName() async {
     await resolveTestUnit('''
 class Absorber extends Widget {
   bool /*LINT*/ignoringSemantics;
@@ -91,7 +92,7 @@ class Absorber extends Widget {
 ''');
   }
 
-  test_boolGetter_debugFillProperties() async {
+  Future<void> test_boolGetter_debugFillProperties() async {
     await resolveTestUnit('''
 class Absorber extends Widget {
   bool get /*LINT*/absorbing => _absorbing;
@@ -115,7 +116,7 @@ class Absorber extends Widget {
 ''');
   }
 
-  test_colorField_debugFillProperties() async {
+  Future<void> test_colorField_debugFillProperties() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -140,7 +141,7 @@ class A extends Widget {
 ''');
   }
 
-  test_doubleField_debugFillProperties() async {
+  Future<void> test_doubleField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   double /*LINT*/field;
@@ -162,7 +163,7 @@ class A extends Widget {
 ''');
   }
 
-  test_dynamicField_debugFillProperties() async {
+  Future<void> test_dynamicField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   dynamic /*LINT*/field;
@@ -184,7 +185,7 @@ class A extends Widget {
 ''');
   }
 
-  test_enumField_debugFillProperties() async {
+  Future<void> test_enumField_debugFillProperties() async {
     await resolveTestUnit('''
 enum Foo {bar}
 class A extends Widget {
@@ -208,7 +209,7 @@ class A extends Widget {
 ''');
   }
 
-  test_functionField_debugFillProperties() async {
+  Future<void> test_functionField_debugFillProperties() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -239,7 +240,7 @@ class A extends Widget {
 ''');
   }
 
-  test_intField_debugFillProperties() async {
+  Future<void> test_intField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   int /*LINT*/field;
@@ -261,7 +262,7 @@ class A extends Widget {
 ''');
   }
 
-  test_iterableField_debugFillProperties() async {
+  Future<void> test_iterableField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   Iterable<String> /*LINT*/field;
@@ -283,7 +284,7 @@ class A extends Widget {
 ''');
   }
 
-  test_listField_debugFillProperties() async {
+  Future<void> test_listField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   List<List<String>> /*LINT*/field;
@@ -305,7 +306,7 @@ class A extends Widget {
 ''');
   }
 
-  test_matrix4Field_debugFillProperties() async {
+  Future<void> test_matrix4Field_debugFillProperties() async {
     addVectorMathPackage();
     await resolveTestUnit('''
 import 'package:vector_math/vector_math_64.dart';
@@ -330,7 +331,7 @@ class A extends Widget {
 ''');
   }
 
-  test_objectField_debugFillProperties() async {
+  Future<void> test_objectField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   Object /*LINT*/field;
@@ -352,7 +353,7 @@ class A extends Widget {
 ''');
   }
 
-  test_stringField_debugFillProperties() async {
+  Future<void> test_stringField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   String /*LINT*/field;
@@ -374,7 +375,7 @@ class A extends Widget {
 ''');
   }
 
-  test_stringField_noDebugFillProperties() async {
+  Future<void> test_stringField_noDebugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   String /*LINT*/field;
@@ -392,7 +393,7 @@ class A extends Widget {
 ''');
   }
 
-  test_typeOutOfScopeField_debugFillProperties() async {
+  Future<void> test_typeOutOfScopeField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   ClassNotInScope<bool> /*LINT*/onChanged;
@@ -416,7 +417,7 @@ class A extends Widget {
 ''');
   }
 
-  test_typeOutOfScopeGetter_debugFillProperties() async {
+  Future<void> test_typeOutOfScopeGetter_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   ClassNotInScope<bool> get /*LINT*/onChanged => null;
@@ -440,7 +441,7 @@ class A extends Widget {
 ''');
   }
 
-  test_varField_debugFillProperties() async {
+  Future<void> test_varField_debugFillProperties() async {
     await resolveTestUnit('''
 class A extends Widget {
   var /*LINT*/field;

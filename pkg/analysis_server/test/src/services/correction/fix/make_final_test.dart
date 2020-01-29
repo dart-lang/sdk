@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MakeFinalTest);
   });
@@ -23,7 +23,7 @@ class MakeFinalTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_final_fields;
 
-  test_field_type() async {
+  Future<void> test_field_type() async {
     await resolveTestUnit('''
 class C {
   int /*LINT*/f = 2;
@@ -36,7 +36,7 @@ class C {
 ''');
   }
 
-  test_field_var() async {
+  Future<void> test_field_var() async {
     await resolveTestUnit('''
 class C {
   var /*LINT*/f = 2;
@@ -49,7 +49,7 @@ class C {
 ''');
   }
 
-  test_local_type() async {
+  Future<void> test_local_type() async {
     await resolveTestUnit('''
 bad() {
   int /*LINT*/x = 2;
@@ -62,7 +62,7 @@ bad() {
 ''');
   }
 
-  test_local_var() async {
+  Future<void> test_local_var() async {
     await resolveTestUnit('''
 bad() {
   var /*LINT*/x = 2;
@@ -75,7 +75,7 @@ bad() {
 ''');
   }
 
-  test_noKeyword() async {
+  Future<void> test_noKeyword() async {
     await resolveTestUnit('''
 class C {
   /*LINT*/f = 2;
@@ -88,7 +88,7 @@ class C {
 ''');
   }
 
-  test_topLevel_type() async {
+  Future<void> test_topLevel_type() async {
     await resolveTestUnit('''
 int /*LINT*/x = 2;
 ''');
@@ -97,7 +97,7 @@ final int x = 2;
 ''');
   }
 
-  test_topLevel_var() async {
+  Future<void> test_topLevel_var() async {
     await resolveTestUnit('''
 var /*LINT*/x = 2;
 ''');

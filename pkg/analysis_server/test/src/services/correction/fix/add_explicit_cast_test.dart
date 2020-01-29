@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddExplicitCastTest);
   });
@@ -20,7 +20,7 @@ class AddExplicitCastTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_EXPLICIT_CAST;
 
-  test_as() async {
+  Future<void> test_as() async {
     await resolveTestUnit('''
 f(A a) {
   C c = a as B;
@@ -33,7 +33,7 @@ class C {}
     await assertNoFix();
   }
 
-  test_assignment_general() async {
+  Future<void> test_assignment_general() async {
     await resolveTestUnit('''
 f(A a) {
   B b;
@@ -54,7 +54,7 @@ class B {}
 ''');
   }
 
-  test_assignment_general_all() async {
+  Future<void> test_assignment_general_all() async {
     await resolveTestUnit('''
 f(A a) {
   B b, b2;
@@ -75,7 +75,7 @@ class B {}
 ''');
   }
 
-  test_assignment_list() async {
+  Future<void> test_assignment_list() async {
     await resolveTestUnit('''
 f(List<A> a) {
   List<B> b;
@@ -96,7 +96,7 @@ class B {}
 ''');
   }
 
-  test_assignment_list_all() async {
+  Future<void> test_assignment_list_all() async {
     await resolveTestUnit('''
 f(List<A> a) {
   List<B> b, b2;
@@ -117,7 +117,7 @@ class B {}
 ''');
   }
 
-  test_assignment_map() async {
+  Future<void> test_assignment_map() async {
     await resolveTestUnit('''
 f(Map<A, B> a) {
   Map<B, A> b;
@@ -138,7 +138,7 @@ class B {}
 ''');
   }
 
-  test_assignment_map_all() async {
+  Future<void> test_assignment_map_all() async {
     await resolveTestUnit('''
 f(Map<A, B> a) {
   Map<B, A> b, b2;
@@ -159,7 +159,7 @@ class B {}
 ''');
   }
 
-  test_assignment_needsParens() async {
+  Future<void> test_assignment_needsParens() async {
     await resolveTestUnit('''
 f(A a) {
   B b;
@@ -184,7 +184,7 @@ class B {}
 ''');
   }
 
-  test_assignment_needsParens_all() async {
+  Future<void> test_assignment_needsParens_all() async {
     await resolveTestUnit('''
 f(A a) {
   B b, b2;
@@ -209,7 +209,7 @@ class B {}
 ''');
   }
 
-  test_assignment_set() async {
+  Future<void> test_assignment_set() async {
     await resolveTestUnit('''
 f(Set<A> a) {
   Set<B> b;
@@ -230,7 +230,7 @@ class B {}
 ''');
   }
 
-  test_assignment_set_all() async {
+  Future<void> test_assignment_set_all() async {
     await resolveTestUnit('''
 f(Set<A> a) {
   Set<B> b, b2;
@@ -251,7 +251,7 @@ class B {}
 ''');
   }
 
-  test_cast() async {
+  Future<void> test_cast() async {
     await resolveTestUnit('''
 f(List<A> a) {
   List<B> b = a.cast<A>();
@@ -263,7 +263,7 @@ class B {}
     await assertNoFix();
   }
 
-  test_declaration_general() async {
+  Future<void> test_declaration_general() async {
     await resolveTestUnit('''
 f(A a) {
   B b = a;
@@ -282,7 +282,7 @@ class B {}
 ''');
   }
 
-  test_declaration_general_all() async {
+  Future<void> test_declaration_general_all() async {
     await resolveTestUnit('''
 f(A a) {
   B b = a;
@@ -301,7 +301,7 @@ class B {}
 ''');
   }
 
-  test_declaration_list() async {
+  Future<void> test_declaration_list() async {
     await resolveTestUnit('''
 f(List<A> a) {
   List<B> b = a.where((e) => e is B).toList();
@@ -320,7 +320,7 @@ class B {}
 ''');
   }
 
-  test_declaration_list_all() async {
+  Future<void> test_declaration_list_all() async {
     await resolveTestUnit('''
 f(List<A> a) {
   List<B> b = a.where((e) => e is B).toList();
@@ -339,7 +339,7 @@ class B {}
 ''');
   }
 
-  test_declaration_map() async {
+  Future<void> test_declaration_map() async {
     await resolveTestUnit('''
 f(Map<A, B> a) {
   Map<B, A> b = a;
@@ -358,7 +358,7 @@ class B {}
 ''');
   }
 
-  test_declaration_map_all() async {
+  Future<void> test_declaration_map_all() async {
     await resolveTestUnit('''
 f(Map<A, B> a) {
   Map<B, A> b = a;
@@ -377,7 +377,7 @@ class B {}
 ''');
   }
 
-  test_declaration_needsParens() async {
+  Future<void> test_declaration_needsParens() async {
     await resolveTestUnit('''
 f(A a) {
   B b = a..m();
@@ -400,7 +400,7 @@ class B {}
 ''');
   }
 
-  test_declaration_needsParens_all() async {
+  Future<void> test_declaration_needsParens_all() async {
     await resolveTestUnit('''
 f(A a) {
   B b = a..m();
@@ -423,7 +423,7 @@ class B {}
 ''');
   }
 
-  test_declaration_set() async {
+  Future<void> test_declaration_set() async {
     await resolveTestUnit('''
 f(Set<A> a) {
   Set<B> b = a;
@@ -442,7 +442,7 @@ class B {}
 ''');
   }
 
-  test_declaration_set_all() async {
+  Future<void> test_declaration_set_all() async {
     await resolveTestUnit('''
 f(Set<A> a) {
   Set<B> b = a;

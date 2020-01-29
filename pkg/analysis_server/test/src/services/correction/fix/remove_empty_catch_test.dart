@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveEmptyCatchTest);
   });
@@ -23,7 +23,7 @@ class RemoveEmptyCatchTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.empty_catches;
 
-  test_newLine() async {
+  Future<void> test_newLine() async {
     await resolveTestUnit('''
 void foo() {
   try {}
@@ -39,7 +39,7 @@ void foo() {
 ''');
   }
 
-  test_sameLine() async {
+  Future<void> test_sameLine() async {
     await resolveTestUnit('''
 void foo() {
   try {} catch (e) {/*LINT*/} finally {}

@@ -559,7 +559,7 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   }
 
   @override
-  visitRefactoring(Refactoring refactoring) {
+  void visitRefactoring(Refactoring refactoring) {
     dt('refactoring', () {
       write(refactoring.kind);
     });

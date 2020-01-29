@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateConstructorSuperTest);
   });
@@ -19,7 +19,7 @@ class CreateConstructorSuperTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_SUPER;
 
-  test_fieldInitializer() async {
+  Future<void> test_fieldInitializer() async {
     await resolveTestUnit('''
 class A {
   int _field;
@@ -48,7 +48,7 @@ class B extends A {
 ''');
   }
 
-  test_importType() async {
+  Future<void> test_importType() async {
     addSource('/home/test/lib/a.dart', r'''
 class A {}
 ''');
@@ -75,7 +75,7 @@ class C extends B {
 ''');
   }
 
-  test_named() async {
+  Future<void> test_named() async {
     await resolveTestUnit('''
 class A {
   A.named(p1, int p2);
@@ -100,7 +100,7 @@ class B extends A {
 ''');
   }
 
-  test_optional() async {
+  Future<void> test_optional() async {
     await resolveTestUnit('''
 class A {
   A(p1, int p2, List<String> p3, [int p4]);
@@ -125,7 +125,7 @@ class B extends A {
 ''');
   }
 
-  test_private() async {
+  Future<void> test_private() async {
     await resolveTestUnit('''
 class A {
   A._named(p); // ignore: unused_element
@@ -136,7 +136,7 @@ class B extends A {
     await assertNoFix();
   }
 
-  test_typeArgument() async {
+  Future<void> test_typeArgument() async {
     await resolveTestUnit('''
 class C<T> {
   final T x;

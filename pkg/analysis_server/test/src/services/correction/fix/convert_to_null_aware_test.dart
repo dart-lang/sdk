@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToNullAwareTest);
   });
@@ -24,7 +24,7 @@ class ConvertToNullAwareTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_null_aware_operators;
 
   /// More coverage in the `convert_to_null_aware_test.dart` assist test.
-  test_equal_nullOnLeft() async {
+  Future<void> test_equal_nullOnLeft() async {
     await resolveTestUnit('''
 abstract class A {
   int m();

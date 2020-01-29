@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddMissingParameterRequiredTest);
     defineReflectiveTests(AddMissingParameterRequiredTest_Workspace);
@@ -22,7 +22,7 @@ class AddMissingParameterRequiredTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_MISSING_PARAMETER_REQUIRED;
 
-  test_constructor_named_hasOne() async {
+  Future<void> test_constructor_named_hasOne() async {
     await resolveTestUnit('''
 class A {
   A.named(int a) {}
@@ -41,7 +41,7 @@ main() {
 ''');
   }
 
-  test_constructor_unnamed_hasOne() async {
+  Future<void> test_constructor_unnamed_hasOne() async {
     await resolveTestUnit('''
 class A {
   A(int a) {}
@@ -60,7 +60,7 @@ main() {
 ''');
   }
 
-  test_function_hasNamed() async {
+  Future<void> test_function_hasNamed() async {
     await resolveTestUnit('''
 test({int a}) {}
 main() {
@@ -75,7 +75,7 @@ main() {
 ''');
   }
 
-  test_function_hasOne() async {
+  Future<void> test_function_hasOne() async {
     await resolveTestUnit('''
 test(int a) {}
 main() {
@@ -90,7 +90,7 @@ main() {
 ''');
   }
 
-  test_function_hasZero() async {
+  Future<void> test_function_hasZero() async {
     await resolveTestUnit('''
 test() {}
 main() {
@@ -105,7 +105,7 @@ main() {
 ''');
   }
 
-  test_method_hasOne() async {
+  Future<void> test_method_hasOne() async {
     await resolveTestUnit('''
 class A {
   test(int a) {}
@@ -124,7 +124,7 @@ class A {
 ''');
   }
 
-  test_method_hasZero() async {
+  Future<void> test_method_hasZero() async {
     await resolveTestUnit('''
 class A {
   test() {}
@@ -154,7 +154,7 @@ class AddMissingParameterRequiredTest_Workspace
     return _workspace ?? super.workspace;
   }
 
-  test_function_inPackage_inWorkspace() async {
+  Future<void> test_function_inPackage_inWorkspace() async {
     newFile('/home/aaa/lib/a.dart', content: 'void test() {}');
     addTestPackageDependency('aaa', '/home/aaa');
 
@@ -177,7 +177,7 @@ main() {
     );
   }
 
-  test_function_inPackage_outsideWorkspace() async {
+  Future<void> test_function_inPackage_outsideWorkspace() async {
     addPackageFile('bbb', 'b.dart', 'void test() {}');
 
     await resolveTestUnit('''
@@ -190,7 +190,7 @@ main() {
     await assertNoFix();
   }
 
-  test_method_inSdk() async {
+  Future<void> test_method_inSdk() async {
     await resolveTestUnit('''
 main() {
   42.abs(true);

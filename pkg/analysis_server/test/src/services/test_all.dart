@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'correction/test_all.dart' as correction_all;
 import 'flutter/test_all.dart' as flutter_all;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     correction_all.main();
     flutter_all.main();

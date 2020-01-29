@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateFileTest);
   });
@@ -21,7 +21,7 @@ class CreateFileTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_FILE;
 
-  test_forImport() async {
+  Future<void> test_forImport() async {
     await resolveTestUnit('''
 import 'my_file.dart';
 ''');
@@ -39,14 +39,14 @@ import 'my_file.dart';
     );
   }
 
-  test_forImport_BAD_notDart() async {
+  Future<void> test_forImport_BAD_notDart() async {
     await resolveTestUnit('''
 import 'my_file.txt';
 ''');
     await assertNoFix();
   }
 
-  test_forImport_inPackage_lib() async {
+  Future<void> test_forImport_inPackage_lib() async {
     await resolveTestUnit('''
 import 'a/bb/my_lib.dart';
 ''');
@@ -64,7 +64,7 @@ import 'a/bb/my_lib.dart';
     );
   }
 
-  test_forImport_inPackage_test() async {
+  Future<void> test_forImport_inPackage_test() async {
     testFile = convertPath('/home/test/test/test.dart');
     await resolveTestUnit('''
 import 'a/bb/my_lib.dart';
@@ -83,7 +83,7 @@ import 'a/bb/my_lib.dart';
     );
   }
 
-  test_forPart() async {
+  Future<void> test_forPart() async {
     await resolveTestUnit('''
 library my.lib;
 part 'my_part.dart';

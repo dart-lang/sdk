@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InsertSemicolonTest);
   });
@@ -19,7 +19,7 @@ class InsertSemicolonTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.INSERT_SEMICOLON;
 
-  test_expectedToken_semicolon() async {
+  Future<void> test_expectedToken_semicolon() async {
     await resolveTestUnit('''
 main() {
   print(0)

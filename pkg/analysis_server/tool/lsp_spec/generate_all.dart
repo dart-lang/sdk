@@ -15,7 +15,7 @@ import 'markdown.dart';
 import 'typescript.dart';
 import 'typescript_parser.dart';
 
-main(List<String> arguments) async {
+Future<void> main(List<String> arguments) async {
   final args = argParser.parse(arguments);
   if (args[argHelp]) {
     print(argParser.usage);
@@ -182,11 +182,11 @@ const jsonEncoder = JsonEncoder.withIndent('    ');
 ''';
 
 List<AstNode> getCustomClasses() {
-  interface(String name, List<Member> fields) {
+  Interface interface(String name, List<Member> fields) {
     return Interface(null, Token.identifier(name), [], [], fields);
   }
 
-  field(String name,
+  Field field(String name,
       {String type, array = false, canBeNull = false, canBeUndefined = false}) {
     var fieldType =
         array ? ArrayType(Type.identifier(type)) : Type.identifier(type);

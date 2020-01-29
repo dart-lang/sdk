@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveEmptyConstructorBodyTest);
   });
@@ -23,7 +23,7 @@ class RemoveEmptyConstructorBodyTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.empty_constructor_bodies;
 
-  test_empty() async {
+  Future<void> test_empty() async {
     await resolveTestUnit('''
 class C {
   C() {/*LINT*/}

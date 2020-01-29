@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithConditionalAssignmentTest);
   });
@@ -23,7 +23,7 @@ class ReplaceWithConditionalAssignmentTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_conditional_assignment;
 
-  test_withCodeBeforeAndAfter() async {
+  Future<void> test_withCodeBeforeAndAfter() async {
     await resolveTestUnit('''
 class Person {
   String _fullName;
@@ -48,7 +48,7 @@ class Person {
 ''');
   }
 
-  test_withOneBlock() async {
+  Future<void> test_withOneBlock() async {
     await resolveTestUnit('''
 class Person {
   String _fullName;
@@ -69,7 +69,7 @@ class Person {
 ''');
   }
 
-  test_withoutBlock() async {
+  Future<void> test_withoutBlock() async {
     await resolveTestUnit('''
 class Person {
   String _fullName;
@@ -89,7 +89,7 @@ class Person {
 ''');
   }
 
-  test_withTwoBlock() async {
+  Future<void> test_withTwoBlock() async {
     await resolveTestUnit('''
 class Person {
   String _fullName;

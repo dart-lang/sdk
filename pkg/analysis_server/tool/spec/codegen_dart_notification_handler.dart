@@ -20,7 +20,7 @@ GeneratedFile clientTarget() {
   });
 }
 
-_capitalize(String name) =>
+String _capitalize(String name) =>
     '${name.substring(0, 1).toUpperCase()}${name.substring(1)}';
 
 List<String> _generateDartDoc(Element html) => html.children
@@ -110,7 +110,7 @@ mixin NotificationHandler {
   }
 
   @override
-  visitApi() {
+  void visitApi() {
     outputHeader(year: '2018');
     writeln();
     emitImports();

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToPackageImportTest);
   });
@@ -24,7 +24,7 @@ class ConvertToPackageImportTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_relative_lib_imports;
 
   /// More coverage in the `convert_to_package_import_test.dart` assist test.
-  test_relativeImport() async {
+  Future<void> test_relativeImport() async {
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/src/test.dart');
     await resolveTestUnit('''

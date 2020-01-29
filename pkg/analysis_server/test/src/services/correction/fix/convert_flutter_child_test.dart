@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertFlutterChildTest);
   });
@@ -19,7 +19,7 @@ class ConvertFlutterChildTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_FLUTTER_CHILD;
 
-  test_hasList() async {
+  Future<void> test_hasList() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -49,7 +49,7 @@ build() {
 ''');
   }
 
-  test_hasTypedList() async {
+  Future<void> test_hasTypedList() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -79,7 +79,7 @@ build() {
 ''');
   }
 
-  test_listNotWidget() async {
+  Future<void> test_listNotWidget() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -97,7 +97,7 @@ build() {
     await assertNoFix();
   }
 
-  test_multiLine() async {
+  Future<void> test_multiLine() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -129,7 +129,7 @@ build() {
 ''');
   }
 
-  test_widgetVariable() async {
+  Future<void> test_widgetVariable() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';

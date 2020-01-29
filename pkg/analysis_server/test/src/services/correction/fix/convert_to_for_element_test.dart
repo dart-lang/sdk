@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToForElementTest);
   });
@@ -24,7 +24,8 @@ class ConvertToForElementTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_for_elements_to_map_fromIterable;
 
   /// More coverage in the `convert_to_for_element_line_test.dart` assist test.
-  test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue() async {
+  Future<void>
+      test_mapFromIterable_differentParameterNames_usedInKey_conflictInValue() async {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   var k = 3;

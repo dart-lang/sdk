@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnusedFieldTest);
   });
@@ -20,7 +20,7 @@ class RemoveUnusedFieldTest extends FixProcessorTest {
   FixKind get kind => DartFixKind.REMOVE_UNUSED_FIELD;
 
   @FailingTest(reason: 'Unimplemented')
-  test_enumValue_notUsed_noReference() async {
+  Future<void> test_enumValue_notUsed_noReference() async {
     await resolveTestUnit(r'''
 enum _E { a, b, c }
 bool f(_E e) => e == _E.a || e == _E.b;
@@ -31,7 +31,7 @@ bool f(_E e) => e == _E.a || e == _E.b;
 ''');
   }
 
-  test_unusedField_notUsed_assign() async {
+  Future<void> test_unusedField_notUsed_assign() async {
     await resolveTestUnit(r'''
 class A {
   int _f;
@@ -48,7 +48,7 @@ class A {
 ''');
   }
 
-  test_unusedField_notUsed_compoundAssign() async {
+  Future<void> test_unusedField_notUsed_compoundAssign() async {
     await resolveTestUnit(r'''
 class A {
   int _f;
@@ -65,7 +65,7 @@ class A {
 ''');
   }
 
-  test_unusedField_notUsed_constructorFieldInitializers() async {
+  Future<void> test_unusedField_notUsed_constructorFieldInitializers() async {
     await resolveTestUnit(r'''
 class A {
   int _f;
@@ -79,7 +79,7 @@ class A {
 ''');
   }
 
-  test_unusedField_notUsed_constructorFieldInitializers1() async {
+  Future<void> test_unusedField_notUsed_constructorFieldInitializers1() async {
     await resolveTestUnit(r'''
 class A {
   int _f;
@@ -95,7 +95,7 @@ class A {
 ''');
   }
 
-  test_unusedField_notUsed_constructorFieldInitializers2() async {
+  Future<void> test_unusedField_notUsed_constructorFieldInitializers2() async {
     await resolveTestUnit(r'''
 class A {
   int _f;
@@ -111,7 +111,7 @@ class A {
 ''');
   }
 
-  test_unusedField_notUsed_declarationList() async {
+  Future<void> test_unusedField_notUsed_declarationList() async {
     await resolveTestUnit(r'''
 class A {
   int _f, x;
@@ -130,7 +130,7 @@ class A {
 ''');
   }
 
-  test_unusedField_notUsed_declarationList2() async {
+  Future<void> test_unusedField_notUsed_declarationList2() async {
     await resolveTestUnit(r'''
 class A {
   int x, _f;
@@ -149,7 +149,7 @@ class A {
 ''');
   }
 
-  test_unusedField_notUsed_fieldFormalParameter() async {
+  Future<void> test_unusedField_notUsed_fieldFormalParameter() async {
     await resolveTestUnit(r'''
 class A {
   int _f;
@@ -163,7 +163,7 @@ class A {
 ''');
   }
 
-  test_unusedField_notUsed_fieldFormalParameter2() async {
+  Future<void> test_unusedField_notUsed_fieldFormalParameter2() async {
     await resolveTestUnit(r'''
 class A {
   int _f;
@@ -179,7 +179,7 @@ class A {
 ''');
   }
 
-  test_unusedField_notUsed_fieldFormalParameter3() async {
+  Future<void> test_unusedField_notUsed_fieldFormalParameter3() async {
     await resolveTestUnit(r'''
 class A {
   int x;
