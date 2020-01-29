@@ -287,18 +287,15 @@ class RemoveNullAwarenessFromMethodInvocation
   NodeProducingEditPlan apply(AstNode node, FixAggregator aggregator) {
     var methodInvocation = node as MethodInvocation;
     var typeArguments = methodInvocation.typeArguments;
-    return aggregator.planner.removeNullAwarenessFromMethodInvocation(
-        methodInvocation,
-        targetPlan: aggregator.innerPlanForNode(methodInvocation.target),
-        methodNamePlan:
-            aggregator.innerPlanForNode(methodInvocation.methodName),
-        typeArgumentsPlan: typeArguments == null
-            ? null
-            : aggregator.innerPlanForNode(typeArguments),
-        argumentListPlan:
-            aggregator.innerPlanForNode(methodInvocation.argumentList),
-        info:
-            AtomicEditInfo(NullabilityFixDescription.removeNullAwareness, []));
+    return aggregator.planner.passThrough(methodInvocation, innerPlans: [
+      aggregator.innerPlanForNode(methodInvocation.target),
+      aggregator.planner.removeNullAwareness(methodInvocation,
+          info: AtomicEditInfo(
+              NullabilityFixDescription.removeNullAwareness, [])),
+      aggregator.innerPlanForNode(methodInvocation.methodName),
+      if (typeArguments != null) aggregator.innerPlanForNode(typeArguments),
+      aggregator.innerPlanForNode(methodInvocation.argumentList)
+    ]);
   }
 }
 
@@ -312,13 +309,16 @@ class RemoveNullAwarenessFromPropertyAccess
   @override
   NodeProducingEditPlan apply(AstNode node, FixAggregator aggregator) {
     var propertyAccess = node as PropertyAccess;
-    return aggregator.planner.removeNullAwarenessFromPropertyAccess(
-        propertyAccess,
-        targetPlan: aggregator.innerPlanForNode(propertyAccess.target),
-        propertyNamePlan:
-            aggregator.innerPlanForNode(propertyAccess.propertyName),
-        info:
-            AtomicEditInfo(NullabilityFixDescription.removeNullAwareness, []));
+    return aggregator.planner.passThrough(
+      propertyAccess,
+      innerPlans: [
+        aggregator.innerPlanForNode(propertyAccess.target),
+        aggregator.planner.removeNullAwareness(propertyAccess,
+            info: AtomicEditInfo(
+                NullabilityFixDescription.removeNullAwareness, [])),
+        aggregator.innerPlanForNode(propertyAccess.propertyName)
+      ],
+    );
   }
 }
 

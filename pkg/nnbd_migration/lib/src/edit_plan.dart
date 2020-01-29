@@ -421,64 +421,23 @@ class EditPlanner {
 
   /// Creates a new edit plan that removes null awareness from [sourceNode].
   ///
-  /// Optional arguments [targetPlan], [methodNamePlan], [typeArgumentsPlan],
-  /// and [argumentListPlan] indicate what changes should be made to the node's
-  /// target, method name, type arguments, and argument list, respectively.
-  ///
-  /// Optional argument [info] contains information about why the change was
-  /// made.
-  NodeProducingEditPlan removeNullAwarenessFromMethodInvocation(
-      MethodInvocation sourceNode,
-      {NodeProducingEditPlan targetPlan,
-      NodeProducingEditPlan methodNamePlan,
-      NodeProducingEditPlan typeArgumentsPlan,
-      NodeProducingEditPlan argumentListPlan,
-      AtomicEditInfo info}) {
-    assert(sourceNode.operator.type == TokenType.QUESTION_PERIOD);
-    var builder = _PassThroughBuilderImpl(sourceNode);
-    if (targetPlan != null) {
-      builder._handleNodeProducingEditPlan(targetPlan);
+  /// The created edit plan should be inserted into the list of inner plans for
+  /// a pass-through plan targeted at the source node.  See [passThrough].
+  EditPlan removeNullAwareness(Expression sourceNode, {AtomicEditInfo info}) {
+    Token operator;
+    if (sourceNode is MethodInvocation) {
+      operator = sourceNode.operator;
+    } else if (sourceNode is PropertyAccess) {
+      operator = sourceNode.operator;
+    } else {
+      throw StateError(
+          'Tried to remove null awareness from an unexpected node type: '
+          '${sourceNode.runtimeType}');
     }
-    builder.changes += {
-      sourceNode.operator.offset: [AtomicEdit.delete(1, info: info)]
-    };
-    if (methodNamePlan != null) {
-      builder._handleNodeProducingEditPlan(methodNamePlan);
-    }
-    if (typeArgumentsPlan != null) {
-      builder._handleNodeProducingEditPlan(typeArgumentsPlan);
-    }
-    if (argumentListPlan != null) {
-      builder._handleNodeProducingEditPlan(argumentListPlan);
-    }
-    return builder.finish(this);
-  }
-
-  /// Creates a new edit plan that removes null awareness from [sourceNode].
-  ///
-  /// Optional arguments [targetPlan] and, [propertyNamePlan] indicate what
-  /// changes should be made to the node's target and property name,
-  /// respectively.
-  ///
-  /// Optional argument [info] contains information about why the change was
-  /// made.
-  NodeProducingEditPlan removeNullAwarenessFromPropertyAccess(
-      PropertyAccess sourceNode,
-      {NodeProducingEditPlan targetPlan,
-      NodeProducingEditPlan propertyNamePlan,
-      AtomicEditInfo info}) {
-    assert(sourceNode.operator.type == TokenType.QUESTION_PERIOD);
-    var builder = _PassThroughBuilderImpl(sourceNode);
-    if (targetPlan != null) {
-      builder._handleNodeProducingEditPlan(targetPlan);
-    }
-    builder.changes += {
-      sourceNode.operator.offset: [AtomicEdit.delete(1, info: info)]
-    };
-    if (propertyNamePlan != null) {
-      builder._handleNodeProducingEditPlan(propertyNamePlan);
-    }
-    return builder.finish(this);
+    assert(operator.type == TokenType.QUESTION_PERIOD);
+    return _TokenChangePlan(sourceNode, {
+      operator.offset: [AtomicEdit.delete(1, info: info)]
+    });
   }
 
   /// Creates a new edit plan that replaces the contents of [sourceNode] with
@@ -1277,6 +1236,9 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
         planIndex++;
       } else if (innerPlan is _RemoveEditPlan) {
         planIndex = _handleRemoveEditPlans(innerPlan, planIndex);
+      } else if (innerPlan is _TokenChangePlan) {
+        changes += innerPlan.changes;
+        planIndex++;
       } else {
         throw UnimplementedError('Unrecognized inner plan type');
       }
@@ -1451,6 +1413,21 @@ class _SimpleEditPlan extends NodeProducingEditPlan {
     if (_precedence == threshold && !associative) return true;
     return false;
   }
+}
+
+/// [EditPlan] representing a change (or changes) to be made to a token in the
+/// [parentNode].
+///
+/// This is used, for example, to change the `?.` token of a [MethodInvocation]
+/// or [PropertyAccess] to `.`.
+class _TokenChangePlan extends EditPlan {
+  @override
+  final AstNode parentNode;
+
+  /// The changes to be made.
+  final Map<int, List<AtomicEdit>> changes;
+
+  _TokenChangePlan(this.parentNode, this.changes) : super._();
 }
 
 /// Extension containing useful operations on a list of [AtomicEdit]s.

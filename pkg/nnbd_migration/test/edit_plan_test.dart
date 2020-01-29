@@ -952,34 +952,37 @@ C<int, String>? c;
     await analyze('f(x) => x?.m(0);');
     var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.removeNullAwarenessFromMethodInvocation(methodInvocation,
-            argumentListPlan:
-                planner.passThrough(methodInvocation.argumentList, innerPlans: [
-              planner.replace(
-                  findNode.integerLiteral('0'), [AtomicEdit.insert('1')])
-            ])),
+        planner.passThrough(methodInvocation, innerPlans: [
+          planner.removeNullAwareness(methodInvocation),
+          planner.passThrough(methodInvocation.argumentList, innerPlans: [
+            planner
+                .replace(findNode.integerLiteral('0'), [AtomicEdit.insert('1')])
+          ])
+        ]),
         'f(x) => x.m(1);');
   }
 
   Future<void>
       test_removeNullAwarenessFromMethodInvocation_change_methodName() async {
     await analyze('f(x) => x?.m();');
+    var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.removeNullAwarenessFromMethodInvocation(
-            findNode.methodInvocation('?.'),
-            methodNamePlan: planner
-                .replace(findNode.simple('m'), [AtomicEdit.insert('n')])),
+        planner.passThrough(methodInvocation, innerPlans: [
+          planner.removeNullAwareness(methodInvocation),
+          planner.replace(findNode.simple('m'), [AtomicEdit.insert('n')])
+        ]),
         'f(x) => x.n();');
   }
 
   Future<void>
       test_removeNullAwarenessFromMethodInvocation_change_target() async {
     await analyze('f(x) => x?.m();');
+    var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.removeNullAwarenessFromMethodInvocation(
-            findNode.methodInvocation('?.'),
-            targetPlan: planner
-                .replace(findNode.simple('x?.'), [AtomicEdit.insert('y')])),
+        planner.passThrough(methodInvocation, innerPlans: [
+          planner.replace(findNode.simple('x?.'), [AtomicEdit.insert('y')]),
+          planner.removeNullAwareness(methodInvocation)
+        ]),
         'f(x) => y.m();');
   }
 
@@ -988,62 +991,66 @@ C<int, String>? c;
     await analyze('f(x) => x?.m<int>();');
     var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.removeNullAwarenessFromMethodInvocation(methodInvocation,
-            typeArgumentsPlan: planner
-                .passThrough(methodInvocation.typeArguments, innerPlans: [
-              planner
-                  .replace(findNode.simple('int'), [AtomicEdit.insert('num')])
-            ])),
+        planner.passThrough(methodInvocation, innerPlans: [
+          planner.removeNullAwareness(methodInvocation),
+          planner.passThrough(methodInvocation.typeArguments, innerPlans: [
+            planner.replace(findNode.simple('int'), [AtomicEdit.insert('num')])
+          ])
+        ]),
         'f(x) => x.m<num>();');
   }
 
   Future<void> test_removeNullAwarenessFromMethodInvocation_simple() async {
     await analyze('f(x) => x?.m();');
+    var methodInvocation = findNode.methodInvocation('?.');
     checkPlan(
-        planner.removeNullAwarenessFromMethodInvocation(
-            findNode.methodInvocation('?.')),
+        planner.passThrough(methodInvocation,
+            innerPlans: [planner.removeNullAwareness(methodInvocation)]),
         'f(x) => x.m();');
   }
 
   Future<void> test_removeNullAwarenessFromPropertyAccess_change_both() async {
     await analyze('f(x) => x?.y;');
+    var propertyAccess = findNode.propertyAccess('?.');
     checkPlan(
-        planner.removeNullAwarenessFromPropertyAccess(
-            findNode.propertyAccess('?.'),
-            targetPlan: planner
-                .replace(findNode.simple('x?.'), [AtomicEdit.insert('z')]),
-            propertyNamePlan: planner
-                .replace(findNode.simple('y'), [AtomicEdit.insert('w')])),
+        planner.passThrough(propertyAccess, innerPlans: [
+          (planner.replace(findNode.simple('x?.'), [AtomicEdit.insert('z')])),
+          planner.removeNullAwareness(propertyAccess),
+          planner.replace(findNode.simple('y'), [AtomicEdit.insert('w')])
+        ]),
         'f(x) => z.w;');
   }
 
   Future<void>
       test_removeNullAwarenessFromPropertyAccess_change_propertyName() async {
     await analyze('f(x) => x?.y;');
+    var propertyAccess = findNode.propertyAccess('?.');
     checkPlan(
-        planner.removeNullAwarenessFromPropertyAccess(
-            findNode.propertyAccess('?.'),
-            propertyNamePlan: planner
-                .replace(findNode.simple('y'), [AtomicEdit.insert('w')])),
+        planner.passThrough(propertyAccess, innerPlans: [
+          planner.removeNullAwareness(propertyAccess),
+          planner.replace(findNode.simple('y'), [AtomicEdit.insert('w')])
+        ]),
         'f(x) => x.w;');
   }
 
   Future<void>
       test_removeNullAwarenessFromPropertyAccess_change_target() async {
     await analyze('f(x) => x?.y;');
+    var propertyAccess = findNode.propertyAccess('?.');
     checkPlan(
-        planner.removeNullAwarenessFromPropertyAccess(
-            findNode.propertyAccess('?.'),
-            targetPlan: planner
-                .replace(findNode.simple('x?.'), [AtomicEdit.insert('z')])),
+        planner.passThrough(propertyAccess, innerPlans: [
+          planner.replace(findNode.simple('x?.'), [AtomicEdit.insert('z')]),
+          planner.removeNullAwareness(propertyAccess)
+        ]),
         'f(x) => z.y;');
   }
 
   Future<void> test_removeNullAwarenessFromPropertyAccess_simple() async {
     await analyze('f(x) => x?.y;');
+    var propertyAccess = findNode.propertyAccess('?.');
     checkPlan(
-        planner.removeNullAwarenessFromPropertyAccess(
-            findNode.propertyAccess('?.')),
+        planner.passThrough(propertyAccess,
+            innerPlans: [planner.removeNullAwareness(propertyAccess)]),
         'f(x) => x.y;');
   }
 
