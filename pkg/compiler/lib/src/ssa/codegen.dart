@@ -736,17 +736,36 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  HInstruction skipGenerateAtUseCheckInputs(HCheck check) {
+    HInstruction input = check.checkedInput;
+    if (input is HCheck && isGenerateAtUseSite(input)) {
+      return skipGenerateAtUseCheckInputs(input);
+    }
+    return input;
+  }
+
   void use(HInstruction argument) {
     if (isGenerateAtUseSite(argument)) {
       visitExpression(argument);
     } else if (argument is HCheck && !variableNames.hasName(argument)) {
+      // We have a check that is not generate-at-use and has no name, yet is a
+      // subexpression (we are in 'use'). This happens when we have a chain of
+      // checks on an available unnamed value (e.g. a constant). The checks are
+      // generated as a statement, so we need to skip the generate-at-use check
+      // tree to find the underlying value.
+
+      // TODO(sra): We should ensure that this invariant holds: "every
+      // instruction has a name or is generate-at-use". This would require
+      // naming the input or output of the chain-of-checks.
+
       HCheck check = argument;
-      // This can only happen if the checked node does not have a name.
+      // This can only happen if the checked node also does not have a name.
       assert(!variableNames.hasName(check.checkedInput));
-      use(check.checkedInput);
+
+      use(skipGenerateAtUseCheckInputs(check));
     } else {
       assert(variableNames.hasName(argument));
-      push(new js.VariableUse(variableNames.getName(argument)));
+      push(js.VariableUse(variableNames.getName(argument)));
     }
   }
 
