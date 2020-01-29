@@ -542,6 +542,14 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
         if (elementKind == protocol.ElementKind.PREFIX) {
           elementKind = protocol.ElementKind.LIBRARY;
         }
+
+        // For identifiers in a FieldFormalParameter, i.e. the 'foo' in some
+        // ClassName(this.foo), set the elementKind to FIELD which is what the
+        // completion engine does (elementKind before this if statement is a
+        // PARAMETER).
+        if (node.parent is FieldFormalParameter) {
+          elementKind = protocol.ElementKind.FIELD;
+        }
       }
       safelyRecordEntity(node, elementKind: elementKind);
     }
