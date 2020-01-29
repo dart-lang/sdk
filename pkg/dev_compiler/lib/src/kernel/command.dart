@@ -429,7 +429,7 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   if (recordUsedInputs) {
-    Set<Uri> usedOutlines = Set<Uri>();
+    Set<Uri> usedOutlines = <Uri>{};
     if (useIncrementalCompiler) {
       compilerState.incrementalCompiler
           .updateNeededDillLibrariesWithHierarchy(result.classHierarchy, null);

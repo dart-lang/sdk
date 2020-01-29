@@ -250,13 +250,13 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
   ///
   /// [transform] uses this list to eliminate covariance flags for members that
   /// aren't in [_checkedMembers].
-  final _privateProcedures = List<Procedure>();
+  final _privateProcedures = <Procedure>[];
 
   /// List of private instance fields.
   ///
   /// [transform] uses this list to eliminate covariance flags for members that
   /// aren't in [_checkedMembers].
-  final _privateFields = List<Field>();
+  final _privateFields = <Field>[];
 
   final Library _library;
 

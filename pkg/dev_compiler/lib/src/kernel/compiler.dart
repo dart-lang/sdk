@@ -68,7 +68,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final _constTable = _emitTemporaryId('CT');
 
   // Constant getters used to populate the constant table.
-  final _constLazyAccessors = List<js_ast.Method>();
+  final _constLazyAccessors = <js_ast.Method>[];
 
   /// Tracks the index in [moduleItems] where the const table must be inserted.
   /// Required for SDK builds due to internal circular dependencies.
@@ -131,7 +131,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _superAllowed = true;
 
-  final _superHelpers = Map<String, js_ast.Method>();
+  final _superHelpers = <String, js_ast.Method>{};
 
   // Compilation of Kernel's [BreakStatement].
   //
@@ -753,7 +753,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     bool shouldDefer(InterfaceType t) {
-      var visited = Set<DartType>();
+      var visited = <DartType>{};
       bool defer(DartType t) {
         if (t is InterfaceType) {
           var tc = t.classNode;
@@ -1670,8 +1670,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
-    var getters = Map<String, Procedure>();
-    var setters = Map<String, Procedure>();
+    var getters = <String, Procedure>{};
+    var setters = <String, Procedure>{};
     for (var m in c.procedures) {
       if (m.isAbstract) continue;
       if (m.isGetter) {
@@ -2820,8 +2820,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): should we disable source info for annotations?
       var savedUri = _currentUri;
       _currentUri = member.enclosingClass.fileUri;
-      result = js_ast.ArrayInitializer(
-          [result]..addAll(annotations.map(_instantiateAnnotation)));
+      result = js_ast.ArrayInitializer([
+        result,
+        for (var annotation in annotations) _instantiateAnnotation(annotation)
+      ]);
       _currentUri = savedUri;
     }
     return result;
@@ -2854,7 +2856,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var savedUri = _currentUri;
       _currentUri = member.enclosingClass.fileUri;
       result = js_ast.ArrayInitializer(
-          [result]..addAll(metadata.map(_instantiateAnnotation)));
+          [result, for (var value in metadata) _instantiateAnnotation(value)]);
       _currentUri = savedUri;
     }
     return result;

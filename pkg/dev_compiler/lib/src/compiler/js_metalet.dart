@@ -278,7 +278,7 @@ class MetaLet extends Expression {
       }
 
       assert(body.isNotEmpty);
-      var newBody = Expression.binary([assign]..addAll(body), ',') as Binary;
+      var newBody = Expression.binary([assign, ...body], ',') as Binary;
       newBody = _substitute(newBody, {result: left});
       return MetaLet(vars, newBody.commaToExpressionList(),
           statelessResult: statelessResult);
@@ -296,9 +296,8 @@ T _substitute<T extends Node>(
       generator.analysis.containsInterpolatedNode.whereType<MetaLetVariable>());
   if (nodes.isEmpty) return tree;
 
-  return instantiator(Map.fromIterable(nodes,
-      key: (v) => (v as MetaLetVariable).nameOrPosition,
-      value: (v) => substitutions[v] ?? v)) as T;
+  return instantiator(
+      {for (var v in nodes) v.nameOrPosition: substitutions[v] ?? v}) as T;
 }
 
 /// A temporary variable used in a [MetaLet].

@@ -9,7 +9,7 @@ import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 
 Set<TypeParameter> freeTypeParameters(DartType t) {
-  var result = Set<TypeParameter>();
+  var result = <TypeParameter>{};
   void find(DartType t) {
     if (t is TypeParameterType) {
       result.add(t.parameter);

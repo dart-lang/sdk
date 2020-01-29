@@ -4,6 +4,7 @@
 
 // ignore_for_file: slash_for_doc_comments, unnecessary_const
 // ignore_for_file: always_declare_return_types, prefer_single_quotes
+// ignore_for_file: prefer_collection_literals
 
 part of js_ast;
 

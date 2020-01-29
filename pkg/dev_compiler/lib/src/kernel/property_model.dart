@@ -113,7 +113,7 @@ class _LibraryVirtualFieldModel {
         }
 
         if (superclasses == null) {
-          superclasses = Set();
+          superclasses = <Class>{};
           void collectSupertypes(Class c) {
             if (!superclasses.add(c)) return;
             var s = c.superclass;
@@ -197,9 +197,9 @@ class ClassPropertyModel {
   /// super.
   final inheritedSetters = HashSet<String>();
 
-  final extensionMethods = Set<String>();
+  final extensionMethods = <String>{};
 
-  final extensionAccessors = Set<String>();
+  final extensionAccessors = <String>{};
 
   ClassPropertyModel.build(this.types, this.extensionTypes,
       VirtualFieldModel fieldModel, Class class_) {

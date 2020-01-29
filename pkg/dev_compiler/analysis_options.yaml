@@ -15,11 +15,19 @@ analyzer:
 
 linter:
   rules:
+    # Enforced by pedantic v1.9.0.
     - always_declare_return_types
     - annotate_overrides
+    - avoid_null_checks_in_equality_operators
+    - camel_case_extensions
+    - prefer_adjacent_string_concatenation
+    - prefer_collection_literals
     - prefer_conditional_assignment
-    - prefer_null_aware_operators
+    - prefer_for_elements_to_map_fromIterable
+    - prefer_if_null_operators
     - prefer_single_quotes
-    # Not enforced by pedantic at any version
+    - prefer_spread_collections
+    # Not enforced by pedantic at any version.
     - directives_ordering
+    - prefer_null_aware_operators
     - prefer_typing_uninitialized_variables

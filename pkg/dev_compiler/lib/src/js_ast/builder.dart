@@ -4,6 +4,7 @@
 
 // ignore_for_file: slash_for_doc_comments, unnecessary_new
 // ignore_for_file: always_declare_return_types, prefer_single_quotes
+// ignore_for_file: prefer_collection_literals
 
 // Utilities for building JS ASTs at runtime.  Contains a builder class
 // and a parser that parses part of the language.
