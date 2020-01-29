@@ -2962,9 +2962,11 @@ void TypeTranslator::BuildTypeParameterType() {
   if (parameter_index < class_types.Length()) {
     // The index of the type parameter in [parameters] is
     // the same index into the `klass->type_parameters()` array.
-    result_ = class_types.TypeAt(parameter_index);
-    result_ =
-        TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
+    const auto& type_param =
+        TypeParameter::CheckedHandle(Z, class_types.TypeAt(parameter_index));
+    result_ = type_param.ToNullability(nullability, Heap::kOld);
+    active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                              TypeParameter::Cast(result_));
     return;
   }
   parameter_index -= class_types.Length();
@@ -2989,9 +2991,11 @@ void TypeTranslator::BuildTypeParameterType() {
       //   }
       //
       if (class_types.Length() > parameter_index) {
-        result_ = class_types.TypeAt(parameter_index);
-        result_ =
-            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
+        const auto& type_param = TypeParameter::CheckedHandle(
+            Z, class_types.TypeAt(parameter_index));
+        result_ = type_param.ToNullability(nullability, Heap::kOld);
+        active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                                  TypeParameter::Cast(result_));
         return;
       }
       parameter_index -= class_types.Length();
@@ -3004,11 +3008,13 @@ void TypeTranslator::BuildTypeParameterType() {
             : 0;
     if (procedure_type_parameter_count > 0) {
       if (procedure_type_parameter_count > parameter_index) {
-        result_ =
+        const auto& type_param = TypeParameter::CheckedHandle(
+            Z,
             TypeArguments::Handle(Z, active_class_->member->type_parameters())
-                .TypeAt(parameter_index);
-        result_ =
-            TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
+                .TypeAt(parameter_index));
+        result_ = type_param.ToNullability(nullability, Heap::kOld);
+        active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                                  TypeParameter::Cast(result_));
         if (finalize_) {
           result_ =
               ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -3021,9 +3027,11 @@ void TypeTranslator::BuildTypeParameterType() {
 
   if (active_class_->local_type_parameters != NULL) {
     if (parameter_index < active_class_->local_type_parameters->Length()) {
-      result_ = active_class_->local_type_parameters->TypeAt(parameter_index);
-      result_ =
-          TypeParameter::Cast(result_).ToNullability(nullability, Heap::kOld);
+      const auto& type_param = TypeParameter::CheckedHandle(
+          Z, active_class_->local_type_parameters->TypeAt(parameter_index));
+      result_ = type_param.ToNullability(nullability, Heap::kOld);
+      active_class_->RecordDerivedTypeParameter(Z, type_param,
+                                                TypeParameter::Cast(result_));
       if (finalize_) {
         result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
       }
@@ -3134,10 +3142,13 @@ void TypeTranslator::LoadAndSetupTypeParameters(
     }
   }
 
+  NNBDMode nnbd_mode;
   if (set_on.IsClass()) {
     Class::Cast(set_on).set_type_parameters(type_parameters);
+    nnbd_mode = Class::Cast(set_on).nnbd_mode();
   } else {
     Function::Cast(set_on).set_type_parameters(type_parameters);
+    nnbd_mode = Function::Cast(set_on).nnbd_mode();
   }
 
   const Function* enclosing = NULL;
@@ -3158,12 +3169,38 @@ void TypeTranslator::LoadAndSetupTypeParameters(
     if (tag == kDynamicType) {
       helper_->SkipDartType();  // read ith bound.
       parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
+      if (nnbd_mode == NNBDMode::kOptedInLib) {
+        parameter.set_nullability(Nullability::kUndetermined);
+      }
     } else {
       AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
       parameter.set_bound(bound);
+      if (nnbd_mode == NNBDMode::kOptedInLib) {
+        parameter.set_nullability(bound.IsNullable()
+                                      ? Nullability::kUndetermined
+                                      : Nullability::kNonNullable);
+      }
     }
 
     helper.Finish();
+  }
+
+  // Fix bounds in all derived type parameters (with different nullabilities).
+  if (active_class->derived_type_parameters != nullptr) {
+    auto& derived = TypeParameter::Handle(Z);
+    auto& bound = AbstractType::Handle(Z);
+    for (intptr_t i = 0, n = active_class->derived_type_parameters->Length();
+         i < n; ++i) {
+      derived ^= active_class->derived_type_parameters->At(i);
+      if (derived.bound() == AbstractType::null() &&
+          (derived.parameterized_class() == set_on.raw() ||
+           derived.parameterized_function() == set_on.raw())) {
+        ASSERT(!derived.IsFinalized());
+        parameter ^= type_parameters.TypeAt(derived.index());
+        bound = parameter.bound();
+        derived.set_bound(bound);
+      }
+    }
   }
 }
 

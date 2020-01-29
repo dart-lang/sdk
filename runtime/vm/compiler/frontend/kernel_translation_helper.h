@@ -1198,6 +1198,19 @@ class ActiveClass {
     return klass->NumTypeArguments();
   }
 
+  void RecordDerivedTypeParameter(Zone* zone,
+                                  const TypeParameter& original,
+                                  const TypeParameter& derived) {
+    if (original.raw() != derived.raw() &&
+        original.bound() == AbstractType::null()) {
+      if (derived_type_parameters == nullptr) {
+        derived_type_parameters = &GrowableObjectArray::Handle(
+            zone, GrowableObjectArray::New(Heap::kOld));
+      }
+      derived_type_parameters->Add(derived);
+    }
+  }
+
   const char* ToCString() {
     return member != NULL ? member->ToCString() : klass->ToCString();
   }
@@ -1212,6 +1225,8 @@ class ActiveClass {
   const Function* enclosing;
 
   const TypeArguments* local_type_parameters;
+
+  GrowableObjectArray* derived_type_parameters = nullptr;
 };
 
 class ActiveClassScope {
