@@ -8,6 +8,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "vm/lockers.h"
+
 namespace dart {
 
 // A simple sorted fixed size Key-Value storage.
@@ -31,12 +33,16 @@ class FixedCache {
   ~FixedCache() { Clear(); }
 
   V* Lookup(K key) {
+    MutexLocker ml(&mutex_);
+
     intptr_t i = LowerBound(key);
     if (i != length_ && pairs_[i].key == key) return &pairs_[i].value;
     return NULL;
   }
 
   void Insert(K key, V value) {
+    MutexLocker ml(&mutex_);
+
     intptr_t i = LowerBound(key);
 
     if (length_ == kCapacity) {
@@ -53,7 +59,10 @@ class FixedCache {
     pairs_[i].value = value;
   }
 
-  void Clear() { length_ = 0; }
+  void Clear() {
+    MutexLocker ml(&mutex_);
+    length_ = 0;
+  }
 
  private:
   intptr_t LowerBound(K key) {
@@ -71,6 +80,10 @@ class FixedCache {
     return low;
   }
 
+  // We protect any operation on the [FixedCache] because multiple isolates from
+  // the same [IsolateGroup] can access this cache concurrently (as can the GC
+  // when it clears it).
+  Mutex mutex_;
   Entry pairs_[kCapacity];  // Sorted array of pairs.
   intptr_t length_;
 };

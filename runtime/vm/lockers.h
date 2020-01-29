@@ -8,8 +8,8 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
-#include "vm/isolate.h"
 #include "vm/os_thread.h"
+#include "vm/thread.h"
 
 namespace dart {
 
