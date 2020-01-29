@@ -40,7 +40,11 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   /// be removed in its entirety (the default) or removed by commenting it out.
   Future<void> _checkMultipleFileChanges(
       Map<String, String> input, Map<String, String> expectedOutput,
-      {bool removeViaComments = false}) async {
+      {Map<String, String> migratedInput = const {},
+      bool removeViaComments = false}) async {
+    for (var path in migratedInput.keys) {
+      driver.getFileSync(newFile(path, content: migratedInput[path]).path);
+    }
     for (var path in input.keys) {
       driver.getFileSync(newFile(path, content: input[path]).path);
     }
@@ -79,11 +83,12 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
   /// Optional parameter [removeViaComments] indicates whether dead code should
   /// be removed in its entirety (the default) or removed by commenting it out.
   Future<void> _checkSingleFileChanges(String content, String expected,
-      {bool removeViaComments = false}) async {
+      {Map<String, String> migratedInput = const {},
+      bool removeViaComments = false}) async {
     var sourcePath = convertPath('/home/test/lib/test.dart');
     await _checkMultipleFileChanges(
         {sourcePath: content}, {sourcePath: expected},
-        removeViaComments: removeViaComments);
+        migratedInput: migratedInput, removeViaComments: removeViaComments);
   }
 }
 
@@ -3931,6 +3936,79 @@ class C<T> {
 }
 ''';
     await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_typedef_assign_null_migrated_lhs_parameters() async {
+    var content = '''
+import 'migrated_typedef.dart';
+void main(F<int> f) {
+  f(null);
+}
+''';
+    var expected = '''
+import 'migrated_typedef.dart';
+void main(F<int?> f) {
+  f(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '/home/test/lib/migrated_typedef.dart': 'typedef F<R> = Function(R);'
+    });
+  }
+
+  Future<void> test_typedef_assign_null_migrated_lhs_rhs_parameters() async {
+    var content = '''
+import 'migrated_typedef.dart';
+void f1(F<int> f) {
+  f<int>(null, null);
+}
+void f2(F<int> f) {
+  f<int>(0, null);
+}
+void f3(F<int> f) {
+  f<int>(null, 1);
+}
+void f4(F<int> f) {
+  f<int>(0, 1);
+}
+''';
+    var expected = '''
+import 'migrated_typedef.dart';
+void f1(F<int?> f) {
+  f<int?>(null, null);
+}
+void f2(F<int> f) {
+  f<int?>(0, null);
+}
+void f3(F<int?> f) {
+  f<int>(null, 1);
+}
+void f4(F<int> f) {
+  f<int>(0, 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '/home/test/lib/migrated_typedef.dart':
+          'typedef F<T> = Function<R>(T, R);'
+    });
+  }
+
+  Future<void> test_typedef_assign_null_migrated_rhs_parameters() async {
+    var content = '''
+import 'migrated_typedef.dart';
+void main(F f) {
+  f<int>(null);
+}
+''';
+    var expected = '''
+import 'migrated_typedef.dart';
+void main(F f) {
+  f<int?>(null);
+}
+''';
+    await _checkSingleFileChanges(content, expected, migratedInput: {
+      '/home/test/lib/migrated_typedef.dart': 'typedef F = Function<R>(R);'
+    });
   }
 
   Future<void> test_typedef_assign_null_parameter() async {

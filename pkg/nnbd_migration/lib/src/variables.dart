@@ -236,6 +236,14 @@ class Variables implements VariableRecorder, VariableRepository {
       element = element.declaration;
     }
 
+    if (element is FunctionTypeAliasElement) {
+      // For `typedef F<T> = Function(T)`, get the `function` which is (in this
+      // case) `Function(T)`. Without this we would get `Function<T>(T)` which
+      // is incorrect. This is a known issue with `.type` on typedefs in the
+      // analyzer.
+      element = (element as FunctionTypeAliasElement).function;
+    }
+
     if (element is FunctionTypedElement) {
       decoratedType =
           _alreadyMigratedCodeDecorator.decorate(element.type, element);
