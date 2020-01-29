@@ -155,20 +155,6 @@ class FixBuilder {
     }
   }
 
-  /// Called whenever an AST node is found that needs to be changed.
-  ///
-  /// The [update] callback is passed whatever change had previously been
-  /// decided upon for this node, or an instance of [NoChange], if the node was
-  /// previously unchanged.
-  void _addChange(AstNode node,
-      NodeChange Function(NodeChange<NodeProducingEditPlan>) update) {
-    // The previous change had better be a NodeChange<NodeProducingEditPlan>
-    // because these are the only kinds of changes that are possible to stack
-    // on top of one another.
-    var previousChange = changes[node] as NodeChange<NodeProducingEditPlan>;
-    changes[node] = update(previousChange ?? const NoChange());
-  }
-
   /// Called whenever an AST node is found that can't be automatically fixed.
   void _addProblem(AstNode node, Problem problem) {
     var newlyAdded = (problems[node] ??= {}).add(problem);
@@ -211,28 +197,24 @@ class FixBuilder {
     }
   }
 
+  /// Returns the [NodeChange] object accumulating changes for the given [node],
+  /// creating it if necessary.
+  NodeChange _getChange(AstNode node) => changes[node] ??= NodeChange(node);
+
   /// Determines whether the given [node], which is a null-aware method
   /// invocation, property access, or index expression, should remain null-aware
   /// after migration.
   bool _shouldStayNullAware(Expression node) {
     Expression target;
-    NodeChange<NodeProducingEditPlan> nodeChangeToUse;
     if (node is PropertyAccess) {
       target = node.target;
-      nodeChangeToUse = const RemoveNullAwarenessFromPropertyAccess();
     } else if (node is MethodInvocation) {
       target = node.target;
-      nodeChangeToUse = const RemoveNullAwarenessFromMethodInvocation();
     } else {
       throw StateError('Unexpected expression type: ${node.runtimeType}');
     }
     if (!_typeSystem.isPotentiallyNullable(target.staticType)) {
-      _addChange(node, (previousChange) {
-        // There should be no previous change because we decide what to do
-        // about `?.` before doing anything else.
-        assert(previousChange is NoChange);
-        return nodeChangeToUse;
-      });
+      (_getChange(node) as NodeChangeForNullAware).removeNullAwareness = true;
       return false;
     }
     return true;
@@ -277,13 +259,9 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
             return null;
           }
           var conditionValue = conditionalDiscard.keepTrue;
-          _fixBuilder._addChange(node, (previousChange) {
-            // There shouldn't be a previous change for [node] because we
-            // check for dead code before making other modifications.
-            assert(previousChange is NoChange);
-            return EliminateDeadIf(conditionValue,
-                reasons: conditionalDiscard.reasons.toList());
-          });
+          (_fixBuilder._getChange(node) as NodeChangeForConditional)
+            ..conditionValue = conditionValue
+            ..conditionReasons = conditionalDiscard.reasons.toList();
           return conditionValue;
         }
       });
@@ -391,8 +369,9 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
         ? AtomicEditInfo(
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
-    _fixBuilder._addChange(
-        node, (previousChange) => NullCheck(info, previousChange));
+    (_fixBuilder._getChange(node) as NodeChangeForExpression)
+      ..addNullCheck = true
+      ..addNullCheckInfo = info;
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }
@@ -520,8 +499,8 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
     if (!_fixBuilder._variables.wasUnnecessaryCast(_fixBuilder.source, node) &&
         BestPracticesVerifier.isUnnecessaryCast(
             node, _fixBuilder._typeSystem)) {
-      _fixBuilder._addChange(
-          node, (previousChange) => RemoveAs(previousChange));
+      (_fixBuilder._getChange(node) as NodeChangeForAsExpression).removeAs =
+          true;
     }
   }
 }
@@ -564,8 +543,9 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     var decoratedType = _fixBuilder._variables
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     if (decoratedType.node.isNullable) {
-      _fixBuilder._addChange(node,
-          (previousChange) => MakeNullable(decoratedType, previousChange));
+      (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
+        ..makeNullable = true
+        ..makeNullableType = decoratedType;
     }
     (node as GenericFunctionTypeImpl).type =
         decoratedType.toFinalType(_fixBuilder.typeProvider);
@@ -578,8 +558,9 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         .decoratedTypeAnnotation(_fixBuilder.source, node);
     var type = decoratedType.type;
     if (!type.isDynamic && !type.isVoid && decoratedType.node.isNullable) {
-      _fixBuilder._addChange(node,
-          (previousChange) => MakeNullable(decoratedType, previousChange));
+      (_fixBuilder._getChange(node) as NodeChangeForTypeAnnotation)
+        ..makeNullable = true
+        ..makeNullableType = decoratedType;
     }
     node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
     super.visitTypeName(node);
@@ -601,15 +582,15 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       if (annotation.elementAnnotation.isRequired) {
         // TODO(paulberry): what if `@required` isn't the first annotation?
         // Will we produce something that isn't grammatical?
-        _fixBuilder._addChange(
-            annotation,
-            (previousChange) =>
-                RequiredAnnotationToRequiredKeyword(info, previousChange));
+        (_fixBuilder._getChange(annotation) as NodeChangeForAnnotation)
+          ..changeToRequiredKeyword = true
+          ..changeToRequiredKeywordInfo = info;
         return;
       }
     }
     // Otherwise create a new `required` keyword.
-    _fixBuilder._addChange(parameter,
-        (previousChange) => AddRequiredKeyword(info, previousChange));
+    (_fixBuilder._getChange(parameter) as NodeChangeForDefaultFormalParameter)
+      ..addRequiredKeyword = true
+      ..addRequiredKeywordInfo = info;
   }
 }

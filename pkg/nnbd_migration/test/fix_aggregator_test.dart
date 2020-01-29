@@ -23,8 +23,10 @@ main() {
 class FixAggregatorTest extends FixAggregatorTestBase {
   Future<void> test_addRequired() async {
     await analyze('f({int x}) => 0;');
-    var previewInfo = run(
-        {findNode.defaultParameter('int x'): const AddRequiredKeyword(null)});
+    var previewInfo = run({
+      findNode.defaultParameter('int x'): NodeChangeForDefaultFormalParameter()
+        ..addRequiredKeyword = true
+    });
     expect(previewInfo.applyTo(code), 'f({required int x}) => 0;');
   }
 
@@ -33,9 +35,9 @@ class FixAggregatorTest extends FixAggregatorTestBase {
     var aRef = findNode.simple('a +');
     var bRef = findNode.simple('b;');
     var previewInfo = run({
-      aRef: const NullCheck(null),
-      bRef: const NullCheck(null),
-      findNode.binary('a + b'): const NullCheck(null)
+      aRef: NodeChangeForExpression()..addNullCheck = true,
+      bRef: NodeChangeForExpression()..addNullCheck = true,
+      findNode.binary('a + b'): NodeChangeForExpression()..addNullCheck = true
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
   }
@@ -47,8 +49,10 @@ f(int i, int/*?*/ j) {
 }
 ''');
     var previewInfo = run({
-      findNode.statement('if'): EliminateDeadIf(true),
-      findNode.simple('j.isEven'): const NullCheck(null)
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = true,
+      findNode.simple('j.isEven'): NodeChangeForExpression()
+        ..addNullCheck = true
     });
     expect(previewInfo.applyTo(code), '''
 f(int i, int/*?*/ j) {
@@ -66,8 +70,10 @@ f(int i, int/*?*/ j) {
 }
 ''');
     var previewInfo = run({
-      findNode.statement('if'): EliminateDeadIf(true),
-      findNode.simple('j.isEven'): const NullCheck(null)
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = true,
+      findNode.simple('j.isEven'): NodeChangeForExpression()
+        ..addNullCheck = true
     });
     expect(previewInfo.applyTo(code), '''
 f(int i, int/*?*/ j) {
@@ -82,7 +88,9 @@ List<int> f(int i) {
   return [if (i == null) null];
 }
 ''');
-    var previewInfo = run({findNode.ifElement('=='): EliminateDeadIf(false)});
+    var previewInfo = run({
+      findNode.ifElement('=='): NodeChangeForIfElement()..conditionValue = false
+    });
     expect(previewInfo.applyTo(code), '''
 List<int> f(int i) {
   return [];
@@ -96,7 +104,9 @@ List<int> f(int i) {
   return [if (i == null) null else i + 1];
 }
 ''');
-    var previewInfo = run({findNode.ifElement('=='): EliminateDeadIf(false)});
+    var previewInfo = run({
+      findNode.ifElement('=='): NodeChangeForIfElement()..conditionValue = false
+    });
     expect(previewInfo.applyTo(code), '''
 List<int> f(int i) {
   return [i + 1];
@@ -110,7 +120,9 @@ List<int> f(int i) {
   return [if (i == null) null else i + 1];
 }
 ''');
-    var previewInfo = run({findNode.ifElement('=='): EliminateDeadIf(true)});
+    var previewInfo = run({
+      findNode.ifElement('=='): NodeChangeForIfElement()..conditionValue = true
+    });
     expect(previewInfo.applyTo(code), '''
 List<int> f(int i) {
   return [null];
@@ -124,8 +136,10 @@ int f(int i) {
   return i == null ? null : i + 1;
 }
 ''');
-    var previewInfo =
-        run({findNode.conditionalExpression('=='): EliminateDeadIf(false)});
+    var previewInfo = run({
+      findNode.conditionalExpression('=='): NodeChangeForConditionalExpression()
+        ..conditionValue = false
+    });
     expect(previewInfo.applyTo(code), '''
 int f(int i) {
   return i + 1;
@@ -139,8 +153,10 @@ int f(int i) {
   return i == null ? null : i + 1;
 }
 ''');
-    var previewInfo =
-        run({findNode.conditionalExpression('=='): EliminateDeadIf(true)});
+    var previewInfo = run({
+      findNode.conditionalExpression('=='): NodeChangeForConditionalExpression()
+        ..conditionValue = true
+    });
     expect(previewInfo.applyTo(code), '''
 int f(int i) {
   return null;
@@ -158,8 +174,10 @@ int f(int i) {
   }
 }
 ''');
-    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(false)},
-        removeViaComments: true);
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = false
+    }, removeViaComments: true);
     expect(previewInfo.applyTo(code), '''
 int f(int i) {
   /* if (i == null) {
@@ -181,8 +199,10 @@ int f(int i) {
   }
 }
 ''');
-    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)},
-        removeViaComments: true);
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = true
+    }, removeViaComments: true);
     expect(previewInfo.applyTo(code), '''
 int f(int i) {
   /* if (i == null) {
@@ -203,7 +223,10 @@ void f(int i) {
   }
 }
 ''');
-    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(false)});
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = false
+    });
     expect(previewInfo.applyTo(code), '''
 void f(int i) {}
 ''');
@@ -218,7 +241,10 @@ void f(int i) {
   }
 }
 ''');
-    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)});
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = true
+    });
     expect(previewInfo.applyTo(code), '''
 void f(int i) {}
 ''');
@@ -234,7 +260,10 @@ int f(int i) {
   }
 }
 ''');
-    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(false)});
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = false
+    });
     expect(previewInfo.applyTo(code), '''
 int f(int i) {
   return i + 1;
@@ -252,7 +281,10 @@ int f(int i) {
   }
 }
 ''');
-    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)});
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = true
+    });
     expect(previewInfo.applyTo(code), '''
 int f(int i) {
   return i + 1;
@@ -274,7 +306,10 @@ void f(int i, String callback()) {
 ''');
     // In this case we have to keep the block so that the scope of `var i`
     // doesn't widen.
-    var previewInfo = run({findNode.statement('if'): EliminateDeadIf(true)});
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = true
+    });
     expect(previewInfo.applyTo(code), '''
 void f(int i, String callback()) {
   {
@@ -291,7 +326,11 @@ void f(int i, String callback()) {
     // leave them.
     await analyze('f(a, c) => a..b = (throw c..d);');
     var cd = findNode.cascade('c..d');
-    var previewInfo = run({cd: const IntroduceAs('int', null)});
+    var previewInfo = run({
+      cd: NodeChangeForExpression()
+        ..introduceAsType = 'int'
+        ..introduceAsInfo = _MockInfo()
+    });
     expect(
         previewInfo.applyTo(code), 'f(a, c) => a..b = (throw (c..d) as int);');
   }
@@ -299,14 +338,22 @@ void f(int i, String callback()) {
   Future<void> test_introduceAs_no_parens() async {
     await analyze('f(a, b) => a | b;');
     var expr = findNode.binary('a | b');
-    var previewInfo = run({expr: const IntroduceAs('int', null)});
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAsType = 'int'
+        ..introduceAsInfo = _MockInfo()
+    });
     expect(previewInfo.applyTo(code), 'f(a, b) => a | b as int;');
   }
 
   Future<void> test_introduceAs_parens() async {
     await analyze('f(a, b) => a < b;');
     var expr = findNode.binary('a < b');
-    var previewInfo = run({expr: const IntroduceAs('bool', null)});
+    var previewInfo = run({
+      expr: NodeChangeForExpression()
+        ..introduceAsType = 'bool'
+        ..introduceAsInfo = _MockInfo()
+    });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a < b) as bool;');
   }
 
@@ -319,22 +366,27 @@ void f(int i, String callback()) {
   Future<void> test_makeNullable() async {
     await analyze('f(int x) {}');
     var typeName = findNode.typeName('int');
-    var previewInfo =
-        run({typeName: MakeNullable(MockDecoratedType(MockDartType()))});
+    var previewInfo = run({
+      typeName: NodeChangeForTypeAnnotation()
+        ..makeNullable = true
+        ..makeNullableType = MockDecoratedType(MockDartType())
+    });
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
   }
 
   Future<void> test_nullCheck_no_parens() async {
     await analyze('f(a) => a++;');
     var expr = findNode.postfix('a++');
-    var previewInfo = run({expr: const NullCheck(null)});
+    var previewInfo =
+        run({expr: NodeChangeForExpression()..addNullCheck = true});
     expect(previewInfo.applyTo(code), 'f(a) => a++!;');
   }
 
   Future<void> test_nullCheck_parens() async {
     await analyze('f(a) => -a;');
     var expr = findNode.prefix('-a');
-    var previewInfo = run({expr: const NullCheck(null)});
+    var previewInfo =
+        run({expr: NodeChangeForExpression()..addNullCheck = true});
     expect(previewInfo.applyTo(code), 'f(a) => (-a)!;');
   }
 
@@ -343,7 +395,7 @@ void f(int i, String callback()) {
     await analyze('f(a) => ((a..b) as dynamic)..c;');
     var cascade = findNode.cascade('a..b');
     var cast = cascade.parent.parent;
-    var previewInfo = run({cast: const RemoveAs()});
+    var previewInfo = run({cast: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a) => a..b..c;');
   }
 
@@ -354,7 +406,7 @@ void f(int i, String callback()) {
     await analyze('f(a, b, c) => ((a ? b : c) as dynamic)..d;');
     var conditional = findNode.conditionalExpression('a ? b : c');
     var cast = conditional.parent.parent;
-    var previewInfo = run({cast: const RemoveAs()});
+    var previewInfo = run({cast: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a ? b : c..d;');
   }
 
@@ -363,7 +415,7 @@ void f(int i, String callback()) {
     await analyze('f(a, b) => ((a = b) as dynamic)..c;');
     var assignment = findNode.assignment('a = b');
     var cast = assignment.parent.parent;
-    var previewInfo = run({cast: const RemoveAs()});
+    var previewInfo = run({cast: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b) => (a = b)..c;');
   }
 
@@ -371,7 +423,7 @@ void f(int i, String callback()) {
     await analyze('f(a) => ((throw a) as dynamic)..b;');
     var throw_ = findNode.throw_('throw a');
     var cast = throw_.parent.parent;
-    var previewInfo = run({cast: const RemoveAs()});
+    var previewInfo = run({cast: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a) => (throw a)..b;');
   }
 
@@ -379,14 +431,16 @@ void f(int i, String callback()) {
       test_removeAs_lower_precedence_do_not_remove_inner_parens() async {
     await analyze('f(a, b, c) => (a == b) as Null == c;');
     var expr = findNode.binary('a == b');
-    var previewInfo = run({expr.parent.parent: const RemoveAs()});
+    var previewInfo =
+        run({expr.parent.parent: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b, c) => (a == b) == c;');
   }
 
   Future<void> test_removeAs_lower_precedence_remove_inner_parens() async {
     await analyze('f(a, b) => (a == b) as Null;');
     var expr = findNode.binary('a == b');
-    var previewInfo = run({expr.parent.parent: const RemoveAs()});
+    var previewInfo =
+        run({expr.parent.parent: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b) => a == b;');
   }
 
@@ -404,7 +458,7 @@ void f(int i, String callback()) {
     await analyze('f(a, c) => a..b = throw (c..d) as int;');
     var cd = findNode.cascade('c..d');
     var cast = cd.parent.parent;
-    var previewInfo = run({cast: const RemoveAs()});
+    var previewInfo = run({cast: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, c) => a..b = (throw c..d);');
   }
 
@@ -413,7 +467,7 @@ void f(int i, String callback()) {
     await analyze('f(a, b, c) => a ? b : (c..d) as int;');
     var cd = findNode.cascade('c..d');
     var cast = cd.parent.parent;
-    var previewInfo = run({cast: const RemoveAs()});
+    var previewInfo = run({cast: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a ? b : (c..d);');
   }
 
@@ -422,36 +476,41 @@ void f(int i, String callback()) {
     await analyze('f(a, b, d) => a ? (b..c) as int : d;');
     var bc = findNode.cascade('b..c');
     var cast = bc.parent.parent;
-    var previewInfo = run({cast: const RemoveAs()});
+    var previewInfo = run({cast: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b, d) => a ? (b..c) : d;');
   }
 
   Future<void> test_removeAs_raise_precedence_do_not_remove_parens() async {
     await analyze('f(a, b, c) => a | (b | c as int);');
     var expr = findNode.binary('b | c');
-    var previewInfo = run({expr.parent: const RemoveAs()});
+    var previewInfo =
+        run({expr.parent: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a | (b | c);');
   }
 
   Future<void> test_removeAs_raise_precedence_no_parens_to_remove() async {
     await analyze('f(a, b, c) => a = b | c as int;');
     var expr = findNode.binary('b | c');
-    var previewInfo = run({expr.parent: const RemoveAs()});
+    var previewInfo =
+        run({expr.parent: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a = b | c;');
   }
 
   Future<void> test_removeAs_raise_precedence_remove_parens() async {
     await analyze('f(a, b, c) => a < (b | c as int);');
     var expr = findNode.binary('b | c');
-    var previewInfo = run({expr.parent: const RemoveAs()});
+    var previewInfo =
+        run({expr.parent: NodeChangeForAsExpression()..removeAs = true});
     expect(previewInfo.applyTo(code), 'f(a, b, c) => a < b | c;');
   }
 
   Future<void> test_removeNullAwarenessFromMethodInvocation() async {
     await analyze('f(x) => x?.m();');
     var methodInvocation = findNode.methodInvocation('?.');
-    var previewInfo = run(
-        {methodInvocation: const RemoveNullAwarenessFromMethodInvocation()});
+    var previewInfo = run({
+      methodInvocation: NodeChangeForMethodInvocation()
+        ..removeNullAwareness = true
+    });
     expect(previewInfo.applyTo(code), 'f(x) => x.m();');
   }
 
@@ -461,8 +520,9 @@ void f(int i, String callback()) {
     var methodInvocation = findNode.methodInvocation('?.');
     var argument = findNode.simple('x);');
     var previewInfo = run({
-      methodInvocation: const RemoveNullAwarenessFromMethodInvocation(),
-      argument: const NullCheck(null)
+      methodInvocation: NodeChangeForMethodInvocation()
+        ..removeNullAwareness = true,
+      argument: NodeChangeForExpression()..addNullCheck = true
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.m(x!);');
   }
@@ -473,8 +533,9 @@ void f(int i, String callback()) {
     var methodInvocation = findNode.methodInvocation('?.');
     var cast = findNode.as_('as');
     var previewInfo = run({
-      methodInvocation: const RemoveNullAwarenessFromMethodInvocation(),
-      cast: const RemoveAs()
+      methodInvocation: NodeChangeForMethodInvocation()
+        ..removeNullAwareness = true,
+      cast: NodeChangeForAsExpression()..removeAs = true
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.m();');
   }
@@ -485,8 +546,11 @@ void f(int i, String callback()) {
     var methodInvocation = findNode.methodInvocation('?.');
     var typeAnnotation = findNode.typeAnnotation('int');
     var previewInfo = run({
-      methodInvocation: const RemoveNullAwarenessFromMethodInvocation(),
-      typeAnnotation: const MakeNullable(MockDecoratedType(MockDartType()))
+      methodInvocation: NodeChangeForMethodInvocation()
+        ..removeNullAwareness = true,
+      typeAnnotation: NodeChangeForTypeAnnotation()
+        ..makeNullable = true
+        ..makeNullableType = MockDecoratedType(MockDartType())
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.m<int?>();');
   }
@@ -494,8 +558,9 @@ void f(int i, String callback()) {
   Future<void> test_removeNullAwarenessFromPropertyAccess() async {
     await analyze('f(x) => x?.y;');
     var propertyAccess = findNode.propertyAccess('?.');
-    var previewInfo =
-        run({propertyAccess: const RemoveNullAwarenessFromPropertyAccess()});
+    var previewInfo = run({
+      propertyAccess: NodeChangeForPropertyAccess()..removeNullAwareness = true
+    });
     expect(previewInfo.applyTo(code), 'f(x) => x.y;');
   }
 
@@ -504,8 +569,8 @@ void f(int i, String callback()) {
     var propertyAccess = findNode.propertyAccess('?.');
     var cast = findNode.as_('as');
     var previewInfo = run({
-      propertyAccess: const RemoveNullAwarenessFromPropertyAccess(),
-      cast: const RemoveAs()
+      propertyAccess: NodeChangeForPropertyAccess()..removeNullAwareness = true,
+      cast: NodeChangeForAsExpression()..removeAs = true
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.y;');
   }
@@ -517,8 +582,9 @@ import 'package:meta/meta.dart' as meta;
 f({@meta.required int x}) {}
 ''');
     var annotation = findNode.annotation('required');
-    var previewInfo =
-        run({annotation: const RequiredAnnotationToRequiredKeyword(null)});
+    var previewInfo = run({
+      annotation: NodeChangeForAnnotation()..changeToRequiredKeyword = true
+    });
     expect(previewInfo.applyTo(code), '''
 import 'package:meta/meta.dart' as meta;
 f({required int x}) {}
@@ -534,8 +600,9 @@ const foo = required;
 f({@foo int x}) {}
 ''');
     var annotation = findNode.annotation('@foo');
-    var previewInfo =
-        run({annotation: const RequiredAnnotationToRequiredKeyword(null)});
+    var previewInfo = run({
+      annotation: NodeChangeForAnnotation()..changeToRequiredKeyword = true
+    });
     expect(previewInfo.applyTo(code), '''
 import 'package:meta/meta.dart';
 const foo = required;
@@ -550,8 +617,9 @@ import 'package:meta/meta.dart';
 f({@required int x}) {}
 ''');
     var annotation = findNode.annotation('required');
-    var previewInfo =
-        run({annotation: const RequiredAnnotationToRequiredKeyword(null)});
+    var previewInfo = run({
+      annotation: NodeChangeForAnnotation()..changeToRequiredKeyword = true
+    });
     expect(previewInfo.applyTo(code), '''
 import 'package:meta/meta.dart';
 f({required int x}) {}
@@ -597,4 +665,8 @@ class MockDecoratedType implements DecoratedType {
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
+}
+
+class _MockInfo implements AtomicEditInfo {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
