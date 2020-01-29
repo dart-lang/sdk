@@ -10,12 +10,12 @@
 //
 // VMOptions=--enable-ffi=false
 
-import 'dart:ffi'; //# 01: compile-time error, runtime error
-import 'package:ffi/ffi.dart'; //# 01: compile-time error, runtime error
+import 'dart:ffi'; //# 01: compile-time error
+import 'package:ffi/ffi.dart'; //# 01: compile-time error
 
 void main() {
-  Pointer<Int8> p = //# 01: compile-time error, runtime error
-      allocate(); //# 01: compile-time error, runtime error
-  print(p.address); //# 01: compile-time error, runtime error
-  free(p); //# 01: compile-time error, runtime error
+  Pointer<Int8> p = //# 01: compile-time error
+      allocate(); //# 01: compile-time error
+  print(p.address); //# 01: compile-time error
+  free(p); //# 01: compile-time error
 }
