@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -488,6 +489,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     // TOP(dynamic) is true
     isTop(dynamicNone);
+    isTop(UnknownInferredType.instance);
 
     // TOP(void) is true
     isTop(voidNone);
@@ -2224,6 +2226,9 @@ class _TypeParameterCollector extends DartTypeVisitor<void> {
       typeParameters.add(type.element);
     }
   }
+
+  @override
+  void visitUnknownInferredType(UnknownInferredType type) {}
 
   @override
   void visitVoidType(VoidType type) {}

@@ -1444,6 +1444,11 @@ class Dart2TypeSystem extends TypeSystem {
 
   /// Return `true` for any type which is in the equivalence class of top types.
   bool isTop(DartType type) {
+    // TOP(?) is true
+    if (identical(type, UnknownInferredType.instance)) {
+      return true;
+    }
+
     // TOP(dynamic) is true
     if (identical(type, DynamicTypeImpl.instance)) {
       return true;
