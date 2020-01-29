@@ -1319,7 +1319,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      BaseElement base = _parseDocument.createElement('base');
+      BaseElement base = _parseDocument.createElement('base') $#NULLSAFECAST(as BaseElement);
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }

@@ -41,7 +41,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS
 
   bool containsKey(Object key) => _getItem(key) != null;
 
-  String operator [](Object key) => _getItem(key);
+  String operator [](Object key) => _getItem(key $#NULLSAFECAST(as String));
 
   void operator []=(String key, String value) { _setItem(key, value); }
 

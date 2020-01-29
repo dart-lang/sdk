@@ -13580,7 +13580,7 @@ class Element extends Node
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      BaseElement base = _parseDocument.createElement('base');
+      BaseElement base = _parseDocument.createElement('base') as BaseElement;
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
@@ -29375,7 +29375,7 @@ class Storage extends Interceptor with MapMixin<String, String> {
 
   bool containsKey(Object key) => _getItem(key) != null;
 
-  String operator [](Object key) => _getItem(key);
+  String operator [](Object key) => _getItem(key as String);
 
   void operator []=(String key, String value) {
     _setItem(key, value);
