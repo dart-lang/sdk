@@ -24,6 +24,7 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
 import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
+import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
 import 'package:analyzer/src/error/required_parameters_verifier.dart';
 import 'package:analyzer/src/error/type_arguments_verifier.dart';
@@ -624,7 +625,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _enclosingExtension = node.declaredElement;
     _duplicateDefinitionVerifier.checkExtension(node);
     _checkForFinalNotInitializedInClass(node.members);
-    _checkForMismatchedAccessorTypesInExtension(node);
+
+    GetterSetterTypesVerifier(
+      typeSystem: _typeSystem,
+      errorReporter: _errorReporter,
+    ).checkForMismatchedAccessorTypesInExtension(node);
+
     final name = node.name;
     if (name != null) {
       _checkForBuiltInIdentifierAsName(
@@ -729,7 +735,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _enclosingFunction = functionElement;
       TypeAnnotation returnType = node.returnType;
       if (node.isSetter || node.isGetter) {
-        _checkForMismatchedAccessorTypes(node, methodName);
+        GetterSetterTypesVerifier(
+          typeSystem: _typeSystem,
+          errorReporter: _errorReporter,
+        ).checkForMismatchedAccessorTypes(node, methodName);
         if (node.isSetter) {
           FunctionExpression functionExpression = node.functionExpression;
           if (functionExpression != null) {
@@ -3374,86 +3383,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Check to make sure that all similarly typed accessors are of the same type
-   * (including inherited accessors).
-   *
-   * See [StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES].
-   */
-  void _checkForMismatchedAccessorTypes(
-      Declaration accessorDeclaration, String accessorTextName) {
-    ExecutableElement accessorElement =
-        accessorDeclaration.declaredElement as ExecutableElement;
-    if (accessorElement is PropertyAccessorElement) {
-      PropertyAccessorElement counterpartAccessor;
-      if (accessorElement.isGetter) {
-        counterpartAccessor = accessorElement.correspondingSetter;
-      } else {
-        counterpartAccessor = accessorElement.correspondingGetter;
-        // If the setter and getter are in the same enclosing element, return,
-        // this prevents having MISMATCHED_GETTER_AND_SETTER_TYPES reported twice.
-        if (counterpartAccessor != null &&
-            identical(counterpartAccessor.enclosingElement,
-                accessorElement.enclosingElement)) {
-          return;
-        }
-      }
-      if (counterpartAccessor == null) {
-        return;
-      }
-      // Default of null == no accessor or no type (dynamic)
-      DartType getterType;
-      DartType setterType;
-      // Get an existing counterpart accessor if any.
-      if (accessorElement.isGetter) {
-        getterType = _getGetterType(accessorElement);
-        setterType = _getSetterType(counterpartAccessor);
-      } else if (accessorElement.isSetter) {
-        setterType = _getSetterType(accessorElement);
-        getterType = _getGetterType(counterpartAccessor);
-      }
-      // If either types are not assignable to each other, report an error
-      // (if the getter is null, it is dynamic which is assignable to everything).
-      if (setterType != null &&
-          getterType != null &&
-          !_typeSystem.isAssignableTo(getterType, setterType)) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-            accessorDeclaration,
-            [accessorTextName, getterType, setterType, accessorTextName]);
-      }
-    }
-  }
-
-  /**
-   * Check whether all similarly named accessors have consistent types.
-   */
-  void _checkForMismatchedAccessorTypesInExtension(
-      ExtensionDeclaration extension) {
-    for (ClassMember member in extension.members) {
-      if (member is MethodDeclaration && member.isGetter) {
-        PropertyAccessorElement getterElement =
-            member.declaredElement as PropertyAccessorElement;
-        PropertyAccessorElement setterElement =
-            getterElement.correspondingSetter;
-        if (setterElement != null) {
-          DartType getterType = _getGetterType(getterElement);
-          DartType setterType = _getSetterType(setterElement);
-          if (setterType != null &&
-              getterType != null &&
-              !_typeSystem.isAssignableTo(getterType, setterType)) {
-            SimpleIdentifier nameNode = member.name;
-            String name = nameNode.name;
-            _errorReporter.reportErrorForNode(
-                StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-                nameNode,
-                [name, getterType, setterType, name]);
-          }
-        }
-      }
-    }
-  }
-
-  /**
    * Check to make sure that the given switch [statement] whose static type is
    * an enum type either have a default case or include all of the enum
    * constants.
@@ -5416,18 +5345,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   }
 
   /**
-   * Return the return type of the given [getter].
-   */
-  DartType _getGetterType(PropertyAccessorElement getter) {
-    FunctionType functionType = getter.type;
-    if (functionType != null) {
-      return functionType.returnType;
-    } else {
-      return null;
-    }
-  }
-
-  /**
    * Return a human-readable representation of the kind of the [element].
    */
   String _getKind(ExecutableElement element) {
@@ -5498,19 +5415,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       buffer.write(")");
     }
     return buffer.toString();
-  }
-
-  /**
-   * Return the type of the first and only parameter of the given [setter].
-   */
-  DartType _getSetterType(PropertyAccessorElement setter) {
-    // Get the parameters for MethodDeclaration or FunctionDeclaration
-    List<ParameterElement> setterParameters = setter.parameters;
-    // If there are no setter parameters, return no type.
-    if (setterParameters.isEmpty) {
-      return null;
-    }
-    return setterParameters[0].type;
   }
 
   /// Returns whether [node] overrides a concrete method.

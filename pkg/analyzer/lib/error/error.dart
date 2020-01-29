@@ -731,6 +731,8 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+  StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES,
+  StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
   StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.IMPORT_OF_NON_LIBRARY,
@@ -741,7 +743,6 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-  StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.MIXED_RETURN_TYPES,

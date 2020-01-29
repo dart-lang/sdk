@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/type_system.dart';
 
@@ -184,7 +185,10 @@ class _ClassVerifier {
       _reportInconsistentInheritance(classNameNode, conflict);
     }
 
-    _checkForMismatchedAccessorTypes(interface);
+    GetterSetterTypesVerifier(
+      typeSystem: typeSystem,
+      errorReporter: reporter,
+    ).instanceInterface(classElement, interface);
 
     if (!classElement.isAbstract) {
       List<ExecutableElement> inheritedAbstract;
@@ -383,49 +387,6 @@ class _ClassVerifier {
       }
     }
     return hasError;
-  }
-
-  void _checkForMismatchedAccessorTypes(Interface interface) {
-    for (var name in interface.map.keys) {
-      if (!name.isAccessibleFor(libraryUri)) continue;
-
-      var getter = interface.map[name];
-      if (getter.kind == ElementKind.GETTER) {
-        // TODO(scheglov) We should separate getters and setters.
-        var setter = interface.map[Name(libraryUri, '${name.name}=')];
-        if (setter != null && setter.parameters.length == 1) {
-          var getterType = getter.returnType;
-          var setterType = setter.parameters[0].type;
-          if (!typeSystem.isAssignableTo(getterType, setterType)) {
-            Element errorElement;
-            if (getter.enclosingElement == classElement) {
-              errorElement = getter;
-            } else if (setter.enclosingElement == classElement) {
-              errorElement = setter;
-            } else {
-              errorElement = classElement;
-            }
-
-            String getterName = getter.displayName;
-            if (getter.enclosingElement != classElement) {
-              var getterClassName = getter.enclosingElement.displayName;
-              getterName = '$getterClassName.$getterName';
-            }
-
-            String setterName = setter.displayName;
-            if (setter.enclosingElement != classElement) {
-              var setterClassName = setter.enclosingElement.displayName;
-              setterName = '$setterClassName.$setterName';
-            }
-
-            reporter.reportErrorForElement(
-                StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-                errorElement,
-                [getterName, getterType, setterType, setterName]);
-          }
-        }
-      }
-    }
   }
 
   void _checkForOptionalParametersDifferentDefaultValues(

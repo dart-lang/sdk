@@ -7943,6 +7943,45 @@ class StaticWarningCode extends AnalyzerErrorCode {
           hasPublishedDocs: true);
 
   /**
+   * 10.3 Setters: It is a compile-time error if a class has a setter named
+   * `v=` with argument type `T` and a getter named `v` with return type `S`,
+   * and `S` may not be assigned to `T`.
+   *
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the type of the getter
+   * 2: the type of the setter
+   * 3: the name of the setter
+   */
+  static const StaticWarningCode GETTER_NOT_ASSIGNABLE_SETTER_TYPES =
+      StaticWarningCode(
+          'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
+          "The return type of getter '{0}' is '{1}' which isn't assignable "
+              "to the type '{2}' of its setter '{3}'.",
+          correction: "Try changing the types so that they are compatible.");
+
+  /**
+   * nnbd/feature-specification.md
+   *
+   * It is an error if a class has a setter and a getter with the same basename
+   * where the return type of the getter is not a subtype of the argument type
+   * of the setter. Note that this error specifically requires subtyping and
+   * not assignability and hence makes no exception for `dynamic`.
+   *
+   * Parameters:
+   * 0: the name of the getter
+   * 1: the type of the getter
+   * 2: the type of the setter
+   * 3: the name of the setter
+   */
+  static const StaticWarningCode GETTER_NOT_SUBTYPE_SETTER_TYPES =
+      StaticWarningCode(
+          'GETTER_NOT_SUBTYPE_SETTER_TYPES',
+          "The return type of getter '{0}' is '{1}' which isn't a subtype "
+              "of the type '{2}' of its setter '{3}'.",
+          correction: "Try changing the types so that they are compatible.");
+
+  /**
    * 14.1 Imports: It is a static warning to import two different libraries with
    * the same name.
    *
@@ -8163,24 +8202,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
           "The element type '{0}' can't be assigned to the map value type "
               "'{1}'.");
-
-  /**
-   * 10.3 Setters: It is a compile-time error if a class has a setter named
-   * `v=` with argument type `T` and a getter named `v` with return type `S`,
-   * and `S` may not be assigned to `T`.
-   *
-   * Parameters:
-   * 0: the name of the getter
-   * 1: the type of the getter
-   * 2: the type of the setter
-   * 3: the name of the setter
-   */
-  static const StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES =
-      StaticWarningCode(
-          'MISMATCHED_GETTER_AND_SETTER_TYPES',
-          "The return type of getter '{0}' is '{1}' which isn't assignable "
-              "to the type '{2}' of its setter '{3}'.",
-          correction: "Try changing the types so that they are compatible.");
 
   /**
    * Parameters:

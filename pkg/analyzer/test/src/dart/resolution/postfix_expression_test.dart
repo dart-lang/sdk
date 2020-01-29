@@ -53,9 +53,9 @@ f(int x) {
 
   test_inc_property_differentTypes() async {
     await assertNoErrorsInCode(r'''
-dynamic get x => 0;
+int get x => 0;
 
-set x(Object _) {}
+set x(num _) {}
 
 f() {
   x++;
@@ -65,13 +65,16 @@ f() {
     assertSimpleIdentifier(
       findNode.simple('x++'),
       element: findElement.topSet('x'),
-      type: 'Object',
+      type: 'num',
     );
 
     assertPostfixExpression(
       findNode.postfix('x++'),
-      element: null,
-      type: 'dynamic',
+      element: elementMatcher(
+        numElement.getMethod('+'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+      type: 'int',
     );
   }
 }

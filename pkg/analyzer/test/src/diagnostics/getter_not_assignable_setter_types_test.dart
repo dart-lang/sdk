@@ -14,7 +14,6 @@ main() {
     defineReflectiveTests(MismatchedGetterAndSetterTypesTest);
     defineReflectiveTests(
         MismatchedGetterAndSetterTypesWithExtensionMethodsTest);
-    defineReflectiveTests(MismatchedGetterAndSetterTypesWithNNBDTest);
   });
 }
 
@@ -50,7 +49,7 @@ class B {
 
 abstract class X implements A, B {}
 ''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 84, 1),
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 84, 1),
     ]);
   }
 
@@ -131,7 +130,7 @@ class C {
   set foo(String _) {}
 }
 ''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 20, 3),
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 20, 3),
     ]);
   }
 
@@ -176,7 +175,7 @@ class B extends A {
   set foo(String _) {}
 }
 ''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 59, 3),
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 59, 3),
     ]);
   }
 
@@ -190,15 +189,28 @@ class B extends A {
   int get foo => 0;
 }
 ''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 66, 3),
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 66, 3),
+    ]);
+  }
+
+  @FailingTest(reason: 'Check for static is not implemented')
+  test_class_static() async {
+    await assertErrorsInCode(r'''
+class C {
+  static int get foo => 0;
+  static set foo(String _) {}
+}
+''', [
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 27, 3),
     ]);
   }
 
   test_topLevel() async {
     await assertErrorsInCode('''
 int get g { return 0; }
-set g(String v) {}''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 0, 23),
+set g(String v) {}
+''', [
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 0, 23),
     ]);
   }
 
@@ -239,7 +251,7 @@ extension E on Object {
   set g(String v) {}
 }
 ''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 34, 1),
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 34, 1),
     ]);
   }
 
@@ -250,39 +262,7 @@ extension E on Object {
   static set g(String v) {}
 }
 ''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 41, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class MismatchedGetterAndSetterTypesWithNNBDTest
-    extends MismatchedGetterAndSetterTypesTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.non_nullable]);
-
-  test_nullSafety_class_instance() async {
-    await assertErrorsInCode('''
-class C {
-  num get g { return 0; }
-  set g(int v) {}
-}
-''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 20, 1),
-    ]);
-  }
-
-  @failingTest
-  test_nullSafety_class_static() async {
-    await assertErrorsInCode('''
-class C {
-  static num get g { return 0; }
-  static set g(int v) {}
-}
-''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 12, 30),
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 41, 1),
     ]);
   }
 }
