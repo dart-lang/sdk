@@ -3262,8 +3262,7 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-ndartkp-${system}-${mode}-simarm-crossword",
-            "--gen-snapshot=${build_root}/gen_snapshot"
+            "-ndartkp-${system}-${mode}-simarm-crossword"
           ],
           "fileset": "vm-kernel",
           "shards": 10
