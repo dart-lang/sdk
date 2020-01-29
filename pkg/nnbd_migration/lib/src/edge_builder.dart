@@ -1680,7 +1680,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     // be built; it is sufficient to pass in any decorated type whose node is
     // non-nullable.  So we use `Object`.
     var nullabilityNode = NullabilityNode.forInferredType();
-    _graph.makeNonNullable(
+    _graph.makeNonNullableUnion(
         nullabilityNode, NonNullableUsageOrigin(source, expression));
     return DecoratedType(typeProvider.objectType, nullabilityNode);
   }
@@ -2442,7 +2442,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _makeNonNullableBoolType(Expression expression) {
     assert(expression.staticType.isDartCoreBool);
     var nullabilityNode = NullabilityNode.forInferredType();
-    _graph.makeNonNullable(
+    _graph.makeNonNullableUnion(
         nullabilityNode, NonNullableBoolTypeOrigin(source, expression));
     return DecoratedType(typeProvider.boolType, nullabilityNode);
   }
@@ -2450,7 +2450,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   DecoratedType _makeNonNullLiteralType(Expression expression,
       {List<DecoratedType> typeArguments = const []}) {
     var nullabilityNode = NullabilityNode.forInferredType();
-    _graph.makeNonNullable(nullabilityNode, LiteralOrigin(source, expression));
+    _graph.makeNonNullableUnion(
+        nullabilityNode, LiteralOrigin(source, expression));
     return DecoratedType(expression.staticType, nullabilityNode,
         typeArguments: typeArguments);
   }
@@ -2488,7 +2489,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
     NullabilityNode makeNonNullableNode() {
       var nullabilityNode = NullabilityNode.forInferredType();
-      _graph.makeNonNullable(nullabilityNode, ThisOrSuperOrigin(source, node));
+      _graph.makeNonNullableUnion(
+          nullabilityNode, ThisOrSuperOrigin(source, node));
       return nullabilityNode;
     }
 

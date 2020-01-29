@@ -4327,7 +4327,7 @@ void f(List<int> x, int i) {
         .decoratedElementType(addMethod.declaration)
         .positionalParameters[0]
         .node;
-    assertEdge(nullable_t, never, hard: true);
+    assertEdge(nullable_t, never, hard: true, checkable: false);
     var check_i = checkExpression('i/*check*/');
     var nullable_list_t_or_nullable_t = check_i
         .checks.edges.single.destinationNode as NullabilityNodeForSubstitution;

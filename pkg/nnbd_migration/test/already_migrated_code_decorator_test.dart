@@ -68,7 +68,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   }
 
   void checkExplicitlyNonNullable(NullabilityNode node) {
-    var edge = assertEdge(node, never, hard: true);
+    var edge = assertEdge(node, never, hard: true, checkable: false);
     var origin = graph.getEdgeOrigin(edge);
     expect(origin.kind, EdgeOriginKind.alreadyMigratedType);
     expect(origin.element, same(element));

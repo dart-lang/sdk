@@ -84,7 +84,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (node.stackTraceParameter != null) {
       // The type of stack traces is always StackTrace (non-nullable).
       var nullabilityNode = NullabilityNode.forInferredType();
-      _graph.makeNonNullable(nullabilityNode,
+      _graph.makeNonNullableUnion(nullabilityNode,
           StackTraceTypeOrigin(source, node.stackTraceParameter));
       var stackTraceType =
           DecoratedType(_typeProvider.stackTraceType, nullabilityNode);
@@ -211,7 +211,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     makeNonNullNode([AstNode forNode]) {
       forNode ??= node;
       final graphNode = NullabilityNode.forInferredType();
-      _graph.makeNonNullable(graphNode, EnumValueOrigin(source, forNode));
+      _graph.makeNonNullableUnion(graphNode, EnumValueOrigin(source, forNode));
       return graphNode;
     }
 
@@ -472,7 +472,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var commentToken = node.endToken.next.precedingComments;
     switch (_classifyComment(commentToken)) {
       case _NullabilityComment.bang:
-        _graph.makeNonNullable(
+        _graph.makeNonNullableUnion(
             decoratedType.node, NullabilityCommentOrigin(source, node));
         break;
       case _NullabilityComment.question:
@@ -689,7 +689,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       DecoratedType decoratedSupertype;
       if (supertype == null) {
         var nullabilityNode = NullabilityNode.forInferredType();
-        _graph.makeNonNullable(
+        _graph.makeNonNullableUnion(
             nullabilityNode, NonNullableObjectSuperclass(source, astNode));
         decoratedSupertype =
             DecoratedType(_typeProvider.objectType, nullabilityNode);

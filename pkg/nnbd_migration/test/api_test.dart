@@ -3125,6 +3125,27 @@ int f(int i, [int? j]) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void>
+      test_non_nullable_hint_comment_overrides_uncheckable_edge() async {
+    var content = '''
+Iterable<int> f(List<int> x) => x.map(g);
+int g(int/*!*/ x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    // TODO(paulberry): we should do something to flag the fact that g can't be
+    // safely passed to f.
+    var expected = '''
+Iterable<int> f(List<int?> x) => x.map(g);
+int g(int/*!*/ x) => x + 1;
+main() {
+  f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_not_definitely_assigned_value() async {
     var content = '''
 String f(bool b) {
