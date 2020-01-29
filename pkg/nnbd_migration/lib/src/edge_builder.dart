@@ -2801,6 +2801,26 @@ mixin _AssignmentChecker {
         // Nothing to do.
         return;
       }
+    } else if (source.type.isDartAsyncFutureOr) {
+      if (destination.type.isDartAsyncFuture) {
+        // FutureOr<T?> is nullable, so the Future<T> should be nullable too.
+        _connect(source.typeArguments[0].node, destination.node, origin,
+            hard: hard);
+        _checkDowncast(origin,
+            source: source.typeArguments[0],
+            destination: destination.typeArguments[0],
+            hard: false);
+      } else if (destination.type.isDartAsyncFutureOr) {
+        _checkDowncast(origin,
+            source: source.typeArguments[0],
+            destination: destination.typeArguments[0],
+            hard: false);
+      } else {
+        _checkDowncast(origin,
+            source: source.typeArguments[0],
+            destination: destination,
+            hard: false);
+      }
     } else if (destinationType is InterfaceType) {
       if (source.type is InterfaceType) {
         final target = _decoratedClassHierarchy.asInstanceOf(

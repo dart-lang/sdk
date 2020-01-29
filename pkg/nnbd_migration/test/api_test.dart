@@ -1984,6 +1984,38 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_future_or_t_downcast_to_t() async {
+    var content = '''
+import 'dart:async';
+void f(
+    FutureOr<int> foi1,
+    FutureOr<int/*?*/> foi2,
+    FutureOr<int>/*?*/ foi3,
+    FutureOr<int/*?*/>/*?*/ foi4
+) {
+  int i1 = foi1;
+  int i2 = foi2;
+  int i3 = foi3;
+  int i4 = foi4;
+}
+''';
+    var expected = '''
+import 'dart:async';
+void f(
+    FutureOr<int> foi1,
+    FutureOr<int?/*?*/> foi2,
+    FutureOr<int>?/*?*/ foi3,
+    FutureOr<int?/*?*/>?/*?*/ foi4
+) {
+  int i1 = foi1;
+  int? i2 = foi2;
+  int? i3 = foi3;
+  int? i4 = foi4;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_generic_exact_propagation() async {
     var content = '''
 class C<T> {

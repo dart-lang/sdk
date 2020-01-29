@@ -201,6 +201,47 @@ class AssignmentCheckerTest extends Object
     assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
   }
 
+  void test_future_or_int_to_future_int() {
+    var t1 = futureOr(int_());
+    var t2 = future(int_());
+    assign(t1, t2, hard: true);
+    // FutureOr<int>? is nullable, so Future<int>? should be.
+    assertEdge(t1.node, t2.node, hard: true);
+    // FutureOr<int?> is nullable, so Future<int>? should be.
+    assertEdge(t1.typeArguments[0].node, t2.node, hard: true);
+    // FutureOr<int?> may hold a Future<int?>, so carry that forward.
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+    // FutureOr<int>? does not accept a Future<int?>, so don't draw this.
+    assertNoEdge(t1.node, t2.typeArguments[0].node);
+  }
+
+  void test_future_or_int_to_int() {
+    var t1 = futureOr(int_());
+    var t2 = int_();
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.node, hard: false);
+  }
+
+  void test_future_or_list_object_to_list_int() {
+    var t1 = futureOr(list(object()));
+    var t2 = list(int_());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.node, hard: false);
+    assertEdge(
+        t1.typeArguments[0].typeArguments[0].node, t2.typeArguments[0].node,
+        hard: false);
+  }
+
+  void test_future_or_object_to_future_or_int() {
+    var t1 = futureOr(object());
+    var t2 = futureOr(int_());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+  }
+
   void test_future_or_to_future_or() {
     var t1 = futureOr(int_());
     var t2 = futureOr(int_());
