@@ -6,6 +6,8 @@
 // and extract into a separate package, generate testing and mirrors, and
 // reimport that into the SDK, before cut and paste gets out of hand.
 
+import 'dart:async';
+
 /// This is a modified version of dartdoc's
 /// SubprocessLauncher from test/src/utils.dart, for use with the
 /// nnbd_migration script.
@@ -56,6 +58,30 @@ class SubprocessLauncher {
   SubprocessLauncher(this.context, [Map<String, String> environment])
       : this.environmentDefaults = environment ?? <String, String>{};
 
+  /// Wraps [runStreamedImmediate] as a closure around
+  /// [maxParallel.addFutureFromClosure].
+  ///
+  /// This essentially implements a 'make -j N' limit for all subcommands.
+  Future<Iterable<Map>> runStreamed(String executable, List<String> arguments,
+      {String workingDirectory,
+      Map<String, String> environment,
+      bool includeParentEnvironment = true,
+      void Function(String) perLine}) async {
+    Completer<Future<Iterable<Map>>> startedProcess = Completer();
+
+    await maxParallel.addFutureFromClosure(() async {
+      Future<Iterable<Map>> runStreamedImmediateFuture;
+      runStreamedImmediateFuture = runStreamedImmediate(executable, arguments,
+          workingDirectory: workingDirectory,
+          environment: environment,
+          includeParentEnvironment: includeParentEnvironment,
+          perLine: perLine);
+      startedProcess.complete(runStreamedImmediateFuture);
+      return runStreamedImmediateFuture;
+    });
+    return await startedProcess.future;
+  }
+
   /// A wrapper around start/await process.exitCode that will display the
   /// output of the executable continuously and fail on non-zero exit codes.
   /// It will also parse any valid JSON objects (one per line) it encounters
@@ -66,7 +92,8 @@ class SubprocessLauncher {
   /// Windows (though some of the bashisms will no longer make sense).
   /// TODO(jcollins-g): refactor to return a stream of stderr/stdout lines
   ///                   and their associated JSON objects.
-  Future<Iterable<Map>> runStreamed(String executable, List<String> arguments,
+  Future<Iterable<Map>> runStreamedImmediate(
+      String executable, List<String> arguments,
       {String workingDirectory,
       Map<String, String> environment,
       bool includeParentEnvironment = true,

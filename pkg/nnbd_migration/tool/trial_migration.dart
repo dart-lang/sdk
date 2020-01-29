@@ -17,7 +17,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:args/args.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:nnbd_migration/src/utilities/multi_future_tracker.dart';
 import 'package:path/path.dart' as path;
 
 import 'src/package.dart';
@@ -40,17 +39,10 @@ main(List<String> args) async {
       ManualPackage(package),
   ];
 
-  // Limit the number of simultaneous git/pub commands.
-  MultiFutureTracker futureTracker =
-      MultiFutureTracker(Platform.numberOfProcessors);
-
-  for (String package in parsedArgs['git_packages'] as Iterable<String>) {
-    await futureTracker.addFutureFromClosure(() async => packages.add(
-        await GitPackage.gitPackageFactory(
-            package, playground, parsedArgs['update'] as bool)));
-  }
-
-  await futureTracker.wait();
+  var packageNames = parsedArgs['git_packages'] as Iterable<String>;
+  await Future.wait(packageNames.map((n) async => packages.add(
+      await GitPackage.gitPackageFactory(
+          n, playground, parsedArgs['update'] as bool))));
 
   String categoryOfInterest =
       parsedArgs.rest.isEmpty ? null : parsedArgs.rest.single;
