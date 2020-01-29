@@ -641,6 +641,11 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor {
       return _doExpectCommentRefs;
     }
 
+    // Ignore the SimpleIdentifiers that make up library directives.
+    if (node.thisOrAncestorOfType<LibraryDirective>() != null) {
+      return false;
+    }
+
     // TODO (jwren) If there is a mode of completing at a token location where
     //  the token is removed before the completion query happens, then this
     //  should be disabled in such a case:
