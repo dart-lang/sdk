@@ -466,6 +466,8 @@ class PageSpace {
     kAllowedGrowth = 3
   };
 
+  static const intptr_t kAllocatablePageSize = 64 * KB;
+
   uword TryAllocateInternal(intptr_t size,
                             HeapPage::PageType type,
                             GrowthPolicy growth_policy,

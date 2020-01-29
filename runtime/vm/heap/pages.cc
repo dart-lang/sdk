@@ -461,7 +461,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         HeapPage::PageType type,
                                         GrowthPolicy growth_policy,
                                         bool is_locked) {
-  ASSERT(Heap::IsAllocatableViaFreeLists(size));
+  ASSERT(size < kAllocatablePageSize);
 
   EvaluateConcurrentMarking(growth_policy);
 
@@ -497,7 +497,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
 uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
                                              HeapPage::PageType type,
                                              GrowthPolicy growth_policy) {
-  ASSERT(!Heap::IsAllocatableViaFreeLists(size));
+  ASSERT(size >= kAllocatablePageSize);
 
   EvaluateConcurrentMarking(growth_policy);
 
@@ -531,7 +531,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
-  if (Heap::IsAllocatableViaFreeLists(size)) {
+  if (size < kAllocatablePageSize) {
     if (is_locked) {
       result = freelist_[type].TryAllocateLocked(size, is_protected);
     } else {
@@ -1260,7 +1260,7 @@ uword PageSpace::TryAllocateDataBumpLocked(intptr_t size) {
   intptr_t remaining = bump_end_ - bump_top_;
   if (UNLIKELY(remaining < size)) {
     // Checking this first would be logical, but needlessly slow.
-    if (!Heap::IsAllocatableViaFreeLists(size)) {
+    if (size >= kAllocatablePageSize) {
       return TryAllocateDataLocked(size, kForceGrowth);
     }
     FreeListElement* block =
