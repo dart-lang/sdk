@@ -298,6 +298,17 @@ class EditPlanner {
     return (plan as NodeProducingEditPlan)._getChanges(false);
   }
 
+  /// Creates a new edit plan that inserts the text indicated by [edits] at the
+  /// given [offset].
+  ///
+  /// The created edit will have the given [parentNode].  In general this should
+  /// be the innermost AST node containing the given [offset].
+  EditPlan insertText(AstNode parentNode, int offset, List<AtomicEdit> edits) {
+    assert(!edits.any((edit) => !edit.isInsertion),
+        'All edits should be insertions');
+    return _TokenChangePlan(parentNode, {offset: edits});
+  }
+
   /// Creates a new edit plan that consists of executing [innerPlan], and then
   /// appending a `?`, to make a type nullable.
   ///
@@ -456,9 +467,28 @@ class EditPlanner {
       {Precedence precedence = Precedence.primary,
       bool endsInCascade = false,
       AtomicEditInfo info}) {
+    assert(!replacement.any((edit) => !edit.isInsertion),
+        'All edits should be insertions');
     return _SimpleEditPlan(sourceNode, precedence, endsInCascade, {
       sourceNode.offset: [
         AtomicEdit.delete(sourceNode.length, info: info),
+        ...replacement
+      ]
+    });
+  }
+
+  /// Creates a new edit plan that replaces [token] with the given [replacement]
+  /// text.
+  ///
+  /// [parentNode] should be the innermost AST node containing [token].
+  EditPlan replaceToken(
+      AstNode parentNode, Token token, List<AtomicEdit> replacement,
+      {AtomicEditInfo info}) {
+    assert(!replacement.any((edit) => !edit.isInsertion),
+        'All edits should be insertions');
+    return _TokenChangePlan(parentNode, {
+      token.offset: [
+        AtomicEdit.delete(token.length, info: info),
         ...replacement
       ]
     });

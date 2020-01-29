@@ -361,6 +361,17 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = 0; var y = 0;');
   }
 
+  Future<void> test_insertText() async {
+    await analyze('final x = 1;');
+    var variableDeclarationList = findNode.variableDeclarationList('final');
+    checkPlan(
+        planner.insertText(
+            variableDeclarationList,
+            variableDeclarationList.variables.first.offset,
+            [AtomicEdit.insert('int ')]),
+        'final int x = 1;');
+  }
+
   Future<void> test_makeNullable() async {
     await analyze('int x = 0;');
     checkPlan(
@@ -1074,6 +1085,15 @@ C<int, String>? c;
         planner.replace(findNode.binary('*'), [AtomicEdit.insert('y = z')],
             precedence: Precedence.assignment),
         'var x = 1 + (y = z);');
+  }
+
+  Future<void> test_replaceToken() async {
+    await analyze('var x = 1;');
+    var variableDeclarationList = findNode.variableDeclarationList('var x');
+    checkPlan(
+        planner.replaceToken(variableDeclarationList,
+            variableDeclarationList.keyword, [AtomicEdit.insert('int')]),
+        'int x = 1;');
   }
 
   Future<void> test_surround_allowCascade() async {

@@ -503,6 +503,38 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
           true;
     }
   }
+
+  @override
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    if (node.type == null) {
+      // TODO(paulberry): for fields, handle inference via override as well.
+      List<DartType> neededTypes = [];
+      List<DartType> inferredTypes = [];
+      bool explicitTypeNeeded = false;
+      for (var variableDeclaration in node.variables) {
+        var neededType = _fixBuilder
+            ._computeMigratedType(variableDeclaration.declaredElement);
+        neededTypes.add(neededType);
+        var inferredType = variableDeclaration.initializer?.staticType ??
+            _fixBuilder.typeProvider.dynamicType;
+        inferredTypes.add(inferredType);
+        if (neededType != inferredType) {
+          explicitTypeNeeded = true;
+        }
+      }
+      if (explicitTypeNeeded) {
+        var firstNeededType = neededTypes[0];
+        if (neededTypes.any((t) => t != firstNeededType)) {
+          throw UnimplementedError(
+              'Different explicit types needed in multi-variable declaration');
+        } else {
+          (_fixBuilder._getChange(node) as NodeChangeForVariableDeclarationList)
+              .addExplicitType = firstNeededType;
+        }
+      }
+    }
+    super.visitVariableDeclarationList(node);
+  }
 }
 
 /// Visitor that computes additional migrations on behalf of [FixBuilder] that

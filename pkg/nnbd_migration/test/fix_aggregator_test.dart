@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
@@ -369,7 +370,8 @@ void f(int i, String callback()) {
     var previewInfo = run({
       typeName: NodeChangeForTypeAnnotation()
         ..makeNullable = true
-        ..makeNullableType = MockDecoratedType(MockDartType())
+        ..makeNullableType = MockDecoratedType(
+            MockDartType(toStringValueWithoutNullability: 'int'))
     });
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
   }
@@ -550,7 +552,8 @@ void f(int i, String callback()) {
         ..removeNullAwareness = true,
       typeAnnotation: NodeChangeForTypeAnnotation()
         ..makeNullable = true
-        ..makeNullableType = MockDecoratedType(MockDartType())
+        ..makeNullableType = MockDecoratedType(
+            MockDartType(toStringValueWithoutNullability: 'int'))
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.m<int?>();');
   }
@@ -626,6 +629,50 @@ f({required int x}) {}
 ''');
     expect(previewInfo.values.single.single.isDeletion, true);
   }
+
+  Future<void> test_variableDeclarationList_addExplicitType_insert() async {
+    await analyze('final x = 0;');
+    var previewInfo = run({
+      findNode.variableDeclarationList('final'):
+          NodeChangeForVariableDeclarationList()
+            ..addExplicitType =
+                MockDartType(toStringValueWithNullability: 'int')
+    });
+    expect(previewInfo.applyTo(code), 'final int x = 0;');
+  }
+
+  Future<void> test_variableDeclarationList_addExplicitType_no() async {
+    await analyze('var x = 0;');
+    var previewInfo = run({
+      findNode.variableDeclarationList('var'):
+          NodeChangeForVariableDeclarationList()
+    });
+    expect(previewInfo, isNull);
+  }
+
+  Future<void> test_variableDeclarationList_addExplicitType_otherPlans() async {
+    await analyze('var x = 0;');
+    var previewInfo = run({
+      findNode.variableDeclarationList('var'):
+          NodeChangeForVariableDeclarationList()
+            ..addExplicitType =
+                MockDartType(toStringValueWithNullability: 'int'),
+      findNode.integerLiteral('0'): NodeChangeForExpression()
+        ..addNullCheck = true
+    });
+    expect(previewInfo.applyTo(code), 'int x = 0!;');
+  }
+
+  Future<void> test_variableDeclarationList_addExplicitType_replaceVar() async {
+    await analyze('var x = 0;');
+    var previewInfo = run({
+      findNode.variableDeclarationList('var'):
+          NodeChangeForVariableDeclarationList()
+            ..addExplicitType =
+                MockDartType(toStringValueWithNullability: 'int')
+    });
+    expect(previewInfo.applyTo(code), 'int x = 0;');
+  }
 }
 
 class FixAggregatorTestBase extends AbstractSingleUnitTest {
@@ -643,12 +690,27 @@ class FixAggregatorTestBase extends AbstractSingleUnitTest {
   }
 }
 
-class MockDartType implements DartType {
-  const MockDartType();
+class MockDartType implements TypeImpl {
+  final String toStringValueWithNullability;
+
+  final String toStringValueWithoutNullability;
+
+  const MockDartType(
+      {this.toStringValueWithNullability,
+      this.toStringValueWithoutNullability});
 
   @override
   noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
+  }
+
+  @override
+  String toString({bool withNullability = false}) {
+    var result = withNullability
+        ? toStringValueWithNullability
+        : toStringValueWithoutNullability;
+    expect(result, isNotNull);
+    return result;
   }
 }
 

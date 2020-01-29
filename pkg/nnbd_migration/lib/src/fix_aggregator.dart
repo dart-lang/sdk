@@ -5,6 +5,8 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -416,6 +418,37 @@ class NodeChangeForTypeAnnotation extends NodeChange {
   }
 }
 
+/// Implementation of [NodeChange] specialized for operating on
+/// [VariableDeclarationList] nodes.
+class NodeChangeForVariableDeclarationList extends NodeChange {
+  /// If an explicit type should be added to this variable declaration, the type
+  /// that should be added.  Otherwise `null`.
+  DartType addExplicitType;
+
+  NodeChangeForVariableDeclarationList() : super._();
+
+  @override
+  EditPlan _apply(
+      covariant VariableDeclarationList node, FixAggregator aggregator) {
+    List<EditPlan> innerPlans = [];
+    if (addExplicitType != null) {
+      var typeText =
+          (addExplicitType as TypeImpl).toString(withNullability: true);
+      if (node.keyword?.keyword == Keyword.VAR) {
+        innerPlans.add(aggregator.planner
+            .replaceToken(node, node.keyword, [AtomicEdit.insert(typeText)]));
+      } else {
+        innerPlans.add(aggregator.planner.insertText(
+            node,
+            node.variables.first.offset,
+            [AtomicEdit.insert(typeText), AtomicEdit.insert(' ')]));
+      }
+    }
+    innerPlans.addAll(aggregator.innerPlansForNode(node));
+    return aggregator.planner.passThrough(node, innerPlans: innerPlans);
+  }
+}
+
 /// Visitor that creates an appropriate [NodeChange] object for the node being
 /// visited.
 class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange> {
@@ -459,4 +492,8 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange> {
 
   @override
   NodeChange visitTypeName(TypeName node) => NodeChangeForTypeAnnotation();
+
+  @override
+  NodeChange visitVariableDeclarationList(VariableDeclarationList node) =>
+      NodeChangeForVariableDeclarationList();
 }

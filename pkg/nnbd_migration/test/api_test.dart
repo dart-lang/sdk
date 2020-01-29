@@ -1760,7 +1760,6 @@ class C {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   Future<void> test_field_type_inferred() async {
     var content = '''
 int f() => null;
@@ -2655,7 +2654,6 @@ int f() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   Future<void> test_localVariable_type_inferred() async {
     var content = '''
 int f() => null;
@@ -3850,7 +3848,6 @@ Object? g() => f();
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39404')
   Future<void> test_topLevelVariable_type_inferred() async {
     var content = '''
 int f() => null;
