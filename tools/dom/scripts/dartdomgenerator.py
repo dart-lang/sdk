@@ -104,7 +104,10 @@ def GenerateFromDatabase(common_database,
     start_time = time.time()
 
     current_dir = os.path.dirname(__file__)
-    auxiliary_dir = os.path.join(current_dir, '..', 'src')
+    if nnbd:
+        auxiliary_dir = os.path.join(current_dir, '..', 'nnbd_src')
+    else:
+        auxiliary_dir = os.path.join(current_dir, '..', 'src')
     template_dir = os.path.join(current_dir, '..', 'templates')
 
     _logger.setLevel(logging_level)
