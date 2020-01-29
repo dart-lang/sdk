@@ -89,5 +89,5 @@ class _WrappedIterator<E extends Node> implements Iterator<E> {
     return _iterator.moveNext();
   }
 
-  E get current => _iterator.current;
+  E get current => _iterator.current as E;
 }

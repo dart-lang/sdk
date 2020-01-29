@@ -108,7 +108,7 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   @pragma('dart2js:tryInline')
-  String remove(Object key) => key is String ? _remove(_element, key) : null;
+  String? remove(Object? key) => key is String ? _remove(_element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.

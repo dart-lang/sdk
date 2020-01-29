@@ -150,7 +150,7 @@ class NodeValidatorBuilder implements NodeValidator {
    */
   void allowCustomElement(String tagName,
       {UriPolicy uriPolicy,
-      Iterable<String> attributes,
+      Iterable<String>? attributes,
       Iterable<String> uriAttributes}) {
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes

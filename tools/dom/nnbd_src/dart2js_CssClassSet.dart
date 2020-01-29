@@ -54,7 +54,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * TODO(sra): It seems wrong to collect a 'changed' flag like this when the
    * underlying toggle returns an 'is set' flag.
    */
-  bool toggle(String value, [bool shouldAdd]) => _sets.fold(
+  bool toggle(String value, [bool? shouldAdd]) => _sets.fold(
       false,
       (bool changed, CssClassSetImpl e) =>
           e.toggle(value, shouldAdd) || changed);
@@ -112,7 +112,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return value is String && _remove(_element, value);
   }
 
-  bool toggle(String value, [bool shouldAdd]) {
+  bool toggle(String value, [bool? shouldAdd]) {
     return _toggle(_element, value, shouldAdd);
   }
 
@@ -157,7 +157,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return removed;
   }
 
-  static bool _toggle(Element _element, String value, bool shouldAdd) {
+  static bool _toggle(Element _element, String value, bool? shouldAdd) {
     // There is no value that can be passed as the second argument of
     // DomTokenList.toggle that behaves the same as passing one argument.
     // `null` is seen as false, meaning 'remove'.
@@ -171,13 +171,13 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return _classListToggle1(list, value);
   }
 
-  static bool _toggleOnOff(Element _element, String value, bool shouldAdd) {
+  static bool _toggleOnOff(Element _element, String value, bool? shouldAdd) {
     DomTokenList list = _classListOf(_element);
     // IE's toggle does not take a second parameter. We would prefer:
     //
     //    return _classListToggle2(list, value, shouldAdd);
     //
-    if (shouldAdd) {
+    if (shouldAdd ?? false) {
       _classListAdd(list, value);
       return true;
     } else {
@@ -254,7 +254,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   static bool _classListToggle2(
-      DomTokenList list, String value, bool shouldAdd) {
+      DomTokenList list, String value, bool? shouldAdd) {
     return JS('bool', '#.toggle(#, #)', list, value, shouldAdd);
   }
 }
