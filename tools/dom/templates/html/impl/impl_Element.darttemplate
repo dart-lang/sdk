@@ -98,7 +98,7 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  bool remove(Object object) {
+  bool remove(Object$NULLABLE object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
@@ -280,7 +280,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void sort([Comparator<E> compare]) {
+  void sort([Comparator<E>$NULLABLE compare]) {
     throw new UnsupportedError('Cannot sort list');
   }
 

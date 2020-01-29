@@ -13,6 +13,13 @@ import re
 from htmlrenamer import custom_html_constructors, html_interface_renames, \
     typed_array_renames
 
+# TODO(srujzs): Pass options flag through to emitter functions.
+class GlobalOptionsHack(object):
+    nnbd = False
+
+global_options_hack = GlobalOptionsHack()
+
+
 _pure_interfaces = monitored.Set('generator._pure_interfaces', [
     'AbstractWorker',
     'CanvasPath',
@@ -404,17 +411,27 @@ class ParamInfo(object):
     is_optional: Parameter optionality.
   """
 
-    def __init__(self, name, type_id, is_optional):
+    def __init__(self, name, type_id, is_optional, is_nullable, default_value,
+                 default_value_is_null):
         self.name = name
         self.type_id = type_id
         self.is_optional = is_optional
+        self.is_nullable = is_nullable
+        self.default_value = default_value
+        self.default_value_is_null = default_value_is_null
 
     def Copy(self):
-        return ParamInfo(self.name, self.type_id, self.is_optional)
+        return ParamInfo(self.name, self.type_id, self.is_optional,
+                         self.is_nullable, self.default_value,
+                         self.default_value_is_null)
 
     def __repr__(self):
-        content = 'name = %s, type_id = %s, is_optional = %s' % (
-            self.name, self.type_id, self.is_optional)
+        content = ('name = %s, type_id = %s, is_optional = %s, '
+                   'is_nullable = %s, default_value = %s, '
+                   'default_value_is_null %s') % (
+                        self.name, self.type_id, self.is_optional,
+                        self.is_nullable, self.default_value,
+                        self.default_value_is_null)
         return '<ParamInfo(%s)>' % content
 
 
@@ -467,21 +484,40 @@ def _BuildArguments(args, interface, constructor=False):
     def OverloadedType(args):
         type_ids = sorted(set(arg.type.id for arg in args))
         if len(set(DartType(arg.type.id) for arg in args)) == 1:
-            return type_ids[0]
+            nullable = False
+            for arg in args:
+                nullable = nullable or getattr(arg.type, 'nullable', False)
+            return (type_ids[0], nullable)
         else:
-            return None
+            return (None, False)
+
+    # Given a list of overloaded default values, choose a suitable one.
+    def OverloadedDefault(args):
+        defaults = sorted(set(arg.default_value for arg in args))
+        if len(set(DartType(arg.type.id) for arg in args)) == 1:
+            null_default = False
+            for arg in args:
+                null_default = null_default or arg.default_value_is_null
+            return (defaults[0], null_default)
+        else:
+            return (None, False)
 
     result = []
 
     is_optional = False
+    # Process overloaded arguments across a set of overloaded operations.
+    # Each tuple in args corresponds to overloaded arguments with the same name.
     for arg_tuple in map(lambda *x: x, *args):
         is_optional = is_optional or any(
             arg is None or IsOptional(arg) for arg in arg_tuple)
 
         filtered = filter(None, arg_tuple)
-        type_id = OverloadedType(filtered)
+        (type_id, is_nullable) = OverloadedType(filtered)
         name = OverloadedName(filtered)
-        result.append(ParamInfo(name, type_id, is_optional))
+        default = OverloadedDefault(filtered)
+        result.append(
+            ParamInfo(name, type_id, is_optional, is_nullable, default[0],
+                      default[1]))
 
     return result
 
@@ -620,18 +656,19 @@ def DartDomNameOfAttribute(attr):
     return name
 
 
-def TypeOrNothing(dart_type, comment=None):
+def TypeOrNothing(dart_type, comment=None, nullable=False):
     """Returns string for declaring something with |dart_type| in a context
   where a type may be omitted.
   The string is empty or has a trailing space.
   """
+    nullability_operator = '?' if global_options_hack.nnbd and nullable else ''
     if dart_type == 'dynamic':
         if comment:
             return '/*%s*/ ' % comment  # Just a comment foo(/*T*/ x)
         else:
             return ''  # foo(x) looks nicer than foo(var|dynamic x)
     else:
-        return dart_type + ' '
+        return dart_type + nullability_operator + ' '
 
 
 def TypeOrVar(dart_type, comment=None):
@@ -692,7 +729,8 @@ class OperationInfo(object):
             # Special handling for setlike IDL forEach operation.
             if dart_type is None and param.type_id.endswith('ForEachCallback'):
                 dart_type = param.type_id
-            return (TypeOrNothing(dart_type, param.type_id), param.name)
+            return (TypeOrNothing(dart_type, param.type_id, param.is_nullable or
+                                  param.is_optional), param.name)
 
         required = []
         optional = []
@@ -921,9 +959,12 @@ class Conversion(object):
         # conversion function)
         # output_type is the type of the API output (and the result type of the
         # conversion function)
+        # nullsafe_output flags whether the output_type has been converted yet
+        # to a null-safe type i.e. <type>? if nullable and <type> if not
         self.function_name = name
         self.input_type = input_type
         self.output_type = output_type
+        self.nullsafe_output = False
 
 
 #  "TYPE DIRECTION INTERFACE.MEMBER" -> conversion

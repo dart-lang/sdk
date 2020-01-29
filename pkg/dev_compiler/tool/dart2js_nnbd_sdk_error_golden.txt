@@ -1,0 +1,104 @@
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '&': int.& (&), JSNumber.& (&).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '<<': int.<< (<<), JSNumber.<< (<<).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '>>': int.>> (>>), JSNumber.>> (>>).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '\|': int.\| (\|), JSNumber.\| (\|).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '^': int.^ (^), JSNumber.^ (^).
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1153|7|14|'JSMutableIndexable.[]=' ('void Function(int, dynamic)') isn't a valid override of 'JSArray.[]=' ('void Function(int, E)').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1155|7|12|'JSMutableIndexable.[]=' ('void Function(int, dynamic)') isn't a valid override of 'JSArray.[]=' ('void Function(int, E)').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1157|7|17|'JSMutableIndexable.[]=' ('void Function(int, dynamic)') isn't a valid override of 'JSArray.[]=' ('void Function(int, E)').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|708|17|3|'NativeTypedArrayOfDouble.[]=' ('void Function(int, double)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|729|17|3|'NativeTypedArrayOfInt.[]=' ('void Function(int, int)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/js/js.dart|351|17|3|'JsArray.[]=' ('void Function(dynamic, E)') isn't a valid override of 'JsObject.[]=' ('void Function(dynamic, dynamic)').
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1672|28|1|The operator '&' isn't defined for the class 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1674|27|1|The operator '&' isn't defined for the class 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1677|17|1|The operator '&' isn't defined for the class 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1682|18|1|The operator '&' isn't defined for the class 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1682|44|1|The operator '&' isn't defined for the class 'JSInt'.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|12140|3|7|All final variables must be initialized, but '_attributes', '_childElementCount', and 21 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|15319|3|15|All final variables must be initialized, but 'elements', 'form', and 4 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|15992|3|11|All final variables must be initialized, but 'length' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|1760|3|13|All final variables must be initialized, but 'form', 'labels', and 3 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|17995|3|13|All final variables must be initialized, but '_get_contentWindow' and 'sandbox' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|18185|3|12|All final variables must be initialized, but 'complete', 'currentSrc', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|18294|3|12|All final variables must be initialized, but '_get_valueAsDate', 'entries', and 6 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19245|3|12|All final variables must be initialized, but 'control' and 'form' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19274|3|13|All final variables must be initialized, but 'form' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19324|3|11|All final variables must be initialized, but 'import', 'relList', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19455|3|10|All final variables must be initialized, but 'areas' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19559|3|12|All final variables must be initialized, but 'audioDecodedByteCount', 'audioTracks', and 18 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|20673|3|12|All final variables must be initialized, but 'labels' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|22075|3|4|All final variables must be initialized, but 'baseUri', 'childNodes', and 11 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|22804|3|13|All final variables must be initialized, but '_get_contentWindow', 'form', and 3 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|23190|3|13|All final variables must be initialized, but 'form' and 'index' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|23241|3|13|All final variables must be initialized, but 'form', 'htmlFor', and 5 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|24751|3|15|All final variables must be initialized, but 'labels' and 'position' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|26240|3|13|All final variables must be initialized, but 'form', 'labels', and 4 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|27806|3|12|All final variables must be initialized, but 'sheet' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|27976|3|16|All final variables must be initialized, but 'cellIndex' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28075|3|12|All final variables must be initialized, but '_rows' and '_tBodies' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28161|3|15|All final variables must be initialized, but '_cells', 'rowIndex', and 1 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28217|3|19|All final variables must be initialized, but '_rows' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28271|3|15|All final variables must be initialized, but 'content' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28344|3|15|All final variables must be initialized, but 'form', 'labels', and 5 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|29082|3|12|All final variables must be initialized, but 'readyState' and 'track' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|29888|3|12|All final variables must be initialized, but 'decodedFrameCount', 'droppedFrameCount', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|38890|3|8|All final variables must be initialized, but 'sourceCapabilities' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|453|3|13|All final variables must be initialized, but 'origin' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|8511|3|15|All final variables must be initialized, but 'options' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|972|3|11|All final variables must be initialized, but 'origin' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1031|3|14|All final variables must be initialized, but 'height', 'result', and 3 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1194|3|21|All final variables must be initialized, but 'height', 'in1', and 6 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1245|3|14|All final variables must be initialized, but 'height', 'href', and 5 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1294|3|14|All final variables must be initialized, but 'height', 'result', and 3 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1336|3|18|All final variables must be initialized, but 'in1' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1366|3|19|All final variables must be initialized, but 'height', 'in1', and 7 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1418|3|15|All final variables must be initialized, but 'dx', 'dy', and 6 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1466|3|19|All final variables must be initialized, but 'x', 'y', and 1 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1503|3|25|All final variables must be initialized, but 'height', 'in1', and 9 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1557|3|18|All final variables must be initialized, but 'limitingConeAngle', 'pointsAtX', and 6 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1604|3|13|All final variables must be initialized, but 'height', 'in1', and 4 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1649|3|19|All final variables must be initialized, but 'baseFrequencyX', 'baseFrequencyY', and 9 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1715|3|13|All final variables must be initialized, but 'filterUnits', 'height', and 5 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1796|3|20|All final variables must be initialized, but 'height', 'width', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1846|3|15|All final variables must be initialized, but 'pathLength' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1873|3|15|All final variables must be initialized, but 'farthestViewportElement', 'nearestViewportElement', and 3 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|1914|3|12|All final variables must be initialized, but 'height', 'href', and 4 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2076|3|11|All final variables must be initialized, but 'x1', 'x2', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2105|3|21|All final variables must be initialized, but 'x1', 'x2', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2134|3|13|All final variables must be initialized, but 'markerHeight', 'markerUnits', and 7 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2191|3|11|All final variables must be initialized, but 'height', 'maskContentUnits', and 6 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2407|3|14|All final variables must be initialized, but 'height', 'href', and 10 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2508|3|14|All final variables must be initialized, but 'animatedPoints' and 'points' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2533|3|15|All final variables must be initialized, but 'animatedPoints' and 'points' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2602|3|21|All final variables must be initialized, but 'cx', 'cy', and 4 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2655|3|11|All final variables must be initialized, but 'height', 'rx', and 4 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2688|3|13|All final variables must be initialized, but 'href' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2744|3|11|All final variables must be initialized, but 'gradientOffset' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|2844|3|12|All final variables must be initialized, but 'sheet' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3181|3|10|All final variables must be initialized, but 'ownerSvgElement' and 'viewportElement' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3354|3|13|All final variables must be initialized, but 'currentTranslate', 'height', and 5 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3476|3|13|All final variables must be initialized, but 'preserveAspectRatio' and 'viewBox' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3536|3|18|All final variables must be initialized, but 'lengthAdjust' and 'textLength' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3603|3|15|All final variables must be initialized, but 'href', 'method', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3643|3|22|All final variables must be initialized, but 'dx', 'dy', and 3 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3852|3|10|All final variables must be initialized, but 'height', 'href', and 3 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3885|3|11|All final variables must be initialized, but 'preserveAspectRatio' and 'viewBox' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3932|3|16|All final variables must be initialized, but 'gradientTransform', 'gradientUnits', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|396|3|16|All final variables must be initialized, but 'requiredExtensions', 'systemLanguage', and 1 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|439|3|13|All final variables must be initialized, but 'cx', 'cy', and 1 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|466|3|15|All final variables must be initialized, but 'clipPathUnits' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|548|3|14|All final variables must be initialized, but 'cx', 'cy', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|56|3|8|All final variables must be initialized, but 'href' and 'target' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|582|3|14|All final variables must be initialized, but 'height', 'in1', and 6 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|643|3|20|All final variables must be initialized, but 'height', 'in1', and 6 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|702|3|26|All final variables must be initialized, but 'height', 'in1', and 4 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|740|3|18|All final variables must be initialized, but 'height', 'in1', and 10 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|806|3|23|All final variables must be initialized, but 'bias', 'divisor', and 15 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|881|3|24|All final variables must be initialized, but 'diffuseConstant', 'height', and 8 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|934|3|24|All final variables must be initialized, but 'height', 'in1', and 8 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|996|3|21|All final variables must be initialized, but 'azimuth' and 'elevation' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|31|13|13|The final variable 'lengthInBytes' must be initialized.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|320|20|6|The final variable 'buffer' must be initialized.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|324|13|13|The final variable 'lengthInBytes' must be initialized.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|328|13|13|The final variable 'offsetInBytes' must be initialized.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|333|13|18|The final variable 'elementSizeInBytes' must be initialized.

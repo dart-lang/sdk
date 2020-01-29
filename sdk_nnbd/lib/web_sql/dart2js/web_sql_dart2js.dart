@@ -1,4 +1,3 @@
-// @dart = 2.5
 /**
  * An API for storing data in the browser that can be queried with SQL.
  *
@@ -79,7 +78,7 @@ class SqlDatabase extends Interceptor {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.openDatabase)');
 
-  final String version;
+  String get version => JS("String", "#.version", this);
 
   @JSName('changeVersion')
   /**
@@ -97,9 +96,9 @@ class SqlDatabase extends Interceptor {
    * * [Database.changeVersion](http://www.w3.org/TR/webdatabase/#dom-database-changeversion) from W3C.
    */
   void _changeVersion(String oldVersion, String newVersion,
-      [SqlTransactionCallback callback,
-      SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native;
+      [SqlTransactionCallback? callback,
+      SqlTransactionErrorCallback? errorCallback,
+      VoidCallback? successCallback]) native;
 
   @JSName('changeVersion')
   /**
@@ -128,8 +127,8 @@ class SqlDatabase extends Interceptor {
 
   @JSName('readTransaction')
   void _readTransaction(SqlTransactionCallback callback,
-      [SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native;
+      [SqlTransactionErrorCallback? errorCallback,
+      VoidCallback? successCallback]) native;
 
   @JSName('readTransaction')
   Future<SqlTransaction> readTransaction() {
@@ -143,8 +142,8 @@ class SqlDatabase extends Interceptor {
   }
 
   void transaction(SqlTransactionCallback callback,
-      [SqlTransactionErrorCallback errorCallback,
-      VoidCallback successCallback]) native;
+      [SqlTransactionErrorCallback? errorCallback,
+      VoidCallback? successCallback]) native;
 
   @JSName('transaction')
   Future<SqlTransaction> transaction_future() {
@@ -185,9 +184,9 @@ class SqlError extends Interceptor {
 
   static const int VERSION_ERR = 2;
 
-  final int code;
+  int get code => JS("int", "#.code", this);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -200,11 +199,11 @@ class SqlResultSet extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int insertId;
+  int get insertId => JS("int", "#.insertId", this);
 
-  final SqlResultSetRowList rows;
+  SqlResultSetRowList get rows => JS("SqlResultSetRowList", "#.rows", this);
 
-  final int rowsAffected;
+  int get rowsAffected => JS("int", "#.rowsAffected", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -288,12 +287,12 @@ class SqlTransaction extends Interceptor {
 
   @JSName('executeSql')
   void _executeSql(String sqlStatement,
-      [List arguments,
-      SqlStatementCallback callback,
-      SqlStatementErrorCallback errorCallback]) native;
+      [List? arguments,
+      SqlStatementCallback? callback,
+      SqlStatementErrorCallback? errorCallback]) native;
 
   @JSName('executeSql')
-  Future<SqlResultSet> executeSql(String sqlStatement, [List arguments]) {
+  Future<SqlResultSet> executeSql(String sqlStatement, [List? arguments]) {
     var completer = new Completer<SqlResultSet>();
     _executeSql(sqlStatement, arguments, (transaction, resultSet) {
       applyExtension('SQLResultSet', resultSet);

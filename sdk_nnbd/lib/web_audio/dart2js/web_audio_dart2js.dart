@@ -1,4 +1,3 @@
-// @dart = 2.5
 /**
  * High-fidelity audio programming in the browser.
  *
@@ -39,7 +38,7 @@ class AnalyserNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AnalyserNode(BaseAudioContext context, [Map options]) {
+  factory AnalyserNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return AnalyserNode._create_1(context, options_1);
@@ -51,15 +50,31 @@ class AnalyserNode extends AudioNode {
   static AnalyserNode _create_2(context) =>
       JS('AnalyserNode', 'new AnalyserNode(#)', context);
 
-  int fftSize;
+  int get fftSize => JS("int", "#.fftSize", this);
 
-  final int frequencyBinCount;
+  set fftSize(int value) {
+    JS("void", "#.fftSize = #", this, value);
+  }
 
-  num maxDecibels;
+  int get frequencyBinCount => JS("int", "#.frequencyBinCount", this);
 
-  num minDecibels;
+  num get maxDecibels => JS("num", "#.maxDecibels", this);
 
-  num smoothingTimeConstant;
+  set maxDecibels(num value) {
+    JS("void", "#.maxDecibels = #", this, value);
+  }
+
+  num get minDecibels => JS("num", "#.minDecibels", this);
+
+  set minDecibels(num value) {
+    JS("void", "#.minDecibels = #", this, value);
+  }
+
+  num get smoothingTimeConstant => JS("num", "#.smoothingTimeConstant", this);
+
+  set smoothingTimeConstant(num value) {
+    JS("void", "#.smoothingTimeConstant = #", this, value);
+  }
 
   void getByteFrequencyData(Uint8List array) native;
 
@@ -87,19 +102,19 @@ class AudioBuffer extends Interceptor {
   static AudioBuffer _create_1(options) =>
       JS('AudioBuffer', 'new AudioBuffer(#)', options);
 
-  final num duration;
+  num get duration => JS("num", "#.duration", this);
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
-  final int numberOfChannels;
+  int get numberOfChannels => JS("int", "#.numberOfChannels", this);
 
-  final num sampleRate;
+  num get sampleRate => JS("num", "#.sampleRate", this);
 
   void copyFromChannel(Float32List destination, int channelNumber,
-      [int startInChannel]) native;
+      [int? startInChannel]) native;
 
   void copyToChannel(Float32List source, int channelNumber,
-      [int startInChannel]) native;
+      [int? startInChannel]) native;
 
   Float32List getChannelData(int channelIndex) native;
 }
@@ -116,7 +131,7 @@ class AudioBufferSourceNode extends AudioScheduledSourceNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AudioBufferSourceNode(BaseAudioContext context, [Map options]) {
+  factory AudioBufferSourceNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return AudioBufferSourceNode._create_1(context, options_1);
@@ -131,19 +146,31 @@ class AudioBufferSourceNode extends AudioScheduledSourceNode {
   static AudioBufferSourceNode _create_2(context) =>
       JS('AudioBufferSourceNode', 'new AudioBufferSourceNode(#)', context);
 
-  AudioBuffer buffer;
+  AudioBuffer? buffer;
 
-  final AudioParam detune;
+  AudioParam get detune => JS("AudioParam", "#.detune", this);
 
-  bool loop;
+  bool get loop => JS("bool", "#.loop", this);
 
-  num loopEnd;
+  set loop(bool value) {
+    JS("void", "#.loop = #", this, value);
+  }
 
-  num loopStart;
+  num get loopEnd => JS("num", "#.loopEnd", this);
 
-  final AudioParam playbackRate;
+  set loopEnd(num value) {
+    JS("void", "#.loopEnd = #", this, value);
+  }
 
-  void start([num when, num grainOffset, num grainDuration]) native;
+  num get loopStart => JS("num", "#.loopStart", this);
+
+  set loopStart(num value) {
+    JS("void", "#.loopStart = #", this, value);
+  }
+
+  AudioParam get playbackRate => JS("AudioParam", "#.playbackRate", this);
+
+  void start([num? when, num? grainOffset, num? grainDuration]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -162,7 +189,7 @@ class AudioContext extends BaseAudioContext {
   static bool get supported =>
       JS('bool', '!!(window.AudioContext || window.webkitAudioContext)');
 
-  final num baseLatency;
+  num get baseLatency => JS("num", "#.baseLatency", this);
 
   Future close() => promiseToFuture(JS("", "#.close()", this));
 
@@ -244,7 +271,7 @@ class AudioDestinationNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  final int maxChannelCount;
+  int get maxChannelCount => JS("int", "#.maxChannelCount", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -257,23 +284,23 @@ class AudioListener extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final AudioParam forwardX;
+  AudioParam get forwardX => JS("AudioParam", "#.forwardX", this);
 
-  final AudioParam forwardY;
+  AudioParam get forwardY => JS("AudioParam", "#.forwardY", this);
 
-  final AudioParam forwardZ;
+  AudioParam get forwardZ => JS("AudioParam", "#.forwardZ", this);
 
-  final AudioParam positionX;
+  AudioParam get positionX => JS("AudioParam", "#.positionX", this);
 
-  final AudioParam positionY;
+  AudioParam get positionY => JS("AudioParam", "#.positionY", this);
 
-  final AudioParam positionZ;
+  AudioParam get positionZ => JS("AudioParam", "#.positionZ", this);
 
-  final AudioParam upX;
+  AudioParam get upX => JS("AudioParam", "#.upX", this);
 
-  final AudioParam upY;
+  AudioParam get upY => JS("AudioParam", "#.upY", this);
 
-  final AudioParam upZ;
+  AudioParam get upZ => JS("AudioParam", "#.upZ", this);
 
   void setOrientation(num x, num y, num z, num xUp, num yUp, num zUp) native;
 
@@ -290,22 +317,35 @@ class AudioNode extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  int channelCount;
+  int get channelCount => JS("int", "#.channelCount", this);
 
-  String channelCountMode;
+  set channelCount(int value) {
+    JS("void", "#.channelCount = #", this, value);
+  }
 
-  String channelInterpretation;
+  String get channelCountMode => JS("String", "#.channelCountMode", this);
 
-  final BaseAudioContext context;
+  set channelCountMode(String value) {
+    JS("void", "#.channelCountMode = #", this, value);
+  }
 
-  final int numberOfInputs;
+  String get channelInterpretation =>
+      JS("String", "#.channelInterpretation", this);
 
-  final int numberOfOutputs;
+  set channelInterpretation(String value) {
+    JS("void", "#.channelInterpretation = #", this, value);
+  }
+
+  BaseAudioContext get context => JS("BaseAudioContext", "#.context", this);
+
+  int get numberOfInputs => JS("int", "#.numberOfInputs", this);
+
+  int get numberOfOutputs => JS("int", "#.numberOfOutputs", this);
 
   @JSName('connect')
-  AudioNode _connect(destination, [int output, int input]) native;
+  AudioNode _connect(destination, [int? output, int? input]) native;
 
-  void disconnect([destination_OR_output, int output, int input]) native;
+  void disconnect([destination_OR_output, int? output, int? input]) native;
 
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) {
     _connect(destination, output, input);
@@ -326,13 +366,17 @@ class AudioParam extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num defaultValue;
+  num get defaultValue => JS("num", "#.defaultValue", this);
 
-  final num maxValue;
+  num get maxValue => JS("num", "#.maxValue", this);
 
-  final num minValue;
+  num get minValue => JS("num", "#.minValue", this);
 
-  num value;
+  num get value => JS("num", "#.value", this);
+
+  set value(num value) {
+    JS("void", "#.value = #", this, value);
+  }
 
   AudioParam cancelAndHoldAtTime(num startTime) native;
 
@@ -438,11 +482,11 @@ class AudioProcessingEvent extends Event {
       type,
       eventInitDict);
 
-  final AudioBuffer inputBuffer;
+  AudioBuffer get inputBuffer => JS("AudioBuffer", "#.inputBuffer", this);
 
-  final AudioBuffer outputBuffer;
+  AudioBuffer get outputBuffer => JS("AudioBuffer", "#.outputBuffer", this);
 
-  final num playbackTime;
+  num get playbackTime => JS("num", "#.playbackTime", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -459,9 +503,9 @@ class AudioScheduledSourceNode extends AudioNode {
       const EventStreamProvider<Event>('ended');
 
   @JSName('start')
-  void start2([num when]) native;
+  void start2([num? when]) native;
 
-  void stop([num when]) native;
+  void stop([num? when]) native;
 
   Stream<Event> get onEnded => endedEvent.forTarget(this);
 }
@@ -476,17 +520,21 @@ class AudioTrack extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool enabled;
+  bool get enabled => JS("bool", "#.enabled", this);
 
-  final String id;
+  set enabled(bool value) {
+    JS("void", "#.enabled = #", this, value);
+  }
 
-  final String kind;
+  String get id => JS("String", "#.id", this);
 
-  final String label;
+  String get kind => JS("String", "#.kind", this);
 
-  final String language;
+  String get label => JS("String", "#.label", this);
 
-  final SourceBuffer sourceBuffer;
+  String get language => JS("String", "#.language", this);
+
+  final SourceBuffer? sourceBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -502,7 +550,7 @@ class AudioTrackList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   AudioTrack __getter__(int index) native;
 
@@ -521,9 +569,9 @@ class AudioWorkletGlobalScope extends WorkletGlobalScope {
     throw new UnsupportedError("Not supported");
   }
 
-  final num currentTime;
+  num get currentTime => JS("num", "#.currentTime", this);
 
-  final num sampleRate;
+  num get sampleRate => JS("num", "#.sampleRate", this);
 
   void registerProcessor(String name, Object processorConstructor) native;
 }
@@ -539,7 +587,7 @@ class AudioWorkletNode extends AudioNode {
   }
 
   factory AudioWorkletNode(BaseAudioContext context, String name,
-      [Map options]) {
+      [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return AudioWorkletNode._create_1(context, name, options_1);
@@ -555,7 +603,7 @@ class AudioWorkletNode extends AudioNode {
   static AudioWorkletNode _create_2(context, name) =>
       JS('AudioWorkletNode', 'new AudioWorkletNode(#,#)', context, name);
 
-  final AudioParamMap parameters;
+  AudioParamMap get parameters => JS("AudioParamMap", "#.parameters", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -579,15 +627,16 @@ class BaseAudioContext extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final num currentTime;
+  num get currentTime => JS("num", "#.currentTime", this);
 
-  final AudioDestinationNode destination;
+  AudioDestinationNode get destination =>
+      JS("AudioDestinationNode", "#.destination", this);
 
-  final AudioListener listener;
+  AudioListener get listener => JS("AudioListener", "#.listener", this);
 
-  final num sampleRate;
+  num get sampleRate => JS("num", "#.sampleRate", this);
 
-  final String state;
+  String get state => JS("String", "#.state", this);
 
   AnalyserNode createAnalyser() native;
 
@@ -598,15 +647,15 @@ class BaseAudioContext extends EventTarget {
 
   AudioBufferSourceNode createBufferSource() native;
 
-  ChannelMergerNode createChannelMerger([int numberOfInputs]) native;
+  ChannelMergerNode createChannelMerger([int? numberOfInputs]) native;
 
-  ChannelSplitterNode createChannelSplitter([int numberOfOutputs]) native;
+  ChannelSplitterNode createChannelSplitter([int? numberOfOutputs]) native;
 
   ConstantSourceNode createConstantSource() native;
 
   ConvolverNode createConvolver() native;
 
-  DelayNode createDelay([num maxDelayTime]) native;
+  DelayNode createDelay([num? maxDelayTime]) native;
 
   DynamicsCompressorNode createDynamicsCompressor() native;
 
@@ -629,7 +678,7 @@ class BaseAudioContext extends EventTarget {
   PannerNode createPanner() native;
 
   PeriodicWave createPeriodicWave(List<num> real, List<num> imag,
-      [Map options]) {
+      [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _createPeriodicWave_1(real, imag, options_1);
@@ -644,17 +693,17 @@ class BaseAudioContext extends EventTarget {
   PeriodicWave _createPeriodicWave_2(List<num> real, List<num> imag) native;
 
   ScriptProcessorNode createScriptProcessor(
-      [int bufferSize,
-      int numberOfInputChannels,
-      int numberOfOutputChannels]) native;
+      [int? bufferSize,
+      int? numberOfInputChannels,
+      int? numberOfOutputChannels]) native;
 
   StereoPannerNode createStereoPanner() native;
 
   WaveShaperNode createWaveShaper() native;
 
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
-          [DecodeSuccessCallback successCallback,
-          DecodeErrorCallback errorCallback]) =>
+          [DecodeSuccessCallback? successCallback,
+          DecodeErrorCallback? errorCallback]) =>
       promiseToFuture<AudioBuffer>(JS("", "#.decodeAudioData(#, #, #)", this,
           audioData, successCallback, errorCallback));
 
@@ -671,7 +720,7 @@ class BiquadFilterNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory BiquadFilterNode(BaseAudioContext context, [Map options]) {
+  factory BiquadFilterNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return BiquadFilterNode._create_1(context, options_1);
@@ -683,15 +732,19 @@ class BiquadFilterNode extends AudioNode {
   static BiquadFilterNode _create_2(context) =>
       JS('BiquadFilterNode', 'new BiquadFilterNode(#)', context);
 
-  final AudioParam Q;
+  AudioParam get Q => JS("AudioParam", "#.Q", this);
 
-  final AudioParam detune;
+  AudioParam get detune => JS("AudioParam", "#.detune", this);
 
-  final AudioParam frequency;
+  AudioParam get frequency => JS("AudioParam", "#.frequency", this);
 
-  final AudioParam gain;
+  AudioParam get gain => JS("AudioParam", "#.gain", this);
 
-  String type;
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 
   void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse,
       Float32List phaseResponse) native;
@@ -707,7 +760,7 @@ class ChannelMergerNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ChannelMergerNode(BaseAudioContext context, [Map options]) {
+  factory ChannelMergerNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return ChannelMergerNode._create_1(context, options_1);
@@ -730,7 +783,7 @@ class ChannelSplitterNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ChannelSplitterNode(BaseAudioContext context, [Map options]) {
+  factory ChannelSplitterNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return ChannelSplitterNode._create_1(context, options_1);
@@ -753,7 +806,7 @@ class ConstantSourceNode extends AudioScheduledSourceNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ConstantSourceNode(BaseAudioContext context, [Map options]) {
+  factory ConstantSourceNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return ConstantSourceNode._create_1(context, options_1);
@@ -765,7 +818,7 @@ class ConstantSourceNode extends AudioScheduledSourceNode {
   static ConstantSourceNode _create_2(context) =>
       JS('ConstantSourceNode', 'new ConstantSourceNode(#)', context);
 
-  final AudioParam offset;
+  AudioParam get offset => JS("AudioParam", "#.offset", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -778,7 +831,7 @@ class ConvolverNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ConvolverNode(BaseAudioContext context, [Map options]) {
+  factory ConvolverNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return ConvolverNode._create_1(context, options_1);
@@ -790,9 +843,13 @@ class ConvolverNode extends AudioNode {
   static ConvolverNode _create_2(context) =>
       JS('ConvolverNode', 'new ConvolverNode(#)', context);
 
-  AudioBuffer buffer;
+  AudioBuffer? buffer;
 
-  bool normalize;
+  bool get normalize => JS("bool", "#.normalize", this);
+
+  set normalize(bool value) {
+    JS("void", "#.normalize = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -805,7 +862,7 @@ class DelayNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DelayNode(BaseAudioContext context, [Map options]) {
+  factory DelayNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return DelayNode._create_1(context, options_1);
@@ -817,7 +874,7 @@ class DelayNode extends AudioNode {
   static DelayNode _create_2(context) =>
       JS('DelayNode', 'new DelayNode(#)', context);
 
-  final AudioParam delayTime;
+  AudioParam get delayTime => JS("AudioParam", "#.delayTime", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -830,7 +887,7 @@ class DynamicsCompressorNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DynamicsCompressorNode(BaseAudioContext context, [Map options]) {
+  factory DynamicsCompressorNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return DynamicsCompressorNode._create_1(context, options_1);
@@ -845,17 +902,17 @@ class DynamicsCompressorNode extends AudioNode {
   static DynamicsCompressorNode _create_2(context) =>
       JS('DynamicsCompressorNode', 'new DynamicsCompressorNode(#)', context);
 
-  final AudioParam attack;
+  AudioParam get attack => JS("AudioParam", "#.attack", this);
 
-  final AudioParam knee;
+  AudioParam get knee => JS("AudioParam", "#.knee", this);
 
-  final AudioParam ratio;
+  AudioParam get ratio => JS("AudioParam", "#.ratio", this);
 
-  final num reduction;
+  num get reduction => JS("num", "#.reduction", this);
 
-  final AudioParam release;
+  AudioParam get release => JS("AudioParam", "#.release", this);
 
-  final AudioParam threshold;
+  AudioParam get threshold => JS("AudioParam", "#.threshold", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -868,7 +925,7 @@ class GainNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory GainNode(BaseAudioContext context, [Map options]) {
+  factory GainNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return GainNode._create_1(context, options_1);
@@ -880,7 +937,7 @@ class GainNode extends AudioNode {
   static GainNode _create_2(context) =>
       JS('GainNode', 'new GainNode(#)', context);
 
-  final AudioParam gain;
+  AudioParam get gain => JS("AudioParam", "#.gain", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -924,7 +981,7 @@ class MediaElementAudioSourceNode extends AudioNode {
       context,
       options);
 
-  final MediaElement mediaElement;
+  MediaElement get mediaElement => JS("MediaElement", "#.mediaElement", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -938,7 +995,7 @@ class MediaStreamAudioDestinationNode extends AudioNode {
   }
 
   factory MediaStreamAudioDestinationNode(BaseAudioContext context,
-      [Map options]) {
+      [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return MediaStreamAudioDestinationNode._create_1(context, options_1);
@@ -955,7 +1012,7 @@ class MediaStreamAudioDestinationNode extends AudioNode {
       'new MediaStreamAudioDestinationNode(#)',
       context);
 
-  final MediaStream stream;
+  MediaStream get stream => JS("MediaStream", "#.stream", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -978,7 +1035,7 @@ class MediaStreamAudioSourceNode extends AudioNode {
       context,
       options);
 
-  final MediaStream mediaStream;
+  MediaStream get mediaStream => JS("MediaStream", "#.mediaStream", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1001,7 +1058,7 @@ class OfflineAudioCompletionEvent extends Event {
       type,
       eventInitDict);
 
-  final AudioBuffer renderedBuffer;
+  AudioBuffer get renderedBuffer => JS("AudioBuffer", "#.renderedBuffer", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1015,7 +1072,7 @@ class OfflineAudioContext extends BaseAudioContext {
   }
 
   factory OfflineAudioContext(numberOfChannels_OR_options,
-      [int numberOfFrames, num sampleRate]) {
+      [int? numberOfFrames, num? sampleRate]) {
     if ((sampleRate is num) &&
         (numberOfFrames is int) &&
         (numberOfChannels_OR_options is int)) {
@@ -1040,7 +1097,7 @@ class OfflineAudioContext extends BaseAudioContext {
       'new OfflineAudioContext(#)',
       numberOfChannels_OR_options);
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Future<AudioBuffer> startRendering() =>
       promiseToFuture<AudioBuffer>(JS("", "#.startRendering()", this));
@@ -1060,7 +1117,7 @@ class OscillatorNode extends AudioScheduledSourceNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory OscillatorNode(BaseAudioContext context, [Map options]) {
+  factory OscillatorNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return OscillatorNode._create_1(context, options_1);
@@ -1072,11 +1129,15 @@ class OscillatorNode extends AudioScheduledSourceNode {
   static OscillatorNode _create_2(context) =>
       JS('OscillatorNode', 'new OscillatorNode(#)', context);
 
-  final AudioParam detune;
+  AudioParam get detune => JS("AudioParam", "#.detune", this);
 
-  final AudioParam frequency;
+  AudioParam get frequency => JS("AudioParam", "#.frequency", this);
 
-  String type;
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 
   void setPeriodicWave(PeriodicWave periodicWave) native;
 }
@@ -1091,7 +1152,7 @@ class PannerNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PannerNode(BaseAudioContext context, [Map options]) {
+  factory PannerNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return PannerNode._create_1(context, options_1);
@@ -1103,33 +1164,65 @@ class PannerNode extends AudioNode {
   static PannerNode _create_2(context) =>
       JS('PannerNode', 'new PannerNode(#)', context);
 
-  num coneInnerAngle;
+  num get coneInnerAngle => JS("num", "#.coneInnerAngle", this);
 
-  num coneOuterAngle;
+  set coneInnerAngle(num value) {
+    JS("void", "#.coneInnerAngle = #", this, value);
+  }
 
-  num coneOuterGain;
+  num get coneOuterAngle => JS("num", "#.coneOuterAngle", this);
 
-  String distanceModel;
+  set coneOuterAngle(num value) {
+    JS("void", "#.coneOuterAngle = #", this, value);
+  }
 
-  num maxDistance;
+  num get coneOuterGain => JS("num", "#.coneOuterGain", this);
 
-  final AudioParam orientationX;
+  set coneOuterGain(num value) {
+    JS("void", "#.coneOuterGain = #", this, value);
+  }
 
-  final AudioParam orientationY;
+  String get distanceModel => JS("String", "#.distanceModel", this);
 
-  final AudioParam orientationZ;
+  set distanceModel(String value) {
+    JS("void", "#.distanceModel = #", this, value);
+  }
 
-  String panningModel;
+  num get maxDistance => JS("num", "#.maxDistance", this);
 
-  final AudioParam positionX;
+  set maxDistance(num value) {
+    JS("void", "#.maxDistance = #", this, value);
+  }
 
-  final AudioParam positionY;
+  AudioParam get orientationX => JS("AudioParam", "#.orientationX", this);
 
-  final AudioParam positionZ;
+  AudioParam get orientationY => JS("AudioParam", "#.orientationY", this);
 
-  num refDistance;
+  AudioParam get orientationZ => JS("AudioParam", "#.orientationZ", this);
 
-  num rolloffFactor;
+  String get panningModel => JS("String", "#.panningModel", this);
+
+  set panningModel(String value) {
+    JS("void", "#.panningModel = #", this, value);
+  }
+
+  AudioParam get positionX => JS("AudioParam", "#.positionX", this);
+
+  AudioParam get positionY => JS("AudioParam", "#.positionY", this);
+
+  AudioParam get positionZ => JS("AudioParam", "#.positionZ", this);
+
+  num get refDistance => JS("num", "#.refDistance", this);
+
+  set refDistance(num value) {
+    JS("void", "#.refDistance = #", this, value);
+  }
+
+  num get rolloffFactor => JS("num", "#.rolloffFactor", this);
+
+  set rolloffFactor(num value) {
+    JS("void", "#.rolloffFactor = #", this, value);
+  }
 
   void setOrientation(num x, num y, num z) native;
 
@@ -1146,7 +1239,7 @@ class PeriodicWave extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PeriodicWave(BaseAudioContext context, [Map options]) {
+  factory PeriodicWave(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return PeriodicWave._create_1(context, options_1);
@@ -1178,7 +1271,7 @@ class ScriptProcessorNode extends AudioNode {
   static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent =
       const EventStreamProvider<AudioProcessingEvent>('audioprocess');
 
-  final int bufferSize;
+  int get bufferSize => JS("int", "#.bufferSize", this);
 
   void setEventListener(EventListener eventListener) native;
 
@@ -1204,7 +1297,7 @@ class StereoPannerNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory StereoPannerNode(BaseAudioContext context, [Map options]) {
+  factory StereoPannerNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return StereoPannerNode._create_1(context, options_1);
@@ -1216,7 +1309,7 @@ class StereoPannerNode extends AudioNode {
   static StereoPannerNode _create_2(context) =>
       JS('StereoPannerNode', 'new StereoPannerNode(#)', context);
 
-  final AudioParam pan;
+  AudioParam get pan => JS("AudioParam", "#.pan", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1229,7 +1322,7 @@ class WaveShaperNode extends AudioNode {
     throw new UnsupportedError("Not supported");
   }
 
-  factory WaveShaperNode(BaseAudioContext context, [Map options]) {
+  factory WaveShaperNode(BaseAudioContext context, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return WaveShaperNode._create_1(context, options_1);
@@ -1241,7 +1334,11 @@ class WaveShaperNode extends AudioNode {
   static WaveShaperNode _create_2(context) =>
       JS('WaveShaperNode', 'new WaveShaperNode(#)', context);
 
-  Float32List curve;
+  Float32List? curve;
 
-  String oversample;
+  String get oversample => JS("String", "#.oversample", this);
+
+  set oversample(String value) {
+    JS("void", "#.oversample = #", this, value);
+  }
 }

@@ -50,6 +50,7 @@ void main(List<String> argv) {
   File.fromUri(emptyProgramUri).writeAsStringSync('''
 import 'dart:js';
 import 'dart:js_util';
+import 'dart:html';
 
 main() {}
 ''');

@@ -1,4 +1,3 @@
-// @dart = 2.5
 /**
  * 3D programming in the browser.
  *
@@ -33,11 +32,11 @@ class ActiveInfo extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
-  final int size;
+  int get size => JS("int", "#.size", this);
 
-  final int type;
+  int get type => JS("int", "#.type", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -301,7 +300,7 @@ class ContextEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ContextEvent(String type, [Map eventInit]) {
+  factory ContextEvent(String type, [Map? eventInit]) {
     if (eventInit != null) {
       var eventInit_1 = convertDartToNative_Dictionary(eventInit);
       return ContextEvent._create_1(type, eventInit_1);
@@ -313,7 +312,7 @@ class ContextEvent extends Event {
   static ContextEvent _create_2(type) =>
       JS('ContextEvent', 'new WebGLContextEvent(#)', type);
 
-  final String statusMessage;
+  String get statusMessage => JS("String", "#.statusMessage", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -458,7 +457,7 @@ class ExtDisjointTimerQuery extends Interceptor {
   TimerQueryExt createQueryExt() native;
 
   @JSName('deleteQueryEXT')
-  void deleteQueryExt(TimerQueryExt query) native;
+  void deleteQueryExt(TimerQueryExt? query) native;
 
   @JSName('endQueryEXT')
   void endQueryExt(int target) native;
@@ -470,7 +469,7 @@ class ExtDisjointTimerQuery extends Interceptor {
   Object getQueryObjectExt(TimerQueryExt query, int pname) native;
 
   @JSName('isQueryEXT')
-  bool isQueryExt(TimerQueryExt query) native;
+  bool isQueryExt(TimerQueryExt? query) native;
 
   @JSName('queryCounterEXT')
   void queryCounterExt(TimerQueryExt query, int target) native;
@@ -558,7 +557,7 @@ class GetBufferSubDataAsync extends Interceptor {
   }
 
   Future getBufferSubDataAsync(int target, int srcByteOffset, TypedData dstData,
-          [int dstOffset, int length]) =>
+          [int? dstOffset, int? length]) =>
       promiseToFuture(JS("", "#.getBufferSubDataAsync(#, #, #, #, #)", this,
           target, srcByteOffset, dstData, dstOffset, length));
 }
@@ -661,16 +660,16 @@ class OesVertexArrayObject extends Interceptor {
   static const int VERTEX_ARRAY_BINDING_OES = 0x85B5;
 
   @JSName('bindVertexArrayOES')
-  void bindVertexArray(VertexArrayObjectOes arrayObject) native;
+  void bindVertexArray(VertexArrayObjectOes? arrayObject) native;
 
   @JSName('createVertexArrayOES')
   VertexArrayObjectOes createVertexArray() native;
 
   @JSName('deleteVertexArrayOES')
-  void deleteVertexArray(VertexArrayObjectOes arrayObject) native;
+  void deleteVertexArray(VertexArrayObjectOes? arrayObject) native;
 
   @JSName('isVertexArrayOES')
-  bool isVertexArray(VertexArrayObjectOes arrayObject) native;
+  bool isVertexArray(VertexArrayObjectOes? arrayObject) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -724,13 +723,13 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.WebGLRenderingContext)');
 
-  final CanvasElement canvas;
+  CanvasElement get canvas => JS("CanvasElement", "#.canvas", this);
 
   // From WebGLRenderingContextBase
 
-  final int drawingBufferHeight;
+  int get drawingBufferHeight => JS("int", "#.drawingBufferHeight", this);
 
-  final int drawingBufferWidth;
+  int get drawingBufferWidth => JS("int", "#.drawingBufferWidth", this);
 
   void activeTexture(int texture) native;
 
@@ -738,13 +737,13 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   void bindAttribLocation(Program program, int index, String name) native;
 
-  void bindBuffer(int target, Buffer buffer) native;
+  void bindBuffer(int target, Buffer? buffer) native;
 
-  void bindFramebuffer(int target, Framebuffer framebuffer) native;
+  void bindFramebuffer(int target, Framebuffer? framebuffer) native;
 
-  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native;
+  void bindRenderbuffer(int target, Renderbuffer? renderbuffer) native;
 
-  void bindTexture(int target, Texture texture) native;
+  void bindTexture(int target, Texture? texture) native;
 
   void blendColor(num red, num green, num blue, num alpha) native;
 
@@ -803,17 +802,17 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   void cullFace(int mode) native;
 
-  void deleteBuffer(Buffer buffer) native;
+  void deleteBuffer(Buffer? buffer) native;
 
-  void deleteFramebuffer(Framebuffer framebuffer) native;
+  void deleteFramebuffer(Framebuffer? framebuffer) native;
 
-  void deleteProgram(Program program) native;
+  void deleteProgram(Program? program) native;
 
-  void deleteRenderbuffer(Renderbuffer renderbuffer) native;
+  void deleteRenderbuffer(Renderbuffer? renderbuffer) native;
 
-  void deleteShader(Shader shader) native;
+  void deleteShader(Shader? shader) native;
 
-  void deleteTexture(Texture texture) native;
+  void deleteTexture(Texture? texture) native;
 
   void depthFunc(int func) native;
 
@@ -840,10 +839,10 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   void flush() native;
 
   void framebufferRenderbuffer(int target, int attachment,
-      int renderbuffertarget, Renderbuffer renderbuffer) native;
+      int renderbuffertarget, Renderbuffer? renderbuffer) native;
 
   void framebufferTexture2D(int target, int attachment, int textarget,
-      Texture texture, int level) native;
+      Texture? texture, int level) native;
 
   void frontFace(int mode) native;
 
@@ -928,21 +927,21 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   void hint(int target, int mode) native;
 
-  bool isBuffer(Buffer buffer) native;
+  bool isBuffer(Buffer? buffer) native;
 
   bool isContextLost() native;
 
   bool isEnabled(int cap) native;
 
-  bool isFramebuffer(Framebuffer framebuffer) native;
+  bool isFramebuffer(Framebuffer? framebuffer) native;
 
-  bool isProgram(Program program) native;
+  bool isProgram(Program? program) native;
 
-  bool isRenderbuffer(Renderbuffer renderbuffer) native;
+  bool isRenderbuffer(Renderbuffer? renderbuffer) native;
 
-  bool isShader(Shader shader) native;
+  bool isShader(Shader? shader) native;
 
-  bool isTexture(Texture texture) native;
+  bool isTexture(Texture? texture) native;
 
   void lineWidth(num width) native;
 
@@ -954,7 +953,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   @JSName('readPixels')
   void _readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData pixels) native;
+      TypedData? pixels) native;
 
   void renderbufferStorage(
       int target, int internalformat, int width, int height) native;
@@ -984,9 +983,9 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       int format_OR_width,
       int height_OR_type,
       bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
-      [int format,
-      int type,
-      TypedData pixels]) {
+      [int? format,
+      int? type,
+      TypedData? pixels]) {
     if (type != null &&
         format != null &&
         (bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
@@ -1073,7 +1072,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   @JSName('texImage2D')
   void _texImage2D_1(target, level, internalformat, width, height, int border,
-      format, type, TypedData pixels) native;
+      format, type, TypedData? pixels) native;
   @JSName('texImage2D')
   void _texImage2D_2(target, level, internalformat, format, type, pixels)
       native;
@@ -1102,8 +1101,8 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
       int format_OR_width,
       int height_OR_type,
       bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
-      [int type,
-      TypedData pixels]) {
+      [int? type,
+      TypedData? pixels]) {
     if (type != null &&
         (bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(
@@ -1188,7 +1187,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   @JSName('texSubImage2D')
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height,
-      int format, type, TypedData pixels) native;
+      int format, type, TypedData? pixels) native;
   @JSName('texSubImage2D')
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels)
       native;
@@ -1205,45 +1204,48 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   void _texSubImage2D_6(
       target, level, xoffset, yoffset, format, type, ImageBitmap bitmap) native;
 
-  void uniform1f(UniformLocation location, num x) native;
+  void uniform1f(UniformLocation? location, num x) native;
 
-  void uniform1fv(UniformLocation location, v) native;
+  void uniform1fv(UniformLocation? location, v) native;
 
-  void uniform1i(UniformLocation location, int x) native;
+  void uniform1i(UniformLocation? location, int x) native;
 
-  void uniform1iv(UniformLocation location, v) native;
+  void uniform1iv(UniformLocation? location, v) native;
 
-  void uniform2f(UniformLocation location, num x, num y) native;
+  void uniform2f(UniformLocation? location, num x, num y) native;
 
-  void uniform2fv(UniformLocation location, v) native;
+  void uniform2fv(UniformLocation? location, v) native;
 
-  void uniform2i(UniformLocation location, int x, int y) native;
+  void uniform2i(UniformLocation? location, int x, int y) native;
 
-  void uniform2iv(UniformLocation location, v) native;
+  void uniform2iv(UniformLocation? location, v) native;
 
-  void uniform3f(UniformLocation location, num x, num y, num z) native;
+  void uniform3f(UniformLocation? location, num x, num y, num z) native;
 
-  void uniform3fv(UniformLocation location, v) native;
+  void uniform3fv(UniformLocation? location, v) native;
 
-  void uniform3i(UniformLocation location, int x, int y, int z) native;
+  void uniform3i(UniformLocation? location, int x, int y, int z) native;
 
-  void uniform3iv(UniformLocation location, v) native;
+  void uniform3iv(UniformLocation? location, v) native;
 
-  void uniform4f(UniformLocation location, num x, num y, num z, num w) native;
+  void uniform4f(UniformLocation? location, num x, num y, num z, num w) native;
 
-  void uniform4fv(UniformLocation location, v) native;
+  void uniform4fv(UniformLocation? location, v) native;
 
-  void uniform4i(UniformLocation location, int x, int y, int z, int w) native;
+  void uniform4i(UniformLocation? location, int x, int y, int z, int w) native;
 
-  void uniform4iv(UniformLocation location, v) native;
+  void uniform4iv(UniformLocation? location, v) native;
 
-  void uniformMatrix2fv(UniformLocation location, bool transpose, array) native;
+  void uniformMatrix2fv(UniformLocation? location, bool transpose, array)
+      native;
 
-  void uniformMatrix3fv(UniformLocation location, bool transpose, array) native;
+  void uniformMatrix3fv(UniformLocation? location, bool transpose, array)
+      native;
 
-  void uniformMatrix4fv(UniformLocation location, bool transpose, array) native;
+  void uniformMatrix4fv(UniformLocation? location, bool transpose, array)
+      native;
 
-  void useProgram(Program program) native;
+  void useProgram(Program? program) native;
 
   void validateProgram(Program program) native;
 
@@ -1361,7 +1363,7 @@ class RenderingContext2 extends Interceptor
     throw new UnsupportedError("Not supported");
   }
 
-  final Canvas canvas;
+  Canvas get canvas => JS("Canvas", "#.canvas", this);
 
   // From WebGL2RenderingContextBase
 
@@ -1369,36 +1371,38 @@ class RenderingContext2 extends Interceptor
 
   void beginTransformFeedback(int primitiveMode) native;
 
-  void bindBufferBase(int target, int index, Buffer buffer) native;
+  void bindBufferBase(int target, int index, Buffer? buffer) native;
 
   void bindBufferRange(
-      int target, int index, Buffer buffer, int offset, int size) native;
+      int target, int index, Buffer? buffer, int offset, int size) native;
 
-  void bindSampler(int unit, Sampler sampler) native;
+  void bindSampler(int unit, Sampler? sampler) native;
 
-  void bindTransformFeedback(int target, TransformFeedback feedback) native;
+  void bindTransformFeedback(int target, TransformFeedback? feedback) native;
 
-  void bindVertexArray(VertexArrayObject vertexArray) native;
+  void bindVertexArray(VertexArrayObject? vertexArray) native;
 
   void blitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0,
       int dstY0, int dstX1, int dstY1, int mask, int filter) native;
 
   @JSName('bufferData')
   void bufferData2(int target, TypedData srcData, int usage, int srcOffset,
-      [int length]) native;
+      [int? length]) native;
 
   @JSName('bufferSubData')
   void bufferSubData2(
       int target, int dstByteOffset, TypedData srcData, int srcOffset,
-      [int length]) native;
+      [int? length]) native;
 
   void clearBufferfi(int buffer, int drawbuffer, num depth, int stencil) native;
 
-  void clearBufferfv(int buffer, int drawbuffer, value, [int srcOffset]) native;
+  void clearBufferfv(int buffer, int drawbuffer, value, [int? srcOffset])
+      native;
 
-  void clearBufferiv(int buffer, int drawbuffer, value, [int srcOffset]) native;
+  void clearBufferiv(int buffer, int drawbuffer, value, [int? srcOffset])
+      native;
 
-  void clearBufferuiv(int buffer, int drawbuffer, value, [int srcOffset])
+  void clearBufferuiv(int buffer, int drawbuffer, value, [int? srcOffset])
       native;
 
   int clientWaitSync(Sync sync, int flags, int timeout) native;
@@ -1406,7 +1410,7 @@ class RenderingContext2 extends Interceptor
   @JSName('compressedTexImage2D')
   void compressedTexImage2D2(int target, int level, int internalformat,
       int width, int height, int border, TypedData data, int srcOffset,
-      [int srcLengthOverride]) native;
+      [int? srcLengthOverride]) native;
 
   @JSName('compressedTexImage2D')
   void compressedTexImage2D3(int target, int level, int internalformat,
@@ -1414,7 +1418,7 @@ class RenderingContext2 extends Interceptor
 
   void compressedTexImage3D(int target, int level, int internalformat,
       int width, int height, int depth, int border, TypedData data,
-      [int srcOffset, int srcLengthOverride]) native;
+      [int? srcOffset, int? srcLengthOverride]) native;
 
   @JSName('compressedTexImage3D')
   void compressedTexImage3D2(
@@ -1431,7 +1435,7 @@ class RenderingContext2 extends Interceptor
   @JSName('compressedTexSubImage2D')
   void compressedTexSubImage2D2(int target, int level, int xoffset, int yoffset,
       int width, int height, int format, TypedData data, int srcOffset,
-      [int srcLengthOverride]) native;
+      [int? srcLengthOverride]) native;
 
   @JSName('compressedTexSubImage2D')
   void compressedTexSubImage2D3(int target, int level, int xoffset, int yoffset,
@@ -1439,7 +1443,7 @@ class RenderingContext2 extends Interceptor
 
   void compressedTexSubImage3D(int target, int level, int xoffset, int yoffset,
       int zoffset, int width, int height, int depth, int format, TypedData data,
-      [int srcOffset, int srcLengthOverride]) native;
+      [int? srcOffset, int? srcLengthOverride]) native;
 
   @JSName('compressedTexSubImage3D')
   void compressedTexSubImage3D2(
@@ -1469,15 +1473,15 @@ class RenderingContext2 extends Interceptor
 
   VertexArrayObject createVertexArray() native;
 
-  void deleteQuery(Query query) native;
+  void deleteQuery(Query? query) native;
 
-  void deleteSampler(Sampler sampler) native;
+  void deleteSampler(Sampler? sampler) native;
 
-  void deleteSync(Sync sync) native;
+  void deleteSync(Sync? sync) native;
 
-  void deleteTransformFeedback(TransformFeedback feedback) native;
+  void deleteTransformFeedback(TransformFeedback? feedback) native;
 
-  void deleteVertexArray(VertexArrayObject vertexArray) native;
+  void deleteVertexArray(VertexArrayObject? vertexArray) native;
 
   void drawArraysInstanced(int mode, int first, int count, int instanceCount)
       native;
@@ -1496,8 +1500,8 @@ class RenderingContext2 extends Interceptor
 
   Sync fenceSync(int condition, int flags) native;
 
-  void framebufferTextureLayer(
-      int target, int attachment, Texture texture, int level, int layer) native;
+  void framebufferTextureLayer(int target, int attachment, Texture? texture,
+      int level, int layer) native;
 
   String getActiveUniformBlockName(Program program, int uniformBlockIndex)
       native;
@@ -1509,7 +1513,7 @@ class RenderingContext2 extends Interceptor
       native;
 
   void getBufferSubData(int target, int srcByteOffset, TypedData dstData,
-      [int dstOffset, int length]) native;
+      [int? dstOffset, int? length]) native;
 
   int getFragDataLocation(Program program, String name) native;
 
@@ -1543,15 +1547,15 @@ class RenderingContext2 extends Interceptor
   void invalidateSubFramebuffer(int target, List<int> attachments, int x, int y,
       int width, int height) native;
 
-  bool isQuery(Query query) native;
+  bool isQuery(Query? query) native;
 
-  bool isSampler(Sampler sampler) native;
+  bool isSampler(Sampler? sampler) native;
 
-  bool isSync(Sync sync) native;
+  bool isSync(Sync? sync) native;
 
-  bool isTransformFeedback(TransformFeedback feedback) native;
+  bool isTransformFeedback(TransformFeedback? feedback) native;
 
-  bool isVertexArray(VertexArrayObject vertexArray) native;
+  bool isVertexArray(VertexArrayObject? vertexArray) native;
 
   void pauseTransformFeedback() native;
 
@@ -1560,7 +1564,7 @@ class RenderingContext2 extends Interceptor
   @JSName('readPixels')
   void readPixels2(int x, int y, int width, int height, int format, int type,
       dstData_OR_offset,
-      [int offset]) native;
+      [int? offset]) native;
 
   void renderbufferStorageMultisample(int target, int samples,
       int internalformat, int width, int height) native;
@@ -1581,7 +1585,7 @@ class RenderingContext2 extends Interceptor
       int format,
       int type,
       bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
-      [int srcOffset]) {
+      [int? srcOffset]) {
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is int) &&
         srcOffset == null) {
@@ -1718,7 +1722,7 @@ class RenderingContext2 extends Interceptor
       int format,
       int type,
       bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
-      [int srcOffset]) {
+      [int? srcOffset]) {
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is int) &&
         srcOffset == null) {
@@ -1866,7 +1870,7 @@ class RenderingContext2 extends Interceptor
       border, format, type, ImageBitmap bitmap) native;
   @JSName('texImage3D')
   void _texImage3D_7(target, level, internalformat, width, height, depth,
-      border, format, type, TypedData pixels) native;
+      border, format, type, TypedData? pixels) native;
   @JSName('texImage3D')
   void _texImage3D_8(target, level, internalformat, width, height, depth,
       border, format, type, TypedData pixels, srcOffset) native;
@@ -1887,7 +1891,7 @@ class RenderingContext2 extends Interceptor
       int format,
       int type,
       bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video,
-      [int srcOffset]) {
+      [int? srcOffset]) {
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_srcData_OR_video
             is int) &&
         srcOffset == null) {
@@ -2025,7 +2029,7 @@ class RenderingContext2 extends Interceptor
       int format,
       int type,
       bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video,
-      [int srcOffset]) {
+      [int? srcOffset]) {
     if ((bitmap_OR_canvas_OR_data_OR_image_OR_offset_OR_pixels_OR_video
             is int) &&
         srcOffset == null) {
@@ -2195,93 +2199,93 @@ class RenderingContext2 extends Interceptor
       native;
 
   @JSName('uniform1fv')
-  void uniform1fv2(UniformLocation location, v, int srcOffset, [int srcLength])
-      native;
+  void uniform1fv2(UniformLocation? location, v, int srcOffset,
+      [int? srcLength]) native;
 
   @JSName('uniform1iv')
-  void uniform1iv2(UniformLocation location, v, int srcOffset, [int srcLength])
-      native;
+  void uniform1iv2(UniformLocation? location, v, int srcOffset,
+      [int? srcLength]) native;
 
-  void uniform1ui(UniformLocation location, int v0) native;
+  void uniform1ui(UniformLocation? location, int v0) native;
 
-  void uniform1uiv(UniformLocation location, v, [int srcOffset, int srcLength])
-      native;
+  void uniform1uiv(UniformLocation? location, v,
+      [int? srcOffset, int? srcLength]) native;
 
   @JSName('uniform2fv')
-  void uniform2fv2(UniformLocation location, v, int srcOffset, [int srcLength])
-      native;
+  void uniform2fv2(UniformLocation? location, v, int srcOffset,
+      [int? srcLength]) native;
 
   @JSName('uniform2iv')
-  void uniform2iv2(UniformLocation location, v, int srcOffset, [int srcLength])
-      native;
+  void uniform2iv2(UniformLocation? location, v, int srcOffset,
+      [int? srcLength]) native;
 
-  void uniform2ui(UniformLocation location, int v0, int v1) native;
+  void uniform2ui(UniformLocation? location, int v0, int v1) native;
 
-  void uniform2uiv(UniformLocation location, v, [int srcOffset, int srcLength])
-      native;
+  void uniform2uiv(UniformLocation? location, v,
+      [int? srcOffset, int? srcLength]) native;
 
   @JSName('uniform3fv')
-  void uniform3fv2(UniformLocation location, v, int srcOffset, [int srcLength])
-      native;
+  void uniform3fv2(UniformLocation? location, v, int srcOffset,
+      [int? srcLength]) native;
 
   @JSName('uniform3iv')
-  void uniform3iv2(UniformLocation location, v, int srcOffset, [int srcLength])
-      native;
+  void uniform3iv2(UniformLocation? location, v, int srcOffset,
+      [int? srcLength]) native;
 
-  void uniform3ui(UniformLocation location, int v0, int v1, int v2) native;
+  void uniform3ui(UniformLocation? location, int v0, int v1, int v2) native;
 
-  void uniform3uiv(UniformLocation location, v, [int srcOffset, int srcLength])
-      native;
+  void uniform3uiv(UniformLocation? location, v,
+      [int? srcOffset, int? srcLength]) native;
 
   @JSName('uniform4fv')
-  void uniform4fv2(UniformLocation location, v, int srcOffset, [int srcLength])
-      native;
+  void uniform4fv2(UniformLocation? location, v, int srcOffset,
+      [int? srcLength]) native;
 
   @JSName('uniform4iv')
-  void uniform4iv2(UniformLocation location, v, int srcOffset, [int srcLength])
+  void uniform4iv2(UniformLocation? location, v, int srcOffset,
+      [int? srcLength]) native;
+
+  void uniform4ui(UniformLocation? location, int v0, int v1, int v2, int v3)
       native;
 
-  void uniform4ui(UniformLocation location, int v0, int v1, int v2, int v3)
-      native;
-
-  void uniform4uiv(UniformLocation location, v, [int srcOffset, int srcLength])
-      native;
+  void uniform4uiv(UniformLocation? location, v,
+      [int? srcOffset, int? srcLength]) native;
 
   void uniformBlockBinding(
       Program program, int uniformBlockIndex, int uniformBlockBinding) native;
 
   @JSName('uniformMatrix2fv')
   void uniformMatrix2fv2(
-      UniformLocation location, bool transpose, array, int srcOffset,
-      [int srcLength]) native;
+      UniformLocation? location, bool transpose, array, int srcOffset,
+      [int? srcLength]) native;
 
-  void uniformMatrix2x3fv(UniformLocation location, bool transpose, value,
-      [int srcOffset, int srcLength]) native;
+  void uniformMatrix2x3fv(UniformLocation? location, bool transpose, value,
+      [int? srcOffset, int? srcLength]) native;
 
-  void uniformMatrix2x4fv(UniformLocation location, bool transpose, value,
-      [int srcOffset, int srcLength]) native;
+  void uniformMatrix2x4fv(UniformLocation? location, bool transpose, value,
+      [int? srcOffset, int? srcLength]) native;
 
   @JSName('uniformMatrix3fv')
   void uniformMatrix3fv2(
-      UniformLocation location, bool transpose, array, int srcOffset,
-      [int srcLength]) native;
+      UniformLocation? location, bool transpose, array, int srcOffset,
+      [int? srcLength]) native;
 
-  void uniformMatrix3x2fv(UniformLocation location, bool transpose, value,
-      [int srcOffset, int srcLength]) native;
+  void uniformMatrix3x2fv(UniformLocation? location, bool transpose, value,
+      [int? srcOffset, int? srcLength]) native;
 
-  void uniformMatrix3x4fv(UniformLocation location, bool transpose, value,
-      [int srcOffset, int srcLength]) native;
+  void uniformMatrix3x4fv(UniformLocation? location, bool transpose, value,
+      [int? srcOffset, int? srcLength]) native;
 
   @JSName('uniformMatrix4fv')
   void uniformMatrix4fv2(
-      UniformLocation location, bool transpose, array, int srcOffset,
-      [int srcLength]) native;
+      UniformLocation? location, bool transpose, array, int srcOffset,
+      [int? srcLength]) native;
 
-  void uniformMatrix4x2fv(UniformLocation location, bool transpose, value,
-      [int srcOffset, int srcLength]) native;
+  void uniformMatrix4x2fv(UniformLocation? location, bool transpose, value,
+      [int? srcOffset, int? srcLength]) native;
 
-  void uniformMatrix4x3fv(UniformLocation location, bool transpose, value,
-      [int srcOffset, int srcLength]) native;
+  void uniformMatrix4x3fv(UniformLocation? location, bool transpose, value,
+      [int? srcOffset, int? srcLength]) native;
 
   void vertexAttribDivisor(int index, int divisor) native;
 
@@ -2300,9 +2304,9 @@ class RenderingContext2 extends Interceptor
 
   // From WebGLRenderingContextBase
 
-  final int drawingBufferHeight;
+  int get drawingBufferHeight => JS("int", "#.drawingBufferHeight", this);
 
-  final int drawingBufferWidth;
+  int get drawingBufferWidth => JS("int", "#.drawingBufferWidth", this);
 
   void activeTexture(int texture) native;
 
@@ -2310,13 +2314,13 @@ class RenderingContext2 extends Interceptor
 
   void bindAttribLocation(Program program, int index, String name) native;
 
-  void bindBuffer(int target, Buffer buffer) native;
+  void bindBuffer(int target, Buffer? buffer) native;
 
-  void bindFramebuffer(int target, Framebuffer framebuffer) native;
+  void bindFramebuffer(int target, Framebuffer? framebuffer) native;
 
-  void bindRenderbuffer(int target, Renderbuffer renderbuffer) native;
+  void bindRenderbuffer(int target, Renderbuffer? renderbuffer) native;
 
-  void bindTexture(int target, Texture texture) native;
+  void bindTexture(int target, Texture? texture) native;
 
   void blendColor(num red, num green, num blue, num alpha) native;
 
@@ -2375,17 +2379,17 @@ class RenderingContext2 extends Interceptor
 
   void cullFace(int mode) native;
 
-  void deleteBuffer(Buffer buffer) native;
+  void deleteBuffer(Buffer? buffer) native;
 
-  void deleteFramebuffer(Framebuffer framebuffer) native;
+  void deleteFramebuffer(Framebuffer? framebuffer) native;
 
-  void deleteProgram(Program program) native;
+  void deleteProgram(Program? program) native;
 
-  void deleteRenderbuffer(Renderbuffer renderbuffer) native;
+  void deleteRenderbuffer(Renderbuffer? renderbuffer) native;
 
-  void deleteShader(Shader shader) native;
+  void deleteShader(Shader? shader) native;
 
-  void deleteTexture(Texture texture) native;
+  void deleteTexture(Texture? texture) native;
 
   void depthFunc(int func) native;
 
@@ -2412,10 +2416,10 @@ class RenderingContext2 extends Interceptor
   void flush() native;
 
   void framebufferRenderbuffer(int target, int attachment,
-      int renderbuffertarget, Renderbuffer renderbuffer) native;
+      int renderbuffertarget, Renderbuffer? renderbuffer) native;
 
   void framebufferTexture2D(int target, int attachment, int textarget,
-      Texture texture, int level) native;
+      Texture? texture, int level) native;
 
   void frontFace(int mode) native;
 
@@ -2476,21 +2480,21 @@ class RenderingContext2 extends Interceptor
 
   void hint(int target, int mode) native;
 
-  bool isBuffer(Buffer buffer) native;
+  bool isBuffer(Buffer? buffer) native;
 
   bool isContextLost() native;
 
   bool isEnabled(int cap) native;
 
-  bool isFramebuffer(Framebuffer framebuffer) native;
+  bool isFramebuffer(Framebuffer? framebuffer) native;
 
-  bool isProgram(Program program) native;
+  bool isProgram(Program? program) native;
 
-  bool isRenderbuffer(Renderbuffer renderbuffer) native;
+  bool isRenderbuffer(Renderbuffer? renderbuffer) native;
 
-  bool isShader(Shader shader) native;
+  bool isShader(Shader? shader) native;
 
-  bool isTexture(Texture texture) native;
+  bool isTexture(Texture? texture) native;
 
   void lineWidth(num width) native;
 
@@ -2502,7 +2506,7 @@ class RenderingContext2 extends Interceptor
 
   @JSName('readPixels')
   void _readPixels(int x, int y, int width, int height, int format, int type,
-      TypedData pixels) native;
+      TypedData? pixels) native;
 
   void renderbufferStorage(
       int target, int internalformat, int width, int height) native;
@@ -2532,9 +2536,9 @@ class RenderingContext2 extends Interceptor
       int format_OR_width,
       int height_OR_type,
       bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video,
-      [int format,
-      int type,
-      TypedData pixels]) {
+      [int? format,
+      int? type,
+      TypedData? pixels]) {
     if (type != null &&
         format != null &&
         (bitmap_OR_border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
@@ -2621,7 +2625,7 @@ class RenderingContext2 extends Interceptor
 
   @JSName('texImage2D')
   void _texImage2D_1(target, level, internalformat, width, height, int border,
-      format, type, TypedData pixels) native;
+      format, type, TypedData? pixels) native;
   @JSName('texImage2D')
   void _texImage2D_2(target, level, internalformat, format, type, pixels)
       native;
@@ -2650,8 +2654,8 @@ class RenderingContext2 extends Interceptor
       int format_OR_width,
       int height_OR_type,
       bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video,
-      [int type,
-      TypedData pixels]) {
+      [int? type,
+      TypedData? pixels]) {
     if (type != null &&
         (bitmap_OR_canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(
@@ -2736,7 +2740,7 @@ class RenderingContext2 extends Interceptor
 
   @JSName('texSubImage2D')
   void _texSubImage2D_1(target, level, xoffset, yoffset, width, height,
-      int format, type, TypedData pixels) native;
+      int format, type, TypedData? pixels) native;
   @JSName('texSubImage2D')
   void _texSubImage2D_2(target, level, xoffset, yoffset, format, type, pixels)
       native;
@@ -2753,45 +2757,48 @@ class RenderingContext2 extends Interceptor
   void _texSubImage2D_6(
       target, level, xoffset, yoffset, format, type, ImageBitmap bitmap) native;
 
-  void uniform1f(UniformLocation location, num x) native;
+  void uniform1f(UniformLocation? location, num x) native;
 
-  void uniform1fv(UniformLocation location, v) native;
+  void uniform1fv(UniformLocation? location, v) native;
 
-  void uniform1i(UniformLocation location, int x) native;
+  void uniform1i(UniformLocation? location, int x) native;
 
-  void uniform1iv(UniformLocation location, v) native;
+  void uniform1iv(UniformLocation? location, v) native;
 
-  void uniform2f(UniformLocation location, num x, num y) native;
+  void uniform2f(UniformLocation? location, num x, num y) native;
 
-  void uniform2fv(UniformLocation location, v) native;
+  void uniform2fv(UniformLocation? location, v) native;
 
-  void uniform2i(UniformLocation location, int x, int y) native;
+  void uniform2i(UniformLocation? location, int x, int y) native;
 
-  void uniform2iv(UniformLocation location, v) native;
+  void uniform2iv(UniformLocation? location, v) native;
 
-  void uniform3f(UniformLocation location, num x, num y, num z) native;
+  void uniform3f(UniformLocation? location, num x, num y, num z) native;
 
-  void uniform3fv(UniformLocation location, v) native;
+  void uniform3fv(UniformLocation? location, v) native;
 
-  void uniform3i(UniformLocation location, int x, int y, int z) native;
+  void uniform3i(UniformLocation? location, int x, int y, int z) native;
 
-  void uniform3iv(UniformLocation location, v) native;
+  void uniform3iv(UniformLocation? location, v) native;
 
-  void uniform4f(UniformLocation location, num x, num y, num z, num w) native;
+  void uniform4f(UniformLocation? location, num x, num y, num z, num w) native;
 
-  void uniform4fv(UniformLocation location, v) native;
+  void uniform4fv(UniformLocation? location, v) native;
 
-  void uniform4i(UniformLocation location, int x, int y, int z, int w) native;
+  void uniform4i(UniformLocation? location, int x, int y, int z, int w) native;
 
-  void uniform4iv(UniformLocation location, v) native;
+  void uniform4iv(UniformLocation? location, v) native;
 
-  void uniformMatrix2fv(UniformLocation location, bool transpose, array) native;
+  void uniformMatrix2fv(UniformLocation? location, bool transpose, array)
+      native;
 
-  void uniformMatrix3fv(UniformLocation location, bool transpose, array) native;
+  void uniformMatrix3fv(UniformLocation? location, bool transpose, array)
+      native;
 
-  void uniformMatrix4fv(UniformLocation location, bool transpose, array) native;
+  void uniformMatrix4fv(UniformLocation? location, bool transpose, array)
+      native;
 
-  void useProgram(Program program) native;
+  void useProgram(Program? program) native;
 
   void validateProgram(Program program) native;
 
@@ -2855,11 +2862,11 @@ class ShaderPrecisionFormat extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int precision;
+  int get precision => JS("int", "#.precision", this);
 
-  final int rangeMax;
+  int get rangeMax => JS("int", "#.rangeMax", this);
 
-  final int rangeMin;
+  int get rangeMin => JS("int", "#.rangeMin", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2883,13 +2890,16 @@ class Texture extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool lastUploadedVideoFrameWasSkipped;
+  bool get lastUploadedVideoFrameWasSkipped =>
+      JS("bool", "#.lastUploadedVideoFrameWasSkipped", this);
 
-  final int lastUploadedVideoHeight;
+  int get lastUploadedVideoHeight =>
+      JS("int", "#.lastUploadedVideoHeight", this);
 
-  final num lastUploadedVideoTimestamp;
+  num get lastUploadedVideoTimestamp =>
+      JS("num", "#.lastUploadedVideoTimestamp", this);
 
-  final int lastUploadedVideoWidth;
+  int get lastUploadedVideoWidth => JS("int", "#.lastUploadedVideoWidth", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

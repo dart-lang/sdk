@@ -1,4 +1,3 @@
-// @dart = 2.5
 /**
  * HTML elements and other resources for web-based applications that need to
  * interact with the browser and the DOM (Document Object Model).
@@ -158,7 +157,7 @@ class AbsoluteOrientationSensor extends OrientationSensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AbsoluteOrientationSensor([Map sensorOptions]) {
+  factory AbsoluteOrientationSensor([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return AbsoluteOrientationSensor._create_1(sensorOptions_1);
@@ -205,7 +204,7 @@ class Accelerometer extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory Accelerometer([Map sensorOptions]) {
+  factory Accelerometer([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return Accelerometer._create_1(sensorOptions_1);
@@ -258,99 +257,99 @@ class AccessibleNode extends EventTarget {
   static AccessibleNode _create_1() =>
       JS('AccessibleNode', 'new AccessibleNode()');
 
-  AccessibleNode activeDescendant;
+  AccessibleNode? activeDescendant;
 
-  bool atomic;
+  bool? atomic;
 
-  String autocomplete;
+  String? autocomplete;
 
-  bool busy;
+  bool? busy;
 
-  String checked;
+  String? checked;
 
-  int colCount;
+  int? colCount;
 
-  int colIndex;
+  int? colIndex;
 
-  int colSpan;
+  int? colSpan;
 
-  AccessibleNodeList controls;
+  AccessibleNodeList? controls;
 
-  String current;
+  String? current;
 
-  AccessibleNodeList describedBy;
+  AccessibleNodeList? describedBy;
 
-  AccessibleNode details;
+  AccessibleNode? details;
 
-  bool disabled;
+  bool? disabled;
 
-  AccessibleNode errorMessage;
+  AccessibleNode? errorMessage;
 
-  bool expanded;
+  bool? expanded;
 
-  AccessibleNodeList flowTo;
+  AccessibleNodeList? flowTo;
 
-  String hasPopUp;
+  String? hasPopUp;
 
-  bool hidden;
+  bool? hidden;
 
-  String invalid;
+  String? invalid;
 
-  String keyShortcuts;
+  String? keyShortcuts;
 
-  String label;
+  String? label;
 
-  AccessibleNodeList labeledBy;
+  AccessibleNodeList? labeledBy;
 
-  int level;
+  int? level;
 
-  String live;
+  String? live;
 
-  bool modal;
+  bool? modal;
 
-  bool multiline;
+  bool? multiline;
 
-  bool multiselectable;
+  bool? multiselectable;
 
-  String orientation;
+  String? orientation;
 
-  AccessibleNodeList owns;
+  AccessibleNodeList? owns;
 
-  String placeholder;
+  String? placeholder;
 
-  int posInSet;
+  int? posInSet;
 
-  String pressed;
+  String? pressed;
 
-  bool readOnly;
+  bool? readOnly;
 
-  String relevant;
+  String? relevant;
 
-  bool required;
+  bool? required;
 
-  String role;
+  String? role;
 
-  String roleDescription;
+  String? roleDescription;
 
-  int rowCount;
+  int? rowCount;
 
-  int rowIndex;
+  int? rowIndex;
 
-  int rowSpan;
+  int? rowSpan;
 
-  bool selected;
+  bool? selected;
 
-  int setSize;
+  int? setSize;
 
-  String sort;
+  String? sort;
 
-  num valueMax;
+  num? valueMax;
 
-  num valueMin;
+  num? valueMin;
 
-  num valueNow;
+  num? valueNow;
 
-  String valueText;
+  String? valueText;
 
   void appendChild(AccessibleNode child) native;
 
@@ -381,7 +380,7 @@ class AccessibleNodeList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AccessibleNodeList([List<AccessibleNode> nodes]) {
+  factory AccessibleNodeList([List<AccessibleNode>? nodes]) {
     if (nodes != null) {
       return AccessibleNodeList._create_1(nodes);
     }
@@ -392,11 +391,15 @@ class AccessibleNodeList extends Interceptor {
   static AccessibleNodeList _create_2() =>
       JS('AccessibleNodeList', 'new AccessibleNodeList()');
 
-  int length;
+  int get length => JS("int", "#.length", this);
+
+  set length(int value) {
+    JS("void", "#.length = #", this, value);
+  }
 
   void __setter__(int index, AccessibleNode node) native;
 
-  void add(AccessibleNode node, AccessibleNode before) native;
+  void add(AccessibleNode node, AccessibleNode? before) native;
 
   AccessibleNode item(int index) native;
 
@@ -413,7 +416,7 @@ class AmbientLightSensor extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AmbientLightSensor([Map sensorOptions]) {
+  factory AmbientLightSensor([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return AmbientLightSensor._create_1(sensorOptions_1);
@@ -438,9 +441,12 @@ class AnchorElement extends HtmlElement implements HtmlHyperlinkElementUtils {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AnchorElement({String href}) {
-    AnchorElement e = JS('returns:AnchorElement;creates:AnchorElement;new:true',
-        '#.createElement(#)', document, "a");
+  factory AnchorElement({String? href}) {
+    AnchorElement e = JS<AnchorElement>(
+        'returns:AnchorElement;creates:AnchorElement;new:true',
+        '#.createElement(#)',
+        document,
+        "a");
     if (href != null) e.href = href;
     return e;
   }
@@ -451,41 +457,105 @@ class AnchorElement extends HtmlElement implements HtmlHyperlinkElementUtils {
    */
   AnchorElement.created() : super.created();
 
-  String download;
+  String get download => JS("String", "#.download", this);
 
-  String hreflang;
+  set download(String value) {
+    JS("void", "#.download = #", this, value);
+  }
 
-  String referrerPolicy;
+  String get hreflang => JS("String", "#.hreflang", this);
 
-  String rel;
+  set hreflang(String value) {
+    JS("void", "#.hreflang = #", this, value);
+  }
 
-  String target;
+  String get referrerPolicy => JS("String", "#.referrerPolicy", this);
 
-  String type;
+  set referrerPolicy(String value) {
+    JS("void", "#.referrerPolicy = #", this, value);
+  }
+
+  String get rel => JS("String", "#.rel", this);
+
+  set rel(String value) {
+    JS("void", "#.rel = #", this, value);
+  }
+
+  String get target => JS("String", "#.target", this);
+
+  set target(String value) {
+    JS("void", "#.target = #", this, value);
+  }
+
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 
   // From HTMLHyperlinkElementUtils
 
-  String hash;
+  String get hash => JS("String", "#.hash", this);
 
-  String host;
+  set hash(String value) {
+    JS("void", "#.hash = #", this, value);
+  }
 
-  String hostname;
+  String get host => JS("String", "#.host", this);
 
-  String href;
+  set host(String value) {
+    JS("void", "#.host = #", this, value);
+  }
 
-  final String origin;
+  String get hostname => JS("String", "#.hostname", this);
 
-  String password;
+  set hostname(String value) {
+    JS("void", "#.hostname = #", this, value);
+  }
 
-  String pathname;
+  String get href => JS("String", "#.href", this);
 
-  String port;
+  set href(String value) {
+    JS("void", "#.href = #", this, value);
+  }
 
-  String protocol;
+  String get origin => JS("String", "#.origin", this);
 
-  String search;
+  String get password => JS("String", "#.password", this);
 
-  String username;
+  set password(String value) {
+    JS("void", "#.password = #", this, value);
+  }
+
+  String get pathname => JS("String", "#.pathname", this);
+
+  set pathname(String value) {
+    JS("void", "#.pathname = #", this, value);
+  }
+
+  String get port => JS("String", "#.port", this);
+
+  set port(String value) {
+    JS("void", "#.port = #", this, value);
+  }
+
+  String get protocol => JS("String", "#.protocol", this);
+
+  set protocol(String value) {
+    JS("void", "#.protocol = #", this, value);
+  }
+
+  String get search => JS("String", "#.search", this);
+
+  set search(String value) {
+    JS("void", "#.search = #", this, value);
+  }
+
+  String get username => JS("String", "#.username", this);
+
+  set username(String value) {
+    JS("void", "#.username = #", this, value);
+  }
 
   String toString() => JS('String', 'String(#)', this);
 }
@@ -507,7 +577,7 @@ class Animation extends EventTarget {
       const EventStreamProvider<Event>('finish');
 
   factory Animation(
-      [AnimationEffectReadOnly effect, AnimationTimeline timeline]) {
+      [AnimationEffectReadOnly? effect, AnimationTimeline? timeline]) {
     if (timeline != null) {
       return Animation._create_1(effect, timeline);
     }
@@ -525,25 +595,31 @@ class Animation extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(document.body.animate)');
 
-  num currentTime;
+  num? currentTime;
 
-  AnimationEffectReadOnly effect;
+  AnimationEffectReadOnly? effect;
 
-  Future<Animation> get finished =>
-      promiseToFuture<Animation>(JS("", "#.finished", this));
+  Future get finished => JS("Future", "#.finished", this);
 
-  String id;
+  String get id => JS("String", "#.id", this);
 
-  final String playState;
+  set id(String value) {
+    JS("void", "#.id = #", this, value);
+  }
 
-  num playbackRate;
+  String get playState => JS("String", "#.playState", this);
 
-  Future<Animation> get ready =>
-      promiseToFuture<Animation>(JS("", "#.ready", this));
+  num get playbackRate => JS("num", "#.playbackRate", this);
 
-  num startTime;
+  set playbackRate(num value) {
+    JS("void", "#.playbackRate = #", this, value);
+  }
 
-  final AnimationTimeline timeline;
+  Future get ready => JS("Future", "#.ready", this);
+
+  num? startTime;
+
+  final AnimationTimeline? timeline;
 
   void cancel() native;
 
@@ -570,7 +646,8 @@ class AnimationEffectReadOnly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final AnimationEffectTimingReadOnly timing;
+  AnimationEffectTimingReadOnly get timing =>
+      JS("AnimationEffectTimingReadOnly", "#.timing", this);
 
   Map getComputedTiming() {
     return convertNativeToDart_Dictionary(_getComputedTiming_1());
@@ -591,6 +668,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   num get delay => JS("num", "#.delay", this);
 
   set delay(num value) {
@@ -598,6 +676,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   String get direction => JS("String", "#.direction", this);
 
   set direction(String value) {
@@ -605,6 +684,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   Object get duration => JS("Object", "#.duration", this);
 
   set duration(Object value) {
@@ -612,6 +692,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   String get easing => JS("String", "#.easing", this);
 
   set easing(String value) {
@@ -619,6 +700,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   num get endDelay => JS("num", "#.endDelay", this);
 
   set endDelay(num value) {
@@ -626,6 +708,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   String get fill => JS("String", "#.fill", this);
 
   set fill(String value) {
@@ -633,6 +716,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   num get iterationStart => JS("num", "#.iterationStart", this);
 
   set iterationStart(num value) {
@@ -640,6 +724,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   num get iterations => JS("num", "#.iterations", this);
 
   set iterations(num value) {
@@ -657,21 +742,21 @@ class AnimationEffectTimingReadOnly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num delay;
+  num get delay => JS("num", "#.delay", this);
 
-  final String direction;
+  String get direction => JS("String", "#.direction", this);
 
-  final Object duration;
+  Object get duration => JS("Object", "#.duration", this);
 
-  final String easing;
+  String get easing => JS("String", "#.easing", this);
 
-  final num endDelay;
+  num get endDelay => JS("num", "#.endDelay", this);
 
-  final String fill;
+  String get fill => JS("String", "#.fill", this);
 
-  final num iterationStart;
+  num get iterationStart => JS("num", "#.iterationStart", this);
 
-  final num iterations;
+  num get iterations => JS("num", "#.iterations", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -684,7 +769,7 @@ class AnimationEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AnimationEvent(String type, [Map eventInitDict]) {
+  factory AnimationEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return AnimationEvent._create_1(type, eventInitDict_1);
@@ -696,9 +781,9 @@ class AnimationEvent extends Event {
   static AnimationEvent _create_2(type) =>
       JS('AnimationEvent', 'new AnimationEvent(#)', type);
 
-  final String animationName;
+  String get animationName => JS("String", "#.animationName", this);
 
-  final num elapsedTime;
+  num get elapsedTime => JS("num", "#.elapsedTime", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -711,7 +796,7 @@ class AnimationPlaybackEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AnimationPlaybackEvent(String type, [Map eventInitDict]) {
+  factory AnimationPlaybackEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return AnimationPlaybackEvent._create_1(type, eventInitDict_1);
@@ -863,7 +948,7 @@ class ApplicationCache extends EventTarget {
 
   static const int UPDATEREADY = 4;
 
-  final int status;
+  int get status => JS("int", "#.status", this);
 
   void abort() native;
 
@@ -906,7 +991,7 @@ class ApplicationCacheErrorEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ApplicationCacheErrorEvent(String type, [Map eventInitDict]) {
+  factory ApplicationCacheErrorEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ApplicationCacheErrorEvent._create_1(type, eventInitDict_1);
@@ -921,13 +1006,13 @@ class ApplicationCacheErrorEvent extends Event {
   static ApplicationCacheErrorEvent _create_2(type) => JS(
       'ApplicationCacheErrorEvent', 'new ApplicationCacheErrorEvent(#)', type);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 
-  final String reason;
+  String get reason => JS("String", "#.reason", this);
 
-  final int status;
+  int get status => JS("int", "#.status", this);
 
-  final String url;
+  String get url => JS("String", "#.url", this);
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -950,7 +1035,7 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
     throw new UnsupportedError("Not supported");
   }
 
-  factory AreaElement() => JS(
+  factory AreaElement() => JS<AreaElement>(
       'returns:AreaElement;creates:AreaElement;new:true',
       '#.createElement(#)',
       document,
@@ -962,43 +1047,111 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
    */
   AreaElement.created() : super.created();
 
-  String alt;
+  String get alt => JS("String", "#.alt", this);
 
-  String coords;
+  set alt(String value) {
+    JS("void", "#.alt = #", this, value);
+  }
 
-  String download;
+  String get coords => JS("String", "#.coords", this);
 
-  String referrerPolicy;
+  set coords(String value) {
+    JS("void", "#.coords = #", this, value);
+  }
 
-  String rel;
+  String get download => JS("String", "#.download", this);
 
-  String shape;
+  set download(String value) {
+    JS("void", "#.download = #", this, value);
+  }
 
-  String target;
+  String get referrerPolicy => JS("String", "#.referrerPolicy", this);
+
+  set referrerPolicy(String value) {
+    JS("void", "#.referrerPolicy = #", this, value);
+  }
+
+  String get rel => JS("String", "#.rel", this);
+
+  set rel(String value) {
+    JS("void", "#.rel = #", this, value);
+  }
+
+  String get shape => JS("String", "#.shape", this);
+
+  set shape(String value) {
+    JS("void", "#.shape = #", this, value);
+  }
+
+  String get target => JS("String", "#.target", this);
+
+  set target(String value) {
+    JS("void", "#.target = #", this, value);
+  }
 
   // From HTMLHyperlinkElementUtils
 
-  String hash;
+  String get hash => JS("String", "#.hash", this);
 
-  String host;
+  set hash(String value) {
+    JS("void", "#.hash = #", this, value);
+  }
 
-  String hostname;
+  String get host => JS("String", "#.host", this);
 
-  String href;
+  set host(String value) {
+    JS("void", "#.host = #", this, value);
+  }
 
-  final String origin;
+  String get hostname => JS("String", "#.hostname", this);
 
-  String password;
+  set hostname(String value) {
+    JS("void", "#.hostname = #", this, value);
+  }
 
-  String pathname;
+  String get href => JS("String", "#.href", this);
 
-  String port;
+  set href(String value) {
+    JS("void", "#.href = #", this, value);
+  }
 
-  String protocol;
+  String get origin => JS("String", "#.origin", this);
 
-  String search;
+  String get password => JS("String", "#.password", this);
 
-  String username;
+  set password(String value) {
+    JS("void", "#.password = #", this, value);
+  }
+
+  String get pathname => JS("String", "#.pathname", this);
+
+  set pathname(String value) {
+    JS("void", "#.pathname = #", this, value);
+  }
+
+  String get port => JS("String", "#.port", this);
+
+  set port(String value) {
+    JS("void", "#.port = #", this, value);
+  }
+
+  String get protocol => JS("String", "#.protocol", this);
+
+  set protocol(String value) {
+    JS("void", "#.protocol = #", this, value);
+  }
+
+  String get search => JS("String", "#.search", this);
+
+  set search(String value) {
+    JS("void", "#.search = #", this, value);
+  }
+
+  String get username => JS("String", "#.username", this);
+
+  set username(String value) {
+    JS("void", "#.username = #", this, value);
+  }
 
   String toString() => JS('String', 'String(#)', this);
 }
@@ -1008,7 +1161,7 @@ class AreaElement extends HtmlElement implements HtmlHyperlinkElementUtils {
 
 @Native("HTMLAudioElement")
 class AudioElement extends MediaElement {
-  factory AudioElement._([String src]) {
+  factory AudioElement._([String? src]) {
     if (src != null) {
       return AudioElement._create_1(src);
     }
@@ -1036,9 +1189,10 @@ class AuthenticatorAssertionResponse extends AuthenticatorResponse {
     throw new UnsupportedError("Not supported");
   }
 
-  final ByteBuffer authenticatorData;
+  ByteBuffer get authenticatorData =>
+      JS("ByteBuffer", "#.authenticatorData", this);
 
-  final ByteBuffer signature;
+  ByteBuffer get signature => JS("ByteBuffer", "#.signature", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1051,7 +1205,8 @@ class AuthenticatorAttestationResponse extends AuthenticatorResponse {
     throw new UnsupportedError("Not supported");
   }
 
-  final ByteBuffer attestationObject;
+  ByteBuffer get attestationObject =>
+      JS("ByteBuffer", "#.attestationObject", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1065,7 +1220,7 @@ class AuthenticatorResponse extends Interceptor {
   }
 
   @JSName('clientDataJSON')
-  final ByteBuffer clientDataJson;
+  ByteBuffer get clientDataJson => JS("ByteBuffer", "#.clientDataJSON", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1078,8 +1233,11 @@ class BRElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory BRElement() => JS('returns:BRElement;creates:BRElement;new:true',
-      '#.createElement(#)', document, "br");
+  factory BRElement() => JS<BRElement>(
+      'returns:BRElement;creates:BRElement;new:true',
+      '#.createElement(#)',
+      document,
+      "br");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -1108,7 +1266,7 @@ class BackgroundFetchClickEvent extends BackgroundFetchEvent {
       type,
       init);
 
-  final String state;
+  String get state => JS("String", "#.state", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1128,7 +1286,7 @@ class BackgroundFetchEvent extends ExtendableEvent {
   static BackgroundFetchEvent _create_1(type, init) =>
       JS('BackgroundFetchEvent', 'new BackgroundFetchEvent(#,#)', type, init);
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1151,7 +1309,8 @@ class BackgroundFetchFailEvent extends BackgroundFetchEvent {
       type,
       init);
 
-  final List<BackgroundFetchSettledFetch> fetches;
+  List<BackgroundFetchSettledFetch> get fetches =>
+      JS("List<BackgroundFetchSettledFetch>", "#.fetches", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1164,7 +1323,7 @@ class BackgroundFetchFetch extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final _Request request;
+  _Request get request => JS("_Request", "#.request", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1178,7 +1337,7 @@ class BackgroundFetchManager extends Interceptor {
   }
 
   Future<BackgroundFetchRegistration> fetch(String id, Object requests,
-      [Map options]) {
+      [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -1205,19 +1364,19 @@ class BackgroundFetchRegistration extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final int downloadTotal;
+  int get downloadTotal => JS("int", "#.downloadTotal", this);
 
-  final int downloaded;
+  int get downloaded => JS("int", "#.downloaded", this);
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
-  final String title;
+  String get title => JS("String", "#.title", this);
 
-  final int totalDownloadSize;
+  int get totalDownloadSize => JS("int", "#.totalDownloadSize", this);
 
-  final int uploadTotal;
+  int get uploadTotal => JS("int", "#.uploadTotal", this);
 
-  final int uploaded;
+  int get uploaded => JS("int", "#.uploaded", this);
 
   Future<bool> abort() => promiseToFuture<bool>(JS("", "#.abort()", this));
 }
@@ -1241,7 +1400,7 @@ class BackgroundFetchSettledFetch extends BackgroundFetchFetch {
       request,
       response);
 
-  final _Response response;
+  final _Response? response;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1261,7 +1420,8 @@ class BackgroundFetchedEvent extends BackgroundFetchEvent {
   static BackgroundFetchedEvent _create_1(type, init) => JS(
       'BackgroundFetchedEvent', 'new BackgroundFetchedEvent(#,#)', type, init);
 
-  final List<BackgroundFetchSettledFetch> fetches;
+  List<BackgroundFetchSettledFetch> get fetches =>
+      JS("List<BackgroundFetchSettledFetch>", "#.fetches", this);
 
   Future updateUI(String title) =>
       promiseToFuture(JS("", "#.updateUI(#)", this, title));
@@ -1279,7 +1439,7 @@ class BarProp extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool visible;
+  bool get visible => JS("bool", "#.visible", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1312,7 +1472,7 @@ class BaseElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory BaseElement() => JS(
+  factory BaseElement() => JS<BaseElement>(
       'returns:BaseElement;creates:BaseElement;new:true',
       '#.createElement(#)',
       document,
@@ -1324,9 +1484,17 @@ class BaseElement extends HtmlElement {
    */
   BaseElement.created() : super.created();
 
-  String href;
+  String get href => JS("String", "#.href", this);
 
-  String target;
+  set href(String value) {
+    JS("void", "#.href = #", this, value);
+  }
+
+  String get target => JS("String", "#.target", this);
+
+  set target(String value) {
+    JS("void", "#.target = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1339,13 +1507,13 @@ class BatteryManager extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool charging;
+  bool get charging => JS("bool", "#.charging", this);
 
-  final num chargingTime;
+  num get chargingTime => JS("num", "#.chargingTime", this);
 
-  final num dischargingTime;
+  num get dischargingTime => JS("num", "#.dischargingTime", this);
 
-  final num level;
+  num get level => JS("num", "#.level", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1358,7 +1526,7 @@ class BeforeInstallPromptEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory BeforeInstallPromptEvent(String type, [Map eventInitDict]) {
+  factory BeforeInstallPromptEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return BeforeInstallPromptEvent._create_1(type, eventInitDict_1);
@@ -1373,10 +1541,9 @@ class BeforeInstallPromptEvent extends Event {
   static BeforeInstallPromptEvent _create_2(type) =>
       JS('BeforeInstallPromptEvent', 'new BeforeInstallPromptEvent(#)', type);
 
-  final List<String> platforms;
+  List<String> get platforms => JS("List<String>", "#.platforms", this);
 
-  Future<Map<String, dynamic>> get userChoice =>
-      promiseToFutureAsMap(JS("", "#.userChoice", this));
+  Future get userChoice => JS("Future", "#.userChoice", this);
 
   Future prompt() => promiseToFuture(JS("", "#.prompt()", this));
 }
@@ -1392,6 +1559,7 @@ class BeforeUnloadEvent extends Event {
   }
 
   // Shadowing definition.
+
   String get returnValue => JS("String", "#.returnValue", this);
 
   set returnValue(String value) {
@@ -1409,11 +1577,11 @@ class Blob extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int size;
+  int get size => JS("int", "#.size", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
-  Blob slice([int start, int end, String contentType]) native;
+  Blob slice([int? start, int? end, String? contentType]) native;
 
   factory Blob(List blobParts, [String type, String endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
@@ -1442,7 +1610,7 @@ class Blob extends Interceptor {
 
 // WARNING: Do not edit - generated code.
 
-typedef void BlobCallback(Blob blob);
+typedef void BlobCallback(Blob? blob);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -1461,9 +1629,9 @@ class BlobEvent extends Event {
   static BlobEvent _create_1(type, eventInitDict) =>
       JS('BlobEvent', 'new BlobEvent(#,#)', type, eventInitDict);
 
-  final Blob data;
+  Blob get data => JS("Blob", "#.data", this);
 
-  final num timecode;
+  num get timecode => JS("num", "#.timecode", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1476,11 +1644,12 @@ class BluetoothRemoteGattDescriptor extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final _BluetoothRemoteGATTCharacteristic characteristic;
+  _BluetoothRemoteGATTCharacteristic get characteristic =>
+      JS("_BluetoothRemoteGATTCharacteristic", "#.characteristic", this);
 
-  final String uuid;
+  String get uuid => JS("String", "#.uuid", this);
 
-  final ByteData value;
+  final ByteData? value;
 
   Future readValue() => promiseToFuture(JS("", "#.readValue()", this));
 
@@ -1498,7 +1667,7 @@ class Body extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool bodyUsed;
+  bool get bodyUsed => JS("bool", "#.bodyUsed", this);
 
   Future arrayBuffer() => promiseToFuture(JS("", "#.arrayBuffer()", this));
 
@@ -1633,7 +1802,7 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
   static const EventStreamProvider<Event> unloadEvent =
       const EventStreamProvider<Event>('unload');
 
-  factory BodyElement() => JS(
+  factory BodyElement() => JS<BodyElement>(
       'returns:BodyElement;creates:BodyElement;new:true',
       '#.createElement(#)',
       document,
@@ -1703,7 +1872,7 @@ class BroadcastChannel extends EventTarget {
   static BroadcastChannel _create_1(name) =>
       JS('BroadcastChannel', 'new BroadcastChannel(#)', name);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
   void close() native;
 
@@ -1722,9 +1891,9 @@ class BudgetState extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num budgetAt;
+  num get budgetAt => JS("num", "#.budgetAt", this);
 
-  final int time;
+  int get time => JS("int", "#.time", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1737,7 +1906,7 @@ class ButtonElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ButtonElement() => JS(
+  factory ButtonElement() => JS<ButtonElement>(
       'returns:ButtonElement;creates:ButtonElement;new:true',
       '#.createElement(#)',
       document,
@@ -1749,38 +1918,78 @@ class ButtonElement extends HtmlElement {
    */
   ButtonElement.created() : super.created();
 
-  bool autofocus;
+  bool get autofocus => JS("bool", "#.autofocus", this);
 
-  bool disabled;
+  set autofocus(bool value) {
+    JS("void", "#.autofocus = #", this, value);
+  }
 
-  final FormElement form;
+  bool get disabled => JS("bool", "#.disabled", this);
 
-  String formAction;
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
 
-  String formEnctype;
+  final FormElement? form;
 
-  String formMethod;
+  String get formAction => JS("String", "#.formAction", this);
 
-  bool formNoValidate;
+  set formAction(String value) {
+    JS("void", "#.formAction = #", this, value);
+  }
 
-  String formTarget;
+  String get formEnctype => JS("String", "#.formEnctype", this);
+
+  set formEnctype(String value) {
+    JS("void", "#.formEnctype = #", this, value);
+  }
+
+  String get formMethod => JS("String", "#.formMethod", this);
+
+  set formMethod(String value) {
+    JS("void", "#.formMethod = #", this, value);
+  }
+
+  bool get formNoValidate => JS("bool", "#.formNoValidate", this);
+
+  set formNoValidate(bool value) {
+    JS("void", "#.formNoValidate = #", this, value);
+  }
+
+  String get formTarget => JS("String", "#.formTarget", this);
+
+  set formTarget(String value) {
+    JS("void", "#.formTarget = #", this, value);
+  }
 
   @Unstable()
   @Returns('NodeList|Null')
   @Creates('NodeList')
-  final List<Node> labels;
+  List<Node> get labels => JS("NodeList", "#.labels", this);
 
-  String name;
+  String get name => JS("String", "#.name", this);
 
-  String type;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
-  final String validationMessage;
+  String get type => JS("String", "#.type", this);
 
-  final ValidityState validity;
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 
-  String value;
+  String get validationMessage => JS("String", "#.validationMessage", this);
 
-  final bool willValidate;
+  ValidityState get validity => JS("ValidityState", "#.validity", this);
+
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
+
+  bool get willValidate => JS("bool", "#.willValidate", this);
 
   bool checkValidity() native;
 
@@ -1820,7 +2029,7 @@ class CacheStorage extends Interceptor {
 
   Future keys() => promiseToFuture(JS("", "#.keys()", this));
 
-  Future match(/*RequestInfo*/ request, [Map options]) {
+  Future match(/*RequestInfo*/ request, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -1853,13 +2062,14 @@ class CanMakePaymentEvent extends ExtendableEvent {
       type,
       eventInitDict);
 
-  final List methodData;
+  List get methodData => JS("List", "#.methodData", this);
 
-  final List modifiers;
+  List get modifiers => JS("List", "#.modifiers", this);
 
-  final String paymentRequestOrigin;
+  String get paymentRequestOrigin =>
+      JS("String", "#.paymentRequestOrigin", this);
 
-  final String topLevelOrigin;
+  String get topLevelOrigin => JS("String", "#.topLevelOrigin", this);
 
   void respondWith(Future canMakePaymentResponse) native;
 }
@@ -1874,7 +2084,7 @@ class CanvasCaptureMediaStreamTrack extends MediaStreamTrack {
     throw new UnsupportedError("Not supported");
   }
 
-  final CanvasElement canvas;
+  CanvasElement get canvas => JS("CanvasElement", "#.canvas", this);
 
   void requestFrame() native;
 }
@@ -1907,9 +2117,12 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   static const EventStreamProvider<gl.ContextEvent> webGlContextRestoredEvent =
       const EventStreamProvider<gl.ContextEvent>('webglcontextrestored');
 
-  factory CanvasElement({int width, int height}) {
-    CanvasElement e = JS('returns:CanvasElement;creates:CanvasElement;new:true',
-        '#.createElement(#)', document, "canvas");
+  factory CanvasElement({int? width, int? height}) {
+    CanvasElement e = JS<CanvasElement>(
+        'returns:CanvasElement;creates:CanvasElement;new:true',
+        '#.createElement(#)',
+        document,
+        "canvas");
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -1922,16 +2135,30 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   CanvasElement.created() : super.created();
 
   /// The height of this canvas element in CSS pixels.
-  int height;
+
+  int get height => JS("int", "#.height", this);
+
+  /// The height of this canvas element in CSS pixels.
+
+  set height(int value) {
+    JS("void", "#.height = #", this, value);
+  }
 
   /// The width of this canvas element in CSS pixels.
-  int width;
 
-  MediaStream captureStream([num frameRate]) native;
+  int get width => JS("int", "#.width", this);
+
+  /// The width of this canvas element in CSS pixels.
+
+  set width(int value) {
+    JS("void", "#.width = #", this, value);
+  }
+
+  MediaStream captureStream([num? frameRate]) native;
 
   @Creates('CanvasRenderingContext2D|RenderingContext|RenderingContext2')
   @Returns('CanvasRenderingContext2D|RenderingContext|RenderingContext2|Null')
-  Object getContext(String contextId, [Map attributes]) {
+  Object getContext(String contextId, [Map? attributes]) {
     if (attributes != null) {
       var attributes_1 = convertDartToNative_Dictionary(attributes);
       return _getContext_1(contextId, attributes_1);
@@ -2043,9 +2270,9 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
       _toDataUrl(type, quality);
 
   @JSName('toBlob')
-  void _toBlob(BlobCallback callback, String type, [Object arguments]) native;
+  void _toBlob(BlobCallback callback, String type, [Object? arguments]) native;
 
-  Future<Blob> toBlob(String type, [Object arguments]) {
+  Future<Blob> toBlob(String type, [Object? arguments]) {
     var completer = new Completer<Blob>();
     _toBlob((value) {
       completer.complete(value);
@@ -2162,23 +2389,54 @@ class CanvasRenderingContext2D extends Interceptor
     throw new UnsupportedError("Not supported");
   }
 
-  final CanvasElement canvas;
+  CanvasElement get canvas => JS("CanvasElement", "#.canvas", this);
 
-  Matrix currentTransform;
+  Matrix get currentTransform => JS("Matrix", "#.currentTransform", this);
 
-  String direction;
+  set currentTransform(Matrix value) {
+    JS("void", "#.currentTransform = #", this, value);
+  }
+
+  String get direction => JS("String", "#.direction", this);
+
+  set direction(String value) {
+    JS("void", "#.direction = #", this, value);
+  }
 
   @Creates('String|CanvasGradient|CanvasPattern')
   @Returns('String|CanvasGradient|CanvasPattern')
-  Object fillStyle;
+  Object get fillStyle => JS("Object", "#.fillStyle", this);
 
-  String filter;
+  @Creates('String|CanvasGradient|CanvasPattern')
+  @Returns('String|CanvasGradient|CanvasPattern')
+  set fillStyle(Object value) {
+    JS("void", "#.fillStyle = #", this, value);
+  }
 
-  String font;
+  String get filter => JS("String", "#.filter", this);
 
-  num globalAlpha;
+  set filter(String value) {
+    JS("void", "#.filter = #", this, value);
+  }
 
-  String globalCompositeOperation;
+  String get font => JS("String", "#.font", this);
+
+  set font(String value) {
+    JS("void", "#.font = #", this, value);
+  }
+
+  num get globalAlpha => JS("num", "#.globalAlpha", this);
+
+  set globalAlpha(num value) {
+    JS("void", "#.globalAlpha = #", this, value);
+  }
+
+  String get globalCompositeOperation =>
+      JS("String", "#.globalCompositeOperation", this);
+
+  set globalCompositeOperation(String value) {
+    JS("void", "#.globalCompositeOperation = #", this, value);
+  }
 
   /**
    * Whether images and patterns on this canvas will be smoothed when this
@@ -2190,35 +2448,102 @@ class CanvasRenderingContext2D extends Interceptor
    *   smoothing](https://html.spec.whatwg.org/multipage/scripting.html#image-smoothing)
    *   from WHATWG.
    */
-  bool imageSmoothingEnabled;
 
-  String imageSmoothingQuality;
+  bool get imageSmoothingEnabled => JS("bool", "#.imageSmoothingEnabled", this);
 
-  String lineCap;
+  /**
+   * Whether images and patterns on this canvas will be smoothed when this
+   * canvas is scaled.
+   *
+   * ## Other resources
+   *
+   * * [Image
+   *   smoothing](https://html.spec.whatwg.org/multipage/scripting.html#image-smoothing)
+   *   from WHATWG.
+   */
 
-  String lineJoin;
+  set imageSmoothingEnabled(bool value) {
+    JS("void", "#.imageSmoothingEnabled = #", this, value);
+  }
 
-  num lineWidth;
+  String get imageSmoothingQuality =>
+      JS("String", "#.imageSmoothingQuality", this);
 
-  num miterLimit;
+  set imageSmoothingQuality(String value) {
+    JS("void", "#.imageSmoothingQuality = #", this, value);
+  }
 
-  num shadowBlur;
+  String get lineCap => JS("String", "#.lineCap", this);
 
-  String shadowColor;
+  set lineCap(String value) {
+    JS("void", "#.lineCap = #", this, value);
+  }
 
-  num shadowOffsetX;
+  String get lineJoin => JS("String", "#.lineJoin", this);
 
-  num shadowOffsetY;
+  set lineJoin(String value) {
+    JS("void", "#.lineJoin = #", this, value);
+  }
+
+  num get lineWidth => JS("num", "#.lineWidth", this);
+
+  set lineWidth(num value) {
+    JS("void", "#.lineWidth = #", this, value);
+  }
+
+  num get miterLimit => JS("num", "#.miterLimit", this);
+
+  set miterLimit(num value) {
+    JS("void", "#.miterLimit = #", this, value);
+  }
+
+  num get shadowBlur => JS("num", "#.shadowBlur", this);
+
+  set shadowBlur(num value) {
+    JS("void", "#.shadowBlur = #", this, value);
+  }
+
+  String get shadowColor => JS("String", "#.shadowColor", this);
+
+  set shadowColor(String value) {
+    JS("void", "#.shadowColor = #", this, value);
+  }
+
+  num get shadowOffsetX => JS("num", "#.shadowOffsetX", this);
+
+  set shadowOffsetX(num value) {
+    JS("void", "#.shadowOffsetX = #", this, value);
+  }
+
+  num get shadowOffsetY => JS("num", "#.shadowOffsetY", this);
+
+  set shadowOffsetY(num value) {
+    JS("void", "#.shadowOffsetY = #", this, value);
+  }
 
   @Creates('String|CanvasGradient|CanvasPattern')
   @Returns('String|CanvasGradient|CanvasPattern')
-  Object strokeStyle;
+  Object get strokeStyle => JS("Object", "#.strokeStyle", this);
 
-  String textAlign;
+  @Creates('String|CanvasGradient|CanvasPattern')
+  @Returns('String|CanvasGradient|CanvasPattern')
+  set strokeStyle(Object value) {
+    JS("void", "#.strokeStyle = #", this, value);
+  }
 
-  String textBaseline;
+  String get textAlign => JS("String", "#.textAlign", this);
 
-  void addHitRegion([Map options]) {
+  set textAlign(String value) {
+    JS("void", "#.textAlign = #", this, value);
+  }
+
+  String get textBaseline => JS("String", "#.textBaseline", this);
+
+  set textBaseline(String value) {
+    JS("void", "#.textBaseline = #", this, value);
+  }
+
+  void addHitRegion([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       _addHitRegion_1(options_1);
@@ -2239,13 +2564,13 @@ class CanvasRenderingContext2D extends Interceptor
 
   void clearRect(num x, num y, num width, num height) native;
 
-  void clip([path_OR_winding, String winding]) native;
+  void clip([path_OR_winding, String? winding]) native;
 
   @Creates('ImageData|=Object')
   ImageData createImageData(data_OR_imagedata_OR_sw,
-      [int sh_OR_sw,
+      [int? sh_OR_sw,
       imageDataColorSettings_OR_sh,
-      Map imageDataColorSettings]) {
+      Map? imageDataColorSettings]) {
     if ((data_OR_imagedata_OR_sw is ImageData) &&
         sh_OR_sw == null &&
         imageDataColorSettings_OR_sh == null &&
@@ -2314,9 +2639,9 @@ class CanvasRenderingContext2D extends Interceptor
   CanvasGradient createRadialGradient(
       num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  void drawFocusIfNeeded(element_OR_path, [Element element]) native;
+  void drawFocusIfNeeded(element_OR_path, [Element? element]) native;
 
-  void fill([path_OR_winding, String winding]) native;
+  void fill([path_OR_winding, String? winding]) native;
 
   void fillRect(num x, num y, num width, num height) native;
 
@@ -2341,15 +2666,15 @@ class CanvasRenderingContext2D extends Interceptor
 
   bool isContextLost() native;
 
-  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String winding])
+  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String? winding])
       native;
 
-  bool isPointInStroke(path_OR_x, num x_OR_y, [num y]) native;
+  bool isPointInStroke(path_OR_x, num x_OR_y, [num? y]) native;
 
   TextMetrics measureText(String text) native;
 
   void putImageData(ImageData imagedata, int dx, int dy,
-      [int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight]) {
+      [int? dirtyX, int? dirtyY, int? dirtyWidth, int? dirtyHeight]) {
     if (dirtyX == null &&
         dirtyY == null &&
         dirtyWidth == null &&
@@ -2388,15 +2713,15 @@ class CanvasRenderingContext2D extends Interceptor
 
   void scale(num x, num y) native;
 
-  void scrollPathIntoView([Path2D path]) native;
+  void scrollPathIntoView([Path2D? path]) native;
 
   void setTransform(num a, num b, num c, num d, num e, num f) native;
 
-  void stroke([Path2D path]) native;
+  void stroke([Path2D? path]) native;
 
   void strokeRect(num x, num y, num width, num height) native;
 
-  void strokeText(String text, num x, num y, [num maxWidth]) native;
+  void strokeText(String text, num x, num y, [num? maxWidth]) native;
 
   void transform(num a, num b, num c, num d, num e, num f) native;
 
@@ -2731,9 +3056,13 @@ class CharacterData extends Node
     throw new UnsupportedError("Not supported");
   }
 
-  String data;
+  String get data => JS("String", "#.data", this);
 
-  final int length;
+  set data(String value) {
+    JS("void", "#.data = #", this, value);
+  }
+
+  int get length => JS("int", "#.length", this);
 
   void appendData(String data) native;
 
@@ -2753,9 +3082,9 @@ class CharacterData extends Node
 
   // From NonDocumentTypeChildNode
 
-  final Element nextElementSibling;
+  final Element? nextElementSibling;
 
-  final Element previousElementSibling;
+  final Element? previousElementSibling;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2784,15 +3113,15 @@ class Client extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String frameType;
+  String get frameType => JS("String", "#.frameType", this);
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
-  final String url;
+  String get url => JS("String", "#.url", this);
 
-  void postMessage(Object message, [List<Object> transfer]) native;
+  void postMessage(Object message, [List<Object>? transfer]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2809,7 +3138,7 @@ class Clients extends Interceptor {
 
   Future get(String id) => promiseToFuture(JS("", "#.get(#)", this, id));
 
-  Future<List<dynamic>> matchAll([Map options]) {
+  Future<List<dynamic>> matchAll([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -2832,7 +3161,7 @@ class ClipboardEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ClipboardEvent(String type, [Map eventInitDict]) {
+  factory ClipboardEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ClipboardEvent._create_1(type, eventInitDict_1);
@@ -2844,7 +3173,7 @@ class ClipboardEvent extends Event {
   static ClipboardEvent _create_2(type) =>
       JS('ClipboardEvent', 'new ClipboardEvent(#)', type);
 
-  final DataTransfer clipboardData;
+  final DataTransfer? clipboardData;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2857,7 +3186,7 @@ class CloseEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CloseEvent(String type, [Map eventInitDict]) {
+  factory CloseEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return CloseEvent._create_1(type, eventInitDict_1);
@@ -2869,11 +3198,11 @@ class CloseEvent extends Event {
   static CloseEvent _create_2(type) =>
       JS('CloseEvent', 'new CloseEvent(#)', type);
 
-  final int code;
+  int get code => JS("int", "#.code", this);
 
-  final String reason;
+  String get reason => JS("String", "#.reason", this);
 
-  final bool wasClean;
+  bool get wasClean => JS("bool", "#.wasClean", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2920,7 +3249,7 @@ class CompositionEvent extends UIEvent {
     return e;
   }
 
-  factory CompositionEvent._(String type, [Map eventInitDict]) {
+  factory CompositionEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return CompositionEvent._create_1(type, eventInitDict_1);
@@ -2932,11 +3261,11 @@ class CompositionEvent extends UIEvent {
   static CompositionEvent _create_2(type) =>
       JS('CompositionEvent', 'new CompositionEvent(#)', type);
 
-  final String data;
+  String get data => JS("String", "#.data", this);
 
   @JSName('initCompositionEvent')
   void _initCompositionEvent(String type, bool bubbles, bool cancelable,
-      Window view, String data) native;
+      Window? view, String data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2950,7 +3279,8 @@ class ContentElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ContentElement() => document.createElement("content");
+  factory ContentElement() =>
+      document.createElement("content") as ContentElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -2961,7 +3291,11 @@ class ContentElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('content');
 
-  String select;
+  String get select => JS("String", "#.select", this);
+
+  set select(String value) {
+    JS("void", "#.select = #", this, value);
+  }
 
   @Returns('NodeList|Null')
   @Creates('NodeList')
@@ -2978,7 +3312,7 @@ class CookieStore extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future getAll([Map options]) {
+  Future getAll([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -2986,7 +3320,7 @@ class CookieStore extends Interceptor {
     return promiseToFuture(JS("", "#.getAll(#)", this, options_dict));
   }
 
-  Future set(String name, String value, [Map options]) {
+  Future set(String name, String value, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -3006,7 +3340,7 @@ class Coordinates extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num accuracy;
+  num get accuracy => JS("num", "#.accuracy", this);
 
   final num altitude;
 
@@ -3014,9 +3348,9 @@ class Coordinates extends Interceptor {
 
   final num heading;
 
-  final num latitude;
+  num get latitude => JS("num", "#.latitude", this);
 
-  final num longitude;
+  num get longitude => JS("num", "#.longitude", this);
 
   final num speed;
 }
@@ -3031,9 +3365,9 @@ class Credential extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3047,9 +3381,9 @@ class CredentialUserData extends Interceptor {
   }
 
   @JSName('iconURL')
-  final String iconUrl;
+  String get iconUrl => JS("String", "#.iconURL", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3062,7 +3396,7 @@ class CredentialsContainer extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future create([Map options]) {
+  Future create([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -3070,7 +3404,7 @@ class CredentialsContainer extends Interceptor {
     return promiseToFuture(JS("", "#.create(#)", this, options_dict));
   }
 
-  Future get([Map options]) {
+  Future get([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -3108,7 +3442,7 @@ class Crypto extends Interceptor {
   static bool get supported =>
       JS('bool', '!!(window.crypto && window.crypto.getRandomValues)');
 
-  final _SubtleCrypto subtle;
+  _SubtleCrypto get subtle => JS("_SubtleCrypto", "#.subtle", this);
 
   @JSName('getRandomValues')
   @Creates('TypedData')
@@ -3127,13 +3461,13 @@ class CryptoKey extends Interceptor {
   }
 
   @Creates('Null')
-  final Object algorithm;
+  Object get algorithm => JS("Object", "#.algorithm", this);
 
-  final bool extractable;
+  bool get extractable => JS("bool", "#.extractable", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
-  final Object usages;
+  Object get usages => JS("Object", "#.usages", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3146,7 +3480,7 @@ class Css extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  static final _Worklet paintWorklet;
+  _Worklet get paintWorklet => JS("_Worklet", "#.paintWorklet", this);
 
   static CssUnitValue Hz(num value) native;
 
@@ -3232,7 +3566,11 @@ class CssCharsetRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  String encoding;
+  String get encoding => JS("String", "#.encoding", this);
+
+  set encoding(String value) {
+    JS("void", "#.encoding = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3245,7 +3583,7 @@ class CssConditionRule extends CssGroupingRule {
     throw new UnsupportedError("Not supported");
   }
 
-  final String conditionText;
+  String get conditionText => JS("String", "#.conditionText", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3258,7 +3596,7 @@ class CssFontFaceRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  final CssStyleDeclaration style;
+  CssStyleDeclaration get style => JS("CssStyleDeclaration", "#.style", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3273,7 +3611,7 @@ class CssGroupingRule extends CssRule {
 
   @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
-  final List<CssRule> cssRules;
+  List<CssRule> get cssRules => JS("_CssRuleList", "#.cssRules", this);
 
   void deleteRule(int index) native;
 
@@ -3307,11 +3645,11 @@ class CssImportRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  final String href;
+  String get href => JS("String", "#.href", this);
 
-  final MediaList media;
+  MediaList get media => JS("MediaList", "#.media", this);
 
-  final CssStyleSheet styleSheet;
+  CssStyleSheet get styleSheet => JS("CssStyleSheet", "#.styleSheet", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3324,9 +3662,13 @@ class CssKeyframeRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  String keyText;
+  String get keyText => JS("String", "#.keyText", this);
 
-  final CssStyleDeclaration style;
+  set keyText(String value) {
+    JS("void", "#.keyText = #", this, value);
+  }
+
+  CssStyleDeclaration get style => JS("CssStyleDeclaration", "#.style", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3341,9 +3683,13 @@ class CssKeyframesRule extends CssRule {
 
   @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
-  final List<CssRule> cssRules;
+  List<CssRule> get cssRules => JS("_CssRuleList", "#.cssRules", this);
 
-  String name;
+  String get name => JS("String", "#.name", this);
+
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
   CssKeyframeRule __getter__(int index) native;
 
@@ -3370,7 +3716,11 @@ class CssKeywordValue extends CssStyleValue {
   static CssKeywordValue _create_1(keyword) =>
       JS('CssKeywordValue', 'new CSSKeywordValue(#)', keyword);
 
-  String value;
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3383,7 +3733,7 @@ class CssMatrixComponent extends CssTransformComponent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssMatrixComponent(DomMatrixReadOnly matrix, [Map options]) {
+  factory CssMatrixComponent(DomMatrixReadOnly matrix, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return CssMatrixComponent._create_1(matrix, options_1);
@@ -3395,7 +3745,11 @@ class CssMatrixComponent extends CssTransformComponent {
   static CssMatrixComponent _create_2(matrix) =>
       JS('CssMatrixComponent', 'new CSSMatrixComponent(#)', matrix);
 
-  DomMatrix matrix;
+  DomMatrix get matrix => JS("DomMatrix", "#.matrix", this);
+
+  set matrix(DomMatrix value) {
+    JS("void", "#.matrix = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3408,7 +3762,7 @@ class CssMediaRule extends CssConditionRule {
     throw new UnsupportedError("Not supported");
   }
 
-  final MediaList media;
+  MediaList get media => JS("MediaList", "#.media", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3422,9 +3776,9 @@ class CssNamespaceRule extends CssRule {
   }
 
   @JSName('namespaceURI')
-  final String namespaceUri;
+  String get namespaceUri => JS("String", "#.namespaceURI", this);
 
-  final String prefix;
+  String get prefix => JS("String", "#.prefix", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3460,9 +3814,13 @@ class CssPageRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  String selectorText;
+  String get selectorText => JS("String", "#.selectorText", this);
 
-  final CssStyleDeclaration style;
+  set selectorText(String value) {
+    JS("void", "#.selectorText = #", this, value);
+  }
+
+  CssStyleDeclaration get style => JS("CssStyleDeclaration", "#.style", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3481,7 +3839,11 @@ class CssPerspective extends CssTransformComponent {
   static CssPerspective _create_1(length) =>
       JS('CssPerspective', 'new CSSPerspective(#)', length);
 
-  CssNumericValue length;
+  CssNumericValue get length => JS("CssNumericValue", "#.length", this);
+
+  set length(CssNumericValue value) {
+    JS("void", "#.length = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3500,9 +3862,17 @@ class CssPositionValue extends CssStyleValue {
   static CssPositionValue _create_1(x, y) =>
       JS('CssPositionValue', 'new CSSPositionValue(#,#)', x, y);
 
-  CssNumericValue x;
+  CssNumericValue get x => JS("CssNumericValue", "#.x", this);
 
-  CssNumericValue y;
+  set x(CssNumericValue value) {
+    JS("void", "#.x = #", this, value);
+  }
+
+  CssNumericValue get y => JS("CssNumericValue", "#.y", this);
+
+  set y(CssNumericValue value) {
+    JS("void", "#.y = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3515,7 +3885,7 @@ class CssResourceValue extends CssStyleValue {
     throw new UnsupportedError("Not supported");
   }
 
-  final String state;
+  String get state => JS("String", "#.state", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3528,7 +3898,8 @@ class CssRotation extends CssTransformComponent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssRotation(angleValue_OR_x, [num y, num z, CssNumericValue angle]) {
+  factory CssRotation(angleValue_OR_x,
+      [num? y, num? z, CssNumericValue? angle]) {
     if ((angleValue_OR_x is CssNumericValue) &&
         y == null &&
         z == null &&
@@ -3548,13 +3919,29 @@ class CssRotation extends CssTransformComponent {
   static CssRotation _create_2(angleValue_OR_x, y, z, angle) => JS(
       'CssRotation', 'new CSSRotation(#,#,#,#)', angleValue_OR_x, y, z, angle);
 
-  CssNumericValue angle;
+  CssNumericValue get angle => JS("CssNumericValue", "#.angle", this);
 
-  num x;
+  set angle(CssNumericValue value) {
+    JS("void", "#.angle = #", this, value);
+  }
 
-  num y;
+  num get x => JS("num", "#.x", this);
 
-  num z;
+  set x(num value) {
+    JS("void", "#.x = #", this, value);
+  }
+
+  num get y => JS("num", "#.y", this);
+
+  set y(num value) {
+    JS("void", "#.y = #", this, value);
+  }
+
+  num get z => JS("num", "#.z", this);
+
+  set z(num value) {
+    JS("void", "#.z = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3589,13 +3976,17 @@ class CssRule extends Interceptor {
 
   static const int VIEWPORT_RULE = 15;
 
-  String cssText;
+  String get cssText => JS("String", "#.cssText", this);
 
-  final CssRule parentRule;
+  set cssText(String value) {
+    JS("void", "#.cssText = #", this, value);
+  }
 
-  final CssStyleSheet parentStyleSheet;
+  final CssRule? parentRule;
 
-  final int type;
+  final CssStyleSheet? parentStyleSheet;
+
+  int get type => JS("int", "#.type", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3608,7 +3999,7 @@ class CssScale extends CssTransformComponent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssScale(num x, num y, [num z]) {
+  factory CssScale(num x, num y, [num? z]) {
     if ((y is num) && (x is num) && z == null) {
       return CssScale._create_1(x, y);
     }
@@ -3621,11 +4012,23 @@ class CssScale extends CssTransformComponent {
   static CssScale _create_2(x, y, z) =>
       JS('CssScale', 'new CSSScale(#,#,#)', x, y, z);
 
-  num x;
+  num get x => JS("num", "#.x", this);
 
-  num y;
+  set x(num value) {
+    JS("void", "#.x = #", this, value);
+  }
 
-  num z;
+  num get y => JS("num", "#.y", this);
+
+  set y(num value) {
+    JS("void", "#.y = #", this, value);
+  }
+
+  num get z => JS("num", "#.z", this);
+
+  set z(num value) {
+    JS("void", "#.z = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3643,9 +4046,17 @@ class CssSkew extends CssTransformComponent {
   }
   static CssSkew _create_1(ax, ay) => JS('CssSkew', 'new CSSSkew(#,#)', ax, ay);
 
-  CssNumericValue ax;
+  CssNumericValue get ax => JS("CssNumericValue", "#.ax", this);
 
-  CssNumericValue ay;
+  set ax(CssNumericValue value) {
+    JS("void", "#.ax = #", this, value);
+  }
+
+  CssNumericValue get ay => JS("CssNumericValue", "#.ay", this);
+
+  set ay(CssNumericValue value) {
+    JS("void", "#.ay = #", this, value);
+  }
 }
 
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
@@ -3705,7 +4116,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   }
 
   String _browserPropertyName(String propertyName) {
-    String name = _readCache(propertyName);
+    String? name = _readCache(propertyName);
     if (name is String) return name;
     name = _supportedBrowserPropertyName(propertyName);
     _writeCache(propertyName, name);
@@ -3725,7 +4136,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   }
 
   static final _propertyCache = JS('', '{}');
-  static String _readCache(String key) =>
+  static String? _readCache(String key) =>
       JS('String|Null', '#[#]', _propertyCache, key);
   static void _writeCache(String key, String value) {
     JS('void', '#[#] = #', _propertyCache, key, value);
@@ -3740,8 +4151,8 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
         replacedMs);
   }
 
-  void _setPropertyHelper(String propertyName, String value,
-      [String priority]) {
+  void _setPropertyHelper(String propertyName, String? value,
+      [String? priority]) {
     if (value == null) value = '';
     if (priority == null) priority = '';
     JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
@@ -3759,13 +4170,21 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
     throw new UnsupportedError("Not supported");
   }
 
-  String cssFloat;
+  String get cssFloat => JS("String", "#.cssFloat", this);
 
-  String cssText;
+  set cssFloat(String value) {
+    JS("void", "#.cssFloat = #", this, value);
+  }
 
-  final int length;
+  String get cssText => JS("String", "#.cssText", this);
 
-  final CssRule parentRule;
+  set cssText(String value) {
+    JS("void", "#.cssText = #", this, value);
+  }
+
+  int get length => JS("int", "#.length", this);
+
+  final CssRule? parentRule;
 
   String getPropertyPriority(String property) native;
 
@@ -3780,7 +4199,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get background => this._background;
 
   /** Sets the value of "background" */
-  set background(String value) {
+  set background(String? value) {
     _background = value == null ? '' : value;
   }
 
@@ -3792,7 +4211,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundAttachment => this._backgroundAttachment;
 
   /** Sets the value of "background-attachment" */
-  set backgroundAttachment(String value) {
+  set backgroundAttachment(String? value) {
     _backgroundAttachment = value == null ? '' : value;
   }
 
@@ -3804,7 +4223,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundColor => this._backgroundColor;
 
   /** Sets the value of "background-color" */
-  set backgroundColor(String value) {
+  set backgroundColor(String? value) {
     _backgroundColor = value == null ? '' : value;
   }
 
@@ -3816,7 +4235,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundImage => this._backgroundImage;
 
   /** Sets the value of "background-image" */
-  set backgroundImage(String value) {
+  set backgroundImage(String? value) {
     _backgroundImage = value == null ? '' : value;
   }
 
@@ -3828,7 +4247,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundPosition => this._backgroundPosition;
 
   /** Sets the value of "background-position" */
-  set backgroundPosition(String value) {
+  set backgroundPosition(String? value) {
     _backgroundPosition = value == null ? '' : value;
   }
 
@@ -3840,7 +4259,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get backgroundRepeat => this._backgroundRepeat;
 
   /** Sets the value of "background-repeat" */
-  set backgroundRepeat(String value) {
+  set backgroundRepeat(String? value) {
     _backgroundRepeat = value == null ? '' : value;
   }
 
@@ -3852,7 +4271,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get border => this._border;
 
   /** Sets the value of "border" */
-  set border(String value) {
+  set border(String? value) {
     _border = value == null ? '' : value;
   }
 
@@ -3864,7 +4283,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderBottom => this._borderBottom;
 
   /** Sets the value of "border-bottom" */
-  set borderBottom(String value) {
+  set borderBottom(String? value) {
     _borderBottom = value == null ? '' : value;
   }
 
@@ -3876,7 +4295,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderBottomColor => this._borderBottomColor;
 
   /** Sets the value of "border-bottom-color" */
-  set borderBottomColor(String value) {
+  set borderBottomColor(String? value) {
     _borderBottomColor = value == null ? '' : value;
   }
 
@@ -3888,7 +4307,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderBottomStyle => this._borderBottomStyle;
 
   /** Sets the value of "border-bottom-style" */
-  set borderBottomStyle(String value) {
+  set borderBottomStyle(String? value) {
     _borderBottomStyle = value == null ? '' : value;
   }
 
@@ -3900,7 +4319,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderBottomWidth => this._borderBottomWidth;
 
   /** Sets the value of "border-bottom-width" */
-  set borderBottomWidth(String value) {
+  set borderBottomWidth(String? value) {
     _borderBottomWidth = value == null ? '' : value;
   }
 
@@ -3912,7 +4331,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderCollapse => this._borderCollapse;
 
   /** Sets the value of "border-collapse" */
-  set borderCollapse(String value) {
+  set borderCollapse(String? value) {
     _borderCollapse = value == null ? '' : value;
   }
 
@@ -3924,7 +4343,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderColor => this._borderColor;
 
   /** Sets the value of "border-color" */
-  set borderColor(String value) {
+  set borderColor(String? value) {
     _borderColor = value == null ? '' : value;
   }
 
@@ -3936,7 +4355,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderLeft => this._borderLeft;
 
   /** Sets the value of "border-left" */
-  set borderLeft(String value) {
+  set borderLeft(String? value) {
     _borderLeft = value == null ? '' : value;
   }
 
@@ -3948,7 +4367,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderLeftColor => this._borderLeftColor;
 
   /** Sets the value of "border-left-color" */
-  set borderLeftColor(String value) {
+  set borderLeftColor(String? value) {
     _borderLeftColor = value == null ? '' : value;
   }
 
@@ -3960,7 +4379,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderLeftStyle => this._borderLeftStyle;
 
   /** Sets the value of "border-left-style" */
-  set borderLeftStyle(String value) {
+  set borderLeftStyle(String? value) {
     _borderLeftStyle = value == null ? '' : value;
   }
 
@@ -3972,7 +4391,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderLeftWidth => this._borderLeftWidth;
 
   /** Sets the value of "border-left-width" */
-  set borderLeftWidth(String value) {
+  set borderLeftWidth(String? value) {
     _borderLeftWidth = value == null ? '' : value;
   }
 
@@ -3984,7 +4403,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderRight => this._borderRight;
 
   /** Sets the value of "border-right" */
-  set borderRight(String value) {
+  set borderRight(String? value) {
     _borderRight = value == null ? '' : value;
   }
 
@@ -3996,7 +4415,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderRightColor => this._borderRightColor;
 
   /** Sets the value of "border-right-color" */
-  set borderRightColor(String value) {
+  set borderRightColor(String? value) {
     _borderRightColor = value == null ? '' : value;
   }
 
@@ -4008,7 +4427,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderRightStyle => this._borderRightStyle;
 
   /** Sets the value of "border-right-style" */
-  set borderRightStyle(String value) {
+  set borderRightStyle(String? value) {
     _borderRightStyle = value == null ? '' : value;
   }
 
@@ -4020,7 +4439,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderRightWidth => this._borderRightWidth;
 
   /** Sets the value of "border-right-width" */
-  set borderRightWidth(String value) {
+  set borderRightWidth(String? value) {
     _borderRightWidth = value == null ? '' : value;
   }
 
@@ -4032,7 +4451,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderSpacing => this._borderSpacing;
 
   /** Sets the value of "border-spacing" */
-  set borderSpacing(String value) {
+  set borderSpacing(String? value) {
     _borderSpacing = value == null ? '' : value;
   }
 
@@ -4044,7 +4463,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderStyle => this._borderStyle;
 
   /** Sets the value of "border-style" */
-  set borderStyle(String value) {
+  set borderStyle(String? value) {
     _borderStyle = value == null ? '' : value;
   }
 
@@ -4056,7 +4475,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderTop => this._borderTop;
 
   /** Sets the value of "border-top" */
-  set borderTop(String value) {
+  set borderTop(String? value) {
     _borderTop = value == null ? '' : value;
   }
 
@@ -4068,7 +4487,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderTopColor => this._borderTopColor;
 
   /** Sets the value of "border-top-color" */
-  set borderTopColor(String value) {
+  set borderTopColor(String? value) {
     _borderTopColor = value == null ? '' : value;
   }
 
@@ -4080,7 +4499,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderTopStyle => this._borderTopStyle;
 
   /** Sets the value of "border-top-style" */
-  set borderTopStyle(String value) {
+  set borderTopStyle(String? value) {
     _borderTopStyle = value == null ? '' : value;
   }
 
@@ -4092,7 +4511,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderTopWidth => this._borderTopWidth;
 
   /** Sets the value of "border-top-width" */
-  set borderTopWidth(String value) {
+  set borderTopWidth(String? value) {
     _borderTopWidth = value == null ? '' : value;
   }
 
@@ -4104,7 +4523,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get borderWidth => this._borderWidth;
 
   /** Sets the value of "border-width" */
-  set borderWidth(String value) {
+  set borderWidth(String? value) {
     _borderWidth = value == null ? '' : value;
   }
 
@@ -4116,7 +4535,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get bottom => this._bottom;
 
   /** Sets the value of "bottom" */
-  set bottom(String value) {
+  set bottom(String? value) {
     _bottom = value == null ? '' : value;
   }
 
@@ -4128,7 +4547,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get captionSide => this._captionSide;
 
   /** Sets the value of "caption-side" */
-  set captionSide(String value) {
+  set captionSide(String? value) {
     _captionSide = value == null ? '' : value;
   }
 
@@ -4140,7 +4559,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get clear => this._clear;
 
   /** Sets the value of "clear" */
-  set clear(String value) {
+  set clear(String? value) {
     _clear = value == null ? '' : value;
   }
 
@@ -4152,7 +4571,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get clip => this._clip;
 
   /** Sets the value of "clip" */
-  set clip(String value) {
+  set clip(String? value) {
     _clip = value == null ? '' : value;
   }
 
@@ -4164,7 +4583,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get color => this._color;
 
   /** Sets the value of "color" */
-  set color(String value) {
+  set color(String? value) {
     _color = value == null ? '' : value;
   }
 
@@ -4176,7 +4595,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get content => this._content;
 
   /** Sets the value of "content" */
-  set content(String value) {
+  set content(String? value) {
     _content = value == null ? '' : value;
   }
 
@@ -4188,7 +4607,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get cursor => this._cursor;
 
   /** Sets the value of "cursor" */
-  set cursor(String value) {
+  set cursor(String? value) {
     _cursor = value == null ? '' : value;
   }
 
@@ -4200,7 +4619,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get direction => this._direction;
 
   /** Sets the value of "direction" */
-  set direction(String value) {
+  set direction(String? value) {
     _direction = value == null ? '' : value;
   }
 
@@ -4212,7 +4631,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get display => this._display;
 
   /** Sets the value of "display" */
-  set display(String value) {
+  set display(String? value) {
     _display = value == null ? '' : value;
   }
 
@@ -4224,7 +4643,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get emptyCells => this._emptyCells;
 
   /** Sets the value of "empty-cells" */
-  set emptyCells(String value) {
+  set emptyCells(String? value) {
     _emptyCells = value == null ? '' : value;
   }
 
@@ -4236,7 +4655,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get font => this._font;
 
   /** Sets the value of "font" */
-  set font(String value) {
+  set font(String? value) {
     _font = value == null ? '' : value;
   }
 
@@ -4248,7 +4667,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontFamily => this._fontFamily;
 
   /** Sets the value of "font-family" */
-  set fontFamily(String value) {
+  set fontFamily(String? value) {
     _fontFamily = value == null ? '' : value;
   }
 
@@ -4260,7 +4679,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontSize => this._fontSize;
 
   /** Sets the value of "font-size" */
-  set fontSize(String value) {
+  set fontSize(String? value) {
     _fontSize = value == null ? '' : value;
   }
 
@@ -4272,7 +4691,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontStyle => this._fontStyle;
 
   /** Sets the value of "font-style" */
-  set fontStyle(String value) {
+  set fontStyle(String? value) {
     _fontStyle = value == null ? '' : value;
   }
 
@@ -4284,7 +4703,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontVariant => this._fontVariant;
 
   /** Sets the value of "font-variant" */
-  set fontVariant(String value) {
+  set fontVariant(String? value) {
     _fontVariant = value == null ? '' : value;
   }
 
@@ -4296,7 +4715,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get fontWeight => this._fontWeight;
 
   /** Sets the value of "font-weight" */
-  set fontWeight(String value) {
+  set fontWeight(String? value) {
     _fontWeight = value == null ? '' : value;
   }
 
@@ -4308,7 +4727,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get height => this._height;
 
   /** Sets the value of "height" */
-  set height(String value) {
+  set height(String? value) {
     _height = value == null ? '' : value;
   }
 
@@ -4320,7 +4739,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get left => this._left;
 
   /** Sets the value of "left" */
-  set left(String value) {
+  set left(String? value) {
     _left = value == null ? '' : value;
   }
 
@@ -4332,7 +4751,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get letterSpacing => this._letterSpacing;
 
   /** Sets the value of "letter-spacing" */
-  set letterSpacing(String value) {
+  set letterSpacing(String? value) {
     _letterSpacing = value == null ? '' : value;
   }
 
@@ -4344,7 +4763,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get lineHeight => this._lineHeight;
 
   /** Sets the value of "line-height" */
-  set lineHeight(String value) {
+  set lineHeight(String? value) {
     _lineHeight = value == null ? '' : value;
   }
 
@@ -4356,7 +4775,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get listStyle => this._listStyle;
 
   /** Sets the value of "list-style" */
-  set listStyle(String value) {
+  set listStyle(String? value) {
     _listStyle = value == null ? '' : value;
   }
 
@@ -4368,7 +4787,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get listStyleImage => this._listStyleImage;
 
   /** Sets the value of "list-style-image" */
-  set listStyleImage(String value) {
+  set listStyleImage(String? value) {
     _listStyleImage = value == null ? '' : value;
   }
 
@@ -4380,7 +4799,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get listStylePosition => this._listStylePosition;
 
   /** Sets the value of "list-style-position" */
-  set listStylePosition(String value) {
+  set listStylePosition(String? value) {
     _listStylePosition = value == null ? '' : value;
   }
 
@@ -4392,7 +4811,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get listStyleType => this._listStyleType;
 
   /** Sets the value of "list-style-type" */
-  set listStyleType(String value) {
+  set listStyleType(String? value) {
     _listStyleType = value == null ? '' : value;
   }
 
@@ -4404,7 +4823,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get margin => this._margin;
 
   /** Sets the value of "margin" */
-  set margin(String value) {
+  set margin(String? value) {
     _margin = value == null ? '' : value;
   }
 
@@ -4416,7 +4835,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get marginBottom => this._marginBottom;
 
   /** Sets the value of "margin-bottom" */
-  set marginBottom(String value) {
+  set marginBottom(String? value) {
     _marginBottom = value == null ? '' : value;
   }
 
@@ -4428,7 +4847,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get marginLeft => this._marginLeft;
 
   /** Sets the value of "margin-left" */
-  set marginLeft(String value) {
+  set marginLeft(String? value) {
     _marginLeft = value == null ? '' : value;
   }
 
@@ -4440,7 +4859,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get marginRight => this._marginRight;
 
   /** Sets the value of "margin-right" */
-  set marginRight(String value) {
+  set marginRight(String? value) {
     _marginRight = value == null ? '' : value;
   }
 
@@ -4452,7 +4871,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get marginTop => this._marginTop;
 
   /** Sets the value of "margin-top" */
-  set marginTop(String value) {
+  set marginTop(String? value) {
     _marginTop = value == null ? '' : value;
   }
 
@@ -4464,7 +4883,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get maxHeight => this._maxHeight;
 
   /** Sets the value of "max-height" */
-  set maxHeight(String value) {
+  set maxHeight(String? value) {
     _maxHeight = value == null ? '' : value;
   }
 
@@ -4476,7 +4895,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get maxWidth => this._maxWidth;
 
   /** Sets the value of "max-width" */
-  set maxWidth(String value) {
+  set maxWidth(String? value) {
     _maxWidth = value == null ? '' : value;
   }
 
@@ -4488,7 +4907,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get minHeight => this._minHeight;
 
   /** Sets the value of "min-height" */
-  set minHeight(String value) {
+  set minHeight(String? value) {
     _minHeight = value == null ? '' : value;
   }
 
@@ -4500,7 +4919,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get minWidth => this._minWidth;
 
   /** Sets the value of "min-width" */
-  set minWidth(String value) {
+  set minWidth(String? value) {
     _minWidth = value == null ? '' : value;
   }
 
@@ -4512,7 +4931,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get outline => this._outline;
 
   /** Sets the value of "outline" */
-  set outline(String value) {
+  set outline(String? value) {
     _outline = value == null ? '' : value;
   }
 
@@ -4524,7 +4943,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get outlineColor => this._outlineColor;
 
   /** Sets the value of "outline-color" */
-  set outlineColor(String value) {
+  set outlineColor(String? value) {
     _outlineColor = value == null ? '' : value;
   }
 
@@ -4536,7 +4955,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get outlineStyle => this._outlineStyle;
 
   /** Sets the value of "outline-style" */
-  set outlineStyle(String value) {
+  set outlineStyle(String? value) {
     _outlineStyle = value == null ? '' : value;
   }
 
@@ -4548,7 +4967,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get outlineWidth => this._outlineWidth;
 
   /** Sets the value of "outline-width" */
-  set outlineWidth(String value) {
+  set outlineWidth(String? value) {
     _outlineWidth = value == null ? '' : value;
   }
 
@@ -4560,7 +4979,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get overflow => this._overflow;
 
   /** Sets the value of "overflow" */
-  set overflow(String value) {
+  set overflow(String? value) {
     _overflow = value == null ? '' : value;
   }
 
@@ -4572,7 +4991,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get padding => this._padding;
 
   /** Sets the value of "padding" */
-  set padding(String value) {
+  set padding(String? value) {
     _padding = value == null ? '' : value;
   }
 
@@ -4584,7 +5003,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get paddingBottom => this._paddingBottom;
 
   /** Sets the value of "padding-bottom" */
-  set paddingBottom(String value) {
+  set paddingBottom(String? value) {
     _paddingBottom = value == null ? '' : value;
   }
 
@@ -4596,7 +5015,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get paddingLeft => this._paddingLeft;
 
   /** Sets the value of "padding-left" */
-  set paddingLeft(String value) {
+  set paddingLeft(String? value) {
     _paddingLeft = value == null ? '' : value;
   }
 
@@ -4608,7 +5027,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get paddingRight => this._paddingRight;
 
   /** Sets the value of "padding-right" */
-  set paddingRight(String value) {
+  set paddingRight(String? value) {
     _paddingRight = value == null ? '' : value;
   }
 
@@ -4620,7 +5039,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get paddingTop => this._paddingTop;
 
   /** Sets the value of "padding-top" */
-  set paddingTop(String value) {
+  set paddingTop(String? value) {
     _paddingTop = value == null ? '' : value;
   }
 
@@ -4632,7 +5051,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get pageBreakAfter => this._pageBreakAfter;
 
   /** Sets the value of "page-break-after" */
-  set pageBreakAfter(String value) {
+  set pageBreakAfter(String? value) {
     _pageBreakAfter = value == null ? '' : value;
   }
 
@@ -4644,7 +5063,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get pageBreakBefore => this._pageBreakBefore;
 
   /** Sets the value of "page-break-before" */
-  set pageBreakBefore(String value) {
+  set pageBreakBefore(String? value) {
     _pageBreakBefore = value == null ? '' : value;
   }
 
@@ -4656,7 +5075,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get pageBreakInside => this._pageBreakInside;
 
   /** Sets the value of "page-break-inside" */
-  set pageBreakInside(String value) {
+  set pageBreakInside(String? value) {
     _pageBreakInside = value == null ? '' : value;
   }
 
@@ -4668,7 +5087,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get position => this._position;
 
   /** Sets the value of "position" */
-  set position(String value) {
+  set position(String? value) {
     _position = value == null ? '' : value;
   }
 
@@ -4680,7 +5099,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get quotes => this._quotes;
 
   /** Sets the value of "quotes" */
-  set quotes(String value) {
+  set quotes(String? value) {
     _quotes = value == null ? '' : value;
   }
 
@@ -4692,7 +5111,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get right => this._right;
 
   /** Sets the value of "right" */
-  set right(String value) {
+  set right(String? value) {
     _right = value == null ? '' : value;
   }
 
@@ -4704,7 +5123,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get tableLayout => this._tableLayout;
 
   /** Sets the value of "table-layout" */
-  set tableLayout(String value) {
+  set tableLayout(String? value) {
     _tableLayout = value == null ? '' : value;
   }
 
@@ -4716,7 +5135,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get textAlign => this._textAlign;
 
   /** Sets the value of "text-align" */
-  set textAlign(String value) {
+  set textAlign(String? value) {
     _textAlign = value == null ? '' : value;
   }
 
@@ -4728,7 +5147,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get textDecoration => this._textDecoration;
 
   /** Sets the value of "text-decoration" */
-  set textDecoration(String value) {
+  set textDecoration(String? value) {
     _textDecoration = value == null ? '' : value;
   }
 
@@ -4740,7 +5159,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get textIndent => this._textIndent;
 
   /** Sets the value of "text-indent" */
-  set textIndent(String value) {
+  set textIndent(String? value) {
     _textIndent = value == null ? '' : value;
   }
 
@@ -4752,7 +5171,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get textTransform => this._textTransform;
 
   /** Sets the value of "text-transform" */
-  set textTransform(String value) {
+  set textTransform(String? value) {
     _textTransform = value == null ? '' : value;
   }
 
@@ -4764,7 +5183,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get top => this._top;
 
   /** Sets the value of "top" */
-  set top(String value) {
+  set top(String? value) {
     _top = value == null ? '' : value;
   }
 
@@ -4776,7 +5195,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get unicodeBidi => this._unicodeBidi;
 
   /** Sets the value of "unicode-bidi" */
-  set unicodeBidi(String value) {
+  set unicodeBidi(String? value) {
     _unicodeBidi = value == null ? '' : value;
   }
 
@@ -4788,7 +5207,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get verticalAlign => this._verticalAlign;
 
   /** Sets the value of "vertical-align" */
-  set verticalAlign(String value) {
+  set verticalAlign(String? value) {
     _verticalAlign = value == null ? '' : value;
   }
 
@@ -4800,7 +5219,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get visibility => this._visibility;
 
   /** Sets the value of "visibility" */
-  set visibility(String value) {
+  set visibility(String? value) {
     _visibility = value == null ? '' : value;
   }
 
@@ -4812,7 +5231,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get whiteSpace => this._whiteSpace;
 
   /** Sets the value of "white-space" */
-  set whiteSpace(String value) {
+  set whiteSpace(String? value) {
     _whiteSpace = value == null ? '' : value;
   }
 
@@ -4824,7 +5243,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get width => this._width;
 
   /** Sets the value of "width" */
-  set width(String value) {
+  set width(String? value) {
     _width = value == null ? '' : value;
   }
 
@@ -4836,7 +5255,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get wordSpacing => this._wordSpacing;
 
   /** Sets the value of "word-spacing" */
-  set wordSpacing(String value) {
+  set wordSpacing(String? value) {
     _wordSpacing = value == null ? '' : value;
   }
 
@@ -4848,7 +5267,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
   String get zIndex => this._zIndex;
 
   /** Sets the value of "z-index" */
-  set zIndex(String value) {
+  set zIndex(String? value) {
     _zIndex = value == null ? '' : value;
   }
 
@@ -4875,7 +5294,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
         .forEach((e) => e.setProperty(propertyName, value, priority));
   }
 
-  void _setAll(String propertyName, String value) {
+  void _setAll(String propertyName, String? value) {
     value = value == null ? '' : value;
     for (Element element in _elementIterable) {
       JS('void', '#.style[#] = #', element, propertyName, value);
@@ -8111,9 +8530,13 @@ class CssStyleRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  String selectorText;
+  String get selectorText => JS("String", "#.selectorText", this);
 
-  final CssStyleDeclaration style;
+  set selectorText(String value) {
+    JS("void", "#.selectorText = #", this, value);
+  }
+
+  CssStyleDeclaration get style => JS("CssStyleDeclaration", "#.style", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8128,19 +8551,19 @@ class CssStyleSheet extends StyleSheet {
 
   @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
-  final List<CssRule> cssRules;
+  List<CssRule> get cssRules => JS("_CssRuleList", "#.cssRules", this);
 
-  final CssRule ownerRule;
+  final CssRule? ownerRule;
 
   @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
-  final List<CssRule> rules;
+  List<CssRule> get rules => JS("_CssRuleList", "#.rules", this);
 
-  int addRule(String selector, String style, [int index]) native;
+  int addRule(String selector, String style, [int? index]) native;
 
   void deleteRule(int index) native;
 
-  int insertRule(String rule, [int index]) native;
+  int insertRule(String rule, [int? index]) native;
 
   void removeRule(int index) native;
 }
@@ -8179,7 +8602,11 @@ class CssTransformComponent extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool is2D;
+  bool get is2D => JS("bool", "#.is2D", this);
+
+  set is2D(bool value) {
+    JS("void", "#.is2D = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8192,7 +8619,8 @@ class CssTransformValue extends CssStyleValue {
     throw new UnsupportedError("Not supported");
   }
 
-  factory CssTransformValue([List<CssTransformComponent> transformComponents]) {
+  factory CssTransformValue(
+      [List<CssTransformComponent>? transformComponents]) {
     if (transformComponents == null) {
       return CssTransformValue._create_1();
     }
@@ -8206,9 +8634,9 @@ class CssTransformValue extends CssStyleValue {
   static CssTransformValue _create_2(transformComponents) =>
       JS('CssTransformValue', 'new CSSTransformValue(#)', transformComponents);
 
-  final bool is2D;
+  bool get is2D => JS("bool", "#.is2D", this);
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   CssTransformComponent componentAtIndex(int index) native;
 
@@ -8226,7 +8654,7 @@ class CssTranslation extends CssTransformComponent {
   }
 
   factory CssTranslation(CssNumericValue x, CssNumericValue y,
-      [CssNumericValue z]) {
+      [CssNumericValue? z]) {
     if ((y is CssNumericValue) && (x is CssNumericValue) && z == null) {
       return CssTranslation._create_1(x, y);
     }
@@ -8242,11 +8670,23 @@ class CssTranslation extends CssTransformComponent {
   static CssTranslation _create_2(x, y, z) =>
       JS('CssTranslation', 'new CSSTranslation(#,#,#)', x, y, z);
 
-  CssNumericValue x;
+  CssNumericValue get x => JS("CssNumericValue", "#.x", this);
 
-  CssNumericValue y;
+  set x(CssNumericValue value) {
+    JS("void", "#.x = #", this, value);
+  }
 
-  CssNumericValue z;
+  CssNumericValue get y => JS("CssNumericValue", "#.y", this);
+
+  set y(CssNumericValue value) {
+    JS("void", "#.y = #", this, value);
+  }
+
+  CssNumericValue get z => JS("CssNumericValue", "#.z", this);
+
+  set z(CssNumericValue value) {
+    JS("void", "#.z = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8265,11 +8705,19 @@ class CssUnitValue extends CssNumericValue {
   static CssUnitValue _create_1(value, unit) =>
       JS('CssUnitValue', 'new CSSUnitValue(#,#)', value, unit);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
-  String unit;
+  String get unit => JS("String", "#.unit", this);
 
-  num value;
+  set unit(String value) {
+    JS("void", "#.unit = #", this, value);
+  }
+
+  num get value => JS("num", "#.value", this);
+
+  set value(num value) {
+    JS("void", "#.value = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8282,7 +8730,7 @@ class CssUnparsedValue extends CssStyleValue {
     throw new UnsupportedError("Not supported");
   }
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   Object fragmentAtIndex(int index) native;
 }
@@ -8297,9 +8745,9 @@ class CssVariableReferenceValue extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final CssUnparsedValue fallback;
+  CssUnparsedValue get fallback => JS("CssUnparsedValue", "#.fallback", this);
 
-  final String variable;
+  String get variable => JS("String", "#.variable", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8312,7 +8760,7 @@ class CssViewportRule extends CssRule {
     throw new UnsupportedError("Not supported");
   }
 
-  final CssStyleDeclaration style;
+  CssStyleDeclaration get style => JS("CssStyleDeclaration", "#.style", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8331,7 +8779,7 @@ class CssurlImageValue extends CssImageValue {
   static CssurlImageValue _create_1(url) =>
       JS('CssurlImageValue', 'new CSSURLImageValue(#)', url);
 
-  final String url;
+  String get url => JS("String", "#.url", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8353,7 +8801,7 @@ class CustomElementRegistry extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  void define(String name, Object constructor, [Map options]) {
+  void define(String name, Object constructor, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       _define_1(name, constructor, options_1);
@@ -8413,7 +8861,7 @@ class CustomEvent extends Event {
     return _detail;
   }
 
-  factory CustomEvent._(String type, [Map eventInitDict]) {
+  factory CustomEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return CustomEvent._create_1(type, eventInitDict_1);
@@ -8433,7 +8881,7 @@ class CustomEvent extends Event {
 
   @JSName('initCustomEvent')
   void _initCustomEvent(String type,
-      [bool bubbles, bool cancelable, Object detail]) native;
+      [bool? bubbles, bool? cancelable, Object? detail]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8446,7 +8894,7 @@ class DListElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DListElement() => JS(
+  factory DListElement() => JS<DListElement>(
       'returns:DListElement;creates:DListElement;new:true',
       '#.createElement(#)',
       document,
@@ -8475,7 +8923,11 @@ class DataElement extends HtmlElement {
    */
   DataElement.created() : super.created();
 
-  String value;
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8492,7 +8944,8 @@ class DataListElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DataListElement() => document.createElement("datalist");
+  factory DataListElement() =>
+      document.createElement("datalist") as DataListElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -8505,7 +8958,7 @@ class DataListElement extends HtmlElement {
 
   @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
-  final List<Node> options;
+  List<Node> get options => JS("HtmlCollection", "#.options", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8523,19 +8976,27 @@ class DataTransfer extends Interceptor {
   }
   static DataTransfer _create_1() => JS('DataTransfer', 'new DataTransfer()');
 
-  String dropEffect;
+  String get dropEffect => JS("String", "#.dropEffect", this);
 
-  String effectAllowed;
+  set dropEffect(String value) {
+    JS("void", "#.dropEffect = #", this, value);
+  }
+
+  String get effectAllowed => JS("String", "#.effectAllowed", this);
+
+  set effectAllowed(String value) {
+    JS("void", "#.effectAllowed = #", this, value);
+  }
 
   @Returns('FileList|Null')
   @Creates('FileList')
-  final List<File> files;
+  List<File> get files => JS("FileList", "#.files", this);
 
-  final DataTransferItemList items;
+  DataTransferItemList get items => JS("DataTransferItemList", "#.items", this);
 
-  final List<String> types;
+  List<String> get types => JS("List<String>", "#.types", this);
 
-  void clearData([String format]) native;
+  void clearData([String? format]) native;
 
   String getData(String format) native;
 
@@ -8567,9 +9028,9 @@ class DataTransferItem extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String kind;
+  String get kind => JS("String", "#.kind", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
   File getAsFile() native;
 
@@ -8589,9 +9050,9 @@ class DataTransferItemList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
-  DataTransferItem add(data_OR_file, [String type]) native;
+  DataTransferItem add(data_OR_file, [String? type]) native;
 
   @JSName('add')
   DataTransferItem addData(String data, String type) native;
@@ -8656,7 +9117,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 
   void close() native;
 
-  void postMessage(/*any*/ message, [List<Object> transfer]) {
+  void postMessage(/*any*/ message, [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, transfer);
@@ -8676,8 +9137,8 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitRequestFileSystem(int type, int size,
-      [_FileSystemCallback successCallback,
-      _ErrorCallback errorCallback]) native;
+      [_FileSystemCallback? successCallback,
+      _ErrorCallback? errorCallback]) native;
 
   @JSName('webkitRequestFileSystemSync')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -8694,7 +9155,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitResolveLocalFileSystemUrl(
       String url, _EntryCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
@@ -8720,12 +9181,12 @@ class DeprecatedStorageInfo extends Interceptor {
   static const int TEMPORARY = 0;
 
   void queryUsageAndQuota(int storageType,
-      [StorageUsageCallback usageCallback,
-      StorageErrorCallback errorCallback]) native;
+      [StorageUsageCallback? usageCallback,
+      StorageErrorCallback? errorCallback]) native;
 
   void requestQuota(int storageType, int newQuotaInBytes,
-      [StorageQuotaCallback quotaCallback,
-      StorageErrorCallback errorCallback]) native;
+      [StorageQuotaCallback? quotaCallback,
+      StorageErrorCallback? errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8739,11 +9200,11 @@ class DeprecatedStorageQuota extends Interceptor {
   }
 
   void queryUsageAndQuota(StorageUsageCallback usageCallback,
-      [StorageErrorCallback errorCallback]) native;
+      [StorageErrorCallback? errorCallback]) native;
 
   void requestQuota(int newQuotaInBytes,
-      [StorageQuotaCallback quotaCallback,
-      StorageErrorCallback errorCallback]) native;
+      [StorageQuotaCallback? quotaCallback,
+      StorageErrorCallback? errorCallback]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8756,11 +9217,11 @@ class DeprecationReport extends ReportBody {
     throw new UnsupportedError("Not supported");
   }
 
-  final int lineNumber;
+  int get lineNumber => JS("int", "#.lineNumber", this);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 
-  final String sourceFile;
+  String get sourceFile => JS("String", "#.sourceFile", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8775,7 +9236,8 @@ class DetailsElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DetailsElement() => document.createElement("details");
+  factory DetailsElement() =>
+      document.createElement("details") as DetailsElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -8786,7 +9248,11 @@ class DetailsElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('details');
 
-  bool open;
+  bool get open => JS("bool", "#.open", this);
+
+  set open(bool value) {
+    JS("void", "#.open = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8805,11 +9271,11 @@ class DetectedBarcode extends Interceptor {
   static DetectedBarcode _create_1() =>
       JS('DetectedBarcode', 'new DetectedBarcode()');
 
-  final Rectangle boundingBox;
+  Rectangle get boundingBox => JS("Rectangle", "#.boundingBox", this);
 
-  final List cornerPoints;
+  List get cornerPoints => JS("List", "#.cornerPoints", this);
 
-  final String rawValue;
+  String get rawValue => JS("String", "#.rawValue", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8827,9 +9293,9 @@ class DetectedFace extends Interceptor {
   }
   static DetectedFace _create_1() => JS('DetectedFace', 'new DetectedFace()');
 
-  final Rectangle boundingBox;
+  Rectangle get boundingBox => JS("Rectangle", "#.boundingBox", this);
 
-  final List landmarks;
+  List get landmarks => JS("List", "#.landmarks", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8847,11 +9313,11 @@ class DetectedText extends Interceptor {
   }
   static DetectedText _create_1() => JS('DetectedText', 'new DetectedText()');
 
-  final Rectangle boundingBox;
+  Rectangle get boundingBox => JS("Rectangle", "#.boundingBox", this);
 
-  final List cornerPoints;
+  List get cornerPoints => JS("List", "#.cornerPoints", this);
 
-  final String rawValue;
+  String get rawValue => JS("String", "#.rawValue", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8881,7 +9347,7 @@ class DeviceMotionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DeviceMotionEvent(String type, [Map eventInitDict]) {
+  factory DeviceMotionEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return DeviceMotionEvent._create_1(type, eventInitDict_1);
@@ -8893,13 +9359,13 @@ class DeviceMotionEvent extends Event {
   static DeviceMotionEvent _create_2(type) =>
       JS('DeviceMotionEvent', 'new DeviceMotionEvent(#)', type);
 
-  final DeviceAcceleration acceleration;
+  final DeviceAcceleration? acceleration;
 
-  final DeviceAcceleration accelerationIncludingGravity;
+  final DeviceAcceleration? accelerationIncludingGravity;
 
-  final num interval;
+  num get interval => JS("num", "#.interval", this);
 
-  final DeviceRotationRate rotationRate;
+  final DeviceRotationRate? rotationRate;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8912,7 +9378,7 @@ class DeviceOrientationEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DeviceOrientationEvent(String type, [Map eventInitDict]) {
+  factory DeviceOrientationEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return DeviceOrientationEvent._create_1(type, eventInitDict_1);
@@ -8927,7 +9393,7 @@ class DeviceOrientationEvent extends Event {
   static DeviceOrientationEvent _create_2(type) =>
       JS('DeviceOrientationEvent', 'new DeviceOrientationEvent(#)', type);
 
-  final bool absolute;
+  bool get absolute => JS("bool", "#.absolute", this);
 
   final num alpha;
 
@@ -8970,11 +9436,19 @@ class DialogElement extends HtmlElement {
    */
   DialogElement.created() : super.created();
 
-  bool open;
+  bool get open => JS("bool", "#.open", this);
 
-  String returnValue;
+  set open(bool value) {
+    JS("void", "#.open = #", this, value);
+  }
 
-  void close([String returnValue]) native;
+  String get returnValue => JS("String", "#.returnValue", this);
+
+  set returnValue(String value) {
+    JS("void", "#.returnValue = #", this, value);
+  }
+
+  void close([String? returnValue]) native;
 
   void show() native;
 
@@ -9037,10 +9511,10 @@ class DirectoryEntry extends Entry {
   @JSName('createReader')
   DirectoryReader _createReader() native;
 
-  void __getDirectory(String path,
-      [Map options,
-      _EntryCallback successCallback,
-      _ErrorCallback errorCallback]) {
+  void __getDirectory(String? path,
+      [Map? options,
+      _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback]) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       __getDirectory_1(path, options_1, successCallback, errorCallback);
@@ -9071,7 +9545,7 @@ class DirectoryEntry extends Entry {
   void __getDirectory_4(path) native;
 
   @JSName('getDirectory')
-  Future<Entry> _getDirectory(String path, {Map options}) {
+  Future<Entry> _getDirectory(String? path, {Map? options}) {
     var completer = new Completer<Entry>();
     __getDirectory(path, options, (value) {
       completer.complete(value);
@@ -9081,10 +9555,10 @@ class DirectoryEntry extends Entry {
     return completer.future;
   }
 
-  void __getFile(String path,
-      [Map options,
-      _EntryCallback successCallback,
-      _ErrorCallback errorCallback]) {
+  void __getFile(String? path,
+      [Map? options,
+      _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback]) {
     if (errorCallback != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       __getFile_1(path, options_1, successCallback, errorCallback);
@@ -9115,7 +9589,7 @@ class DirectoryEntry extends Entry {
   void __getFile_4(path) native;
 
   @JSName('getFile')
-  Future<Entry> _getFile(String path, {Map options}) {
+  Future<Entry> _getFile(String? path, {Map? options}) {
     var completer = new Completer<Entry>();
     __getFile(path, options, (value) {
       applyExtension('FileEntry', value);
@@ -9128,7 +9602,7 @@ class DirectoryEntry extends Entry {
 
   @JSName('removeRecursively')
   void _removeRecursively(VoidCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('removeRecursively')
   Future removeRecursively() {
@@ -9154,7 +9628,7 @@ class DirectoryReader extends Interceptor {
 
   @JSName('readEntries')
   void _readEntries(_EntriesCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   Future<List<Entry>> readEntries() {
     var completer = new Completer<List<Entry>>();
@@ -9207,8 +9681,11 @@ class DivElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DivElement() => JS('returns:DivElement;creates:DivElement;new:true',
-      '#.createElement(#)', document, "div");
+  factory DivElement() => JS<DivElement>(
+      'returns:DivElement;creates:DivElement;new:true',
+      '#.createElement(#)',
+      document,
+      "div");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -9276,18 +9753,22 @@ class Document extends Node {
   }
   static Document _create_1() => JS('Document', 'new Document()');
 
-  final String addressSpace;
+  String get addressSpace => JS("String", "#.addressSpace", this);
 
   @JSName('body')
-  HtmlElement _body;
+  HtmlElement? _body;
 
-  final String contentType;
+  String get contentType => JS("String", "#.contentType", this);
 
-  String cookie;
+  String get cookie => JS("String", "#.cookie", this);
 
-  final ScriptElement currentScript;
+  set cookie(String value) {
+    JS("void", "#.cookie = #", this, value);
+  }
 
-  WindowBase get window => _convertNativeToDart_Window(this._get_window);
+  final ScriptElement? currentScript;
+
+  WindowBase? get window => _convertNativeToDart_Window(this._get_window);
   @JSName('defaultView')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
@@ -9295,70 +9776,79 @@ class Document extends Node {
   @Returns('Window|=Object|Null')
   final dynamic _get_window;
 
-  final Element documentElement;
+  final Element? documentElement;
 
-  final String domain;
+  String get domain => JS("String", "#.domain", this);
 
-  final bool fullscreenEnabled;
+  bool get fullscreenEnabled => JS("bool", "#.fullscreenEnabled", this);
 
   @JSName('head')
-  final HeadElement _head;
+  final HeadElement? _head;
 
-  final bool hidden;
+  bool get hidden => JS("bool", "#.hidden", this);
 
-  final DomImplementation implementation;
+  DomImplementation get implementation =>
+      JS("DomImplementation", "#.implementation", this);
 
   @JSName('lastModified')
-  final String _lastModified;
+  String get _lastModified => JS("String", "#.lastModified", this);
 
-  final String origin;
+  String get origin => JS("String", "#.origin", this);
 
   @JSName('preferredStylesheetSet')
-  final String _preferredStylesheetSet;
+  final String? _preferredStylesheetSet;
 
-  final String readyState;
+  String get readyState => JS("String", "#.readyState", this);
 
   @JSName('referrer')
-  final String _referrer;
+  String get _referrer => JS("String", "#.referrer", this);
 
-  final SvgSvgElement rootElement;
+  SvgSvgElement get rootElement => JS("SvgSvgElement", "#.rootElement", this);
 
-  Element rootScroller;
+  Element? rootScroller;
 
-  final Element scrollingElement;
+  final Element? scrollingElement;
 
   @JSName('selectedStylesheetSet')
-  String _selectedStylesheetSet;
+  String? _selectedStylesheetSet;
 
-  final String suborigin;
+  String get suborigin => JS("String", "#.suborigin", this);
 
-  final DocumentTimeline timeline;
+  DocumentTimeline get timeline => JS("DocumentTimeline", "#.timeline", this);
 
   @JSName('title')
-  String _title;
+  String get _title => JS("String", "#.title", this);
+
+  @JSName('title')
+  set _title(String value) {
+    JS("void", "#.title = #", this, value);
+  }
 
   @JSName('visibilityState')
-  final String _visibilityState;
+  String get _visibilityState => JS("String", "#.visibilityState", this);
 
   @JSName('webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final Element _webkitFullscreenElement;
+  Element get _webkitFullscreenElement =>
+      JS("Element", "#.webkitFullscreenElement", this);
 
   @JSName('webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final bool _webkitFullscreenEnabled;
+  bool get _webkitFullscreenEnabled =>
+      JS("bool", "#.webkitFullscreenEnabled", this);
 
   @JSName('webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final bool _webkitHidden;
+  bool get _webkitHidden => JS("bool", "#.webkitHidden", this);
 
   @JSName('webkitVisibilityState')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final String _webkitVisibilityState;
+  String get _webkitVisibilityState =>
+      JS("String", "#.webkitVisibilityState", this);
 
   Node adoptNode(Node node) native;
 
@@ -9372,7 +9862,7 @@ class Document extends Node {
       [options_OR_typeExtension]) native;
 
   @JSName('createElementNS')
-  Element _createElementNS(String namespaceURI, String qualifiedName,
+  Element _createElementNS(String? namespaceURI, String qualifiedName,
       [options_OR_typeExtension]) native;
 
   @JSName('createEvent')
@@ -9385,7 +9875,7 @@ class Document extends Node {
 
   Touch _createTouch(Window view, EventTarget target, int identifier, num pageX,
       num pageY, num screenX, num screenY,
-      [num radiusX, num radiusY, num rotationAngle, num force]) {
+      [num? radiusX, num? radiusY, num? rotationAngle, num? force]) {
     if (force != null) {
       var target_1 = _convertDartToNative_EventTarget(target);
       return _createTouch_1(view, target_1, identifier, pageX, pageY, screenX,
@@ -9430,7 +9920,7 @@ class Document extends Node {
   @JSName('createTouchList')
   TouchList _createTouchList(Touch touches) native;
 
-  bool execCommand(String commandId, [bool showUI, String value]) native;
+  bool execCommand(String commandId, [bool? showUI, String? value]) native;
 
   void exitFullscreen() native;
 
@@ -9450,7 +9940,7 @@ class Document extends Node {
   @Returns('NodeList|HtmlCollection')
   List<Node> getElementsByTagName(String localName) native;
 
-  Node importNode(Node node, [bool deep]) native;
+  Node importNode(Node node, [bool? deep]) native;
 
   bool queryCommandEnabled(String commandId) native;
 
@@ -9462,7 +9952,7 @@ class Document extends Node {
 
   String queryCommandValue(String commandId) native;
 
-  Function registerElement2(String type, [Map options]) {
+  Function registerElement2(String type, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _registerElement2_1(type, options_1);
@@ -9486,16 +9976,17 @@ class Document extends Node {
 
   // From DocumentOrShadowRoot
 
-  final Element activeElement;
+  final Element? activeElement;
 
-  final Element fullscreenElement;
+  final Element? fullscreenElement;
 
-  final Element pointerLockElement;
+  final Element? pointerLockElement;
 
   @JSName('styleSheets')
   @Returns('_StyleSheetList|Null')
   @Creates('_StyleSheetList')
-  final List<StyleSheet> _styleSheets;
+  List<StyleSheet> get _styleSheets =>
+      JS("_StyleSheetList", "#.styleSheets", this);
 
   @JSName('elementFromPoint')
   Element _elementFromPoint(int x, int y) native;
@@ -9504,23 +9995,23 @@ class Document extends Node {
 
   // From FontFaceSource
 
-  final FontFaceSet fonts;
+  FontFaceSet get fonts => JS("FontFaceSet", "#.fonts", this);
 
   // From ParentNode
 
   @JSName('childElementCount')
-  final int _childElementCount;
+  int get _childElementCount => JS("int", "#.childElementCount", this);
 
   @JSName('children')
   @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
-  final List<Node> _children;
+  List<Node> get _children => JS("HtmlCollection", "#.children", this);
 
   @JSName('firstElementChild')
-  final Element _firstElementChild;
+  final Element? _firstElementChild;
 
   @JSName('lastElementChild')
-  final Element _lastElementChild;
+  final Element? _lastElementChild;
 
   /**
    * Finds the first descendant element of this document that matches the
@@ -9937,13 +10428,13 @@ class DocumentFragment extends Node
   // From ParentNode
 
   @JSName('childElementCount')
-  final int _childElementCount;
+  int get _childElementCount => JS("int", "#.childElementCount", this);
 
   @JSName('firstElementChild')
-  final Element _firstElementChild;
+  final Element? _firstElementChild;
 
   @JSName('lastElementChild')
-  final Element _lastElementChild;
+  final Element? _lastElementChild;
 
   /**
    * Finds the first descendant element of this document fragment that matches
@@ -9975,15 +10466,16 @@ class DocumentOrShadowRoot extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Element activeElement;
+  final Element? activeElement;
 
-  final Element fullscreenElement;
+  final Element? fullscreenElement;
 
-  final Element pointerLockElement;
+  final Element? pointerLockElement;
 
   @Returns('_StyleSheetList|Null')
   @Creates('_StyleSheetList')
-  final List<StyleSheet> styleSheets;
+  List<StyleSheet> get styleSheets =>
+      JS("_StyleSheetList", "#.styleSheets", this);
 
   Element elementFromPoint(int x, int y) native;
 
@@ -10002,7 +10494,7 @@ class DocumentTimeline extends AnimationTimeline {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DocumentTimeline([Map options]) {
+  factory DocumentTimeline([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return DocumentTimeline._create_1(options_1);
@@ -10025,7 +10517,7 @@ class DomError extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomError(String name, [String message]) {
+  factory DomError(String name, [String? message]) {
     if (message != null) {
       return DomError._create_1(name, message);
     }
@@ -10035,9 +10527,9 @@ class DomError extends Interceptor {
       JS('DomError', 'new DOMError(#,#)', name, message);
   static DomError _create_2(name) => JS('DomError', 'new DOMError(#)', name);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10095,7 +10587,7 @@ class DomException extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 
   String toString() => JS('String', 'String(#)', this);
 }
@@ -10110,14 +10602,14 @@ class DomImplementation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  XmlDocument createDocument(
-      String namespaceURI, String qualifiedName, _DocumentType doctype) native;
+  XmlDocument createDocument(String? namespaceURI, String qualifiedName,
+      _DocumentType? doctype) native;
 
   _DocumentType createDocumentType(
       String qualifiedName, String publicId, String systemId) native;
 
   @JSName('createHTMLDocument')
-  HtmlDocument createHtmlDocument([String title]) native;
+  HtmlDocument createHtmlDocument([String? title]) native;
 
   bool hasFeature() native;
 }
@@ -10132,7 +10624,7 @@ class DomIterator extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Object next([Object value]) native;
+  Object next([Object? value]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10145,7 +10637,7 @@ class DomMatrix extends DomMatrixReadOnly {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomMatrix([Object init]) {
+  factory DomMatrix([Object? init]) {
     if (init != null) {
       return DomMatrix._create_1(init);
     }
@@ -10155,6 +10647,7 @@ class DomMatrix extends DomMatrixReadOnly {
   static DomMatrix _create_2() => JS('DomMatrix', 'new DOMMatrix()');
 
   // Shadowing definition.
+
   num get a => JS("num", "#.a", this);
 
   set a(num value) {
@@ -10162,6 +10655,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get b => JS("num", "#.b", this);
 
   set b(num value) {
@@ -10169,6 +10663,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get c => JS("num", "#.c", this);
 
   set c(num value) {
@@ -10176,6 +10671,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get d => JS("num", "#.d", this);
 
   set d(num value) {
@@ -10183,6 +10679,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get e => JS("num", "#.e", this);
 
   set e(num value) {
@@ -10190,6 +10687,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get f => JS("num", "#.f", this);
 
   set f(num value) {
@@ -10197,6 +10695,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m11 => JS("num", "#.m11", this);
 
   set m11(num value) {
@@ -10204,6 +10703,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m12 => JS("num", "#.m12", this);
 
   set m12(num value) {
@@ -10211,6 +10711,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m13 => JS("num", "#.m13", this);
 
   set m13(num value) {
@@ -10218,6 +10719,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m14 => JS("num", "#.m14", this);
 
   set m14(num value) {
@@ -10225,6 +10727,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m21 => JS("num", "#.m21", this);
 
   set m21(num value) {
@@ -10232,6 +10735,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m22 => JS("num", "#.m22", this);
 
   set m22(num value) {
@@ -10239,6 +10743,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m23 => JS("num", "#.m23", this);
 
   set m23(num value) {
@@ -10246,6 +10751,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m24 => JS("num", "#.m24", this);
 
   set m24(num value) {
@@ -10253,6 +10759,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m31 => JS("num", "#.m31", this);
 
   set m31(num value) {
@@ -10260,6 +10767,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m32 => JS("num", "#.m32", this);
 
   set m32(num value) {
@@ -10267,6 +10775,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m33 => JS("num", "#.m33", this);
 
   set m33(num value) {
@@ -10274,6 +10783,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m34 => JS("num", "#.m34", this);
 
   set m34(num value) {
@@ -10281,6 +10791,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m41 => JS("num", "#.m41", this);
 
   set m41(num value) {
@@ -10288,6 +10799,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m42 => JS("num", "#.m42", this);
 
   set m42(num value) {
@@ -10295,6 +10807,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m43 => JS("num", "#.m43", this);
 
   set m43(num value) {
@@ -10302,6 +10815,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m44 => JS("num", "#.m44", this);
 
   set m44(num value) {
@@ -10312,7 +10826,7 @@ class DomMatrix extends DomMatrixReadOnly {
 
   static DomMatrix fromFloat64Array(Float64List array64) native;
 
-  static DomMatrix fromMatrix([Map other]) {
+  static DomMatrix fromMatrix([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromMatrix_1(other_1);
@@ -10327,7 +10841,7 @@ class DomMatrix extends DomMatrixReadOnly {
 
   DomMatrix invertSelf() native;
 
-  DomMatrix multiplySelf([Map other]) {
+  DomMatrix multiplySelf([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _multiplySelf_1(other_1);
@@ -10340,7 +10854,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @JSName('multiplySelf')
   DomMatrix _multiplySelf_2() native;
 
-  DomMatrix preMultiplySelf([Map other]) {
+  DomMatrix preMultiplySelf([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _preMultiplySelf_1(other_1);
@@ -10353,30 +10867,30 @@ class DomMatrix extends DomMatrixReadOnly {
   @JSName('preMultiplySelf')
   DomMatrix _preMultiplySelf_2() native;
 
-  DomMatrix rotateAxisAngleSelf([num x, num y, num z, num angle]) native;
+  DomMatrix rotateAxisAngleSelf([num? x, num? y, num? z, num? angle]) native;
 
-  DomMatrix rotateFromVectorSelf([num x, num y]) native;
+  DomMatrix rotateFromVectorSelf([num? x, num? y]) native;
 
-  DomMatrix rotateSelf([num rotX, num rotY, num rotZ]) native;
+  DomMatrix rotateSelf([num? rotX, num? rotY, num? rotZ]) native;
 
-  DomMatrix scale3dSelf([num scale, num originX, num originY, num originZ])
+  DomMatrix scale3dSelf([num? scale, num? originX, num? originY, num? originZ])
       native;
 
   DomMatrix scaleSelf(
-      [num scaleX,
-      num scaleY,
-      num scaleZ,
-      num originX,
-      num originY,
-      num originZ]) native;
+      [num? scaleX,
+      num? scaleY,
+      num? scaleZ,
+      num? originX,
+      num? originY,
+      num? originZ]) native;
 
   DomMatrix setMatrixValue(String transformList) native;
 
-  DomMatrix skewXSelf([num sx]) native;
+  DomMatrix skewXSelf([num? sx]) native;
 
-  DomMatrix skewYSelf([num sy]) native;
+  DomMatrix skewYSelf([num? sy]) native;
 
-  DomMatrix translateSelf([num tx, num ty, num tz]) native;
+  DomMatrix translateSelf([num? tx, num? ty, num? tz]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10389,7 +10903,7 @@ class DomMatrixReadOnly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomMatrixReadOnly([Object init]) {
+  factory DomMatrixReadOnly([Object? init]) {
     if (init != null) {
       return DomMatrixReadOnly._create_1(init);
     }
@@ -10456,7 +10970,7 @@ class DomMatrixReadOnly extends Interceptor {
 
   static DomMatrixReadOnly fromFloat64Array(Float64List array64) native;
 
-  static DomMatrixReadOnly fromMatrix([Map other]) {
+  static DomMatrixReadOnly fromMatrix([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromMatrix_1(other_1);
@@ -10471,7 +10985,7 @@ class DomMatrixReadOnly extends Interceptor {
 
   DomMatrix inverse() native;
 
-  DomMatrix multiply([Map other]) {
+  DomMatrix multiply([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _multiply_1(other_1);
@@ -10484,31 +10998,32 @@ class DomMatrixReadOnly extends Interceptor {
   @JSName('multiply')
   DomMatrix _multiply_2() native;
 
-  DomMatrix rotate([num rotX, num rotY, num rotZ]) native;
+  DomMatrix rotate([num? rotX, num? rotY, num? rotZ]) native;
 
-  DomMatrix rotateAxisAngle([num x, num y, num z, num angle]) native;
+  DomMatrix rotateAxisAngle([num? x, num? y, num? z, num? angle]) native;
 
-  DomMatrix rotateFromVector([num x, num y]) native;
+  DomMatrix rotateFromVector([num? x, num? y]) native;
 
   DomMatrix scale(
-      [num scaleX,
-      num scaleY,
-      num scaleZ,
-      num originX,
-      num originY,
-      num originZ]) native;
+      [num? scaleX,
+      num? scaleY,
+      num? scaleZ,
+      num? originX,
+      num? originY,
+      num? originZ]) native;
 
-  DomMatrix scale3d([num scale, num originX, num originY, num originZ]) native;
+  DomMatrix scale3d([num? scale, num? originX, num? originY, num? originZ])
+      native;
 
-  DomMatrix skewX([num sx]) native;
+  DomMatrix skewX([num? sx]) native;
 
-  DomMatrix skewY([num sy]) native;
+  DomMatrix skewY([num? sy]) native;
 
   Float32List toFloat32Array() native;
 
   Float64List toFloat64Array() native;
 
-  DomPoint transformPoint([Map point]) {
+  DomPoint transformPoint([Map? point]) {
     if (point != null) {
       var point_1 = convertDartToNative_Dictionary(point);
       return _transformPoint_1(point_1);
@@ -10521,7 +11036,7 @@ class DomMatrixReadOnly extends Interceptor {
   @JSName('transformPoint')
   DomPoint _transformPoint_2() native;
 
-  DomMatrix translate([num tx, num ty, num tz]) native;
+  DomMatrix translate([num? tx, num? ty, num? tz]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10552,7 +11067,7 @@ class DomPoint extends DomPointReadOnly {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomPoint([num x, num y, num z, num w]) {
+  factory DomPoint([num? x, num? y, num? z, num? w]) {
     if (w != null) {
       return DomPoint._create_1(x, y, z, w);
     }
@@ -10580,6 +11095,7 @@ class DomPoint extends DomPointReadOnly {
       JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)');
 
   // Shadowing definition.
+
   num get w => JS("num", "#.w", this);
 
   set w(num value) {
@@ -10587,6 +11103,7 @@ class DomPoint extends DomPointReadOnly {
   }
 
   // Shadowing definition.
+
   num get x => JS("num", "#.x", this);
 
   set x(num value) {
@@ -10594,6 +11111,7 @@ class DomPoint extends DomPointReadOnly {
   }
 
   // Shadowing definition.
+
   num get y => JS("num", "#.y", this);
 
   set y(num value) {
@@ -10601,13 +11119,14 @@ class DomPoint extends DomPointReadOnly {
   }
 
   // Shadowing definition.
+
   num get z => JS("num", "#.z", this);
 
   set z(num value) {
     JS("void", "#.z = #", this, value);
   }
 
-  static DomPoint fromPoint([Map other]) {
+  static DomPoint fromPoint([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromPoint_1(other_1);
@@ -10631,7 +11150,7 @@ class DomPointReadOnly extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomPointReadOnly([num x, num y, num z, num w]) {
+  factory DomPointReadOnly([num? x, num? y, num? z, num? w]) {
     if (w != null) {
       return DomPointReadOnly._create_1(x, y, z, w);
     }
@@ -10665,7 +11184,7 @@ class DomPointReadOnly extends Interceptor {
 
   num get z => JS("num", "#.z", this);
 
-  static DomPointReadOnly fromPoint([Map other]) {
+  static DomPointReadOnly fromPoint([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromPoint_1(other_1);
@@ -10678,7 +11197,7 @@ class DomPointReadOnly extends Interceptor {
   @JSName('fromPoint')
   static DomPointReadOnly _fromPoint_2() native;
 
-  DomPoint matrixTransform([Map matrix]) {
+  DomPoint matrixTransform([Map? matrix]) {
     if (matrix != null) {
       var matrix_1 = convertDartToNative_Dictionary(matrix);
       return _matrixTransform_1(matrix_1);
@@ -10702,7 +11221,7 @@ class DomQuad extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomQuad([Map p1, Map p2, Map p3, Map p4]) {
+  factory DomQuad([Map? p1, Map? p2, Map? p3, Map? p4]) {
     if (p4 != null) {
       var p1_1 = convertDartToNative_Dictionary(p1);
       var p2_2 = convertDartToNative_Dictionary(p2);
@@ -10735,15 +11254,15 @@ class DomQuad extends Interceptor {
   static DomQuad _create_4(p1) => JS('DomQuad', 'new DOMQuad(#)', p1);
   static DomQuad _create_5() => JS('DomQuad', 'new DOMQuad()');
 
-  final DomPoint p1;
+  DomPoint get p1 => JS("DomPoint", "#.p1", this);
 
-  final DomPoint p2;
+  DomPoint get p2 => JS("DomPoint", "#.p2", this);
 
-  final DomPoint p3;
+  DomPoint get p3 => JS("DomPoint", "#.p3", this);
 
-  final DomPoint p4;
+  DomPoint get p4 => JS("DomPoint", "#.p4", this);
 
-  static DomQuad fromQuad([Map other]) {
+  static DomQuad fromQuad([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromQuad_1(other_1);
@@ -10756,7 +11275,7 @@ class DomQuad extends Interceptor {
   @JSName('fromQuad')
   static DomQuad _fromQuad_2() native;
 
-  static DomQuad fromRect([Map other]) {
+  static DomQuad fromRect([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromRect_1(other_1);
@@ -10930,7 +11449,7 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
     throw new UnsupportedError("Not supported");
   }
 
-  factory DomRectReadOnly([num x, num y, num width, num height]) {
+  factory DomRectReadOnly([num? x, num? y, num? width, num? height]) {
     if (height != null) {
       return DomRectReadOnly._create_1(x, y, width, height);
     }
@@ -10972,7 +11491,7 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
 
   num get y => JS("num", "#.y", this);
 
-  static DomRectReadOnly fromRect([Map other]) {
+  static DomRectReadOnly fromRect([Map? other]) {
     if (other != null) {
       var other_1 = convertDartToNative_Dictionary(other);
       return _fromRect_1(other_1);
@@ -11074,9 +11593,13 @@ class DomTokenList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
-  String value;
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
 
   void add(String tokens) native;
 
@@ -11090,7 +11613,7 @@ class DomTokenList extends Interceptor {
 
   bool supports(String token) native;
 
-  bool toggle(String token, [bool force]) native;
+  bool toggle(String token, [bool? force]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11189,7 +11712,7 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
@@ -11658,7 +12181,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void sort([Comparator<E> compare]) {
+  void sort([Comparator<E>? compare]) {
     throw new UnsupportedError('Cannot sort list');
   }
 
@@ -13836,9 +14359,17 @@ class Element extends Node
   static const EventStreamProvider<WheelEvent> wheelEvent =
       const EventStreamProvider<WheelEvent>('wheel');
 
-  String contentEditable;
+  String get contentEditable => JS("String", "#.contentEditable", this);
 
-  String dir;
+  set contentEditable(String value) {
+    JS("void", "#.contentEditable = #", this, value);
+  }
+
+  String get dir => JS("String", "#.dir", this);
+
+  set dir(String value) {
+    JS("void", "#.dir = #", this, value);
+  }
 
   /**
    * Indicates whether the element can be dragged and dropped.
@@ -13853,7 +14384,26 @@ class Element extends Node
    *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
    *   from WHATWG.
    */
-  bool draggable;
+
+  bool get draggable => JS("bool", "#.draggable", this);
+
+  /**
+   * Indicates whether the element can be dragged and dropped.
+   *
+   * ## Other resources
+   *
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
+   */
+
+  set draggable(bool value) {
+    JS("void", "#.draggable = #", this, value);
+  }
 
   /**
    * Indicates whether the element is not relevant to the page's current state.
@@ -13864,24 +14414,64 @@ class Element extends Node
    *   specification](https://html.spec.whatwg.org/multipage/interaction.html#the-hidden-attribute)
    *   from WHATWG.
    */
-  bool hidden;
 
-  bool inert;
+  bool get hidden => JS("bool", "#.hidden", this);
 
-  String inputMode;
+  /**
+   * Indicates whether the element is not relevant to the page's current state.
+   *
+   * ## Other resources
+   *
+   * * [Hidden attribute
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#the-hidden-attribute)
+   *   from WHATWG.
+   */
+
+  set hidden(bool value) {
+    JS("void", "#.hidden = #", this, value);
+  }
+
+  bool get inert => JS("bool", "#.inert", this);
+
+  set inert(bool value) {
+    JS("void", "#.inert = #", this, value);
+  }
+
+  String get inputMode => JS("String", "#.inputMode", this);
+
+  set inputMode(String value) {
+    JS("void", "#.inputMode = #", this, value);
+  }
 
   // Using property as subclass shadows.
+
   bool get isContentEditable => JS("bool", "#.isContentEditable", this);
 
-  String lang;
+  String get lang => JS("String", "#.lang", this);
 
-  bool spellcheck;
+  set lang(String value) {
+    JS("void", "#.lang = #", this, value);
+  }
 
-  final CssStyleDeclaration style;
+  bool get spellcheck => JS("bool", "#.spellcheck", this);
 
-  int tabIndex;
+  set spellcheck(bool value) {
+    JS("void", "#.spellcheck = #", this, value);
+  }
 
-  String title;
+  CssStyleDeclaration get style => JS("CssStyleDeclaration", "#.style", this);
+
+  int get tabIndex => JS("int", "#.tabIndex", this);
+
+  set tabIndex(int value) {
+    JS("void", "#.tabIndex = #", this, value);
+  }
+
+  String get title => JS("String", "#.title", this);
+
+  set title(String value) {
+    JS("void", "#.title = #", this, value);
+  }
 
   /**
    * Specifies whether this element's text content changes when the page is
@@ -13893,7 +14483,23 @@ class Element extends Node
    *   attribute](https://html.spec.whatwg.org/multipage/dom.html#the-translate-attribute)
    *   from WHATWG.
    */
-  bool translate;
+
+  bool get translate => JS("bool", "#.translate", this);
+
+  /**
+   * Specifies whether this element's text content changes when the page is
+   * localized.
+   *
+   * ## Other resources
+   *
+   * * [The translate
+   *   attribute](https://html.spec.whatwg.org/multipage/dom.html#the-translate-attribute)
+   *   from WHATWG.
+   */
+
+  set translate(bool value) {
+    JS("void", "#.translate = #", this, value);
+  }
 
   void blur() native;
 
@@ -13901,58 +14507,86 @@ class Element extends Node
 
   void focus() native;
 
-  final AccessibleNode accessibleNode;
+  final AccessibleNode? accessibleNode;
 
-  final SlotElement assignedSlot;
+  final SlotElement? assignedSlot;
 
   @JSName('attributes')
-  final _NamedNodeMap _attributes;
+  _NamedNodeMap get _attributes => JS("_NamedNodeMap", "#.attributes", this);
 
-  String className;
+  String get className => JS("String", "#.className", this);
 
-  final int clientHeight;
+  set className(String value) {
+    JS("void", "#.className = #", this, value);
+  }
 
-  final int clientLeft;
+  int get clientHeight => JS("int", "#.clientHeight", this);
 
-  final int clientTop;
+  int get clientLeft => JS("int", "#.clientLeft", this);
 
-  final int clientWidth;
+  int get clientTop => JS("int", "#.clientTop", this);
 
-  final String computedName;
+  int get clientWidth => JS("int", "#.clientWidth", this);
 
-  final String computedRole;
+  final String? computedName;
 
-  String id;
+  final String? computedRole;
+
+  String get id => JS("String", "#.id", this);
+
+  set id(String value) {
+    JS("void", "#.id = #", this, value);
+  }
 
   @JSName('innerHTML')
-  String _innerHtml;
+  String get _innerHtml => JS("String", "#.innerHTML", this);
+
+  @JSName('innerHTML')
+  set _innerHtml(String value) {
+    JS("void", "#.innerHTML = #", this, value);
+  }
 
   @JSName('localName')
-  final String _localName;
+  String get _localName => JS("String", "#.localName", this);
 
   @JSName('namespaceURI')
-  final String _namespaceUri;
+  final String? _namespaceUri;
 
   // Using property as subclass shadows.
+
   String get outerHtml => JS("String", "#.outerHTML", this);
 
   @JSName('scrollHeight')
-  final int _scrollHeight;
+  int get _scrollHeight => JS("int", "#.scrollHeight", this);
 
   @JSName('scrollLeft')
-  num _scrollLeft;
+  num get _scrollLeft => JS("num", "#.scrollLeft", this);
+
+  @JSName('scrollLeft')
+  set _scrollLeft(num value) {
+    JS("void", "#.scrollLeft = #", this, value);
+  }
 
   @JSName('scrollTop')
-  num _scrollTop;
+  num get _scrollTop => JS("num", "#.scrollTop", this);
+
+  @JSName('scrollTop')
+  set _scrollTop(num value) {
+    JS("void", "#.scrollTop = #", this, value);
+  }
 
   @JSName('scrollWidth')
-  final int _scrollWidth;
+  int get _scrollWidth => JS("int", "#.scrollWidth", this);
 
-  String slot;
+  String get slot => JS("String", "#.slot", this);
 
-  final StylePropertyMap styleMap;
+  set slot(String value) {
+    JS("void", "#.slot = #", this, value);
+  }
 
-  final String tagName;
+  StylePropertyMap get styleMap => JS("StylePropertyMap", "#.styleMap", this);
+
+  String get tagName => JS("String", "#.tagName", this);
 
   ShadowRoot attachShadow(Map shadowRootInitDict) {
     var shadowRootInitDict_1 =
@@ -13971,7 +14605,7 @@ class Element extends Node
   String _getAttribute(String name) native;
 
   @JSName('getAttributeNS')
-  String _getAttributeNS(String namespaceURI, String localName) native;
+  String _getAttributeNS(String? namespaceURI, String localName) native;
 
   List<String> getAttributeNames() native;
 
@@ -14044,7 +14678,7 @@ class Element extends Node
   bool _hasAttribute(String name) native;
 
   @JSName('hasAttributeNS')
-  bool _hasAttributeNS(String namespaceURI, String localName) native;
+  bool _hasAttributeNS(String? namespaceURI, String localName) native;
 
   bool hasPointerCapture(int pointerId) native;
 
@@ -14054,11 +14688,11 @@ class Element extends Node
   void _removeAttribute(String name) native;
 
   @JSName('removeAttributeNS')
-  void _removeAttributeNS(String namespaceURI, String localName) native;
+  void _removeAttributeNS(String? namespaceURI, String localName) native;
 
   void requestPointerLock() native;
 
-  void scroll([options_OR_x, num y]) {
+  void scroll([options_OR_x, num? y]) {
     if (options_OR_x == null && y == null) {
       _scroll_1();
       return;
@@ -14082,7 +14716,7 @@ class Element extends Node
   @JSName('scroll')
   void _scroll_3(num x, y) native;
 
-  void scrollBy([options_OR_x, num y]) {
+  void scrollBy([options_OR_x, num? y]) {
     if (options_OR_x == null && y == null) {
       _scrollBy_1();
       return;
@@ -14107,12 +14741,12 @@ class Element extends Node
   void _scrollBy_3(num x, y) native;
 
   @JSName('scrollIntoView')
-  void _scrollIntoView([Object arg]) native;
+  void _scrollIntoView([Object? arg]) native;
 
   @JSName('scrollIntoViewIfNeeded')
-  void _scrollIntoViewIfNeeded([bool centerIfNeeded]) native;
+  void _scrollIntoViewIfNeeded([bool? centerIfNeeded]) native;
 
-  void scrollTo([options_OR_x, num y]) {
+  void scrollTo([options_OR_x, num? y]) {
     if (options_OR_x == null && y == null) {
       _scrollTo_1();
       return;
@@ -14140,7 +14774,7 @@ class Element extends Node
   void _setAttribute(String name, String value) native;
 
   @JSName('setAttributeNS')
-  void _setAttributeNS(String namespaceURI, String name, String value) native;
+  void _setAttributeNS(String? namespaceURI, String name, String value) native;
 
   void setPointerCapture(int pointerId) native;
 
@@ -14167,25 +14801,25 @@ class Element extends Node
 
   // From NonDocumentTypeChildNode
 
-  final Element nextElementSibling;
+  final Element? nextElementSibling;
 
-  final Element previousElementSibling;
+  final Element? previousElementSibling;
 
   // From ParentNode
 
   @JSName('childElementCount')
-  final int _childElementCount;
+  int get _childElementCount => JS("int", "#.childElementCount", this);
 
   @JSName('children')
   @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
-  final List<Node> _children;
+  List<Node> get _children => JS("HtmlCollection", "#.children", this);
 
   @JSName('firstElementChild')
-  final Element _firstElementChild;
+  final Element? _firstElementChild;
 
   @JSName('lastElementChild')
-  final Element _lastElementChild;
+  final Element? _lastElementChild;
 
   /**
    * Finds the first descendant element of this element that matches the
@@ -14563,7 +15197,7 @@ class EmbedElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory EmbedElement() => document.createElement("embed");
+  factory EmbedElement() => document.createElement("embed") as EmbedElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -14574,15 +15208,35 @@ class EmbedElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('embed');
 
-  String height;
+  String get height => JS("String", "#.height", this);
 
-  String name;
+  set height(String value) {
+    JS("void", "#.height = #", this, value);
+  }
 
-  String src;
+  String get name => JS("String", "#.name", this);
 
-  String type;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
-  String width;
+  String get src => JS("String", "#.src", this);
+
+  set src(String value) {
+    JS("void", "#.src = #", this, value);
+  }
+
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
+
+  String get width => JS("String", "#.width", this);
+
+  set width(String value) {
+    JS("void", "#.width = #", this, value);
+  }
 
   Node __getter__(String name) native;
 
@@ -14606,24 +15260,24 @@ class Entry extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final FileSystem filesystem;
+  FileSystem get filesystem => JS("FileSystem", "#.filesystem", this);
 
-  final String fullPath;
+  String get fullPath => JS("String", "#.fullPath", this);
 
-  final bool isDirectory;
+  bool get isDirectory => JS("bool", "#.isDirectory", this);
 
-  final bool isFile;
+  bool get isFile => JS("bool", "#.isFile", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
   @JSName('copyTo')
   void _copyTo(DirectoryEntry parent,
-      [String name,
-      _EntryCallback successCallback,
-      _ErrorCallback errorCallback]) native;
+      [String? name,
+      _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback]) native;
 
   @JSName('copyTo')
-  Future<Entry> copyTo(DirectoryEntry parent, {String name}) {
+  Future<Entry> copyTo(DirectoryEntry parent, {String? name}) {
     var completer = new Completer<Entry>();
     _copyTo(parent, name, (value) {
       completer.complete(value);
@@ -14635,7 +15289,7 @@ class Entry extends Interceptor {
 
   @JSName('getMetadata')
   void _getMetadata(MetadataCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('getMetadata')
   Future<Metadata> getMetadata() {
@@ -14651,7 +15305,7 @@ class Entry extends Interceptor {
 
   @JSName('getParent')
   void _getParent(
-      [_EntryCallback successCallback, _ErrorCallback errorCallback]) native;
+      [_EntryCallback? successCallback, _ErrorCallback? errorCallback]) native;
 
   @JSName('getParent')
   Future<Entry> getParent() {
@@ -14667,12 +15321,12 @@ class Entry extends Interceptor {
 
   @JSName('moveTo')
   void _moveTo(DirectoryEntry parent,
-      [String name,
-      _EntryCallback successCallback,
-      _ErrorCallback errorCallback]) native;
+      [String? name,
+      _EntryCallback? successCallback,
+      _ErrorCallback? errorCallback]) native;
 
   @JSName('moveTo')
-  Future<Entry> moveTo(DirectoryEntry parent, {String name}) {
+  Future<Entry> moveTo(DirectoryEntry parent, {String? name}) {
     var completer = new Completer<Entry>();
     _moveTo(parent, name, (value) {
       completer.complete(value);
@@ -14683,7 +15337,7 @@ class Entry extends Interceptor {
   }
 
   @JSName('remove')
-  void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback])
+  void _remove(VoidCallback successCallback, [_ErrorCallback? errorCallback])
       native;
 
   @JSName('remove')
@@ -14726,7 +15380,7 @@ class ErrorEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ErrorEvent(String type, [Map eventInitDict]) {
+  factory ErrorEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ErrorEvent._create_1(type, eventInitDict_1);
@@ -14738,16 +15392,16 @@ class ErrorEvent extends Event {
   static ErrorEvent _create_2(type) =>
       JS('ErrorEvent', 'new ErrorEvent(#)', type);
 
-  final int colno;
+  int get colno => JS("int", "#.colno", this);
 
   @Creates('Null')
-  final Object error;
+  Object get error => JS("Object", "#.error", this);
 
-  final String filename;
+  String get filename => JS("String", "#.filename", this);
 
-  final int lineno;
+  int get lineno => JS("int", "#.lineno", this);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14809,7 +15463,7 @@ class Event extends Interceptor {
   List<EventTarget> get path =>
       JS('bool', '!!#.composedPath', this) ? composedPath() : [];
 
-  factory Event._(String type, [Map eventInitDict]) {
+  factory Event._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return Event._create_1(type, eventInitDict_1);
@@ -14851,39 +15505,39 @@ class Event extends Interceptor {
    */
   static const int CAPTURING_PHASE = 1;
 
-  final bool bubbles;
+  bool get bubbles => JS("bool", "#.bubbles", this);
 
-  final bool cancelable;
+  bool get cancelable => JS("bool", "#.cancelable", this);
 
-  final bool composed;
+  bool get composed => JS("bool", "#.composed", this);
 
-  EventTarget get currentTarget =>
+  EventTarget? get currentTarget =>
       _convertNativeToDart_EventTarget(this._get_currentTarget);
   @JSName('currentTarget')
   @Creates('Null')
   @Returns('EventTarget|=Object|Null')
   final dynamic _get_currentTarget;
 
-  final bool defaultPrevented;
+  bool get defaultPrevented => JS("bool", "#.defaultPrevented", this);
 
-  final int eventPhase;
+  int get eventPhase => JS("int", "#.eventPhase", this);
 
-  final bool isTrusted;
+  bool get isTrusted => JS("bool", "#.isTrusted", this);
 
-  EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
+  EventTarget? get target => _convertNativeToDart_EventTarget(this._get_target);
   @JSName('target')
   @Creates('Node')
   @Returns('EventTarget|=Object')
   final dynamic _get_target;
 
-  final num timeStamp;
+  num get timeStamp => JS("num", "#.timeStamp", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
   List<EventTarget> composedPath() native;
 
   @JSName('initEvent')
-  void _initEvent(String type, [bool bubbles, bool cancelable]) native;
+  void _initEvent(String type, [bool? bubbles, bool? cancelable]) native;
 
   void preventDefault() native;
 
@@ -14936,7 +15590,7 @@ class EventSource extends EventTarget {
       const EventStreamProvider<Event>('open');
 
   static EventSource _factoryEventSource(String url,
-      [Map eventSourceInitDict]) {
+      [Map? eventSourceInitDict]) {
     if (eventSourceInitDict != null) {
       var eventSourceInitDict_1 =
           convertDartToNative_Dictionary(eventSourceInitDict);
@@ -14956,11 +15610,11 @@ class EventSource extends EventTarget {
 
   static const int OPEN = 1;
 
-  final int readyState;
+  int get readyState => JS("int", "#.readyState", this);
 
-  final String url;
+  String get url => JS("String", "#.url", this);
 
-  final bool withCredentials;
+  bool get withCredentials => JS("bool", "#.withCredentials", this);
 
   void close() native;
 
@@ -15098,14 +15752,14 @@ class EventTarget extends Interceptor {
   }
 
   @JSName('addEventListener')
-  void _addEventListener(String type, EventListener listener, [bool options])
+  void _addEventListener(String type, EventListener? listener, [bool? options])
       native;
 
   bool dispatchEvent(Event event) native;
 
   @JSName('removeEventListener')
-  void _removeEventListener(String type, EventListener listener, [bool options])
-      native;
+  void _removeEventListener(String type, EventListener? listener,
+      [bool? options]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15118,7 +15772,7 @@ class ExtendableEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ExtendableEvent(String type, [Map eventInitDict]) {
+  factory ExtendableEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ExtendableEvent._create_1(type, eventInitDict_1);
@@ -15145,17 +15799,17 @@ class ExtendableMessageEvent extends ExtendableEvent {
 
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final Object data;
+  Object get data => JS("Object", "#.data", this);
 
-  final String lastEventId;
+  String get lastEventId => JS("String", "#.lastEventId", this);
 
-  final String origin;
+  String get origin => JS("String", "#.origin", this);
 
-  final List<MessagePort> ports;
+  List<MessagePort> get ports => JS("List<MessagePort>", "#.ports", this);
 
   @Creates('Client|ServiceWorker|MessagePort')
   @Returns('Client|ServiceWorker|MessagePort|Null')
-  final Object source;
+  final Object? source;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15183,7 +15837,7 @@ class FaceDetector extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FaceDetector([Map faceDetectorOptions]) {
+  factory FaceDetector([Map? faceDetectorOptions]) {
     if (faceDetectorOptions != null) {
       var faceDetectorOptions_1 =
           convertDartToNative_Dictionary(faceDetectorOptions);
@@ -15216,16 +15870,16 @@ class FederatedCredential extends Credential implements CredentialUserData {
   static FederatedCredential _create_1(data) =>
       JS('FederatedCredential', 'new FederatedCredential(#)', data);
 
-  final String protocol;
+  final String? protocol;
 
-  final String provider;
+  String get provider => JS("String", "#.provider", this);
 
   // From CredentialUserData
 
   @JSName('iconURL')
-  final String iconUrl;
+  String get iconUrl => JS("String", "#.iconURL", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15245,14 +15899,13 @@ class FetchEvent extends ExtendableEvent {
   static FetchEvent _create_1(type, eventInitDict) =>
       JS('FetchEvent', 'new FetchEvent(#,#)', type, eventInitDict);
 
-  final String clientId;
+  final String? clientId;
 
-  final bool isReload;
+  bool get isReload => JS("bool", "#.isReload", this);
 
-  Future get preloadResponse =>
-      promiseToFuture(JS("", "#.preloadResponse", this));
+  Future get preloadResponse => JS("Future", "#.preloadResponse", this);
 
-  final _Request request;
+  _Request get request => JS("_Request", "#.request", this);
 
   void respondWith(Future r) native;
 }
@@ -15268,7 +15921,7 @@ class FieldSetElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FieldSetElement() => JS(
+  factory FieldSetElement() => JS<FieldSetElement>(
       'returns:FieldSetElement;creates:FieldSetElement;new:true',
       '#.createElement(#)',
       document,
@@ -15280,23 +15933,31 @@ class FieldSetElement extends HtmlElement {
    */
   FieldSetElement.created() : super.created();
 
-  bool disabled;
+  bool get disabled => JS("bool", "#.disabled", this);
+
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
 
   @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
-  final List<Node> elements;
+  List<Node> get elements => JS("HtmlCollection", "#.elements", this);
 
-  final FormElement form;
+  final FormElement? form;
 
-  String name;
+  String get name => JS("String", "#.name", this);
 
-  final String type;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
-  final String validationMessage;
+  String get type => JS("String", "#.type", this);
 
-  final ValidityState validity;
+  String get validationMessage => JS("String", "#.validationMessage", this);
 
-  final bool willValidate;
+  ValidityState get validity => JS("ValidityState", "#.validity", this);
+
+  bool get willValidate => JS("bool", "#.willValidate", this);
 
   bool checkValidity() native;
 
@@ -15315,7 +15976,7 @@ class File extends Blob {
     throw new UnsupportedError("Not supported");
   }
 
-  factory File(List<Object> fileBits, String fileName, [Map options]) {
+  factory File(List<Object> fileBits, String fileName, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return File._create_1(fileBits, fileName, options_1);
@@ -15327,7 +15988,7 @@ class File extends Blob {
   static File _create_2(fileBits, fileName) =>
       JS('File', 'new File(#,#)', fileBits, fileName);
 
-  final int lastModified;
+  int get lastModified => JS("int", "#.lastModified", this);
 
   DateTime get lastModifiedDate =>
       convertNativeToDart_DateTime(this._get_lastModifiedDate);
@@ -15335,12 +15996,12 @@ class File extends Blob {
   @Creates('Null')
   final dynamic _get_lastModifiedDate;
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
   @JSName('webkitRelativePath')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final String relativePath;
+  String get relativePath => JS("String", "#.webkitRelativePath", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15348,7 +16009,7 @@ class File extends Blob {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _FileCallback(File file);
+typedef void _FileCallback(File? file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15362,7 +16023,7 @@ class FileEntry extends Entry {
 
   @JSName('createWriter')
   void _createWriter(_FileWriterCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('createWriter')
   Future<FileWriter> createWriter() {
@@ -15377,7 +16038,7 @@ class FileEntry extends Entry {
   }
 
   @JSName('file')
-  void _file(_FileCallback successCallback, [_ErrorCallback errorCallback])
+  void _file(_FileCallback successCallback, [_ErrorCallback? errorCallback])
       native;
 
   @JSName('file')
@@ -15536,9 +16197,9 @@ class FileReader extends EventTarget {
 
   static const int LOADING = 1;
 
-  final DomException error;
+  final DomException? error;
 
-  final int readyState;
+  int get readyState => JS("int", "#.readyState", this);
 
   void abort() native;
 
@@ -15547,7 +16208,7 @@ class FileReader extends EventTarget {
   @JSName('readAsDataURL')
   void readAsDataUrl(Blob blob) native;
 
-  void readAsText(Blob blob, [String label]) native;
+  void readAsText(Blob blob, [String? label]) native;
 
   /// Stream of `abort` events handled by this [FileReader].
   Stream<ProgressEvent> get onAbort => abortEvent.forTarget(this);
@@ -15582,9 +16243,9 @@ class FileSystem extends Interceptor {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.webkitRequestFileSystem)');
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
-  final DirectoryEntry root;
+  DirectoryEntry get root => JS("DirectoryEntry", "#.root", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15664,13 +16325,13 @@ class FileWriter extends EventTarget {
 
   static const int WRITING = 1;
 
-  final DomException error;
+  final DomException? error;
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
-  final int position;
+  int get position => JS("int", "#.position", this);
 
-  final int readyState;
+  int get readyState => JS("int", "#.readyState", this);
 
   void abort() native;
 
@@ -15716,7 +16377,7 @@ class FocusEvent extends UIEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FocusEvent(String type, [Map eventInitDict]) {
+  factory FocusEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return FocusEvent._create_1(type, eventInitDict_1);
@@ -15728,7 +16389,7 @@ class FocusEvent extends UIEvent {
   static FocusEvent _create_2(type) =>
       JS('FocusEvent', 'new FocusEvent(#)', type);
 
-  EventTarget get relatedTarget =>
+  EventTarget? get relatedTarget =>
       _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @Creates('Null')
@@ -15745,7 +16406,7 @@ class FontFace extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FontFace(String family, Object source, [Map descriptors]) {
+  factory FontFace(String family, Object source, [Map? descriptors]) {
     if (descriptors != null) {
       var descriptors_1 = convertDartToNative_Dictionary(descriptors);
       return FontFace._create_1(family, source, descriptors_1);
@@ -15757,26 +16418,57 @@ class FontFace extends Interceptor {
   static FontFace _create_2(family, source) =>
       JS('FontFace', 'new FontFace(#,#)', family, source);
 
-  String display;
+  String get display => JS("String", "#.display", this);
 
-  String family;
+  set display(String value) {
+    JS("void", "#.display = #", this, value);
+  }
 
-  String featureSettings;
+  String get family => JS("String", "#.family", this);
 
-  Future<FontFace> get loaded =>
-      promiseToFuture<FontFace>(JS("", "#.loaded", this));
+  set family(String value) {
+    JS("void", "#.family = #", this, value);
+  }
 
-  final String status;
+  String get featureSettings => JS("String", "#.featureSettings", this);
 
-  String stretch;
+  set featureSettings(String value) {
+    JS("void", "#.featureSettings = #", this, value);
+  }
 
-  String style;
+  Future get loaded => JS("Future", "#.loaded", this);
 
-  String unicodeRange;
+  String get status => JS("String", "#.status", this);
 
-  String variant;
+  String get stretch => JS("String", "#.stretch", this);
 
-  String weight;
+  set stretch(String value) {
+    JS("void", "#.stretch = #", this, value);
+  }
+
+  String get style => JS("String", "#.style", this);
+
+  set style(String value) {
+    JS("void", "#.style = #", this, value);
+  }
+
+  String get unicodeRange => JS("String", "#.unicodeRange", this);
+
+  set unicodeRange(String value) {
+    JS("void", "#.unicodeRange = #", this, value);
+  }
+
+  String get variant => JS("String", "#.variant", this);
+
+  set variant(String value) {
+    JS("void", "#.variant = #", this, value);
+  }
+
+  String get weight => JS("String", "#.weight", this);
+
+  set weight(String value) {
+    JS("void", "#.weight = #", this, value);
+  }
 
   Future<FontFace> load() =>
       promiseToFuture<FontFace>(JS("", "#.load()", this));
@@ -15801,17 +16493,17 @@ class FontFaceSet extends EventTarget {
   static const EventStreamProvider<FontFaceSetLoadEvent> loadingErrorEvent =
       const EventStreamProvider<FontFaceSetLoadEvent>('loadingerror');
 
-  final String status;
+  String get status => JS("String", "#.status", this);
 
   FontFaceSet add(FontFace arg) native;
 
-  bool check(String font, [String text]) native;
+  bool check(String font, [String? text]) native;
 
   void clear() native;
 
   bool delete(FontFace arg) native;
 
-  void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) native;
+  void forEach(FontFaceSetForEachCallback callback, [Object? thisArg]) native;
 
   bool has(FontFace arg) native;
 
@@ -15834,7 +16526,7 @@ class FontFaceSetLoadEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FontFaceSetLoadEvent(String type, [Map eventInitDict]) {
+  factory FontFaceSetLoadEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return FontFaceSetLoadEvent._create_1(type, eventInitDict_1);
@@ -15849,7 +16541,7 @@ class FontFaceSetLoadEvent extends Event {
   static FontFaceSetLoadEvent _create_2(type) =>
       JS('FontFaceSetLoadEvent', 'new FontFaceSetLoadEvent(#)', type);
 
-  final List<FontFace> fontfaces;
+  List<FontFace> get fontfaces => JS("List<FontFace>", "#.fontfaces", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15862,7 +16554,7 @@ class FontFaceSource extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final FontFaceSet fonts;
+  FontFaceSet get fonts => JS("FontFaceSet", "#.fonts", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15882,9 +16574,9 @@ class ForeignFetchEvent extends ExtendableEvent {
   static ForeignFetchEvent _create_1(type, eventInitDict) => JS(
       'ForeignFetchEvent', 'new ForeignFetchEvent(#,#)', type, eventInitDict);
 
-  final String origin;
+  String get origin => JS("String", "#.origin", this);
 
-  final _Request request;
+  _Request get request => JS("_Request", "#.request", this);
 
   void respondWith(Future r) native;
 }
@@ -15903,7 +16595,7 @@ class FormData extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FormData([FormElement form]) {
+  factory FormData([FormElement? form]) {
     if (form != null) {
       return FormData._create_1(form);
     }
@@ -15918,7 +16610,7 @@ class FormData extends Interceptor {
   void append(String name, String value) native;
 
   @JSName('append')
-  void appendBlob(String name, Blob value, [String filename]) native;
+  void appendBlob(String name, Blob value, [String? filename]) native;
 
   void delete(String name) native;
 
@@ -15928,7 +16620,7 @@ class FormData extends Interceptor {
 
   bool has(String name) native;
 
-  void set(String name, value, [String filename]) native;
+  void set(String name, value, [String? filename]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15941,7 +16633,7 @@ class FormElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory FormElement() => JS(
+  factory FormElement() => JS<FormElement>(
       'returns:FormElement;creates:FormElement;new:true',
       '#.createElement(#)',
       document,
@@ -15953,25 +16645,61 @@ class FormElement extends HtmlElement {
    */
   FormElement.created() : super.created();
 
-  String acceptCharset;
+  String get acceptCharset => JS("String", "#.acceptCharset", this);
 
-  String action;
+  set acceptCharset(String value) {
+    JS("void", "#.acceptCharset = #", this, value);
+  }
 
-  String autocomplete;
+  String get action => JS("String", "#.action", this);
 
-  String encoding;
+  set action(String value) {
+    JS("void", "#.action = #", this, value);
+  }
 
-  String enctype;
+  String get autocomplete => JS("String", "#.autocomplete", this);
 
-  final int length;
+  set autocomplete(String value) {
+    JS("void", "#.autocomplete = #", this, value);
+  }
 
-  String method;
+  String get encoding => JS("String", "#.encoding", this);
 
-  String name;
+  set encoding(String value) {
+    JS("void", "#.encoding = #", this, value);
+  }
 
-  bool noValidate;
+  String get enctype => JS("String", "#.enctype", this);
 
-  String target;
+  set enctype(String value) {
+    JS("void", "#.enctype = #", this, value);
+  }
+
+  int get length => JS("int", "#.length", this);
+
+  String get method => JS("String", "#.method", this);
+
+  set method(String value) {
+    JS("void", "#.method = #", this, value);
+  }
+
+  String get name => JS("String", "#.name", this);
+
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
+
+  bool get noValidate => JS("bool", "#.noValidate", this);
+
+  set noValidate(bool value) {
+    JS("void", "#.noValidate = #", this, value);
+  }
+
+  String get target => JS("String", "#.target", this);
+
+  set target(String value) {
+    JS("void", "#.target = #", this, value);
+  }
 
   Object __getter__(String name) native;
 
@@ -16019,27 +16747,28 @@ class Gamepad extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final List<num> axes;
+  List<num> get axes => JS("List<num>", "#.axes", this);
 
   @Creates('JSExtendableArray|GamepadButton')
   @Returns('JSExtendableArray')
-  final List<GamepadButton> buttons;
+  List<GamepadButton> get buttons =>
+      JS("List<GamepadButton>", "#.buttons", this);
 
-  final bool connected;
+  bool get connected => JS("bool", "#.connected", this);
 
-  final int displayId;
+  int get displayId => JS("int", "#.displayId", this);
 
-  final String hand;
+  String get hand => JS("String", "#.hand", this);
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
-  final int index;
+  int get index => JS("int", "#.index", this);
 
-  final String mapping;
+  String get mapping => JS("String", "#.mapping", this);
 
-  final GamepadPose pose;
+  final GamepadPose? pose;
 
-  final int timestamp;
+  int get timestamp => JS("int", "#.timestamp", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16052,11 +16781,11 @@ class GamepadButton extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool pressed;
+  bool get pressed => JS("bool", "#.pressed", this);
 
-  final bool touched;
+  bool get touched => JS("bool", "#.touched", this);
 
-  final num value;
+  num get value => JS("num", "#.value", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16069,7 +16798,7 @@ class GamepadEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory GamepadEvent(String type, [Map eventInitDict]) {
+  factory GamepadEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return GamepadEvent._create_1(type, eventInitDict_1);
@@ -16081,7 +16810,7 @@ class GamepadEvent extends Event {
   static GamepadEvent _create_2(type) =>
       JS('GamepadEvent', 'new GamepadEvent(#)', type);
 
-  final Gamepad gamepad;
+  Gamepad get gamepad => JS("Gamepad", "#.gamepad", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16094,21 +16823,21 @@ class GamepadPose extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Float32List angularAcceleration;
+  final Float32List? angularAcceleration;
 
-  final Float32List angularVelocity;
+  final Float32List? angularVelocity;
 
-  final bool hasOrientation;
+  bool get hasOrientation => JS("bool", "#.hasOrientation", this);
 
-  final bool hasPosition;
+  bool get hasPosition => JS("bool", "#.hasPosition", this);
 
-  final Float32List linearAcceleration;
+  final Float32List? linearAcceleration;
 
-  final Float32List linearVelocity;
+  final Float32List? linearVelocity;
 
-  final Float32List orientation;
+  final Float32List? orientation;
 
-  final Float32List position;
+  final Float32List? position;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16118,7 +16847,7 @@ class GamepadPose extends Interceptor {
 @Native("Geolocation")
 class Geolocation extends Interceptor {
   Future<Geoposition> getCurrentPosition(
-      {bool enableHighAccuracy, Duration timeout, Duration maximumAge}) {
+      {bool? enableHighAccuracy, Duration? timeout, Duration? maximumAge}) {
     var options = {};
     if (enableHighAccuracy != null) {
       options['enableHighAccuracy'] = enableHighAccuracy;
@@ -16143,7 +16872,7 @@ class Geolocation extends Interceptor {
   }
 
   Stream<Geoposition> watchPosition(
-      {bool enableHighAccuracy, Duration timeout, Duration maximumAge}) {
+      {bool? enableHighAccuracy, Duration? timeout, Duration? maximumAge}) {
     var options = {};
     if (enableHighAccuracy != null) {
       options['enableHighAccuracy'] = enableHighAccuracy;
@@ -16197,7 +16926,7 @@ class Geolocation extends Interceptor {
   void _clearWatch(int watchID) native;
 
   void _getCurrentPosition(_PositionCallback successCallback,
-      [_PositionErrorCallback errorCallback, Map options]) {
+      [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
       var successCallback_1 = convertDartClosureToJS(successCallback, 1);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -16224,7 +16953,7 @@ class Geolocation extends Interceptor {
   void _getCurrentPosition_3(successCallback) native;
 
   int _watchPosition(_PositionCallback successCallback,
-      [_PositionErrorCallback errorCallback, Map options]) {
+      [_PositionErrorCallback? errorCallback, Map? options]) {
     if (options != null) {
       var successCallback_1 = convertDartClosureToJS(successCallback, 1);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -16271,9 +17000,9 @@ class Geoposition extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Coordinates coords;
+  Coordinates get coords => JS("Coordinates", "#.coords", this);
 
-  final int timestamp;
+  int get timestamp => JS("int", "#.timestamp", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16593,7 +17322,7 @@ class Gyroscope extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory Gyroscope([Map sensorOptions]) {
+  factory Gyroscope([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return Gyroscope._create_1(sensorOptions_1);
@@ -16624,8 +17353,11 @@ class HRElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory HRElement() => JS('returns:HRElement;creates:HRElement;new:true',
-      '#.createElement(#)', document, "hr");
+  factory HRElement() => JS<HRElement>(
+      'returns:HRElement;creates:HRElement;new:true',
+      '#.createElement(#)',
+      document,
+      "hr");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -16633,7 +17365,11 @@ class HRElement extends HtmlElement {
    */
   HRElement.created() : super.created();
 
-  String color;
+  String get color => JS("String", "#.color", this);
+
+  set color(String value) {
+    JS("void", "#.color = #", this, value);
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16662,7 +17398,7 @@ class HashChangeEvent extends Event {
         convertDartToNative_Dictionary(options));
   }
 
-  factory HashChangeEvent._(String type, [Map eventInitDict]) {
+  factory HashChangeEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return HashChangeEvent._create_1(type, eventInitDict_1);
@@ -16678,10 +17414,10 @@ class HashChangeEvent extends Event {
   static bool get supported => Device.isEventTypeSupported('HashChangeEvent');
 
   @JSName('newURL')
-  final String newUrl;
+  String get newUrl => JS("String", "#.newURL", this);
 
   @JSName('oldURL')
-  final String oldUrl;
+  String get oldUrl => JS("String", "#.oldURL", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16694,7 +17430,7 @@ class HeadElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory HeadElement() => JS(
+  factory HeadElement() => JS<HeadElement>(
       'returns:HeadElement;creates:HeadElement;new:true',
       '#.createElement(#)',
       document,
@@ -16717,7 +17453,7 @@ class Headers extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory Headers([Object init]) {
+  factory Headers([Object? init]) {
     if (init != null) {
       return Headers._create_1(init);
     }
@@ -16737,37 +17473,37 @@ class HeadingElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory HeadingElement.h1() => JS(
+  factory HeadingElement.h1() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h1");
 
-  factory HeadingElement.h2() => JS(
+  factory HeadingElement.h2() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h2");
 
-  factory HeadingElement.h3() => JS(
+  factory HeadingElement.h3() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h3");
 
-  factory HeadingElement.h4() => JS(
+  factory HeadingElement.h4() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h4");
 
-  factory HeadingElement.h5() => JS(
+  factory HeadingElement.h5() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
       "h5");
 
-  factory HeadingElement.h6() => JS(
+  factory HeadingElement.h6() => JS<HeadingElement>(
       'returns:HeadingElement;creates:HeadingElement;new:true',
       '#.createElement(#)',
       document,
@@ -16800,9 +17536,13 @@ class History extends Interceptor implements HistoryBase {
     throw new UnsupportedError("Not supported");
   }
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
-  String scrollRestoration;
+  String get scrollRestoration => JS("String", "#.scrollRestoration", this);
+
+  set scrollRestoration(String value) {
+    JS("void", "#.scrollRestoration = #", this, value);
+  }
 
   dynamic get state =>
       convertNativeToDart_SerializedScriptValue(this._get_state);
@@ -16815,13 +17555,13 @@ class History extends Interceptor implements HistoryBase {
 
   void forward() native;
 
-  void go([int delta]) native;
+  void go([int? delta]) native;
 
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(/*SerializedScriptValue*/ data, String title, String url) {
+  void pushState(/*SerializedScriptValue*/ data, String title, String? url) {
     var data_1 = convertDartToNative_SerializedScriptValue(data);
     _pushState_1(data_1, title, url);
     return;
@@ -16838,7 +17578,7 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(/*SerializedScriptValue*/ data, String title, String url) {
+  void replaceState(/*SerializedScriptValue*/ data, String title, String? url) {
     var data_1 = convertDartToNative_SerializedScriptValue(data);
     _replaceState_1(data_1, title, url);
     return;
@@ -17098,7 +17838,7 @@ class HtmlHtmlElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory HtmlHtmlElement() => JS(
+  factory HtmlHtmlElement() => JS<HtmlHtmlElement>(
       'returns:HtmlHtmlElement;creates:HtmlHtmlElement;new:true',
       '#.createElement(#)',
       document,
@@ -17121,27 +17861,67 @@ class HtmlHyperlinkElementUtils extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String hash;
+  String get hash => JS("String", "#.hash", this);
 
-  String host;
+  set hash(String value) {
+    JS("void", "#.hash = #", this, value);
+  }
 
-  String hostname;
+  String get host => JS("String", "#.host", this);
 
-  String href;
+  set host(String value) {
+    JS("void", "#.host = #", this, value);
+  }
 
-  final String origin;
+  String get hostname => JS("String", "#.hostname", this);
 
-  String password;
+  set hostname(String value) {
+    JS("void", "#.hostname = #", this, value);
+  }
 
-  String pathname;
+  String get href => JS("String", "#.href", this);
 
-  String port;
+  set href(String value) {
+    JS("void", "#.href = #", this, value);
+  }
 
-  String protocol;
+  String get origin => JS("String", "#.origin", this);
 
-  String search;
+  String get password => JS("String", "#.password", this);
 
-  String username;
+  set password(String value) {
+    JS("void", "#.password = #", this, value);
+  }
+
+  String get pathname => JS("String", "#.pathname", this);
+
+  set pathname(String value) {
+    JS("void", "#.pathname = #", this, value);
+  }
+
+  String get port => JS("String", "#.port", this);
+
+  set port(String value) {
+    JS("void", "#.port = #", this, value);
+  }
+
+  String get protocol => JS("String", "#.protocol", this);
+
+  set protocol(String value) {
+    JS("void", "#.protocol = #", this, value);
+  }
+
+  String get search => JS("String", "#.search", this);
+
+  set search(String value) {
+    JS("void", "#.search = #", this, value);
+  }
+
+  String get username => JS("String", "#.username", this);
+
+  set username(String value) {
+    JS("void", "#.username = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17230,7 +18010,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * * [request]
    */
   static Future<String> getString(String url,
-      {bool withCredentials, void onProgress(ProgressEvent e)}) {
+      {bool? withCredentials, void onProgress(ProgressEvent e)?}) {
     return request(url,
             withCredentials: withCredentials, onProgress: onProgress)
         .then((HttpRequest xhr) => xhr.responseText);
@@ -17628,7 +18408,8 @@ class HttpRequest extends HttpRequestEventTarget {
    *   </tr>
    * </table>
    */
-  final int readyState;
+
+  int get readyState => JS("int", "#.readyState", this);
 
   /**
    * The data received as a reponse from the request.
@@ -17661,7 +18442,8 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * The response in String form or empty String on failure.
    */
-  final String responseText;
+
+  String get responseText => JS("String", "#.responseText", this);
 
   /**
    * [String] telling the server the desired response format.
@@ -17674,10 +18456,27 @@ class HttpRequest extends HttpRequestEventTarget {
    * See also: [MDN
    * responseType](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-responsetype)
    */
-  String responseType;
+
+  String get responseType => JS("String", "#.responseType", this);
+
+  /**
+   * [String] telling the server the desired response format.
+   *
+   * Default is `String`.
+   * Other options are one of 'arraybuffer', 'blob', 'document', 'json',
+   * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
+   * `responseType` is set while performing a synchronous request.
+   *
+   * See also: [MDN
+   * responseType](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-responsetype)
+   */
+
+  set responseType(String value) {
+    JS("void", "#.responseType = #", this, value);
+  }
 
   @JSName('responseURL')
-  final String responseUrl;
+  String get responseUrl => JS("String", "#.responseURL", this);
 
   @JSName('responseXML')
   /**
@@ -17687,19 +18486,21 @@ class HttpRequest extends HttpRequestEventTarget {
    * `text/xml` stream, unless responseType = 'document' and the request is
    * synchronous.
    */
-  final Document responseXml;
+  final Document? responseXml;
 
   /**
    * The HTTP result code from the request (200, 404, etc).
    * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
-  final int status;
+
+  int get status => JS("int", "#.status", this);
 
   /**
    * The request response string (such as \"OK\").
    * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
-  final String statusText;
+
+  String get statusText => JS("String", "#.statusText", this);
 
   /**
    * Length of time in milliseconds before a request is automatically
@@ -17716,14 +18517,35 @@ class HttpRequest extends HttpRequestEventTarget {
    * * [The timeout attribute](http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
    *   from W3C.
    */
-  int timeout;
+
+  int get timeout => JS("int", "#.timeout", this);
+
+  /**
+   * Length of time in milliseconds before a request is automatically
+   * terminated.
+   *
+   * When the time has passed, a [TimeoutEvent] is dispatched.
+   *
+   * If [timeout] is set to 0, then the request will not time out.
+   *
+   * ## Other resources
+   *
+   * * [XMLHttpRequest.timeout](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-timeout)
+   *   from MDN.
+   * * [The timeout attribute](http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
+   *   from W3C.
+   */
+
+  set timeout(int value) {
+    JS("void", "#.timeout = #", this, value);
+  }
 
   /**
    * [EventTarget] that can hold listeners to track the progress of the request.
    * The events fired will be members of [HttpRequestUploadEvents].
    */
   @Unstable()
-  final HttpRequestUpload upload;
+  HttpRequestUpload get upload => JS("HttpRequestUpload", "#.upload", this);
 
   /**
    * True if cross-site requests should use credentials such as cookies
@@ -17731,7 +18553,19 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * This value is ignored for same-site requests.
    */
-  bool withCredentials;
+
+  bool get withCredentials => JS("bool", "#.withCredentials", this);
+
+  /**
+   * True if cross-site requests should use credentials such as cookies
+   * or authorization headers; false otherwise.
+   *
+   * This value is ignored for same-site requests.
+   */
+
+  set withCredentials(bool value) {
+    JS("void", "#.withCredentials = #", this, value);
+  }
 
   /**
    * Stop the current request.
@@ -17944,7 +18778,7 @@ class IFrameElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory IFrameElement() => JS(
+  factory IFrameElement() => JS<IFrameElement>(
       'returns:IFrameElement;creates:IFrameElement;new:true',
       '#.createElement(#)',
       document,
@@ -17956,34 +18790,74 @@ class IFrameElement extends HtmlElement {
    */
   IFrameElement.created() : super.created();
 
-  String allow;
+  String get allow => JS("String", "#.allow", this);
 
-  bool allowFullscreen;
+  set allow(String value) {
+    JS("void", "#.allow = #", this, value);
+  }
 
-  bool allowPaymentRequest;
+  bool get allowFullscreen => JS("bool", "#.allowFullscreen", this);
 
-  WindowBase get contentWindow =>
+  set allowFullscreen(bool value) {
+    JS("void", "#.allowFullscreen = #", this, value);
+  }
+
+  bool get allowPaymentRequest => JS("bool", "#.allowPaymentRequest", this);
+
+  set allowPaymentRequest(bool value) {
+    JS("void", "#.allowPaymentRequest = #", this, value);
+  }
+
+  WindowBase? get contentWindow =>
       _convertNativeToDart_Window(this._get_contentWindow);
   @JSName('contentWindow')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _get_contentWindow;
 
-  String csp;
+  String get csp => JS("String", "#.csp", this);
 
-  String height;
+  set csp(String value) {
+    JS("void", "#.csp = #", this, value);
+  }
 
-  String name;
+  String get height => JS("String", "#.height", this);
 
-  String referrerPolicy;
+  set height(String value) {
+    JS("void", "#.height = #", this, value);
+  }
 
-  final DomTokenList sandbox;
+  String get name => JS("String", "#.name", this);
 
-  String src;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
-  String srcdoc;
+  String get referrerPolicy => JS("String", "#.referrerPolicy", this);
 
-  String width;
+  set referrerPolicy(String value) {
+    JS("void", "#.referrerPolicy = #", this, value);
+  }
+
+  DomTokenList get sandbox => JS("DomTokenList", "#.sandbox", this);
+
+  String get src => JS("String", "#.src", this);
+
+  set src(String value) {
+    JS("void", "#.src = #", this, value);
+  }
+
+  String get srcdoc => JS("String", "#.srcdoc", this);
+
+  set srcdoc(String value) {
+    JS("void", "#.srcdoc = #", this, value);
+  }
+
+  String get width => JS("String", "#.width", this);
+
+  set width(String value) {
+    JS("void", "#.width = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17996,7 +18870,7 @@ class IdleDeadline extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool didTimeout;
+  bool get didTimeout => JS("bool", "#.didTimeout", this);
 
   double timeRemaining() native;
 }
@@ -18018,9 +18892,9 @@ class ImageBitmap extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int height;
+  int get height => JS("int", "#.height", this);
 
-  final int width;
+  int get width => JS("int", "#.width", this);
 
   void close() native;
 }
@@ -18035,9 +18909,9 @@ class ImageBitmapRenderingContext extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final CanvasElement canvas;
+  CanvasElement get canvas => JS("CanvasElement", "#.canvas", this);
 
-  void transferFromImageBitmap(ImageBitmap bitmap) native;
+  void transferFromImageBitmap(ImageBitmap? bitmap) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18056,7 +18930,7 @@ class ImageCapture extends Interceptor {
   static ImageCapture _create_1(track) =>
       JS('ImageCapture', 'new ImageCapture(#)', track);
 
-  final MediaStreamTrack track;
+  MediaStreamTrack get track => JS("MediaStreamTrack", "#.track", this);
 
   Future<PhotoCapabilities> getPhotoCapabilities() =>
       promiseToFuture<PhotoCapabilities>(
@@ -18073,7 +18947,7 @@ class ImageCapture extends Interceptor {
     return promiseToFuture(JS("", "#.setOptions(#)", this, photoSettings_dict));
   }
 
-  Future<Blob> takePhoto([Map photoSettings]) {
+  Future<Blob> takePhoto([Map? photoSettings]) {
     var photoSettings_dict = null;
     if (photoSettings != null) {
       photoSettings_dict = convertDartToNative_Dictionary(photoSettings);
@@ -18093,7 +18967,7 @@ class ImageData extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ImageData(data_OR_sw, int sh_OR_sw, [int sh]) {
+  factory ImageData(data_OR_sw, int sh_OR_sw, [int? sh]) {
     if ((sh_OR_sw is int) && (data_OR_sw is int) && sh == null) {
       return ImageData._create_1(data_OR_sw, sh_OR_sw);
     }
@@ -18114,11 +18988,11 @@ class ImageData extends Interceptor {
 
   @Creates('NativeUint8ClampedList')
   @Returns('NativeUint8ClampedList')
-  final Uint8ClampedList data;
+  Uint8ClampedList get data => JS("Uint8ClampedList", "#.data", this);
 
-  final int height;
+  int get height => JS("int", "#.height", this);
 
-  final int width;
+  int get width => JS("int", "#.width", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18131,9 +19005,12 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ImageElement({String src, int width, int height}) {
-    ImageElement e = JS('returns:ImageElement;creates:ImageElement;new:true',
-        '#.createElement(#)', document, "img");
+  factory ImageElement({String? src, int? width, int? height}) {
+    ImageElement e = JS<ImageElement>(
+        'returns:ImageElement;creates:ImageElement;new:true',
+        '#.createElement(#)',
+        document,
+        "img");
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -18146,35 +19023,75 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
    */
   ImageElement.created() : super.created();
 
-  String alt;
+  String get alt => JS("String", "#.alt", this);
 
-  String async;
+  set alt(String value) {
+    JS("void", "#.alt = #", this, value);
+  }
 
-  final bool complete;
+  String get async => JS("String", "#.async", this);
 
-  String crossOrigin;
+  set async(String value) {
+    JS("void", "#.async = #", this, value);
+  }
 
-  final String currentSrc;
+  bool get complete => JS("bool", "#.complete", this);
 
-  int height;
+  String? crossOrigin;
 
-  bool isMap;
+  String get currentSrc => JS("String", "#.currentSrc", this);
 
-  final int naturalHeight;
+  int get height => JS("int", "#.height", this);
 
-  final int naturalWidth;
+  set height(int value) {
+    JS("void", "#.height = #", this, value);
+  }
 
-  String referrerPolicy;
+  bool get isMap => JS("bool", "#.isMap", this);
 
-  String sizes;
+  set isMap(bool value) {
+    JS("void", "#.isMap = #", this, value);
+  }
 
-  String src;
+  int get naturalHeight => JS("int", "#.naturalHeight", this);
 
-  String srcset;
+  int get naturalWidth => JS("int", "#.naturalWidth", this);
 
-  String useMap;
+  String get referrerPolicy => JS("String", "#.referrerPolicy", this);
 
-  int width;
+  set referrerPolicy(String value) {
+    JS("void", "#.referrerPolicy = #", this, value);
+  }
+
+  String get sizes => JS("String", "#.sizes", this);
+
+  set sizes(String value) {
+    JS("void", "#.sizes = #", this, value);
+  }
+
+  String get src => JS("String", "#.src", this);
+
+  set src(String value) {
+    JS("void", "#.src = #", this, value);
+  }
+
+  String get srcset => JS("String", "#.srcset", this);
+
+  set srcset(String value) {
+    JS("void", "#.srcset = #", this, value);
+  }
+
+  String get useMap => JS("String", "#.useMap", this);
+
+  set useMap(String value) {
+    JS("void", "#.useMap = #", this, value);
+  }
+
+  int get width => JS("int", "#.width", this);
+
+  set width(int value) {
+    JS("void", "#.width = #", this, value);
+  }
 
   Future decode() => promiseToFuture(JS("", "#.decode()", this));
 }
@@ -18189,7 +19106,7 @@ class InputDeviceCapabilities extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory InputDeviceCapabilities([Map deviceInitDict]) {
+  factory InputDeviceCapabilities([Map? deviceInitDict]) {
     if (deviceInitDict != null) {
       var deviceInitDict_1 = convertDartToNative_Dictionary(deviceInitDict);
       return InputDeviceCapabilities._create_1(deviceInitDict_1);
@@ -18203,7 +19120,7 @@ class InputDeviceCapabilities extends Interceptor {
   static InputDeviceCapabilities _create_2() =>
       JS('InputDeviceCapabilities', 'new InputDeviceCapabilities()');
 
-  final bool firesTouchEvents;
+  bool get firesTouchEvents => JS("bool", "#.firesTouchEvents", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18255,95 +19172,231 @@ class InputElement extends HtmlElement
    */
   InputElement.created() : super.created();
 
-  String accept;
+  String get accept => JS("String", "#.accept", this);
 
-  String alt;
+  set accept(String value) {
+    JS("void", "#.accept = #", this, value);
+  }
 
-  String autocapitalize;
+  String get alt => JS("String", "#.alt", this);
 
-  String autocomplete;
+  set alt(String value) {
+    JS("void", "#.alt = #", this, value);
+  }
 
-  bool autofocus;
+  String get autocapitalize => JS("String", "#.autocapitalize", this);
 
-  String capture;
+  set autocapitalize(String value) {
+    JS("void", "#.autocapitalize = #", this, value);
+  }
 
-  bool checked;
+  String get autocomplete => JS("String", "#.autocomplete", this);
 
-  bool defaultChecked;
+  set autocomplete(String value) {
+    JS("void", "#.autocomplete = #", this, value);
+  }
 
-  String defaultValue;
+  bool get autofocus => JS("bool", "#.autofocus", this);
 
-  String dirName;
+  set autofocus(bool value) {
+    JS("void", "#.autofocus = #", this, value);
+  }
 
-  bool disabled;
+  String get capture => JS("String", "#.capture", this);
+
+  set capture(String value) {
+    JS("void", "#.capture = #", this, value);
+  }
+
+  bool get checked => JS("bool", "#.checked", this);
+
+  set checked(bool value) {
+    JS("void", "#.checked = #", this, value);
+  }
+
+  bool get defaultChecked => JS("bool", "#.defaultChecked", this);
+
+  set defaultChecked(bool value) {
+    JS("void", "#.defaultChecked = #", this, value);
+  }
+
+  String get defaultValue => JS("String", "#.defaultValue", this);
+
+  set defaultValue(String value) {
+    JS("void", "#.defaultValue = #", this, value);
+  }
+
+  String get dirName => JS("String", "#.dirName", this);
+
+  set dirName(String value) {
+    JS("void", "#.dirName = #", this, value);
+  }
+
+  bool get disabled => JS("bool", "#.disabled", this);
+
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
 
   @Returns('FileList|Null')
   @Creates('FileList')
-  List<File> files;
+  List<File>? files;
 
-  final FormElement form;
+  final FormElement? form;
 
-  String formAction;
+  String get formAction => JS("String", "#.formAction", this);
 
-  String formEnctype;
+  set formAction(String value) {
+    JS("void", "#.formAction = #", this, value);
+  }
 
-  String formMethod;
+  String get formEnctype => JS("String", "#.formEnctype", this);
 
-  bool formNoValidate;
+  set formEnctype(String value) {
+    JS("void", "#.formEnctype = #", this, value);
+  }
 
-  String formTarget;
+  String get formMethod => JS("String", "#.formMethod", this);
 
-  int height;
+  set formMethod(String value) {
+    JS("void", "#.formMethod = #", this, value);
+  }
 
-  bool incremental;
+  bool get formNoValidate => JS("bool", "#.formNoValidate", this);
 
-  bool indeterminate;
+  set formNoValidate(bool value) {
+    JS("void", "#.formNoValidate = #", this, value);
+  }
+
+  String get formTarget => JS("String", "#.formTarget", this);
+
+  set formTarget(String value) {
+    JS("void", "#.formTarget = #", this, value);
+  }
+
+  int get height => JS("int", "#.height", this);
+
+  set height(int value) {
+    JS("void", "#.height = #", this, value);
+  }
+
+  bool get incremental => JS("bool", "#.incremental", this);
+
+  set incremental(bool value) {
+    JS("void", "#.incremental = #", this, value);
+  }
+
+  bool get indeterminate => JS("bool", "#.indeterminate", this);
+
+  set indeterminate(bool value) {
+    JS("void", "#.indeterminate = #", this, value);
+  }
 
   @Returns('NodeList|Null')
   @Creates('NodeList')
-  final List<Node> labels;
+  List<Node> get labels => JS("NodeList", "#.labels", this);
 
-  final HtmlElement list;
+  final HtmlElement? list;
 
-  String max;
+  String get max => JS("String", "#.max", this);
 
-  int maxLength;
+  set max(String value) {
+    JS("void", "#.max = #", this, value);
+  }
 
-  String min;
+  int get maxLength => JS("int", "#.maxLength", this);
 
-  int minLength;
+  set maxLength(int value) {
+    JS("void", "#.maxLength = #", this, value);
+  }
 
-  bool multiple;
+  String get min => JS("String", "#.min", this);
 
-  String name;
+  set min(String value) {
+    JS("void", "#.min = #", this, value);
+  }
 
-  String pattern;
+  int get minLength => JS("int", "#.minLength", this);
 
-  String placeholder;
+  set minLength(int value) {
+    JS("void", "#.minLength = #", this, value);
+  }
 
-  bool readOnly;
+  bool get multiple => JS("bool", "#.multiple", this);
 
-  bool required;
+  set multiple(bool value) {
+    JS("void", "#.multiple = #", this, value);
+  }
 
-  String selectionDirection;
+  String get name => JS("String", "#.name", this);
 
-  int selectionEnd;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
-  int selectionStart;
+  String get pattern => JS("String", "#.pattern", this);
 
-  int size;
+  set pattern(String value) {
+    JS("void", "#.pattern = #", this, value);
+  }
 
-  String src;
+  String get placeholder => JS("String", "#.placeholder", this);
 
-  String step;
+  set placeholder(String value) {
+    JS("void", "#.placeholder = #", this, value);
+  }
 
-  String type;
+  bool get readOnly => JS("bool", "#.readOnly", this);
 
-  final String validationMessage;
+  set readOnly(bool value) {
+    JS("void", "#.readOnly = #", this, value);
+  }
 
-  final ValidityState validity;
+  bool get required => JS("bool", "#.required", this);
 
-  String value;
+  set required(bool value) {
+    JS("void", "#.required = #", this, value);
+  }
+
+  String? selectionDirection;
+
+  int? selectionEnd;
+
+  int? selectionStart;
+
+  int get size => JS("int", "#.size", this);
+
+  set size(int value) {
+    JS("void", "#.size = #", this, value);
+  }
+
+  String get src => JS("String", "#.src", this);
+
+  set src(String value) {
+    JS("void", "#.src = #", this, value);
+  }
+
+  String get step => JS("String", "#.step", this);
+
+  set step(String value) {
+    JS("void", "#.step = #", this, value);
+  }
+
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
+
+  String get validationMessage => JS("String", "#.validationMessage", this);
+
+  ValidityState get validity => JS("ValidityState", "#.validity", this);
+
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
 
   DateTime get valueAsDate =>
       convertNativeToDart_DateTime(this._get_valueAsDate);
@@ -18355,25 +19408,40 @@ class InputElement extends HtmlElement
     this._set_valueAsDate = convertDartToNative_DateTime(value);
   }
 
-  set _set_valueAsDate(/*dynamic*/ value) {
+  set _set_valueAsDate(/*dynamic?*/ value) {
     JS("void", "#.valueAsDate = #", this, value);
   }
 
-  num valueAsNumber;
+  num get valueAsNumber => JS("num", "#.valueAsNumber", this);
+
+  set valueAsNumber(num value) {
+    JS("void", "#.valueAsNumber = #", this, value);
+  }
 
   @JSName('webkitEntries')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final List<Entry> entries;
+  List<Entry> get entries => JS("List<Entry>", "#.webkitEntries", this);
 
   @JSName('webkitdirectory')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  bool directory;
+  bool get directory => JS("bool", "#.webkitdirectory", this);
 
-  int width;
+  @JSName('webkitdirectory')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  set directory(bool value) {
+    JS("void", "#.webkitdirectory = #", this, value);
+  }
 
-  final bool willValidate;
+  int get width => JS("int", "#.width", this);
+
+  set width(int value) {
+    JS("void", "#.width = #", this, value);
+  }
+
+  bool get willValidate => JS("bool", "#.willValidate", this);
 
   bool checkValidity() native;
 
@@ -18384,13 +19452,13 @@ class InputElement extends HtmlElement
   void setCustomValidity(String error) native;
 
   void setRangeText(String replacement,
-      {int start, int end, String selectionMode}) native;
+      {int? start, int? end, String? selectionMode}) native;
 
-  void setSelectionRange(int start, int end, [String direction]) native;
+  void setSelectionRange(int start, int end, [String? direction]) native;
 
-  void stepDown([int n]) native;
+  void stepDown([int? n]) native;
 
-  void stepUp([int n]) native;
+  void stepUp([int? n]) native;
 }
 
 // Interfaces representing the InputElement APIs which are supported
@@ -18477,7 +19545,7 @@ abstract class SearchInputElement implements TextInputElementBase {
 
   String dirName;
 
-  Element get list;
+  Element? get list;
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -18493,7 +19561,7 @@ abstract class TextInputElement implements TextInputElementBase {
 
   String dirName;
 
-  Element get list;
+  Element? get list;
 }
 
 /**
@@ -18508,7 +19576,7 @@ abstract class TextInputElement implements TextInputElementBase {
 abstract class UrlInputElement implements TextInputElementBase {
   factory UrlInputElement() => new InputElement(type: 'url');
 
-  Element get list;
+  Element? get list;
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -18531,7 +19599,7 @@ abstract class UrlInputElement implements TextInputElementBase {
 abstract class TelephoneInputElement implements TextInputElementBase {
   factory TelephoneInputElement() => new InputElement(type: 'tel');
 
-  Element get list;
+  Element? get list;
 
   /// Returns true if this input type is supported on the current platform.
   static bool get supported {
@@ -18555,7 +19623,7 @@ abstract class EmailInputElement implements TextInputElementBase {
 
   bool autofocus;
 
-  Element get list;
+  Element? get list;
 
   int maxLength;
 
@@ -18588,7 +19656,7 @@ abstract class PasswordInputElement implements TextInputElementBase {
  * Base interface for all input element types which involve ranges.
  */
 abstract class RangeInputElementBase implements InputElementBase {
-  Element get list;
+  Element? get list;
 
   String max;
 
@@ -18861,7 +19929,7 @@ class InstallEvent extends ExtendableEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory InstallEvent(String type, [Map eventInitDict]) {
+  factory InstallEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return InstallEvent._create_1(type, eventInitDict_1);
@@ -18894,7 +19962,7 @@ class IntersectionObserver extends Interceptor {
   }
 
   factory IntersectionObserver(IntersectionObserverCallback callback,
-      [Map options]) {
+      [Map? options]) {
     if (options != null) {
       var callback_1 = convertDartClosureToJS(callback, 2);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -18911,11 +19979,11 @@ class IntersectionObserver extends Interceptor {
   static IntersectionObserver _create_2(callback) =>
       JS('IntersectionObserver', 'new IntersectionObserver(#)', callback);
 
-  final Element root;
+  final Element? root;
 
-  final String rootMargin;
+  String get rootMargin => JS("String", "#.rootMargin", this);
 
-  final List<num> thresholds;
+  List<num> get thresholds => JS("List<num>", "#.thresholds", this);
 
   void disconnect() native;
 
@@ -18944,19 +20012,21 @@ class IntersectionObserverEntry extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final DomRectReadOnly boundingClientRect;
+  DomRectReadOnly get boundingClientRect =>
+      JS("DomRectReadOnly", "#.boundingClientRect", this);
 
-  final num intersectionRatio;
+  num get intersectionRatio => JS("num", "#.intersectionRatio", this);
 
-  final DomRectReadOnly intersectionRect;
+  DomRectReadOnly get intersectionRect =>
+      JS("DomRectReadOnly", "#.intersectionRect", this);
 
-  final bool isIntersecting;
+  bool get isIntersecting => JS("bool", "#.isIntersecting", this);
 
-  final DomRectReadOnly rootBounds;
+  final DomRectReadOnly? rootBounds;
 
-  final Element target;
+  Element get target => JS("Element", "#.target", this);
 
-  final num time;
+  num get time => JS("num", "#.time", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18969,11 +20039,11 @@ class InterventionReport extends ReportBody {
     throw new UnsupportedError("Not supported");
   }
 
-  final int lineNumber;
+  int get lineNumber => JS("int", "#.lineNumber", this);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 
-  final String sourceFile;
+  String get sourceFile => JS("String", "#.sourceFile", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19063,7 +20133,7 @@ class KeyboardEvent extends UIEvent {
 
   int get which => _which;
 
-  factory KeyboardEvent._(String type, [Map eventInitDict]) {
+  factory KeyboardEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return KeyboardEvent._create_1(type, eventInitDict_1);
@@ -19083,29 +20153,29 @@ class KeyboardEvent extends UIEvent {
 
   static const int DOM_KEY_LOCATION_STANDARD = 0x00;
 
-  final bool altKey;
+  bool get altKey => JS("bool", "#.altKey", this);
 
   @JSName('charCode')
-  final int _charCode;
+  int get _charCode => JS("int", "#.charCode", this);
 
-  final String code;
+  String get code => JS("String", "#.code", this);
 
-  final bool ctrlKey;
+  bool get ctrlKey => JS("bool", "#.ctrlKey", this);
 
-  final bool isComposing;
+  bool get isComposing => JS("bool", "#.isComposing", this);
 
-  final String key;
+  String get key => JS("String", "#.key", this);
 
   @JSName('keyCode')
-  final int _keyCode;
+  int get _keyCode => JS("int", "#.keyCode", this);
 
-  final int location;
+  int get location => JS("int", "#.location", this);
 
-  final bool metaKey;
+  bool get metaKey => JS("bool", "#.metaKey", this);
 
-  final bool repeat;
+  bool get repeat => JS("bool", "#.repeat", this);
 
-  final bool shiftKey;
+  bool get shiftKey => JS("bool", "#.shiftKey", this);
 
   bool getModifierState(String keyArg) native;
 }
@@ -19120,7 +20190,7 @@ class KeyframeEffect extends KeyframeEffectReadOnly {
     throw new UnsupportedError("Not supported");
   }
 
-  factory KeyframeEffect(Element target, Object effect, [Object options]) {
+  factory KeyframeEffect(Element? target, Object? effect, [Object? options]) {
     if (options != null) {
       return KeyframeEffect._create_1(target, effect, options);
     }
@@ -19142,8 +20212,8 @@ class KeyframeEffectReadOnly extends AnimationEffectReadOnly {
     throw new UnsupportedError("Not supported");
   }
 
-  factory KeyframeEffectReadOnly(Element target, Object effect,
-      [Object options]) {
+  factory KeyframeEffectReadOnly(Element? target, Object? effect,
+      [Object? options]) {
     if (options != null) {
       return KeyframeEffectReadOnly._create_1(target, effect, options);
     }
@@ -19172,8 +20242,11 @@ class LIElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LIElement() => JS('returns:LIElement;creates:LIElement;new:true',
-      '#.createElement(#)', document, "li");
+  factory LIElement() => JS<LIElement>(
+      'returns:LIElement;creates:LIElement;new:true',
+      '#.createElement(#)',
+      document,
+      "li");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19181,7 +20254,11 @@ class LIElement extends HtmlElement {
    */
   LIElement.created() : super.created();
 
-  int value;
+  int get value => JS("int", "#.value", this);
+
+  set value(int value) {
+    JS("void", "#.value = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19194,7 +20271,7 @@ class LabelElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LabelElement() => JS(
+  factory LabelElement() => JS<LabelElement>(
       'returns:LabelElement;creates:LabelElement;new:true',
       '#.createElement(#)',
       document,
@@ -19206,11 +20283,15 @@ class LabelElement extends HtmlElement {
    */
   LabelElement.created() : super.created();
 
-  final HtmlElement control;
+  final HtmlElement? control;
 
-  final FormElement form;
+  final FormElement? form;
 
-  String htmlFor;
+  String get htmlFor => JS("String", "#.htmlFor", this);
+
+  set htmlFor(String value) {
+    JS("void", "#.htmlFor = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19223,7 +20304,7 @@ class LegendElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LegendElement() => JS(
+  factory LegendElement() => JS<LegendElement>(
       'returns:LegendElement;creates:LegendElement;new:true',
       '#.createElement(#)',
       document,
@@ -19235,7 +20316,7 @@ class LegendElement extends HtmlElement {
    */
   LegendElement.created() : super.created();
 
-  final FormElement form;
+  final FormElement? form;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19248,7 +20329,7 @@ class LinearAccelerationSensor extends Accelerometer {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LinearAccelerationSensor([Map sensorOptions]) {
+  factory LinearAccelerationSensor([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return LinearAccelerationSensor._create_1(sensorOptions_1);
@@ -19273,7 +20354,7 @@ class LinkElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory LinkElement() => JS(
+  factory LinkElement() => JS<LinkElement>(
       'returns:LinkElement;creates:LinkElement;new:true',
       '#.createElement(#)',
       document,
@@ -19285,35 +20366,75 @@ class LinkElement extends HtmlElement {
    */
   LinkElement.created() : super.created();
 
-  String as;
+  String get as => JS("String", "#.as", this);
 
-  String crossOrigin;
+  set as(String value) {
+    JS("void", "#.as = #", this, value);
+  }
 
-  bool disabled;
+  String? crossOrigin;
 
-  String href;
+  bool get disabled => JS("bool", "#.disabled", this);
 
-  String hreflang;
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
 
-  final Document import;
+  String get href => JS("String", "#.href", this);
 
-  String integrity;
+  set href(String value) {
+    JS("void", "#.href = #", this, value);
+  }
 
-  String media;
+  String get hreflang => JS("String", "#.hreflang", this);
 
-  String referrerPolicy;
+  set hreflang(String value) {
+    JS("void", "#.hreflang = #", this, value);
+  }
 
-  String rel;
+  final Document? import;
 
-  final DomTokenList relList;
+  String get integrity => JS("String", "#.integrity", this);
 
-  String scope;
+  set integrity(String value) {
+    JS("void", "#.integrity = #", this, value);
+  }
 
-  final StyleSheet sheet;
+  String get media => JS("String", "#.media", this);
 
-  final DomTokenList sizes;
+  set media(String value) {
+    JS("void", "#.media = #", this, value);
+  }
 
-  String type;
+  String get referrerPolicy => JS("String", "#.referrerPolicy", this);
+
+  set referrerPolicy(String value) {
+    JS("void", "#.referrerPolicy = #", this, value);
+  }
+
+  String get rel => JS("String", "#.rel", this);
+
+  set rel(String value) {
+    JS("void", "#.rel = #", this, value);
+  }
+
+  DomTokenList get relList => JS("DomTokenList", "#.relList", this);
+
+  String get scope => JS("String", "#.scope", this);
+
+  set scope(String value) {
+    JS("void", "#.scope = #", this, value);
+  }
+
+  final StyleSheet? sheet;
+
+  DomTokenList get sizes => JS("DomTokenList", "#.sizes", this);
+
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 
   /// Checks if HTML imports are supported on the current platform.
   bool get supportsImport {
@@ -19333,27 +20454,64 @@ class Location extends Interceptor implements LocationBase {
 
   @Returns('DomStringList|Null')
   @Creates('DomStringList')
-  final List<String> ancestorOrigins;
+  List<String> get ancestorOrigins =>
+      JS("DomStringList", "#.ancestorOrigins", this);
 
-  String hash;
+  String get hash => JS("String", "#.hash", this);
 
-  String host;
+  set hash(String value) {
+    JS("void", "#.hash = #", this, value);
+  }
 
-  String hostname;
+  String get host => JS("String", "#.host", this);
 
-  String href;
+  set host(String value) {
+    JS("void", "#.host = #", this, value);
+  }
 
-  String pathname;
+  String get hostname => JS("String", "#.hostname", this);
 
-  String port;
+  set hostname(String value) {
+    JS("void", "#.hostname = #", this, value);
+  }
 
-  String protocol;
+  String get href => JS("String", "#.href", this);
 
-  String search;
+  set href(String value) {
+    JS("void", "#.href = #", this, value);
+  }
 
-  TrustedUrl trustedHref;
+  String get pathname => JS("String", "#.pathname", this);
 
-  void assign([String url]) native;
+  set pathname(String value) {
+    JS("void", "#.pathname = #", this, value);
+  }
+
+  String get port => JS("String", "#.port", this);
+
+  set port(String value) {
+    JS("void", "#.port = #", this, value);
+  }
+
+  String get protocol => JS("String", "#.protocol", this);
+
+  set protocol(String value) {
+    JS("void", "#.protocol = #", this, value);
+  }
+
+  String get search => JS("String", "#.search", this);
+
+  set search(String value) {
+    JS("void", "#.search = #", this, value);
+  }
+
+  TrustedUrl get trustedHref => JS("TrustedUrl", "#.trustedHref", this);
+
+  set trustedHref(TrustedUrl value) {
+    JS("void", "#.trustedHref = #", this, value);
+  }
+
+  void assign([String? url]) native;
 
   void reload() native;
 
@@ -19379,7 +20537,7 @@ class Magnetometer extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory Magnetometer([Map sensorOptions]) {
+  factory Magnetometer([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return Magnetometer._create_1(sensorOptions_1);
@@ -19407,8 +20565,11 @@ class MapElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MapElement() => JS('returns:MapElement;creates:MapElement;new:true',
-      '#.createElement(#)', document, "map");
+  factory MapElement() => JS<MapElement>(
+      'returns:MapElement;creates:MapElement;new:true',
+      '#.createElement(#)',
+      document,
+      "map");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -19418,9 +20579,13 @@ class MapElement extends HtmlElement {
 
   @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
-  final List<Node> areas;
+  List<Node> get areas => JS("HtmlCollection", "#.areas", this);
 
-  String name;
+  String get name => JS("String", "#.name", this);
+
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19456,11 +20621,11 @@ class MediaCapabilitiesInfo extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool powerEfficient;
+  bool get powerEfficient => JS("bool", "#.powerEfficient", this);
 
-  final bool smooth;
+  bool get smooth => JS("bool", "#.smooth", this);
 
-  final bool supported;
+  bool get supported => JS("bool", "#.supported", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19473,13 +20638,13 @@ class MediaDeviceInfo extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String deviceId;
+  String get deviceId => JS("String", "#.deviceId", this);
 
-  final String groupId;
+  String get groupId => JS("String", "#.groupId", this);
 
-  final String kind;
+  String get kind => JS("String", "#.kind", this);
 
-  final String label;
+  String get label => JS("String", "#.label", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19538,84 +20703,138 @@ class MediaElement extends HtmlElement {
 
   static const int NETWORK_NO_SOURCE = 3;
 
-  final AudioTrackList audioTracks;
+  AudioTrackList get audioTracks => JS("AudioTrackList", "#.audioTracks", this);
 
-  bool autoplay;
+  bool get autoplay => JS("bool", "#.autoplay", this);
 
-  final TimeRanges buffered;
+  set autoplay(bool value) {
+    JS("void", "#.autoplay = #", this, value);
+  }
 
-  bool controls;
+  TimeRanges get buffered => JS("TimeRanges", "#.buffered", this);
 
-  final DomTokenList controlsList;
+  bool get controls => JS("bool", "#.controls", this);
 
-  String crossOrigin;
+  set controls(bool value) {
+    JS("void", "#.controls = #", this, value);
+  }
 
-  final String currentSrc;
+  DomTokenList get controlsList => JS("DomTokenList", "#.controlsList", this);
 
-  num currentTime;
+  String? crossOrigin;
 
-  bool defaultMuted;
+  String get currentSrc => JS("String", "#.currentSrc", this);
 
-  num defaultPlaybackRate;
+  num get currentTime => JS("num", "#.currentTime", this);
 
-  bool disableRemotePlayback;
+  set currentTime(num value) {
+    JS("void", "#.currentTime = #", this, value);
+  }
 
-  final num duration;
+  bool get defaultMuted => JS("bool", "#.defaultMuted", this);
 
-  final bool ended;
+  set defaultMuted(bool value) {
+    JS("void", "#.defaultMuted = #", this, value);
+  }
 
-  final MediaError error;
+  num get defaultPlaybackRate => JS("num", "#.defaultPlaybackRate", this);
 
-  bool loop;
+  set defaultPlaybackRate(num value) {
+    JS("void", "#.defaultPlaybackRate = #", this, value);
+  }
 
-  final MediaKeys mediaKeys;
+  bool get disableRemotePlayback => JS("bool", "#.disableRemotePlayback", this);
 
-  bool muted;
+  set disableRemotePlayback(bool value) {
+    JS("void", "#.disableRemotePlayback = #", this, value);
+  }
 
-  final int networkState;
+  num get duration => JS("num", "#.duration", this);
 
-  final bool paused;
+  bool get ended => JS("bool", "#.ended", this);
 
-  num playbackRate;
+  final MediaError? error;
 
-  final TimeRanges played;
+  bool get loop => JS("bool", "#.loop", this);
 
-  String preload;
+  set loop(bool value) {
+    JS("void", "#.loop = #", this, value);
+  }
 
-  final int readyState;
+  MediaKeys get mediaKeys => JS("MediaKeys", "#.mediaKeys", this);
 
-  final RemotePlayback remote;
+  bool get muted => JS("bool", "#.muted", this);
 
-  final TimeRanges seekable;
+  set muted(bool value) {
+    JS("void", "#.muted = #", this, value);
+  }
 
-  final bool seeking;
+  int get networkState => JS("int", "#.networkState", this);
 
-  final String sinkId;
+  bool get paused => JS("bool", "#.paused", this);
 
-  String src;
+  num get playbackRate => JS("num", "#.playbackRate", this);
 
-  MediaStream srcObject;
+  set playbackRate(num value) {
+    JS("void", "#.playbackRate = #", this, value);
+  }
 
-  final TextTrackList textTracks;
+  TimeRanges get played => JS("TimeRanges", "#.played", this);
 
-  final VideoTrackList videoTracks;
+  String get preload => JS("String", "#.preload", this);
 
-  num volume;
+  set preload(String value) {
+    JS("void", "#.preload = #", this, value);
+  }
+
+  int get readyState => JS("int", "#.readyState", this);
+
+  RemotePlayback get remote => JS("RemotePlayback", "#.remote", this);
+
+  TimeRanges get seekable => JS("TimeRanges", "#.seekable", this);
+
+  bool get seeking => JS("bool", "#.seeking", this);
+
+  String get sinkId => JS("String", "#.sinkId", this);
+
+  String get src => JS("String", "#.src", this);
+
+  set src(String value) {
+    JS("void", "#.src = #", this, value);
+  }
+
+  MediaStream get srcObject => JS("MediaStream", "#.srcObject", this);
+
+  set srcObject(MediaStream value) {
+    JS("void", "#.srcObject = #", this, value);
+  }
+
+  TextTrackList get textTracks => JS("TextTrackList", "#.textTracks", this);
+
+  VideoTrackList get videoTracks => JS("VideoTrackList", "#.videoTracks", this);
+
+  num get volume => JS("num", "#.volume", this);
+
+  set volume(num value) {
+    JS("void", "#.volume = #", this, value);
+  }
 
   @JSName('webkitAudioDecodedByteCount')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final int audioDecodedByteCount;
+  int get audioDecodedByteCount =>
+      JS("int", "#.webkitAudioDecodedByteCount", this);
 
   @JSName('webkitVideoDecodedByteCount')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final int videoDecodedByteCount;
+  int get videoDecodedByteCount =>
+      JS("int", "#.webkitVideoDecodedByteCount", this);
 
-  TextTrack addTextTrack(String kind, [String label, String language]) native;
+  TextTrack addTextTrack(String kind, [String? label, String? language]) native;
 
   @Unstable()
-  String canPlayType(String type, [String keySystem]) native;
+  String canPlayType(String type, [String? keySystem]) native;
 
   MediaStream captureStream() native;
 
@@ -19625,7 +20844,7 @@ class MediaElement extends HtmlElement {
 
   Future play() => promiseToFuture(JS("", "#.play()", this));
 
-  Future setMediaKeys(MediaKeys mediaKeys) =>
+  Future setMediaKeys(MediaKeys? mediaKeys) =>
       promiseToFuture(JS("", "#.setMediaKeys(#)", this, mediaKeys));
 
   Future setSinkId(String sinkId) =>
@@ -19642,7 +20861,7 @@ class MediaEncryptedEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MediaEncryptedEvent(String type, [Map eventInitDict]) {
+  factory MediaEncryptedEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MediaEncryptedEvent._create_1(type, eventInitDict_1);
@@ -19657,9 +20876,9 @@ class MediaEncryptedEvent extends Event {
   static MediaEncryptedEvent _create_2(type) =>
       JS('MediaEncryptedEvent', 'new MediaEncryptedEvent(#)', type);
 
-  final ByteBuffer initData;
+  final ByteBuffer? initData;
 
-  final String initDataType;
+  String get initDataType => JS("String", "#.initDataType", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19681,9 +20900,9 @@ class MediaError extends Interceptor {
 
   static const int MEDIA_ERR_SRC_NOT_SUPPORTED = 4;
 
-  final int code;
+  int get code => JS("int", "#.code", this);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19706,9 +20925,9 @@ class MediaKeyMessageEvent extends Event {
       type,
       eventInitDict);
 
-  final ByteBuffer message;
+  ByteBuffer get message => JS("ByteBuffer", "#.message", this);
 
-  final String messageType;
+  String get messageType => JS("String", "#.messageType", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19724,13 +20943,14 @@ class MediaKeySession extends EventTarget {
   static const EventStreamProvider<MessageEvent> messageEvent =
       const EventStreamProvider<MessageEvent>('message');
 
-  Future<void> get closed => promiseToFuture<void>(JS("", "#.closed", this));
+  Future get closed => JS("Future", "#.closed", this);
 
-  final num expiration;
+  num get expiration => JS("num", "#.expiration", this);
 
-  final MediaKeyStatusMap keyStatuses;
+  MediaKeyStatusMap get keyStatuses =>
+      JS("MediaKeyStatusMap", "#.keyStatuses", this);
 
-  final String sessionId;
+  String get sessionId => JS("String", "#.sessionId", this);
 
   Future close() => promiseToFuture(JS("", "#.close()", this));
 
@@ -19759,7 +20979,7 @@ class MediaKeyStatusMap extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int size;
+  int get size => JS("int", "#.size", this);
 
   Object get(/*BufferSource*/ keyId) native;
 
@@ -19776,7 +20996,7 @@ class MediaKeySystemAccess extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String keySystem;
+  String get keySystem => JS("String", "#.keySystem", this);
 
   Future createMediaKeys() =>
       promiseToFuture(JS("", "#.createMediaKeys()", this));
@@ -19800,7 +21020,7 @@ class MediaKeys extends Interceptor {
   }
 
   @JSName('createSession')
-  MediaKeySession _createSession([String sessionType]) native;
+  MediaKeySession _createSession([String? sessionType]) native;
 
   Future getStatusForPolicy(MediaKeysPolicy policy) =>
       promiseToFuture(JS("", "#.getStatusForPolicy(#)", this, policy));
@@ -19827,7 +21047,7 @@ class MediaKeysPolicy extends Interceptor {
   static MediaKeysPolicy _create_1(init) =>
       JS('MediaKeysPolicy', 'new MediaKeysPolicy(#)', init);
 
-  final String minHdcpVersion;
+  String get minHdcpVersion => JS("String", "#.minHdcpVersion", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19841,9 +21061,9 @@ class MediaList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
-  String mediaText;
+  String? mediaText;
 
   void appendMedium(String medium) native;
 
@@ -19862,7 +21082,7 @@ class MediaMetadata extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MediaMetadata([Map metadata]) {
+  factory MediaMetadata([Map? metadata]) {
     if (metadata != null) {
       var metadata_1 = convertDartToNative_Dictionary(metadata);
       return MediaMetadata._create_1(metadata_1);
@@ -19874,13 +21094,29 @@ class MediaMetadata extends Interceptor {
   static MediaMetadata _create_2() =>
       JS('MediaMetadata', 'new MediaMetadata()');
 
-  String album;
+  String get album => JS("String", "#.album", this);
 
-  String artist;
+  set album(String value) {
+    JS("void", "#.album = #", this, value);
+  }
 
-  List artwork;
+  String get artist => JS("String", "#.artist", this);
 
-  String title;
+  set artist(String value) {
+    JS("void", "#.artist = #", this, value);
+  }
+
+  List get artwork => JS("List", "#.artwork", this);
+
+  set artwork(List value) {
+    JS("void", "#.artwork = #", this, value);
+  }
+
+  String get title => JS("String", "#.title", this);
+
+  set title(String value) {
+    JS("void", "#.title = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19897,13 +21133,13 @@ class MediaQueryList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  final bool matches;
+  bool get matches => JS("bool", "#.matches", this);
 
-  final String media;
+  String get media => JS("String", "#.media", this);
 
-  void addListener(EventListener listener) native;
+  void addListener(EventListener? listener) native;
 
-  void removeListener(EventListener listener) native;
+  void removeListener(EventListener? listener) native;
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }
@@ -19918,7 +21154,7 @@ class MediaQueryListEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MediaQueryListEvent(String type, [Map eventInitDict]) {
+  factory MediaQueryListEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MediaQueryListEvent._create_1(type, eventInitDict_1);
@@ -19933,9 +21169,9 @@ class MediaQueryListEvent extends Event {
   static MediaQueryListEvent _create_2(type) =>
       JS('MediaQueryListEvent', 'new MediaQueryListEvent(#)', type);
 
-  final bool matches;
+  bool get matches => JS("bool", "#.matches", this);
 
-  final String media;
+  String get media => JS("String", "#.media", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19954,7 +21190,7 @@ class MediaRecorder extends EventTarget {
   static const EventStreamProvider<Event> pauseEvent =
       const EventStreamProvider<Event>('pause');
 
-  factory MediaRecorder(MediaStream stream, [Map options]) {
+  factory MediaRecorder(MediaStream stream, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return MediaRecorder._create_1(stream, options_1);
@@ -19966,15 +21202,15 @@ class MediaRecorder extends EventTarget {
   static MediaRecorder _create_2(stream) =>
       JS('MediaRecorder', 'new MediaRecorder(#)', stream);
 
-  final int audioBitsPerSecond;
+  int get audioBitsPerSecond => JS("int", "#.audioBitsPerSecond", this);
 
-  final String mimeType;
+  String get mimeType => JS("String", "#.mimeType", this);
 
-  final String state;
+  String get state => JS("String", "#.state", this);
 
-  final MediaStream stream;
+  MediaStream get stream => JS("MediaStream", "#.stream", this);
 
-  final int videoBitsPerSecond;
+  int get videoBitsPerSecond => JS("int", "#.videoBitsPerSecond", this);
 
   static bool isTypeSupported(String type) native;
 
@@ -19984,7 +21220,7 @@ class MediaRecorder extends EventTarget {
 
   void resume() native;
 
-  void start([int timeslice]) native;
+  void start([int? timeslice]) native;
 
   void stop() native;
 
@@ -20003,11 +21239,15 @@ class MediaSession extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  MediaMetadata metadata;
+  MediaMetadata? metadata;
 
-  String playbackState;
+  String get playbackState => JS("String", "#.playbackState", this);
 
-  void setActionHandler(String action, MediaSessionActionHandler handler)
+  set playbackState(String value) {
+    JS("void", "#.playbackState = #", this, value);
+  }
+
+  void setActionHandler(String action, MediaSessionActionHandler? handler)
       native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20028,11 +21268,11 @@ class MediaSettingsRange extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num max;
+  num get max => JS("num", "#.max", this);
 
-  final num min;
+  num get min => JS("num", "#.min", this);
 
-  final num step;
+  num get step => JS("num", "#.step", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20055,19 +21295,25 @@ class MediaSource extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.MediaSource)');
 
-  final SourceBufferList activeSourceBuffers;
+  SourceBufferList get activeSourceBuffers =>
+      JS("SourceBufferList", "#.activeSourceBuffers", this);
 
-  num duration;
+  num get duration => JS("num", "#.duration", this);
 
-  final String readyState;
+  set duration(num value) {
+    JS("void", "#.duration = #", this, value);
+  }
 
-  final SourceBufferList sourceBuffers;
+  String get readyState => JS("String", "#.readyState", this);
+
+  SourceBufferList get sourceBuffers =>
+      JS("SourceBufferList", "#.sourceBuffers", this);
 
   SourceBuffer addSourceBuffer(String type) native;
 
   void clearLiveSeekableRange() native;
 
-  void endOfStream([String error]) native;
+  void endOfStream([String? error]) native;
 
   static bool isTypeSupported(String type) native;
 
@@ -20123,9 +21369,9 @@ class MediaStream extends EventTarget {
   static MediaStream _create_3(stream_OR_tracks) =>
       JS('MediaStream', 'new MediaStream(#)', stream_OR_tracks);
 
-  final bool active;
+  bool get active => JS("bool", "#.active", this);
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
   void addTrack(MediaStreamTrack track) native;
 
@@ -20179,7 +21425,7 @@ class MediaStreamEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MediaStreamEvent(String type, [Map eventInitDict]) {
+  factory MediaStreamEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MediaStreamEvent._create_1(type, eventInitDict_1);
@@ -20194,7 +21440,7 @@ class MediaStreamEvent extends Event {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Device.isEventTypeSupported('MediaStreamEvent');
 
-  final MediaStream stream;
+  final MediaStream? stream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20235,21 +21481,29 @@ class MediaStreamTrack extends EventTarget {
   static const EventStreamProvider<Event> unmuteEvent =
       const EventStreamProvider<Event>('unmute');
 
-  String contentHint;
+  String get contentHint => JS("String", "#.contentHint", this);
 
-  bool enabled;
+  set contentHint(String value) {
+    JS("void", "#.contentHint = #", this, value);
+  }
 
-  final String id;
+  bool get enabled => JS("bool", "#.enabled", this);
 
-  final String kind;
+  set enabled(bool value) {
+    JS("void", "#.enabled = #", this, value);
+  }
 
-  final String label;
+  String get id => JS("String", "#.id", this);
 
-  final bool muted;
+  String get kind => JS("String", "#.kind", this);
 
-  final String readyState;
+  String get label => JS("String", "#.label", this);
 
-  Future applyConstraints([Map constraints]) {
+  bool get muted => JS("bool", "#.muted", this);
+
+  String get readyState => JS("String", "#.readyState", this);
+
+  Future applyConstraints([Map? constraints]) {
     var constraints_dict = null;
     if (constraints != null) {
       constraints_dict = convertDartToNative_Dictionary(constraints);
@@ -20318,7 +21572,7 @@ class MediaStreamTrackEvent extends Event {
   static bool get supported =>
       Device.isEventTypeSupported('MediaStreamTrackEvent');
 
-  final MediaStreamTrack track;
+  MediaStreamTrack get track => JS("MediaStreamTrack", "#.track", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20331,11 +21585,11 @@ class MemoryInfo extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int jsHeapSizeLimit;
+  int get jsHeapSizeLimit => JS("int", "#.jsHeapSizeLimit", this);
 
-  final int totalJSHeapSize;
+  int get totalJSHeapSize => JS("int", "#.totalJSHeapSize", this);
 
-  final int usedJSHeapSize;
+  int get usedJSHeapSize => JS("int", "#.usedJSHeapSize", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20358,7 +21612,7 @@ class MenuElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MenuElement() => JS(
+  factory MenuElement() => JS<MenuElement>(
       'returns:MenuElement;creates:MenuElement;new:true',
       '#.createElement(#)',
       document,
@@ -20395,9 +21649,9 @@ class MessageChannel extends Interceptor {
   static MessageChannel _create_1() =>
       JS('MessageChannel', 'new MessageChannel()');
 
-  final MessagePort port1;
+  MessagePort get port1 => JS("MessagePort", "#.port1", this);
 
-  final MessagePort port2;
+  MessagePort get port2 => JS("MessagePort", "#.port2", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20449,7 +21703,7 @@ class MessageEvent extends Event {
   @annotation_Returns_SerializedScriptValue
   final dynamic _get_data;
 
-  factory MessageEvent._(String type, [Map eventInitDict]) {
+  factory MessageEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MessageEvent._create_1(type, eventInitDict_1);
@@ -20462,21 +21716,21 @@ class MessageEvent extends Event {
       JS('MessageEvent', 'new MessageEvent(#)', type);
 
   @Unstable()
-  final String lastEventId;
+  String get lastEventId => JS("String", "#.lastEventId", this);
 
-  final String origin;
+  String get origin => JS("String", "#.origin", this);
 
   @Unstable()
   @Creates('JSExtendableArray')
-  final List<MessagePort> ports;
+  List<MessagePort> get ports => JS("List<MessagePort>", "#.ports", this);
 
-  EventTarget get source => _convertNativeToDart_EventTarget(this._get_source);
+  EventTarget? get source => _convertNativeToDart_EventTarget(this._get_source);
   @JSName('source')
   @Creates('Null')
   @Returns('EventTarget|=Object')
   final dynamic _get_source;
 
-  final String suborigin;
+  String get suborigin => JS("String", "#.suborigin", this);
 
   void _initMessageEvent(
       String typeArg,
@@ -20533,7 +21787,7 @@ class MessagePort extends EventTarget {
 
   void close() native;
 
-  void postMessage(/*any*/ message, [List<Object> transfer]) {
+  void postMessage(/*any*/ message, [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, transfer);
@@ -20567,7 +21821,7 @@ class MetaElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MetaElement() => JS(
+  factory MetaElement() => JS<MetaElement>(
       'returns:MetaElement;creates:MetaElement;new:true',
       '#.createElement(#)',
       document,
@@ -20579,11 +21833,23 @@ class MetaElement extends HtmlElement {
    */
   MetaElement.created() : super.created();
 
-  String content;
+  String get content => JS("String", "#.content", this);
 
-  String httpEquiv;
+  set content(String value) {
+    JS("void", "#.content = #", this, value);
+  }
 
-  String name;
+  String get httpEquiv => JS("String", "#.httpEquiv", this);
+
+  set httpEquiv(String value) {
+    JS("void", "#.httpEquiv = #", this, value);
+  }
+
+  String get name => JS("String", "#.name", this);
+
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20602,7 +21868,7 @@ class Metadata extends Interceptor {
   @Creates('Null')
   final dynamic _get_modificationTime;
 
-  final int size;
+  int get size => JS("int", "#.size", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20626,7 +21892,7 @@ class MeterElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MeterElement() => document.createElement("meter");
+  factory MeterElement() => document.createElement("meter") as MeterElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -20637,22 +21903,46 @@ class MeterElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('meter');
 
-  num high;
+  num get high => JS("num", "#.high", this);
+
+  set high(num value) {
+    JS("void", "#.high = #", this, value);
+  }
 
   @Unstable()
   @Returns('NodeList|Null')
   @Creates('NodeList')
-  final List<Node> labels;
+  List<Node> get labels => JS("NodeList", "#.labels", this);
 
-  num low;
+  num get low => JS("num", "#.low", this);
 
-  num max;
+  set low(num value) {
+    JS("void", "#.low = #", this, value);
+  }
 
-  num min;
+  num get max => JS("num", "#.max", this);
 
-  num optimum;
+  set max(num value) {
+    JS("void", "#.max = #", this, value);
+  }
 
-  num value;
+  num get min => JS("num", "#.min", this);
+
+  set min(num value) {
+    JS("void", "#.min = #", this, value);
+  }
+
+  num get optimum => JS("num", "#.optimum", this);
+
+  set optimum(num value) {
+    JS("void", "#.optimum = #", this, value);
+  }
+
+  num get value => JS("num", "#.value", this);
+
+  set value(num value) {
+    JS("void", "#.value = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20665,11 +21955,11 @@ class MidiAccess extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final MidiInputMap inputs;
+  MidiInputMap get inputs => JS("MidiInputMap", "#.inputs", this);
 
-  final MidiOutputMap outputs;
+  MidiOutputMap get outputs => JS("MidiOutputMap", "#.outputs", this);
 
-  final bool sysexEnabled;
+  bool get sysexEnabled => JS("bool", "#.sysexEnabled", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20682,7 +21972,7 @@ class MidiConnectionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MidiConnectionEvent(String type, [Map eventInitDict]) {
+  factory MidiConnectionEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MidiConnectionEvent._create_1(type, eventInitDict_1);
@@ -20697,7 +21987,7 @@ class MidiConnectionEvent extends Event {
   static MidiConnectionEvent _create_2(type) =>
       JS('MidiConnectionEvent', 'new MIDIConnectionEvent(#)', type);
 
-  final MidiPort port;
+  MidiPort get port => JS("MidiPort", "#.port", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20802,7 +22092,7 @@ class MidiMessageEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory MidiMessageEvent(String type, [Map eventInitDict]) {
+  factory MidiMessageEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MidiMessageEvent._create_1(type, eventInitDict_1);
@@ -20814,7 +22104,7 @@ class MidiMessageEvent extends Event {
   static MidiMessageEvent _create_2(type) =>
       JS('MidiMessageEvent', 'new MIDIMessageEvent(#)', type);
 
-  final Uint8List data;
+  Uint8List get data => JS("Uint8List", "#.data", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20827,7 +22117,7 @@ class MidiOutput extends MidiPort {
     throw new UnsupportedError("Not supported");
   }
 
-  void send(Uint8List data, [num timestamp]) native;
+  void send(Uint8List data, [num? timestamp]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20908,19 +22198,19 @@ class MidiPort extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final String connection;
+  String get connection => JS("String", "#.connection", this);
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
-  final String manufacturer;
+  String get manufacturer => JS("String", "#.manufacturer", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
-  final String state;
+  String get state => JS("String", "#.state", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
-  final String version;
+  String get version => JS("String", "#.version", this);
 
   Future close() => promiseToFuture(JS("", "#.close()", this));
 
@@ -20937,13 +22227,13 @@ class MimeType extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String description;
+  String get description => JS("String", "#.description", this);
 
-  final Plugin enabledPlugin;
+  Plugin get enabledPlugin => JS("Plugin", "#.enabledPlugin", this);
 
-  final String suffixes;
+  String get suffixes => JS("String", "#.suffixes", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21025,9 +22315,17 @@ class ModElement extends HtmlElement {
    */
   ModElement.created() : super.created();
 
-  String cite;
+  String get cite => JS("String", "#.cite", this);
 
-  String dateTime;
+  set cite(String value) {
+    JS("void", "#.cite = #", this, value);
+  }
+
+  String get dateTime => JS("String", "#.dateTime", this);
+
+  set dateTime(String value) {
+    JS("void", "#.dateTime = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21080,7 +22378,7 @@ class MouseEvent extends UIEvent {
     return event;
   }
 
-  factory MouseEvent._(String type, [Map eventInitDict]) {
+  factory MouseEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MouseEvent._create_1(type, eventInitDict_1);
@@ -21092,19 +22390,19 @@ class MouseEvent extends UIEvent {
   static MouseEvent _create_2(type) =>
       JS('MouseEvent', 'new MouseEvent(#)', type);
 
-  final bool altKey;
+  bool get altKey => JS("bool", "#.altKey", this);
 
-  final int button;
+  int get button => JS("int", "#.button", this);
 
-  final int buttons;
+  int get buttons => JS("int", "#.buttons", this);
 
   @JSName('clientX')
-  final num _clientX;
+  num get _clientX => JS("num", "#.clientX", this);
 
   @JSName('clientY')
-  final num _clientY;
+  num get _clientY => JS("num", "#.clientY", this);
 
-  final bool ctrlKey;
+  bool get ctrlKey => JS("bool", "#.ctrlKey", this);
 
   /**
    * The nonstandard way to access the element that the mouse comes
@@ -21114,31 +22412,31 @@ class MouseEvent extends UIEvent {
    * relatedTarget to get the same information in the standard way.
    */
   @deprecated
-  final Node fromElement;
+  Node get fromElement => JS("Node", "#.fromElement", this);
 
   @JSName('layerX')
-  final int _layerX;
+  int get _layerX => JS("int", "#.layerX", this);
 
   @JSName('layerY')
-  final int _layerY;
+  int get _layerY => JS("int", "#.layerY", this);
 
-  final bool metaKey;
+  bool get metaKey => JS("bool", "#.metaKey", this);
 
   @JSName('movementX')
-  final int _movementX;
+  int get _movementX => JS("int", "#.movementX", this);
 
   @JSName('movementY')
-  final int _movementY;
+  int get _movementY => JS("int", "#.movementY", this);
 
   @JSName('pageX')
-  final num _pageX;
+  num get _pageX => JS("num", "#.pageX", this);
 
   @JSName('pageY')
-  final num _pageY;
+  num get _pageY => JS("num", "#.pageY", this);
 
-  final String region;
+  final String? region;
 
-  EventTarget get relatedTarget =>
+  EventTarget? get relatedTarget =>
       _convertNativeToDart_EventTarget(this._get_relatedTarget);
   @JSName('relatedTarget')
   @Creates('Node')
@@ -21146,12 +22444,12 @@ class MouseEvent extends UIEvent {
   final dynamic _get_relatedTarget;
 
   @JSName('screenX')
-  final num _screenX;
+  num get _screenX => JS("num", "#.screenX", this);
 
   @JSName('screenY')
-  final num _screenY;
+  num get _screenY => JS("num", "#.screenY", this);
 
-  final bool shiftKey;
+  bool get shiftKey => JS("bool", "#.shiftKey", this);
 
   /**
    * The nonstandard way to access the element that the mouse goes
@@ -21161,7 +22459,7 @@ class MouseEvent extends UIEvent {
    * relatedTarget to get the same information in the standard way.
    */
   @deprecated
-  final Node toElement;
+  Node get toElement => JS("Node", "#.toElement", this);
 
   bool getModifierState(String keyArg) native;
 
@@ -21169,7 +22467,7 @@ class MouseEvent extends UIEvent {
       String type,
       bool bubbles,
       bool cancelable,
-      Window view,
+      Window? view,
       int detail,
       int screenX,
       int screenY,
@@ -21180,7 +22478,7 @@ class MouseEvent extends UIEvent {
       bool shiftKey,
       bool metaKey,
       int button,
-      EventTarget relatedTarget) {
+      EventTarget? relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _initMouseEvent_1(
         type,
@@ -21206,7 +22504,7 @@ class MouseEvent extends UIEvent {
       type,
       bubbles,
       cancelable,
-      Window view,
+      Window? view,
       detail,
       screenX,
       screenY,
@@ -21283,21 +22581,21 @@ class MutationEvent extends Event {
 
   static const int REMOVAL = 3;
 
-  final int attrChange;
+  int get attrChange => JS("int", "#.attrChange", this);
 
-  final String attrName;
+  String get attrName => JS("String", "#.attrName", this);
 
-  final String newValue;
+  String get newValue => JS("String", "#.newValue", this);
 
-  final String prevValue;
+  String get prevValue => JS("String", "#.prevValue", this);
 
-  final Node relatedNode;
+  final Node? relatedNode;
 
   void initMutationEvent(
       String type,
       bool bubbles,
       bool cancelable,
-      Node relatedNode,
+      Node? relatedNode,
       String prevValue,
       String newValue,
       String attrName,
@@ -21314,7 +22612,7 @@ class MutationEvent extends Event {
 class MutationObserver extends Interceptor {
   void disconnect() native;
 
-  void _observe(Node target, [Map options]) {
+  void _observe(Node target, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       _observe_1(target, options_1);
@@ -21357,7 +22655,7 @@ class MutationObserver extends Interceptor {
       bool subtree,
       bool attributeOldValue,
       bool characterDataOldValue,
-      List<String> attributeFilter}) {
+      List<String>? attributeFilter}) {
     // Parse options into map of known type.
     var parsedOptions = _createDict();
 
@@ -21424,25 +22722,25 @@ class MutationRecord extends Interceptor {
 
   @Returns('NodeList|Null')
   @Creates('NodeList')
-  final List<Node> addedNodes;
+  List<Node> get addedNodes => JS("NodeList", "#.addedNodes", this);
 
-  final String attributeName;
+  final String? attributeName;
 
-  final String attributeNamespace;
+  final String? attributeNamespace;
 
-  final Node nextSibling;
+  final Node? nextSibling;
 
-  final String oldValue;
+  final String? oldValue;
 
-  final Node previousSibling;
+  final Node? previousSibling;
 
   @Returns('NodeList|Null')
   @Creates('NodeList')
-  final List<Node> removedNodes;
+  List<Node> get removedNodes => JS("NodeList", "#.removedNodes", this);
 
-  final Node target;
+  Node get target => JS("Node", "#.target", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21563,61 +22861,67 @@ class Navigator extends NavigatorConcurrentHardware
     throw new UnsupportedError("Not supported");
   }
 
-  final _BudgetService budget;
+  _BudgetService get budget => JS("_BudgetService", "#.budget", this);
 
-  final _Clipboard clipboard;
+  _Clipboard get clipboard => JS("_Clipboard", "#.clipboard", this);
 
-  final NetworkInformation connection;
+  NetworkInformation get connection =>
+      JS("NetworkInformation", "#.connection", this);
 
-  final CredentialsContainer credentials;
+  CredentialsContainer get credentials =>
+      JS("CredentialsContainer", "#.credentials", this);
 
-  final num deviceMemory;
+  num get deviceMemory => JS("num", "#.deviceMemory", this);
 
-  final String doNotTrack;
-
-  @Unstable()
-  final Geolocation geolocation;
-
-  final int maxTouchPoints;
-
-  final MediaCapabilities mediaCapabilities;
-
-  final MediaDevices mediaDevices;
-
-  final MediaSession mediaSession;
-
-  final MimeTypeArray mimeTypes;
-
-  final _NFC nfc;
-
-  final Permissions permissions;
-
-  final Presentation presentation;
+  final String? doNotTrack;
 
   @Unstable()
-  final String productSub;
+  Geolocation get geolocation => JS("Geolocation", "#.geolocation", this);
 
-  final ServiceWorkerContainer serviceWorker;
+  int get maxTouchPoints => JS("int", "#.maxTouchPoints", this);
 
-  final StorageManager storage;
+  MediaCapabilities get mediaCapabilities =>
+      JS("MediaCapabilities", "#.mediaCapabilities", this);
+
+  MediaDevices get mediaDevices => JS("MediaDevices", "#.mediaDevices", this);
+
+  MediaSession get mediaSession => JS("MediaSession", "#.mediaSession", this);
+
+  MimeTypeArray get mimeTypes => JS("MimeTypeArray", "#.mimeTypes", this);
+
+  _NFC get nfc => JS("_NFC", "#.nfc", this);
+
+  Permissions get permissions => JS("Permissions", "#.permissions", this);
+
+  Presentation get presentation => JS("Presentation", "#.presentation", this);
 
   @Unstable()
-  final String vendor;
+  String get productSub => JS("String", "#.productSub", this);
+
+  ServiceWorkerContainer get serviceWorker =>
+      JS("ServiceWorkerContainer", "#.serviceWorker", this);
+
+  StorageManager get storage => JS("StorageManager", "#.storage", this);
 
   @Unstable()
-  final String vendorSub;
+  String get vendor => JS("String", "#.vendor", this);
 
-  final VR vr;
+  @Unstable()
+  String get vendorSub => JS("String", "#.vendorSub", this);
+
+  VR get vr => JS("VR", "#.vr", this);
 
   @JSName('webkitPersistentStorage')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final DeprecatedStorageQuota persistentStorage;
+  DeprecatedStorageQuota get persistentStorage =>
+      JS("DeprecatedStorageQuota", "#.webkitPersistentStorage", this);
 
   @JSName('webkitTemporaryStorage')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final DeprecatedStorageQuota temporaryStorage;
+  DeprecatedStorageQuota get temporaryStorage =>
+      JS("DeprecatedStorageQuota", "#.webkitTemporaryStorage", this);
 
   void cancelKeyboardLock() native;
 
@@ -21637,7 +22941,7 @@ class Navigator extends NavigatorConcurrentHardware
   @Unstable()
   void registerProtocolHandler(String scheme, String url, String title) native;
 
-  Future requestKeyboardLock([List<String> keyCodes]) {
+  Future requestKeyboardLock([List<String>? keyCodes]) {
     if (keyCodes != null) {
       List keyCodes_1 = convertDartToNative_StringArray(keyCodes);
       return _requestKeyboardLock_1(keyCodes_1);
@@ -21653,7 +22957,7 @@ class Navigator extends NavigatorConcurrentHardware
       promiseToFuture(JS("", "#.requestKeyboardLock()", this));
 
   @JSName('requestMIDIAccess')
-  Future requestMidiAccess([Map options]) {
+  Future requestMidiAccess([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -21667,9 +22971,9 @@ class Navigator extends NavigatorConcurrentHardware
       promiseToFuture(JS("", "#.requestMediaKeySystemAccess(#, #)", this,
           keySystem, supportedConfigurations));
 
-  bool sendBeacon(String url, Object data) native;
+  bool sendBeacon(String url, Object? data) native;
 
-  Future share([Map data]) {
+  Future share([Map? data]) {
     var data_dict = null;
     if (data != null) {
       data_dict = convertDartToNative_Dictionary(data);
@@ -21679,38 +22983,38 @@ class Navigator extends NavigatorConcurrentHardware
 
   // From NavigatorAutomationInformation
 
-  final bool webdriver;
+  bool get webdriver => JS("bool", "#.webdriver", this);
 
   // From NavigatorCookies
 
   @Unstable()
-  final bool cookieEnabled;
+  bool get cookieEnabled => JS("bool", "#.cookieEnabled", this);
 
   // From NavigatorID
 
-  final String appCodeName;
+  String get appCodeName => JS("String", "#.appCodeName", this);
 
-  final String appName;
+  String get appName => JS("String", "#.appName", this);
 
-  final String appVersion;
+  String get appVersion => JS("String", "#.appVersion", this);
 
-  final bool dartEnabled;
+  bool get dartEnabled => JS("bool", "#.dartEnabled", this);
 
-  final String platform;
+  String get platform => JS("String", "#.platform", this);
 
   @Unstable()
-  final String product;
+  String get product => JS("String", "#.product", this);
 
-  final String userAgent;
+  String get userAgent => JS("String", "#.userAgent", this);
 
   // From NavigatorLanguage
 
-  final List<String> languages;
+  List<String> get languages => JS("List<String>", "#.languages", this);
 
   // From NavigatorOnLine
 
   @Unstable()
-  final bool onLine;
+  bool get onLine => JS("bool", "#.onLine", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21723,7 +23027,7 @@ class NavigatorAutomationInformation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool webdriver;
+  bool get webdriver => JS("bool", "#.webdriver", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21736,7 +23040,7 @@ class NavigatorConcurrentHardware extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int hardwareConcurrency;
+  int get hardwareConcurrency => JS("int", "#.hardwareConcurrency", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21749,7 +23053,7 @@ class NavigatorCookies extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool cookieEnabled;
+  bool get cookieEnabled => JS("bool", "#.cookieEnabled", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21812,11 +23116,11 @@ class NavigatorUserMediaError extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String constraintName;
+  String get constraintName => JS("String", "#.constraintName", this);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21846,15 +23150,15 @@ class NetworkInformation extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  final num downlink;
+  num get downlink => JS("num", "#.downlink", this);
 
-  final num downlinkMax;
+  num get downlinkMax => JS("num", "#.downlinkMax", this);
 
-  final String effectiveType;
+  String get effectiveType => JS("String", "#.effectiveType", this);
 
-  final int rtt;
+  int get rtt => JS("int", "#.rtt", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }
@@ -22158,7 +23462,7 @@ class Node extends EventTarget {
   static const int TEXT_NODE = 3;
 
   @JSName('baseURI')
-  final String baseUri;
+  String get baseUri => JS("String", "#.baseURI", this);
 
   /**
    * The first child of this node.
@@ -22168,9 +23472,9 @@ class Node extends EventTarget {
    * * [Node.firstChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)
    *   from MDN.
    */
-  final Node firstChild;
+  final Node? firstChild;
 
-  final bool isConnected;
+  bool get isConnected => JS("bool", "#.isConnected", this);
 
   /**
    * The last child of this node.
@@ -22180,7 +23484,7 @@ class Node extends EventTarget {
    * * [Node.lastChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)
    *   from MDN.
    */
-  final Node lastChild;
+  final Node? lastChild;
 
   @JSName('nextSibling')
   /**
@@ -22191,7 +23495,7 @@ class Node extends EventTarget {
    * * [Node.nextSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)
    *   from MDN.
    */
-  final Node nextNode;
+  final Node? nextNode;
 
   /**
    * The name of this node.
@@ -22204,7 +23508,8 @@ class Node extends EventTarget {
    *   from MDN. This page contains a table of [nodeName] values for each
    *   [nodeType].
    */
-  final String nodeName;
+
+  String get nodeName => JS("String", "#.nodeName", this);
 
   /**
    * The type of node.
@@ -22229,7 +23534,8 @@ class Node extends EventTarget {
    * * [Node.nodeType](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType)
    *   from MDN.
    */
-  final int nodeType;
+
+  int get nodeType => JS("int", "#.nodeType", this);
 
   /**
    * The value of this node.
@@ -22242,7 +23548,7 @@ class Node extends EventTarget {
    *   from MDN. This page contains a table of [nodeValue] values for each
    *   [nodeType].
    */
-  final String nodeValue;
+  final String? nodeValue;
 
   /**
    * The document this node belongs to.
@@ -22254,7 +23560,7 @@ class Node extends EventTarget {
    * * [Node.ownerDocument](https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument)
    *   from MDN.
    */
-  final Document ownerDocument;
+  final Document? ownerDocument;
 
   @JSName('parentElement')
   /**
@@ -22268,7 +23574,7 @@ class Node extends EventTarget {
    * * [Node.parentElement](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement)
    *   from W3C.
    */
-  final Element parent;
+  final Element? parent;
 
   /**
    * The parent node of this node.
@@ -22278,7 +23584,7 @@ class Node extends EventTarget {
    * * [Node.parentNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode)
    *   from MDN.
    */
-  final Node parentNode;
+  final Node? parentNode;
 
   @JSName('previousSibling')
   /**
@@ -22289,7 +23595,7 @@ class Node extends EventTarget {
    * * [Node.previousSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)
    *   from MDN.
    */
-  final Node previousNode;
+  final Node? previousNode;
 
   @JSName('textContent')
   /**
@@ -22300,7 +23606,7 @@ class Node extends EventTarget {
    * * [Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent)
    *   from MDN.
    */
-  String text;
+  String? text;
 
   @JSName('appendChild')
   /**
@@ -22336,9 +23642,9 @@ class Node extends EventTarget {
    * * [Node.contains](https://developer.mozilla.org/en-US/docs/Web/API/Node.contains)
    *   from MDN.
    */
-  bool contains(Node other) native;
+  bool contains(Node? other) native;
 
-  Node getRootNode([Map options]) {
+  Node getRootNode([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _getRootNode_1(options_1);
@@ -22369,7 +23675,7 @@ class Node extends EventTarget {
    * * [Node.insertBefore](https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore)
    *   from MDN.
    */
-  Node insertBefore(Node node, Node child) native;
+  Node insertBefore(Node node, Node? child) native;
 
   @JSName('removeChild')
   Node _removeChild(Node child) native;
@@ -22426,13 +23732,14 @@ class NodeIterator extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool pointerBeforeReferenceNode;
+  bool get pointerBeforeReferenceNode =>
+      JS("bool", "#.pointerBeforeReferenceNode", this);
 
-  final Node referenceNode;
+  Node get referenceNode => JS("Node", "#.referenceNode", this);
 
-  final Node root;
+  Node get root => JS("Node", "#.root", this);
 
-  final int whatToShow;
+  int get whatToShow => JS("int", "#.whatToShow", this);
 
   void detach() native;
 
@@ -22512,9 +23819,9 @@ class NonDocumentTypeChildNode extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Element nextElementSibling;
+  final Element? nextElementSibling;
 
-  final Element previousElementSibling;
+  final Element? previousElementSibling;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22540,7 +23847,11 @@ class NoncedElement extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String nonce;
+  String get nonce => JS("String", "#.nonce", this);
+
+  set nonce(String value) {
+    JS("void", "#.nonce = #", this, value);
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22603,7 +23914,7 @@ class Notification extends EventTarget {
   static const EventStreamProvider<Event> showEvent =
       const EventStreamProvider<Event>('show');
 
-  static Notification _factoryNotification(String title, [Map options]) {
+  static Notification _factoryNotification(String title, [Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return Notification._create_1(title, options_1);
@@ -22619,47 +23930,47 @@ class Notification extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.Notification)');
 
-  final List actions;
+  List get actions => JS("List", "#.actions", this);
 
-  final String badge;
+  String get badge => JS("String", "#.badge", this);
 
-  final String body;
+  String get body => JS("String", "#.body", this);
 
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final Object data;
+  Object get data => JS("Object", "#.data", this);
 
-  final String dir;
+  String get dir => JS("String", "#.dir", this);
 
-  final String icon;
+  String get icon => JS("String", "#.icon", this);
 
-  final String image;
+  String get image => JS("String", "#.image", this);
 
-  final String lang;
+  String get lang => JS("String", "#.lang", this);
 
-  static final int maxActions;
+  int get maxActions => JS("int", "#.maxActions", this);
 
-  static final String permission;
+  String get permission => JS("String", "#.permission", this);
 
-  final bool renotify;
+  bool get renotify => JS("bool", "#.renotify", this);
 
-  final bool requireInteraction;
+  bool get requireInteraction => JS("bool", "#.requireInteraction", this);
 
-  final bool silent;
+  bool get silent => JS("bool", "#.silent", this);
 
-  final String tag;
+  String get tag => JS("String", "#.tag", this);
 
-  final int timestamp;
+  int get timestamp => JS("int", "#.timestamp", this);
 
-  final String title;
+  String get title => JS("String", "#.title", this);
 
-  final List<int> vibrate;
+  List<int> get vibrate => JS("List<int>", "#.vibrate", this);
 
   void close() native;
 
   @JSName('requestPermission')
   static Future _requestPermission(
-      [_NotificationPermissionCallback deprecatedCallback]) native;
+      [_NotificationPermissionCallback? deprecatedCallback]) native;
 
   @JSName('requestPermission')
   static Future<String> requestPermission() {
@@ -22700,11 +24011,11 @@ class NotificationEvent extends ExtendableEvent {
   static NotificationEvent _create_1(type, eventInitDict) => JS(
       'NotificationEvent', 'new NotificationEvent(#,#)', type, eventInitDict);
 
-  final String action;
+  String get action => JS("String", "#.action", this);
 
-  final Notification notification;
+  Notification get notification => JS("Notification", "#.notification", this);
 
-  final String reply;
+  final String? reply;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22724,7 +24035,7 @@ class OListElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory OListElement() => JS(
+  factory OListElement() => JS<OListElement>(
       'returns:OListElement;creates:OListElement;new:true',
       '#.createElement(#)',
       document,
@@ -22736,11 +24047,23 @@ class OListElement extends HtmlElement {
    */
   OListElement.created() : super.created();
 
-  bool reversed;
+  bool get reversed => JS("bool", "#.reversed", this);
 
-  int start;
+  set reversed(bool value) {
+    JS("void", "#.reversed = #", this, value);
+  }
 
-  String type;
+  int get start => JS("int", "#.start", this);
+
+  set start(int value) {
+    JS("void", "#.start = #", this, value);
+  }
+
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22757,7 +24080,7 @@ class ObjectElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ObjectElement() => document.createElement("object");
+  factory ObjectElement() => document.createElement("object") as ObjectElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -22768,32 +24091,56 @@ class ObjectElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('object');
 
-  WindowBase get contentWindow =>
+  WindowBase? get contentWindow =>
       _convertNativeToDart_Window(this._get_contentWindow);
   @JSName('contentWindow')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _get_contentWindow;
 
-  String data;
+  String get data => JS("String", "#.data", this);
 
-  final FormElement form;
+  set data(String value) {
+    JS("void", "#.data = #", this, value);
+  }
 
-  String height;
+  final FormElement? form;
 
-  String name;
+  String get height => JS("String", "#.height", this);
 
-  String type;
+  set height(String value) {
+    JS("void", "#.height = #", this, value);
+  }
 
-  String useMap;
+  String get name => JS("String", "#.name", this);
 
-  final String validationMessage;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
-  final ValidityState validity;
+  String get type => JS("String", "#.type", this);
 
-  String width;
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 
-  final bool willValidate;
+  String get useMap => JS("String", "#.useMap", this);
+
+  set useMap(String value) {
+    JS("void", "#.useMap = #", this, value);
+  }
+
+  String get validationMessage => JS("String", "#.validationMessage", this);
+
+  ValidityState get validity => JS("ValidityState", "#.validity", this);
+
+  String get width => JS("String", "#.width", this);
+
+  set width(String value) {
+    JS("void", "#.width = #", this, value);
+  }
+
+  bool get willValidate => JS("bool", "#.willValidate", this);
 
   Node __getter__(String name) native;
 
@@ -22822,11 +24169,19 @@ class OffscreenCanvas extends EventTarget {
   static OffscreenCanvas _create_1(width, height) =>
       JS('OffscreenCanvas', 'new OffscreenCanvas(#,#)', width, height);
 
-  int height;
+  int get height => JS("int", "#.height", this);
 
-  int width;
+  set height(int value) {
+    JS("void", "#.height = #", this, value);
+  }
 
-  Future<Blob> convertToBlob([Map options]) {
+  int get width => JS("int", "#.width", this);
+
+  set width(int value) {
+    JS("void", "#.width = #", this, value);
+  }
+
+  Future<Blob> convertToBlob([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -22835,7 +24190,7 @@ class OffscreenCanvas extends EventTarget {
         JS("", "#.convertToBlob(#)", this, options_dict));
   }
 
-  Object getContext(String contextType, [Map attributes]) {
+  Object getContext(String contextType, [Map? attributes]) {
     if (attributes != null) {
       var attributes_1 = convertDartToNative_Dictionary(attributes);
       return _getContext_1(contextType, attributes_1);
@@ -22862,60 +24217,142 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
     throw new UnsupportedError("Not supported");
   }
 
-  final OffscreenCanvas canvas;
+  OffscreenCanvas get canvas => JS("OffscreenCanvas", "#.canvas", this);
 
-  String direction;
+  String get direction => JS("String", "#.direction", this);
 
-  Object fillStyle;
+  set direction(String value) {
+    JS("void", "#.direction = #", this, value);
+  }
 
-  String filter;
+  Object get fillStyle => JS("Object", "#.fillStyle", this);
 
-  String font;
+  set fillStyle(Object value) {
+    JS("void", "#.fillStyle = #", this, value);
+  }
 
-  num globalAlpha;
+  String get filter => JS("String", "#.filter", this);
 
-  String globalCompositeOperation;
+  set filter(String value) {
+    JS("void", "#.filter = #", this, value);
+  }
 
-  bool imageSmoothingEnabled;
+  String get font => JS("String", "#.font", this);
 
-  String imageSmoothingQuality;
+  set font(String value) {
+    JS("void", "#.font = #", this, value);
+  }
 
-  String lineCap;
+  num get globalAlpha => JS("num", "#.globalAlpha", this);
 
-  num lineDashOffset;
+  set globalAlpha(num value) {
+    JS("void", "#.globalAlpha = #", this, value);
+  }
 
-  String lineJoin;
+  String get globalCompositeOperation =>
+      JS("String", "#.globalCompositeOperation", this);
 
-  num lineWidth;
+  set globalCompositeOperation(String value) {
+    JS("void", "#.globalCompositeOperation = #", this, value);
+  }
 
-  num miterLimit;
+  bool get imageSmoothingEnabled => JS("bool", "#.imageSmoothingEnabled", this);
 
-  num shadowBlur;
+  set imageSmoothingEnabled(bool value) {
+    JS("void", "#.imageSmoothingEnabled = #", this, value);
+  }
 
-  String shadowColor;
+  String get imageSmoothingQuality =>
+      JS("String", "#.imageSmoothingQuality", this);
 
-  num shadowOffsetX;
+  set imageSmoothingQuality(String value) {
+    JS("void", "#.imageSmoothingQuality = #", this, value);
+  }
 
-  num shadowOffsetY;
+  String get lineCap => JS("String", "#.lineCap", this);
 
-  Object strokeStyle;
+  set lineCap(String value) {
+    JS("void", "#.lineCap = #", this, value);
+  }
 
-  String textAlign;
+  num get lineDashOffset => JS("num", "#.lineDashOffset", this);
 
-  String textBaseline;
+  set lineDashOffset(num value) {
+    JS("void", "#.lineDashOffset = #", this, value);
+  }
+
+  String get lineJoin => JS("String", "#.lineJoin", this);
+
+  set lineJoin(String value) {
+    JS("void", "#.lineJoin = #", this, value);
+  }
+
+  num get lineWidth => JS("num", "#.lineWidth", this);
+
+  set lineWidth(num value) {
+    JS("void", "#.lineWidth = #", this, value);
+  }
+
+  num get miterLimit => JS("num", "#.miterLimit", this);
+
+  set miterLimit(num value) {
+    JS("void", "#.miterLimit = #", this, value);
+  }
+
+  num get shadowBlur => JS("num", "#.shadowBlur", this);
+
+  set shadowBlur(num value) {
+    JS("void", "#.shadowBlur = #", this, value);
+  }
+
+  String get shadowColor => JS("String", "#.shadowColor", this);
+
+  set shadowColor(String value) {
+    JS("void", "#.shadowColor = #", this, value);
+  }
+
+  num get shadowOffsetX => JS("num", "#.shadowOffsetX", this);
+
+  set shadowOffsetX(num value) {
+    JS("void", "#.shadowOffsetX = #", this, value);
+  }
+
+  num get shadowOffsetY => JS("num", "#.shadowOffsetY", this);
+
+  set shadowOffsetY(num value) {
+    JS("void", "#.shadowOffsetY = #", this, value);
+  }
+
+  Object get strokeStyle => JS("Object", "#.strokeStyle", this);
+
+  set strokeStyle(Object value) {
+    JS("void", "#.strokeStyle = #", this, value);
+  }
+
+  String get textAlign => JS("String", "#.textAlign", this);
+
+  set textAlign(String value) {
+    JS("void", "#.textAlign = #", this, value);
+  }
+
+  String get textBaseline => JS("String", "#.textBaseline", this);
+
+  set textBaseline(String value) {
+    JS("void", "#.textBaseline = #", this, value);
+  }
 
   void beginPath() native;
 
   void clearRect(num x, num y, num width, num height) native;
 
-  void clip([Path2D path]) native;
+  void clip([Path2D? path]) native;
 
   Future commit() => promiseToFuture(JS("", "#.commit()", this));
 
   ImageData createImageData(data_OR_imagedata_OR_sw,
-      [int sh_OR_sw,
+      [int? sh_OR_sw,
       imageDataColorSettings_OR_sh,
-      Map imageDataColorSettings]) {
+      Map? imageDataColorSettings]) {
     if ((data_OR_imagedata_OR_sw is ImageData) &&
         sh_OR_sw == null &&
         imageDataColorSettings_OR_sh == null &&
@@ -22972,18 +24409,18 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
       num x0, num y0, num r0, num x1, num y1, num r1) native;
 
   void drawImage(/*CanvasImageSource*/ image, num sx_OR_x, num sy_OR_y,
-      [num sw_OR_width,
-      num height_OR_sh,
-      num dx,
-      num dy,
-      num dw,
-      num dh]) native;
+      [num? sw_OR_width,
+      num? height_OR_sh,
+      num? dx,
+      num? dy,
+      num? dw,
+      num? dh]) native;
 
-  void fill([path_OR_winding, String winding]) native;
+  void fill([path_OR_winding, String? winding]) native;
 
   void fillRect(num x, num y, num width, num height) native;
 
-  void fillText(String text, num x, num y, [num maxWidth]) native;
+  void fillText(String text, num x, num y, [num? maxWidth]) native;
 
   ImageData getImageData(int sx, int sy, int sw, int sh) {
     return convertNativeToDart_ImageData(_getImageData_1(sx, sy, sw, sh));
@@ -22994,15 +24431,15 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
 
   List<num> getLineDash() native;
 
-  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String winding])
+  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String? winding])
       native;
 
-  bool isPointInStroke(path_OR_x, num x_OR_y, [num y]) native;
+  bool isPointInStroke(path_OR_x, num x_OR_y, [num? y]) native;
 
   TextMetrics measureText(String text) native;
 
   void putImageData(ImageData imagedata, int dx, int dy,
-      [int dirtyX, int dirtyY, int dirtyWidth, int dirtyHeight]) {
+      [int? dirtyX, int? dirtyY, int? dirtyWidth, int? dirtyHeight]) {
     if (dirtyX == null &&
         dirtyY == null &&
         dirtyWidth == null &&
@@ -23043,11 +24480,11 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
 
   void setTransform(num a, num b, num c, num d, num e, num f) native;
 
-  void stroke([Path2D path]) native;
+  void stroke([Path2D? path]) native;
 
   void strokeRect(num x, num y, num width, num height) native;
 
-  void strokeText(String text, num x, num y, [num maxWidth]) native;
+  void strokeText(String text, num x, num y, [num? maxWidth]) native;
 
   void transform(num a, num b, num c, num d, num e, num f) native;
 
@@ -23087,7 +24524,7 @@ class OptGroupElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory OptGroupElement() => JS(
+  factory OptGroupElement() => JS<OptGroupElement>(
       'returns:OptGroupElement;creates:OptGroupElement;new:true',
       '#.createElement(#)',
       document,
@@ -23099,9 +24536,17 @@ class OptGroupElement extends HtmlElement {
    */
   OptGroupElement.created() : super.created();
 
-  bool disabled;
+  bool get disabled => JS("bool", "#.disabled", this);
 
-  String label;
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
+
+  String get label => JS("String", "#.label", this);
+
+  set label(String value) {
+    JS("void", "#.label = #", this, value);
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23115,7 +24560,7 @@ class OptionElement extends HtmlElement {
   }
 
   factory OptionElement._(
-      [String data, String value, bool defaultSelected, bool selected]) {
+      [String? data, String? value, bool? defaultSelected, bool? selected]) {
     if (selected != null) {
       return OptionElement._create_1(data, value, defaultSelected, selected);
     }
@@ -23151,19 +24596,39 @@ class OptionElement extends HtmlElement {
    */
   OptionElement.created() : super.created();
 
-  bool defaultSelected;
+  bool get defaultSelected => JS("bool", "#.defaultSelected", this);
 
-  bool disabled;
+  set defaultSelected(bool value) {
+    JS("void", "#.defaultSelected = #", this, value);
+  }
 
-  final FormElement form;
+  bool get disabled => JS("bool", "#.disabled", this);
 
-  final int index;
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
 
-  String label;
+  final FormElement? form;
 
-  bool selected;
+  int get index => JS("int", "#.index", this);
 
-  String value;
+  String get label => JS("String", "#.label", this);
+
+  set label(String value) {
+    JS("void", "#.label = #", this, value);
+  }
+
+  bool get selected => JS("bool", "#.selected", this);
+
+  set selected(bool value) {
+    JS("void", "#.selected = #", this, value);
+  }
+
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23176,7 +24641,7 @@ class OrientationSensor extends Sensor {
     throw new UnsupportedError("Not supported");
   }
 
-  final List<num> quaternion;
+  final List<num>? quaternion;
 
   void populateMatrix(Object targetBuffer) native;
 }
@@ -23194,7 +24659,7 @@ class OutputElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory OutputElement() => document.createElement("output");
+  factory OutputElement() => document.createElement("output") as OutputElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -23205,28 +24670,40 @@ class OutputElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('output');
 
-  String defaultValue;
+  String get defaultValue => JS("String", "#.defaultValue", this);
 
-  final FormElement form;
+  set defaultValue(String value) {
+    JS("void", "#.defaultValue = #", this, value);
+  }
 
-  final DomTokenList htmlFor;
+  final FormElement? form;
+
+  DomTokenList get htmlFor => JS("DomTokenList", "#.htmlFor", this);
 
   @Unstable()
   @Returns('NodeList|Null')
   @Creates('NodeList')
-  final List<Node> labels;
+  List<Node> get labels => JS("NodeList", "#.labels", this);
 
-  String name;
+  String get name => JS("String", "#.name", this);
 
-  final String type;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
-  final String validationMessage;
+  String get type => JS("String", "#.type", this);
 
-  final ValidityState validity;
+  String get validationMessage => JS("String", "#.validationMessage", this);
 
-  String value;
+  ValidityState get validity => JS("ValidityState", "#.validity", this);
 
-  final bool willValidate;
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
+
+  bool get willValidate => JS("bool", "#.willValidate", this);
 
   bool checkValidity() native;
 
@@ -23254,11 +24731,11 @@ class OverconstrainedError extends Interceptor {
       constraint,
       message);
 
-  final String constraint;
+  final String? constraint;
 
-  final String message;
+  final String? message;
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23271,7 +24748,7 @@ class PageTransitionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PageTransitionEvent(String type, [Map eventInitDict]) {
+  factory PageTransitionEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PageTransitionEvent._create_1(type, eventInitDict_1);
@@ -23286,7 +24763,7 @@ class PageTransitionEvent extends Event {
   static PageTransitionEvent _create_2(type) =>
       JS('PageTransitionEvent', 'new PageTransitionEvent(#)', type);
 
-  final bool persisted;
+  bool get persisted => JS("bool", "#.persisted", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23299,45 +24776,115 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
     throw new UnsupportedError("Not supported");
   }
 
-  Matrix currentTransform;
+  Matrix get currentTransform => JS("Matrix", "#.currentTransform", this);
 
-  Object fillStyle;
+  set currentTransform(Matrix value) {
+    JS("void", "#.currentTransform = #", this, value);
+  }
 
-  String filter;
+  Object get fillStyle => JS("Object", "#.fillStyle", this);
 
-  num globalAlpha;
+  set fillStyle(Object value) {
+    JS("void", "#.fillStyle = #", this, value);
+  }
 
-  String globalCompositeOperation;
+  String get filter => JS("String", "#.filter", this);
 
-  bool imageSmoothingEnabled;
+  set filter(String value) {
+    JS("void", "#.filter = #", this, value);
+  }
 
-  String imageSmoothingQuality;
+  num get globalAlpha => JS("num", "#.globalAlpha", this);
 
-  String lineCap;
+  set globalAlpha(num value) {
+    JS("void", "#.globalAlpha = #", this, value);
+  }
 
-  num lineDashOffset;
+  String get globalCompositeOperation =>
+      JS("String", "#.globalCompositeOperation", this);
 
-  String lineJoin;
+  set globalCompositeOperation(String value) {
+    JS("void", "#.globalCompositeOperation = #", this, value);
+  }
 
-  num lineWidth;
+  bool get imageSmoothingEnabled => JS("bool", "#.imageSmoothingEnabled", this);
 
-  num miterLimit;
+  set imageSmoothingEnabled(bool value) {
+    JS("void", "#.imageSmoothingEnabled = #", this, value);
+  }
 
-  num shadowBlur;
+  String get imageSmoothingQuality =>
+      JS("String", "#.imageSmoothingQuality", this);
 
-  String shadowColor;
+  set imageSmoothingQuality(String value) {
+    JS("void", "#.imageSmoothingQuality = #", this, value);
+  }
 
-  num shadowOffsetX;
+  String get lineCap => JS("String", "#.lineCap", this);
 
-  num shadowOffsetY;
+  set lineCap(String value) {
+    JS("void", "#.lineCap = #", this, value);
+  }
 
-  Object strokeStyle;
+  num get lineDashOffset => JS("num", "#.lineDashOffset", this);
+
+  set lineDashOffset(num value) {
+    JS("void", "#.lineDashOffset = #", this, value);
+  }
+
+  String get lineJoin => JS("String", "#.lineJoin", this);
+
+  set lineJoin(String value) {
+    JS("void", "#.lineJoin = #", this, value);
+  }
+
+  num get lineWidth => JS("num", "#.lineWidth", this);
+
+  set lineWidth(num value) {
+    JS("void", "#.lineWidth = #", this, value);
+  }
+
+  num get miterLimit => JS("num", "#.miterLimit", this);
+
+  set miterLimit(num value) {
+    JS("void", "#.miterLimit = #", this, value);
+  }
+
+  num get shadowBlur => JS("num", "#.shadowBlur", this);
+
+  set shadowBlur(num value) {
+    JS("void", "#.shadowBlur = #", this, value);
+  }
+
+  String get shadowColor => JS("String", "#.shadowColor", this);
+
+  set shadowColor(String value) {
+    JS("void", "#.shadowColor = #", this, value);
+  }
+
+  num get shadowOffsetX => JS("num", "#.shadowOffsetX", this);
+
+  set shadowOffsetX(num value) {
+    JS("void", "#.shadowOffsetX = #", this, value);
+  }
+
+  num get shadowOffsetY => JS("num", "#.shadowOffsetY", this);
+
+  set shadowOffsetY(num value) {
+    JS("void", "#.shadowOffsetY = #", this, value);
+  }
+
+  Object get strokeStyle => JS("Object", "#.strokeStyle", this);
+
+  set strokeStyle(Object value) {
+    JS("void", "#.strokeStyle = #", this, value);
+  }
 
   void beginPath() native;
 
   void clearRect(num x, num y, num width, num height) native;
 
-  void clip([path_OR_winding, String winding]) native;
+  void clip([path_OR_winding, String? winding]) native;
 
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
@@ -23348,23 +24895,23 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
       num x0, num y0, num r0, num x1, num y1, num r1) native;
 
   void drawImage(/*CanvasImageSource*/ image, num sx_OR_x, num sy_OR_y,
-      [num sw_OR_width,
-      num height_OR_sh,
-      num dx,
-      num dy,
-      num dw,
-      num dh]) native;
+      [num? sw_OR_width,
+      num? height_OR_sh,
+      num? dx,
+      num? dy,
+      num? dw,
+      num? dh]) native;
 
-  void fill([path_OR_winding, String winding]) native;
+  void fill([path_OR_winding, String? winding]) native;
 
   void fillRect(num x, num y, num width, num height) native;
 
   List<num> getLineDash() native;
 
-  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String winding])
+  bool isPointInPath(path_OR_x, num x_OR_y, [winding_OR_y, String? winding])
       native;
 
-  bool isPointInStroke(path_OR_x, num x_OR_y, [num y]) native;
+  bool isPointInStroke(path_OR_x, num x_OR_y, [num? y]) native;
 
   void resetTransform() native;
 
@@ -23380,7 +24927,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
 
   void setTransform(num a, num b, num c, num d, num e, num f) native;
 
-  void stroke([Path2D path]) native;
+  void stroke([Path2D? path]) native;
 
   void strokeRect(num x, num y, num width, num height) native;
 
@@ -23422,9 +24969,9 @@ class PaintSize extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num height;
+  num get height => JS("num", "#.height", this);
 
-  final num width;
+  num get width => JS("num", "#.width", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23437,7 +24984,7 @@ class PaintWorkletGlobalScope extends WorkletGlobalScope {
     throw new UnsupportedError("Not supported");
   }
 
-  final num devicePixelRatio;
+  num get devicePixelRatio => JS("num", "#.devicePixelRatio", this);
 
   void registerPaint(String name, Object paintCtor) native;
 }
@@ -23452,7 +24999,7 @@ class ParagraphElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ParagraphElement() => JS(
+  factory ParagraphElement() => JS<ParagraphElement>(
       'returns:ParagraphElement;creates:ParagraphElement;new:true',
       '#.createElement(#)',
       document,
@@ -23476,7 +25023,7 @@ class ParamElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ParamElement() => JS(
+  factory ParamElement() => JS<ParamElement>(
       'returns:ParamElement;creates:ParamElement;new:true',
       '#.createElement(#)',
       document,
@@ -23488,9 +25035,17 @@ class ParamElement extends HtmlElement {
    */
   ParamElement.created() : super.created();
 
-  String name;
+  String get name => JS("String", "#.name", this);
 
-  String value;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
+
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23540,20 +25095,28 @@ class PasswordCredential extends Credential implements CredentialUserData {
   static PasswordCredential _create_2(data_OR_form) =>
       JS('PasswordCredential', 'new PasswordCredential(#)', data_OR_form);
 
-  Object additionalData;
+  Object? additionalData;
 
-  String idName;
+  String get idName => JS("String", "#.idName", this);
 
-  final String password;
+  set idName(String value) {
+    JS("void", "#.idName = #", this, value);
+  }
 
-  String passwordName;
+  String get password => JS("String", "#.password", this);
+
+  String get passwordName => JS("String", "#.passwordName", this);
+
+  set passwordName(String value) {
+    JS("void", "#.passwordName = #", this, value);
+  }
 
   // From CredentialUserData
 
   @JSName('iconURL')
-  final String iconUrl;
+  String get iconUrl => JS("String", "#.iconURL", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23584,7 +25147,7 @@ class Path2D extends Interceptor implements _CanvasPath {
   static Path2D _create_3(path_OR_text) =>
       JS('Path2D', 'new Path2D(#)', path_OR_text);
 
-  void addPath(Path2D path, [Matrix transform]) native;
+  void addPath(Path2D path, [Matrix? transform]) native;
 
   // From CanvasPath
 
@@ -23620,27 +25183,27 @@ class PaymentAddress extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final List<String> addressLine;
+  List<String> get addressLine => JS("List<String>", "#.addressLine", this);
 
-  final String city;
+  String get city => JS("String", "#.city", this);
 
-  final String country;
+  String get country => JS("String", "#.country", this);
 
-  final String dependentLocality;
+  String get dependentLocality => JS("String", "#.dependentLocality", this);
 
-  final String languageCode;
+  String get languageCode => JS("String", "#.languageCode", this);
 
-  final String organization;
+  String get organization => JS("String", "#.organization", this);
 
-  final String phone;
+  String get phone => JS("String", "#.phone", this);
 
-  final String postalCode;
+  String get postalCode => JS("String", "#.postalCode", this);
 
-  final String recipient;
+  String get recipient => JS("String", "#.recipient", this);
 
-  final String region;
+  String get region => JS("String", "#.region", this);
 
-  final String sortingCode;
+  String get sortingCode => JS("String", "#.sortingCode", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23684,9 +25247,14 @@ class PaymentManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final PaymentInstruments instruments;
+  PaymentInstruments get instruments =>
+      JS("PaymentInstruments", "#.instruments", this);
 
-  String userHint;
+  String get userHint => JS("String", "#.userHint", this);
+
+  set userHint(String value) {
+    JS("void", "#.userHint = #", this, value);
+  }
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23722,13 +25290,13 @@ class PaymentRequest extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
-  final PaymentAddress shippingAddress;
+  final PaymentAddress? shippingAddress;
 
-  final String shippingOption;
+  final String? shippingOption;
 
-  final String shippingType;
+  final String? shippingType;
 
   Future abort() => promiseToFuture(JS("", "#.abort()", this));
 
@@ -23760,19 +25328,20 @@ class PaymentRequestEvent extends ExtendableEvent {
       type,
       eventInitDict);
 
-  final String instrumentKey;
+  String get instrumentKey => JS("String", "#.instrumentKey", this);
 
-  final List methodData;
+  List get methodData => JS("List", "#.methodData", this);
 
-  final List modifiers;
+  List get modifiers => JS("List", "#.modifiers", this);
 
-  final String paymentRequestId;
+  String get paymentRequestId => JS("String", "#.paymentRequestId", this);
 
-  final String paymentRequestOrigin;
+  String get paymentRequestOrigin =>
+      JS("String", "#.paymentRequestOrigin", this);
 
-  final String topLevelOrigin;
+  String get topLevelOrigin => JS("String", "#.topLevelOrigin", this);
 
-  final Object total;
+  Object get total => JS("Object", "#.total", this);
 
   Future<WindowClient> openWindow(String url) =>
       promiseToFuture<WindowClient>(JS("", "#.openWindow(#)", this, url));
@@ -23790,7 +25359,7 @@ class PaymentRequestUpdateEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PaymentRequestUpdateEvent(String type, [Map eventInitDict]) {
+  factory PaymentRequestUpdateEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PaymentRequestUpdateEvent._create_1(type, eventInitDict_1);
@@ -23818,23 +25387,23 @@ class PaymentResponse extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Object details;
+  Object get details => JS("Object", "#.details", this);
 
-  final String methodName;
+  String get methodName => JS("String", "#.methodName", this);
 
-  final String payerEmail;
+  final String? payerEmail;
 
-  final String payerName;
+  final String? payerName;
 
-  final String payerPhone;
+  final String? payerPhone;
 
-  final String requestId;
+  String get requestId => JS("String", "#.requestId", this);
 
-  final PaymentAddress shippingAddress;
+  final PaymentAddress? shippingAddress;
 
-  final String shippingOption;
+  final String? shippingOption;
 
-  Future complete([String paymentResult]) =>
+  Future complete([String? paymentResult]) =>
       promiseToFuture(JS("", "#.complete(#)", this, paymentResult));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23854,13 +25423,14 @@ class Performance extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.performance)');
 
-  final MemoryInfo memory;
+  MemoryInfo get memory => JS("MemoryInfo", "#.memory", this);
 
-  final PerformanceNavigation navigation;
+  PerformanceNavigation get navigation =>
+      JS("PerformanceNavigation", "#.navigation", this);
 
-  final num timeOrigin;
+  num get timeOrigin => JS("num", "#.timeOrigin", this);
 
-  final PerformanceTiming timing;
+  PerformanceTiming get timing => JS("PerformanceTiming", "#.timing", this);
 
   void clearMarks(String markName) native;
 
@@ -23893,13 +25463,13 @@ class PerformanceEntry extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num duration;
+  num get duration => JS("num", "#.duration", this);
 
-  final String entryType;
+  String get entryType => JS("String", "#.entryType", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
-  final num startTime;
+  num get startTime => JS("num", "#.startTime", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23912,7 +25482,8 @@ class PerformanceLongTaskTiming extends PerformanceEntry {
     throw new UnsupportedError("Not supported");
   }
 
-  final List<TaskAttributionTiming> attribution;
+  List<TaskAttributionTiming> get attribution =>
+      JS("List<TaskAttributionTiming>", "#.attribution", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23956,9 +25527,9 @@ class PerformanceNavigation extends Interceptor {
 
   static const int TYPE_RESERVED = 255;
 
-  final int redirectCount;
+  int get redirectCount => JS("int", "#.redirectCount", this);
 
-  final int type;
+  int get type => JS("int", "#.type", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23971,25 +25542,27 @@ class PerformanceNavigationTiming extends PerformanceResourceTiming {
     throw new UnsupportedError("Not supported");
   }
 
-  final num domComplete;
+  num get domComplete => JS("num", "#.domComplete", this);
 
-  final num domContentLoadedEventEnd;
+  num get domContentLoadedEventEnd =>
+      JS("num", "#.domContentLoadedEventEnd", this);
 
-  final num domContentLoadedEventStart;
+  num get domContentLoadedEventStart =>
+      JS("num", "#.domContentLoadedEventStart", this);
 
-  final num domInteractive;
+  num get domInteractive => JS("num", "#.domInteractive", this);
 
-  final num loadEventEnd;
+  num get loadEventEnd => JS("num", "#.loadEventEnd", this);
 
-  final num loadEventStart;
+  num get loadEventStart => JS("num", "#.loadEventStart", this);
 
-  final int redirectCount;
+  int get redirectCount => JS("int", "#.redirectCount", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
-  final num unloadEventEnd;
+  num get unloadEventEnd => JS("num", "#.unloadEventEnd", this);
 
-  final num unloadEventStart;
+  num get unloadEventStart => JS("num", "#.unloadEventStart", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24067,41 +25640,42 @@ class PerformanceResourceTiming extends PerformanceEntry {
     throw new UnsupportedError("Not supported");
   }
 
-  final num connectEnd;
+  num get connectEnd => JS("num", "#.connectEnd", this);
 
-  final num connectStart;
+  num get connectStart => JS("num", "#.connectStart", this);
 
-  final int decodedBodySize;
+  int get decodedBodySize => JS("int", "#.decodedBodySize", this);
 
-  final num domainLookupEnd;
+  num get domainLookupEnd => JS("num", "#.domainLookupEnd", this);
 
-  final num domainLookupStart;
+  num get domainLookupStart => JS("num", "#.domainLookupStart", this);
 
-  final int encodedBodySize;
+  int get encodedBodySize => JS("int", "#.encodedBodySize", this);
 
-  final num fetchStart;
+  num get fetchStart => JS("num", "#.fetchStart", this);
 
-  final String initiatorType;
+  String get initiatorType => JS("String", "#.initiatorType", this);
 
-  final String nextHopProtocol;
+  String get nextHopProtocol => JS("String", "#.nextHopProtocol", this);
 
-  final num redirectEnd;
+  num get redirectEnd => JS("num", "#.redirectEnd", this);
 
-  final num redirectStart;
+  num get redirectStart => JS("num", "#.redirectStart", this);
 
-  final num requestStart;
+  num get requestStart => JS("num", "#.requestStart", this);
 
-  final num responseEnd;
+  num get responseEnd => JS("num", "#.responseEnd", this);
 
-  final num responseStart;
+  num get responseStart => JS("num", "#.responseStart", this);
 
-  final num secureConnectionStart;
+  num get secureConnectionStart => JS("num", "#.secureConnectionStart", this);
 
-  final List<PerformanceServerTiming> serverTiming;
+  List<PerformanceServerTiming> get serverTiming =>
+      JS("List<PerformanceServerTiming>", "#.serverTiming", this);
 
-  final int transferSize;
+  int get transferSize => JS("int", "#.transferSize", this);
 
-  final num workerStart;
+  num get workerStart => JS("num", "#.workerStart", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24114,11 +25688,11 @@ class PerformanceServerTiming extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String description;
+  String get description => JS("String", "#.description", this);
 
-  final num duration;
+  num get duration => JS("num", "#.duration", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24132,47 +25706,49 @@ class PerformanceTiming extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int connectEnd;
+  int get connectEnd => JS("int", "#.connectEnd", this);
 
-  final int connectStart;
+  int get connectStart => JS("int", "#.connectStart", this);
 
-  final int domComplete;
+  int get domComplete => JS("int", "#.domComplete", this);
 
-  final int domContentLoadedEventEnd;
+  int get domContentLoadedEventEnd =>
+      JS("int", "#.domContentLoadedEventEnd", this);
 
-  final int domContentLoadedEventStart;
+  int get domContentLoadedEventStart =>
+      JS("int", "#.domContentLoadedEventStart", this);
 
-  final int domInteractive;
+  int get domInteractive => JS("int", "#.domInteractive", this);
 
-  final int domLoading;
+  int get domLoading => JS("int", "#.domLoading", this);
 
-  final int domainLookupEnd;
+  int get domainLookupEnd => JS("int", "#.domainLookupEnd", this);
 
-  final int domainLookupStart;
+  int get domainLookupStart => JS("int", "#.domainLookupStart", this);
 
-  final int fetchStart;
+  int get fetchStart => JS("int", "#.fetchStart", this);
 
-  final int loadEventEnd;
+  int get loadEventEnd => JS("int", "#.loadEventEnd", this);
 
-  final int loadEventStart;
+  int get loadEventStart => JS("int", "#.loadEventStart", this);
 
-  final int navigationStart;
+  int get navigationStart => JS("int", "#.navigationStart", this);
 
-  final int redirectEnd;
+  int get redirectEnd => JS("int", "#.redirectEnd", this);
 
-  final int redirectStart;
+  int get redirectStart => JS("int", "#.redirectStart", this);
 
-  final int requestStart;
+  int get requestStart => JS("int", "#.requestStart", this);
 
-  final int responseEnd;
+  int get responseEnd => JS("int", "#.responseEnd", this);
 
-  final int responseStart;
+  int get responseStart => JS("int", "#.responseStart", this);
 
-  final int secureConnectionStart;
+  int get secureConnectionStart => JS("int", "#.secureConnectionStart", this);
 
-  final int unloadEventEnd;
+  int get unloadEventEnd => JS("int", "#.unloadEventEnd", this);
 
-  final int unloadEventStart;
+  int get unloadEventStart => JS("int", "#.unloadEventStart", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24188,7 +25764,7 @@ class PermissionStatus extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  final String state;
+  String get state => JS("String", "#.state", this);
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }
@@ -24236,13 +25812,15 @@ class PhotoCapabilities extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final List fillLightMode;
+  List get fillLightMode => JS("List", "#.fillLightMode", this);
 
-  final MediaSettingsRange imageHeight;
+  MediaSettingsRange get imageHeight =>
+      JS("MediaSettingsRange", "#.imageHeight", this);
 
-  final MediaSettingsRange imageWidth;
+  MediaSettingsRange get imageWidth =>
+      JS("MediaSettingsRange", "#.imageWidth", this);
 
-  final String redEyeReduction;
+  String get redEyeReduction => JS("String", "#.redEyeReduction", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24272,13 +25850,13 @@ class Plugin extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String description;
+  String get description => JS("String", "#.description", this);
 
-  final String filename;
+  String get filename => JS("String", "#.filename", this);
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
   MimeType item(int index) native;
 
@@ -24361,7 +25939,7 @@ class PointerEvent extends MouseEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PointerEvent(String type, [Map eventInitDict]) {
+  factory PointerEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PointerEvent._create_1(type, eventInitDict_1);
@@ -24373,25 +25951,25 @@ class PointerEvent extends MouseEvent {
   static PointerEvent _create_2(type) =>
       JS('PointerEvent', 'new PointerEvent(#)', type);
 
-  final num height;
+  num get height => JS("num", "#.height", this);
 
-  final bool isPrimary;
+  bool get isPrimary => JS("bool", "#.isPrimary", this);
 
-  final int pointerId;
+  int get pointerId => JS("int", "#.pointerId", this);
 
-  final String pointerType;
+  String get pointerType => JS("String", "#.pointerType", this);
 
-  final num pressure;
+  num get pressure => JS("num", "#.pressure", this);
 
-  final num tangentialPressure;
+  num get tangentialPressure => JS("num", "#.tangentialPressure", this);
 
-  final int tiltX;
+  int get tiltX => JS("int", "#.tiltX", this);
 
-  final int tiltY;
+  int get tiltY => JS("int", "#.tiltY", this);
 
-  final int twist;
+  int get twist => JS("int", "#.twist", this);
 
-  final num width;
+  num get width => JS("num", "#.width", this);
 
   List<PointerEvent> getCoalescedEvents() native;
 
@@ -24421,7 +25999,7 @@ class PopStateEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PopStateEvent(String type, [Map eventInitDict]) {
+  factory PopStateEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PopStateEvent._create_1(type, eventInitDict_1);
@@ -24466,9 +26044,9 @@ class PositionError extends Interceptor {
 
   static const int TIMEOUT = 3;
 
-  final int code;
+  int get code => JS("int", "#.code", this);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24489,8 +26067,11 @@ class PreElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PreElement() => JS('returns:PreElement;creates:PreElement;new:true',
-      '#.createElement(#)', document, "pre");
+  factory PreElement() => JS<PreElement>(
+      'returns:PreElement;creates:PreElement;new:true',
+      '#.createElement(#)',
+      document,
+      "pre");
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -24509,9 +26090,9 @@ class Presentation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  PresentationRequest defaultRequest;
+  PresentationRequest? defaultRequest;
 
-  final PresentationReceiver receiver;
+  final PresentationReceiver? receiver;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24527,7 +26108,7 @@ class PresentationAvailability extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  final bool value;
+  bool get value => JS("bool", "#.value", this);
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }
@@ -24545,13 +26126,17 @@ class PresentationConnection extends EventTarget {
   static const EventStreamProvider<MessageEvent> messageEvent =
       const EventStreamProvider<MessageEvent>('message');
 
-  String binaryType;
+  String get binaryType => JS("String", "#.binaryType", this);
 
-  final String id;
+  set binaryType(String value) {
+    JS("void", "#.binaryType = #", this, value);
+  }
 
-  final String state;
+  String get id => JS("String", "#.id", this);
 
-  final String url;
+  String get state => JS("String", "#.state", this);
+
+  String get url => JS("String", "#.url", this);
 
   void close() native;
 
@@ -24581,7 +26166,8 @@ class PresentationConnectionAvailableEvent extends Event {
       JS('PresentationConnectionAvailableEvent',
           'new PresentationConnectionAvailableEvent(#,#)', type, eventInitDict);
 
-  final PresentationConnection connection;
+  PresentationConnection get connection =>
+      JS("PresentationConnection", "#.connection", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24604,9 +26190,9 @@ class PresentationConnectionCloseEvent extends Event {
       type,
       eventInitDict);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 
-  final String reason;
+  String get reason => JS("String", "#.reason", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24619,7 +26205,8 @@ class PresentationConnectionList extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final List<PresentationConnection> connections;
+  List<PresentationConnection> get connections =>
+      JS("List<PresentationConnection>", "#.connections", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24632,9 +26219,7 @@ class PresentationReceiver extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future<PresentationConnectionList> get connectionList =>
-      promiseToFuture<PresentationConnectionList>(
-          JS("", "#.connectionList", this));
+  Future get connectionList => JS("Future", "#.connectionList", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24685,9 +26270,9 @@ class ProcessingInstruction extends CharacterData {
     throw new UnsupportedError("Not supported");
   }
 
-  final StyleSheet sheet;
+  final StyleSheet? sheet;
 
-  final String target;
+  String get target => JS("String", "#.target", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24704,7 +26289,8 @@ class ProgressElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ProgressElement() => document.createElement("progress");
+  factory ProgressElement() =>
+      document.createElement("progress") as ProgressElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -24718,13 +26304,21 @@ class ProgressElement extends HtmlElement {
   @Unstable()
   @Returns('NodeList|Null')
   @Creates('NodeList')
-  final List<Node> labels;
+  List<Node> get labels => JS("NodeList", "#.labels", this);
 
-  num max;
+  num get max => JS("num", "#.max", this);
 
-  final num position;
+  set max(num value) {
+    JS("void", "#.max = #", this, value);
+  }
 
-  num value;
+  num get position => JS("num", "#.position", this);
+
+  num get value => JS("num", "#.value", this);
+
+  set value(num value) {
+    JS("void", "#.value = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24737,7 +26331,7 @@ class ProgressEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ProgressEvent(String type, [Map eventInitDict]) {
+  factory ProgressEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return ProgressEvent._create_1(type, eventInitDict_1);
@@ -24749,11 +26343,11 @@ class ProgressEvent extends Event {
   static ProgressEvent _create_2(type) =>
       JS('ProgressEvent', 'new ProgressEvent(#)', type);
 
-  final bool lengthComputable;
+  bool get lengthComputable => JS("bool", "#.lengthComputable", this);
 
-  final int loaded;
+  int get loaded => JS("int", "#.loaded", this);
 
-  final int total;
+  int get total => JS("int", "#.total", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24776,9 +26370,9 @@ class PromiseRejectionEvent extends Event {
       type,
       eventInitDict);
 
-  Future get promise => promiseToFuture(JS("", "#.promise", this));
+  Future get promise => JS("Future", "#.promise", this);
 
-  final Object reason;
+  Object get reason => JS("Object", "#.reason", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24791,9 +26385,10 @@ class PublicKeyCredential extends Credential {
     throw new UnsupportedError("Not supported");
   }
 
-  final ByteBuffer rawId;
+  ByteBuffer get rawId => JS("ByteBuffer", "#.rawId", this);
 
-  final AuthenticatorResponse response;
+  AuthenticatorResponse get response =>
+      JS("AuthenticatorResponse", "#.response", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24806,7 +26401,7 @@ class PushEvent extends ExtendableEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory PushEvent(String type, [Map eventInitDict]) {
+  factory PushEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return PushEvent._create_1(type, eventInitDict_1);
@@ -24817,7 +26412,7 @@ class PushEvent extends ExtendableEvent {
       JS('PushEvent', 'new PushEvent(#,#)', type, eventInitDict);
   static PushEvent _create_2(type) => JS('PushEvent', 'new PushEvent(#)', type);
 
-  final PushMessageData data;
+  final PushMessageData? data;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24830,12 +26425,13 @@ class PushManager extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  static final List<String> supportedContentEncodings;
+  List<String> get supportedContentEncodings =>
+      JS("List<String>", "#.supportedContentEncodings", this);
 
   Future<PushSubscription> getSubscription() =>
       promiseToFuture<PushSubscription>(JS("", "#.getSubscription()", this));
 
-  Future permissionState([Map options]) {
+  Future permissionState([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -24843,7 +26439,7 @@ class PushManager extends Interceptor {
     return promiseToFuture(JS("", "#.permissionState(#)", this, options_dict));
   }
 
-  Future<PushSubscription> subscribe([Map options]) {
+  Future<PushSubscription> subscribe([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -24882,11 +26478,12 @@ class PushSubscription extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String endpoint;
+  String get endpoint => JS("String", "#.endpoint", this);
 
-  final int expirationTime;
+  int get expirationTime => JS("int", "#.expirationTime", this);
 
-  final PushSubscriptionOptions options;
+  PushSubscriptionOptions get options =>
+      JS("PushSubscriptionOptions", "#.options", this);
 
   ByteBuffer getKey(String name) native;
 
@@ -24904,9 +26501,9 @@ class PushSubscriptionOptions extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final ByteBuffer applicationServerKey;
+  final ByteBuffer? applicationServerKey;
 
-  final bool userVisibleOnly;
+  bool get userVisibleOnly => JS("bool", "#.userVisibleOnly", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24919,7 +26516,7 @@ class QuoteElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory QuoteElement() => JS(
+  factory QuoteElement() => JS<QuoteElement>(
       'returns:QuoteElement;creates:QuoteElement;new:true',
       '#.createElement(#)',
       document,
@@ -24931,7 +26528,11 @@ class QuoteElement extends HtmlElement {
    */
   QuoteElement.created() : super.created();
 
-  String cite;
+  String get cite => JS("String", "#.cite", this);
+
+  set cite(String value) {
+    JS("void", "#.cite = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24980,23 +26581,24 @@ class Range extends Interceptor {
 
   static const int START_TO_START = 0;
 
-  final bool collapsed;
+  bool get collapsed => JS("bool", "#.collapsed", this);
 
-  final Node commonAncestorContainer;
+  Node get commonAncestorContainer =>
+      JS("Node", "#.commonAncestorContainer", this);
 
-  final Node endContainer;
+  Node get endContainer => JS("Node", "#.endContainer", this);
 
-  final int endOffset;
+  int get endOffset => JS("int", "#.endOffset", this);
 
-  final Node startContainer;
+  Node get startContainer => JS("Node", "#.startContainer", this);
 
-  final int startOffset;
+  int get startOffset => JS("int", "#.startOffset", this);
 
   DocumentFragment cloneContents() native;
 
   Range cloneRange() native;
 
-  void collapse([bool toStart]) native;
+  void collapse([bool? toStart]) native;
 
   int compareBoundaryPoints(int how, Range sourceRange) native;
 
@@ -25076,11 +26678,11 @@ class RelatedApplication extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
-  final String platform;
+  String get platform => JS("String", "#.platform", this);
 
-  final String url;
+  String get url => JS("String", "#.url", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25093,7 +26695,7 @@ class RelativeOrientationSensor extends OrientationSensor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory RelativeOrientationSensor([Map sensorOptions]) {
+  factory RelativeOrientationSensor([Map? sensorOptions]) {
     if (sensorOptions != null) {
       var sensorOptions_1 = convertDartToNative_Dictionary(sensorOptions);
       return RelativeOrientationSensor._create_1(sensorOptions_1);
@@ -25118,9 +26720,9 @@ class RemotePlayback extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final String state;
+  String get state => JS("String", "#.state", this);
 
-  Future cancelWatchAvailability([int id]) =>
+  Future cancelWatchAvailability([int? id]) =>
       promiseToFuture(JS("", "#.cancelWatchAvailability(#)", this, id));
 
   Future prompt() => promiseToFuture(JS("", "#.prompt()", this));
@@ -25225,9 +26827,10 @@ class ResizeObserverEntry extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final DomRectReadOnly contentRect;
+  DomRectReadOnly get contentRect =>
+      JS("DomRectReadOnly", "#.contentRect", this);
 
-  final Element target;
+  Element get target => JS("Element", "#.target", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25240,7 +26843,7 @@ class RtcCertificate extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int expires;
+  int get expires => JS("int", "#.expires", this);
 
   List<Map> getFingerprints() native;
 }
@@ -25291,29 +26894,38 @@ class RtcDataChannel extends EventTarget {
   static const EventStreamProvider<Event> openEvent =
       const EventStreamProvider<Event>('open');
 
-  String binaryType;
+  String get binaryType => JS("String", "#.binaryType", this);
 
-  final int bufferedAmount;
+  set binaryType(String value) {
+    JS("void", "#.binaryType = #", this, value);
+  }
 
-  int bufferedAmountLowThreshold;
+  int get bufferedAmount => JS("int", "#.bufferedAmount", this);
 
-  final int id;
+  int get bufferedAmountLowThreshold =>
+      JS("int", "#.bufferedAmountLowThreshold", this);
 
-  final String label;
+  set bufferedAmountLowThreshold(int value) {
+    JS("void", "#.bufferedAmountLowThreshold = #", this, value);
+  }
 
-  final int maxRetransmitTime;
+  int get id => JS("int", "#.id", this);
 
-  final int maxRetransmits;
+  String get label => JS("String", "#.label", this);
 
-  final bool negotiated;
+  int get maxRetransmitTime => JS("int", "#.maxRetransmitTime", this);
 
-  final bool ordered;
+  int get maxRetransmits => JS("int", "#.maxRetransmits", this);
 
-  final String protocol;
+  bool get negotiated => JS("bool", "#.negotiated", this);
 
-  final String readyState;
+  bool get ordered => JS("bool", "#.ordered", this);
 
-  final bool reliable;
+  String get protocol => JS("String", "#.protocol", this);
+
+  String get readyState => JS("String", "#.readyState", this);
+
+  bool get reliable => JS("bool", "#.reliable", this);
 
   void close() native;
 
@@ -25364,7 +26976,7 @@ class RtcDataChannelEvent extends Event {
       type,
       eventInitDict);
 
-  final RtcDataChannel channel;
+  RtcDataChannel get channel => JS("RtcDataChannel", "#.channel", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25387,18 +26999,18 @@ class RtcDtmfSender extends EventTarget {
       const EventStreamProvider<RtcDtmfToneChangeEvent>('tonechange');
 
   @JSName('canInsertDTMF')
-  final bool canInsertDtmf;
+  bool get canInsertDtmf => JS("bool", "#.canInsertDTMF", this);
 
-  final int duration;
+  int get duration => JS("int", "#.duration", this);
 
-  final int interToneGap;
+  int get interToneGap => JS("int", "#.interToneGap", this);
 
-  final String toneBuffer;
+  String get toneBuffer => JS("String", "#.toneBuffer", this);
 
-  final MediaStreamTrack track;
+  MediaStreamTrack get track => JS("MediaStreamTrack", "#.track", this);
 
   @JSName('insertDTMF')
-  void insertDtmf(String tones, [int duration, int interToneGap]) native;
+  void insertDtmf(String tones, [int? duration, int? interToneGap]) native;
 
   /// Stream of `tonechange` events handled by this [RtcDtmfSender].
   Stream<RtcDtmfToneChangeEvent> get onToneChange =>
@@ -25425,7 +27037,7 @@ class RtcDtmfToneChangeEvent extends Event {
       type,
       eventInitDict);
 
-  final String tone;
+  String get tone => JS("String", "#.tone", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25444,11 +27056,23 @@ class RtcIceCandidate extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String candidate;
+  String get candidate => JS("String", "#.candidate", this);
 
-  int sdpMLineIndex;
+  set candidate(String value) {
+    JS("void", "#.candidate = #", this, value);
+  }
 
-  String sdpMid;
+  int get sdpMLineIndex => JS("int", "#.sdpMLineIndex", this);
+
+  set sdpMLineIndex(int value) {
+    JS("void", "#.sdpMLineIndex = #", this, value);
+  }
+
+  String get sdpMid => JS("String", "#.sdpMid", this);
+
+  set sdpMid(String value) {
+    JS("void", "#.sdpMid = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25461,13 +27085,13 @@ class RtcLegacyStatsReport extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
   DateTime get timestamp => convertNativeToDart_DateTime(this._get_timestamp);
   @JSName('timestamp')
   final dynamic _get_timestamp;
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
   List<String> names() native;
 
@@ -25606,23 +27230,23 @@ class RtcPeerConnection extends EventTarget {
   static const EventStreamProvider<Event> signalingStateChangeEvent =
       const EventStreamProvider<Event>('signalingstatechange');
 
-  final String iceConnectionState;
+  String get iceConnectionState => JS("String", "#.iceConnectionState", this);
 
-  final String iceGatheringState;
+  String get iceGatheringState => JS("String", "#.iceGatheringState", this);
 
-  final RtcSessionDescription localDescription;
+  final RtcSessionDescription? localDescription;
 
-  final RtcSessionDescription remoteDescription;
+  final RtcSessionDescription? remoteDescription;
 
-  final String signalingState;
+  String get signalingState => JS("String", "#.signalingState", this);
 
   Future addIceCandidate(Object candidate,
-          [VoidCallback successCallback,
-          RtcPeerConnectionErrorCallback failureCallback]) =>
+          [VoidCallback? successCallback,
+          RtcPeerConnectionErrorCallback? failureCallback]) =>
       promiseToFuture(JS("", "#.addIceCandidate(#, #, #)", this, candidate,
           successCallback, failureCallback));
 
-  void addStream(MediaStream stream, [Map mediaConstraints]) {
+  void addStream(MediaStream? stream, [Map? mediaConstraints]) {
     if (mediaConstraints != null) {
       var mediaConstraints_1 = convertDartToNative_Dictionary(mediaConstraints);
       _addStream_1(stream, mediaConstraints_1);
@@ -25633,15 +27257,15 @@ class RtcPeerConnection extends EventTarget {
   }
 
   @JSName('addStream')
-  void _addStream_1(MediaStream stream, mediaConstraints) native;
+  void _addStream_1(MediaStream? stream, mediaConstraints) native;
   @JSName('addStream')
-  void _addStream_2(MediaStream stream) native;
+  void _addStream_2(MediaStream? stream) native;
 
   RtcRtpSender addTrack(MediaStreamTrack track, MediaStream streams) native;
 
   void close() native;
 
-  Future<RtcSessionDescription> createAnswer([Map options]) {
+  Future<RtcSessionDescription> createAnswer([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -25653,7 +27277,7 @@ class RtcPeerConnection extends EventTarget {
   @JSName('createDTMFSender')
   RtcDtmfSender createDtmfSender(MediaStreamTrack track) native;
 
-  RtcDataChannel createDataChannel(String label, [Map dataChannelDict]) {
+  RtcDataChannel createDataChannel(String label, [Map? dataChannelDict]) {
     if (dataChannelDict != null) {
       var dataChannelDict_1 = convertDartToNative_Dictionary(dataChannelDict);
       return _createDataChannel_1(label, dataChannelDict_1);
@@ -25666,7 +27290,7 @@ class RtcPeerConnection extends EventTarget {
   @JSName('createDataChannel')
   RtcDataChannel _createDataChannel_2(label) native;
 
-  Future<RtcSessionDescription> createOffer([Map options]) {
+  Future<RtcSessionDescription> createOffer([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -25686,7 +27310,7 @@ class RtcPeerConnection extends EventTarget {
   Future<RtcStatsReport> getStats() =>
       promiseToFuture<RtcStatsReport>(JS("", "#.getStats()", this));
 
-  void removeStream(MediaStream stream) native;
+  void removeStream(MediaStream? stream) native;
 
   void removeTrack(RtcRtpSender sender) native;
 
@@ -25749,7 +27373,7 @@ class RtcPeerConnectionIceEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory RtcPeerConnectionIceEvent(String type, [Map eventInitDict]) {
+  factory RtcPeerConnectionIceEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return RtcPeerConnectionIceEvent._create_1(type, eventInitDict_1);
@@ -25764,7 +27388,7 @@ class RtcPeerConnectionIceEvent extends Event {
   static RtcPeerConnectionIceEvent _create_2(type) =>
       JS('RtcPeerConnectionIceEvent', 'new RTCPeerConnectionIceEvent(#)', type);
 
-  final RtcIceCandidate candidate;
+  final RtcIceCandidate? candidate;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25777,9 +27401,9 @@ class RtcRtpContributingSource extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int source;
+  int get source => JS("int", "#.source", this);
 
-  final num timestamp;
+  num get timestamp => JS("num", "#.timestamp", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25792,7 +27416,7 @@ class RtcRtpReceiver extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final MediaStreamTrack track;
+  MediaStreamTrack get track => JS("MediaStreamTrack", "#.track", this);
 
   List<RtcRtpContributingSource> getContributingSources() native;
 }
@@ -25807,7 +27431,7 @@ class RtcRtpSender extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final MediaStreamTrack track;
+  final MediaStreamTrack? track;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25826,9 +27450,9 @@ class RtcSessionDescription extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String sdp;
+  String? sdp;
 
-  String type;
+  String? type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25931,11 +27555,11 @@ class RtcTrackEvent extends Event {
   static RtcTrackEvent _create_1(type, eventInitDict) =>
       JS('RtcTrackEvent', 'new RTCTrackEvent(#,#)', type, eventInitDict);
 
-  final RtcRtpReceiver receiver;
+  RtcRtpReceiver get receiver => JS("RtcRtpReceiver", "#.receiver", this);
 
-  final List<MediaStream> streams;
+  List<MediaStream> get streams => JS("List<MediaStream>", "#.streams", this);
 
-  final MediaStreamTrack track;
+  MediaStreamTrack get track => JS("MediaStreamTrack", "#.track", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25951,28 +27575,33 @@ class Screen extends Interceptor {
   }
 
   @JSName('availHeight')
-  final int _availHeight;
+  int get _availHeight => JS("int", "#.availHeight", this);
 
   @JSName('availLeft')
-  final int _availLeft;
+  int get _availLeft => JS("int", "#.availLeft", this);
 
   @JSName('availTop')
-  final int _availTop;
+  int get _availTop => JS("int", "#.availTop", this);
 
   @JSName('availWidth')
-  final int _availWidth;
+  int get _availWidth => JS("int", "#.availWidth", this);
 
-  final int colorDepth;
+  int get colorDepth => JS("int", "#.colorDepth", this);
 
-  final int height;
+  int get height => JS("int", "#.height", this);
 
-  bool keepAwake;
+  bool get keepAwake => JS("bool", "#.keepAwake", this);
 
-  final ScreenOrientation orientation;
+  set keepAwake(bool value) {
+    JS("void", "#.keepAwake = #", this, value);
+  }
 
-  final int pixelDepth;
+  ScreenOrientation get orientation =>
+      JS("ScreenOrientation", "#.orientation", this);
 
-  final int width;
+  int get pixelDepth => JS("int", "#.pixelDepth", this);
+
+  int get width => JS("int", "#.width", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25988,9 +27617,9 @@ class ScreenOrientation extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  final int angle;
+  int get angle => JS("int", "#.angle", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
   Future lock(String orientation) =>
       promiseToFuture(JS("", "#.lock(#)", this, orientation));
@@ -26010,7 +27639,7 @@ class ScriptElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ScriptElement() => JS(
+  factory ScriptElement() => JS<ScriptElement>(
       'returns:ScriptElement;creates:ScriptElement;new:true',
       '#.createElement(#)',
       document,
@@ -26022,21 +27651,49 @@ class ScriptElement extends HtmlElement {
    */
   ScriptElement.created() : super.created();
 
-  bool async;
+  bool get async => JS("bool", "#.async", this);
 
-  String charset;
+  set async(bool value) {
+    JS("void", "#.async = #", this, value);
+  }
 
-  String crossOrigin;
+  String get charset => JS("String", "#.charset", this);
 
-  bool defer;
+  set charset(String value) {
+    JS("void", "#.charset = #", this, value);
+  }
 
-  String integrity;
+  String? crossOrigin;
 
-  bool noModule;
+  bool get defer => JS("bool", "#.defer", this);
 
-  String src;
+  set defer(bool value) {
+    JS("void", "#.defer = #", this, value);
+  }
 
-  String type;
+  String get integrity => JS("String", "#.integrity", this);
+
+  set integrity(String value) {
+    JS("void", "#.integrity = #", this, value);
+  }
+
+  bool get noModule => JS("bool", "#.noModule", this);
+
+  set noModule(bool value) {
+    JS("void", "#.noModule = #", this, value);
+  }
+
+  String get src => JS("String", "#.src", this);
+
+  set src(String value) {
+    JS("void", "#.src = #", this, value);
+  }
+
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26049,7 +27706,7 @@ class ScrollState extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ScrollState([Map scrollStateInit]) {
+  factory ScrollState([Map? scrollStateInit]) {
     if (scrollStateInit != null) {
       var scrollStateInit_1 = convertDartToNative_Dictionary(scrollStateInit);
       return ScrollState._create_1(scrollStateInit_1);
@@ -26060,29 +27717,29 @@ class ScrollState extends Interceptor {
       JS('ScrollState', 'new ScrollState(#)', scrollStateInit);
   static ScrollState _create_2() => JS('ScrollState', 'new ScrollState()');
 
-  final num deltaGranularity;
+  num get deltaGranularity => JS("num", "#.deltaGranularity", this);
 
-  final num deltaX;
+  num get deltaX => JS("num", "#.deltaX", this);
 
-  final num deltaY;
+  num get deltaY => JS("num", "#.deltaY", this);
 
-  final bool fromUserInput;
+  bool get fromUserInput => JS("bool", "#.fromUserInput", this);
 
-  final bool inInertialPhase;
+  bool get inInertialPhase => JS("bool", "#.inInertialPhase", this);
 
-  final bool isBeginning;
+  bool get isBeginning => JS("bool", "#.isBeginning", this);
 
-  final bool isDirectManipulation;
+  bool get isDirectManipulation => JS("bool", "#.isDirectManipulation", this);
 
-  final bool isEnding;
+  bool get isEnding => JS("bool", "#.isEnding", this);
 
-  final int positionX;
+  int get positionX => JS("int", "#.positionX", this);
 
-  final int positionY;
+  int get positionY => JS("int", "#.positionY", this);
 
-  final num velocityX;
+  num get velocityX => JS("num", "#.velocityX", this);
 
-  final num velocityY;
+  num get velocityY => JS("num", "#.velocityY", this);
 
   void consumeDelta(num x, num y) native;
 
@@ -26106,7 +27763,7 @@ class ScrollTimeline extends AnimationTimeline {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ScrollTimeline([Map options]) {
+  factory ScrollTimeline([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return ScrollTimeline._create_1(options_1);
@@ -26118,11 +27775,11 @@ class ScrollTimeline extends AnimationTimeline {
   static ScrollTimeline _create_2() =>
       JS('ScrollTimeline', 'new ScrollTimeline()');
 
-  final String orientation;
+  String get orientation => JS("String", "#.orientation", this);
 
-  final Element scrollSource;
+  final Element? scrollSource;
 
-  final Object timeRange;
+  Object get timeRange => JS("Object", "#.timeRange", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26135,7 +27792,7 @@ class SecurityPolicyViolationEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SecurityPolicyViolationEvent(String type, [Map eventInitDict]) {
+  factory SecurityPolicyViolationEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return SecurityPolicyViolationEvent._create_1(type, eventInitDict_1);
@@ -26153,30 +27810,30 @@ class SecurityPolicyViolationEvent extends Event {
       type);
 
   @JSName('blockedURI')
-  final String blockedUri;
+  String get blockedUri => JS("String", "#.blockedURI", this);
 
-  final int columnNumber;
+  int get columnNumber => JS("int", "#.columnNumber", this);
 
-  final String disposition;
+  String get disposition => JS("String", "#.disposition", this);
 
   @JSName('documentURI')
-  final String documentUri;
+  String get documentUri => JS("String", "#.documentURI", this);
 
-  final String effectiveDirective;
+  String get effectiveDirective => JS("String", "#.effectiveDirective", this);
 
-  final int lineNumber;
+  int get lineNumber => JS("int", "#.lineNumber", this);
 
-  final String originalPolicy;
+  String get originalPolicy => JS("String", "#.originalPolicy", this);
 
-  final String referrer;
+  String get referrer => JS("String", "#.referrer", this);
 
-  final String sample;
+  String get sample => JS("String", "#.sample", this);
 
-  final String sourceFile;
+  String get sourceFile => JS("String", "#.sourceFile", this);
 
-  final int statusCode;
+  int get statusCode => JS("int", "#.statusCode", this);
 
-  final String violatedDirective;
+  String get violatedDirective => JS("String", "#.violatedDirective", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26189,7 +27846,7 @@ class SelectElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SelectElement() => JS(
+  factory SelectElement() => JS<SelectElement>(
       'returns:SelectElement;creates:SelectElement;new:true',
       '#.createElement(#)',
       document,
@@ -26201,42 +27858,78 @@ class SelectElement extends HtmlElement {
    */
   SelectElement.created() : super.created();
 
-  bool autofocus;
+  bool get autofocus => JS("bool", "#.autofocus", this);
 
-  bool disabled;
+  set autofocus(bool value) {
+    JS("void", "#.autofocus = #", this, value);
+  }
 
-  final FormElement form;
+  bool get disabled => JS("bool", "#.disabled", this);
+
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
+
+  final FormElement? form;
 
   @Unstable()
   @Returns('NodeList|Null')
   @Creates('NodeList')
-  final List<Node> labels;
+  List<Node> get labels => JS("NodeList", "#.labels", this);
 
-  int length;
+  int get length => JS("int", "#.length", this);
 
-  bool multiple;
+  set length(int value) {
+    JS("void", "#.length = #", this, value);
+  }
 
-  String name;
+  bool get multiple => JS("bool", "#.multiple", this);
 
-  bool required;
+  set multiple(bool value) {
+    JS("void", "#.multiple = #", this, value);
+  }
 
-  int selectedIndex;
+  String get name => JS("String", "#.name", this);
 
-  int size;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
-  final String type;
+  bool get required => JS("bool", "#.required", this);
 
-  final String validationMessage;
+  set required(bool value) {
+    JS("void", "#.required = #", this, value);
+  }
 
-  final ValidityState validity;
+  int get selectedIndex => JS("int", "#.selectedIndex", this);
 
-  String value;
+  set selectedIndex(int value) {
+    JS("void", "#.selectedIndex = #", this, value);
+  }
 
-  final bool willValidate;
+  int get size => JS("int", "#.size", this);
 
-  void __setter__(int index, OptionElement option) native;
+  set size(int value) {
+    JS("void", "#.size = #", this, value);
+  }
 
-  void add(Object element, Object before) native;
+  String get type => JS("String", "#.type", this);
+
+  String get validationMessage => JS("String", "#.validationMessage", this);
+
+  ValidityState get validity => JS("ValidityState", "#.validity", this);
+
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
+
+  bool get willValidate => JS("bool", "#.willValidate", this);
+
+  void __setter__(int index, OptionElement? option) native;
+
+  void add(Object element, Object? before) native;
 
   bool checkValidity() native;
 
@@ -26276,43 +27969,43 @@ class Selection extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Node anchorNode;
+  final Node? anchorNode;
 
-  final int anchorOffset;
+  int get anchorOffset => JS("int", "#.anchorOffset", this);
 
-  final Node baseNode;
+  final Node? baseNode;
 
-  final int baseOffset;
+  int get baseOffset => JS("int", "#.baseOffset", this);
 
-  final Node extentNode;
+  final Node? extentNode;
 
-  final int extentOffset;
+  int get extentOffset => JS("int", "#.extentOffset", this);
 
-  final Node focusNode;
+  final Node? focusNode;
 
-  final int focusOffset;
+  int get focusOffset => JS("int", "#.focusOffset", this);
 
-  final bool isCollapsed;
+  bool get isCollapsed => JS("bool", "#.isCollapsed", this);
 
-  final int rangeCount;
+  int get rangeCount => JS("int", "#.rangeCount", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
   void addRange(Range range) native;
 
-  void collapse(Node node, [int offset]) native;
+  void collapse(Node? node, [int? offset]) native;
 
   void collapseToEnd() native;
 
   void collapseToStart() native;
 
-  bool containsNode(Node node, [bool allowPartialContainment]) native;
+  bool containsNode(Node node, [bool? allowPartialContainment]) native;
 
   void deleteFromDocument() native;
 
   void empty() native;
 
-  void extend(Node node, [int offset]) native;
+  void extend(Node node, [int? offset]) native;
 
   Range getRangeAt(int index) native;
 
@@ -26324,10 +28017,10 @@ class Selection extends Interceptor {
 
   void selectAllChildren(Node node) native;
 
-  void setBaseAndExtent(
-      Node baseNode, int baseOffset, Node extentNode, int extentOffset) native;
+  void setBaseAndExtent(Node? baseNode, int baseOffset, Node? extentNode,
+      int extentOffset) native;
 
-  void setPosition(Node node, [int offset]) native;
+  void setPosition(Node? node, [int? offset]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26343,11 +28036,11 @@ class Sensor extends EventTarget {
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  final bool activated;
+  bool get activated => JS("bool", "#.activated", this);
 
-  final bool hasReading;
+  bool get hasReading => JS("bool", "#.hasReading", this);
 
-  final num timestamp;
+  num get timestamp => JS("num", "#.timestamp", this);
 
   void start() native;
 
@@ -26373,7 +28066,7 @@ class SensorErrorEvent extends Event {
   static SensorErrorEvent _create_1(type, eventInitDict) =>
       JS('SensorErrorEvent', 'new SensorErrorEvent(#,#)', type, eventInitDict);
 
-  final DomException error;
+  DomException get error => JS("DomException", "#.error", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26390,11 +28083,11 @@ class ServiceWorker extends EventTarget implements AbstractWorker {
       const EventStreamProvider<Event>('error');
 
   @JSName('scriptURL')
-  final String scriptUrl;
+  String get scriptUrl => JS("String", "#.scriptURL", this);
 
-  final String state;
+  String get state => JS("String", "#.state", this);
 
-  void postMessage(/*any*/ message, [List<Object> transfer]) {
+  void postMessage(/*any*/ message, [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, transfer);
@@ -26426,19 +28119,18 @@ class ServiceWorkerContainer extends EventTarget {
   static const EventStreamProvider<MessageEvent> messageEvent =
       const EventStreamProvider<MessageEvent>('message');
 
-  final ServiceWorker controller;
+  final ServiceWorker? controller;
 
-  Future<ServiceWorkerRegistration> get ready =>
-      promiseToFuture<ServiceWorkerRegistration>(JS("", "#.ready", this));
+  Future get ready => JS("Future", "#.ready", this);
 
-  Future<ServiceWorkerRegistration> getRegistration([String documentURL]) =>
+  Future<ServiceWorkerRegistration> getRegistration([String? documentURL]) =>
       promiseToFuture<ServiceWorkerRegistration>(
           JS("", "#.getRegistration(#)", this, documentURL));
 
   Future<List<dynamic>> getRegistrations() =>
       promiseToFuture<List<dynamic>>(JS("", "#.getRegistrations()", this));
 
-  Future<ServiceWorkerRegistration> register(String url, [Map options]) {
+  Future<ServiceWorkerRegistration> register(String url, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -26475,9 +28167,10 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   static const EventStreamProvider<MessageEvent> messageEvent =
       const EventStreamProvider<MessageEvent>('message');
 
-  final Clients clients;
+  Clients get clients => JS("Clients", "#.clients", this);
 
-  final ServiceWorkerRegistration registration;
+  ServiceWorkerRegistration get registration =>
+      JS("ServiceWorkerRegistration", "#.registration", this);
 
   Future skipWaiting() => promiseToFuture(JS("", "#.skipWaiting()", this));
 
@@ -26508,25 +28201,28 @@ class ServiceWorkerRegistration extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final ServiceWorker active;
+  final ServiceWorker? active;
 
-  final BackgroundFetchManager backgroundFetch;
+  BackgroundFetchManager get backgroundFetch =>
+      JS("BackgroundFetchManager", "#.backgroundFetch", this);
 
-  final ServiceWorker installing;
+  final ServiceWorker? installing;
 
-  final NavigationPreloadManager navigationPreload;
+  NavigationPreloadManager get navigationPreload =>
+      JS("NavigationPreloadManager", "#.navigationPreload", this);
 
-  final PaymentManager paymentManager;
+  PaymentManager get paymentManager =>
+      JS("PaymentManager", "#.paymentManager", this);
 
-  final PushManager pushManager;
+  PushManager get pushManager => JS("PushManager", "#.pushManager", this);
 
-  final String scope;
+  String get scope => JS("String", "#.scope", this);
 
-  final SyncManager sync;
+  SyncManager get sync => JS("SyncManager", "#.sync", this);
 
-  final ServiceWorker waiting;
+  final ServiceWorker? waiting;
 
-  Future<List<dynamic>> getNotifications([Map filter]) {
+  Future<List<dynamic>> getNotifications([Map? filter]) {
     var filter_dict = null;
     if (filter != null) {
       filter_dict = convertDartToNative_Dictionary(filter);
@@ -26535,7 +28231,7 @@ class ServiceWorkerRegistration extends EventTarget {
         JS("", "#.getNotifications(#)", this, filter_dict));
   }
 
-  Future showNotification(String title, [Map options]) {
+  Future showNotification(String title, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -26561,7 +28257,7 @@ class ShadowElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory ShadowElement() => document.createElement("shadow");
+  factory ShadowElement() => document.createElement("shadow") as ShadowElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -26590,28 +28286,34 @@ class ShadowRoot extends DocumentFragment implements DocumentOrShadowRoot {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool delegatesFocus;
+  bool get delegatesFocus => JS("bool", "#.delegatesFocus", this);
 
-  final Element host;
+  Element get host => JS("Element", "#.host", this);
 
   @JSName('innerHTML')
-  String innerHtml;
+  String get innerHtml => JS("String", "#.innerHTML", this);
 
-  final String mode;
+  @JSName('innerHTML')
+  set innerHtml(String value) {
+    JS("void", "#.innerHTML = #", this, value);
+  }
 
-  final ShadowRoot olderShadowRoot;
+  String get mode => JS("String", "#.mode", this);
+
+  final ShadowRoot? olderShadowRoot;
 
   // From DocumentOrShadowRoot
 
-  final Element activeElement;
+  final Element? activeElement;
 
-  final Element fullscreenElement;
+  final Element? fullscreenElement;
 
-  final Element pointerLockElement;
+  final Element? pointerLockElement;
 
   @Returns('_StyleSheetList|Null')
   @Creates('_StyleSheetList')
-  final List<StyleSheet> styleSheets;
+  List<StyleSheet> get styleSheets =>
+      JS("_StyleSheetList", "#.styleSheets", this);
 
   Element elementFromPoint(int x, int y) native;
 
@@ -26670,7 +28372,7 @@ class SharedArrayBuffer extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int byteLength;
+  int get byteLength => JS("int", "#.byteLength", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26686,7 +28388,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  factory SharedWorker(String scriptURL, [String name]) {
+  factory SharedWorker(String scriptURL, [String? name]) {
     if (name != null) {
       return SharedWorker._create_1(scriptURL, name);
     }
@@ -26697,7 +28399,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   static SharedWorker _create_2(scriptURL) =>
       JS('SharedWorker', 'new SharedWorker(#)', scriptURL);
 
-  final MessagePort port;
+  MessagePort get port => JS("MessagePort", "#.port", this);
 
   Stream<Event> get onError => errorEvent.forTarget(this);
 }
@@ -26725,7 +28427,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
 
   static const int TEMPORARY = 0;
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
   void close() native;
 
@@ -26733,8 +28435,8 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitRequestFileSystem(int type, int size,
-      [_FileSystemCallback successCallback,
-      _ErrorCallback errorCallback]) native;
+      [_FileSystemCallback? successCallback,
+      _ErrorCallback? errorCallback]) native;
 
   @JSName('webkitRequestFileSystemSync')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -26751,7 +28453,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   void _webkitResolveLocalFileSystemUrl(
       String url, _EntryCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   /// Stream of `connect` events handled by this [SharedWorkerGlobalScope].
   Stream<Event> get onConnect => connectEvent.forTarget(this);
@@ -26778,9 +28480,13 @@ class SlotElement extends HtmlElement {
    */
   SlotElement.created() : super.created();
 
-  String name;
+  String get name => JS("String", "#.name", this);
 
-  List<Node> assignedNodes([Map options]) {
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
+
+  List<Node> assignedNodes([Map? options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
       return _assignedNodes_1(options_1);
@@ -26810,23 +28516,44 @@ class SourceBuffer extends EventTarget {
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  num appendWindowEnd;
+  num get appendWindowEnd => JS("num", "#.appendWindowEnd", this);
 
-  num appendWindowStart;
+  set appendWindowEnd(num value) {
+    JS("void", "#.appendWindowEnd = #", this, value);
+  }
 
-  final AudioTrackList audioTracks;
+  num get appendWindowStart => JS("num", "#.appendWindowStart", this);
 
-  final TimeRanges buffered;
+  set appendWindowStart(num value) {
+    JS("void", "#.appendWindowStart = #", this, value);
+  }
 
-  String mode;
+  AudioTrackList get audioTracks => JS("AudioTrackList", "#.audioTracks", this);
 
-  num timestampOffset;
+  TimeRanges get buffered => JS("TimeRanges", "#.buffered", this);
 
-  TrackDefaultList trackDefaults;
+  String get mode => JS("String", "#.mode", this);
 
-  final bool updating;
+  set mode(String value) {
+    JS("void", "#.mode = #", this, value);
+  }
 
-  final VideoTrackList videoTracks;
+  num get timestampOffset => JS("num", "#.timestampOffset", this);
+
+  set timestampOffset(num value) {
+    JS("void", "#.timestampOffset = #", this, value);
+  }
+
+  TrackDefaultList get trackDefaults =>
+      JS("TrackDefaultList", "#.trackDefaults", this);
+
+  set trackDefaults(TrackDefaultList value) {
+    JS("void", "#.trackDefaults = #", this, value);
+  }
+
+  bool get updating => JS("bool", "#.updating", this);
+
+  VideoTrackList get videoTracks => JS("VideoTrackList", "#.videoTracks", this);
 
   void abort() native;
 
@@ -26912,7 +28639,7 @@ class SourceElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SourceElement() => JS(
+  factory SourceElement() => JS<SourceElement>(
       'returns:SourceElement;creates:SourceElement;new:true',
       '#.createElement(#)',
       document,
@@ -26924,15 +28651,35 @@ class SourceElement extends HtmlElement {
    */
   SourceElement.created() : super.created();
 
-  String media;
+  String get media => JS("String", "#.media", this);
 
-  String sizes;
+  set media(String value) {
+    JS("void", "#.media = #", this, value);
+  }
 
-  String src;
+  String get sizes => JS("String", "#.sizes", this);
 
-  String srcset;
+  set sizes(String value) {
+    JS("void", "#.sizes = #", this, value);
+  }
 
-  String type;
+  String get src => JS("String", "#.src", this);
+
+  set src(String value) {
+    JS("void", "#.src = #", this, value);
+  }
+
+  String get srcset => JS("String", "#.srcset", this);
+
+  set srcset(String value) {
+    JS("void", "#.srcset = #", this, value);
+  }
+
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26945,7 +28692,7 @@ class SpanElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SpanElement() => JS(
+  factory SpanElement() => JS<SpanElement>(
       'returns:SpanElement;creates:SpanElement;new:true',
       '#.createElement(#)',
       document,
@@ -26974,9 +28721,17 @@ class SpeechGrammar extends Interceptor {
   static SpeechGrammar _create_1() =>
       JS('SpeechGrammar', 'new SpeechGrammar()');
 
-  String src;
+  String get src => JS("String", "#.src", this);
 
-  num weight;
+  set src(String value) {
+    JS("void", "#.src = #", this, value);
+  }
+
+  num get weight => JS("num", "#.weight", this);
+
+  set weight(num value) {
+    JS("void", "#.weight = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27042,9 +28797,9 @@ class SpeechGrammarList extends Interceptor
   SpeechGrammar elementAt(int index) => this[index];
   // -- end List<SpeechGrammar> mixins.
 
-  void addFromString(String string, [num weight]) native;
+  void addFromString(String string, [num? weight]) native;
 
-  void addFromUri(String src, [num weight]) native;
+  void addFromUri(String src, [num? weight]) native;
 
   SpeechGrammar item(int index) native;
 }
@@ -27163,17 +28918,37 @@ class SpeechRecognition extends EventTarget {
   static bool get supported => JS(
       'bool', '!!(window.SpeechRecognition || window.webkitSpeechRecognition)');
 
-  MediaStreamTrack audioTrack;
+  MediaStreamTrack? audioTrack;
 
-  bool continuous;
+  bool get continuous => JS("bool", "#.continuous", this);
 
-  SpeechGrammarList grammars;
+  set continuous(bool value) {
+    JS("void", "#.continuous = #", this, value);
+  }
 
-  bool interimResults;
+  SpeechGrammarList get grammars => JS("SpeechGrammarList", "#.grammars", this);
 
-  String lang;
+  set grammars(SpeechGrammarList value) {
+    JS("void", "#.grammars = #", this, value);
+  }
 
-  int maxAlternatives;
+  bool get interimResults => JS("bool", "#.interimResults", this);
+
+  set interimResults(bool value) {
+    JS("void", "#.interimResults = #", this, value);
+  }
+
+  String get lang => JS("String", "#.lang", this);
+
+  set lang(String value) {
+    JS("void", "#.lang = #", this, value);
+  }
+
+  int get maxAlternatives => JS("int", "#.maxAlternatives", this);
+
+  set maxAlternatives(int value) {
+    JS("void", "#.maxAlternatives = #", this, value);
+  }
 
   void abort() native;
 
@@ -27231,9 +29006,9 @@ class SpeechRecognitionAlternative extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num confidence;
+  num get confidence => JS("num", "#.confidence", this);
 
-  final String transcript;
+  String get transcript => JS("String", "#.transcript", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27247,7 +29022,7 @@ class SpeechRecognitionError extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SpeechRecognitionError(String type, [Map initDict]) {
+  factory SpeechRecognitionError(String type, [Map? initDict]) {
     if (initDict != null) {
       var initDict_1 = convertDartToNative_Dictionary(initDict);
       return SpeechRecognitionError._create_1(type, initDict_1);
@@ -27262,9 +29037,9 @@ class SpeechRecognitionError extends Event {
   static SpeechRecognitionError _create_2(type) =>
       JS('SpeechRecognitionError', 'new SpeechRecognitionError(#)', type);
 
-  final String error;
+  String get error => JS("String", "#.error", this);
 
-  final String message;
+  String get message => JS("String", "#.message", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27278,7 +29053,7 @@ class SpeechRecognitionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory SpeechRecognitionEvent(String type, [Map initDict]) {
+  factory SpeechRecognitionEvent(String type, [Map? initDict]) {
     if (initDict != null) {
       var initDict_1 = convertDartToNative_Dictionary(initDict);
       return SpeechRecognitionEvent._create_1(type, initDict_1);
@@ -27293,15 +29068,15 @@ class SpeechRecognitionEvent extends Event {
   static SpeechRecognitionEvent _create_2(type) =>
       JS('SpeechRecognitionEvent', 'new SpeechRecognitionEvent(#)', type);
 
-  final Document emma;
+  final Document? emma;
 
-  final Document interpretation;
+  final Document? interpretation;
 
-  final int resultIndex;
+  int get resultIndex => JS("int", "#.resultIndex", this);
 
   @Returns('_SpeechRecognitionResultList|Null')
   @Creates('_SpeechRecognitionResultList')
-  final List<SpeechRecognitionResult> results;
+  final List<SpeechRecognitionResult>? results;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27315,9 +29090,9 @@ class SpeechRecognitionResult extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool isFinal;
+  bool get isFinal => JS("bool", "#.isFinal", this);
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   SpeechRecognitionAlternative item(int index) native;
 }
@@ -27338,11 +29113,11 @@ class SpeechSynthesis extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool paused;
+  bool get paused => JS("bool", "#.paused", this);
 
-  final bool pending;
+  bool get pending => JS("bool", "#.pending", this);
 
-  final bool speaking;
+  bool get speaking => JS("bool", "#.speaking", this);
 
   void cancel() native;
 
@@ -27366,13 +29141,14 @@ class SpeechSynthesisEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  final int charIndex;
+  int get charIndex => JS("int", "#.charIndex", this);
 
-  final num elapsedTime;
+  num get elapsedTime => JS("num", "#.elapsedTime", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
-  final SpeechSynthesisUtterance utterance;
+  SpeechSynthesisUtterance get utterance =>
+      JS("SpeechSynthesisUtterance", "#.utterance", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27448,7 +29224,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   static const EventStreamProvider<SpeechSynthesisEvent> startEvent =
       const EventStreamProvider<SpeechSynthesisEvent>('start');
 
-  factory SpeechSynthesisUtterance([String text]) {
+  factory SpeechSynthesisUtterance([String? text]) {
     if (text != null) {
       return SpeechSynthesisUtterance._create_1(text);
     }
@@ -27459,17 +29235,37 @@ class SpeechSynthesisUtterance extends EventTarget {
   static SpeechSynthesisUtterance _create_2() =>
       JS('SpeechSynthesisUtterance', 'new SpeechSynthesisUtterance()');
 
-  String lang;
+  String get lang => JS("String", "#.lang", this);
 
-  num pitch;
+  set lang(String value) {
+    JS("void", "#.lang = #", this, value);
+  }
 
-  num rate;
+  num get pitch => JS("num", "#.pitch", this);
 
-  String text;
+  set pitch(num value) {
+    JS("void", "#.pitch = #", this, value);
+  }
 
-  SpeechSynthesisVoice voice;
+  num get rate => JS("num", "#.rate", this);
 
-  num volume;
+  set rate(num value) {
+    JS("void", "#.rate = #", this, value);
+  }
+
+  String get text => JS("String", "#.text", this);
+
+  set text(String value) {
+    JS("void", "#.text = #", this, value);
+  }
+
+  SpeechSynthesisVoice? voice;
+
+  num get volume => JS("num", "#.volume", this);
+
+  set volume(num value) {
+    JS("void", "#.volume = #", this, value);
+  }
 
   /// Stream of `boundary` events handled by this [SpeechSynthesisUtterance].
   Stream<SpeechSynthesisEvent> get onBoundary => boundaryEvent.forTarget(this);
@@ -27504,16 +29300,16 @@ class SpeechSynthesisVoice extends Interceptor {
   }
 
   @JSName('default')
-  final bool defaultValue;
+  bool get defaultValue => JS("bool", "#.default", this);
 
-  final String lang;
+  String get lang => JS("String", "#.lang", this);
 
-  final bool localService;
+  bool get localService => JS("bool", "#.localService", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
   @JSName('voiceURI')
-  final String voiceUri;
+  String get voiceUri => JS("String", "#.voiceURI", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27526,15 +29322,15 @@ class StaticRange extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool collapsed;
+  bool get collapsed => JS("bool", "#.collapsed", this);
 
-  final Node endContainer;
+  Node get endContainer => JS("Node", "#.endContainer", this);
 
-  final int endOffset;
+  int get endOffset => JS("int", "#.endOffset", this);
 
-  final Node startContainer;
+  Node get startContainer => JS("Node", "#.startContainer", this);
 
-  final int startOffset;
+  int get startOffset => JS("int", "#.startOffset", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27630,7 +29426,7 @@ class Storage extends Interceptor with MapMixin<String, String> {
   }
 
   @JSName('length')
-  final int _length;
+  int get _length => JS("int", "#.length", this);
 
   @JSName('clear')
   void _clear() native;
@@ -27677,7 +29473,7 @@ class StorageEvent extends Event {
     return e;
   }
 
-  factory StorageEvent._(String type, [Map eventInitDict]) {
+  factory StorageEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return StorageEvent._create_1(type, eventInitDict_1);
@@ -27689,15 +29485,15 @@ class StorageEvent extends Event {
   static StorageEvent _create_2(type) =>
       JS('StorageEvent', 'new StorageEvent(#)', type);
 
-  final String key;
+  final String? key;
 
-  final String newValue;
+  final String? newValue;
 
-  final String oldValue;
+  final String? oldValue;
 
-  final Storage storageArea;
+  final Storage? storageArea;
 
-  final String url;
+  String get url => JS("String", "#.url", this);
 
   @JSName('initStorageEvent')
   void _initStorageEvent(
@@ -27705,8 +29501,8 @@ class StorageEvent extends Event {
       bool canBubbleArg,
       bool cancelableArg,
       String keyArg,
-      String oldValueArg,
-      String newValueArg,
+      String? oldValueArg,
+      String? newValueArg,
       String urlArg,
       Storage storageAreaArg) native;
 }
@@ -27755,7 +29551,7 @@ class StyleElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory StyleElement() => JS(
+  factory StyleElement() => JS<StyleElement>(
       'returns:StyleElement;creates:StyleElement;new:true',
       '#.createElement(#)',
       document,
@@ -27767,13 +29563,25 @@ class StyleElement extends HtmlElement {
    */
   StyleElement.created() : super.created();
 
-  bool disabled;
+  bool get disabled => JS("bool", "#.disabled", this);
 
-  String media;
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
 
-  final StyleSheet sheet;
+  String get media => JS("String", "#.media", this);
 
-  String type;
+  set media(String value) {
+    JS("void", "#.media = #", this, value);
+  }
+
+  final StyleSheet? sheet;
+
+  String get type => JS("String", "#.type", this);
+
+  set type(String value) {
+    JS("void", "#.type = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27786,7 +29594,7 @@ class StyleMedia extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
   bool matchMedium(String mediaquery) native;
 }
@@ -27837,19 +29645,23 @@ class StyleSheet extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  bool disabled;
+  bool get disabled => JS("bool", "#.disabled", this);
 
-  final String href;
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
 
-  final MediaList media;
+  final String? href;
 
-  final Node ownerNode;
+  MediaList get media => JS("MediaList", "#.media", this);
 
-  final StyleSheet parentStyleSheet;
+  final Node? ownerNode;
 
-  final String title;
+  final StyleSheet? parentStyleSheet;
 
-  final String type;
+  final String? title;
+
+  String get type => JS("String", "#.type", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27869,9 +29681,9 @@ class SyncEvent extends ExtendableEvent {
   static SyncEvent _create_1(type, init) =>
       JS('SyncEvent', 'new SyncEvent(#,#)', type, init);
 
-  final bool lastChance;
+  bool get lastChance => JS("bool", "#.lastChance", this);
 
-  final String tag;
+  String get tag => JS("String", "#.tag", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27901,7 +29713,7 @@ class TableCaptionElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableCaptionElement() => JS(
+  factory TableCaptionElement() => JS<TableCaptionElement>(
       'returns:TableCaptionElement;creates:TableCaptionElement;new:true',
       '#.createElement(#)',
       document,
@@ -27925,7 +29737,7 @@ class TableCellElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableCellElement() => JS(
+  factory TableCellElement() => JS<TableCellElement>(
       'returns:TableCellElement;creates:TableCellElement;new:true',
       '#.createElement(#)',
       document,
@@ -27937,13 +29749,25 @@ class TableCellElement extends HtmlElement {
    */
   TableCellElement.created() : super.created();
 
-  final int cellIndex;
+  int get cellIndex => JS("int", "#.cellIndex", this);
 
-  int colSpan;
+  int get colSpan => JS("int", "#.colSpan", this);
 
-  String headers;
+  set colSpan(int value) {
+    JS("void", "#.colSpan = #", this, value);
+  }
 
-  int rowSpan;
+  String get headers => JS("String", "#.headers", this);
+
+  set headers(String value) {
+    JS("void", "#.headers = #", this, value);
+  }
+
+  int get rowSpan => JS("int", "#.rowSpan", this);
+
+  set rowSpan(int value) {
+    JS("void", "#.rowSpan = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27956,7 +29780,7 @@ class TableColElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableColElement() => JS(
+  factory TableColElement() => JS<TableColElement>(
       'returns:TableColElement;creates:TableColElement;new:true',
       '#.createElement(#)',
       document,
@@ -27968,7 +29792,11 @@ class TableColElement extends HtmlElement {
    */
   TableColElement.created() : super.created();
 
-  int span;
+  int get span => JS("int", "#.span", this);
+
+  set span(int value) {
+    JS("void", "#.span = #", this, value);
+  }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28024,7 +29852,7 @@ class TableElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableElement() => JS(
+  factory TableElement() => JS<TableElement>(
       'returns:TableElement;creates:TableElement;new:true',
       '#.createElement(#)',
       document,
@@ -28036,21 +29864,21 @@ class TableElement extends HtmlElement {
    */
   TableElement.created() : super.created();
 
-  TableCaptionElement caption;
+  TableCaptionElement? caption;
 
   @JSName('rows')
   @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
-  final List<Node> _rows;
+  List<Node> get _rows => JS("HtmlCollection", "#.rows", this);
 
   @JSName('tBodies')
   @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
-  final List<Node> _tBodies;
+  List<Node> get _tBodies => JS("HtmlCollection", "#.tBodies", this);
 
-  TableSectionElement tFoot;
+  TableSectionElement? tFoot;
 
-  TableSectionElement tHead;
+  TableSectionElement? tHead;
 
   @JSName('createCaption')
   TableCaptionElement _createCaption() native;
@@ -28070,7 +29898,7 @@ class TableElement extends HtmlElement {
   void deleteTHead() native;
 
   @JSName('insertRow')
-  TableRowElement _insertRow([int index]) native;
+  TableRowElement _insertRow([int? index]) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28110,7 +29938,7 @@ class TableRowElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TableRowElement() => JS(
+  factory TableRowElement() => JS<TableRowElement>(
       'returns:TableRowElement;creates:TableRowElement;new:true',
       '#.createElement(#)',
       document,
@@ -28125,16 +29953,16 @@ class TableRowElement extends HtmlElement {
   @JSName('cells')
   @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
-  final List<Node> _cells;
+  List<Node> get _cells => JS("HtmlCollection", "#.cells", this);
 
-  final int rowIndex;
+  int get rowIndex => JS("int", "#.rowIndex", this);
 
-  final int sectionRowIndex;
+  int get sectionRowIndex => JS("int", "#.sectionRowIndex", this);
 
   void deleteCell(int index) native;
 
   @JSName('insertCell')
-  HtmlElement _insertCell([int index]) native;
+  HtmlElement _insertCell([int? index]) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28181,12 +30009,12 @@ class TableSectionElement extends HtmlElement {
   @JSName('rows')
   @Returns('HtmlCollection|Null')
   @Creates('HtmlCollection')
-  final List<Node> _rows;
+  List<Node> get _rows => JS("HtmlCollection", "#.rows", this);
 
   void deleteRow(int index) native;
 
   @JSName('insertRow')
-  HtmlElement _insertRow([int index]) native;
+  HtmlElement _insertRow([int? index]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28199,16 +30027,16 @@ class TaskAttributionTiming extends PerformanceEntry {
     throw new UnsupportedError("Not supported");
   }
 
-  final String containerId;
+  String get containerId => JS("String", "#.containerId", this);
 
-  final String containerName;
+  String get containerName => JS("String", "#.containerName", this);
 
-  final String containerSrc;
+  String get containerSrc => JS("String", "#.containerSrc", this);
 
-  final String containerType;
+  String get containerType => JS("String", "#.containerType", this);
 
   @JSName('scriptURL')
-  final String scriptUrl;
+  String get scriptUrl => JS("String", "#.scriptURL", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28224,7 +30052,8 @@ class TemplateElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TemplateElement() => document.createElement("template");
+  factory TemplateElement() =>
+      document.createElement("template") as TemplateElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -28235,7 +30064,7 @@ class TemplateElement extends HtmlElement {
   /// Checks if this type is supported on the current platform.
   static bool get supported => Element.isTagSupported('template');
 
-  final DocumentFragment content;
+  DocumentFragment get content => JS("DocumentFragment", "#.content", this);
 
   /**
    * An override to place the contents into content rather than as child nodes.
@@ -28272,9 +30101,9 @@ class Text extends CharacterData {
     throw new UnsupportedError("Not supported");
   }
 
-  final SlotElement assignedSlot;
+  final SlotElement? assignedSlot;
 
-  final String wholeText;
+  String get wholeText => JS("String", "#.wholeText", this);
 
   @Returns('NodeList|Null')
   @Creates('NodeList')
@@ -28293,7 +30122,7 @@ class TextAreaElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TextAreaElement() => JS(
+  factory TextAreaElement() => JS<TextAreaElement>(
       'returns:TextAreaElement;creates:TextAreaElement;new:true',
       '#.createElement(#)',
       document,
@@ -28305,58 +30134,130 @@ class TextAreaElement extends HtmlElement {
    */
   TextAreaElement.created() : super.created();
 
-  String autocapitalize;
+  String get autocapitalize => JS("String", "#.autocapitalize", this);
 
-  bool autofocus;
+  set autocapitalize(String value) {
+    JS("void", "#.autocapitalize = #", this, value);
+  }
 
-  int cols;
+  bool get autofocus => JS("bool", "#.autofocus", this);
 
-  String defaultValue;
+  set autofocus(bool value) {
+    JS("void", "#.autofocus = #", this, value);
+  }
 
-  String dirName;
+  int get cols => JS("int", "#.cols", this);
 
-  bool disabled;
+  set cols(int value) {
+    JS("void", "#.cols = #", this, value);
+  }
 
-  final FormElement form;
+  String get defaultValue => JS("String", "#.defaultValue", this);
+
+  set defaultValue(String value) {
+    JS("void", "#.defaultValue = #", this, value);
+  }
+
+  String get dirName => JS("String", "#.dirName", this);
+
+  set dirName(String value) {
+    JS("void", "#.dirName = #", this, value);
+  }
+
+  bool get disabled => JS("bool", "#.disabled", this);
+
+  set disabled(bool value) {
+    JS("void", "#.disabled = #", this, value);
+  }
+
+  final FormElement? form;
 
   @Unstable()
   @Returns('NodeList|Null')
   @Creates('NodeList')
-  final List<Node> labels;
+  List<Node> get labels => JS("NodeList", "#.labels", this);
 
-  int maxLength;
+  int get maxLength => JS("int", "#.maxLength", this);
 
-  int minLength;
+  set maxLength(int value) {
+    JS("void", "#.maxLength = #", this, value);
+  }
 
-  String name;
+  int get minLength => JS("int", "#.minLength", this);
 
-  String placeholder;
+  set minLength(int value) {
+    JS("void", "#.minLength = #", this, value);
+  }
 
-  bool readOnly;
+  String get name => JS("String", "#.name", this);
 
-  bool required;
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
-  int rows;
+  String get placeholder => JS("String", "#.placeholder", this);
 
-  String selectionDirection;
+  set placeholder(String value) {
+    JS("void", "#.placeholder = #", this, value);
+  }
 
-  int selectionEnd;
+  bool get readOnly => JS("bool", "#.readOnly", this);
 
-  int selectionStart;
+  set readOnly(bool value) {
+    JS("void", "#.readOnly = #", this, value);
+  }
 
-  final int textLength;
+  bool get required => JS("bool", "#.required", this);
 
-  final String type;
+  set required(bool value) {
+    JS("void", "#.required = #", this, value);
+  }
 
-  final String validationMessage;
+  int get rows => JS("int", "#.rows", this);
 
-  final ValidityState validity;
+  set rows(int value) {
+    JS("void", "#.rows = #", this, value);
+  }
 
-  String value;
+  String get selectionDirection => JS("String", "#.selectionDirection", this);
 
-  final bool willValidate;
+  set selectionDirection(String value) {
+    JS("void", "#.selectionDirection = #", this, value);
+  }
 
-  String wrap;
+  int get selectionEnd => JS("int", "#.selectionEnd", this);
+
+  set selectionEnd(int value) {
+    JS("void", "#.selectionEnd = #", this, value);
+  }
+
+  int get selectionStart => JS("int", "#.selectionStart", this);
+
+  set selectionStart(int value) {
+    JS("void", "#.selectionStart = #", this, value);
+  }
+
+  int get textLength => JS("int", "#.textLength", this);
+
+  String get type => JS("String", "#.type", this);
+
+  String get validationMessage => JS("String", "#.validationMessage", this);
+
+  ValidityState get validity => JS("ValidityState", "#.validity", this);
+
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
+
+  bool get willValidate => JS("bool", "#.willValidate", this);
+
+  String get wrap => JS("String", "#.wrap", this);
+
+  set wrap(String value) {
+    JS("void", "#.wrap = #", this, value);
+  }
 
   bool checkValidity() native;
 
@@ -28367,9 +30268,9 @@ class TextAreaElement extends HtmlElement {
   void setCustomValidity(String error) native;
 
   void setRangeText(String replacement,
-      {int start, int end, String selectionMode}) native;
+      {int? start, int? end, String? selectionMode}) native;
 
-  void setSelectionRange(int start, int end, [String direction]) native;
+  void setSelectionRange(int start, int end, [String? direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28416,10 +30317,10 @@ class TextEvent extends UIEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  final String data;
+  String get data => JS("String", "#.data", this);
 
   @JSName('initTextEvent')
-  void _initTextEvent(String type, bool bubbles, bool cancelable, Window view,
+  void _initTextEvent(String type, bool bubbles, bool cancelable, Window? view,
       String data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28433,29 +30334,31 @@ class TextMetrics extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num actualBoundingBoxAscent;
+  num get actualBoundingBoxAscent =>
+      JS("num", "#.actualBoundingBoxAscent", this);
 
-  final num actualBoundingBoxDescent;
+  num get actualBoundingBoxDescent =>
+      JS("num", "#.actualBoundingBoxDescent", this);
 
-  final num actualBoundingBoxLeft;
+  num get actualBoundingBoxLeft => JS("num", "#.actualBoundingBoxLeft", this);
 
-  final num actualBoundingBoxRight;
+  num get actualBoundingBoxRight => JS("num", "#.actualBoundingBoxRight", this);
 
-  final num alphabeticBaseline;
+  num get alphabeticBaseline => JS("num", "#.alphabeticBaseline", this);
 
-  final num emHeightAscent;
+  num get emHeightAscent => JS("num", "#.emHeightAscent", this);
 
-  final num emHeightDescent;
+  num get emHeightDescent => JS("num", "#.emHeightDescent", this);
 
-  final num fontBoundingBoxAscent;
+  num get fontBoundingBoxAscent => JS("num", "#.fontBoundingBoxAscent", this);
 
-  final num fontBoundingBoxDescent;
+  num get fontBoundingBoxDescent => JS("num", "#.fontBoundingBoxDescent", this);
 
-  final num hangingBaseline;
+  num get hangingBaseline => JS("num", "#.hangingBaseline", this);
 
-  final num ideographicBaseline;
+  num get ideographicBaseline => JS("num", "#.ideographicBaseline", this);
 
-  final num width;
+  num get width => JS("num", "#.width", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28477,19 +30380,23 @@ class TextTrack extends EventTarget {
   static const EventStreamProvider<Event> cueChangeEvent =
       const EventStreamProvider<Event>('cuechange');
 
-  final TextTrackCueList activeCues;
+  final TextTrackCueList? activeCues;
 
-  final TextTrackCueList cues;
+  final TextTrackCueList? cues;
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
-  final String kind;
+  String get kind => JS("String", "#.kind", this);
 
-  final String label;
+  String get label => JS("String", "#.label", this);
 
-  final String language;
+  String get language => JS("String", "#.language", this);
 
-  String mode;
+  String get mode => JS("String", "#.mode", this);
+
+  set mode(String value) {
+    JS("void", "#.mode = #", this, value);
+  }
 
   void addCue(TextTrackCue cue) native;
 
@@ -28527,15 +30434,31 @@ class TextTrackCue extends EventTarget {
   static const EventStreamProvider<Event> exitEvent =
       const EventStreamProvider<Event>('exit');
 
-  num endTime;
+  num get endTime => JS("num", "#.endTime", this);
 
-  String id;
+  set endTime(num value) {
+    JS("void", "#.endTime = #", this, value);
+  }
 
-  bool pauseOnExit;
+  String get id => JS("String", "#.id", this);
 
-  num startTime;
+  set id(String value) {
+    JS("void", "#.id = #", this, value);
+  }
 
-  final TextTrack track;
+  bool get pauseOnExit => JS("bool", "#.pauseOnExit", this);
+
+  set pauseOnExit(bool value) {
+    JS("void", "#.pauseOnExit = #", this, value);
+  }
+
+  num get startTime => JS("num", "#.startTime", this);
+
+  set startTime(num value) {
+    JS("void", "#.startTime = #", this, value);
+  }
+
+  final TextTrack? track;
 
   /// Stream of `enter` events handled by this [TextTrackCue].
   Stream<Event> get onEnter => enterEvent.forTarget(this);
@@ -28701,7 +30624,11 @@ class TimeElement extends HtmlElement {
    */
   TimeElement.created() : super.created();
 
-  String dateTime;
+  String get dateTime => JS("String", "#.dateTime", this);
+
+  set dateTime(String value) {
+    JS("void", "#.dateTime = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28715,7 +30642,7 @@ class TimeRanges extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   double end(int index) native;
 
@@ -28739,7 +30666,7 @@ class TitleElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TitleElement() => JS(
+  factory TitleElement() => JS<TitleElement>(
       'returns:TitleElement;creates:TitleElement;new:true',
       '#.createElement(#)',
       document,
@@ -28769,38 +30696,38 @@ class Touch extends Interceptor {
   static Touch _create_1(initDict) => JS('Touch', 'new Touch(#)', initDict);
 
   @JSName('clientX')
-  final num _clientX;
+  num get _clientX => JS("num", "#.clientX", this);
 
   @JSName('clientY')
-  final num _clientY;
+  num get _clientY => JS("num", "#.clientY", this);
 
-  final num force;
+  num get force => JS("num", "#.force", this);
 
-  final int identifier;
+  int get identifier => JS("int", "#.identifier", this);
 
   @JSName('pageX')
-  final num _pageX;
+  num get _pageX => JS("num", "#.pageX", this);
 
   @JSName('pageY')
-  final num _pageY;
+  num get _pageY => JS("num", "#.pageY", this);
 
   @JSName('radiusX')
-  final num _radiusX;
+  num get _radiusX => JS("num", "#.radiusX", this);
 
   @JSName('radiusY')
-  final num _radiusY;
+  num get _radiusY => JS("num", "#.radiusY", this);
 
-  final String region;
+  final String? region;
 
-  final num rotationAngle;
+  num get rotationAngle => JS("num", "#.rotationAngle", this);
 
   @JSName('screenX')
-  final num _screenX;
+  num get _screenX => JS("num", "#.screenX", this);
 
   @JSName('screenY')
-  final num _screenY;
+  num get _screenY => JS("num", "#.screenY", this);
 
-  EventTarget get target => _convertNativeToDart_EventTarget(this._get_target);
+  EventTarget? get target => _convertNativeToDart_EventTarget(this._get_target);
   @JSName('target')
   @Creates('Element|Document')
   @Returns('Element|Document')
@@ -28844,7 +30771,7 @@ class TouchEvent extends UIEvent {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TouchEvent(String type, [Map eventInitDict]) {
+  factory TouchEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return TouchEvent._create_1(type, eventInitDict_1);
@@ -28856,19 +30783,19 @@ class TouchEvent extends UIEvent {
   static TouchEvent _create_2(type) =>
       JS('TouchEvent', 'new TouchEvent(#)', type);
 
-  final bool altKey;
+  bool get altKey => JS("bool", "#.altKey", this);
 
-  final TouchList changedTouches;
+  TouchList get changedTouches => JS("TouchList", "#.changedTouches", this);
 
-  final bool ctrlKey;
+  bool get ctrlKey => JS("bool", "#.ctrlKey", this);
 
-  final bool metaKey;
+  bool get metaKey => JS("bool", "#.metaKey", this);
 
-  final bool shiftKey;
+  bool get shiftKey => JS("bool", "#.shiftKey", this);
 
-  final TouchList targetTouches;
+  TouchList get targetTouches => JS("TouchList", "#.targetTouches", this);
 
-  final TouchList touches;
+  TouchList get touches => JS("TouchList", "#.touches", this);
 
   /**
    * Checks if touch events supported on the current platform.
@@ -28964,7 +30891,7 @@ class TrackDefault extends Interceptor {
 
   factory TrackDefault(
       String type, String language, String label, List<String> kinds,
-      [String byteStreamTrackID]) {
+      [String? byteStreamTrackID]) {
     if (byteStreamTrackID != null) {
       List kinds_1 = convertDartToNative_StringArray(kinds);
       return TrackDefault._create_1(
@@ -28985,15 +30912,15 @@ class TrackDefault extends Interceptor {
       label,
       kinds);
 
-  final String byteStreamTrackID;
+  String get byteStreamTrackID => JS("String", "#.byteStreamTrackID", this);
 
-  final Object kinds;
+  Object get kinds => JS("Object", "#.kinds", this);
 
-  final String label;
+  String get label => JS("String", "#.label", this);
 
-  final String language;
+  String get language => JS("String", "#.language", this);
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29006,7 +30933,7 @@ class TrackDefaultList extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TrackDefaultList([List<TrackDefault> trackDefaults]) {
+  factory TrackDefaultList([List<TrackDefault>? trackDefaults]) {
     if (trackDefaults != null) {
       return TrackDefaultList._create_1(trackDefaults);
     }
@@ -29017,7 +30944,7 @@ class TrackDefaultList extends Interceptor {
   static TrackDefaultList _create_2() =>
       JS('TrackDefaultList', 'new TrackDefaultList()');
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
   TrackDefault item(int index) native;
 }
@@ -29035,7 +30962,7 @@ class TrackElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TrackElement() => document.createElement("track");
+  factory TrackElement() => document.createElement("track") as TrackElement;
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
    *
@@ -29055,19 +30982,40 @@ class TrackElement extends HtmlElement {
   static const int NONE = 0;
 
   @JSName('default')
-  bool defaultValue;
+  bool get defaultValue => JS("bool", "#.default", this);
 
-  String kind;
+  @JSName('default')
+  set defaultValue(bool value) {
+    JS("void", "#.default = #", this, value);
+  }
 
-  String label;
+  String get kind => JS("String", "#.kind", this);
 
-  final int readyState;
+  set kind(String value) {
+    JS("void", "#.kind = #", this, value);
+  }
 
-  String src;
+  String get label => JS("String", "#.label", this);
 
-  String srclang;
+  set label(String value) {
+    JS("void", "#.label = #", this, value);
+  }
 
-  final TextTrack track;
+  int get readyState => JS("int", "#.readyState", this);
+
+  String get src => JS("String", "#.src", this);
+
+  set src(String value) {
+    JS("void", "#.src = #", this, value);
+  }
+
+  String get srclang => JS("String", "#.srclang", this);
+
+  set srclang(String value) {
+    JS("void", "#.srclang = #", this, value);
+  }
+
+  TextTrack get track => JS("TextTrack", "#.track", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29081,7 +31029,7 @@ class TrackEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TrackEvent(String type, [Map eventInitDict]) {
+  factory TrackEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return TrackEvent._create_1(type, eventInitDict_1);
@@ -29094,7 +31042,7 @@ class TrackEvent extends Event {
       JS('TrackEvent', 'new TrackEvent(#)', type);
 
   @Creates('Null')
-  final Object track;
+  final Object? track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29107,7 +31055,7 @@ class TransitionEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory TransitionEvent(String type, [Map eventInitDict]) {
+  factory TransitionEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return TransitionEvent._create_1(type, eventInitDict_1);
@@ -29119,11 +31067,11 @@ class TransitionEvent extends Event {
   static TransitionEvent _create_2(type) =>
       JS('TransitionEvent', 'new TransitionEvent(#)', type);
 
-  final num elapsedTime;
+  num get elapsedTime => JS("num", "#.elapsedTime", this);
 
-  final String propertyName;
+  String get propertyName => JS("String", "#.propertyName", this);
 
-  final String pseudoElement;
+  String get pseudoElement => JS("String", "#.pseudoElement", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29140,13 +31088,17 @@ class TreeWalker extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Node currentNode;
+  Node get currentNode => JS("Node", "#.currentNode", this);
 
-  final NodeFilter filter;
+  set currentNode(Node value) {
+    JS("void", "#.currentNode = #", this, value);
+  }
 
-  final Node root;
+  final NodeFilter? filter;
 
-  final int whatToShow;
+  Node get root => JS("Node", "#.root", this);
+
+  int get whatToShow => JS("int", "#.whatToShow", this);
 
   Node firstChild() native;
 
@@ -29232,7 +31184,7 @@ class UIEvent extends Event {
     return e;
   }
 
-  factory UIEvent._(String type, [Map eventInitDict]) {
+  factory UIEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return UIEvent._create_1(type, eventInitDict_1);
@@ -29243,11 +31195,11 @@ class UIEvent extends Event {
       JS('UIEvent', 'new UIEvent(#,#)', type, eventInitDict);
   static UIEvent _create_2(type) => JS('UIEvent', 'new UIEvent(#)', type);
 
-  final int detail;
+  int get detail => JS("int", "#.detail", this);
 
-  final InputDeviceCapabilities sourceCapabilities;
+  final InputDeviceCapabilities? sourceCapabilities;
 
-  WindowBase get view => _convertNativeToDart_Window(this._get_view);
+  WindowBase? get view => _convertNativeToDart_Window(this._get_view);
   @JSName('view')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
@@ -29255,10 +31207,10 @@ class UIEvent extends Event {
 
   @JSName('which')
   @Unstable()
-  final int _which;
+  int get _which => JS("int", "#.which", this);
 
   @JSName('initUIEvent')
-  void _initUIEvent(String type, bool bubbles, bool cancelable, Window view,
+  void _initUIEvent(String type, bool bubbles, bool cancelable, Window? view,
       int detail) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29272,7 +31224,7 @@ class UListElement extends HtmlElement {
     throw new UnsupportedError("Not supported");
   }
 
-  factory UListElement() => JS(
+  factory UListElement() => JS<UListElement>(
       'returns:UListElement;creates:UListElement;new:true',
       '#.createElement(#)',
       document,
@@ -29354,29 +31306,70 @@ class Url extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String hash;
+  String get hash => JS("String", "#.hash", this);
 
-  String host;
+  set hash(String value) {
+    JS("void", "#.hash = #", this, value);
+  }
 
-  String hostname;
+  String get host => JS("String", "#.host", this);
 
-  String href;
+  set host(String value) {
+    JS("void", "#.host = #", this, value);
+  }
 
-  final String origin;
+  String get hostname => JS("String", "#.hostname", this);
 
-  String password;
+  set hostname(String value) {
+    JS("void", "#.hostname = #", this, value);
+  }
 
-  String pathname;
+  String get href => JS("String", "#.href", this);
 
-  String port;
+  set href(String value) {
+    JS("void", "#.href = #", this, value);
+  }
 
-  String protocol;
+  String get origin => JS("String", "#.origin", this);
 
-  String search;
+  String get password => JS("String", "#.password", this);
 
-  final UrlSearchParams searchParams;
+  set password(String value) {
+    JS("void", "#.password = #", this, value);
+  }
 
-  String username;
+  String get pathname => JS("String", "#.pathname", this);
+
+  set pathname(String value) {
+    JS("void", "#.pathname = #", this, value);
+  }
+
+  String get port => JS("String", "#.port", this);
+
+  set port(String value) {
+    JS("void", "#.port = #", this, value);
+  }
+
+  String get protocol => JS("String", "#.protocol", this);
+
+  set protocol(String value) {
+    JS("void", "#.protocol = #", this, value);
+  }
+
+  String get search => JS("String", "#.search", this);
+
+  set search(String value) {
+    JS("void", "#.search = #", this, value);
+  }
+
+  UrlSearchParams get searchParams =>
+      JS("UrlSearchParams", "#.searchParams", this);
+
+  String get username => JS("String", "#.username", this);
+
+  set username(String value) {
+    JS("void", "#.username = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29389,7 +31382,7 @@ class UrlSearchParams extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory UrlSearchParams([Object init]) {
+  factory UrlSearchParams([Object? init]) {
     if (init != null) {
       return UrlSearchParams._create_1(init);
     }
@@ -29479,11 +31472,11 @@ class VRDevice extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final String deviceName;
+  String get deviceName => JS("String", "#.deviceName", this);
 
-  final bool isExternal;
+  bool get isExternal => JS("bool", "#.isExternal", this);
 
-  Future requestSession([Map options]) {
+  Future requestSession([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -29491,7 +31484,7 @@ class VRDevice extends EventTarget {
     return promiseToFuture(JS("", "#.requestSession(#)", this, options_dict));
   }
 
-  Future supportsSession([Map options]) {
+  Future supportsSession([Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -29517,7 +31510,7 @@ class VRDeviceEvent extends Event {
   static VRDeviceEvent _create_1(type, eventInitDict) =>
       JS('VRDeviceEvent', 'new VRDeviceEvent(#,#)', type, eventInitDict);
 
-  final VRDevice device;
+  VRDevice get device => JS("VRDevice", "#.device", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29530,19 +31523,29 @@ class VRDisplay extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final VRDisplayCapabilities capabilities;
+  VRDisplayCapabilities get capabilities =>
+      JS("VRDisplayCapabilities", "#.capabilities", this);
 
-  num depthFar;
+  num get depthFar => JS("num", "#.depthFar", this);
 
-  num depthNear;
+  set depthFar(num value) {
+    JS("void", "#.depthFar = #", this, value);
+  }
 
-  final int displayId;
+  num get depthNear => JS("num", "#.depthNear", this);
 
-  final String displayName;
+  set depthNear(num value) {
+    JS("void", "#.depthNear = #", this, value);
+  }
 
-  final bool isPresenting;
+  int get displayId => JS("int", "#.displayId", this);
 
-  final VRStageParameters stageParameters;
+  String get displayName => JS("String", "#.displayName", this);
+
+  bool get isPresenting => JS("bool", "#.isPresenting", this);
+
+  VRStageParameters get stageParameters =>
+      JS("VRStageParameters", "#.stageParameters", this);
 
   void cancelAnimationFrame(int handle) native;
 
@@ -29572,13 +31575,13 @@ class VRDisplayCapabilities extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool canPresent;
+  bool get canPresent => JS("bool", "#.canPresent", this);
 
-  final bool hasExternalDisplay;
+  bool get hasExternalDisplay => JS("bool", "#.hasExternalDisplay", this);
 
-  final bool hasPosition;
+  bool get hasPosition => JS("bool", "#.hasPosition", this);
 
-  final int maxLayers;
+  int get maxLayers => JS("int", "#.maxLayers", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29591,7 +31594,7 @@ class VRDisplayEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory VRDisplayEvent(String type, [Map eventInitDict]) {
+  factory VRDisplayEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return VRDisplayEvent._create_1(type, eventInitDict_1);
@@ -29603,9 +31606,9 @@ class VRDisplayEvent extends Event {
   static VRDisplayEvent _create_2(type) =>
       JS('VRDisplayEvent', 'new VRDisplayEvent(#)', type);
 
-  final VRDisplay display;
+  VRDisplay get display => JS("VRDisplay", "#.display", this);
 
-  final String reason;
+  String get reason => JS("String", "#.reason", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29618,11 +31621,11 @@ class VREyeParameters extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Float32List offset;
+  Float32List get offset => JS("Float32List", "#.offset", this);
 
-  final int renderHeight;
+  int get renderHeight => JS("int", "#.renderHeight", this);
 
-  final int renderWidth;
+  int get renderWidth => JS("int", "#.renderWidth", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29640,15 +31643,18 @@ class VRFrameData extends Interceptor {
   }
   static VRFrameData _create_1() => JS('VRFrameData', 'new VRFrameData()');
 
-  final Float32List leftProjectionMatrix;
+  Float32List get leftProjectionMatrix =>
+      JS("Float32List", "#.leftProjectionMatrix", this);
 
-  final Float32List leftViewMatrix;
+  Float32List get leftViewMatrix => JS("Float32List", "#.leftViewMatrix", this);
 
-  final VRPose pose;
+  VRPose get pose => JS("VRPose", "#.pose", this);
 
-  final Float32List rightProjectionMatrix;
+  Float32List get rightProjectionMatrix =>
+      JS("Float32List", "#.rightProjectionMatrix", this);
 
-  final Float32List rightViewMatrix;
+  Float32List get rightViewMatrix =>
+      JS("Float32List", "#.rightViewMatrix", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29661,9 +31667,9 @@ class VRFrameOfReference extends VRCoordinateSystem {
     throw new UnsupportedError("Not supported");
   }
 
-  final VRStageBounds bounds;
+  final VRStageBounds? bounds;
 
-  final num emulatedHeight;
+  num get emulatedHeight => JS("num", "#.emulatedHeight", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29676,17 +31682,17 @@ class VRPose extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Float32List angularAcceleration;
+  final Float32List? angularAcceleration;
 
-  final Float32List angularVelocity;
+  final Float32List? angularVelocity;
 
-  final Float32List linearAcceleration;
+  final Float32List? linearAcceleration;
 
-  final Float32List linearVelocity;
+  final Float32List? linearVelocity;
 
-  final Float32List orientation;
+  final Float32List? orientation;
 
-  final Float32List position;
+  final Float32List? position;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29705,17 +31711,25 @@ class VRSession extends EventTarget {
   static const EventStreamProvider<Event> focusEvent =
       const EventStreamProvider<Event>('focus');
 
-  num depthFar;
+  num get depthFar => JS("num", "#.depthFar", this);
 
-  num depthNear;
+  set depthFar(num value) {
+    JS("void", "#.depthFar = #", this, value);
+  }
 
-  final VRDevice device;
+  num get depthNear => JS("num", "#.depthNear", this);
 
-  final bool exclusive;
+  set depthNear(num value) {
+    JS("void", "#.depthNear = #", this, value);
+  }
+
+  VRDevice get device => JS("VRDevice", "#.device", this);
+
+  bool get exclusive => JS("bool", "#.exclusive", this);
 
   Future end() => promiseToFuture(JS("", "#.end()", this));
 
-  Future requestFrameOfReference(String type, [Map options]) {
+  Future requestFrameOfReference(String type, [Map? options]) {
     var options_dict = null;
     if (options != null) {
       options_dict = convertDartToNative_Dictionary(options);
@@ -29746,7 +31760,7 @@ class VRSessionEvent extends Event {
   static VRSessionEvent _create_1(type, eventInitDict) =>
       JS('VRSessionEvent', 'new VRSessionEvent(#,#)', type, eventInitDict);
 
-  final VRSession session;
+  VRSession get session => JS("VRSession", "#.session", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29759,7 +31773,8 @@ class VRStageBounds extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final List<VRStageBoundsPoint> geometry;
+  List<VRStageBoundsPoint> get geometry =>
+      JS("List<VRStageBoundsPoint>", "#.geometry", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29772,9 +31787,9 @@ class VRStageBoundsPoint extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final num x;
+  num get x => JS("num", "#.x", this);
 
-  final num z;
+  num get z => JS("num", "#.z", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29787,11 +31802,12 @@ class VRStageParameters extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final Float32List sittingToStandingTransform;
+  Float32List get sittingToStandingTransform =>
+      JS("Float32List", "#.sittingToStandingTransform", this);
 
-  final num sizeX;
+  num get sizeX => JS("num", "#.sizeX", this);
 
-  final num sizeZ;
+  num get sizeZ => JS("num", "#.sizeZ", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29804,27 +31820,27 @@ class ValidityState extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool badInput;
+  bool get badInput => JS("bool", "#.badInput", this);
 
-  final bool customError;
+  bool get customError => JS("bool", "#.customError", this);
 
-  final bool patternMismatch;
+  bool get patternMismatch => JS("bool", "#.patternMismatch", this);
 
-  final bool rangeOverflow;
+  bool get rangeOverflow => JS("bool", "#.rangeOverflow", this);
 
-  final bool rangeUnderflow;
+  bool get rangeUnderflow => JS("bool", "#.rangeUnderflow", this);
 
-  final bool stepMismatch;
+  bool get stepMismatch => JS("bool", "#.stepMismatch", this);
 
-  final bool tooLong;
+  bool get tooLong => JS("bool", "#.tooLong", this);
 
-  final bool tooShort;
+  bool get tooShort => JS("bool", "#.tooShort", this);
 
-  final bool typeMismatch;
+  bool get typeMismatch => JS("bool", "#.typeMismatch", this);
 
-  final bool valid;
+  bool get valid => JS("bool", "#.valid", this);
 
-  final bool valueMissing;
+  bool get valueMissing => JS("bool", "#.valueMissing", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29837,7 +31853,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
     throw new UnsupportedError("Not supported");
   }
 
-  factory VideoElement() => JS(
+  factory VideoElement() => JS<VideoElement>(
       'returns:VideoElement;creates:VideoElement;new:true',
       '#.createElement(#)',
       document,
@@ -29849,25 +31865,37 @@ class VideoElement extends MediaElement implements CanvasImageSource {
    */
   VideoElement.created() : super.created();
 
-  int height;
+  int get height => JS("int", "#.height", this);
 
-  String poster;
+  set height(int value) {
+    JS("void", "#.height = #", this, value);
+  }
 
-  final int videoHeight;
+  String get poster => JS("String", "#.poster", this);
 
-  final int videoWidth;
+  set poster(String value) {
+    JS("void", "#.poster = #", this, value);
+  }
+
+  int get videoHeight => JS("int", "#.videoHeight", this);
+
+  int get videoWidth => JS("int", "#.videoWidth", this);
 
   @JSName('webkitDecodedFrameCount')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final int decodedFrameCount;
+  int get decodedFrameCount => JS("int", "#.webkitDecodedFrameCount", this);
 
   @JSName('webkitDroppedFrameCount')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  final int droppedFrameCount;
+  int get droppedFrameCount => JS("int", "#.webkitDroppedFrameCount", this);
 
-  int width;
+  int get width => JS("int", "#.width", this);
+
+  set width(int value) {
+    JS("void", "#.width = #", this, value);
+  }
 
   VideoPlaybackQuality getVideoPlaybackQuality() native;
 
@@ -29892,13 +31920,13 @@ class VideoPlaybackQuality extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final int corruptedVideoFrames;
+  int get corruptedVideoFrames => JS("int", "#.corruptedVideoFrames", this);
 
-  final num creationTime;
+  num get creationTime => JS("num", "#.creationTime", this);
 
-  final int droppedVideoFrames;
+  int get droppedVideoFrames => JS("int", "#.droppedVideoFrames", this);
 
-  final int totalVideoFrames;
+  int get totalVideoFrames => JS("int", "#.totalVideoFrames", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29911,17 +31939,21 @@ class VideoTrack extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final String id;
+  String get id => JS("String", "#.id", this);
 
-  final String kind;
+  String get kind => JS("String", "#.kind", this);
 
-  final String label;
+  String get label => JS("String", "#.label", this);
 
-  final String language;
+  String get language => JS("String", "#.language", this);
 
-  bool selected;
+  bool get selected => JS("bool", "#.selected", this);
 
-  final SourceBuffer sourceBuffer;
+  set selected(bool value) {
+    JS("void", "#.selected = #", this, value);
+  }
+
+  final SourceBuffer? sourceBuffer;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29937,9 +31969,9 @@ class VideoTrackList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent =
       const EventStreamProvider<Event>('change');
 
-  final int length;
+  int get length => JS("int", "#.length", this);
 
-  final int selectedIndex;
+  int get selectedIndex => JS("int", "#.selectedIndex", this);
 
   VideoTrack __getter__(int index) native;
 
@@ -29964,19 +31996,19 @@ class VisualViewport extends EventTarget {
   static const EventStreamProvider<Event> scrollEvent =
       const EventStreamProvider<Event>('scroll');
 
-  final num height;
+  num get height => JS("num", "#.height", this);
 
-  final num offsetLeft;
+  num get offsetLeft => JS("num", "#.offsetLeft", this);
 
-  final num offsetTop;
+  num get offsetTop => JS("num", "#.offsetTop", this);
 
-  final num pageLeft;
+  num get pageLeft => JS("num", "#.pageLeft", this);
 
-  final num pageTop;
+  num get pageTop => JS("num", "#.pageTop", this);
 
-  final num scale;
+  num get scale => JS("num", "#.scale", this);
 
-  final num width;
+  num get width => JS("num", "#.width", this);
 
   Stream<Event> get onResize => resizeEvent.forTarget(this);
 
@@ -30006,25 +32038,57 @@ class VttCue extends TextTrackCue {
   static VttCue _create_1(startTime, endTime, text) =>
       JS('VttCue', 'new VTTCue(#,#,#)', startTime, endTime, text);
 
-  String align;
+  String get align => JS("String", "#.align", this);
+
+  set align(String value) {
+    JS("void", "#.align = #", this, value);
+  }
 
   @Creates('Null')
   @Returns('num|String')
-  Object line;
+  Object get line => JS("Object", "#.line", this);
 
   @Creates('Null')
   @Returns('num|String')
-  Object position;
+  set line(Object value) {
+    JS("void", "#.line = #", this, value);
+  }
 
-  VttRegion region;
+  @Creates('Null')
+  @Returns('num|String')
+  Object get position => JS("Object", "#.position", this);
 
-  num size;
+  @Creates('Null')
+  @Returns('num|String')
+  set position(Object value) {
+    JS("void", "#.position = #", this, value);
+  }
 
-  bool snapToLines;
+  VttRegion? region;
 
-  String text;
+  num get size => JS("num", "#.size", this);
 
-  String vertical;
+  set size(num value) {
+    JS("void", "#.size = #", this, value);
+  }
+
+  bool get snapToLines => JS("bool", "#.snapToLines", this);
+
+  set snapToLines(bool value) {
+    JS("void", "#.snapToLines = #", this, value);
+  }
+
+  String get text => JS("String", "#.text", this);
+
+  set text(String value) {
+    JS("void", "#.text = #", this, value);
+  }
+
+  String get vertical => JS("String", "#.vertical", this);
+
+  set vertical(String value) {
+    JS("void", "#.vertical = #", this, value);
+  }
 
   @JSName('getCueAsHTML')
   DocumentFragment getCueAsHtml() native;
@@ -30045,21 +32109,53 @@ class VttRegion extends Interceptor {
   }
   static VttRegion _create_1() => JS('VttRegion', 'new VTTRegion()');
 
-  String id;
+  String get id => JS("String", "#.id", this);
 
-  int lines;
+  set id(String value) {
+    JS("void", "#.id = #", this, value);
+  }
 
-  num regionAnchorX;
+  int get lines => JS("int", "#.lines", this);
 
-  num regionAnchorY;
+  set lines(int value) {
+    JS("void", "#.lines = #", this, value);
+  }
 
-  String scroll;
+  num get regionAnchorX => JS("num", "#.regionAnchorX", this);
 
-  num viewportAnchorX;
+  set regionAnchorX(num value) {
+    JS("void", "#.regionAnchorX = #", this, value);
+  }
 
-  num viewportAnchorY;
+  num get regionAnchorY => JS("num", "#.regionAnchorY", this);
 
-  num width;
+  set regionAnchorY(num value) {
+    JS("void", "#.regionAnchorY = #", this, value);
+  }
+
+  String get scroll => JS("String", "#.scroll", this);
+
+  set scroll(String value) {
+    JS("void", "#.scroll = #", this, value);
+  }
+
+  num get viewportAnchorX => JS("num", "#.viewportAnchorX", this);
+
+  set viewportAnchorX(num value) {
+    JS("void", "#.viewportAnchorX = #", this, value);
+  }
+
+  num get viewportAnchorY => JS("num", "#.viewportAnchorY", this);
+
+  set viewportAnchorY(num value) {
+    JS("void", "#.viewportAnchorY = #", this, value);
+  }
+
+  num get width => JS("num", "#.width", this);
+
+  set width(num value) {
+    JS("void", "#.width = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30147,7 +32243,7 @@ class WebSocket extends EventTarget {
   static const EventStreamProvider<Event> openEvent =
       const EventStreamProvider<Event>('open');
 
-  factory WebSocket(String url, [Object protocols]) {
+  factory WebSocket(String url, [Object? protocols]) {
     if (protocols != null) {
       return WebSocket._create_1(url, protocols);
     }
@@ -30169,19 +32265,23 @@ class WebSocket extends EventTarget {
 
   static const int OPEN = 1;
 
-  String binaryType;
+  String get binaryType => JS("String", "#.binaryType", this);
 
-  final int bufferedAmount;
+  set binaryType(String value) {
+    JS("void", "#.binaryType = #", this, value);
+  }
 
-  final String extensions;
+  int get bufferedAmount => JS("int", "#.bufferedAmount", this);
 
-  final String protocol;
+  String get extensions => JS("String", "#.extensions", this);
 
-  final int readyState;
+  String get protocol => JS("String", "#.protocol", this);
 
-  final String url;
+  int get readyState => JS("int", "#.readyState", this);
 
-  void close([int code, String reason]) native;
+  String get url => JS("String", "#.url", this);
+
+  void close([int? code, String? reason]) native;
 
   /**
    * Transmit data to the server over this connection.
@@ -30298,7 +32398,7 @@ class WheelEvent extends MouseEvent {
         convertDartToNative_Dictionary(options));
   }
 
-  factory WheelEvent._(String type, [Map eventInitDict]) {
+  factory WheelEvent._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return WheelEvent._create_1(type, eventInitDict_1);
@@ -30317,12 +32417,12 @@ class WheelEvent extends MouseEvent {
   static const int DOM_DELTA_PIXEL = 0x00;
 
   @JSName('deltaX')
-  final num _deltaX;
+  num get _deltaX => JS("num", "#.deltaX", this);
 
   @JSName('deltaY')
-  final num _deltaY;
+  num get _deltaY => JS("num", "#.deltaY", this);
 
-  final num deltaZ;
+  num get deltaZ => JS("num", "#.deltaZ", this);
 
   /**
    * The amount that is expected to scroll vertically, in units determined by
@@ -30821,7 +32921,7 @@ class Window extends EventTarget
    */
   static const int TEMPORARY = 0;
 
-  final _Worklet animationWorklet;
+  _Worklet get animationWorklet => JS("_Worklet", "#.animationWorklet", this);
 
   /**
    * The application cache for this window.
@@ -30835,15 +32935,17 @@ class Window extends EventTarget
    *   API](https://html.spec.whatwg.org/multipage/browsers.html#application-cache-api)
    *   from WHATWG.
    */
-  final ApplicationCache applicationCache;
 
-  final _Worklet audioWorklet;
+  ApplicationCache get applicationCache =>
+      JS("ApplicationCache", "#.applicationCache", this);
 
-  final CacheStorage caches;
+  _Worklet get audioWorklet => JS("_Worklet", "#.audioWorklet", this);
 
-  final bool closed;
+  CacheStorage get caches => JS("CacheStorage", "#.caches", this);
 
-  final CookieStore cookieStore;
+  bool get closed => JS("bool", "#.closed", this);
+
+  CookieStore get cookieStore => JS("CookieStore", "#.cookieStore", this);
 
   /**
    * Entrypoint for the browser's cryptographic functions.
@@ -30852,15 +32954,31 @@ class Window extends EventTarget
    *
    * * [Web cryptography API](http://www.w3.org/TR/WebCryptoAPI/) from W3C.
    */
-  final Crypto crypto;
 
-  final CustomElementRegistry customElements;
+  Crypto get crypto => JS("Crypto", "#.crypto", this);
+
+  CustomElementRegistry get customElements =>
+      JS("CustomElementRegistry", "#.customElements", this);
 
   /// *Deprecated*.
-  String defaultStatus;
+
+  String get defaultStatus => JS("String", "#.defaultStatus", this);
 
   /// *Deprecated*.
-  String defaultstatus;
+
+  set defaultStatus(String value) {
+    JS("void", "#.defaultStatus = #", this, value);
+  }
+
+  /// *Deprecated*.
+
+  String get defaultstatus => JS("String", "#.defaultstatus", this);
+
+  /// *Deprecated*.
+
+  set defaultstatus(String value) {
+    JS("void", "#.defaultstatus = #", this, value);
+  }
 
   /**
    * The ratio between physical pixels and logical CSS pixels.
@@ -30872,9 +32990,10 @@ class Window extends EventTarget
    * * [More about devicePixelRatio](http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html)
    *   from quirksmode.
    */
-  final num devicePixelRatio;
 
-  final External external;
+  num get devicePixelRatio => JS("num", "#.devicePixelRatio", this);
+
+  External get external => JS("External", "#.external", this);
 
   /**
    * The current session history for this window's newest document.
@@ -30884,7 +33003,8 @@ class Window extends EventTarget
    * * [Loading web pages](https://html.spec.whatwg.org/multipage/browsers.html)
    *   from WHATWG.
    */
-  final History history;
+
+  History get history => JS("History", "#.history", this);
 
   /**
    * The height of the viewport including scrollbars.
@@ -30894,7 +33014,8 @@ class Window extends EventTarget
    * * [Window.innerHeight](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerHeight)
    *   from MDN.
    */
-  final int innerHeight;
+
+  int get innerHeight => JS("int", "#.innerHeight", this);
 
   /**
    * The width of the viewport including scrollbars.
@@ -30904,9 +33025,10 @@ class Window extends EventTarget
    * * [Window.innerWidth](https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth)
    *   from MDN.
    */
-  final int innerWidth;
 
-  final bool isSecureContext;
+  int get innerWidth => JS("int", "#.innerWidth", this);
+
+  bool get isSecureContext => JS("bool", "#.isSecureContext", this);
 
   /**
    * Storage for this window that persists across sessions.
@@ -30920,7 +33042,8 @@ class Window extends EventTarget
    * * [Local storage specification](http://www.w3.org/TR/webstorage/#the-localstorage-attribute)
    *   from W3C.
    */
-  final Storage localStorage;
+
+  Storage get localStorage => JS("Storage", "#.localStorage", this);
 
   /**
    * This window's location bar, which displays the URL.
@@ -30931,7 +33054,8 @@ class Window extends EventTarget
    *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
    *   from WHATWG.
    */
-  final BarProp locationbar;
+
+  BarProp get locationbar => JS("BarProp", "#.locationbar", this);
 
   /**
    * This window's menu bar, which displays menu commands.
@@ -30942,7 +33066,8 @@ class Window extends EventTarget
    *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
    *   from WHATWG.
    */
-  final BarProp menubar;
+
+  BarProp get menubar => JS("BarProp", "#.menubar", this);
 
   /**
    * The name of this window.
@@ -30952,7 +33077,21 @@ class Window extends EventTarget
    * * [Window.name](https://developer.mozilla.org/en-US/docs/Web/API/Window/name)
    *   from MDN.
    */
-  String name;
+
+  String get name => JS("String", "#.name", this);
+
+  /**
+   * The name of this window.
+   *
+   * ## Other resources
+   *
+   * * [Window.name](https://developer.mozilla.org/en-US/docs/Web/API/Window/name)
+   *   from MDN.
+   */
+
+  set name(String value) {
+    JS("void", "#.name = #", this, value);
+  }
 
   /**
    * The user agent accessing this window.
@@ -30963,7 +33102,8 @@ class Window extends EventTarget
    *   object](https://html.spec.whatwg.org/multipage/webappapis.html#the-navigator-object)
    *   from WHATWG.
    */
-  final Navigator navigator;
+
+  Navigator get navigator => JS("Navigator", "#.navigator", this);
 
   /**
    * Whether objects are drawn offscreen before being displayed.
@@ -30973,9 +33113,10 @@ class Window extends EventTarget
    * * [offscreenBuffering](https://webplatform.github.io/docs/dom/HTMLElement/offscreenBuffering/)
    *   from WebPlatform.org.
    */
-  final bool offscreenBuffering;
 
-  WindowBase get opener => _convertNativeToDart_Window(this._get_opener);
+  bool get offscreenBuffering => JS("bool", "#.offscreenBuffering", this);
+
+  WindowBase? get opener => _convertNativeToDart_Window(this._get_opener);
   @JSName('opener')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
@@ -30985,9 +33126,9 @@ class Window extends EventTarget
     JS("void", "#.opener = #", this, value);
   }
 
-  final int orientation;
+  int get orientation => JS("int", "#.orientation", this);
 
-  final String origin;
+  String get origin => JS("String", "#.origin", this);
 
   /**
    * The height of this window including all user interface elements.
@@ -30997,7 +33138,8 @@ class Window extends EventTarget
    * * [Window.outerHeight](https://developer.mozilla.org/en-US/docs/Web/API/Window/outerHeight)
    *   from MDN.
    */
-  final int outerHeight;
+
+  int get outerHeight => JS("int", "#.outerHeight", this);
 
   /**
    * The width of the window including all user interface elements.
@@ -31007,9 +33149,11 @@ class Window extends EventTarget
    * * [Window.outerWidth](https://developer.mozilla.org/en-US/docs/Web/API/Window/outerWidth)
    *   from MDN.
    */
-  final int outerWidth;
+
+  int get outerWidth => JS("int", "#.outerWidth", this);
 
   @JSName('pageXOffset')
+
   /**
    * The distance this window has been scrolled horizontally.
    *
@@ -31023,9 +33167,11 @@ class Window extends EventTarget
    *   pageXOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
    *   from MDN.
    */
-  final num _pageXOffset;
+
+  num get _pageXOffset => JS("num", "#.pageXOffset", this);
 
   @JSName('pageYOffset')
+
   /**
    * The distance this window has been scrolled vertically.
    *
@@ -31039,9 +33185,10 @@ class Window extends EventTarget
    *   pageYOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
    *   from MDN.
    */
-  final num _pageYOffset;
 
-  WindowBase get parent => _convertNativeToDart_Window(this._get_parent);
+  num get _pageYOffset => JS("num", "#.pageYOffset", this);
+
+  WindowBase? get parent => _convertNativeToDart_Window(this._get_parent);
   @JSName('parent')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
@@ -31061,7 +33208,7 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE)
-  final Performance performance;
+  Performance get performance => JS("Performance", "#.performance", this);
 
   /**
    * Information about the screen displaying this window.
@@ -31071,7 +33218,8 @@ class Window extends EventTarget
    * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
    *   from W3C.
    */
-  final Screen screen;
+
+  Screen get screen => JS("Screen", "#.screen", this);
 
   /**
    * The distance from the left side of the screen to the left side of this
@@ -31082,7 +33230,8 @@ class Window extends EventTarget
    * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
    *   from W3C.
    */
-  final int screenLeft;
+
+  int get screenLeft => JS("int", "#.screenLeft", this);
 
   /**
    * The distance from the top of the screen to the top of this window.
@@ -31092,7 +33241,8 @@ class Window extends EventTarget
    * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
    *   from W3C.
    */
-  final int screenTop;
+
+  int get screenTop => JS("int", "#.screenTop", this);
 
   /**
    * The distance from the left side of the screen to the mouse pointer.
@@ -31102,7 +33252,8 @@ class Window extends EventTarget
    * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
    *   from W3C.
    */
-  final int screenX;
+
+  int get screenX => JS("int", "#.screenX", this);
 
   /**
    * The distance from the top of the screen to the mouse pointer.
@@ -31112,7 +33263,8 @@ class Window extends EventTarget
    * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
    *   from W3C.
    */
-  final int screenY;
+
+  int get screenY => JS("int", "#.screenY", this);
 
   /**
    * This window's scroll bars.
@@ -31123,7 +33275,8 @@ class Window extends EventTarget
    *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
    *   from WHATWG.
    */
-  final BarProp scrollbars;
+
+  BarProp get scrollbars => JS("BarProp", "#.scrollbars", this);
 
   /**
    * The current window.
@@ -31133,7 +33286,7 @@ class Window extends EventTarget
    * * [Window.self](https://developer.mozilla.org/en-US/docs/Web/API/Window.self)
    *   from MDN.
    */
-  WindowBase get self => _convertNativeToDart_Window(this._get_self);
+  WindowBase? get self => _convertNativeToDart_Window(this._get_self);
   @JSName('self')
   /**
    * The current window.
@@ -31160,7 +33313,8 @@ class Window extends EventTarget
    * * [Local storage
    *   specification](http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.
    */
-  final Storage sessionStorage;
+
+  Storage get sessionStorage => JS("Storage", "#.sessionStorage", this);
 
   /**
    * Access to speech synthesis in the browser.
@@ -31171,10 +33325,19 @@ class Window extends EventTarget
    *   specification](https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)
    *   from W3C.
    */
-  final SpeechSynthesis speechSynthesis;
+
+  SpeechSynthesis get speechSynthesis =>
+      JS("SpeechSynthesis", "#.speechSynthesis", this);
 
   /// *Deprecated*.
-  String status;
+
+  String get status => JS("String", "#.status", this);
+
+  /// *Deprecated*.
+
+  set status(String value) {
+    JS("void", "#.status = #", this, value);
+  }
 
   /**
    * This window's status bar.
@@ -31185,7 +33348,8 @@ class Window extends EventTarget
    *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
    *   from WHATWG.
    */
-  final BarProp statusbar;
+
+  BarProp get statusbar => JS("BarProp", "#.statusbar", this);
 
   /**
    * Access to CSS media queries.
@@ -31196,7 +33360,8 @@ class Window extends EventTarget
    *   reference](https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/)
    *   from Safari Developer Library.
    */
-  final StyleMedia styleMedia;
+
+  StyleMedia get styleMedia => JS("StyleMedia", "#.styleMedia", this);
 
   /**
    * This window's tool bar.
@@ -31207,15 +33372,17 @@ class Window extends EventTarget
    *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
    *   from WHATWG.
    */
-  final BarProp toolbar;
 
-  WindowBase get top => _convertNativeToDart_Window(this._get_top);
+  BarProp get toolbar => JS("BarProp", "#.toolbar", this);
+
+  WindowBase? get top => _convertNativeToDart_Window(this._get_top);
   @JSName('top')
   @Creates('Window|=Object')
   @Returns('Window|=Object')
   final dynamic _get_top;
 
-  final VisualViewport visualViewport;
+  VisualViewport get visualViewport =>
+      JS("VisualViewport", "#.visualViewport", this);
 
   /**
    * The current window.
@@ -31225,7 +33392,7 @@ class Window extends EventTarget
    * * [Window.window](https://developer.mozilla.org/en-US/docs/Web/API/Window.window)
    *   from MDN.
    */
-  WindowBase get window => _convertNativeToDart_Window(this._get_window);
+  WindowBase? get window => _convertNativeToDart_Window(this._get_window);
   @JSName('window')
   /**
    * The current window.
@@ -31241,7 +33408,7 @@ class Window extends EventTarget
 
   @Creates('Window|=Object')
   @Returns('Window|=Object')
-  WindowBase __getter__(index_OR_name) {
+  WindowBase? __getter__(index_OR_name) {
     if ((index_OR_name is int)) {
       return _convertNativeToDart_Window(__getter___1(index_OR_name));
     }
@@ -31268,7 +33435,7 @@ class Window extends EventTarget
    * * [User prompts](https://html.spec.whatwg.org/multipage/webappapis.html#user-prompts)
    *   from WHATWG.
    */
-  void alert([String message]) native;
+  void alert([String? message]) native;
 
   void cancelIdleCallback(int handle) native;
 
@@ -31282,9 +33449,9 @@ class Window extends EventTarget
    * * [User prompts](https://html.spec.whatwg.org/multipage/webappapis.html#user-prompts)
    *   from WHATWG.
    */
-  bool confirm([String message]) native;
+  bool confirm([String? message]) native;
 
-  Future fetch(/*RequestInfo*/ input, [Map init]) {
+  Future fetch(/*RequestInfo*/ input, [Map? init]) {
     var init_dict = null;
     if (init != null) {
       init_dict = convertDartToNative_Dictionary(init);
@@ -31304,10 +33471,11 @@ class Window extends EventTarget
       bool wholeWord, bool searchInFrames, bool showDialog) native;
 
   @JSName('getComputedStyle')
-  CssStyleDeclaration _getComputedStyle(Element elt, [String pseudoElt]) native;
+  CssStyleDeclaration _getComputedStyle(Element elt, [String? pseudoElt])
+      native;
 
   StylePropertyMapReadonly getComputedStyleMap(
-      Element element, String pseudoElement) native;
+      Element element, String? pseudoElement) native;
 
   @JSName('getMatchedCSSRules')
   /**
@@ -31315,7 +33483,7 @@ class Window extends EventTarget
    */
   @Returns('_CssRuleList|Null')
   @Creates('_CssRuleList')
-  List<CssRule> getMatchedCssRules(Element element, String pseudoElement)
+  List<CssRule> getMatchedCssRules(Element element, String? pseudoElement)
       native;
 
   /**
@@ -31365,10 +33533,10 @@ class Window extends EventTarget
   @Creates('SqlDatabase')
   SqlDatabase _openDatabase(
       String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback creationCallback]) native;
+      [DatabaseCallback? creationCallback]) native;
 
   void postMessage(/*any*/ message, String targetOrigin,
-      [List<Object> transfer]) {
+      [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, targetOrigin, transfer);
@@ -31394,7 +33562,7 @@ class Window extends EventTarget
    */
   void print() native;
 
-  int requestIdleCallback(IdleRequestCallback callback, [Map options]) {
+  int requestIdleCallback(IdleRequestCallback callback, [Map? options]) {
     if (options != null) {
       var callback_1 = convertDartClosureToJS(callback, 1);
       var options_2 = convertDartToNative_Dictionary(options);
@@ -31439,7 +33607,7 @@ class Window extends EventTarget
    * * [Window.scroll](https://developer.mozilla.org/en-US/docs/Web/API/Window/scroll)
    *   from MDN.
    */
-  void scroll([options_OR_x, y, Map scrollOptions]) {
+  void scroll([options_OR_x, y, Map? scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
       _scroll_1();
       return;
@@ -31534,7 +33702,7 @@ class Window extends EventTarget
    * * [Window.scrollBy](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollBy)
    *   from MDN.
    */
-  void scrollBy([options_OR_x, y, Map scrollOptions]) {
+  void scrollBy([options_OR_x, y, Map? scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
       _scrollBy_1();
       return;
@@ -31621,7 +33789,7 @@ class Window extends EventTarget
    * * [Window.scrollTo](https://developer.mozilla.org/en-US/docs/Web/API/Window/scrollTo)
    *   from MDN.
    */
-  void scrollTo([options_OR_x, y, Map scrollOptions]) {
+  void scrollTo([options_OR_x, y, Map? scrollOptions]) {
     if (options_OR_x == null && y == null && scrollOptions == null) {
       _scrollTo_1();
       return;
@@ -31723,7 +33891,7 @@ class Window extends EventTarget
   @SupportedBrowser(SupportedBrowser.CHROME)
   void __requestFileSystem(
       int type, int size, _FileSystemCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('webkitRequestFileSystem')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -31751,7 +33919,7 @@ class Window extends EventTarget
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback,
-      [_ErrorCallback errorCallback]) native;
+      [_ErrorCallback? errorCallback]) native;
 
   @JSName('webkitResolveLocalFileSystemURL')
   /**
@@ -31783,24 +33951,24 @@ class Window extends EventTarget
   // From WindowTimers
 
   @JSName('setInterval')
-  int _setInterval_String(String handler, [int timeout, Object arguments])
+  int _setInterval_String(String handler, [int? timeout, Object? arguments])
       native;
 
   @JSName('setTimeout')
-  int _setTimeout_String(String handler, [int timeout, Object arguments])
+  int _setTimeout_String(String handler, [int? timeout, Object? arguments])
       native;
 
   @JSName('clearInterval')
-  void _clearInterval([int handle]) native;
+  void _clearInterval([int? handle]) native;
 
   @JSName('clearTimeout')
-  void _clearTimeout([int handle]) native;
+  void _clearTimeout([int? handle]) native;
 
   @JSName('setInterval')
-  int _setInterval(Object handler, [int timeout]) native;
+  int _setInterval(Object handler, [int? timeout]) native;
 
   @JSName('setTimeout')
-  int _setTimeout(Object handler, [int timeout]) native;
+  int _setTimeout(Object handler, [int? timeout]) native;
 
   /// Stream of `contentloaded` events handled by this [Window].
   Stream<Event> get onContentLoaded => contentLoadedEvent.forTarget(this);
@@ -32185,9 +34353,9 @@ class WindowClient extends Client {
     throw new UnsupportedError("Not supported");
   }
 
-  final bool focused;
+  bool get focused => JS("bool", "#.focused", this);
 
-  final String visibilityState;
+  String get visibilityState => JS("String", "#.visibilityState", this);
 
   Future<WindowClient> focus() =>
       promiseToFuture<WindowClient>(JS("", "#.focus()", this));
@@ -32283,7 +34451,7 @@ class Worker extends EventTarget implements AbstractWorker {
   static bool get supported =>
       JS('bool', '(typeof window.Worker != "undefined")');
 
-  void postMessage(/*any*/ message, [List<Object> transfer]) {
+  void postMessage(/*any*/ message, [List<Object>? transfer]) {
     if (transfer != null) {
       var message_1 = convertDartToNative_SerializedScriptValue(message);
       _postMessage_1(message_1, transfer);
@@ -32328,27 +34496,28 @@ class WorkerGlobalScope extends EventTarget
   static const EventStreamProvider<Event> errorEvent =
       const EventStreamProvider<Event>('error');
 
-  final String addressSpace;
+  String get addressSpace => JS("String", "#.addressSpace", this);
 
-  final CacheStorage caches;
+  CacheStorage get caches => JS("CacheStorage", "#.caches", this);
 
-  final Crypto crypto;
+  Crypto get crypto => JS("Crypto", "#.crypto", this);
 
-  final IdbFactory indexedDB;
+  IdbFactory get indexedDB => JS("IdbFactory", "#.indexedDB", this);
 
-  final bool isSecureContext;
+  bool get isSecureContext => JS("bool", "#.isSecureContext", this);
 
-  final _WorkerLocation location;
+  _WorkerLocation get location => JS("_WorkerLocation", "#.location", this);
 
-  final _WorkerNavigator navigator;
+  _WorkerNavigator get navigator => JS("_WorkerNavigator", "#.navigator", this);
 
-  final String origin;
+  String get origin => JS("String", "#.origin", this);
 
-  final WorkerPerformance performance;
+  WorkerPerformance get performance =>
+      JS("WorkerPerformance", "#.performance", this);
 
-  final WorkerGlobalScope self;
+  WorkerGlobalScope get self => JS("WorkerGlobalScope", "#.self", this);
 
-  Future fetch(/*RequestInfo*/ input, [Map init]) {
+  Future fetch(/*RequestInfo*/ input, [Map? init]) {
     var init_dict = null;
     if (init != null) {
       init_dict = convertDartToNative_Dictionary(init);
@@ -32367,24 +34536,24 @@ class WorkerGlobalScope extends EventTarget
   // From WindowTimers
 
   @JSName('setInterval')
-  int _setInterval_String(String handler, [int timeout, Object arguments])
+  int _setInterval_String(String handler, [int? timeout, Object? arguments])
       native;
 
   @JSName('setTimeout')
-  int _setTimeout_String(String handler, [int timeout, Object arguments])
+  int _setTimeout_String(String handler, [int? timeout, Object? arguments])
       native;
 
   @JSName('clearInterval')
-  void _clearInterval([int handle]) native;
+  void _clearInterval([int? handle]) native;
 
   @JSName('clearTimeout')
-  void _clearTimeout([int handle]) native;
+  void _clearTimeout([int? handle]) native;
 
   @JSName('setInterval')
-  int _setInterval(Object handler, [int timeout]) native;
+  int _setInterval(Object handler, [int? timeout]) native;
 
   @JSName('setTimeout')
-  int _setTimeout(Object handler, [int timeout]) native;
+  int _setTimeout(Object handler, [int? timeout]) native;
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   Stream<Event> get onError => errorEvent.forTarget(this);
@@ -32403,9 +34572,9 @@ class WorkerPerformance extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  final MemoryInfo memory;
+  MemoryInfo get memory => JS("MemoryInfo", "#.memory", this);
 
-  final num timeOrigin;
+  num get timeOrigin => JS("num", "#.timeOrigin", this);
 
   void clearMarks(String markName) native;
 
@@ -32452,7 +34621,7 @@ class WorkletAnimation extends Interceptor {
       JS('WorkletAnimation', 'new WorkletAnimation(#,#,#,#)', animatorName,
           effects, timelines, options);
 
-  final String playState;
+  String get playState => JS("String", "#.playState", this);
 
   void cancel() native;
 
@@ -32488,14 +34657,14 @@ class XPathEvaluator extends Interceptor {
   static XPathEvaluator _create_1() =>
       JS('XPathEvaluator', 'new XPathEvaluator()');
 
-  XPathExpression createExpression(String expression, XPathNSResolver resolver)
+  XPathExpression createExpression(String expression, XPathNSResolver? resolver)
       native;
 
   XPathNSResolver createNSResolver(Node nodeResolver) native;
 
   XPathResult evaluate(
-      String expression, Node contextNode, XPathNSResolver resolver,
-      [int type, Object inResult]) native;
+      String expression, Node contextNode, XPathNSResolver? resolver,
+      [int? type, Object? inResult]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32510,7 +34679,7 @@ class XPathExpression extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  XPathResult evaluate(Node contextNode, [int type, Object inResult]) native;
+  XPathResult evaluate(Node contextNode, [int? type, Object? inResult]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32561,19 +34730,19 @@ class XPathResult extends Interceptor {
 
   static const int UNORDERED_NODE_SNAPSHOT_TYPE = 6;
 
-  final bool booleanValue;
+  bool get booleanValue => JS("bool", "#.booleanValue", this);
 
-  final bool invalidIteratorState;
+  bool get invalidIteratorState => JS("bool", "#.invalidIteratorState", this);
 
-  final num numberValue;
+  num get numberValue => JS("num", "#.numberValue", this);
 
-  final int resultType;
+  int get resultType => JS("int", "#.resultType", this);
 
-  final Node singleNodeValue;
+  Node get singleNodeValue => JS("Node", "#.singleNodeValue", this);
 
-  final int snapshotLength;
+  int get snapshotLength => JS("int", "#.snapshotLength", this);
 
-  final String stringValue;
+  String get stringValue => JS("String", "#.stringValue", this);
 
   Node iterateNext() native;
 
@@ -32637,15 +34806,16 @@ class XsltProcessor extends Interceptor {
 
   void clearParameters() native;
 
-  String getParameter(String namespaceURI, String localName) native;
+  String getParameter(String? namespaceURI, String localName) native;
 
   void importStylesheet(Node style) native;
 
-  void removeParameter(String namespaceURI, String localName) native;
+  void removeParameter(String? namespaceURI, String localName) native;
 
   void reset() native;
 
-  void setParameter(String namespaceURI, String localName, String value) native;
+  void setParameter(String? namespaceURI, String localName, String value)
+      native;
 
   Document transformToDocument(Node source) native;
 
@@ -32663,14 +34833,18 @@ class _Attr extends Node {
   }
 
   @JSName('localName')
-  final String _localName;
+  String get _localName => JS("String", "#.localName", this);
 
-  final String name;
+  String get name => JS("String", "#.name", this);
 
   @JSName('namespaceURI')
-  final String _namespaceUri;
+  final String? _namespaceUri;
 
-  String value;
+  String get value => JS("String", "#.value", this);
+
+  set value(String value) {
+    JS("void", "#.value = #", this, value);
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33023,7 +35197,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _DomRect([num x, num y, num width, num height]) {
+  factory _DomRect([num? x, num? y, num? width, num? height]) {
     if (height != null) {
       return _DomRect._create_1(x, y, width, height);
     }
@@ -33047,6 +35221,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   static _DomRect _create_5() => JS('_DomRect', 'new DOMRect()');
 
   // Shadowing definition.
+
   num get height => JS("num", "#.height", this);
 
   set height(num value) {
@@ -33054,6 +35229,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   }
 
   // Shadowing definition.
+
   num get width => JS("num", "#.width", this);
 
   set width(num value) {
@@ -33061,6 +35237,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   }
 
   // Shadowing definition.
+
   num get x => JS("num", "#.x", this);
 
   set x(num value) {
@@ -33068,6 +35245,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   }
 
   // Shadowing definition.
+
   num get y => JS("num", "#.y", this);
 
   set y(num value) {
@@ -33367,7 +35545,7 @@ abstract class _MojoInterfaceInterceptor extends EventTarget {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _MojoInterfaceInterceptor(String interfaceName, [String scope]) {
+  factory _MojoInterfaceInterceptor(String interfaceName, [String? scope]) {
     if (scope != null) {
       return _MojoInterfaceInterceptor._create_1(interfaceName, scope);
     }
@@ -33394,7 +35572,7 @@ abstract class _MojoInterfaceRequestEvent extends Event {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _MojoInterfaceRequestEvent(String type, [Map eventInitDict]) {
+  factory _MojoInterfaceRequestEvent(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return _MojoInterfaceRequestEvent._create_1(type, eventInitDict_1);
@@ -33493,13 +35671,13 @@ class _NamedNodeMap extends Interceptor
 
   _Attr getNamedItem(String name) native;
 
-  _Attr getNamedItemNS(String namespaceURI, String localName) native;
+  _Attr getNamedItemNS(String? namespaceURI, String localName) native;
 
   _Attr item(int index) native;
 
   _Attr removeNamedItem(String name) native;
 
-  _Attr removeNamedItemNS(String namespaceURI, String localName) native;
+  _Attr removeNamedItemNS(String? namespaceURI, String localName) native;
 
   _Attr setNamedItem(_Attr attr) native;
 
@@ -33536,11 +35714,11 @@ class _Report extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final ReportBody body;
+  final ReportBody? body;
 
-  final String type;
+  String get type => JS("String", "#.type", this);
 
-  final String url;
+  String get url => JS("String", "#.url", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33553,7 +35731,7 @@ class _Request extends Body {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _Request(Object input, [Map requestInitDict]) {
+  factory _Request(Object input, [Map? requestInitDict]) {
     if (requestInitDict != null) {
       var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
       return _Request._create_1(input, requestInitDict_1);
@@ -33564,23 +35742,23 @@ class _Request extends Body {
       JS('_Request', 'new Request(#,#)', input, requestInitDict);
   static _Request _create_2(input) => JS('_Request', 'new Request(#)', input);
 
-  final String cache;
+  String get cache => JS("String", "#.cache", this);
 
-  final String credentials;
+  String get credentials => JS("String", "#.credentials", this);
 
-  final Headers headers;
+  Headers get headers => JS("Headers", "#.headers", this);
 
-  final String integrity;
+  String get integrity => JS("String", "#.integrity", this);
 
-  final String mode;
+  String get mode => JS("String", "#.mode", this);
 
-  final String redirect;
+  String get redirect => JS("String", "#.redirect", this);
 
-  final String referrer;
+  String get referrer => JS("String", "#.referrer", this);
 
-  final String referrerPolicy;
+  String get referrerPolicy => JS("String", "#.referrerPolicy", this);
 
-  final String url;
+  String get url => JS("String", "#.url", this);
 
   _Request clone() native;
 }
@@ -33608,7 +35786,7 @@ abstract class _Response extends Body {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _Response([Object body, Map init]) {
+  factory _Response([Object? body, Map? init]) {
     if (init != null) {
       var init_1 = convertDartToNative_Dictionary(init);
       return _Response._create_1(body, init_1);
@@ -33875,7 +36053,7 @@ abstract class _USBInTransferResult extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _USBInTransferResult(String status, [ByteData data]) {
+  factory _USBInTransferResult(String status, [ByteData? data]) {
     if (data != null) {
       return _USBInTransferResult._create_1(status, data);
     }
@@ -33914,7 +36092,7 @@ abstract class _USBIsochronousInTransferPacket extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _USBIsochronousInTransferPacket(String status, [ByteData data]) {
+  factory _USBIsochronousInTransferPacket(String status, [ByteData? data]) {
     if (data != null) {
       return _USBIsochronousInTransferPacket._create_1(status, data);
     }
@@ -33943,7 +36121,7 @@ abstract class _USBIsochronousInTransferResult extends Interceptor {
 
   factory _USBIsochronousInTransferResult(
       List<_USBIsochronousInTransferPacket> packets,
-      [ByteData data]) {
+      [ByteData? data]) {
     if (data != null) {
       return _USBIsochronousInTransferResult._create_1(packets, data);
     }
@@ -33970,7 +36148,7 @@ abstract class _USBIsochronousOutTransferPacket extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _USBIsochronousOutTransferPacket(String status, [int bytesWritten]) {
+  factory _USBIsochronousOutTransferPacket(String status, [int? bytesWritten]) {
     if (bytesWritten != null) {
       return _USBIsochronousOutTransferPacket._create_1(status, bytesWritten);
     }
@@ -34017,7 +36195,7 @@ abstract class _USBOutTransferResult extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  factory _USBOutTransferResult(String status, [int bytesWritten]) {
+  factory _USBOutTransferResult(String status, [int? bytesWritten]) {
     if (bytesWritten != null) {
       return _USBOutTransferResult._create_1(status, bytesWritten);
     }
@@ -34041,17 +36219,17 @@ abstract class _WindowTimers extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  int _setInterval_String(String handler, [int timeout, Object arguments]);
+  int _setInterval_String(String handler, [int? timeout, Object? arguments]);
 
-  int _setTimeout_String(String handler, [int timeout, Object arguments]);
+  int _setTimeout_String(String handler, [int? timeout, Object? arguments]);
 
-  void _clearInterval([int handle]);
+  void _clearInterval([int? handle]);
 
-  void _clearTimeout([int handle]);
+  void _clearTimeout([int? handle]);
 
-  int _setInterval(Object handler, [int timeout]);
+  int _setInterval(Object handler, [int? timeout]);
 
-  int _setTimeout(Object handler, [int timeout]);
+  int _setTimeout(Object handler, [int? timeout]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -2264,7 +2264,7 @@
             "--enable-experiment=non-nullable",
             "pkg/dev_compiler/tool/check_nnbd_sdk.dart",
             "--target",
-            "dart2js_server"
+            "dart2js"
           ]
         },
         {

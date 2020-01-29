@@ -592,6 +592,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   num get delay => JS("num", "#.delay", this);
 
   set delay(num value) {
@@ -599,6 +600,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   String get direction => JS("String", "#.direction", this);
 
   set direction(String value) {
@@ -606,6 +608,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   Object get duration => JS("Object", "#.duration", this);
 
   set duration(Object value) {
@@ -613,6 +616,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   String get easing => JS("String", "#.easing", this);
 
   set easing(String value) {
@@ -620,6 +624,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   num get endDelay => JS("num", "#.endDelay", this);
 
   set endDelay(num value) {
@@ -627,6 +632,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   String get fill => JS("String", "#.fill", this);
 
   set fill(String value) {
@@ -634,6 +640,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   num get iterationStart => JS("num", "#.iterationStart", this);
 
   set iterationStart(num value) {
@@ -641,6 +648,7 @@ class AnimationEffectTiming extends AnimationEffectTimingReadOnly {
   }
 
   // Shadowing definition.
+
   num get iterations => JS("num", "#.iterations", this);
 
   set iterations(num value) {
@@ -1393,6 +1401,7 @@ class BeforeUnloadEvent extends Event {
   }
 
   // Shadowing definition.
+
   String get returnValue => JS("String", "#.returnValue", this);
 
   set returnValue(String value) {
@@ -10156,6 +10165,7 @@ class DomMatrix extends DomMatrixReadOnly {
   static DomMatrix _create_2() => JS('DomMatrix', 'new DOMMatrix()');
 
   // Shadowing definition.
+
   num get a => JS("num", "#.a", this);
 
   set a(num value) {
@@ -10163,6 +10173,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get b => JS("num", "#.b", this);
 
   set b(num value) {
@@ -10170,6 +10181,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get c => JS("num", "#.c", this);
 
   set c(num value) {
@@ -10177,6 +10189,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get d => JS("num", "#.d", this);
 
   set d(num value) {
@@ -10184,6 +10197,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get e => JS("num", "#.e", this);
 
   set e(num value) {
@@ -10191,6 +10205,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get f => JS("num", "#.f", this);
 
   set f(num value) {
@@ -10198,6 +10213,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m11 => JS("num", "#.m11", this);
 
   set m11(num value) {
@@ -10205,6 +10221,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m12 => JS("num", "#.m12", this);
 
   set m12(num value) {
@@ -10212,6 +10229,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m13 => JS("num", "#.m13", this);
 
   set m13(num value) {
@@ -10219,6 +10237,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m14 => JS("num", "#.m14", this);
 
   set m14(num value) {
@@ -10226,6 +10245,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m21 => JS("num", "#.m21", this);
 
   set m21(num value) {
@@ -10233,6 +10253,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m22 => JS("num", "#.m22", this);
 
   set m22(num value) {
@@ -10240,6 +10261,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m23 => JS("num", "#.m23", this);
 
   set m23(num value) {
@@ -10247,6 +10269,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m24 => JS("num", "#.m24", this);
 
   set m24(num value) {
@@ -10254,6 +10277,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m31 => JS("num", "#.m31", this);
 
   set m31(num value) {
@@ -10261,6 +10285,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m32 => JS("num", "#.m32", this);
 
   set m32(num value) {
@@ -10268,6 +10293,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m33 => JS("num", "#.m33", this);
 
   set m33(num value) {
@@ -10275,6 +10301,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m34 => JS("num", "#.m34", this);
 
   set m34(num value) {
@@ -10282,6 +10309,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m41 => JS("num", "#.m41", this);
 
   set m41(num value) {
@@ -10289,6 +10317,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m42 => JS("num", "#.m42", this);
 
   set m42(num value) {
@@ -10296,6 +10325,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m43 => JS("num", "#.m43", this);
 
   set m43(num value) {
@@ -10303,6 +10333,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   // Shadowing definition.
+
   num get m44 => JS("num", "#.m44", this);
 
   set m44(num value) {
@@ -10581,6 +10612,7 @@ class DomPoint extends DomPointReadOnly {
       JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)');
 
   // Shadowing definition.
+
   num get w => JS("num", "#.w", this);
 
   set w(num value) {
@@ -10588,6 +10620,7 @@ class DomPoint extends DomPointReadOnly {
   }
 
   // Shadowing definition.
+
   num get x => JS("num", "#.x", this);
 
   set x(num value) {
@@ -10595,6 +10628,7 @@ class DomPoint extends DomPointReadOnly {
   }
 
   // Shadowing definition.
+
   num get y => JS("num", "#.y", this);
 
   set y(num value) {
@@ -10602,6 +10636,7 @@ class DomPoint extends DomPointReadOnly {
   }
 
   // Shadowing definition.
+
   num get z => JS("num", "#.z", this);
 
   set z(num value) {
@@ -13872,6 +13907,7 @@ class Element extends Node
   String inputMode;
 
   // Using property as subclass shadows.
+
   bool get isContentEditable => JS("bool", "#.isContentEditable", this);
 
   String lang;
@@ -13935,6 +13971,7 @@ class Element extends Node
   final String _namespaceUri;
 
   // Using property as subclass shadows.
+
   String get outerHtml => JS("String", "#.outerHTML", this);
 
   @JSName('scrollHeight')
@@ -33048,6 +33085,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   static _DomRect _create_5() => JS('_DomRect', 'new DOMRect()');
 
   // Shadowing definition.
+
   num get height => JS("num", "#.height", this);
 
   set height(num value) {
@@ -33055,6 +33093,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   }
 
   // Shadowing definition.
+
   num get width => JS("num", "#.width", this);
 
   set width(num value) {
@@ -33062,6 +33101,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   }
 
   // Shadowing definition.
+
   num get x => JS("num", "#.x", this);
 
   set x(num value) {
@@ -33069,6 +33109,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
   }
 
   // Shadowing definition.
+
   num get y => JS("num", "#.y", this);
 
   set y(num value) {
