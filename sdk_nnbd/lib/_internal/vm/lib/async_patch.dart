@@ -70,7 +70,7 @@ Function _asyncThenWrapperHelper(continuation) {
   // `Future` implementation could potentially invoke the callback with the
   // wrong number of arguments.
   if (Zone.current == Zone.root) return continuation;
-  return Zone.current.registerUnaryCallback((x) => continuation(x, null, null));
+  return Zone.current.registerUnaryCallback(continuation);
 }
 
 // We need to pass the exception and stack trace objects as second and third
