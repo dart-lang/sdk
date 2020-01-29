@@ -11,14 +11,14 @@ import '../dart/resolution/driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MismatchedGetterAndSetterTypesTest);
+    defineReflectiveTests(GetterNotAssignableSetterTypesTest);
     defineReflectiveTests(
-        MismatchedGetterAndSetterTypesWithExtensionMethodsTest);
+        GetterNotAssignableSetterTypesWithExtensionMethodsTest);
   });
 }
 
 @reflectiveTest
-class MismatchedGetterAndSetterTypesTest extends DriverResolutionTest {
+class GetterNotAssignableSetterTypesTest extends DriverResolutionTest {
   test_class_instance_dynamicGetter() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -193,7 +193,6 @@ class B extends A {
     ]);
   }
 
-  @FailingTest(reason: 'Check for static is not implemented')
   test_class_static() async {
     await assertErrorsInCode(r'''
 class C {
@@ -210,7 +209,7 @@ class C {
 int get g { return 0; }
 set g(String v) {}
 ''', [
-      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 0, 23),
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 8, 1),
     ]);
   }
 
@@ -237,8 +236,8 @@ set x(int v) {}
 }
 
 @reflectiveTest
-class MismatchedGetterAndSetterTypesWithExtensionMethodsTest
-    extends MismatchedGetterAndSetterTypesTest {
+class GetterNotAssignableSetterTypesWithExtensionMethodsTest
+    extends GetterNotAssignableSetterTypesTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
     ..contextFeatures = FeatureSet.forTesting(

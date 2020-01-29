@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 int bar = 499;
 
 int get foo => bar;
-// [error line 11, column 1, length 19]
+//      ^^^
 // [analyzer] STATIC_WARNING.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
 
 void set foo(String str) {

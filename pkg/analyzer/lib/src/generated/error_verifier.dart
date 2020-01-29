@@ -728,27 +728,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
       SimpleIdentifier identifier = node.name;
-      String methodName = "";
-      if (identifier != null) {
-        methodName = identifier.name;
-      }
       _enclosingFunction = functionElement;
       TypeAnnotation returnType = node.returnType;
-      if (node.isSetter || node.isGetter) {
+      if (node.isGetter) {
         GetterSetterTypesVerifier(
           typeSystem: _typeSystem,
           errorReporter: _errorReporter,
-        ).checkForMismatchedAccessorTypes(node, methodName);
-        if (node.isSetter) {
-          FunctionExpression functionExpression = node.functionExpression;
-          if (functionExpression != null) {
-            _checkForWrongNumberOfParametersForSetter(
-                identifier, functionExpression.parameters);
-          }
-          _checkForNonVoidReturnTypeForSetter(returnType);
-        }
+        ).checkStaticGetter(node.name, node.declaredElement);
       }
       if (node.isSetter) {
+        FunctionExpression functionExpression = node.functionExpression;
+        if (functionExpression != null) {
+          _checkForWrongNumberOfParametersForSetter(
+              identifier, functionExpression.parameters);
+        }
+        _checkForNonVoidReturnTypeForSetter(returnType);
         _checkForInvalidModifierOnBody(node.functionExpression.body,
             CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);
       }
@@ -943,6 +937,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _isInStaticMethod = node.isStatic;
       _enclosingFunction = node.declaredElement;
       TypeAnnotation returnType = node.returnType;
+      if (node.isStatic && node.isGetter) {
+        GetterSetterTypesVerifier(
+          typeSystem: _typeSystem,
+          errorReporter: _errorReporter,
+        ).checkStaticGetter(node.name, node.declaredElement);
+      }
       if (node.isSetter) {
         _checkForInvalidModifierOnBody(
             node.body, CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER);

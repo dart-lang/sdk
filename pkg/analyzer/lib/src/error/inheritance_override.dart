@@ -188,7 +188,7 @@ class _ClassVerifier {
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: reporter,
-    ).instanceInterface(classElement, interface);
+    ).checkInterface(classElement, interface);
 
     if (!classElement.isAbstract) {
       List<ExecutableElement> inheritedAbstract;

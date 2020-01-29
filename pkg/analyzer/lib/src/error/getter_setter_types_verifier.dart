@@ -33,49 +33,6 @@ class GetterSetterTypesVerifier {
 
   bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
 
-  void checkForMismatchedAccessorTypes(
-      Declaration accessorDeclaration, String accessorTextName) {
-    ExecutableElement accessorElement =
-        accessorDeclaration.declaredElement as ExecutableElement;
-    if (accessorElement is PropertyAccessorElement) {
-      PropertyAccessorElement counterpartAccessor;
-      if (accessorElement.isGetter) {
-        counterpartAccessor = accessorElement.correspondingSetter;
-      } else {
-        counterpartAccessor = accessorElement.correspondingGetter;
-        // If the setter and getter are in the same enclosing element, return,
-        // this prevents having MISMATCHED_GETTER_AND_SETTER_TYPES reported twice.
-        if (counterpartAccessor != null &&
-            identical(counterpartAccessor.enclosingElement,
-                accessorElement.enclosingElement)) {
-          return;
-        }
-      }
-      if (counterpartAccessor == null) {
-        return;
-      }
-      // Default of null == no accessor or no type (dynamic)
-      DartType getterType;
-      DartType setterType;
-      // Get an existing counterpart accessor if any.
-      if (accessorElement.isGetter) {
-        getterType = _getGetterType(accessorElement);
-        setterType = _getSetterType(counterpartAccessor);
-      } else if (accessorElement.isSetter) {
-        setterType = _getSetterType(accessorElement);
-        getterType = _getGetterType(counterpartAccessor);
-      }
-      // If either types are not assignable to each other, report an error
-      // (if the getter is null, it is dynamic which is assignable to everything).
-      if (setterType != null &&
-          getterType != null &&
-          !_match(getterType, setterType)) {
-        _errorReporter.reportErrorForNode(_errorCode, accessorDeclaration,
-            [accessorTextName, getterType, setterType, accessorTextName]);
-      }
-    }
-  }
-
   void checkForMismatchedAccessorTypesInExtension(
       ExtensionDeclaration extension) {
     for (ClassMember member in extension.members) {
@@ -100,7 +57,7 @@ class GetterSetterTypesVerifier {
     }
   }
 
-  void instanceInterface(ClassElement classElement, Interface interface) {
+  void checkInterface(ClassElement classElement, Interface interface) {
     var libraryUri = classElement.library.source.uri;
 
     for (var name in interface.map.keys) {
@@ -142,6 +99,35 @@ class GetterSetterTypesVerifier {
           }
         }
       }
+    }
+  }
+
+  void checkStaticGetter(
+    SimpleIdentifier nameNode,
+    PropertyAccessorElement getter,
+  ) {
+    assert(getter.isGetter);
+
+    var setter = getter.correspondingSetter;
+    if (setter == null) {
+      return;
+    }
+
+    // Default of null == no accessor or no type (dynamic)
+    var getterType = _getGetterType(getter);
+    var setterType = _getSetterType(setter);
+
+    // If either types are not assignable to each other, report an error
+    // (if the getter is null, it is dynamic which is assignable to everything).
+    if (setterType != null &&
+        getterType != null &&
+        !_match(getterType, setterType)) {
+      var name = nameNode.name;
+      _errorReporter.reportErrorForNode(
+        _errorCode,
+        nameNode,
+        [name, getterType, setterType, name],
+      );
     }
   }
 

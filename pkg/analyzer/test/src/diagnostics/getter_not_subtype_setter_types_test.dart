@@ -212,7 +212,6 @@ class B extends A {
     ]);
   }
 
-  @FailingTest(reason: 'Check for static is not implemented')
   test_class_static() async {
     await assertErrorsInCode('''
 class C {
@@ -220,7 +219,7 @@ class C {
   static set foo(int v) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 12, 30),
+      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 27, 3),
     ]);
   }
 
@@ -251,7 +250,7 @@ extension E on Object {
 int get foo => 0;
 set foo(String v) {}
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 0, 17),
+      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 8, 3),
     ]);
   }
 
@@ -260,7 +259,7 @@ set foo(String v) {}
 get foo => 0;
 set foo(int v) {}
 ''', [
-      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 0, 13),
+      error(StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES, 4, 3),
     ]);
   }
 
