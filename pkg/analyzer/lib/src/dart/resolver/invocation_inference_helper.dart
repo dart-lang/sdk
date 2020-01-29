@@ -190,6 +190,7 @@ class InvocationInferenceHelper {
     if (inferredElement == null || inferredElement.isStatic) {
       return false;
     }
+    inferredElement = _resolver.toLegacyElement(inferredElement);
     DartType inferredType =
         _elementTypeProvider.getExecutableType(inferredElement);
     if (inferredType is FunctionType) {

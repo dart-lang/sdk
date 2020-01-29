@@ -926,6 +926,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     // TODO(jmesserly): should we store this earlier in resolution?
     // Or look it up, instead of jumping backwards through the Member?
     var rawElement = originalElement.declaration;
+    rawElement = _resolver.toLegacyElement(rawElement);
 
     FunctionType constructorType = constructorToGenericFunctionType(rawElement);
 
@@ -948,8 +949,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       constructor.type.type = inferred.returnType;
       // Update the static element as well. This is used in some cases, such as
       // computing constant values. It is stored in two places.
-      constructor.staticElement =
-          ConstructorMember.from(rawElement, inferred.returnType);
+      var constructorElement = ConstructorMember.from(
+        rawElement,
+        inferred.returnType,
+      );
+      constructorElement = _resolver.toLegacyElement(constructorElement);
+      constructor.staticElement = constructorElement;
       node.staticElement = constructor.staticElement;
     }
   }
@@ -1023,6 +1028,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (inferredElement == null || inferredElement.isStatic) {
       return false;
     }
+    inferredElement = _resolver.toLegacyElement(inferredElement);
     DartType inferredType =
         _elementTypeProvider.getExecutableReturnType(inferredElement);
     if (nodeType != null &&
