@@ -8,7 +8,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:nnbd_migration/nullability_state.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -95,12 +94,6 @@ class _InstrumentationClient implements NullabilityMigrationInstrumentation {
   @override
   void prepareForUpdate() {
     test.changes = null;
-    test.propagationSteps.clear();
-  }
-
-  @override
-  void propagationStep(PropagationInfo info) {
-    test.propagationSteps.add(info);
   }
 }
 
@@ -128,8 +121,6 @@ abstract class _InstrumentationTestBase extends AbstractContextTest {
   final Map<AstNode, List<DecoratedTypeInfo>> implicitTypeArguments = {};
 
   NullabilityNodeInfo never;
-
-  final List<PropagationInfo> propagationSteps = [];
 
   final Map<EdgeInfo, EdgeOriginInfo> edgeOrigin = {};
 
@@ -632,9 +623,7 @@ void h(int k) {}
         .key;
     // Both assertEdge and unconditionalUsageEdge are upstream triggered because
     // either of them would have been sufficient to cause i to be marked as
-    // non-nullable, even though only one of them was actually reported to have
-    // done so via propagationStep.
-    expect(propagationSteps.where((s) => s.node == iNode), hasLength(1));
+    // non-nullable.
     expect(assertEdge.isUpstreamTriggered, true);
     expect(unconditionalUsageEdge.isUpstreamTriggered, true);
     // conditionalUsageEdge is not upstream triggered because it is a soft edge,
@@ -1203,32 +1192,6 @@ List<Object> f(List l) => l;
             e.sourceNode == implicitListElementType &&
             e.destinationNode == implicitReturnElementType),
         hasLength(1));
-  }
-
-  Future<void> test_propagationStep_downstream() async {
-    await analyze('''
-int x = null;
-''');
-    var xNode = explicitTypeNullability[findNode.typeAnnotation('int')];
-    var step = propagationSteps.where((s) => s.node == xNode).single;
-    expect(step.newState, NullabilityState.ordinaryNullable);
-    expect(step.reason, StateChangeReason.downstream);
-    expect(_isPointedToByAlways(step.edge.sourceNode), true);
-    expect(step.edge.destinationNode, xNode);
-  }
-
-  Future<void> test_propagationStep_upstream() async {
-    await analyze('''
-void f(int x) {
-  assert(x != null);
-}
-''');
-    var xNode = explicitTypeNullability[findNode.typeAnnotation('int')];
-    var step = propagationSteps.where((s) => s.node == xNode).single;
-    expect(step.newState, NullabilityState.nonNullable);
-    expect(step.reason, StateChangeReason.upstream);
-    expect(step.edge.sourceNode, xNode);
-    expect(step.edge.destinationNode, never);
   }
 
   Future<void> test_substitutionNode() async {
