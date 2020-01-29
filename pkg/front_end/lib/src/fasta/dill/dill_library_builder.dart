@@ -201,6 +201,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     } else {
       scopeBuilder.addMember(name, declaration);
     }
+    if (declaration.isExtension) {
+      scopeBuilder.addExtension(declaration);
+    }
     if (!name.startsWith("_")) {
       if (isSetter) {
         exportScopeBuilder.addSetter(name, declaration);

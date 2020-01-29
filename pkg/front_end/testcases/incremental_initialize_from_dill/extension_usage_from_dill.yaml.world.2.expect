@@ -1,0 +1,49 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  extension NumberParsing on dart.core::String* {
+    method parseInt = lib1::NumberParsing|parseInt;
+    tearoff parseInt = lib1::NumberParsing|get#parseInt;
+  }
+  static method NumberParsing|parseInt(final dart.core::String* #this) → dart.core::int* {
+    return dart.core::int::parse(#this);
+  }
+  static method NumberParsing|get#parseInt(final dart.core::String* #this) → () →* dart.core::int*
+    return () → dart.core::int* => lib1::NumberParsing|parseInt(#this);
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  extension DuplicateName on dart.core::String* {
+    method fooMe1 = lib2::DuplicateName|fooMe1;
+    tearoff fooMe1 = lib2::DuplicateName|get#fooMe1;
+  }
+  static method DuplicateName|fooMe1(final dart.core::String* #this) → dart.core::String* {
+    return "Foo1";
+  }
+  static method DuplicateName|get#fooMe1(final dart.core::String* #this) → () →* dart.core::String*
+    return () → dart.core::String* => lib2::DuplicateName|fooMe1(#this);
+}
+library from "org-dartlang-test:///lib3.dart" as lib3 {
+
+  extension DuplicateName on dart.core::String* {
+    method fooMe2 = lib3::DuplicateName|fooMe2;
+    tearoff fooMe2 = lib3::DuplicateName|get#fooMe2;
+  }
+  static method DuplicateName|fooMe2(final dart.core::String* #this) → dart.core::String* {
+    return "Foo2";
+  }
+  static method DuplicateName|get#fooMe2(final dart.core::String* #this) → () →* dart.core::String*
+    return () → dart.core::String* => lib3::DuplicateName|fooMe2(#this);
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///lib1.dart";
+  import "org-dartlang-test:///lib2.dart";
+  import "org-dartlang-test:///lib3.dart";
+
+  static method main() → dynamic {
+    lib1::NumberParsing|parseInt("42");
+    lib2::DuplicateName|fooMe1("42");
+    lib3::DuplicateName|fooMe2("42");
+  }
+}

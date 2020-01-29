@@ -750,9 +750,31 @@ Future<Null> newWorldTest(
     }
 
     if (world["expressionCompilation"] != null) {
-      Uri uri = base.resolve(world["expressionCompilation"]["uri"]);
-      String expression = world["expressionCompilation"]["expression"];
-      await compiler.compileExpression(expression, {}, [], "debugExpr", uri);
+      List compilations;
+      if (world["expressionCompilation"] is List) {
+        compilations = world["expressionCompilation"];
+      } else {
+        compilations = [world["expressionCompilation"]];
+      }
+      for (Map compilation in compilations) {
+        clearPrevErrorsEtc();
+        bool expectErrors = compilation["errors"] ?? false;
+        bool expectWarnings = compilation["warnings"] ?? false;
+        Uri uri = base.resolve(compilation["uri"]);
+        String expression = compilation["expression"];
+        await compiler.compileExpression(expression, {}, [], "debugExpr", uri);
+        if (gotError && !expectErrors) {
+          throw "Got error(s) on expression compilation: ${formattedErrors}.";
+        } else if (!gotError && expectErrors) {
+          throw "Didn't get any errors.";
+        }
+        if (gotWarning && !expectWarnings) {
+          throw "Got warning(s) on expression compilation: "
+              "${formattedWarnings}.";
+        } else if (!gotWarning && expectWarnings) {
+          throw "Didn't get any warnings.";
+        }
+      }
     }
 
     if (!noFullComponent && incrementalSerialization == true) {
