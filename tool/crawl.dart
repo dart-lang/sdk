@@ -175,28 +175,30 @@ Future<String> _fetchLinterForVersion(String version) async {
 Future<List<String>> _fetchSdkTags() {
   final github = GitHub();
   final slug = RepositorySlug('dart-lang', 'sdk');
+  return github.repositories
+      .listTags(slug)
+      .map((t) => t.name)
+      .where((t) {
+        // Filter on numeric release tags.
+        if (!t.startsWith(RegExp(r'\d+'))) {
+          return false;
+        }
 
-  try {
-    return github.repositories.listTags(slug).map((t) => t.name).where((t) {
-      // Filter on numeric release tags.
-      if (!t.startsWith(RegExp(r'\d+'))) {
-        return false;
-      }
-
-      // Filter on bottom.
-      try {
-        var version = Version.parse(t);
-        return version.compareTo(bottomDartSdk) >= 0;
-      } on FormatException {
-        return false;
-      }
-    }).toList();
-  } on Exception catch (e) {
-    print('exception caught fetching SDK tags');
-    print(e);
-    print('(using cached SDK values)');
-    return Future.value(<String>[]);
-  }
+        // Filter on bottom.
+        try {
+          var version = Version.parse(t);
+          return version.compareTo(bottomDartSdk) >= 0;
+        } on FormatException {
+          return false;
+        }
+      })
+      .toList()
+      .catchError((e) {
+        print('exception caught fetching SDK tags');
+        print(e);
+        print('(using cached SDK values)');
+        return Future.value(<String>[]);
+      });
 }
 
 Future<int> _readLatestMinorVersion() async {
