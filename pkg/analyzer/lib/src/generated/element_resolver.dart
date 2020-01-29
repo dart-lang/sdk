@@ -483,6 +483,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _methodInvocationResolver.resolve(node);
+    _resolver.nullShortingTermination(node);
   }
 
   @override

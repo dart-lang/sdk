@@ -874,6 +874,34 @@ m() {
 ''');
   }
 
+  test_nullable_dotQ_propertyAccess_dot_methodInvocation() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  a?.foo.abs();
+}
+''');
+    assertType(findNode.propertyAccess('.foo'), 'int');
+    assertType(findNode.methodInvocation('.abs()'), 'int?');
+  }
+
+  test_nullable_dotQ_propertyAccess_dot_propertyAccess() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(A? a) {
+  a?.foo.isEven;
+}
+''');
+    assertType(findNode.propertyAccess('.foo'), 'int');
+    assertType(findNode.propertyAccess('.isEven'), 'bool?');
+  }
+
   test_operatorMinus_nonNullable() async {
     await assertNoErrorsInCode(r'''
 m() {
