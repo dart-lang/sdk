@@ -402,6 +402,20 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
+  String visitInvokeExternal(HInvokeExternal node) {
+    var target = node.element;
+    var inputs = node.inputs;
+    String targetString;
+    if (target.isInstanceMember) {
+      targetString = temporaryId(inputs.first) + '.${target.name}';
+      inputs = inputs.sublist(1);
+    } else {
+      targetString = target.name;
+    }
+    return handleGenericInvoke('InvokeExternal', targetString, inputs);
+  }
+
+  @override
   String visitForeignCode(HForeignCode node) {
     var template = node.codeTemplate;
     String code = '${template.ast}';

@@ -120,6 +120,9 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
         }
       }
 
+      if (current is HInvokeExternal) {
+        if (current.isNullGuardFor(nullCheck)) return current;
+      }
       if (current is HForeignCode) {
         if (current.isNullGuardFor(nullCheck)) return current;
       }
