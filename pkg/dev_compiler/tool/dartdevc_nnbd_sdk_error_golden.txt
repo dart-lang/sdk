@@ -783,7 +783,7 @@ ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dar
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|41026|3|8|All final variables must be initialized, but 'sourceCapabilities' is not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3043|3|12|All final variables must be initialized, but 'sheet' is not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|3392|3|10|All final variables must be initialized, but 'ownerSvgElement' and 'viewportElement' are not.
-ERROR|STATIC_WARNING|MISMATCHED_GETTER_AND_SETTER_TYPES|lib/html/dart2js/html_dart2js.dart|33119|19|6|The return type of getter 'opener' is 'WindowBase?' which isn't assignable to the type 'Window' of its setter 'opener'.
+ERROR|STATIC_WARNING|GETTER_NOT_SUBTYPE_SETTER_TYPES|lib/html/dart2js/html_dart2js.dart|33119|19|6|The return type of getter 'opener' is 'WindowBase?' which isn't a subtype of the type 'Window' of its setter 'opener'.
 ERROR|STATIC_WARNING|UNCHECKED_USE_OF_NULLABLE_VALUE|lib/html/dart2js/html_dart2js.dart|13342|9|15|The expression is nullable and must be null-checked before it can be used.
 ERROR|STATIC_WARNING|UNCHECKED_USE_OF_NULLABLE_VALUE|lib/html/dart2js/html_dart2js.dart|13352|9|15|The expression is nullable and must be null-checked before it can be used.
 ERROR|STATIC_WARNING|UNCHECKED_USE_OF_NULLABLE_VALUE|lib/html/dart2js/html_dart2js.dart|23368|7|10|The expression is nullable and must be null-checked before it can be used.
