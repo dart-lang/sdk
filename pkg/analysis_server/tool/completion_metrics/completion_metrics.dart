@@ -14,6 +14,8 @@ import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart' as err;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -76,8 +78,18 @@ class CompletionMetricsComputer {
           try {
             final resolvedUnitResult =
                 await context.currentSession.getResolvedUnit(filePath);
-            final visitor = ExpectedCompletionsVisitor();
 
+            var error = _getFirstErrorOrNull(resolvedUnitResult);
+            if (error != null) {
+              print('File $filePath skipped due to errors such as:');
+              print('  ${error.toString()}');
+              print('');
+              continue;
+            }
+
+            // Use the ExpectedCompletionsVisitor to compute the set of expected
+            // completions for this CompilationUnit.
+            final visitor = ExpectedCompletionsVisitor();
             resolvedUnitResult.unit.accept(visitor);
 
             for (var expectedCompletion in visitor.expectedCompletions) {
@@ -150,6 +162,18 @@ class CompletionMetricsComputer {
     completionKindCounter.clear();
     completionElementKindCounter.clear();
     mRRComputer.clear();
+  }
+
+  /// Given some [ResolvedUnitResult] return the first error of high severity
+  /// if such an error exists, null otherwise.
+  err.AnalysisError _getFirstErrorOrNull(
+      ResolvedUnitResult resolvedUnitResult) {
+    for (var error in resolvedUnitResult.errors) {
+      if (error.severity == Severity.error) {
+        return error;
+      }
+    }
+    return null;
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
