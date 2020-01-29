@@ -180,7 +180,7 @@ List<String> _patchLibrary(List<String> partsContents, String patchContents,
 }
 
 /// Merge `@patch` declarations into `external` declarations.
-class PatchApplier extends GeneralizingAstVisitor {
+class PatchApplier extends GeneralizingAstVisitor<void> {
   final StringEditBuffer edits;
   final PatchFinder patch;
 
@@ -190,7 +190,7 @@ class PatchApplier extends GeneralizingAstVisitor {
   PatchApplier(this.edits, this.patch);
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     super.visitCompilationUnit(node);
     if (_isLibrary) _mergeUnpatched(node);
   }
@@ -227,18 +227,18 @@ class PatchApplier extends GeneralizingAstVisitor {
   }
 
   @override
-  visitPartOfDirective(PartOfDirective node) {
+  void visitPartOfDirective(PartOfDirective node) {
     _isLibrary = false;
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     _maybePatch(node);
   }
 
   /// Merge patches and extensions into the class
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     node.members.forEach(_maybePatch);
 
     var mergeMembers = patch.mergeMembers[_qualifiedName(node)];
@@ -294,7 +294,7 @@ class PatchApplier extends GeneralizingAstVisitor {
   }
 }
 
-class PatchFinder extends GeneralizingAstVisitor {
+class PatchFinder extends GeneralizingAstVisitor<void> {
   final String contents;
   final CompilationUnit unit;
 
@@ -309,12 +309,12 @@ class PatchFinder extends GeneralizingAstVisitor {
   }
 
   @override
-  visitCompilationUnitMember(CompilationUnitMember node) {
+  void visitCompilationUnitMember(CompilationUnitMember node) {
     mergeDeclarations.add(node);
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     if (_isPatch(node)) {
       var members = <ClassMember>[];
       for (var member in node.members) {
@@ -333,7 +333,7 @@ class PatchFinder extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     if (_isPatch(node)) {
       patches[_qualifiedName(node)] = node;
     } else {
@@ -342,7 +342,7 @@ class PatchFinder extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFunctionBody(node) {} // skip method bodies
+  void visitFunctionBody(node) {} // skip method bodies
 }
 
 String _qualifiedName(Declaration node) {

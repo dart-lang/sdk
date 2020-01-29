@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class MyType {
-  get length => 3; // ensures we build an interceptor for `.length`
+  int get length => 3; // ensures we build an interceptor for `.length`
 }
 
 void main() {
@@ -13,4 +13,4 @@ void main() {
   confuse(null). /*1:main*/ length; // called through the interceptor
 }
 
-confuse(x) => x;
+dynamic confuse(x) => x;

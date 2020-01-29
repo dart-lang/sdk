@@ -13,7 +13,7 @@ void main() async {
   /*s:8*/
 }
 
-foobar() async* {
+Stream<int> foobar() async* {
   // The testing framework should not step into the 'real body' at all.
   /*nb*/
   yield 1;

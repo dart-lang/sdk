@@ -13,10 +13,10 @@ void main() {
   }
 }
 
-foo() {
+dynamic foo() {
   return 42;
 }
 
-bar() {
+dynamic bar() {
   return 43;
 }

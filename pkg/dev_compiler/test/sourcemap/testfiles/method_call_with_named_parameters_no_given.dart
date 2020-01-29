@@ -7,7 +7,7 @@ void main() {
   /*nbb:0:3*/
 }
 
-foo(int bar, {int /*bc:2*/ baz}) {
+void foo(int bar, {int /*bc:2*/ baz}) {
   /*bc:3*/ print('foo!');
 }
 
