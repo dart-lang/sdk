@@ -46,6 +46,7 @@
       "tests/search/",
       "tests/standalone_2/",
       "tests/ffi/",
+      "tests/ffi_2/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/observatory_pub_packages/packages/web_components/",
@@ -87,6 +88,7 @@
       "tests/search/",
       "tests/standalone_2/",
       "tests/ffi/",
+      "tests/ffi_2/",
       "third_party/babel/babel.min.js",
       "third_party/d8/",
       "third_party/observatory_pub_packages/packages/web_components/",
@@ -128,6 +130,7 @@
       "tests/search/",
       "tests/standalone_2/",
       "tests/ffi/",
+      "tests/ffi_2/",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -208,6 +211,7 @@
       "tests/search/",
       "tests/standalone_2/",
       "tests/ffi/",
+      "tests/ffi_2/",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/pkg_tested/",
@@ -305,6 +309,7 @@
       "tests/search/",
       "tests/standalone_2/",
       "tests/ffi/",
+      "tests/ffi_2/",
       "pkg/_fe_analyzer_shared/",
       "pkg/async_helper/",
       "pkg/build_integration/",
@@ -874,8 +879,9 @@
           "name": "weak sdk tests",
           "arguments": [
             "-ncfe-weak-${system}",
-            "language",
             "corelib",
+            "ffi",
+            "language",
             "lib"
           ],
           "fileset": "front-end",
@@ -1057,7 +1063,7 @@
           "name": "ffi tests",
           "arguments": [
             "-ndartk-android-${mode}-${arch}",
-            "ffi"
+            "ffi_2"
           ],
           "fileset": "vm-kernel",
           "shards": 1
@@ -1428,13 +1434,15 @@
           "script": "tools/build.py",
           "arguments": [
             "--nnbd",
-            "create_sdk"
+            "create_sdk",
+            "runtime_kernel"
           ]
         },
         {
           "name": "vm weak tests with asserts",
           "arguments": [
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "ffi",
             "language",
             "lib/mirrors"
           ]
@@ -2584,6 +2592,7 @@
           "name": "analyze nnbd strong tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
+            "ffi",
             "language",
             "lib/mirrors"
           ]
@@ -2592,6 +2601,7 @@
           "name": "analyze nnbd weak tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-weak-${system}",
+            "ffi",
             "language",
             "lib/mirrors"
           ]

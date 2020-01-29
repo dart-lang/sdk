@@ -26,7 +26,7 @@ const _defaultTestSelectors = [
   'service',
   'kernel',
   'observatory_ui',
-  'ffi'
+  'ffi_2'
 ];
 
 /// Specifies a single command line option.

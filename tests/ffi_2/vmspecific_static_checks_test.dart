@@ -51,7 +51,7 @@ typedef IntUnOp = int Function(int);
 
 void testGetGeneric() {
   int generic(Pointer p) {
-    int result = -1;
+    int result;
     result = p.value; //# 20: compile-time error
     return result;
   }
@@ -64,10 +64,10 @@ void testGetGeneric() {
 }
 
 void testGetGeneric2() {
-  T? generic<T extends Object>() {
+  T generic<T extends Object>() {
     Pointer<Int8> p = allocate();
     p.value = 123;
-    T? result;
+    T result;
     result = p.value; //# 21: compile-time error
     free(p);
     return result;
@@ -161,19 +161,19 @@ void testSetTypeMismatch() {
 }
 
 void testAsFunctionGeneric() {
-  T generic<T extends Function>(T defaultFunction) {
+  T generic<T extends Function>() {
     Pointer<NativeFunction<Int8UnOp>> p = Pointer.fromAddress(1337);
-    T f = defaultFunction;
+    Function f;
     f = p.asFunction<T>(); //# 11: compile-time error
     return f;
   }
 
-  generic<IntUnOp>((int a) => a + 1);
+  generic<IntUnOp>();
 }
 
 void testAsFunctionGeneric2() {
   generic(Pointer<NativeFunction> p) {
-    Function f = () => "dummy";
+    Function f;
     f = p.asFunction<IntUnOp>(); //# 12: compile-time error
     return f;
   }
@@ -203,7 +203,7 @@ int myTimesFour(int i) => i * 4;
 
 void testFromFunctionGeneric() {
   Pointer<NativeFunction> generic<T extends Function>(T f) {
-    Pointer<NativeFunction<NativeDoubleUnOp>> result = nullptr;
+    Pointer<NativeFunction<NativeDoubleUnOp>> result;
     result = Pointer.fromFunction(f); //# 70: compile-time error
     return result;
   }
@@ -213,7 +213,7 @@ void testFromFunctionGeneric() {
 
 void testFromFunctionGeneric2() {
   Pointer<NativeFunction<T>> generic<T extends Function>() {
-    Pointer<NativeFunction<T>> result = nullptr;
+    Pointer<NativeFunction<T>> result;
     result = Pointer.fromFunction(myTimesThree); //# 71: compile-time error
     return result;
   }
@@ -254,7 +254,7 @@ void testFromFunctionAbstract() {
 void testLookupFunctionGeneric() {
   Function generic<T extends Function>() {
     DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
-    Function result = () => "dummy";
+    Function result;
     result = l.lookupFunction<T, DoubleUnOp>("cos"); //# 15: compile-time error
     return result;
   }
@@ -265,7 +265,7 @@ void testLookupFunctionGeneric() {
 void testLookupFunctionGeneric2() {
   Function generic<T extends Function>() {
     DynamicLibrary l = dlopenPlatformSpecific("ffi_test_dynamic_library");
-    Function result = () => "dummy";
+    Function result;
     result = //# 16: compile-time error
         l.lookupFunction<NativeDoubleUnOp, T>("cos"); //# 16: compile-time error
     return result;
