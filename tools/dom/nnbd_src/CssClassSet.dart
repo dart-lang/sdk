@@ -40,7 +40,7 @@ abstract class CssClassSet implements Set<String> {
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.
    */
-  bool contains(Object value);
+  bool contains(Object? value);
 
   /**
    * Add the class [value] to element.
@@ -70,7 +70,7 @@ abstract class CssClassSet implements Set<String> {
    * non-empty string containing no whitespace.  To remove multiple classes, use
    * [removeAll].
    */
-  bool remove(Object value);
+  bool remove(Object? value);
 
   /**
    * Add all classes specified in [iterable] to element.
@@ -92,7 +92,7 @@ abstract class CssClassSet implements Set<String> {
    * Each element of [iterable] must be a valid 'token' representing a single
    * class, i.e. a non-empty string containing no whitespace.
    */
-  void removeAll(Iterable<Object> iterable);
+  void removeAll(Iterable<Object?> iterable);
 
   /**
    * Toggles all classes specified in [iterable] on element.

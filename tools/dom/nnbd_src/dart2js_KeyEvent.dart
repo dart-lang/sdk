@@ -119,17 +119,17 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     JS(
         'void',
         "Object.defineProperty(#, 'keyCode', {"
-        "  get : function() { return this.keyCodeVal; } })",
+            "  get : function() { return this.keyCodeVal; } })",
         eventObj);
     JS(
         'void',
         "Object.defineProperty(#, 'which', {"
-        "  get : function() { return this.keyCodeVal; } })",
+            "  get : function() { return this.keyCodeVal; } })",
         eventObj);
     JS(
         'void',
         "Object.defineProperty(#, 'charCode', {"
-        "  get : function() { return this.charCodeVal; } })",
+            "  get : function() { return this.charCodeVal; } })",
         eventObj);
 
     var keyIdentifier = _convertToHexString(charCode, keyCode);
@@ -152,7 +152,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static bool get canUseDispatchEvent => JS(
       'bool',
       '(typeof document.body.dispatchEvent == "function")'
-      '&& document.body.dispatchEvent.length > 0');
+          '&& document.body.dispatchEvent.length > 0');
 
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
@@ -200,7 +200,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get shiftKey => _parent.shiftKey;
   Window get view => _parent.view;
   void _initUIEvent(
-      String type, bool canBubble, bool cancelable, Window view, int detail) {
+      String type, bool canBubble, bool cancelable, Window? view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
 

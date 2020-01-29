@@ -214,7 +214,9 @@ class AudioContext extends BaseAudioContext {
   }
 
   ScriptProcessorNode createScriptProcessor(
-      [int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) {
+      [int? bufferSize,
+      int? numberOfInputChannels,
+      int? numberOfOutputChannels]) {
     var function = JS(
         '=Object',
         '#.createScriptProcessor || '
@@ -241,8 +243,8 @@ class AudioContext extends BaseAudioContext {
       DecodeErrorCallback errorCallback]) native;
 
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
-      [DecodeSuccessCallback successCallback,
-      DecodeErrorCallback errorCallback]) {
+      [DecodeSuccessCallback? successCallback,
+      DecodeErrorCallback? errorCallback]) {
     if (successCallback != null && errorCallback != null) {
       return _decodeAudioData(audioData, successCallback, errorCallback);
     }

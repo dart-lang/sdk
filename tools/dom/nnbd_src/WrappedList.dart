@@ -26,7 +26,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.add(element);
   }
 
-  bool remove(Object element) => _list.remove(element);
+  bool remove(Object? element) => _list.remove(element);
 
   void clear() {
     _list.clear();
@@ -44,14 +44,14 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.length = newLength;
   }
 
-  void sort([int compare(E a, E b)]) {
+  void sort([int compare(E a, E b)?]) {
     // Implicit downcast on argument from Node to E-extends-Node.
     _list.sort((Node a, Node b) => compare(a, b));
   }
 
   int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
 
-  int lastIndexOf(Object element, [int start]) =>
+  int lastIndexOf(Object element, [int? start]) =>
       _list.lastIndexOf(element, start);
 
   void insert(int index, E element) => _list.insert(index, element);
@@ -70,7 +70,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.replaceRange(start, end, iterable);
   }
 
-  void fillRange(int start, int end, [E fillValue]) {
+  void fillRange(int start, int end, [E? fillValue]) {
     _list.fillRange(start, end, fillValue);
   }
 

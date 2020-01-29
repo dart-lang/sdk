@@ -11629,7 +11629,7 @@ class _ChildrenElementList extends ListBase<Element>
       : _childElements = element._children,
         _element = element;
 
-  bool contains(Object element) => _childElements.contains(element);
+  bool contains(Object? element) => _childElements.contains(element);
 
   bool get isEmpty {
     return _element._firstElementChild == null;
@@ -11669,11 +11669,11 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
-  void sort([int compare(Element a, Element b)]) {
+  void sort([int compare(Element a, Element b)?]) {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
@@ -11695,7 +11695,7 @@ class _ChildrenElementList extends ListBase<Element>
     for (var e in removed) e.remove();
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void fillRange(int start, int end, [Element? fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -12185,7 +12185,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     throw new UnsupportedError('Cannot sort list');
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     throw new UnsupportedError('Cannot shuffle list');
   }
 
@@ -13020,7 +13020,7 @@ class Element extends Node
    * * [Pseudo-elements](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements)
    *   from MDN.
    */
-  CssStyleDeclaration getComputedStyle([String pseudoElement]) {
+  CssStyleDeclaration getComputedStyle([String? pseudoElement]) {
     if (pseudoElement == null) {
       pseudoElement = '';
     }
@@ -19150,7 +19150,7 @@ class InputElement extends HtmlElement
         ImageButtonInputElement,
         ResetButtonInputElement,
         ButtonInputElement {
-  factory InputElement({String type}) {
+  factory InputElement({String? type}) {
     InputElement e = document.createElement("input");
     if (type != null) {
       try {
@@ -23255,7 +23255,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     return result;
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     if (object is! Node) return false;
     Node node = object;
     if (!identical(_this, node.parentNode)) return false;
@@ -23299,11 +23299,11 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator<Node> compare]) {
+  void sort([Comparator<Node>? compare]) {
     throw new UnsupportedError("Cannot sort Node list");
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     throw new UnsupportedError("Cannot shuffle Node list");
   }
 
@@ -23313,7 +23313,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     throw new UnsupportedError("Cannot setRange on Node list");
   }
 
-  void fillRange(int start, int end, [Node fill]) {
+  void fillRange(int start, int end, [Node? fill]) {
     throw new UnsupportedError("Cannot fillRange on Node list");
   }
 
@@ -29371,11 +29371,11 @@ class Storage extends Interceptor with MapMixin<String, String> {
   }
 
   // TODO(nweiz): update this when maps support lazy iteration
-  bool containsValue(Object value) => values.any((e) => e == value);
+  bool containsValue(Object? value) => values.any((e) => e == value);
 
-  bool containsKey(Object key) => _getItem(key) != null;
+  bool containsKey(Object? key) => _getItem(key) != null;
 
-  String operator [](Object key) => _getItem(key as String);
+  String? operator [](Object? key) => _getItem(key as String);
 
   void operator []=(String key, String value) {
     _setItem(key, value);
@@ -29386,7 +29386,7 @@ class Storage extends Interceptor with MapMixin<String, String> {
     return this[key];
   }
 
-  String remove(Object key) {
+  String? remove(Object? key) {
     final value = this[key];
     _removeItem(key);
     return value;
@@ -36291,7 +36291,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
   }
 
   Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (var v in this.values) {
       if (value == v) {
         return true;
@@ -36370,11 +36370,11 @@ abstract class _AttributeMap extends MapBase<String, String> {
 class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element) : super(element);
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     return _element._hasAttribute(key);
   }
 
-  String operator [](Object key) {
+  String? operator [](Object? key) {
     return _element.getAttribute(key);
   }
 
@@ -36383,7 +36383,7 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   @pragma('dart2js:tryInline')
-  String remove(Object key) => key is String ? _remove(_element, key) : null;
+  String? remove(Object? key) => key is String ? _remove(_element, key) : null;
 
   /**
    * The number of {key, value} pairs in the map.
@@ -36418,11 +36418,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
 
   _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     return _element._hasAttributeNS(_namespace, key);
   }
 
-  String operator [](Object key) {
+  String? operator [](Object? key) {
     return _element.getAttributeNS(_namespace, key);
   }
 
@@ -36431,7 +36431,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   @pragma('dart2js:tryInline')
-  String remove(Object key) =>
+  String? remove(Object? key) =>
       key is String ? _remove(_namespace, _element, key) : null;
 
   /**
@@ -36480,11 +36480,11 @@ class _DataAttributeMap extends MapBase<String, String> {
 
   Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(Object value) => values.any((v) => v == value);
+  bool containsValue(Object? value) => values.any((v) => v == value);
 
-  bool containsKey(Object key) => _attributes.containsKey(_attr(key));
+  bool containsKey(Object? key) => _attributes.containsKey(_attr(key));
 
-  String operator [](Object key) => _attributes[_attr(key)];
+  String? operator [](Object? key) => _attributes[_attr(key)];
 
   void operator []=(String key, String value) {
     _attributes[_attr(key)] = value;
@@ -36493,7 +36493,7 @@ class _DataAttributeMap extends MapBase<String, String> {
   String putIfAbsent(String key, String ifAbsent()) =>
       _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String remove(Object key) => _attributes.remove(_attr(key));
+  String? remove(Object? key) => _attributes.remove(_attr(key));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
@@ -36805,7 +36805,7 @@ abstract class CssClassSet implements Set<String> {
    * [value] must be a valid 'token' representing a single class, i.e. a
    * non-empty string containing no whitespace.
    */
-  bool contains(Object value);
+  bool contains(Object? value);
 
   /**
    * Add the class [value] to element.
@@ -36835,7 +36835,7 @@ abstract class CssClassSet implements Set<String> {
    * non-empty string containing no whitespace.  To remove multiple classes, use
    * [removeAll].
    */
-  bool remove(Object value);
+  bool remove(Object? value);
 
   /**
    * Add all classes specified in [iterable] to element.
@@ -36857,7 +36857,7 @@ abstract class CssClassSet implements Set<String> {
    * Each element of [iterable] must be a valid 'token' representing a single
    * class, i.e. a non-empty string containing no whitespace.
    */
-  void removeAll(Iterable<Object> iterable);
+  void removeAll(Iterable<Object?> iterable);
 
   /**
    * Toggles all classes specified in [iterable] on element.
@@ -37298,7 +37298,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * TODO(sra): It seems wrong to collect a 'changed' flag like this when the
    * underlying toggle returns an 'is set' flag.
    */
-  bool toggle(String value, [bool shouldAdd]) => _sets.fold(
+  bool toggle(String value, [bool? shouldAdd]) => _sets.fold(
       false,
       (bool changed, CssClassSetImpl e) =>
           e.toggle(value, shouldAdd) || changed);
@@ -37310,7 +37310,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  bool remove(Object value) => _sets.fold(
+  bool remove(Object? value) => _sets.fold(
       false, (bool changed, CssClassSetImpl e) => e.remove(value) || changed);
 }
 
@@ -37344,7 +37344,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _element.className = '';
   }
 
-  bool contains(Object value) {
+  bool contains(Object? value) {
     return _contains(_element, value);
   }
 
@@ -37352,11 +37352,11 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return _add(_element, value);
   }
 
-  bool remove(Object value) {
+  bool remove(Object? value) {
     return value is String && _remove(_element, value);
   }
 
-  bool toggle(String value, [bool shouldAdd]) {
+  bool toggle(String value, [bool? shouldAdd]) {
     return _toggle(_element, value, shouldAdd);
   }
 
@@ -37364,11 +37364,11 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _addAll(_element, iterable);
   }
 
-  void removeAll(Iterable<Object> iterable) {
+  void removeAll(Iterable<Object?> iterable) {
     _removeAll(_element, iterable);
   }
 
-  void retainAll(Iterable<Object> iterable) {
+  void retainAll(Iterable<Object?> iterable) {
     _removeWhere(_element, iterable.toSet().contains, false);
   }
 
@@ -37401,7 +37401,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return removed;
   }
 
-  static bool _toggle(Element _element, String value, bool shouldAdd) {
+  static bool _toggle(Element _element, String value, bool? shouldAdd) {
     // There is no value that can be passed as the second argument of
     // DomTokenList.toggle that behaves the same as passing one argument.
     // `null` is seen as false, meaning 'remove'.
@@ -37415,13 +37415,13 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return _classListToggle1(list, value);
   }
 
-  static bool _toggleOnOff(Element _element, String value, bool shouldAdd) {
+  static bool _toggleOnOff(Element _element, String value, bool? shouldAdd) {
     DomTokenList list = _classListOf(_element);
     // IE's toggle does not take a second parameter. We would prefer:
     //
     //    return _classListToggle2(list, value, shouldAdd);
     //
-    if (shouldAdd) {
+    if (shouldAdd ?? false) {
       _classListAdd(list, value);
       return true;
     } else {
@@ -37498,7 +37498,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   static bool _classListToggle2(
-      DomTokenList list, String value, bool shouldAdd) {
+      DomTokenList list, String value, bool? shouldAdd) {
     return JS('bool', '#.toggle(#, #)', list, value, shouldAdd);
   }
 }
@@ -37722,16 +37722,16 @@ class _EventStream<T extends Event> extends Stream<T> {
 
   // DOM events are inherently multi-subscribers.
   Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription),
-          void onCancel(StreamSubscription<T> subscription)}) =>
+          {void onListen(StreamSubscription<T> subscription)?,
+          void onCancel(StreamSubscription<T> subscription)?}) =>
       this;
   bool get isBroadcast => true;
 
   // TODO(9757): Inlining should be smart and inline only when inlining would
   // enable scalar replacement of an immediately allocated receiver.
   @pragma('dart2js:tryInline')
-  StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return new _EventStreamSubscription<T>(
         this._target, this._eventType, onData, this._useCapture);
   }
@@ -37782,8 +37782,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
       });
 
   // Delegate all regular Stream behavior to a wrapped Stream.
-  StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
       pool.add(new _EventStream<T>(target, _eventType, _useCapture));
@@ -37801,8 +37801,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   }
 
   Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription),
-          void onCancel(StreamSubscription<T> subscription)}) =>
+          {void onListen(StreamSubscription<T> subscription)?,
+          void onCancel(StreamSubscription<T> subscription)?}) =>
       this;
   bool get isBroadcast => true;
 }
@@ -37847,7 +37847,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   bool get _canceled => _target == null;
 
-  void onData(void handleData(T event)) {
+  void onData(void handleData(T event)?) {
     if (_canceled) {
       throw new StateError("Subscription has been canceled.");
     }
@@ -37858,12 +37858,12 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   /// Has no effect.
-  void onError(Function handleError) {}
+  void onError(Function? handleError) {}
 
   /// Has no effect.
-  void onDone(void handleDone()) {}
+  void onDone(void handleDone()?) {}
 
-  void pause([Future resumeSignal]) {
+  void pause([Future? resumeSignal]) {
     if (_canceled) return;
     ++_pauseCount;
     _unlisten();
@@ -37893,7 +37893,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
   }
 
-  Future<E> asFuture<E>([E futureValue]) {
+  Future<E> asFuture<E>([E? futureValue]) {
     // We just need a future that will never succeed or fail.
     var completer = new Completer<E>();
     return completer.future;
@@ -37924,15 +37924,15 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
   }
 
   // Delegate all regular Stream behavior to our wrapped Stream.
-  StreamSubscription<T> listen(void onData(T event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<T> listen(void onData(T event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _streamController.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   Stream<T> asBroadcastStream(
-          {void onListen(StreamSubscription<T> subscription),
-          void onCancel(StreamSubscription<T> subscription)}) =>
+          {void onListen(StreamSubscription<T> subscription)?,
+          void onCancel(StreamSubscription<T> subscription)?}) =>
       _streamController.stream;
 
   bool get isBroadcast => true;
@@ -38449,8 +38449,8 @@ class _Html5NodeValidator implements NodeValidator {
    * All known URI attributes will be validated against the UriPolicy, if
    * [uriPolicy] is null then a default UriPolicy will be used.
    */
-  _Html5NodeValidator({UriPolicy uriPolicy})
-      : uriPolicy = uriPolicy != null ? uriPolicy : new UriPolicy() {
+  _Html5NodeValidator({UriPolicy? uriPolicy})
+      : uriPolicy = uriPolicy ?? UriPolicy() {
     if (_attributeValidators.isEmpty) {
       for (var attr in _standardAttributes) {
         _attributeValidators[attr] = _standardAttributeValidator;
@@ -38510,11 +38510,11 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void sort([int compare(E a, E b)]) {
+  void sort([int compare(E a, E b)?]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     throw new UnsupportedError("Cannot shuffle immutable List.");
   }
 
@@ -38538,7 +38538,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  bool remove(Object object) {
+  bool remove(Object? object) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -38562,7 +38562,7 @@ abstract class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot modify an immutable List.");
   }
 
-  void fillRange(int start, int end, [E fillValue]) {
+  void fillRange(int start, int end, [E? fillValue]) {
     throw new UnsupportedError("Cannot modify an immutable List.");
   }
 }
@@ -39973,7 +39973,7 @@ class NodeValidatorBuilder implements NodeValidator {
    */
   void allowCustomElement(String tagName,
       {UriPolicy uriPolicy,
-      Iterable<String> attributes,
+      Iterable<String>? attributes,
       Iterable<String> uriAttributes}) {
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
@@ -40325,7 +40325,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.add(element);
   }
 
-  bool remove(Object element) => _list.remove(element);
+  bool remove(Object? element) => _list.remove(element);
 
   void clear() {
     _list.clear();
@@ -40343,14 +40343,14 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.length = newLength;
   }
 
-  void sort([int compare(E a, E b)]) {
+  void sort([int compare(E a, E b)?]) {
     // Implicit downcast on argument from Node to E-extends-Node.
     _list.sort((Node a, Node b) => compare(a, b));
   }
 
   int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
 
-  int lastIndexOf(Object element, [int start]) =>
+  int lastIndexOf(Object element, [int? start]) =>
       _list.lastIndexOf(element, start);
 
   void insert(int index, E element) => _list.insert(index, element);
@@ -40369,7 +40369,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.replaceRange(start, end, iterable);
   }
 
-  void fillRange(int start, int end, [E fillValue]) {
+  void fillRange(int start, int end, [E? fillValue]) {
     _list.fillRange(start, end, fillValue);
   }
 
@@ -40388,7 +40388,7 @@ class _WrappedIterator<E extends Node> implements Iterator<E> {
     return _iterator.moveNext();
   }
 
-  E get current => _iterator.current;
+  E get current => _iterator.current as E;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40871,8 +40871,8 @@ class _DOMWindowCrossFrame implements WindowBase {
   Events get on => throw new UnsupportedError(
       'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _addEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void _addEventListener(String? type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
@@ -40884,8 +40884,8 @@ class _DOMWindowCrossFrame implements WindowBase {
   bool dispatchEvent(Event event) => throw new UnsupportedError(
       'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _removeEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void _removeEventListener(String? type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
@@ -41146,7 +41146,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get shiftKey => _parent.shiftKey;
   Window get view => _parent.view;
   void _initUIEvent(
-      String type, bool canBubble, bool cancelable, Window view, int detail) {
+      String type, bool canBubble, bool cancelable, Window? view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
   }
 
@@ -41235,7 +41235,7 @@ class _WrappedEvent implements Event {
 
   String get type => wrapped.type;
 
-  void _initEvent(String type, [bool bubbles, bool cancelable]) {
+  void _initEvent(String type, [bool? bubbles, bool? cancelable]) {
     throw new UnsupportedError('Cannot initialize this Event.');
   }
 

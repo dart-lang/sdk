@@ -27,7 +27,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
     ResetButtonInputElement,
     ButtonInputElement {
 
-  factory InputElement({String type}) {
+  factory InputElement({String$NULLABLE type}) {
     InputElement e = document.createElement("input");
     if (type != null) {
       try {

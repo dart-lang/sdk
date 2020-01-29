@@ -66,7 +66,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    * This is the Dart equivalent of jQuery's
    * [removeClass](http://api.jquery.com/removeClass/).
    */
-  bool remove(Object value) => _sets.fold(
+  bool remove(Object? value) => _sets.fold(
       false, (bool changed, CssClassSetImpl e) => e.remove(value) || changed);
 }
 
@@ -100,7 +100,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _element.className = '';
   }
 
-  bool contains(Object value) {
+  bool contains(Object? value) {
     return _contains(_element, value);
   }
 
@@ -108,7 +108,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     return _add(_element, value);
   }
 
-  bool remove(Object value) {
+  bool remove(Object? value) {
     return value is String && _remove(_element, value);
   }
 
@@ -120,11 +120,11 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _addAll(_element, iterable);
   }
 
-  void removeAll(Iterable<Object> iterable) {
+  void removeAll(Iterable<Object?> iterable) {
     _removeAll(_element, iterable);
   }
 
-  void retainAll(Iterable<Object> iterable) {
+  void retainAll(Iterable<Object?> iterable) {
     _removeWhere(_element, iterable.toSet().contains, false);
   }
 

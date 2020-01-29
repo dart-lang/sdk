@@ -16,7 +16,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
   }
 
   Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
-  bool containsValue(Object value) {
+  bool containsValue(Object? value) {
     for (var v in this.values) {
       if (value == v) {
         return true;
@@ -95,11 +95,11 @@ abstract class _AttributeMap extends MapBase<String, String> {
 class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element) : super(element);
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     return _element._hasAttribute(key);
   }
 
-  String operator [](Object key) {
+  String? operator [](Object? key) {
     return _element.getAttribute(key);
   }
 
@@ -143,11 +143,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
 
   _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
-  bool containsKey(Object key) {
+  bool containsKey(Object? key) {
     return _element._hasAttributeNS(_namespace, key);
   }
 
-  String operator [](Object key) {
+  String? operator [](Object? key) {
     return _element.getAttributeNS(_namespace, key);
   }
 
@@ -156,7 +156,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   @pragma('dart2js:tryInline')
-  String remove(Object key) =>
+  String? remove(Object? key) =>
       key is String ? _remove(_namespace, _element, key) : null;
 
   /**
@@ -205,11 +205,11 @@ class _DataAttributeMap extends MapBase<String, String> {
 
   Map<K, V> cast<K, V>() => Map.castFrom<String, String, K, V>(this);
   // TODO: Use lazy iterator when it is available on Map.
-  bool containsValue(Object value) => values.any((v) => v == value);
+  bool containsValue(Object? value) => values.any((v) => v == value);
 
-  bool containsKey(Object key) => _attributes.containsKey(_attr(key));
+  bool containsKey(Object? key) => _attributes.containsKey(_attr(key));
 
-  String operator [](Object key) => _attributes[_attr(key)];
+  String? operator [](Object? key) => _attributes[_attr(key)];
 
   void operator []=(String key, String value) {
     _attributes[_attr(key)] = value;
@@ -218,7 +218,7 @@ class _DataAttributeMap extends MapBase<String, String> {
   String putIfAbsent(String key, String ifAbsent()) =>
       _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String remove(Object key) => _attributes.remove(_attr(key));
+  String? remove(Object? key) => _attributes.remove(_attr(key));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
