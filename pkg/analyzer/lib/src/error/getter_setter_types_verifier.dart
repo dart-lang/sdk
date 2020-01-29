@@ -33,25 +33,30 @@ class GetterSetterTypesVerifier {
 
   bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
 
-  void checkForMismatchedAccessorTypesInExtension(
-      ExtensionDeclaration extension) {
-    for (ClassMember member in extension.members) {
-      if (member is MethodDeclaration && member.isGetter) {
-        PropertyAccessorElement getterElement =
-            member.declaredElement as PropertyAccessorElement;
-        PropertyAccessorElement setterElement =
-            getterElement.correspondingSetter;
-        if (setterElement != null) {
-          DartType getterType = _getGetterType(getterElement);
-          DartType setterType = _getSetterType(setterElement);
-          if (setterType != null &&
-              getterType != null &&
-              !_match(getterType, setterType)) {
-            SimpleIdentifier nameNode = member.name;
-            String name = nameNode.name;
-            _errorReporter.reportErrorForNode(
-                _errorCode, nameNode, [name, getterType, setterType, name]);
-          }
+  void checkExtension(ExtensionDeclaration node) {
+    for (var getterNode in node.members) {
+      if (getterNode is MethodDeclaration && getterNode.isGetter) {
+        var getter = getterNode.declaredElement as PropertyAccessorElement;
+
+        var setter = getter.correspondingSetter;
+        if (setter == null) {
+          continue;
+        }
+
+        var getterType = _getGetterType(getter);
+        var setterType = _getSetterType(setter);
+        if (setterType == null) {
+          continue;
+        }
+
+        if (!_match(getterType, setterType)) {
+          var nameNode = getterNode.name;
+          var name = nameNode.name;
+          _errorReporter.reportErrorForNode(
+            _errorCode,
+            nameNode,
+            [name, getterType, setterType, name],
+          );
         }
       }
     }
@@ -79,13 +84,13 @@ class GetterSetterTypesVerifier {
               errorElement = classElement;
             }
 
-            String getterName = getter.displayName;
+            var getterName = getter.displayName;
             if (getter.enclosingElement != classElement) {
               var getterClassName = getter.enclosingElement.displayName;
               getterName = '$getterClassName.$getterName';
             }
 
-            String setterName = setter.displayName;
+            var setterName = setter.displayName;
             if (setter.enclosingElement != classElement) {
               var setterClassName = setter.enclosingElement.displayName;
               setterName = '$setterClassName.$setterName';
@@ -113,15 +118,13 @@ class GetterSetterTypesVerifier {
       return;
     }
 
-    // Default of null == no accessor or no type (dynamic)
     var getterType = _getGetterType(getter);
     var setterType = _getSetterType(setter);
+    if (setterType == null) {
+      return;
+    }
 
-    // If either types are not assignable to each other, report an error
-    // (if the getter is null, it is dynamic which is assignable to everything).
-    if (setterType != null &&
-        getterType != null &&
-        !_match(getterType, setterType)) {
+    if (!_match(getterType, setterType)) {
       var name = nameNode.name;
       _errorReporter.reportErrorForNode(
         _errorCode,
@@ -131,30 +134,24 @@ class GetterSetterTypesVerifier {
     }
   }
 
-  /// Return the return type of the given [getter].
-  DartType _getGetterType(PropertyAccessorElement getter) {
-    FunctionType functionType = getter.type;
-    if (functionType != null) {
-      return functionType.returnType;
-    } else {
-      return null;
-    }
-  }
-
-  /// Return the type of the first and only parameter of the given [setter].
-  DartType _getSetterType(PropertyAccessorElement setter) {
-    // Get the parameters for MethodDeclaration or FunctionDeclaration
-    List<ParameterElement> setterParameters = setter.parameters;
-    // If there are no setter parameters, return no type.
-    if (setterParameters.isEmpty) {
-      return null;
-    }
-    return setterParameters[0].type;
-  }
-
   bool _match(DartType getterType, DartType setterType) {
     return _isNonNullableByDefault
         ? _typeSystem.isSubtypeOf(getterType, setterType)
         : _typeSystem.isAssignableTo(getterType, setterType);
+  }
+
+  /// Return the return type of the [getter].
+  static DartType _getGetterType(PropertyAccessorElement getter) {
+    return getter.returnType;
+  }
+
+  /// Return the type of the first parameter of the [setter].
+  static DartType _getSetterType(PropertyAccessorElement setter) {
+    var parameters = setter.parameters;
+    if (parameters.isNotEmpty) {
+      return parameters[0].type;
+    } else {
+      return null;
+    }
   }
 }

@@ -629,7 +629,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     GetterSetterTypesVerifier(
       typeSystem: _typeSystem,
       errorReporter: _errorReporter,
-    ).checkForMismatchedAccessorTypesInExtension(node);
+    ).checkExtension(node);
 
     final name = node.name;
     if (name != null) {
