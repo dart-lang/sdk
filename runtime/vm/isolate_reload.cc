@@ -110,9 +110,9 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
 
   if (from.NumTypeArguments() > 0) {
     // Add copying of the optional type argument field.
-    intptr_t from_offset = from.host_type_arguments_field_offset();
+    intptr_t from_offset = from.type_arguments_field_offset();
     ASSERT(from_offset != Class::kNoTypeArguments);
-    intptr_t to_offset = to.host_type_arguments_field_offset();
+    intptr_t to_offset = to.type_arguments_field_offset();
     ASSERT(to_offset != Class::kNoTypeArguments);
     mapping->Add(from_offset);
     mapping->Add(to_offset);
@@ -152,8 +152,8 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
       from_name = from_field.name();
       if (from_name.Equals(to_name)) {
         // Success
-        mapping->Add(from_field.HostOffset());
-        mapping->Add(to_field.HostOffset());
+        mapping->Add(from_field.Offset());
+        mapping->Add(to_field.Offset());
         // Field did exist in old class deifnition.
         new_field = false;
       }
@@ -163,7 +163,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
       const Field& field = Field::Handle(to_field.raw());
       field.set_needs_load_guard(true);
       field.set_is_unboxing_candidate(false);
-      new_fields_offsets->Add(field.HostOffset());
+      new_fields_offsets->Add(field.Offset());
     }
   }
 
@@ -1247,9 +1247,8 @@ void IsolateGroupReloadContext::FindModifiedSources(
       uri = script.url();
       const bool dart_scheme = uri.StartsWith(Symbols::DartScheme());
       if (dart_scheme) {
-        // If a user-defined class mixes in a mixin from dart:*, it's list of
-        // scripts will have a dart:* script as well. We don't consider those
-        // during reload.
+        // If a user-defined class mixes in a mixin from dart:*, it's list of scripts will have
+        // a dart:* script as well. We don't consider those during reload.
         continue;
       }
       if (ContainsScriptUri(modified_sources_uris, uri.ToCString())) {

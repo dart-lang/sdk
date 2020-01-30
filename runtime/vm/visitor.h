@@ -6,7 +6,6 @@
 #define RUNTIME_VM_VISITOR_H_
 
 #include "vm/allocation.h"
-#include "vm/class_table.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 
@@ -21,7 +20,8 @@ class RawTypedDataView;
 // An object pointer visitor interface.
 class ObjectPointerVisitor {
  public:
-  explicit ObjectPointerVisitor(Isolate* isolate);
+  explicit ObjectPointerVisitor(Isolate* isolate)
+      : isolate_(isolate), gc_root_type_("unknown") {}
   virtual ~ObjectPointerVisitor() {}
 
   Isolate* isolate() const { return isolate_; }
@@ -54,14 +54,9 @@ class ObjectPointerVisitor {
 
   virtual bool visit_weak_persistent_handles() const { return false; }
 
-  const SharedClassTable* shared_class_table() const {
-    return shared_class_table_;
-  }
-
  private:
   Isolate* isolate_;
   const char* gc_root_type_;
-  SharedClassTable* shared_class_table_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectPointerVisitor);
 };

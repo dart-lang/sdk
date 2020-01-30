@@ -357,7 +357,6 @@ vm_sources = [
   "virtual_memory_fuchsia.cc",
   "virtual_memory_posix.cc",
   "virtual_memory_win.cc",
-  "visitor.cc",
   "visitor.h",
   "zone.cc",
   "zone.h",

@@ -4,8 +4,6 @@
 
 #include "vm/class_table.h"
 
-#include <memory>
-
 #include "platform/atomic.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -23,9 +21,7 @@ SharedClassTable::SharedClassTable()
     : top_(kNumPredefinedCids),
       capacity_(0),
       table_(NULL),
-      old_tables_(new MallocGrowableArray<intptr_t*>()),
-      unboxed_fields_map_(nullptr),
-      old_unboxed_fields_maps_(new MallocGrowableArray<UnboxedFieldBitmap*>()) {
+      old_tables_(new MallocGrowableArray<intptr_t*>()) {
   if (Dart::vm_isolate() == NULL) {
     ASSERT(kInitialCapacity >= kNumPredefinedCids);
     capacity_ = kInitialCapacity;
@@ -51,11 +47,6 @@ SharedClassTable::SharedClassTable()
     table_[kVoidCid] = vm_shared_class_table->SizeAt(kVoidCid);
     table_[kNeverCid] = vm_shared_class_table->SizeAt(kNeverCid);
   }
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-  unboxed_fields_map_ = static_cast<UnboxedFieldBitmap*>(
-      malloc(capacity_ * sizeof(UnboxedFieldBitmap)));
-  memset(unboxed_fields_map_, 0, sizeof(UnboxedFieldBitmap) * capacity_);
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 #ifndef PRODUCT
   trace_allocation_table_ =
       static_cast<uint8_t*>(malloc(capacity_ * sizeof(uint8_t)));  // NOLINT
@@ -70,16 +61,6 @@ SharedClassTable::~SharedClassTable() {
     delete old_tables_;
     free(table_);
   }
-
-  if (old_unboxed_fields_maps_ != nullptr) {
-    FreeOldUnboxedFieldsMaps();
-    delete old_unboxed_fields_maps_;
-  }
-
-  if (unboxed_fields_map_ != nullptr) {
-    free(unboxed_fields_map_);
-  }
-
   NOT_IN_PRODUCT(free(trace_allocation_table_));
 }
 
@@ -152,12 +133,6 @@ void SharedClassTable::FreeOldTables() {
   }
 }
 
-void SharedClassTable::FreeOldUnboxedFieldsMaps() {
-  while (old_unboxed_fields_maps_->length() > 0) {
-    free(old_unboxed_fields_maps_->RemoveLast());
-  }
-}
-
 void ClassTable::Register(const Class& cls) {
   ASSERT(Thread::Current()->IsMutatorThread());
 
@@ -167,7 +142,7 @@ void ClassTable::Register(const Class& cls) {
   // parallel to [ClassTable].
 
   const intptr_t instance_size =
-      cls.is_abstract() ? 0 : Class::host_instance_size(cls.raw());
+      cls.is_abstract() ? 0 : Class::instance_size(cls.raw());
 
   const intptr_t expected_cid =
       shared_class_table_->Register(index, instance_size);
@@ -264,7 +239,6 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
 
   intptr_t* new_table = static_cast<intptr_t*>(
       malloc(new_capacity * sizeof(intptr_t)));  // NOLINT
-
   memmove(new_table, table_, top_ * sizeof(intptr_t));
   memset(new_table + top_, 0, (new_capacity - top_) * sizeof(intptr_t));
 #ifndef PRODUCT
@@ -276,22 +250,10 @@ void SharedClassTable::Grow(intptr_t new_capacity) {
     new_table[i] = 0;
     NOT_IN_PRODUCT(new_stats_table[i] = 0);
   }
-
   capacity_ = new_capacity;
   old_tables_->Add(table_);
   table_ = new_table;  // TODO(koda): This should use atomics.
   NOT_IN_PRODUCT(trace_allocation_table_ = new_stats_table);
-
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-  auto new_unboxed_fields_map = static_cast<UnboxedFieldBitmap*>(
-      malloc(new_capacity * sizeof(UnboxedFieldBitmap)));
-  memmove(new_unboxed_fields_map, unboxed_fields_map_,
-          top_ * sizeof(UnboxedFieldBitmap));
-  memset(new_unboxed_fields_map + top_, 0,
-         (new_capacity - top_) * sizeof(UnboxedFieldBitmap));
-  old_unboxed_fields_maps_->Add(unboxed_fields_map_);
-  unboxed_fields_map_ = new_unboxed_fields_map;
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 }
 
 void ClassTable::Unregister(intptr_t index) {
@@ -301,9 +263,6 @@ void ClassTable::Unregister(intptr_t index) {
 
 void SharedClassTable::Unregister(intptr_t index) {
   table_[index] = 0;
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-  unboxed_fields_map_[index].Reset();
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 }
 
 void ClassTable::Remap(intptr_t* old_to_new_cid) {
@@ -322,24 +281,14 @@ void ClassTable::Remap(intptr_t* old_to_new_cid) {
 void SharedClassTable::Remap(intptr_t* old_to_new_cid) {
   ASSERT(Thread::Current()->IsAtSafepoint());
   const intptr_t num_cids = NumCids();
-  std::unique_ptr<intptr_t[]> cls_by_old_cid(new intptr_t[num_cids]);
+  intptr_t* cls_by_old_cid = new intptr_t[num_cids];
   for (intptr_t i = 0; i < num_cids; i++) {
     cls_by_old_cid[i] = table_[i];
   }
   for (intptr_t i = 0; i < num_cids; i++) {
     table_[old_to_new_cid[i]] = cls_by_old_cid[i];
   }
-
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-  std::unique_ptr<UnboxedFieldBitmap[]> unboxed_fields_by_old_cid(
-      new UnboxedFieldBitmap[num_cids]);
-  for (intptr_t i = 0; i < num_cids; i++) {
-    unboxed_fields_by_old_cid[i] = unboxed_fields_map_[i];
-  }
-  for (intptr_t i = 0; i < num_cids; i++) {
-    unboxed_fields_map_[old_to_new_cid[i]] = unboxed_fields_by_old_cid[i];
-  }
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+  delete[] cls_by_old_cid;
 }
 
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
@@ -395,8 +344,7 @@ void ClassTable::Print() {
 void ClassTable::SetAt(intptr_t index, RawClass* raw_cls) {
   // This is called by snapshot reader and class finalizer.
   ASSERT(index < capacity_);
-  const intptr_t size =
-      raw_cls == nullptr ? 0 : Class::host_instance_size(raw_cls);
+  const intptr_t size = raw_cls == nullptr ? 0 : Class::instance_size(raw_cls);
   shared_class_table_->SetSizeAt(index, size);
   table_[index] = raw_cls;
 }

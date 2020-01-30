@@ -2726,8 +2726,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ mov(kInstanceInstantiatorTypeArgumentsReg, Operand(kNullReg));
       __ ldr(R9,
              FieldAddress(
-                 R9, target::Class::
-                         host_type_arguments_field_offset_in_words_offset()));
+                 R9,
+                 target::Class::type_arguments_field_offset_in_words_offset()));
       __ CompareImmediate(R9, target::Class::kNoTypeArguments);
       __ b(&has_no_type_arguments, EQ);
       __ add(R9, kInstanceReg, Operand(R9, LSL, 2));

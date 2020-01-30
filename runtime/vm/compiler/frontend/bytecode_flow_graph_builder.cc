@@ -1151,7 +1151,7 @@ void BytecodeFlowGraphBuilder::BuildCreateArrayTOS() {
 }
 
 const Slot& ClosureSlotByField(const Field& field) {
-  const intptr_t offset = field.HostOffset();
+  const intptr_t offset = field.Offset();
   if (offset == Closure::instantiator_type_arguments_offset()) {
     return Slot::Closure_instantiator_type_arguments();
   } else if (offset == Closure::function_type_arguments_offset()) {
@@ -1178,7 +1178,7 @@ void BytecodeFlowGraphBuilder::BuildStoreFieldTOS() {
 
   const Field& field = Field::Cast(ConstantAt(cp_index, 1).value());
   ASSERT(Smi::Cast(ConstantAt(cp_index).value()).Value() * kWordSize ==
-         field.HostOffset());
+         field.Offset());
 
   if (field.Owner() == isolate()->object_store()->closure_class()) {
     // Stores to _Closure fields are lower-level.
@@ -1204,7 +1204,7 @@ void BytecodeFlowGraphBuilder::BuildLoadFieldTOS() {
 
   const Field& field = Field::Cast(ConstantAt(cp_index, 1).value());
   ASSERT(Smi::Cast(ConstantAt(cp_index).value()).Value() * kWordSize ==
-         field.HostOffset());
+         field.Offset());
 
   if (field.Owner() == isolate()->object_store()->closure_class()) {
     // Loads from _Closure fields are lower-level.
@@ -1292,7 +1292,7 @@ void BytecodeFlowGraphBuilder::BuildInitLateField() {
 
   const Field& field = Field::Cast(ConstantAt(cp_index, 1).value());
   ASSERT(Smi::Cast(ConstantAt(cp_index).value()).Value() * kWordSize ==
-         field.HostOffset());
+         field.Offset());
 
   code_ += B->Constant(Object::sentinel());
   code_ += B->StoreInstanceField(

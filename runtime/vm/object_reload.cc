@@ -663,8 +663,8 @@ class InstanceSizeConflict : public ClassReasonForCancelling {
     return String::NewFormatted("Instance size mismatch between '%s' (%" Pd
                                 ") and replacement "
                                 "'%s' ( %" Pd ")",
-                                from_.ToCString(), from_.host_instance_size(),
-                                to_.ToCString(), to_.host_instance_size());
+                                from_.ToCString(), from_.instance_size(),
+                                to_.ToCString(), to_.instance_size());
   }
 };
 
@@ -748,9 +748,7 @@ bool Class::RequiresInstanceMorphing(const Class& replacement) const {
   // Check that we have the same next field offset. This check is not
   // redundant with the one above because the instance OffsetToFieldMap
   // array length is based on the instance size (which may be aligned up).
-  if (host_next_field_offset() != replacement.host_next_field_offset()) {
-    return true;
-  }
+  if (next_field_offset() != replacement.next_field_offset()) return true;
 
   // Verify that field names / offsets match across the entire hierarchy.
   Field& field = Field::Handle();
@@ -807,7 +805,7 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
     return false;
   }
   // Check the instance sizes are equal.
-  if (host_instance_size() != replacement.host_instance_size()) {
+  if (instance_size() != replacement.instance_size()) {
     context->group_reload_context()->AddReasonForCancelling(
         new (context->zone())
             InstanceSizeConflict(context->zone(), *this, replacement));

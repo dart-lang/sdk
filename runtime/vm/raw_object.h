@@ -474,27 +474,10 @@ class RawObject {
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
-    const auto first = reinterpret_cast<RawObject**>(from);
-    const auto last = reinterpret_cast<RawObject**>(to);
 
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-    const auto unboxed_fields_bitmap =
-        visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
-
-    if (!unboxed_fields_bitmap.IsEmpty()) {
-      intptr_t bit = sizeof(RawObject) / kWordSize;
-      for (RawObject** current = first; current <= last; current++) {
-        if (!unboxed_fields_bitmap.Get(bit++)) {
-          visitor->VisitPointer(current);
-        }
-      }
-    } else {
-      visitor->VisitPointers(first, last);
-    }
-#else
     // Call visitor function virtually
-    visitor->VisitPointers(first, last);
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+    visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
+                           reinterpret_cast<RawObject**>(to));
 
     return instance_size;
   }
@@ -512,27 +495,10 @@ class RawObject {
     uword obj_addr = ToAddr(this);
     uword from = obj_addr + sizeof(RawObject);
     uword to = obj_addr + instance_size - kWordSize;
-    const auto first = reinterpret_cast<RawObject**>(from);
-    const auto last = reinterpret_cast<RawObject**>(to);
 
-#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
-    const auto unboxed_fields_bitmap =
-        visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
-
-    if (!unboxed_fields_bitmap.IsEmpty()) {
-      intptr_t bit = sizeof(RawObject) / kWordSize;
-      for (RawObject** current = first; current <= last; current++) {
-        if (!unboxed_fields_bitmap.Get(bit++)) {
-          visitor->V::VisitPointers(current, current);
-        }
-      }
-    } else {
-      visitor->V::VisitPointers(first, last);
-    }
-#else
     // Call visitor function non-virtually
-    visitor->V::VisitPointers(first, last);
-#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+    visitor->V::VisitPointers(reinterpret_cast<RawObject**>(from),
+                              reinterpret_cast<RawObject**>(to));
 
     return instance_size;
   }
@@ -848,31 +814,13 @@ class RawClass : public RawObject {
 
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
-
+  int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
+  int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
+  int32_t next_field_offset_in_words_;  // Offset of the next instance field.
   classid_t id_;                // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
   uint16_t num_native_fields_;
   uint32_t state_bits_;
-
-  // Size if fixed len or 0 if variable len.
-  int32_t host_instance_size_in_words_;
-
-  // Offset of type args fld.
-  int32_t host_type_arguments_field_offset_in_words_;
-
-  // Offset of the next instance field.
-  int32_t host_next_field_offset_in_words_;
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // Size if fixed len or 0 if variable len (target).
-  int32_t target_instance_size_in_words_;
-
-  // Offset of type args fld.
-  int32_t target_type_arguments_field_offset_in_words_;
-
-  // Offset of the next instance field (target).
-  int32_t target_next_field_offset_in_words_;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   typedef BitField<uint32_t, bool, 0, 1> IsDeclaredInBytecode;
@@ -1229,16 +1177,11 @@ class RawField : public RawObject {
   // field.
   int8_t static_type_exactness_state_;
 
-  uint16_t kind_bits_;  // static, final, const, has initializer....
-
   // - for instance fields: offset in words to the value in the class instance.
   // - for static fields: index into field_table.
-  intptr_t host_offset_or_field_id_;
+  intptr_t offset_or_field_id_;
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // for instance fields, the offset in words in the target architecture
-  int32_t target_offset_;
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  uint16_t kind_bits_;  // static, final, const, has initializer....
 
   friend class CidRewriteVisitor;
 };
@@ -2315,7 +2258,6 @@ class RawDouble : public RawNumber {
 
   friend class Api;
   friend class SnapshotReader;
-  friend class Class;
 };
 COMPILE_ASSERT(sizeof(RawDouble) == 16);
 
@@ -2586,7 +2528,6 @@ class RawFloat32x4 : public RawInstance {
   ALIGN8 float value_[4];
 
   friend class SnapshotReader;
-  friend class Class;
 
  public:
   float x() const { return value_[0]; }
@@ -2619,7 +2560,6 @@ class RawFloat64x2 : public RawInstance {
   ALIGN8 double value_[2];
 
   friend class SnapshotReader;
-  friend class Class;
 
  public:
   double x() const { return value_[0]; }

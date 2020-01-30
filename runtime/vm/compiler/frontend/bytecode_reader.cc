@@ -748,7 +748,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         field ^= ReadObject();
         // InstanceField constant occupies 2 entries.
         // The first entry is used for field offset.
-        obj = Smi::New(field.HostOffset() / kWordSize);
+        obj = Smi::New(field.Offset() / kWordSize);
         pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
                        ObjectPool::Patchability::kNotPatchable);
         pool.SetObjectAt(i, obj);
@@ -763,7 +763,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
         break;
       case ConstantPoolTag::kTypeArgumentsField:
         cls ^= ReadObject();
-        obj = Smi::New(cls.host_type_arguments_field_offset() / kWordSize);
+        obj = Smi::New(cls.type_arguments_field_offset() / kWordSize);
         break;
       case ConstantPoolTag::kType:
         obj = ReadObject();

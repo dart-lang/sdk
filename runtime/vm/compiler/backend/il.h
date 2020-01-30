@@ -5498,7 +5498,7 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   static bool WillAllocateNewOrRemembered(const Class& cls) {
-    return Heap::IsAllocatableInNewSpace(cls.target_instance_size());
+    return Heap::IsAllocatableInNewSpace(cls.instance_size());
   }
 
   PRINT_OPERANDS_TO_SUPPORT

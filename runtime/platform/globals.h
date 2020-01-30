@@ -417,10 +417,6 @@ typedef simd128_value_t fpu_register_t;
 #define DUAL_MAPPING_SUPPORTED 1
 #endif
 
-#if defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER)
-#define SUPPORT_UNBOXED_INSTANCE_FIELDS
-#endif
-
 // Short form printf format specifiers
 #define Pd PRIdPTR
 #define Pu PRIuPTR

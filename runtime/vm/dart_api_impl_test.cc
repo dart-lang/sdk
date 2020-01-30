@@ -4393,7 +4393,7 @@ TEST_CASE(DartAPI_InjectNativeFields3) {
   intptr_t header_size = sizeof(RawObject);
   EXPECT_EQ(
       Utils::RoundUp(((1 + 2) * kWordSize) + header_size, kObjectAlignment),
-      cls.host_instance_size());
+      cls.instance_size());
   EXPECT_EQ(kNumNativeFields, cls.num_native_fields());
 }
 

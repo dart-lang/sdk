@@ -272,8 +272,6 @@ class BaseReader {
     return SerializedHeaderData::decode(value);
   }
 
-  uword ReadWordWith32BitReads() { return stream_.ReadWordWith32BitReads(); }
-
  private:
   ReadStream stream_;  // input stream.
 };
@@ -529,10 +527,6 @@ class BaseWriter : public StackResource {
 
   void WriteDouble(double value) {
     stream_.WriteBytes(reinterpret_cast<const uint8_t*>(&value), sizeof(value));
-  }
-
-  void WriteWordWith32BitWrites(uword value) {
-    stream_.WriteWordWith32BitWrites(value);
   }
 
  protected:

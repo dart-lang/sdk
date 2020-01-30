@@ -2807,10 +2807,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       Label has_no_type_arguments;
       __ LoadClassById(RDI, kInstanceCidOrFunction);
       __ movq(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
-      __ movl(RDI,
-              FieldAddress(
-                  RDI, target::Class::
-                           host_type_arguments_field_offset_in_words_offset()));
+      __ movl(
+          RDI,
+          FieldAddress(
+              RDI,
+              target::Class::type_arguments_field_offset_in_words_offset()));
       __ cmpl(RDI, Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
       __ movq(kInstanceInstantiatorTypeArgumentsReg,

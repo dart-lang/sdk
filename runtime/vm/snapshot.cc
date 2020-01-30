@@ -593,59 +593,47 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
     ASSERT(!cls_.IsNull());
     // Closure instances are handled by Closure::ReadFrom().
     ASSERT(!cls_.IsClosureClass());
-    instance_size = cls_.host_instance_size();
+    instance_size = cls_.instance_size();
     ASSERT(instance_size > 0);
     // Allocate the instance and read in all the fields for the object.
     *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
   } else {
     cls_ ^= ReadObjectImpl(kAsInlinedObject);
     ASSERT(!cls_.IsNull());
-    instance_size = cls_.host_instance_size();
+    instance_size = cls_.instance_size();
   }
   if (cls_.id() == set_class_.id()) {
     EnqueueRehashingOfSet(*result);
   }
   if (!as_reference) {
     // Read all the individual fields for inlined objects.
-    intptr_t next_field_offset = cls_.host_next_field_offset();
+    intptr_t next_field_offset = cls_.next_field_offset();
 
-    intptr_t type_argument_field_offset =
-        cls_.host_type_arguments_field_offset();
+    intptr_t type_argument_field_offset = cls_.type_arguments_field_offset();
     ASSERT(next_field_offset > 0);
     // Instance::NextFieldOffset() returns the offset of the first field in
     // a Dart object.
     bool read_as_reference = RawObject::IsCanonical(tags) ? false : true;
     intptr_t offset = Instance::NextFieldOffset();
     intptr_t result_cid = result->GetClassId();
-
-    const auto unboxed_fields =
-        isolate()->shared_class_table()->GetUnboxedFieldsMapAt(result_cid);
-
     while (offset < next_field_offset) {
-      if (unboxed_fields.Get(offset / kWordSize)) {
-        uword* p = reinterpret_cast<uword*>(result->raw_value() -
-                                            kHeapObjectTag + offset);
-        // Reads 32 bits of the unboxed value at a time
-        *p = ReadWordWith32BitReads();
-      } else {
-        pobj_ = ReadObjectImpl(read_as_reference);
-        result->SetFieldAtOffset(offset, pobj_);
-        if ((offset != type_argument_field_offset) &&
-            (kind_ == Snapshot::kMessage) && isolate()->use_field_guards()) {
-          // TODO(fschneider): Consider hoisting these lookups out of the loop.
-          // This would involve creating a handle, since cls_ can't be reused
-          // across the call to ReadObjectImpl.
-          cls_ = isolate()->class_table()->At(result_cid);
-          array_ = cls_.OffsetToFieldMap();
-          field_ ^= array_.At(offset >> kWordSizeLog2);
-          ASSERT(!field_.IsNull());
-          ASSERT(field_.HostOffset() == offset);
-          obj_ = pobj_.raw();
-          field_.RecordStore(obj_);
-        }
-        // TODO(fschneider): Verify the guarded cid and length for other kinds
-        // of snapshot (kFull, kScript) with asserts.
+      pobj_ = ReadObjectImpl(read_as_reference);
+      result->SetFieldAtOffset(offset, pobj_);
+      if ((offset != type_argument_field_offset) &&
+          (kind_ == Snapshot::kMessage) && isolate()->use_field_guards()) {
+        // TODO(fschneider): Consider hoisting these lookups out of the loop.
+        // This would involve creating a handle, since cls_ can't be reused
+        // across the call to ReadObjectImpl.
+        cls_ = isolate()->class_table()->At(result_cid);
+        array_ = cls_.OffsetToFieldMap();
+        field_ ^= array_.At(offset >> kWordSizeLog2);
+        ASSERT(!field_.IsNull());
+        ASSERT(field_.Offset() == offset);
+        obj_ = pobj_.raw();
+        field_.RecordStore(obj_);
       }
+      // TODO(fschneider): Verify the guarded cid and length for other kinds of
+      // snapshot (kFull, kScript) with asserts.
       offset += kWordSize;
     }
     if (RawObject::IsCanonical(tags)) {
@@ -1451,7 +1439,7 @@ void SnapshotWriter::WriteInstance(RawObject* raw,
     // Write out the class information for this object.
     WriteObjectImpl(cls, kAsInlinedObject);
   } else {
-    intptr_t next_field_offset = Class::host_next_field_offset_in_words(cls)
+    intptr_t next_field_offset = cls->ptr()->next_field_offset_in_words_
                                  << kWordSizeLog2;
     ASSERT(next_field_offset > 0);
 
@@ -1467,26 +1455,15 @@ void SnapshotWriter::WriteInstance(RawObject* raw,
     // Write out the class information for this object.
     WriteObjectImpl(cls, kAsInlinedObject);
 
-    const auto unboxed_fields =
-        isolate()->shared_class_table()->GetUnboxedFieldsMapAt(cls->ptr()->id_);
-
     // Write out all the fields for the object.
     // Instance::NextFieldOffset() returns the offset of the first field in
     // a Dart object.
     bool write_as_reference = RawObject::IsCanonical(tags) ? false : true;
-
     intptr_t offset = Instance::NextFieldOffset();
     while (offset < next_field_offset) {
-      if (unboxed_fields.Get(offset / kWordSize)) {
-        // Writes 32 bits of the unboxed value at a time
-        const uword value = *reinterpret_cast<uword*>(
-            reinterpret_cast<uword>(raw->ptr()) + offset);
-        WriteWordWith32BitWrites(value);
-      } else {
-        RawObject* raw_obj = *reinterpret_cast<RawObject**>(
-            reinterpret_cast<uword>(raw->ptr()) + offset);
-        WriteObjectImpl(raw_obj, write_as_reference);
-      }
+      RawObject* raw_obj = *reinterpret_cast<RawObject**>(
+          reinterpret_cast<uword>(raw->ptr()) + offset);
+      WriteObjectImpl(raw_obj, write_as_reference);
       offset += kWordSize;
     }
   }

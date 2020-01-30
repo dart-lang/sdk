@@ -2349,10 +2349,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       Label has_no_type_arguments;
       __ LoadClassById(EDI, kInstanceCidOrFunction);
       __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
-      __ movl(EDI,
-              FieldAddress(
-                  EDI, target::Class::
-                           host_type_arguments_field_offset_in_words_offset()));
+      __ movl(
+          EDI,
+          FieldAddress(
+              EDI,
+              target::Class::type_arguments_field_offset_in_words_offset()));
       __ cmpl(EDI, Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
       __ movl(kInstanceInstantiatorTypeArgumentsReg,

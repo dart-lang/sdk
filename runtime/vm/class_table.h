@@ -7,11 +7,9 @@
 
 #include "platform/assert.h"
 #include "platform/atomic.h"
-#include "platform/utils.h"
 
 #include "vm/bitfield.h"
 #include "vm/class_id.h"
-#include "vm/flags.h"
 #include "vm/globals.h"
 
 namespace dart {
@@ -29,33 +27,6 @@ template <typename T>
 class MallocGrowableArray;
 class ObjectPointerVisitor;
 class RawClass;
-
-// Wraps a 64-bit integer to represent the bitmap of unboxed fields
-// stored in the shared class table.
-class UnboxedFieldBitmap {
- public:
-  UnboxedFieldBitmap() : bitmap_(0) {}
-  explicit UnboxedFieldBitmap(uint64_t bitmap) : bitmap_(bitmap) {}
-  UnboxedFieldBitmap(const UnboxedFieldBitmap&) = default;
-  UnboxedFieldBitmap& operator=(const UnboxedFieldBitmap&) = default;
-
-  DART_FORCE_INLINE bool Get(intptr_t position) const {
-    return Utils::TestBit(bitmap_, position);
-  }
-  DART_FORCE_INLINE void Set(intptr_t position) {
-    bitmap_ |= Utils::Bit<decltype(bitmap_)>(position);
-  }
-  DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
-  DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
-  DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
-
-  DART_FORCE_INLINE static constexpr intptr_t Length() {
-    return sizeof(decltype(bitmap_)) * kBitsPerByte;
-  }
-
- private:
-  uint64_t bitmap_;
-};
 
 // Registry of all known classes and their sizes.
 //
@@ -90,19 +61,6 @@ class SharedClassTable {
 
   intptr_t NumCids() const { return top_; }
   intptr_t Capacity() const { return capacity_; }
-
-  UnboxedFieldBitmap GetUnboxedFieldsMapAt(intptr_t index) const {
-    ASSERT(IsValidIndex(index));
-    return FLAG_precompiled_mode ? unboxed_fields_map_[index]
-                                 : UnboxedFieldBitmap();
-  }
-
-  void SetUnboxedFieldsMapAt(intptr_t index,
-                             UnboxedFieldBitmap unboxed_fields_map) {
-    ASSERT(IsValidIndex(index));
-    ASSERT(unboxed_fields_map_[index].IsEmpty());
-    unboxed_fields_map_[index] = unboxed_fields_map;
-  }
 
   // Used to drop recently added classes.
   void SetNumCids(intptr_t num_cids) {
@@ -159,9 +117,6 @@ class SharedClassTable {
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
 
-  // Deallocates bitmap copies. Do not call during concurrent access to table.
-  void FreeOldUnboxedFieldsMaps();
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool IsReloading() const { return reload_context_ != nullptr; }
 
@@ -215,14 +170,6 @@ class SharedClassTable {
   MallocGrowableArray<intptr_t*>* old_tables_;
 
   IsolateGroupReloadContext* reload_context_ = nullptr;
-
-  // Stores a 64-bit bitmap for each class. There is one bit for each word in an
-  // instance of the class. A 0 bit indicates that the word contains a pointer
-  // the GC has to scan, a 1 indicates that the word is part of e.g. an unboxed
-  // double and does not need to be scanned. (see Class::Calculate...() where
-  // the bitmap is constructed)
-  UnboxedFieldBitmap* unboxed_fields_map_;
-  MallocGrowableArray<UnboxedFieldBitmap*>* old_unboxed_fields_maps_;
 
   DISALLOW_COPY_AND_ASSIGN(SharedClassTable);
 };

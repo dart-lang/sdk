@@ -2851,8 +2851,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
       __ LoadClassById(R5, kInstanceCidOrFunction);
       __ mov(kInstanceInstantiatorTypeArgumentsReg, kNullReg);
       __ LoadFieldFromOffset(
-          R5, R5,
-          target::Class::host_type_arguments_field_offset_in_words_offset(),
+          R5, R5, target::Class::type_arguments_field_offset_in_words_offset(),
           kWord);
       __ CompareImmediate(R5, target::Class::kNoTypeArguments);
       __ b(&has_no_type_arguments, EQ);

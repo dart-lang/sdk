@@ -8,7 +8,6 @@
 
 #include <memory>
 
-#include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/frontend/constant_reader.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/dart_api_impl.h"
@@ -949,17 +948,6 @@ void KernelLoader::ReadInferredType(const Field& field,
   field.set_guarded_cid(type.cid);
   field.set_is_nullable(type.IsNullable());
   field.set_guarded_list_length(Field::kNoFixedLength);
-  if (FLAG_precompiled_mode) {
-    field.set_is_unboxing_candidate(
-        !field.is_late() && !field.is_static() &&
-        ((field.guarded_cid() == kDoubleCid &&
-          FlowGraphCompiler::SupportsUnboxedDoubles()) ||
-         (field.guarded_cid() == kFloat32x4Cid &&
-          FlowGraphCompiler::SupportsUnboxedSimd128()) ||
-         (field.guarded_cid() == kFloat64x2Cid &&
-          FlowGraphCompiler::SupportsUnboxedSimd128())) &&
-        !field.is_nullable());
-  }
 }
 
 void KernelLoader::CheckForInitializer(const Field& field) {

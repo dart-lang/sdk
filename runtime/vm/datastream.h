@@ -72,10 +72,7 @@ class ReadStream : public ValueObject {
     current_ += len;
   }
 
-  template <typename T = intptr_t>
-  T ReadUnsigned() {
-    return Read<T>(kEndUnsignedByteMarker);
-  }
+  intptr_t ReadUnsigned() { return Read<intptr_t>(kEndUnsignedByteMarker); }
 
   intptr_t Position() const { return current_ - buffer_; }
   void SetPosition(intptr_t value) {
@@ -104,19 +101,6 @@ class ReadStream : public ValueObject {
   template <typename T>
   T Read() {
     return Read<T>(kEndByteMarker);
-  }
-
-  uword ReadWordWith32BitReads() {
-    constexpr intptr_t kNumBytesPerRead32 = sizeof(uint32_t);
-    constexpr intptr_t kNumRead32PerWord = sizeof(uword) / kNumBytesPerRead32;
-    constexpr intptr_t kNumBitsPerRead32 = kNumBytesPerRead32 * kBitsPerByte;
-
-    uword value = 0;
-    for (intptr_t j = 0; j < kNumRead32PerWord; j++) {
-      const auto partial_value = Raw<kNumBytesPerRead32, uint32_t>::Read(this);
-      value |= (static_cast<uword>(partial_value) << (j * kNumBitsPerRead32));
-    }
-    return value;
   }
 
  private:
@@ -379,21 +363,8 @@ class WriteStream : public ValueObject {
     }
   };
 
-  void WriteWordWith32BitWrites(uword value) {
-    constexpr intptr_t kNumBytesPerWrite32 = sizeof(uint32_t);
-    constexpr intptr_t kNumWrite32PerWord = sizeof(uword) / kNumBytesPerWrite32;
-    constexpr intptr_t kNumBitsPerWrite32 = kNumBytesPerWrite32 * kBitsPerByte;
-
-    const uint32_t mask = Utils::NBitMask(kNumBitsPerWrite32);
-    for (intptr_t j = 0; j < kNumWrite32PerWord; j++) {
-      const uint32_t shifted_value = (value >> (j * kNumBitsPerWrite32));
-      Raw<kNumBytesPerWrite32, uint32_t>::Write(this, shifted_value & mask);
-    }
-  }
-
-  template <typename T>
-  void WriteUnsigned(T value) {
-    ASSERT(value >= 0);
+  void WriteUnsigned(intptr_t value) {
+    ASSERT((value >= 0) && (value <= kIntptrMax));
     while (value > kMaxUnsignedDataPerByte) {
       WriteByte(static_cast<uint8_t>(value & kByteMask));
       value = value >> kDataBitsPerByte;
