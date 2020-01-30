@@ -9,9 +9,9 @@ import 'typescript_parser.dart';
 
 final formatter = DartFormatter();
 Map<String, Interface> _interfaces = {};
-Map<String, List<String>> _subtypes = {};
-// TODO(dantup): Rename namespaces -> enums since they're always that now.
 Map<String, Namespace> _namespaces = {};
+// TODO(dantup): Rename namespaces -> enums since they're always that now.
+Map<String, List<String>> _subtypes = {};
 Map<String, TypeAlias> _typeAliases = {};
 
 /// Whether our enum class allows any value (eg. should always return true
@@ -34,6 +34,13 @@ bool enumClassAllowsAnyValue(String name) {
       name != 'ResourceOperationKind';
 }
 
+String generateDartForTypes(List<AstNode> types) {
+  final buffer = IndentableStringBuffer();
+  _getSorted(types).forEach((t) => _writeType(buffer, t));
+  final formattedCode = _formatCode(buffer.toString());
+  return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
+}
+
 void recordTypes(List<AstNode> types) {
   types
       .whereType<TypeAlias>()
@@ -50,13 +57,6 @@ void recordTypes(List<AstNode> types) {
   types
       .whereType<Namespace>()
       .forEach((namespace) => _namespaces[namespace.name] = namespace);
-}
-
-String generateDartForTypes(List<AstNode> types) {
-  final buffer = IndentableStringBuffer();
-  _getSorted(types).forEach((t) => _writeType(buffer, t));
-  final formattedCode = _formatCode(buffer.toString());
-  return formattedCode.trim() + '\n'; // Ensure a single trailing newline.
 }
 
 TypeBase resolveTypeAlias(TypeBase type, {resolveEnumClasses = false}) {
@@ -179,7 +179,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       buffer
         ..writeIndentedln("if (!obj.containsKey('${field.name}')) {")
         ..indent()
-        ..writeIndentedln('reporter.reportError("must not be undefined");')
+        ..writeIndentedln("reporter.reportError('must not be undefined');")
         ..writeIndentedln('return false;')
         ..outdent()
         ..writeIndentedln('}');
@@ -188,7 +188,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       buffer
         ..writeIndentedln("if (obj['${field.name}'] == null) {")
         ..indent()
-        ..writeIndentedln('reporter.reportError("must not be null");')
+        ..writeIndentedln("reporter.reportError('must not be null');")
         ..writeIndentedln('return false;')
         ..outdent()
         ..writeIndentedln('}');
@@ -204,7 +204,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
       ..write(')) {')
       ..indent()
       ..writeIndentedln(
-          'reporter.reportError("must be of type ${field.type.dartTypeWithTypeArgs}");')
+          "reporter.reportError('must be of type ${field.type.dartTypeWithTypeArgs}');")
       ..writeIndentedln('return false;')
       ..outdent()
       ..writeIndentedln('}')
@@ -221,7 +221,7 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
     ..writeIndentedln('} else {')
     ..indent()
     ..writeIndentedln(
-        'reporter.reportError("must be of type ${interface.nameWithTypeArgs}");')
+        "reporter.reportError('must be of type ${interface.nameWithTypeArgs}');")
     ..writeIndentedln('return false;')
     ..outdent()
     ..writeIndentedln('}')
@@ -264,15 +264,6 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
   } else {
     buffer.writeln(';');
   }
-}
-
-void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
-  buffer
-    ..writeIndented('static const jsonHandler = ')
-    ..write('LspJsonHandler(')
-    ..write('${interface.name}.canParse, ${interface.name}.fromJson')
-    ..writeln(');')
-    ..writeln();
 }
 
 void _writeDocCommentsAndAnnotations(
@@ -343,7 +334,7 @@ void _writeEnumClass(IndentableStringBuffer buffer, Namespace namespace) {
     ..writeln()
     ..writeIndentedln('@override String toString() => _value.toString();')
     ..writeln()
-    ..writeIndentedln('@override get hashCode => _value.hashCode;')
+    ..writeIndentedln('@override int get hashCode => _value.hashCode;')
     ..writeln()
     ..writeIndentedln(
         'bool operator ==(Object o) => o is ${namespace.name} && o._value == _value;')
@@ -558,6 +549,15 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
     ..writeln();
 }
 
+void _writeJsonHandler(IndentableStringBuffer buffer, Interface interface) {
+  buffer
+    ..writeIndented('static const jsonHandler = ')
+    ..write('LspJsonHandler(')
+    ..write('${interface.name}.canParse, ${interface.name}.fromJson')
+    ..writeln(');')
+    ..writeln();
+}
+
 void _writeJsonMapAssignment(
     IndentableStringBuffer buffer, Field field, String mapName) {
   // If we are allowed to be undefined, we'll only add the value if set.
@@ -593,29 +593,6 @@ void _writeMembers(IndentableStringBuffer buffer, List<Member> members) {
   _getSorted(members).forEach((m) => _writeMember(buffer, m));
 }
 
-void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
-  // It's important the name we use for the map here isn't in use in the object
-  // already. 'result' was, so we prefix it with some underscores.
-  buffer
-    ..writeIndentedln('Map<String, dynamic> toJson() {')
-    ..indent()
-    ..writeIndentedln('Map<String, dynamic> __result = {};');
-  // ResponseMessage must confirm to JSON-RPC which says only one of
-  // result/error can be included. Since this isn't encoded in the types we
-  // need to special-case it's toJson generation.
-  if (interface.name == 'ResponseMessage') {
-    _writeToJsonFieldsForResponseMessage(buffer, interface);
-  } else {
-    for (var field in _getAllFields(interface)) {
-      _writeJsonMapAssignment(buffer, field, '__result');
-    }
-  }
-  buffer
-    ..writeIndentedln('return __result;')
-    ..outdent()
-    ..writeIndentedln('}');
-}
-
 void _writeToJsonFieldsForResponseMessage(
     IndentableStringBuffer buffer, Interface interface) {
   const mapName = '__result';
@@ -641,6 +618,29 @@ void _writeToJsonFieldsForResponseMessage(
     ..writeIndentedln('} else {')
     ..indent()
     ..writeIndentedln('''$mapName['result'] = result;''')
+    ..outdent()
+    ..writeIndentedln('}');
+}
+
+void _writeToJsonMethod(IndentableStringBuffer buffer, Interface interface) {
+  // It's important the name we use for the map here isn't in use in the object
+  // already. 'result' was, so we prefix it with some underscores.
+  buffer
+    ..writeIndentedln('Map<String, dynamic> toJson() {')
+    ..indent()
+    ..writeIndentedln('Map<String, dynamic> __result = {};');
+  // ResponseMessage must confirm to JSON-RPC which says only one of
+  // result/error can be included. Since this isn't encoded in the types we
+  // need to special-case it's toJson generation.
+  if (interface.name == 'ResponseMessage') {
+    _writeToJsonFieldsForResponseMessage(buffer, interface);
+  } else {
+    for (var field in _getAllFields(interface)) {
+      _writeJsonMapAssignment(buffer, field, '__result');
+    }
+  }
+  buffer
+    ..writeIndentedln('return __result;')
     ..outdent()
     ..writeIndentedln('}');
 }
