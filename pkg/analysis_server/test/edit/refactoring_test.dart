@@ -15,7 +15,7 @@ import '../analysis_abstract.dart';
 import '../mocks.dart';
 import '../src/utilities/mock_packages.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertGetterMethodToMethodTest);
     defineReflectiveTests(ConvertMethodToGetterTest);
@@ -40,7 +40,7 @@ void _fail(String message) {
 
 @reflectiveTest
 class ConvertGetterMethodToMethodTest extends _AbstractGetRefactoring_Test {
-  test_function() {
+  Future<void> test_function() {
     addTestFile('''
 int get test => 42;
 main() {
@@ -59,7 +59,7 @@ main() {
 ''');
   }
 
-  test_init_fatalError_notExplicit() {
+  Future<void> test_init_fatalError_notExplicit() {
     addTestFile('''
 int test = 42;
 main() {
@@ -76,7 +76,7 @@ main() {
     });
   }
 
-  test_method() {
+  Future<void> test_method() {
     addTestFile('''
 class A {
   int get test => 1;
@@ -135,7 +135,7 @@ main(A a, B b, C c, D d) {
 
 @reflectiveTest
 class ConvertMethodToGetterTest extends _AbstractGetRefactoring_Test {
-  test_function() {
+  Future<void> test_function() {
     addTestFile('''
 int test() => 42;
 main() {
@@ -154,7 +154,7 @@ main() {
 ''');
   }
 
-  test_init_fatalError_hasParameters() {
+  Future<void> test_init_fatalError_hasParameters() {
     addTestFile('''
 int test(p) => p + 1;
 main() {
@@ -171,7 +171,7 @@ main() {
     });
   }
 
-  test_init_fatalError_notExecutableElement() {
+  Future<void> test_init_fatalError_notExecutableElement() {
     addTestFile('''
 main() {
   int abc = 1;
@@ -188,7 +188,7 @@ main() {
     });
   }
 
-  test_method() {
+  Future<void> test_method() {
     addTestFile('''
 class A {
   int test() => 1;
@@ -277,7 +277,7 @@ class ExtractLocalVariableTest extends _AbstractGetRefactoring_Test {
     super.tearDown();
   }
 
-  test_analysis_onlyOneFile() async {
+  Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
     newFile(join(testFolder, 'other.dart'), content: r'''
 foo(int myName) {}
@@ -297,7 +297,7 @@ main() {
     expect(feedback.names, contains('myName'));
   }
 
-  test_coveringExpressions() {
+  Future<void> test_coveringExpressions() {
     addTestFile('''
 main() {
   var v = 111 + 222 + 333;
@@ -317,7 +317,7 @@ main() {
     });
   }
 
-  test_extractAll() {
+  Future<void> test_extractAll() {
     addTestFile('''
 main() {
   print(1 + 2);
@@ -335,7 +335,7 @@ main() {
 ''');
   }
 
-  test_extractOne() {
+  Future<void> test_extractOne() {
     addTestFile('''
 main() {
   print(1 + 2);
@@ -353,7 +353,7 @@ main() {
 ''');
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditGetRefactoringParams(
             RefactoringKind.EXTRACT_LOCAL_VARIABLE, 'test.dart', 0, 0, true)
         .toRequest('0');
@@ -364,7 +364,7 @@ main() {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetRefactoringParams(
             RefactoringKind.EXTRACT_LOCAL_VARIABLE,
             convertPath('/foo/../bar/test.dart'),
@@ -379,7 +379,7 @@ main() {
     );
   }
 
-  test_names() async {
+  Future<void> test_names() async {
     addTestFile('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
@@ -396,7 +396,7 @@ main() {
     expect(result.change, isNull);
   }
 
-  test_nameWarning() async {
+  Future<void> test_nameWarning() async {
     addTestFile('''
 main() {
   print(1 + 2);
@@ -416,7 +416,7 @@ main() {
 ''');
   }
 
-  test_offsetsLengths() {
+  Future<void> test_offsetsLengths() {
     addTestFile('''
 main() {
   print(1 + 2);
@@ -432,7 +432,7 @@ main() {
     });
   }
 
-  test_resetOnAnalysisSetChanged_overlay() async {
+  Future<void> test_resetOnAnalysisSetChanged_overlay() async {
     addTestFile('''
 main() {
   print(1 + 2); // 0
@@ -476,7 +476,7 @@ main() {
     });
   }
 
-  test_resetOnAnalysisSetChanged_watch_otherFile() async {
+  Future<void> test_resetOnAnalysisSetChanged_watch_otherFile() async {
     String otherFile = join(testFolder, 'other.dart');
     newFile(otherFile, content: '// other 1');
     addTestFile('''
@@ -503,7 +503,7 @@ foo(int myName) {}
     expect(test_resetCount, initialResetCount + 1);
   }
 
-  test_resetOnAnalysisSetChanged_watch_thisFile() async {
+  Future<void> test_resetOnAnalysisSetChanged_watch_thisFile() async {
     addTestFile('''
 main() {
   foo(1 + 2);
@@ -540,7 +540,7 @@ foo(int otherName) {}
     }
   }
 
-  test_serverError_change() {
+  Future<void> test_serverError_change() {
     test_simulateRefactoringException_change = true;
     addTestFile('''
 main() {
@@ -555,7 +555,7 @@ main() {
     });
   }
 
-  test_serverError_final() {
+  Future<void> test_serverError_final() {
     test_simulateRefactoringException_final = true;
     addTestFile('''
 main() {
@@ -570,7 +570,7 @@ main() {
     });
   }
 
-  test_serverError_init() {
+  Future<void> test_serverError_init() {
     test_simulateRefactoringException_init = true;
     addTestFile('''
 main() {
@@ -593,7 +593,7 @@ class ExtractMethodTest extends _AbstractGetRefactoring_Test {
   String name = 'res';
   ExtractMethodOptions options;
 
-  test_expression() {
+  Future<void> test_expression() {
     addTestFile('''
 main() {
   print(1 + 2);
@@ -611,7 +611,7 @@ int res() => 1 + 2;
 ''');
   }
 
-  test_expression_hasParameters() {
+  Future<void> test_expression_hasParameters() {
     addTestFile('''
 main() {
   int a = 1;
@@ -633,7 +633,7 @@ int res(int a, int b) => a + b;
 ''');
   }
 
-  test_expression_updateParameters() {
+  Future<void> test_expression_updateParameters() {
     addTestFile('''
 main() {
   int a = 1;
@@ -664,7 +664,7 @@ int res(num bbb, int aaa) => aaa + bbb;
     });
   }
 
-  test_init_fatalError_invalidStatement() {
+  Future<void> test_init_fatalError_invalidStatement() {
     addTestFile('''
 main(bool b) {
 // start
@@ -686,7 +686,7 @@ main(bool b) {
     });
   }
 
-  test_long_expression() {
+  Future<void> test_long_expression() {
     addTestFile('''
 main() {
   print(1 +
@@ -706,7 +706,7 @@ int res() {
 ''');
   }
 
-  test_names() {
+  Future<void> test_names() {
     addTestFile('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
@@ -722,7 +722,7 @@ main() {
     });
   }
 
-  test_offsetsLengths() {
+  Future<void> test_offsetsLengths() {
     addTestFile('''
 class TreeItem {}
 TreeItem getSelectedItem() => null;
@@ -738,7 +738,7 @@ main() {
     });
   }
 
-  test_statements() {
+  Future<void> test_statements() {
     addTestFile('''
 main() {
   int a = 1;
@@ -928,7 +928,7 @@ class MyWidget extends StatelessWidget {
     expect(kinds, contains(RefactoringKind.EXTRACT_WIDGET));
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request =
         EditGetAvailableRefactoringsParams('test.dart', 0, 0).toRequest('0');
     var response = await waitResponse(request);
@@ -938,7 +938,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetAvailableRefactoringsParams(
             convertPath('/foo/../bar/test.dart'), 0, 0)
         .toRequest('0');
@@ -1068,7 +1068,7 @@ main() {
 
 @reflectiveTest
 class InlineLocalTest extends _AbstractGetRefactoring_Test {
-  test_analysis_onlyOneFile() async {
+  Future<void> test_analysis_onlyOneFile() async {
     shouldWaitForFullAnalysis = false;
     String otherFile = join(testFolder, 'other.dart');
     newFile(otherFile, content: r'''
@@ -1091,7 +1091,7 @@ main() {
     expect(feedback.occurrences, 2);
   }
 
-  test_feedback() {
+  Future<void> test_feedback() {
     addTestFile('''
 main() {
   int test = 42;
@@ -1108,7 +1108,7 @@ main() {
     });
   }
 
-  test_init_fatalError_notVariable() {
+  Future<void> test_init_fatalError_notVariable() {
     addTestFile('main() {}');
     return getRefactoringResult(() {
       return _sendInlineRequest('main() {}');
@@ -1120,7 +1120,7 @@ main() {
     });
   }
 
-  test_OK() {
+  Future<void> test_OK() {
     addTestFile('''
 main() {
   int test = 42;
@@ -1138,7 +1138,7 @@ main() {
 ''');
   }
 
-  test_resetOnAnalysisSetChanged() async {
+  Future<void> test_resetOnAnalysisSetChanged() async {
     newFile(join(testFolder, 'other.dart'), content: '// other 1');
     addTestFile('''
 main() {
@@ -1178,7 +1178,7 @@ main() {
 class InlineMethodTest extends _AbstractGetRefactoring_Test {
   InlineMethodOptions options = InlineMethodOptions(true, true);
 
-  test_feedback() {
+  Future<void> test_feedback() {
     addTestFile('''
 class A {
   int f;
@@ -1200,7 +1200,7 @@ class A {
     });
   }
 
-  test_init_fatalError_noMethod() {
+  Future<void> test_init_fatalError_noMethod() {
     addTestFile('// nothing to inline');
     return getRefactoringResult(() {
       return _sendInlineRequest('// nothing');
@@ -1212,7 +1212,7 @@ class A {
     });
   }
 
-  test_method() {
+  Future<void> test_method() {
     addTestFile('''
 class A {
   int f;
@@ -1242,7 +1242,7 @@ main(A a) {
 ''');
   }
 
-  test_topLevelFunction() {
+  Future<void> test_topLevelFunction() {
     addTestFile('''
 test(a, b) {
   print(a + b);
@@ -1262,7 +1262,7 @@ main() {
 ''');
   }
 
-  test_topLevelFunction_oneInvocation() {
+  Future<void> test_topLevelFunction_oneInvocation() {
     addTestFile('''
 test(a, b) {
   print(a + b);
@@ -1301,7 +1301,7 @@ class MoveFileTest extends _AbstractGetRefactoring_Test {
   MoveFileOptions options;
 
   @failingTest
-  test_OK() {
+  Future<void> test_OK() {
     _fail('The move file refactoring is not supported under the new driver');
     newFile('/project/bin/lib.dart');
     addTestFile('''
@@ -1350,7 +1350,7 @@ class RenameTest extends _AbstractGetRefactoring_Test {
     super.tearDown();
   }
 
-  test_cancelPendingRequest() async {
+  Future<void> test_cancelPendingRequest() async {
     addTestFile('''
 main() {
   int test = 0;
@@ -1370,7 +1370,7 @@ main() {
     expect(responseB, isResponseSuccess('2'));
   }
 
-  test_class() {
+  Future<void> test_class() {
     addTestFile('''
 class Test {
   Test() {}
@@ -1397,7 +1397,7 @@ main() {
 ''');
   }
 
-  test_class_fromFactoryRedirectingConstructor() {
+  Future<void> test_class_fromFactoryRedirectingConstructor() {
     addTestFile('''
 class A {
   A() = Test.named;
@@ -1426,7 +1426,7 @@ class NewName {
     );
   }
 
-  test_class_fromInstanceCreation() {
+  Future<void> test_class_fromInstanceCreation() {
     addTestFile('''
 class Test {
   Test() {}
@@ -1455,7 +1455,7 @@ main() {
     );
   }
 
-  test_class_fromInstanceCreation_namedConstructor() {
+  Future<void> test_class_fromInstanceCreation_namedConstructor() {
     addTestFile('''
 class Test {
   Test.named() {}
@@ -1484,7 +1484,7 @@ main() {
     );
   }
 
-  test_class_fromInstanceCreation_onNew() {
+  Future<void> test_class_fromInstanceCreation_onNew() {
     addTestFile('''
 class Test {
   Test() {}
@@ -1513,7 +1513,7 @@ main() {
     );
   }
 
-  test_class_fromInstanceCreation_onNew_namedConstructor() {
+  Future<void> test_class_fromInstanceCreation_onNew_namedConstructor() {
     addTestFile('''
 class Test {
   Test.named() {}
@@ -1542,7 +1542,7 @@ main() {
     );
   }
 
-  test_class_options_fatalError() {
+  Future<void> test_class_options_fatalError() {
     addTestFile('''
 class Test {}
 main() {
@@ -1559,7 +1559,7 @@ main() {
     });
   }
 
-  test_class_validateOnly() {
+  Future<void> test_class_validateOnly() {
     addTestFile('''
 class Test {}
 main() {
@@ -1577,7 +1577,7 @@ main() {
     });
   }
 
-  test_class_warning() {
+  Future<void> test_class_warning() {
     addTestFile('''
 class Test {}
 main() {
@@ -1613,7 +1613,7 @@ main() {
     });
   }
 
-  test_classMember_field() {
+  Future<void> test_classMember_field() {
     addTestFile('''
 class A {
   var test = 0;
@@ -1636,7 +1636,7 @@ class A {
 ''');
   }
 
-  test_classMember_field_onFieldFormalParameter() {
+  Future<void> test_classMember_field_onFieldFormalParameter() {
     addTestFile('''
 class A {
   var test = 0;
@@ -1659,7 +1659,7 @@ class A {
 ''');
   }
 
-  test_classMember_field_onFieldFormalParameter_named() {
+  Future<void> test_classMember_field_onFieldFormalParameter_named() {
     addTestFile('''
 class A {
   final int test;
@@ -1682,7 +1682,7 @@ main() {
 ''');
   }
 
-  test_classMember_getter() {
+  Future<void> test_classMember_getter() {
     addTestFile('''
 class A {
   get test => 0;
@@ -1703,7 +1703,7 @@ class A {
 ''');
   }
 
-  test_classMember_method() {
+  Future<void> test_classMember_method() {
     addTestFile('''
 class A {
   test() {}
@@ -1730,7 +1730,7 @@ main(A a) {
 ''');
   }
 
-  test_classMember_method_potential() {
+  Future<void> test_classMember_method_potential() {
     addTestFile('''
 class A {
   test() {}
@@ -1757,7 +1757,7 @@ main(A a, a2) {
     });
   }
 
-  test_classMember_setter() {
+  Future<void> test_classMember_setter() {
     addTestFile('''
 class A {
   set test(x) {}
@@ -1778,7 +1778,7 @@ class A {
 ''');
   }
 
-  test_constructor_fromFactoryRedirectingConstructor() {
+  Future<void> test_constructor_fromFactoryRedirectingConstructor() {
     addTestFile('''
 class A {
   A() = B.test;
@@ -1807,7 +1807,7 @@ class B {
     );
   }
 
-  test_constructor_fromInstanceCreation() {
+  Future<void> test_constructor_fromInstanceCreation() {
     addTestFile('''
 class A {
   A.test() {}
@@ -1836,7 +1836,7 @@ main() {
     );
   }
 
-  test_feedback() {
+  Future<void> test_feedback() {
     addTestFile('''
 class Test {}
 main() {
@@ -1853,7 +1853,7 @@ main() {
     });
   }
 
-  test_function() {
+  Future<void> test_function() {
     addTestFile('''
 test() {}
 main() {
@@ -1872,7 +1872,7 @@ main() {
 ''');
   }
 
-  test_importPrefix_add() {
+  Future<void> test_importPrefix_add() {
     addTestFile('''
 import 'dart:math';
 import 'dart:async';
@@ -1900,7 +1900,7 @@ main() {
         });
   }
 
-  test_importPrefix_remove() {
+  Future<void> test_importPrefix_remove() {
     addTestFile('''
 import 'dart:math' as test;
 import 'dart:async' as test;
@@ -1928,7 +1928,7 @@ main() {
         });
   }
 
-  test_init_fatalError_noElement() {
+  Future<void> test_init_fatalError_noElement() {
     addTestFile('// nothing to rename');
     return getRefactoringResult(() {
       return sendRenameRequest('// nothing', null);
@@ -1940,7 +1940,7 @@ main() {
     });
   }
 
-  test_library_libraryDirective() {
+  Future<void> test_library_libraryDirective() {
     addTestFile('''
 library aaa.bbb.ccc;
 ''');
@@ -1951,7 +1951,7 @@ library my.new_name;
 ''');
   }
 
-  test_library_libraryDirective_name() {
+  Future<void> test_library_libraryDirective_name() {
     addTestFile('''
 library aaa.bbb.ccc;
 ''');
@@ -1962,7 +1962,7 @@ library my.new_name;
 ''');
   }
 
-  test_library_libraryDirective_nameDot() {
+  Future<void> test_library_libraryDirective_nameDot() {
     addTestFile('''
 library aaa.bbb.ccc;
 ''');
@@ -1973,7 +1973,7 @@ library my.new_name;
 ''');
   }
 
-  test_library_partOfDirective() {
+  Future<void> test_library_partOfDirective() {
     newFile(join(testFolder, 'my_lib.dart'), content: '''
 library aaa.bbb.ccc;
 part 'test.dart';
@@ -1988,7 +1988,7 @@ part of my.new_name;
 ''');
   }
 
-  test_localVariable() {
+  Future<void> test_localVariable() {
     addTestFile('''
 main() {
   int test = 0;
@@ -2009,7 +2009,7 @@ main() {
 ''');
   }
 
-  test_localVariable_finalCheck_shadowError() {
+  Future<void> test_localVariable_finalCheck_shadowError() {
     addTestFile('''
 main() {
   var newName;
@@ -2027,7 +2027,7 @@ main() {
     });
   }
 
-  test_reset_afterCreateChange() {
+  Future<void> test_reset_afterCreateChange() {
     test_simulateRefactoringReset_afterCreateChange = true;
     addTestFile('''
 test() {}
@@ -2042,7 +2042,7 @@ main() {
     });
   }
 
-  test_reset_afterFinalConditions() {
+  Future<void> test_reset_afterFinalConditions() {
     test_simulateRefactoringReset_afterFinalConditions = true;
     addTestFile('''
 test() {}
@@ -2057,7 +2057,7 @@ main() {
     });
   }
 
-  test_reset_afterInitialConditions() {
+  Future<void> test_reset_afterInitialConditions() {
     test_simulateRefactoringReset_afterInitialConditions = true;
     addTestFile('''
 test() {}
@@ -2072,7 +2072,7 @@ main() {
     });
   }
 
-  test_resetOnAnalysis() async {
+  Future<void> test_resetOnAnalysis() async {
     addTestFile('''
 main() {
   int initialName = 0;

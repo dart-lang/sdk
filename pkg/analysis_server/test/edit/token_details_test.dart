@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionListTokenDetailsTest);
   });
@@ -34,7 +34,7 @@ class CompletionListTokenDetailsTest extends AbstractAnalysisTest {
     completionHandler = CompletionDomainHandler(server);
   }
 
-  test_packageUri() async {
+  Future<void> test_packageUri() async {
     newFile('/project/.packages', content: '''
 project:lib/
 ''');

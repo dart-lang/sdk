@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetTypeHierarchyTest);
   });
@@ -32,7 +32,7 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
     ];
   }
 
-  test_bad_function() async {
+  Future<void> test_bad_function() async {
     addTestFile('''
 main() {
 }
@@ -41,7 +41,7 @@ main() {
     expect(items, isNull);
   }
 
-  test_bad_noElement() async {
+  Future<void> test_bad_noElement() async {
     addTestFile('''
 main() {
   /* target */
@@ -87,7 +87,7 @@ class B extends A {
     ]);
   }
 
-  test_class_displayName() async {
+  Future<void> test_class_displayName() async {
     addTestFile('''
 class A<T> {
 }
@@ -312,7 +312,7 @@ class C extends B {
     ]);
   }
 
-  test_class_extendsTypeC() async {
+  Future<void> test_class_extendsTypeC() async {
     addTestFile('''
 class A {
 }
@@ -373,7 +373,7 @@ class C extends B {
     ]);
   }
 
-  test_class_implementsTypes() async {
+  Future<void> test_class_implementsTypes() async {
     addTestFile('''
 class MA {}
 class MB {}
@@ -434,7 +434,7 @@ class T implements MA, MB {
     ]);
   }
 
-  test_class_withTypes() async {
+  Future<void> test_class_withTypes() async {
     addTestFile('''
 class MA {}
 class MB {}
@@ -537,7 +537,7 @@ class B extends A with Mixin {}
     expect(memberB.location.offset, findOffset('test(m) {}'));
   }
 
-  test_member_fromField_toField() async {
+  Future<void> test_member_fromField_toField() async {
     addTestFile('''
 class A {
   var test = 1;
@@ -555,7 +555,7 @@ class B extends A {
     expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
   }
 
-  test_member_fromField_toGetter() async {
+  Future<void> test_member_fromField_toGetter() async {
     addTestFile('''
 class A {
   get test => 1;
@@ -573,7 +573,7 @@ class B extends A {
     expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
   }
 
-  test_member_fromField_toSetter() async {
+  Future<void> test_member_fromField_toSetter() async {
     addTestFile('''
 class A {
   set test(a) {}
@@ -591,7 +591,7 @@ class B extends A {
     expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
   }
 
-  test_member_fromFinalField_toGetter() async {
+  Future<void> test_member_fromFinalField_toGetter() async {
     addTestFile('''
 class A {
   get test => 1;
@@ -609,7 +609,7 @@ class B extends A {
     expect(itemB.memberElement.location.offset, findOffset('test = 2;'));
   }
 
-  test_member_fromFinalField_toSetter() async {
+  Future<void> test_member_fromFinalField_toSetter() async {
     addTestFile('''
 class A {
   set test(x) {}
@@ -1010,7 +1010,7 @@ class D extends C {
         itemD.memberElement.location.offset, findOffset('test(x) {} // in D'));
   }
 
-  test_superOnly() async {
+  Future<void> test_superOnly() async {
     addTestFile('''
 class A {}
 class B {}

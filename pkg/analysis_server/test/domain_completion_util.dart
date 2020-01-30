@@ -104,7 +104,7 @@ class AbstractCompletionDomainTest extends AbstractAnalysisTest {
   }
 
   @override
-  processNotification(Notification notification) async {
+  Future<void> processNotification(Notification notification) async {
     if (notification.event == COMPLETION_RESULTS) {
       var params = CompletionResultsParams.fromNotification(notification);
       String id = params.id;

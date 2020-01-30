@@ -19,7 +19,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementTest);
     defineReflectiveTests(ElementKindTest);
@@ -104,7 +104,7 @@ class ElementTest extends AbstractContextTest {
         .single;
   }
 
-  test_fromElement_CLASS() async {
+  Future<void> test_fromElement_CLASS() async {
     engine.Source source = addSource('/test.dart', '''
 @deprecated
 abstract class _A {}
@@ -143,7 +143,7 @@ class B<K, V> {}''');
     }
   }
 
-  test_fromElement_CONSTRUCTOR() async {
+  Future<void> test_fromElement_CONSTRUCTOR() async {
     engine.Source source = addSource('/test.dart', '''
 class A {
   const A.myConstructor(int a, [String b]);
@@ -169,7 +169,7 @@ class A {
     expect(element.flags, Element.FLAG_CONST);
   }
 
-  test_fromElement_CONSTRUCTOR_required_parameters_1() async {
+  Future<void> test_fromElement_CONSTRUCTOR_required_parameters_1() async {
     addMetaPackage();
     engine.Source source = addSource('/test.dart', '''
 import 'package:meta/meta.dart';    
@@ -186,7 +186,7 @@ class A {
   }
 
   /// Verify parameter re-ordering for required params
-  test_fromElement_CONSTRUCTOR_required_parameters_2() async {
+  Future<void> test_fromElement_CONSTRUCTOR_required_parameters_2() async {
     addMetaPackage();
     engine.Source source = addSource('/test.dart', '''
 import 'package:meta/meta.dart';    
@@ -204,7 +204,7 @@ class A {
   }
 
   /// Verify parameter re-ordering for required params
-  test_fromElement_CONSTRUCTOR_required_parameters_3() async {
+  Future<void> test_fromElement_CONSTRUCTOR_required_parameters_3() async {
     addMetaPackage();
     engine.Source source = addSource('/test.dart', '''
 import 'package:meta/meta.dart';    
@@ -233,7 +233,7 @@ class A {
     expect(element.flags, 0);
   }
 
-  test_fromElement_ENUM() async {
+  Future<void> test_fromElement_ENUM() async {
     engine.Source source = addSource('/test.dart', '''
 @deprecated
 enum _E1 { one, two }
@@ -272,7 +272,7 @@ enum E2 { three, four }''');
     }
   }
 
-  test_fromElement_ENUM_CONSTANT() async {
+  Future<void> test_fromElement_ENUM_CONSTANT() async {
     engine.Source source = addSource('/test.dart', '''
 @deprecated
 enum _E1 { one, two }
@@ -360,7 +360,7 @@ enum E2 { three, four }''');
     }
   }
 
-  test_fromElement_FIELD() async {
+  Future<void> test_fromElement_FIELD() async {
     engine.Source source = addSource('/test.dart', '''
 class A {
   static const myField = 42;
@@ -384,7 +384,7 @@ class A {
     expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
   }
 
-  test_fromElement_FUNCTION_TYPE_ALIAS() async {
+  Future<void> test_fromElement_FUNCTION_TYPE_ALIAS() async {
     engine.Source source = addSource('/test.dart', '''
 typedef int F<T>(String x);
 ''');
@@ -409,7 +409,7 @@ typedef int F<T>(String x);
     expect(element.flags, 0);
   }
 
-  test_fromElement_FUNCTION_TYPE_ALIAS_genericTypeAlias() async {
+  Future<void> test_fromElement_FUNCTION_TYPE_ALIAS_genericTypeAlias() async {
     engine.Source source = addSource('/test.dart', '''
 typedef F<T> = int Function(String x);
 ''');
@@ -433,7 +433,7 @@ typedef F<T> = int Function(String x);
     expect(element.flags, 0);
   }
 
-  test_fromElement_GETTER() async {
+  Future<void> test_fromElement_GETTER() async {
     engine.Source source = addSource('/test.dart', '''
 class A {
   String get myGetter => 42;
@@ -458,7 +458,7 @@ class A {
     expect(element.flags, 0);
   }
 
-  test_fromElement_LABEL() async {
+  Future<void> test_fromElement_LABEL() async {
     engine.Source source = addSource('/test.dart', '''
 main() {
 myLabel:
@@ -485,7 +485,7 @@ myLabel:
     expect(element.flags, 0);
   }
 
-  test_fromElement_METHOD() async {
+  Future<void> test_fromElement_METHOD() async {
     engine.Source source = addSource('/test.dart', '''
 class A {
   static List<String> myMethod(int a, {String b, int c}) {
@@ -511,7 +511,7 @@ class A {
     expect(element.flags, Element.FLAG_STATIC);
   }
 
-  test_fromElement_MIXIN() async {
+  Future<void> test_fromElement_MIXIN() async {
     engine.Source source = addSource('/test.dart', '''
 mixin A {}
 ''');
@@ -536,7 +536,7 @@ mixin A {}
     }
   }
 
-  test_fromElement_SETTER() async {
+  Future<void> test_fromElement_SETTER() async {
     engine.Source source = addSource('/test.dart', '''
 class A {
   set mySetter(String x) {}

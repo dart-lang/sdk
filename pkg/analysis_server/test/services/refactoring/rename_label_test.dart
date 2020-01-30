@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_rename.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLabelTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class RenameLabelTest extends RenameRefactoringTest {
-  test_checkNewName_LocalVariableElement() async {
+  Future<void> test_checkNewName_LocalVariableElement() async {
     await indexTestUnit('''
 main() {
 test:
@@ -41,7 +41,7 @@ test:
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange() async {
+  Future<void> test_createChange() async {
     await indexTestUnit('''
 main() {
 test:
@@ -66,7 +66,7 @@ newName:
 ''');
   }
 
-  test_oldName() async {
+  Future<void> test_oldName() async {
     await indexTestUnit('''
 main() {
 test:

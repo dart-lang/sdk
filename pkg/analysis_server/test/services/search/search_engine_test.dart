@@ -21,7 +21,7 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchEngineImplTest);
   });
@@ -45,7 +45,7 @@ class SearchEngineImplTest with ResourceProviderMixin {
     scheduler.start();
   }
 
-  test_membersOfSubtypes_hasMembers() async {
+  Future<void> test_membersOfSubtypes_hasMembers() async {
     var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
@@ -82,7 +82,7 @@ class C extends A {
     expect(members, unorderedEquals(['a', 'b']));
   }
 
-  test_membersOfSubtypes_noMembers() async {
+  Future<void> test_membersOfSubtypes_noMembers() async {
     var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
@@ -109,7 +109,7 @@ class B extends A {}
     expect(members, isEmpty);
   }
 
-  test_membersOfSubtypes_noSubtypes() async {
+  Future<void> test_membersOfSubtypes_noSubtypes() async {
     var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
@@ -138,7 +138,7 @@ class B {
     expect(members, isNull);
   }
 
-  test_membersOfSubtypes_private() async {
+  Future<void> test_membersOfSubtypes_private() async {
     var a = newFile('/test/a.dart', content: '''
 class A {
   void a() {}
@@ -175,7 +175,7 @@ class D extends B {
     expect(members, unorderedEquals(['a', '_b']));
   }
 
-  test_searchAllSubtypes() async {
+  Future<void> test_searchAllSubtypes() async {
     var p = newFile('/test.dart', content: '''
 class T {}
 class A extends T {}
@@ -197,7 +197,7 @@ class C implements B {}
     _assertContainsClass(subtypes, 'C');
   }
 
-  test_searchAllSubtypes_acrossDrivers() async {
+  Future<void> test_searchAllSubtypes_acrossDrivers() async {
     var a = newFile('/test/a.dart', content: '''
 class T {}
 class A extends T {}
@@ -225,7 +225,7 @@ class C extends B {}
     expect(subtypes, contains(predicate((ClassElement e) => e.name == 'C')));
   }
 
-  test_searchAllSubtypes_mixin() async {
+  Future<void> test_searchAllSubtypes_mixin() async {
     var p = newFile('/test.dart', content: '''
 class T {}
 
@@ -254,7 +254,7 @@ mixin E implements C {}
     _assertContainsClass(subtypes, 'E');
   }
 
-  test_searchMemberDeclarations() async {
+  Future<void> test_searchMemberDeclarations() async {
     var codeA = '''
 class A {
   int test; // 1
@@ -300,7 +300,7 @@ int test;
     assertHasElement('test', codeB.indexOf('test() {} // 2'));
   }
 
-  test_searchMemberReferences() async {
+  Future<void> test_searchMemberReferences() async {
     var a = newFile('/test/a.dart', content: '''
 class A {
   int test;
@@ -336,7 +336,7 @@ bar(p) {
             m.element.name == 'bar' || m.kind == MatchKind.WRITE)));
   }
 
-  test_searchReferences() async {
+  Future<void> test_searchReferences() async {
     var a = newFile('/test/a.dart', content: '''
 class T {}
 T a;
@@ -364,7 +364,7 @@ T b;
         matches, contains(predicate((SearchMatch m) => m.element.name == 'b')));
   }
 
-  test_searchReferences_discover_owned() async {
+  Future<void> test_searchReferences_discover_owned() async {
     var t = newFile('/test/lib/t.dart', content: '''
 import 'package:aaa/a.dart';
 int t;
@@ -396,7 +396,7 @@ int a;
     assertHasOne(a, 'a');
   }
 
-  test_searchTopLevelDeclarations() async {
+  Future<void> test_searchTopLevelDeclarations() async {
     var a = newFile('/test/a.dart', content: '''
 class A {}
 int a;
@@ -433,7 +433,7 @@ get b => 42;
     assertHasOneElement('b');
   }
 
-  test_searchTopLevelDeclarations_dependentPackage() async {
+  Future<void> test_searchTopLevelDeclarations_dependentPackage() async {
     var a = newFile('/a/lib/a.dart', content: '''
 class A {}
 ''').path;

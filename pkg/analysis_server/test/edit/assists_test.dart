@@ -18,7 +18,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistsTest);
   });
@@ -28,12 +28,12 @@ main() {
 class AssistsTest extends AbstractAnalysisTest {
   List<SourceChange> changes;
 
-  prepareAssists(String search, [int length = 0]) async {
+  Future<void> prepareAssists(String search, [int length = 0]) async {
     int offset = findOffset(search);
     await prepareAssistsAt(offset, length);
   }
 
-  prepareAssistsAt(int offset, int length) async {
+  Future<void> prepareAssistsAt(int offset, int length) async {
     Request request =
         EditGetAssistsParams(testFile, offset, length).toRequest('0');
     Response response = await waitResponse(request);
@@ -48,7 +48,7 @@ class AssistsTest extends AbstractAnalysisTest {
     handler = EditDomainHandler(server);
   }
 
-  test_fromPlugins() async {
+  Future<void> test_fromPlugins() async {
     PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
     String message = 'From a plugin';
     plugin.PrioritizedSourceChange change = plugin.PrioritizedSourceChange(
@@ -68,7 +68,7 @@ class AssistsTest extends AbstractAnalysisTest {
     _assertHasChange(message, 'xmain() {}');
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditGetAssistsParams('test.dart', 0, 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -77,7 +77,7 @@ class AssistsTest extends AbstractAnalysisTest {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
         EditGetAssistsParams(convertPath('/foo/../bar/test.dart'), 0, 0)
             .toRequest('0');
@@ -88,7 +88,7 @@ class AssistsTest extends AbstractAnalysisTest {
     );
   }
 
-  test_removeTypeAnnotation() async {
+  Future<void> test_removeTypeAnnotation() async {
     addTestFile('''
 main() {
   int v = 1;
@@ -103,7 +103,7 @@ main() {
 ''');
   }
 
-  test_splitVariableDeclaration() async {
+  Future<void> test_splitVariableDeclaration() async {
     addTestFile('''
 main() {
   int v = 1;
@@ -119,7 +119,7 @@ main() {
 ''');
   }
 
-  test_surroundWithIf() async {
+  Future<void> test_surroundWithIf() async {
     addTestFile('''
 main() {
   print(1);

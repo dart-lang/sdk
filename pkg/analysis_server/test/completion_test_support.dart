@@ -77,7 +77,7 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
         .toList();
   }
 
-  runTest(LocationSpec spec, [Map<String, String> extraFiles]) {
+  Future runTest(LocationSpec spec, [Map<String, String> extraFiles]) {
     super.setUp();
     return Future(() {
       String content = spec.source;

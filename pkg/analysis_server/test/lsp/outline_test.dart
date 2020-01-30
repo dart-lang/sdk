@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OutlineTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class OutlineTest extends AbstractLspAnalysisServerTest {
-  test_afterChange() async {
+  Future<void> test_afterChange() async {
     final initialContent = 'class A {}';
     final updatedContent = 'class B {}';
     await initialize(initializationOptions: {'outline': true});
@@ -38,7 +38,7 @@ class OutlineTest extends AbstractLspAnalysisServerTest {
     expect(outlineAfterChange.children[0].element.name, equals('B'));
   }
 
-  test_initial() async {
+  Future<void> test_initial() async {
     final content = '''
 /// a
 class A {

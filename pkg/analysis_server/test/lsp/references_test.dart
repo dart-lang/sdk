@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReferencesTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class ReferencesTest extends AbstractLspAnalysisServerTest {
-  test_acrossFiles_includeDeclaration() async {
+  Future<void> test_acrossFiles_includeDeclaration() async {
     final mainContents = '''
     import 'referenced.dart';
 
@@ -62,7 +62,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
             rangeFromMarkers(referencedContents))));
   }
 
-  test_acrossFiles_withoutDeclaration() async {
+  Future<void> test_acrossFiles_withoutDeclaration() async {
     final mainContents = '''
     import 'referenced.dart';
 
@@ -99,7 +99,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(loc.uri, equals(mainFileUri.toString()));
   }
 
-  test_nonDartFile() async {
+  Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize();
 
@@ -107,7 +107,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     expect(res, isEmpty);
   }
 
-  test_singleFile_withoutDeclaration() async {
+  Future<void> test_singleFile_withoutDeclaration() async {
     final contents = '''
     f^oo() {
       [[foo]]();
@@ -127,7 +127,7 @@ class ReferencesTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_unopenFile() async {
+  Future<void> test_unopenFile() async {
     final contents = '''
     f^oo() {
       [[foo]]();

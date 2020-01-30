@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StatementCompletionTest);
   });
@@ -29,7 +29,7 @@ class StatementCompletionTest extends AbstractAnalysisTest {
     handler = EditDomainHandler(server);
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request =
         EditGetStatementCompletionParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
@@ -39,7 +39,7 @@ class StatementCompletionTest extends AbstractAnalysisTest {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetStatementCompletionParams(
             convertPath('/foo/../bar/test.dart'), 0)
         .toRequest('0');
@@ -50,7 +50,7 @@ class StatementCompletionTest extends AbstractAnalysisTest {
     );
   }
 
-  test_plainEnterFromStart() async {
+  Future<void> test_plainEnterFromStart() async {
     addTestFile('''
 main() {
   int v = 1;
@@ -66,7 +66,7 @@ main() {
 ''');
   }
 
-  test_plainOleEnter() async {
+  Future<void> test_plainOleEnter() async {
     addTestFile('''
 main() {
   int v = 1;
@@ -82,7 +82,7 @@ main() {
 ''');
   }
 
-  test_plainOleEnterWithError() async {
+  Future<void> test_plainOleEnterWithError() async {
     addTestFile('''
 main() {
   int v =
@@ -123,7 +123,7 @@ main() {
     fail('Expected to find |$message| but got: ' + change.message);
   }
 
-  _prepareCompletion(String search,
+  Future<void> _prepareCompletion(String search,
       {bool atStart = false, bool atEnd = false, int delta = 0}) async {
     int offset = findOffset(search);
     if (atStart) {
@@ -134,7 +134,7 @@ main() {
     await _prepareCompletionAt(offset + delta);
   }
 
-  _prepareCompletionAt(int offset) async {
+  Future<void> _prepareCompletionAt(int offset) async {
     Request request =
         EditGetStatementCompletionParams(testFile, offset).toRequest('0');
     Response response = await waitResponse(request);

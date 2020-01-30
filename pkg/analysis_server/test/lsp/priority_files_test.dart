@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PriorityFilesTest);
   });
@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class PriorityFilesTest extends AbstractLspAnalysisServerTest {
-  test_close() async {
+  Future<void> test_close() async {
     await initialize();
     await openFile(mainFileUri, '');
     await closeFile(mainFileUri);
@@ -26,7 +26,7 @@ class PriorityFilesTest extends AbstractLspAnalysisServerTest {
     });
   }
 
-  test_open() async {
+  Future<void> test_open() async {
     await initialize();
     await openFile(mainFileUri, '');
 

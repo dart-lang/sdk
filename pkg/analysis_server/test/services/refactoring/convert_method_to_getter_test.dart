@@ -14,7 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertMethodToGetterTest);
   });
@@ -25,7 +25,7 @@ class ConvertMethodToGetterTest extends RefactoringTest {
   @override
   ConvertMethodToGetterRefactoring refactoring;
 
-  test_change_function() async {
+  Future<void> test_change_function() async {
     await indexTestUnit('''
 int test() => 42;
 main() {
@@ -44,7 +44,7 @@ main() {
 ''');
   }
 
-  test_change_method() async {
+  Future<void> test_change_method() async {
     await indexTestUnit('''
 class A {
   int test() => 1;
@@ -89,7 +89,7 @@ main(A a, B b, C c, D d) {
 ''');
   }
 
-  test_change_multipleFiles() async {
+  Future<void> test_change_multipleFiles() async {
     await indexUnit('/home/test/lib/other.dart', r'''
 class A {
   int test() => 1;
@@ -119,7 +119,7 @@ main(A a, B b) {
 ''');
   }
 
-  test_checkInitialConditions_alreadyGetter() async {
+  Future<void> test_checkInitialConditions_alreadyGetter() async {
     await indexTestUnit('''
 int get test => 42;
 main() {
@@ -134,7 +134,7 @@ main() {
         'Only class methods or top-level functions can be converted to getters.');
   }
 
-  test_checkInitialConditions_hasParameters() async {
+  Future<void> test_checkInitialConditions_hasParameters() async {
     await indexTestUnit('''
 int test(x) => x * 2;
 main() {
@@ -147,7 +147,7 @@ main() {
         'Only methods without parameters can be converted to getters.');
   }
 
-  test_checkInitialConditions_localFunction() async {
+  Future<void> test_checkInitialConditions_localFunction() async {
     await indexTestUnit('''
 main() {
   test() {}
@@ -161,7 +161,7 @@ main() {
         'Only top-level functions can be converted to getters.');
   }
 
-  test_checkInitialConditions_notFunctionOrMethod() async {
+  Future<void> test_checkInitialConditions_notFunctionOrMethod() async {
     await indexTestUnit('''
 class A {
   A.test();
@@ -173,7 +173,7 @@ class A {
         'Only class methods or top-level functions can be converted to getters.');
   }
 
-  test_checkInitialConditions_returnTypeVoid() async {
+  Future<void> test_checkInitialConditions_returnTypeVoid() async {
     await indexTestUnit('''
 void test() {}
 ''');

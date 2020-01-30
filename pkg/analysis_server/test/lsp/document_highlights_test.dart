@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DocumentHighlightsTest);
   });
@@ -15,13 +15,13 @@ main() {
 
 @reflectiveTest
 class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
-  test_functions() => _testMarkedContent('''
+  Future<void> test_functions() => _testMarkedContent('''
     [[main]]() {
       [[mai^n]]();
     }
     ''');
 
-  test_localVariable() => _testMarkedContent('''
+  Future<void> test_localVariable() => _testMarkedContent('''
     main() {
       var [[f^oo]] = 1;
       print([[foo]]);
@@ -29,7 +29,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     }
     ''');
 
-  test_nonDartFile() async {
+  Future<void> test_nonDartFile() async {
     await initialize();
     await openFile(pubspecFileUri, simplePubspecContent);
 
@@ -40,19 +40,19 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     expect(highlights, isEmpty);
   }
 
-  test_noResult() => _testMarkedContent('''
+  Future<void> test_noResult() => _testMarkedContent('''
     main() {
       // This one is in a ^ comment!
     }
     ''');
 
-  test_onlySelf() => _testMarkedContent('''
+  Future<void> test_onlySelf() => _testMarkedContent('''
     main() {
       [[prin^t]]();
     }
     ''');
 
-  test_shadow_inner() => _testMarkedContent('''
+  Future<void> test_shadow_inner() => _testMarkedContent('''
     main() {
       var foo = 1;
       func() {
@@ -62,7 +62,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     }
     ''');
 
-  test_shadow_outer() => _testMarkedContent('''
+  Future<void> test_shadow_outer() => _testMarkedContent('''
     main() {
       var [[foo]] = 1;
       func() {
@@ -73,7 +73,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
     }
     ''');
 
-  test_topLevelVariable() => _testMarkedContent('''
+  Future<void> test_topLevelVariable() => _testMarkedContent('''
     String [[foo]] = 'bar';
     main() {
       print([[foo]]);
@@ -87,7 +87,7 @@ class DocumentHighlightsTest extends AbstractLspAnalysisServerTest {
   /// be highlighted (eg. all references to the symbol under ^).
   /// If the content does not include any `[[double brackets]]` then the response
   /// is expected to be `null`.
-  _testMarkedContent(String content) async {
+  Future<void> _testMarkedContent(String content) async {
     final expectedRanges = rangesFromMarkers(content);
 
     await initialize();

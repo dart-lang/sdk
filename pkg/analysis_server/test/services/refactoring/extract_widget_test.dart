@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractWidgetTest);
   });
@@ -24,7 +24,7 @@ class ExtractWidgetTest extends RefactoringTest {
   @override
   ExtractWidgetRefactoringImpl refactoring;
 
-  test_checkAllConditions_selection() async {
+  Future<void> test_checkAllConditions_selection() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -36,7 +36,7 @@ class C {}
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
-  test_checkName() async {
+  Future<void> test_checkName() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -67,7 +67,7 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatusOK(refactoring.checkName());
   }
 
-  test_checkName_alreadyDeclared() async {
+  Future<void> test_checkName_alreadyDeclared() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -89,7 +89,7 @@ class Test {}
         expectedMessage: "Library already declares class with name 'Test'.");
   }
 
-  test_expression() async {
+  Future<void> test_expression() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -148,7 +148,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_expression_localFunction() async {
+  Future<void> test_expression_localFunction() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -195,7 +195,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_expression_onTypeName() async {
+  Future<void> test_expression_onTypeName() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -232,7 +232,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_expression_selection() async {
+  Future<void> test_expression_selection() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -280,7 +280,7 @@ class Test extends StatelessWidget {
     await assertResult('return new Container();');
   }
 
-  test_expression_topFunction() async {
+  Future<void> test_expression_topFunction() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -321,7 +321,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_invocation_enclosingClass() async {
+  Future<void> test_invocation_enclosingClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -346,7 +346,7 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_invocation_enclosingSuperClass() async {
+  Future<void> test_invocation_enclosingSuperClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -373,7 +373,7 @@ abstract class MyWidget extends StatelessWidget implements MyInterface {
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_invocation_otherClass() async {
+  Future<void> test_invocation_otherClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -435,7 +435,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_method() async {
+  Future<void> test_method() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -484,7 +484,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_method_parameters() async {
+  Future<void> test_method_parameters() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -556,7 +556,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_method_parameters_named() async {
+  Future<void> test_method_parameters_named() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -628,7 +628,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_field_read_enclosingClass() async {
+  Future<void> test_parameters_field_read_enclosingClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -672,7 +672,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_field_read_otherClass() async {
+  Future<void> test_parameters_field_read_otherClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -724,7 +724,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_field_read_topLevelVariable() async {
+  Future<void> test_parameters_field_read_topLevelVariable() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -765,7 +765,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_field_write_enclosingClass() async {
+  Future<void> test_parameters_field_write_enclosingClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -790,7 +790,7 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_parameters_field_write_enclosingSuperClass() async {
+  Future<void> test_parameters_field_write_enclosingSuperClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -817,7 +817,7 @@ class MyWidget extends MySuperWidget {
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_parameters_field_write_otherClass() async {
+  Future<void> test_parameters_field_write_otherClass() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -879,7 +879,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_key() async {
+  Future<void> test_parameters_key() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -898,7 +898,7 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_parameters_local_read_enclosingScope() async {
+  Future<void> test_parameters_local_read_enclosingScope() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -940,7 +940,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_local_write_enclosingScope() async {
+  Future<void> test_parameters_local_write_enclosingScope() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -964,7 +964,7 @@ class MyWidget extends StatelessWidget {
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
   }
 
-  test_parameters_private() async {
+  Future<void> test_parameters_private() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1008,7 +1008,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_private_conflictWithPublic() async {
+  Future<void> test_parameters_private_conflictWithPublic() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1056,7 +1056,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_parameters_readField_readLocal() async {
+  Future<void> test_parameters_readField_readLocal() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1114,7 +1114,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_refactoringName() async {
+  Future<void> test_refactoringName() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -1130,7 +1130,7 @@ class MyWidget extends StatelessWidget {
     expect(refactoring.refactoringName, 'Extract Widget');
   }
 
-  test_statements() async {
+  Future<void> test_statements() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1186,7 +1186,7 @@ class Test extends StatelessWidget {
 ''');
   }
 
-  test_statements_BAD_emptySelection() async {
+  Future<void> test_statements_BAD_emptySelection() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';
@@ -1202,7 +1202,7 @@ void main() {
         RefactoringProblemSeverity.FATAL);
   }
 
-  test_statements_BAD_notReturnStatement() async {
+  Future<void> test_statements_BAD_notReturnStatement() async {
     addFlutterPackage();
     await indexTestUnit(r'''
 import 'package:flutter/material.dart';

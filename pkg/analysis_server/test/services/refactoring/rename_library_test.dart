@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_rename.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameLibraryTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class RenameLibraryTest extends RenameRefactoringTest {
-  test_checkNewName() async {
+  Future<void> test_checkNewName() async {
     await indexTestUnit('''
 library my.app;
 ''');
@@ -39,7 +39,7 @@ library my.app;
             'The new name must be different than the current name.');
   }
 
-  test_createChange() async {
+  Future<void> test_createChange() async {
     addSource('/home/test/lib/part.dart', '''
 part of my.app;
 ''');
@@ -62,7 +62,7 @@ part of the.new.name;
 ''');
   }
 
-  test_createChange_hasWhitespaces() async {
+  Future<void> test_createChange_hasWhitespaces() async {
     addSource('/home/test/lib/part.dart', '''
 part of my .  app;
 ''');

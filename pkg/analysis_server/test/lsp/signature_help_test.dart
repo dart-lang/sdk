@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SignatureHelpTest);
   });
@@ -16,253 +16,7 @@ main() {
 
 @reflectiveTest
 class SignatureHelpTest extends AbstractLspAnalysisServerTest {
-  test_formats_markdown() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, int i) {
-      foo(^);
-    }
-    ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
-
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
-      ],
-      expectedFormat: MarkupKind.Markdown,
-    );
-  }
-
-  test_formats_notSupported() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, int i) {
-      foo(^);
-    }
-    ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
-
-    await initialize();
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
-      ],
-      expectedFormat: null,
-    );
-  }
-
-  test_formats_plainTextOnly() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, int i) {
-      foo(^);
-    }
-    ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
-
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
-      ],
-      expectedFormat: MarkupKind.PlainText,
-    );
-  }
-
-  test_formats_plainTextPreferred() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, int i) {
-      foo(^);
-    }
-    ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
-
-    // We say we prefer PlainText as a client, but since we only really
-    // support Markdown and the client supports it, we expect the server
-    // to provide Markdown.
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities,
-            [MarkupKind.PlainText, MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
-      ],
-      expectedFormat: MarkupKind.Markdown,
-    );
-  }
-
-  test_nonDartFile() async {
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
-    await openFile(pubspecFileUri, simplePubspecContent);
-    final res = await getSignatureHelp(pubspecFileUri, startOfDocPos);
-    expect(res, isNull);
-  }
-
-  test_params_multipleNamed() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, {bool b = true, bool a}) {
-      foo(^);
-    }
-    ''';
-
-    final expectedLabel = 'foo(String s, {bool b = true, bool a})';
-    final expectedDoc = 'Does foo.';
-
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
-        ParameterInformation('bool a', null),
-      ],
-    );
-  }
-
-  test_params_multipleOptional() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, [bool b = true, bool a]) {
-      foo(^);
-    }
-    ''';
-
-    final expectedLabel = 'foo(String s, [bool b = true, bool a])';
-    final expectedDoc = 'Does foo.';
-
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
-        ParameterInformation('bool a', null),
-      ],
-    );
-  }
-
-  test_params_named() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, {bool b = true}) {
-      foo(^);
-    }
-    ''';
-
-    final expectedLabel = 'foo(String s, {bool b = true})';
-    final expectedDoc = 'Does foo.';
-
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
-      ],
-    );
-  }
-
-  test_params_optional() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, [bool b = true]) {
-      foo(^);
-    }
-    ''';
-
-    final expectedLabel = 'foo(String s, [bool b = true])';
-    final expectedDoc = 'Does foo.';
-
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation('String s', null),
-        ParameterInformation('bool b = true', null),
-      ],
-    );
-  }
-
-  test_simple() async {
-    final content = '''
-    /// Does foo.
-    foo(String s, int i) {
-      foo(^);
-    }
-    ''';
-    final expectedLabel = 'foo(String s, int i)';
-    final expectedDoc = 'Does foo.';
-
-    await initialize(
-        textDocumentCapabilities: withSignatureHelpContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
-    await openFile(mainFileUri, withoutMarkers(content));
-    await testSignature(
-      content,
-      expectedLabel,
-      expectedDoc,
-      [
-        ParameterInformation('String s', null),
-        ParameterInformation('int i', null),
-      ],
-    );
-  }
-
-  test_dartDocMacro() async {
+  Future<void> test_dartDocMacro() async {
     final content = '''
     /// {@template template_name}
     /// This is shared content.
@@ -293,7 +47,253 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_unopenFile() async {
+  Future<void> test_formats_markdown() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation('String s', null),
+        ParameterInformation('int i', null),
+      ],
+      expectedFormat: MarkupKind.Markdown,
+    );
+  }
+
+  Future<void> test_formats_notSupported() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation('String s', null),
+        ParameterInformation('int i', null),
+      ],
+      expectedFormat: null,
+    );
+  }
+
+  Future<void> test_formats_plainTextOnly() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation('String s', null),
+        ParameterInformation('int i', null),
+      ],
+      expectedFormat: MarkupKind.PlainText,
+    );
+  }
+
+  Future<void> test_formats_plainTextPreferred() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    // We say we prefer PlainText as a client, but since we only really
+    // support Markdown and the client supports it, we expect the server
+    // to provide Markdown.
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities,
+            [MarkupKind.PlainText, MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation('String s', null),
+        ParameterInformation('int i', null),
+      ],
+      expectedFormat: MarkupKind.Markdown,
+    );
+  }
+
+  Future<void> test_nonDartFile() async {
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await openFile(pubspecFileUri, simplePubspecContent);
+    final res = await getSignatureHelp(pubspecFileUri, startOfDocPos);
+    expect(res, isNull);
+  }
+
+  Future<void> test_params_multipleNamed() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, {bool b = true, bool a}) {
+      foo(^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, {bool b = true, bool a})';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation('String s', null),
+        ParameterInformation('bool b = true', null),
+        ParameterInformation('bool a', null),
+      ],
+    );
+  }
+
+  Future<void> test_params_multipleOptional() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, [bool b = true, bool a]) {
+      foo(^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, [bool b = true, bool a])';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation('String s', null),
+        ParameterInformation('bool b = true', null),
+        ParameterInformation('bool a', null),
+      ],
+    );
+  }
+
+  Future<void> test_params_named() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, {bool b = true}) {
+      foo(^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, {bool b = true})';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation('String s', null),
+        ParameterInformation('bool b = true', null),
+      ],
+    );
+  }
+
+  Future<void> test_params_optional() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, [bool b = true]) {
+      foo(^);
+    }
+    ''';
+
+    final expectedLabel = 'foo(String s, [bool b = true])';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation('String s', null),
+        ParameterInformation('bool b = true', null),
+      ],
+    );
+  }
+
+  Future<void> test_simple() async {
+    final content = '''
+    /// Does foo.
+    foo(String s, int i) {
+      foo(^);
+    }
+    ''';
+    final expectedLabel = 'foo(String s, int i)';
+    final expectedDoc = 'Does foo.';
+
+    await initialize(
+        textDocumentCapabilities: withSignatureHelpContentFormat(
+            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await testSignature(
+      content,
+      expectedLabel,
+      expectedDoc,
+      [
+        ParameterInformation('String s', null),
+        ParameterInformation('int i', null),
+      ],
+    );
+  }
+
+  Future<void> test_unopenFile() async {
     final content = '''
     /// Does foo.
     foo(String s, int i) {

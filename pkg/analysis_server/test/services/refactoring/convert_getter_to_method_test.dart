@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_refactoring.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertGetterToMethodTest);
   });
@@ -23,7 +23,7 @@ class ConvertGetterToMethodTest extends RefactoringTest {
   @override
   ConvertGetterToMethodRefactoring refactoring;
 
-  test_change_function() async {
+  Future<void> test_change_function() async {
     await indexTestUnit('''
 int get test => 42;
 main() {
@@ -42,7 +42,7 @@ main() {
 ''');
   }
 
-  test_change_method() async {
+  Future<void> test_change_method() async {
     await indexTestUnit('''
 class A {
   int get test => 1;
@@ -87,7 +87,7 @@ main(A a, B b, C c, D d) {
 ''');
   }
 
-  test_change_multipleFiles() async {
+  Future<void> test_change_multipleFiles() async {
     await indexUnit('/home/test/lib/other.dart', r'''
 class A {
   int get test => 1;
@@ -117,7 +117,7 @@ main(A a, B b) {
 ''');
   }
 
-  test_checkInitialConditions_syntheticGetter() async {
+  Future<void> test_checkInitialConditions_syntheticGetter() async {
     await indexTestUnit('''
 int test = 42;
 main() {

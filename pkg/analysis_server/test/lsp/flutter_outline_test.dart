@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../src/utilities/mock_packages.dart';
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterOutlineTest);
   });
@@ -28,7 +28,7 @@ flutter:${flutterLibFolder.toUri()}
 ''');
   }
 
-  test_afterChange() async {
+  Future<void> test_afterChange() async {
     final initialContent = '''
 import 'package:flutter/material.dart';
 
@@ -61,7 +61,7 @@ Widget build(BuildContext context) => Icon();
         outlineAfterChange.children[0].children[0].className, equals('Icon'));
   }
 
-  test_initial() async {
+  Future<void> test_initial() async {
     final content = '''
 import 'package:flutter/material.dart';
 

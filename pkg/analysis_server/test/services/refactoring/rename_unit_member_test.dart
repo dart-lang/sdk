@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_rename.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameUnitMemberTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class RenameUnitMemberTest extends RenameRefactoringTest {
-  test_checkFinalConditions_hasTopLevel_ClassElement() async {
+  Future<void> test_checkFinalConditions_hasTopLevel_ClassElement() async {
     await indexTestUnit('''
 class Test {}
 class NewName {} // existing
@@ -31,7 +31,8 @@ class NewName {} // existing
         expectedContextSearch: 'NewName {} // existing');
   }
 
-  test_checkFinalConditions_hasTopLevel_FunctionTypeAliasElement() async {
+  Future<void>
+      test_checkFinalConditions_hasTopLevel_FunctionTypeAliasElement() async {
     await indexTestUnit('''
 class Test {}
 typedef NewName(); // existing
@@ -46,7 +47,8 @@ typedef NewName(); // existing
         expectedContextSearch: 'NewName(); // existing');
   }
 
-  test_checkFinalConditions_OK_qualifiedSuper_MethodElement() async {
+  Future<void>
+      test_checkFinalConditions_OK_qualifiedSuper_MethodElement() async {
     await indexTestUnit('''
 class Test {}
 class A {
@@ -65,7 +67,8 @@ class B extends A {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
+  Future<void>
+      test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
     await indexTestUnit('''
 class Test {}
 ''');
@@ -85,7 +88,7 @@ main() {
         expectedMessage: "Renamed class will be invisible in 'my.lib'.");
   }
 
-  test_checkFinalConditions_shadowedBy_MethodElement() async {
+  Future<void> test_checkFinalConditions_shadowedBy_MethodElement() async {
     await indexTestUnit('''
 class Test {}
 class A {
@@ -105,7 +108,7 @@ class A {
         expectedContextSearch: 'NewName() {}');
   }
 
-  test_checkFinalConditions_shadowsInSubClass_importedLib() async {
+  Future<void> test_checkFinalConditions_shadowsInSubClass_importedLib() async {
     await indexTestUnit('''
 class Test {}
 ''');
@@ -129,7 +132,8 @@ class B extends A {
         expectedMessage: "Renamed class will shadow method 'A.NewName'.");
   }
 
-  test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() async {
+  Future<void>
+      test_checkFinalConditions_shadowsInSubClass_importedLib_hideCombinator() async {
     await indexTestUnit('''
 class Test {}
 ''');
@@ -152,7 +156,8 @@ class B extends A {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowsInSubClass_MethodElement() async {
+  Future<void>
+      test_checkFinalConditions_shadowsInSubClass_MethodElement() async {
     await indexTestUnit('''
 class Test {}
 class A {
@@ -173,7 +178,8 @@ class B extends A {
         expectedContextSearch: 'NewName(); // super-ref');
   }
 
-  test_checkFinalConditions_shadowsInSubClass_notImportedLib() async {
+  Future<void>
+      test_checkFinalConditions_shadowsInSubClass_notImportedLib() async {
     await indexUnit('/lib.dart', '''
 library my.lib;
 class A {
@@ -195,7 +201,7 @@ class Test {}
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowsInSubClass_notSubClass() async {
+  Future<void> test_checkFinalConditions_shadowsInSubClass_notSubClass() async {
     await indexTestUnit('''
 class Test {}
 class A {
@@ -214,7 +220,7 @@ class B {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkInitialConditions_inSDK() async {
+  Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 main() {
   String s;
@@ -229,7 +235,7 @@ main() {
             "The class 'String' is defined in the SDK, so cannot be renamed.");
   }
 
-  test_checkInitialConditions_outsideOfProject() async {
+  Future<void> test_checkInitialConditions_outsideOfProject() async {
     addPackageFile('aaa', 'lib.dart', r'''
 class A {}
 ''');
@@ -248,7 +254,7 @@ main() {
             "The class 'A' is defined outside of the project, so cannot be renamed.");
   }
 
-  test_checkNewName_ClassElement() async {
+  Future<void> test_checkNewName_ClassElement() async {
     await indexTestUnit('''
 class Test {}
 ''');
@@ -274,7 +280,7 @@ class Test {}
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_FunctionElement() async {
+  Future<void> test_checkNewName_FunctionElement() async {
     await indexTestUnit('''
 test() {}
 ''');
@@ -294,7 +300,7 @@ test() {}
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_FunctionTypeAliasElement() async {
+  Future<void> test_checkNewName_FunctionTypeAliasElement() async {
     await indexTestUnit('''
 typedef Test();
 ''');
@@ -309,7 +315,7 @@ typedef Test();
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_TopLevelVariableElement() async {
+  Future<void> test_checkNewName_TopLevelVariableElement() async {
     await indexTestUnit('''
 var test;
 ''');
@@ -329,7 +335,7 @@ var test;
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange_ClassElement() async {
+  Future<void> test_createChange_ClassElement() async {
     await indexTestUnit('''
 class Test implements Other {
   Test() {}
@@ -367,7 +373,7 @@ main() {
 ''');
   }
 
-  test_createChange_ClassElement_flutterWidget() async {
+  Future<void> test_createChange_ClassElement_flutterWidget() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -408,7 +414,8 @@ class NewPageState extends State<NewPage> {
 ''');
   }
 
-  test_createChange_ClassElement_flutterWidget_privateBoth() async {
+  Future<void>
+      test_createChange_ClassElement_flutterWidget_privateBoth() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -449,7 +456,8 @@ class _NewPageState extends State<_NewPage> {
 ''');
   }
 
-  test_createChange_ClassElement_flutterWidget_privateState() async {
+  Future<void>
+      test_createChange_ClassElement_flutterWidget_privateState() async {
     addFlutterPackage();
     await indexTestUnit('''
 import 'package:flutter/material.dart';
@@ -490,7 +498,7 @@ class _NewPageState extends State<NewPage> {
 ''');
   }
 
-  test_createChange_ClassElement_invocation() async {
+  Future<void> test_createChange_ClassElement_invocation() async {
     verifyNoTestUnitErrors = false;
     await indexTestUnit('''
 class Test {
@@ -515,7 +523,7 @@ main() {
 ''');
   }
 
-  test_createChange_ClassElement_parameterTypeNested() async {
+  Future<void> test_createChange_ClassElement_parameterTypeNested() async {
     await indexTestUnit('''
 class Test {
 }
@@ -536,7 +544,7 @@ main(f(NewName p)) {
 ''');
   }
 
-  test_createChange_ClassElement_typeAlias() async {
+  Future<void> test_createChange_ClassElement_typeAlias() async {
     await indexTestUnit('''
 class A {}
 class Test = Object with A;
@@ -558,7 +566,7 @@ main(NewName t) {
 ''');
   }
 
-  test_createChange_FunctionElement() async {
+  Future<void> test_createChange_FunctionElement() async {
     await indexTestUnit('''
 test() {}
 foo() {}
@@ -586,7 +594,7 @@ main() {
 ''');
   }
 
-  test_createChange_FunctionElement_imported() async {
+  Future<void> test_createChange_FunctionElement_imported() async {
     await indexUnit('/home/test/lib/foo.dart', r'''
 test() {}
 foo() {}
@@ -620,7 +628,7 @@ foo() {}
 ''');
   }
 
-  test_createChange_FunctionTypeAliasElement() async {
+  Future<void> test_createChange_FunctionTypeAliasElement() async {
     await indexTestUnit('''
 typedef void F();
 void foo<T>() {}
@@ -644,7 +652,7 @@ void main() {
 ''');
   }
 
-  test_createChange_outsideOfProject_referenceInPart() async {
+  Future<void> test_createChange_outsideOfProject_referenceInPart() async {
     newFile('/home/part.dart', content: r'''
 part of test;
 
@@ -680,43 +688,45 @@ NewName test;
     expect(refactoringChange.edits[0].file, testFile);
   }
 
-  test_createChange_PropertyAccessorElement_getter_declaration() async {
+  Future<void>
+      test_createChange_PropertyAccessorElement_getter_declaration() async {
     await _test_createChange_PropertyAccessorElement('test {}');
   }
 
-  test_createChange_PropertyAccessorElement_getter_usage() async {
+  Future<void> test_createChange_PropertyAccessorElement_getter_usage() async {
     await _test_createChange_PropertyAccessorElement('test);');
   }
 
-  test_createChange_PropertyAccessorElement_mix() async {
+  Future<void> test_createChange_PropertyAccessorElement_mix() async {
     await _test_createChange_PropertyAccessorElement('test += 2');
   }
 
-  test_createChange_PropertyAccessorElement_setter_declaration() async {
+  Future<void>
+      test_createChange_PropertyAccessorElement_setter_declaration() async {
     await _test_createChange_PropertyAccessorElement('test(x) {}');
   }
 
-  test_createChange_PropertyAccessorElement_setter_usage() async {
+  Future<void> test_createChange_PropertyAccessorElement_setter_usage() async {
     await _test_createChange_PropertyAccessorElement('test = 1');
   }
 
-  test_createChange_TopLevelVariableElement_field() async {
+  Future<void> test_createChange_TopLevelVariableElement_field() async {
     await _test_createChange_TopLevelVariableElement('test = 0');
   }
 
-  test_createChange_TopLevelVariableElement_getter() async {
+  Future<void> test_createChange_TopLevelVariableElement_getter() async {
     await _test_createChange_TopLevelVariableElement('test);');
   }
 
-  test_createChange_TopLevelVariableElement_mix() async {
+  Future<void> test_createChange_TopLevelVariableElement_mix() async {
     await _test_createChange_TopLevelVariableElement('test += 2');
   }
 
-  test_createChange_TopLevelVariableElement_setter() async {
+  Future<void> test_createChange_TopLevelVariableElement_setter() async {
     await _test_createChange_TopLevelVariableElement('test = 1');
   }
 
-  _test_createChange_PropertyAccessorElement(String search) async {
+  Future<void> _test_createChange_PropertyAccessorElement(String search) async {
     await indexTestUnit('''
 get test {}
 set test(x) {}
@@ -743,7 +753,7 @@ main() {
 ''');
   }
 
-  _test_createChange_TopLevelVariableElement(String search) async {
+  Future<void> _test_createChange_TopLevelVariableElement(String search) async {
     await indexTestUnit('''
 int test = 0;
 main() {
