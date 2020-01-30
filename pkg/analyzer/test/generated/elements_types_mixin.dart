@@ -14,6 +14,21 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 
 mixin ElementsTypesMixin {
+  InterfaceType get boolNone {
+    var element = typeProvider.boolElement;
+    return interfaceTypeNone(element);
+  }
+
+  InterfaceType get boolQuestion {
+    var element = typeProvider.boolElement;
+    return interfaceTypeQuestion(element);
+  }
+
+  InterfaceType get boolStar {
+    var element = typeProvider.boolElement;
+    return interfaceTypeStar(element);
+  }
+
   InterfaceType get doubleNone {
     var element = typeProvider.doubleType.element;
     return interfaceTypeNone(element);

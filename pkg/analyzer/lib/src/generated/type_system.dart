@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/normalize.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
+import 'package:analyzer/src/dart/element/runtime_type_equality.dart';
 import 'package:analyzer/src/dart/element/top_merge.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -1518,6 +1519,13 @@ class Dart2TypeSystem extends TypeSystem {
    */
   DartType normalize(DartType T) {
     return NormalizeHelper(this).normalize(T);
+  }
+
+  /// Return `true` if runtime types [T1] and [T2] are equal.
+  ///
+  /// nnbd/feature-specification.md#runtime-type-equality-operator
+  bool runtimeTypesEqual(DartType T1, DartType T2) {
+    return RuntimeTypeEqualityHelper(this).equal(T1, T2);
   }
 
   @override
