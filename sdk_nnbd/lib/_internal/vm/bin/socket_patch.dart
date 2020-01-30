@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "common_patch.dart";
 
 @patch
@@ -18,30 +16,29 @@ class RawServerSocket {
 @patch
 class RawSocket {
   @patch
-  static Future<RawSocket> connect(host, int port,
-      {sourceAddress, Duration timeout}) {
+  static Future<RawSocket> connect(dynamic host, int port,
+      {dynamic sourceAddress, Duration? timeout}) {
     return _RawSocket.connect(host, port, sourceAddress, timeout);
   }
 
   @patch
-  static Future<ConnectionTask<RawSocket>> startConnect(host, int port,
-      {sourceAddress}) {
+  static Future<ConnectionTask<RawSocket>> startConnect(dynamic host, int port,
+      {dynamic sourceAddress}) {
     return _RawSocket.startConnect(host, port, sourceAddress);
   }
 }
 
 @patch
 class RawSocketOption {
-  static final List<int> _optionsCache =
-      List<int>.filled(_RawSocketOptions.values.length, null);
+  static final List<int?> _optionsCache =
+      List<int?>.filled(_RawSocketOptions.values.length, null);
 
   @patch
   static int _getOptionValue(int key) {
     if (key > _RawSocketOptions.values.length) {
       throw ArgumentError.value(key, 'key');
     }
-    _optionsCache[key] ??= _getNativeOptionValue(key);
-    return _optionsCache[key];
+    return _optionsCache[key] ??= _getNativeOptionValue(key);
   }
 
   static int _getNativeOptionValue(int key)
@@ -110,13 +107,17 @@ class NetworkInterface {
 }
 
 void _throwOnBadPort(int port) {
-  if ((port == null) || (port < 0) || (port > 0xFFFF)) {
+  // TODO: Remove once non-nullability is sound.
+  ArgumentError.checkNotNull(port, "port");
+  if ((port < 0) || (port > 0xFFFF)) {
     throw new ArgumentError("Invalid port $port");
   }
 }
 
 void _throwOnBadTtl(int ttl) {
-  if (ttl == null || ttl < 1 || ttl > 255) {
+  // TODO: Remove once non-nullability is sound.
+  ArgumentError.checkNotNull(ttl, "ttl");
+  if (ttl < 1 || ttl > 255) {
     throw new ArgumentError('Invalid ttl $ttl');
   }
 }
@@ -137,7 +138,7 @@ class _InternetAddress implements InternetAddress {
   static _InternetAddress anyIPv6 = _InternetAddress.fixed(_addressAnyIPv6);
 
   final String address;
-  final String _host;
+  final String? _host;
   final Uint8List _in_addr;
   final int _scope_id;
 
@@ -145,7 +146,7 @@ class _InternetAddress implements InternetAddress {
       ? InternetAddressType.IPv4
       : InternetAddressType.IPv6;
 
-  String get host => _host != null ? _host : address;
+  String get host => _host ?? address;
 
   Uint8List get rawAddress => new Uint8List.fromList(_in_addr);
 
@@ -192,9 +193,8 @@ class _InternetAddress implements InternetAddress {
       [this._scope_id = 0]);
 
   factory _InternetAddress.parse(String address) {
-    if (address is! String) {
-      throw new ArgumentError("Invalid internet address $address");
-    }
+    // TODO: Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(address, "address");
     var in_addr = _parse(address);
     if (in_addr == null) {
       throw new ArgumentError("Invalid internet address $address");
@@ -253,7 +253,7 @@ class _InternetAddress implements InternetAddress {
     return "InternetAddress('$address', ${type.name})";
   }
 
-  static Uint8List _parse(String address) native "InternetAddress_Parse";
+  static Uint8List? _parse(String address) native "InternetAddress_Parse";
 }
 
 class _NetworkInterface implements NetworkInterface {
@@ -352,7 +352,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
 
   // Handlers and receive port for socket events from the event handler.
   final List eventHandlers = new List.filled(eventCount + 1, null);
-  RawReceivePort eventPort;
+  RawReceivePort? eventPort;
   bool flagsSent = false;
 
   // The type flags for this socket.
@@ -362,7 +362,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   int localPort = 0;
 
   // Holds the address used to connect or bind the socket.
-  InternetAddress localAddress;
+  late InternetAddress localAddress;
 
   int available = 0;
 
@@ -376,11 +376,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   bool writeAvailable = false;
 
   static bool connectedResourceHandler = false;
-  _ReadWriteResourceInfo resourceInfo;
+  _SocketResourceInfo? resourceInfo;
 
   // The owner object is the object that the Socket is being used by, e.g.
   // a HttpServer, a WebSocket connection, a process pipe, etc.
-  Object owner;
+  Object? owner;
 
   static Future<List<InternetAddress>> lookup(String host,
       {InternetAddressType type: InternetAddressType.any}) {
@@ -464,7 +464,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   static Future<ConnectionTask<_NativeSocket>> startConnect(
-      host, int port, sourceAddress) {
+      dynamic host, int port, dynamic sourceAddress) {
     if (host is String) {
       host = escapeLinkLocalAddress(host);
     }
@@ -496,7 +496,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           }
           return;
         }
-        final _InternetAddress address = it.current;
+        final _InternetAddress address = it.current as _InternetAddress;
         var socket = new _NativeSocket.normal();
         socket.localAddress = address;
         var result;
@@ -595,13 +595,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       }
 
       connectNext();
-      return new ConnectionTask<_NativeSocket>._(
-          socket: completer.future, onCancel: onCancel);
+      return new ConnectionTask<_NativeSocket>._(completer.future, onCancel);
     });
   }
 
   static Future<_NativeSocket> connect(
-      host, int port, sourceAddress, Duration timeout) {
+      dynamic host, int port, dynamic sourceAddress, Duration? timeout) {
     return startConnect(host, port, sourceAddress)
         .then((ConnectionTask<_NativeSocket> task) {
       Future<_NativeSocket> socketFuture = task.socket;
@@ -616,7 +615,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     });
   }
 
-  static Future<_InternetAddress> _resolveHost(host) async {
+  static Future<_InternetAddress> _resolveHost(dynamic host) async {
     if (host is _InternetAddress) {
       return host;
     } else {
@@ -706,7 +705,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   String get _serviceTypePath => throw new UnimplementedError();
   String get _serviceTypeName => throw new UnimplementedError();
 
-  Uint8List read(int len) {
+  Uint8List? read(int? len) {
     if (len != null && len <= 0) {
       throw new ArgumentError("Illegal length $len");
     }
@@ -718,34 +717,36 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       reportError(result, StackTrace.current, "Read failed");
       return null;
     }
-    if (result != null) {
-      available -= result.length;
+    final list = result as Uint8List?;
+    if (list != null) {
+      available -= list.length;
       // TODO(ricow): Remove when we track internal and pipe uses.
       assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
       if (resourceInfo != null) {
-        resourceInfo.totalRead += result.length;
+        resourceInfo!.totalRead += list.length;
       }
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
     assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
-      resourceInfo.didRead();
+      resourceInfo!.didRead();
     }
     if (!const bool.fromEnvironment("dart.vm.product")) {
       _SocketProfile.collectStatistic(
-          nativeGetSocketId(), _SocketProfileType.readBytes, result?.length);
+          nativeGetSocketId(), _SocketProfileType.readBytes, list?.length);
     }
-    return result;
+    return list;
   }
 
-  Datagram receive() {
+  Datagram? receive() {
     if (isClosing || isClosed) return null;
     var result = nativeRecvFrom();
     if (result is OSError) {
       reportError(result, StackTrace.current, "Receive failed");
       return null;
     }
-    if (result != null) {
+    final datagram = result as Datagram?;
+    if (datagram != null) {
       // Read the next available. Available is only for the next datagram, not
       // the sum of all datagrams pending, so we need to call after each
       // receive. If available becomes > 0, the _NativeSocket will continue to
@@ -754,24 +755,26 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       // TODO(ricow): Remove when we track internal and pipe uses.
       assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
       if (resourceInfo != null) {
-        resourceInfo.totalRead += result.data.length;
+        resourceInfo!.totalRead += datagram.data.length;
       }
     }
     // TODO(ricow): Remove when we track internal and pipe uses.
     assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
-      resourceInfo.didRead();
+      resourceInfo!.didRead();
     }
     if (!const bool.fromEnvironment("dart.vm.product")) {
       _SocketProfile.collectStatistic(nativeGetSocketId(),
-          _SocketProfileType.readBytes, result?.data?.length);
+          _SocketProfileType.readBytes, datagram?.data.length);
     }
-    return result;
+    return datagram;
   }
 
-  int write(List<int> buffer, int offset, int bytes) {
-    if (buffer is! List) throw new ArgumentError();
-    if (offset == null) offset = 0;
+  static int _fixOffset(int? offset) => offset ?? 0;
+
+  int write(List<int> buffer, int offset, int? bytes) {
+    // TODO: Remove once non-nullability is sound.
+    offset = _fixOffset(offset);
     if (bytes == null) {
       if (offset > buffer.length) {
         throw new RangeError.value(offset);
@@ -782,9 +785,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     if (bytes < 0) throw new RangeError.value(bytes);
     if ((offset + bytes) > buffer.length) {
       throw new RangeError.value(offset + bytes);
-    }
-    if (offset is! int || bytes is! int) {
-      throw new ArgumentError("Invalid arguments to write on Socket");
     }
     if (isClosing || isClosed) return 0;
     if (bytes == 0) return 0;
@@ -815,7 +815,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO(ricow): Remove when we track internal and pipe uses.
     assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
-      resourceInfo.addWrite(result);
+      resourceInfo!.addWrite(result);
     }
     return result;
   }
@@ -843,12 +843,12 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     // TODO(ricow): Remove when we track internal and pipe uses.
     assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
-      resourceInfo.addWrite(result);
+      resourceInfo!.addWrite(result);
     }
     return result;
   }
 
-  _NativeSocket accept() {
+  _NativeSocket? accept() {
     // Don't issue accept if we're closing.
     if (isClosing || isClosed) return null;
     assert(available > 0);
@@ -864,7 +864,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     assert(resourceInfo != null || isPipe || isInternal || isInternalSignal);
     if (resourceInfo != null) {
       // We track this as read one byte.
-      resourceInfo.addRead(1);
+      resourceInfo!.addRead(1);
     }
     return socket;
   }
@@ -949,7 +949,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   void multiplex(Object eventsObj) {
     // TODO(paulberry): when issue #31305 is fixed, we should be able to simply
     // declare `events` as a `covariant int` parameter.
-    int events = eventsObj;
+    int events = eventsObj as int;
     for (int i = firstEvent; i <= lastEvent; i++) {
       if (((events & (1 << i)) != 0)) {
         if ((i == closedEvent || i == readEvent) && isClosedRead) continue;
@@ -984,7 +984,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
           assert(
               resourceInfo != null || isPipe || isInternal || isInternalSignal);
           if (resourceInfo != null) {
-            _SocketResourceInfo.SocketClosed(resourceInfo);
+            _SocketResourceInfo.SocketClosed(resourceInfo!);
           }
           isClosed = true;
           closeCompleter.complete();
@@ -1030,7 +1030,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     eventHandlers[destroyedEvent] = destroyed;
   }
 
-  void setListening({read: true, write: true}) {
+  void setListening({bool read: true, bool write: true}) {
     sendReadEvents = read;
     sendWriteEvents = write;
     if (read) issueReadEvent();
@@ -1096,7 +1096,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     int fullData = (typeFlags & typeTypeMask) | data;
     assert(!isClosing);
     connectToEventHandler();
-    _EventHandler._sendData(this, eventPort.sendPort, fullData);
+    _EventHandler._sendData(this, eventPort!.sendPort, fullData);
   }
 
   void connectToEventHandler() {
@@ -1115,8 +1115,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   }
 
   void disconnectFromEventHandler() {
-    assert(eventPort != null);
-    eventPort.close();
+    eventPort!.close();
     eventPort = null;
     // Now that we don't track this Socket anymore, we can clear the owner
     // field.
@@ -1131,7 +1130,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // Create the appropriate error/exception from different returned
   // error objects.
   static createError(error, String message,
-      [InternetAddress address, int port]) {
+      [InternetAddress? address, int? port]) {
     if (error is OSError) {
       return new SocketException(message,
           osError: error, address: address, port: port);
@@ -1153,7 +1152,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
   }
 
-  void reportError(error, StackTrace st, String message) {
+  void reportError(error, StackTrace? st, String message) {
     var e = createError(error, message, address, localPort);
     // Invoke the error handler if any.
     if (eventHandlers[errorEvent] != null) {
@@ -1163,39 +1162,41 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     close();
   }
 
-  getOption(SocketOption option) {
-    if (option == null) throw new ArgumentError.notNull("option");
+  dynamic getOption(SocketOption option) {
+    // TODO: Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(option, "option");
     var result = nativeGetOption(option._value, address.type._value);
     if (result is OSError) throw result;
     return result;
   }
 
   bool setOption(SocketOption option, value) {
-    if (option == null) throw new ArgumentError.notNull("option");
+    // TODO: Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(option, "option");
     var result = nativeSetOption(option._value, address.type._value, value);
     if (result != null) throw result;
     return true;
   }
 
   Uint8List getRawOption(RawSocketOption option) {
-    if (option == null) throw new ArgumentError.notNull("option");
-    if (option.value == null) throw new ArgumentError.notNull("option.value");
-
+    // TODO: Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(option, "option");
+    ArgumentError.checkNotNull(option.value, "option.value");
     var result = nativeGetRawOption(option.level, option.option, option.value);
     if (result != null) throw result;
     return option.value;
   }
 
   void setRawOption(RawSocketOption option) {
-    if (option == null) throw new ArgumentError.notNull("option");
-    if (option.value == null) throw new ArgumentError.notNull("option.value");
-
+    // TODO: Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(option, "option");
+    ArgumentError.checkNotNull(option.value, "option.value");
     var result = nativeSetRawOption(option.level, option.option, option.value);
     if (result != null) throw result;
   }
 
-  InternetAddress multicastAddress(
-      InternetAddress addr, NetworkInterface interface) {
+  InternetAddress? multicastAddress(
+      InternetAddress addr, NetworkInterface? interface) {
     // On Mac OS using the interface index for joining IPv4 multicast groups
     // is not supported. Here the IP address of the interface is needed.
     if (Platform.isMacOS && addr.type == InternetAddressType.IPv4) {
@@ -1218,16 +1219,18 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     }
   }
 
-  void joinMulticast(InternetAddress addr, NetworkInterface interface) {
-    _InternetAddress interfaceAddr = multicastAddress(addr, interface);
+  void joinMulticast(InternetAddress addr, NetworkInterface? interface) {
+    final interfaceAddr =
+        multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
     var result = nativeJoinMulticast((addr as _InternetAddress)._in_addr,
         interfaceAddr?._in_addr, interfaceIndex);
     if (result is OSError) throw result;
   }
 
-  void leaveMulticast(InternetAddress addr, NetworkInterface interface) {
-    _InternetAddress interfaceAddr = multicastAddress(addr, interface);
+  void leaveMulticast(InternetAddress addr, NetworkInterface? interface) {
+    final interfaceAddr =
+        multicastAddress(addr, interface) as _InternetAddress?;
     var interfaceIndex = interface == null ? 0 : interface.index;
     var result = nativeLeaveMulticast((addr as _InternetAddress)._in_addr,
         interfaceAddr?._in_addr, interfaceIndex);
@@ -1263,16 +1266,16 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       native "Socket_SetOption";
   OSError nativeSetRawOption(int level, int option, Uint8List data)
       native "Socket_SetRawOption";
-  OSError nativeJoinMulticast(Uint8List addr, Uint8List interfaceAddr,
+  OSError nativeJoinMulticast(Uint8List addr, Uint8List? interfaceAddr,
       int interfaceIndex) native "Socket_JoinMulticast";
-  bool nativeLeaveMulticast(Uint8List addr, Uint8List interfaceAddr,
+  bool nativeLeaveMulticast(Uint8List addr, Uint8List? interfaceAddr,
       int interfaceIndex) native "Socket_LeaveMulticast";
 }
 
 class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
   final _NativeSocket _socket;
-  StreamController<RawSocket> _controller;
-  ReceivePort _referencePort;
+  StreamController<RawSocket>? _controller;
+  ReceivePort? _referencePort;
   bool _v6Only;
 
   static Future<_RawServerSocket> bind(
@@ -1285,13 +1288,13 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
 
   _RawServerSocket(this._socket, this._v6Only);
 
-  StreamSubscription<RawSocket> listen(void onData(RawSocket event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<RawSocket> listen(void onData(RawSocket event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     if (_controller != null) {
       throw new StateError("Stream was already listened to");
     }
     var zone = Zone.current;
-    _controller = new StreamController(
+    final controller = _controller = new StreamController(
         sync: true,
         onListen: _onSubscriptionStateChange,
         onCancel: _onSubscriptionStateChange,
@@ -1305,20 +1308,20 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
           _SocketProfile.collectNewSocket(socket.nativeGetSocketId(),
               _tcpSocket, socket.address, socket.port);
         }
-        _controller.add(_RawSocket(socket));
-        if (_controller.isPaused) return;
+        controller.add(_RawSocket(socket));
+        if (controller.isPaused) return;
       }
     }), error: zone.bindBinaryCallbackGuarded((e, st) {
-      _controller.addError(e, st);
-      _controller.close();
+      controller.addError(e, st);
+      controller.close();
     }), destroyed: () {
-      _controller.close();
+      controller.close();
       if (_referencePort != null) {
-        _referencePort.close();
+        _referencePort!.close();
         _referencePort = null;
       }
     });
-    return _controller.stream.listen(onData,
+    return controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
@@ -1329,7 +1332,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
   Future<RawServerSocket> close() {
     return _socket.close().then<RawServerSocket>((_) {
       if (_referencePort != null) {
-        _referencePort.close();
+        _referencePort!.close();
         _referencePort = null;
       }
       return this;
@@ -1345,7 +1348,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
   }
 
   void _onSubscriptionStateChange() {
-    if (_controller.hasListener) {
+    if (_controller!.hasListener) {
       _resume();
     } else {
       _socket.close();
@@ -1353,7 +1356,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
   }
 
   void _onPauseStateChange() {
-    if (_controller.isPaused) {
+    if (_controller!.isPaused) {
       _pause();
     } else {
       _resume();
@@ -1367,7 +1370,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
 
 class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
   final _NativeSocket _socket;
-  StreamController<RawSocketEvent> _controller;
+  final _controller = new StreamController<RawSocketEvent>(sync: true);
   bool _readEventsEnabled = true;
   bool _writeEventsEnabled = true;
 
@@ -1375,7 +1378,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
   bool _isMacOSTerminalInput = false;
 
   static Future<RawSocket> connect(
-      host, int port, sourceAddress, Duration timeout) {
+      dynamic host, int port, dynamic sourceAddress, Duration? timeout) {
     return _NativeSocket.connect(host, port, sourceAddress, timeout)
         .then((socket) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
@@ -1387,7 +1390,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
   }
 
   static Future<ConnectionTask<_RawSocket>> startConnect(
-      host, int port, sourceAddress) {
+      dynamic host, int port, dynamic sourceAddress) {
     return _NativeSocket.startConnect(host, port, sourceAddress)
         .then((ConnectionTask<_NativeSocket> nativeTask) {
       final Future<_RawSocket> raw =
@@ -1398,19 +1401,17 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
         }
         return _RawSocket(nativeSocket);
       });
-      return ConnectionTask<_RawSocket>._(
-          socket: raw, onCancel: nativeTask._onCancel);
+      return ConnectionTask<_RawSocket>._(raw, nativeTask._onCancel);
     });
   }
 
   _RawSocket(this._socket) {
     var zone = Zone.current;
-    _controller = new StreamController(
-        sync: true,
-        onListen: _onSubscriptionStateChange,
-        onCancel: _onSubscriptionStateChange,
-        onPause: _onPauseStateChange,
-        onResume: _onPauseStateChange);
+    _controller
+      ..onListen = _onSubscriptionStateChange
+      ..onCancel = _onSubscriptionStateChange
+      ..onPause = _onPauseStateChange
+      ..onResume = _onPauseStateChange;
     _socket.setHandlers(
         read: () => _controller.add(RawSocketEvent.read),
         write: () {
@@ -1437,7 +1438,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
     return new _RawSocket(native);
   }
 
-  factory _RawSocket._readPipe(int fd) {
+  factory _RawSocket._readPipe(int? fd) {
     var native = new _NativeSocket.pipe();
     native.isClosedWrite = true;
     if (fd != null) _getStdioHandle(native, fd);
@@ -1450,15 +1451,15 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
     return result;
   }
 
-  StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
 
   int available() => _socket.available;
 
-  Uint8List read([int len]) {
+  Uint8List? read([int? len]) {
     if (_isMacOSTerminalInput) {
       var available = this.available();
       if (available == 0) return null;
@@ -1474,7 +1475,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
     }
   }
 
-  int write(List<int> buffer, [int offset, int count]) =>
+  int write(List<int> buffer, [int offset = 0, int? count]) =>
       _socket.write(buffer, offset, count);
 
   Future<RawSocket> close() => _socket.close().then<RawSocket>((_) {
@@ -1567,8 +1568,8 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
 
   _ServerSocket(this._socket);
 
-  StreamSubscription<Socket> listen(void onData(Socket event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<Socket> listen(void onData(Socket event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _socket.map<Socket>((rawSocket) => new _Socket(rawSocket)).listen(
         onData,
         onError: onError,
@@ -1591,39 +1592,38 @@ class _ServerSocket extends Stream<Socket> implements ServerSocket {
 @patch
 class Socket {
   @patch
-  static Future<Socket> _connect(host, int port,
-      {sourceAddress, Duration timeout}) {
+  static Future<Socket> _connect(dynamic host, int port,
+      {dynamic sourceAddress, Duration? timeout}) {
     return RawSocket.connect(host, port,
             sourceAddress: sourceAddress, timeout: timeout)
         .then((socket) => new _Socket(socket));
   }
 
   @patch
-  static Future<ConnectionTask<Socket>> _startConnect(host, int port,
-      {sourceAddress}) {
+  static Future<ConnectionTask<Socket>> _startConnect(dynamic host, int port,
+      {dynamic sourceAddress}) {
     return RawSocket.startConnect(host, port, sourceAddress: sourceAddress)
         .then((rawTask) {
       Future<Socket> socket =
           rawTask.socket.then((rawSocket) => new _Socket(rawSocket));
-      return new ConnectionTask<Socket>._(
-          socket: socket, onCancel: rawTask._onCancel);
+      return new ConnectionTask<Socket>._(socket, rawTask._onCancel);
     });
   }
 }
 
 class _SocketStreamConsumer extends StreamConsumer<List<int>> {
-  StreamSubscription subscription;
+  StreamSubscription? subscription;
   final _Socket socket;
-  int offset;
-  List<int> buffer;
+  int? offset;
+  List<int>? buffer;
   bool paused = false;
-  Completer streamCompleter;
+  Completer<Socket>? streamCompleter;
 
   _SocketStreamConsumer(this.socket);
 
   Future<Socket> addStream(Stream<List<int>> stream) {
     socket._ensureRawSocketSubscription();
-    streamCompleter = new Completer<Socket>();
+    final completer = streamCompleter = new Completer<Socket>();
     if (socket._raw != null) {
       subscription = stream.listen((data) {
         assert(!paused);
@@ -1644,7 +1644,7 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
         done();
       }, cancelOnError: true);
     }
-    return streamCompleter.future;
+    return completer.future;
   }
 
   Future<Socket> close() {
@@ -1653,39 +1653,42 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
   }
 
   void write() {
-    if (subscription == null) return;
-    assert(buffer != null);
+    final sub = subscription;
+    if (sub == null) return;
     // Write as much as possible.
-    offset += socket._write(buffer, offset, buffer.length - offset);
-    if (offset < buffer.length) {
+    offset =
+        offset! + socket._write(buffer!, offset!, buffer!.length - offset!);
+    if (offset! < buffer!.length) {
       if (!paused) {
         paused = true;
-        subscription.pause();
+        sub.pause();
       }
       socket._enableWriteEvent();
     } else {
       buffer = null;
       if (paused) {
         paused = false;
-        subscription.resume();
+        sub.resume();
       }
     }
   }
 
   void done([error, stackTrace]) {
-    if (streamCompleter != null) {
+    final completer = streamCompleter;
+    if (completer != null) {
       if (error != null) {
-        streamCompleter.completeError(error, stackTrace);
+        completer.completeError(error, stackTrace);
       } else {
-        streamCompleter.complete(socket);
+        completer.complete(socket);
       }
       streamCompleter = null;
     }
   }
 
   void stop() {
-    if (subscription == null) return;
-    subscription.cancel();
+    final sub = subscription;
+    if (sub == null) return;
+    sub.cancel();
     subscription = null;
     paused = false;
     socket._disableWriteEvent();
@@ -1693,37 +1696,36 @@ class _SocketStreamConsumer extends StreamConsumer<List<int>> {
 }
 
 class _Socket extends Stream<Uint8List> implements Socket {
-  RawSocket _raw; // Set to null when the raw socket is closed.
+  RawSocket? _raw; // Set to null when the raw socket is closed.
   bool _closed = false; // Set to true when the raw socket is closed.
-  StreamController<Uint8List> _controller;
+  final _controller = new StreamController<Uint8List>(sync: true);
   bool _controllerClosed = false;
-  _SocketStreamConsumer _consumer;
-  IOSink _sink;
-  var _subscription;
+  late _SocketStreamConsumer _consumer;
+  late IOSink _sink;
+  StreamSubscription? _subscription;
   var _detachReady;
 
-  _Socket(this._raw) {
-    _controller = new StreamController<Uint8List>(
-        sync: true,
-        onListen: _onSubscriptionStateChange,
-        onCancel: _onSubscriptionStateChange,
-        onPause: _onPauseStateChange,
-        onResume: _onPauseStateChange);
+  _Socket(RawSocket raw) : _raw = raw {
+    _controller
+      ..onListen = _onSubscriptionStateChange
+      ..onCancel = _onSubscriptionStateChange
+      ..onPause = _onPauseStateChange
+      ..onResume = _onPauseStateChange;
     _consumer = new _SocketStreamConsumer(this);
     _sink = new IOSink(_consumer);
 
     // Disable read events until there is a subscription.
-    _raw.readEventsEnabled = false;
+    raw.readEventsEnabled = false;
 
     // Disable write events until the consumer needs it for pending writes.
-    _raw.writeEventsEnabled = false;
+    raw.writeEventsEnabled = false;
   }
 
   factory _Socket._writePipe() {
     return new _Socket(new _RawSocket._writePipe());
   }
 
-  factory _Socket._readPipe([int fd]) {
+  factory _Socket._readPipe([int? fd]) {
     return new _Socket(new _RawSocket._readPipe(fd));
   }
 
@@ -1733,8 +1735,8 @@ class _Socket extends Stream<Uint8List> implements Socket {
   // is Socket and not _NativeSocket.
   _NativeSocket get _nativeSocket => (_raw as _RawSocket)._socket;
 
-  StreamSubscription<Uint8List> listen(void onData(Uint8List event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<Uint8List> listen(void onData(Uint8List event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
@@ -1745,17 +1747,18 @@ class _Socket extends Stream<Uint8List> implements Socket {
     _sink.encoding = value;
   }
 
-  void write(Object obj) => _sink.write(obj);
+  void write(Object? obj) => _sink.write(obj);
 
-  void writeln([Object obj = ""]) => _sink.writeln(obj);
+  void writeln([Object? obj = ""]) => _sink.writeln(obj);
 
   void writeCharCode(int charCode) => _sink.writeCharCode(charCode);
 
-  void writeAll(Iterable objects, [sep = ""]) => _sink.writeAll(objects, sep);
+  void writeAll(Iterable objects, [String sep = ""]) =>
+      _sink.writeAll(objects, sep);
 
   void add(List<int> bytes) => _sink.add(bytes);
 
-  void addError(Object error, [StackTrace stackTrace]) {
+  void addError(Object error, [StackTrace? stackTrace]) {
     throw new UnsupportedError("Cannot send errors on sockets");
   }
 
@@ -1779,41 +1782,45 @@ class _Socket extends Stream<Uint8List> implements Socket {
   }
 
   bool setOption(SocketOption option, bool enabled) {
-    if (_raw == null) return false;
-    return _raw.setOption(option, enabled);
+    final raw = _raw;
+    if (raw == null) throw const SocketException.closed();
+    return raw.setOption(option, enabled);
   }
 
   Uint8List getRawOption(RawSocketOption option) {
-    if (_raw == null) return null;
-    return _raw.getRawOption(option);
+    final raw = _raw;
+    if (raw == null) throw const SocketException.closed();
+    return raw.getRawOption(option);
   }
 
   void setRawOption(RawSocketOption option) {
-    _raw?.setRawOption(option);
+    final raw = _raw;
+    if (raw == null) throw const SocketException.closed();
+    raw.setRawOption(option);
   }
 
   int get port {
-    if (_raw == null) throw const SocketException.closed();
-    ;
-    return _raw.port;
+    final raw = _raw;
+    if (raw == null) throw const SocketException.closed();
+    return raw.port;
   }
 
   InternetAddress get address {
-    if (_raw == null) throw const SocketException.closed();
-    ;
-    return _raw.address;
+    final raw = _raw;
+    if (raw == null) throw const SocketException.closed();
+    return raw.address;
   }
 
   int get remotePort {
-    if (_raw == null) throw const SocketException.closed();
-    ;
-    return _raw.remotePort;
+    final raw = _raw;
+    if (raw == null) throw const SocketException.closed();
+    return raw.remotePort;
   }
 
   InternetAddress get remoteAddress {
-    if (_raw == null) throw const SocketException.closed();
-    ;
-    return _raw.remoteAddress;
+    final raw = _raw;
+    if (raw == null) throw const SocketException.closed();
+    return raw.remoteAddress;
   }
 
   Future _detachRaw() {
@@ -1831,45 +1838,45 @@ class _Socket extends Stream<Uint8List> implements Socket {
   // consumer needs a subscription as they share the error and done
   // events from the raw socket.
   void _ensureRawSocketSubscription() {
-    if (_subscription == null && _raw != null) {
-      _subscription = _raw.listen(_onData,
+    final raw = _raw;
+    if (_subscription == null && raw != null) {
+      _subscription = raw.listen(_onData,
           onError: _onError, onDone: _onDone, cancelOnError: true);
     }
   }
 
   _closeRawSocket() {
-    var tmp = _raw;
+    var raw = _raw!;
     _raw = null;
     _closed = true;
-    tmp.close();
+    raw.close();
   }
 
   void _onSubscriptionStateChange() {
+    final raw = _raw;
     if (_controller.hasListener) {
       _ensureRawSocketSubscription();
       // Enable read events for providing data to subscription.
-      if (_raw != null) {
-        _raw.readEventsEnabled = true;
+      if (raw != null) {
+        raw.readEventsEnabled = true;
       }
     } else {
       _controllerClosed = true;
-      if (_raw != null) {
-        _raw.shutdown(SocketDirection.receive);
+      if (raw != null) {
+        raw.shutdown(SocketDirection.receive);
       }
     }
   }
 
   void _onPauseStateChange() {
-    if (_raw != null) {
-      _raw.readEventsEnabled = !_controller.isPaused;
-    }
+    _raw?.readEventsEnabled = !_controller.isPaused;
   }
 
   void _onData(event) {
     switch (event) {
       case RawSocketEvent.read:
         if (_raw == null) break;
-        var buffer = _raw.read();
+        var buffer = _raw!.read();
         if (buffer != null) _controller.add(buffer);
         break;
       case RawSocketEvent.write:
@@ -1900,30 +1907,28 @@ class _Socket extends Stream<Uint8List> implements Socket {
   }
 
   int _write(List<int> data, int offset, int length) {
-    if (_raw != null) {
-      return _raw.write(data, offset, length);
+    final raw = _raw;
+    if (raw != null) {
+      return raw.write(data, offset, length);
     }
     return 0;
   }
 
   void _enableWriteEvent() {
-    if (_raw != null) {
-      _raw.writeEventsEnabled = true;
-    }
+    _raw?.writeEventsEnabled = true;
   }
 
   void _disableWriteEvent() {
-    if (_raw != null) {
-      _raw.writeEventsEnabled = false;
-    }
+    _raw?.writeEventsEnabled = false;
   }
 
   void _consumerDone() {
     if (_detachReady != null) {
       _detachReady.complete(null);
     } else {
-      if (_raw != null) {
-        _raw.shutdown(SocketDirection.send);
+      final raw = _raw;
+      if (raw != null) {
+        raw.shutdown(SocketDirection.send);
         _disableWriteEvent();
       }
     }
@@ -1948,7 +1953,7 @@ class RawDatagramSocket {
 class _RawDatagramSocket extends Stream<RawSocketEvent>
     implements RawDatagramSocket {
   _NativeSocket _socket;
-  StreamController<RawSocketEvent> _controller;
+  late StreamController<RawSocketEvent> _controller;
   bool _readEventsEnabled = true;
   bool _writeEventsEnabled = true;
 
@@ -1993,8 +1998,8 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
     });
   }
 
-  StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event),
-      {Function onError, void onDone(), bool cancelOnError}) {
+  StreamSubscription<RawSocketEvent> listen(void onData(RawSocketEvent event)?,
+      {Function? onError, void onDone()?, bool? cancelOnError}) {
     return _controller.stream.listen(onData,
         onError: onError, onDone: onDone, cancelOnError: cancelOnError);
   }
@@ -2010,15 +2015,15 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
   int send(List<int> buffer, InternetAddress address, int port) =>
       _socket.send(buffer, 0, buffer.length, address, port);
 
-  Datagram receive() {
+  Datagram? receive() {
     return _socket.receive();
   }
 
-  void joinMulticast(InternetAddress group, [NetworkInterface interface]) {
+  void joinMulticast(InternetAddress group, [NetworkInterface? interface]) {
     _socket.joinMulticast(group, interface);
   }
 
-  void leaveMulticast(InternetAddress group, [NetworkInterface interface]) {
+  void leaveMulticast(InternetAddress group, [NetworkInterface? interface]) {
     _socket.leaveMulticast(group, interface);
   }
 
@@ -2048,7 +2053,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
       _socket.setOption(SocketOption._ipMulticastHops, value);
 
   NetworkInterface get multicastInterface => throw "Not implemented";
-  void set multicastInterface(NetworkInterface value) =>
+  void set multicastInterface(NetworkInterface? value) =>
       throw "Not implemented";
 
   bool get broadcastEnabled => _socket.getOption(SocketOption._ipBroadcast);

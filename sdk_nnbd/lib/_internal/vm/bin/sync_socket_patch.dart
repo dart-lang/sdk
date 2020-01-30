@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "common_patch.dart";
 
 @patch
@@ -34,14 +32,14 @@ class _RawSynchronousSocket implements RawSynchronousSocket {
 
   void closeSync() => _socket.closeSync();
 
-  int readIntoSync(List<int> buffer, [int start = 0, int end]) =>
+  int readIntoSync(List<int> buffer, [int start = 0, int? end]) =>
       _socket.readIntoSync(buffer, start, end);
 
-  List<int> readSync(int bytes) => _socket.readSync(bytes);
+  List<int>? readSync(int bytes) => _socket.readSync(bytes);
 
   void shutdown(SocketDirection direction) => _socket.shutdown(direction);
 
-  void writeFromSync(List<int> buffer, [int start = 0, int end]) =>
+  void writeFromSync(List<int> buffer, [int start = 0, int? end]) =>
       _socket.writeFromSync(buffer, start, end);
 }
 
@@ -57,18 +55,19 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   bool isClosedWrite = false;
 
   // Holds the address used to connect the socket.
-  InternetAddress localAddress;
+  late InternetAddress localAddress;
 
   // Holds the port of the socket, 0 if not known.
   int localPort = 0;
 
-  _ReadWriteResourceInfo resourceInfo;
+  // Always set by setupResourceInfo called by connectSync.
+  late _SocketResourceInfo resourceInfo;
 
   static _NativeSynchronousSocket connectSync(host, int port) {
     if (host == null) {
       throw new ArgumentError("Parameter host cannot be null");
     }
-    List<_InternetAddress> addresses = null;
+    late List<_InternetAddress> addresses;
     var error = null;
     if (host is _InternetAddress) {
       addresses = [host];
@@ -82,7 +81,6 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
         throw createError(error, "Failed host lookup: '$host'");
       }
     }
-    assert(addresses is List);
     var it = addresses.iterator;
     _NativeSynchronousSocket connectNext() {
       if (!it.moveNext()) {
@@ -169,7 +167,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
   // Create the appropriate error/exception from different returned
   // error objects.
   static createError(error, String message,
-      [InternetAddress address, int port]) {
+      [InternetAddress? address, int? port]) {
     if (error is OSError) {
       return new SocketException(message,
           osError: error, address: address, port: port);
@@ -184,34 +182,25 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (response is OSError) {
       throw response;
     }
-    List<_InternetAddress> addresses =
-        new List<_InternetAddress>.filled(response.length, null);
-    for (int i = 0; i < response.length; ++i) {
-      var result = response[i];
-      addresses[i] = new _InternetAddress(result[1], host, result[2]);
-    }
-    return addresses;
+    return <_InternetAddress>[
+      for (int i = 0; i < response.length; ++i)
+        new _InternetAddress(response[i][1], host, response[i][2]),
+    ];
   }
 
-  int readIntoSync(List<int> buffer, int start, int end) {
+  int readIntoSync(List<int> buffer, int start, int? end) {
+    // TODO: Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(buffer, "buffer");
+    ArgumentError.checkNotNull(start, "start");
     _checkAvailable();
     if (isClosedRead) {
       throw new SocketException("Socket is closed for reading");
-    }
-
-    if ((buffer is! List) ||
-        ((start != null) && (start is! int)) ||
-        ((end != null) && (end is! int))) {
-      throw new ArgumentError("Invalid arguments to readIntoSync");
-    }
-    if (start == null) {
-      throw new ArgumentError("start cannot be null");
     }
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
       return 0;
     }
-    var result = _nativeReadInto(buffer, start, (end - start));
+    var result = _nativeReadInto(buffer, start, end! - start);
     if (result is OSError) {
       throw new SocketException("readIntoSync failed", osError: result);
     }
@@ -219,7 +208,7 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     return result;
   }
 
-  List<int> readSync(int len) {
+  List<int>? readSync(int len) {
     _checkAvailable();
     if (isClosedRead) {
       throw new SocketException("Socket is closed for reading");
@@ -235,15 +224,10 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     if (result is OSError) {
       throw result;
     }
-    assert(resourceInfo != null);
-    if (result != null) {
-      if (resourceInfo != null) {
-        resourceInfo.totalRead += result.length;
-      }
+    if (result is List<int>) {
+      resourceInfo.totalRead += result.length;
     }
-    if (resourceInfo != null) {
-      resourceInfo.didRead();
-    }
+    resourceInfo.didRead();
     return result;
   }
 
@@ -294,36 +278,26 @@ class _NativeSynchronousSocket extends _NativeSynchronousSocketNativeWrapper {
     isClosedWrite = true;
   }
 
-  void writeFromSync(List<int> buffer, int start, int end) {
+  void writeFromSync(List<int> buffer, int start, int? end) {
+    // TODO: Remove once non-nullability is sound.
+    ArgumentError.checkNotNull(buffer, "buffer");
+    ArgumentError.checkNotNull(start, "start");
     _checkAvailable();
     if (isClosedWrite) {
       throw new SocketException("Socket is closed for writing");
     }
-    if ((buffer is! List) ||
-        ((start != null) && (start is! int)) ||
-        ((end != null) && (end is! int))) {
-      throw new ArgumentError("Invalid arguments to writeFromSync");
-    }
-    if (start == null) {
-      throw new ArgumentError("start cannot be equal to null");
-    }
-
     end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) {
       return;
     }
-
     _BufferAndStart bufferAndStart =
-        _ensureFastAndSerializableByteData(buffer, start, end);
+        _ensureFastAndSerializableByteData(buffer, start, end!);
     var result = _nativeWrite(bufferAndStart.buffer, bufferAndStart.start,
         end - (start - bufferAndStart.start));
     if (result is OSError) {
       throw new SocketException("writeFromSync failed", osError: result);
     }
-    assert(resourceInfo != null);
-    if (resourceInfo != null) {
-      resourceInfo.addWrite(result);
-    }
+    resourceInfo.addWrite(result);
   }
 
   void _checkAvailable() {

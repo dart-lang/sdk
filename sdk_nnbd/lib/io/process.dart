@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 part of dart.io;
 
 // TODO(ager): The only reason for this class is that we
@@ -13,7 +11,7 @@ class _ProcessUtils {
   external static void _setExitCode(int status);
   external static int _getExitCode();
   external static void _sleep(int millis);
-  external static int _pid(Process process);
+  external static int _pid(Process? process);
   external static Stream<ProcessSignal> _watchSignal(ProcessSignal signal);
 }
 
@@ -363,8 +361,8 @@ abstract class Process {
    */
   external static Future<Process> start(
       String executable, List<String> arguments,
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
       ProcessStartMode mode: ProcessStartMode.normal});
@@ -412,12 +410,12 @@ abstract class Process {
    */
   external static Future<ProcessResult> run(
       String executable, List<String> arguments,
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: systemEncoding,
-      Encoding stderrEncoding: systemEncoding});
+      Encoding? stdoutEncoding: systemEncoding,
+      Encoding? stderrEncoding: systemEncoding});
 
   /**
    * Starts a process and runs it to completion. This is a synchronous
@@ -430,12 +428,12 @@ abstract class Process {
    */
   external static ProcessResult runSync(
       String executable, List<String> arguments,
-      {String workingDirectory,
-      Map<String, String> environment,
+      {String? workingDirectory,
+      Map<String, String>? environment,
       bool includeParentEnvironment: true,
       bool runInShell: false,
-      Encoding stdoutEncoding: systemEncoding,
-      Encoding stderrEncoding: systemEncoding});
+      Encoding? stdoutEncoding: systemEncoding,
+      Encoding? stderrEncoding: systemEncoding});
 
   /**
    * Kills the process with id [pid].
@@ -695,8 +693,7 @@ class ProcessException implements IOException {
   const ProcessException(this.executable, this.arguments,
       [this.message = "", this.errorCode = 0]);
   String toString() {
-    var msg = (message == null) ? 'OS error code: $errorCode' : message;
     var args = arguments.join(' ');
-    return "ProcessException: $msg\n  Command: $executable $args";
+    return "ProcessException: $message\n  Command: $executable $args";
   }
 }
