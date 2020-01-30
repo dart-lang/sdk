@@ -53,14 +53,17 @@ abstract class FantasyWorkspaceImpl extends FantasyWorkspace {
     ]);
   }
 
+  static const _repoSubDir = '_repo';
+
   /// Asynchronously add one repository to the workspace.
   ///
   /// Completes when the repository is synced and cloned.
   /// Completes immediately if the [name] is already added.
   Future<FantasyRepo> addRepoToWorkspace(FantasyRepoSettings repoSettings) {
     if (_repos.containsKey(repoSettings.name)) return _repos[repoSettings.name];
-    _repos[repoSettings.name] =
-        FantasyRepo.buildFrom(repoSettings, workspaceRoot);
+    Directory repoRoot = Directory(path.canonicalize(
+        path.join(workspaceRoot.path, _repoSubDir, repoSettings.name)));
+    _repos[repoSettings.name] = FantasyRepo.buildFrom(repoSettings, repoRoot);
     return _repos[repoSettings.name];
   }
 }
