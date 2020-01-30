@@ -4954,6 +4954,39 @@ class D {
 ''');
   }
 
+  test_defaultValue_eliminateTypeParameters() async {
+    featureSet = enableNnbd;
+    var library = await checkLibrary('''
+class A<T> {
+  const X({List<T> a = const []});
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<T> {
+  dynamic X({List<T> a: const /*typeArgs=Never*/[]});
+}
+''',
+        withTypes: true);
+  }
+
+  test_defaultValue_eliminateTypeParameters_legacy() async {
+    var library = await checkLibrary('''
+class A<T> {
+  const X({List<T> a = const []});
+}
+''');
+    checkElementText(
+        library,
+        r'''
+class A<T> {
+  dynamic X({List<T> a: const /*typeArgs=Null*/[]});
+}
+''',
+        withTypes: true);
+  }
+
   test_defaultValue_genericFunction() async {
     var library = await checkLibrary('''
 typedef void F<T>(T v);

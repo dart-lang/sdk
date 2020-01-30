@@ -138,6 +138,35 @@ class Dart2TypeSystem extends TypeSystem {
     return ft.parameters.any((p) => predicate(p.type));
   }
 
+  /**
+   * Eliminates type variables from the context [type], replacing them with
+   * `Null` or `Object` as appropriate.
+   *
+   * For example in `List<T> list = const []`, the context type for inferring
+   * the list should be changed from `List<T>` to `List<Null>` so the constant
+   * doesn't depend on the type variables `T` (because it can't be canonicalized
+   * at compile time, as `T` is unknown).
+   *
+   * Conceptually this is similar to the "least closure", except instead of
+   * eliminating `?` ([UnknownInferredType]) it eliminates all type variables
+   * ([TypeParameterType]).
+   *
+   * The equivalent CFE code can be found in the `TypeVariableEliminator` class.
+   */
+  DartType eliminateTypeVariables(DartType type) {
+    if (isNonNullableByDefault) {
+      return _TypeVariableEliminator(
+        objectQuestion,
+        NeverTypeImpl.instance,
+      ).substituteType(type);
+    } else {
+      return _TypeVariableEliminator(
+        objectNone,
+        typeProvider.nullType,
+      ).substituteType(type);
+    }
+  }
+
   /// Given a type t, if t is an interface type with a call method
   /// defined, return the function type for the call method, otherwise
   /// return null.
@@ -669,7 +698,7 @@ class Dart2TypeSystem extends TypeSystem {
 
     if (contextReturnType != null) {
       if (isConst) {
-        contextReturnType = _eliminateTypeVariables(contextReturnType);
+        contextReturnType = eliminateTypeVariables(contextReturnType);
       }
       inferrer.constrainReturnType(declaredReturnType, contextReturnType);
     }
@@ -1583,25 +1612,6 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   /**
-   * Eliminates type variables from the context [type], replacing them with
-   * `Null` or `Object` as appropriate.
-   *
-   * For example in `List<T> list = const []`, the context type for inferring
-   * the list should be changed from `List<T>` to `List<Null>` so the constant
-   * doesn't depend on the type variables `T` (because it can't be canonicalized
-   * at compile time, as `T` is unknown).
-   *
-   * Conceptually this is similar to the "least closure", except instead of
-   * eliminating `?` ([UnknownInferredType]) it eliminates all type variables
-   * ([TypeParameterType]).
-   *
-   * The equivalent CFE code can be found in the `TypeVariableEliminator` class.
-   */
-  DartType _eliminateTypeVariables(DartType type) {
-    return TypeVariableEliminator(typeProvider).substituteType(type);
-  }
-
-  /**
    * Compute the greatest lower bound of function types [f] and [g].
    *
    * https://github.com/dart-lang/language
@@ -2405,14 +2415,10 @@ class GenericInferrer {
         return lower;
       }
       if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType
-            ? greatestClosure(_typeSystem.typeProvider, upper)
-            : upper;
+        return toKnownType ? _typeSystem.greatestClosure(upper) : upper;
       }
       if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType
-            ? leastClosure(_typeSystem.typeProvider, lower)
-            : lower;
+        return toKnownType ? _typeSystem.leastClosure(lower) : lower;
       }
       return upper;
     } else {
@@ -2423,14 +2429,10 @@ class GenericInferrer {
         return upper;
       }
       if (!identical(UnknownInferredType.instance, lower)) {
-        return toKnownType
-            ? leastClosure(_typeSystem.typeProvider, lower)
-            : lower;
+        return toKnownType ? _typeSystem.leastClosure(lower) : lower;
       }
       if (!identical(UnknownInferredType.instance, upper)) {
-        return toKnownType
-            ? greatestClosure(_typeSystem.typeProvider, upper)
-            : upper;
+        return toKnownType ? _typeSystem.greatestClosure(upper) : upper;
       }
       return lower;
     }
@@ -2508,7 +2510,6 @@ class GenericInferrer {
         // GLB(A, FutureOr<B>) ==  GLB(FutureOr<B>, A)
         return _getGreatestLowerBound(t2, t1);
       }
-      return typeProvider.nullType;
     }
     return result;
   }
@@ -3732,16 +3733,67 @@ class TypeSystemImpl extends Dart2TypeSystem {
           strictInference: strictInference,
           typeProvider: typeProvider,
         );
-}
 
-class TypeVariableEliminator extends Substitution {
-  final TypeProvider _typeProvider;
+  /// Returns the greatest closure of the given type [schema] with respect to `?`.
+  ///
+  /// The greatest closure of a type schema `P` with respect to `?` is defined as
+  /// `P` with every covariant occurrence of `?` replaced with `Null`, and every
+  /// contravariant occurrence of `?` replaced with `Object`.
+  ///
+  /// If the schema contains no instances of `?`, the original schema object is
+  /// returned to avoid unnecessary allocation.
+  ///
+  /// Note that the closure of a type schema is a proper type.
+  ///
+  /// Note that the greatest closure of a type schema is always a supertype of
+  /// any type which matches the schema.
+  DartType greatestClosure(DartType schema) {
+    if (isNonNullableByDefault) {
+      return TypeSchemaEliminationVisitor.run(
+        topType: objectQuestion,
+        bottomType: NeverTypeImpl.instance,
+        isLeastClosure: false,
+        schema: schema,
+      );
+    } else {
+      return TypeSchemaEliminationVisitor.run(
+        topType: DynamicTypeImpl.instance,
+        bottomType: typeProvider.nullType,
+        isLeastClosure: false,
+        schema: schema,
+      );
+    }
+  }
 
-  TypeVariableEliminator(this._typeProvider);
-
-  @override
-  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
-    return upperBound ? _typeProvider.nullType : _typeProvider.objectType;
+  /// Returns the least closure of the given type [schema] with respect to `?`.
+  ///
+  /// The least closure of a type schema `P` with respect to `?` is defined as
+  /// `P` with every covariant occurrence of `?` replaced with `Object`, an
+  /// every contravariant occurrence of `?` replaced with `Null`.
+  ///
+  /// If the schema contains no instances of `?`, the original schema object is
+  /// returned to avoid unnecessary allocation.
+  ///
+  /// Note that the closure of a type schema is a proper type.
+  ///
+  /// Note that the least closure of a type schema is always a subtype of any
+  /// type which matches the schema.
+  DartType leastClosure(DartType schema) {
+    if (isNonNullableByDefault) {
+      return TypeSchemaEliminationVisitor.run(
+        topType: objectQuestion,
+        bottomType: NeverTypeImpl.instance,
+        isLeastClosure: true,
+        schema: schema,
+      );
+    } else {
+      return TypeSchemaEliminationVisitor.run(
+        topType: DynamicTypeImpl.instance,
+        bottomType: typeProvider.nullType,
+        isLeastClosure: true,
+        schema: schema,
+      );
+    }
   }
 }
 
@@ -4059,4 +4111,19 @@ class _TypeRange {
 
   @override
   String toString() => format('(type)', withNullability: true);
+}
+
+class _TypeVariableEliminator extends Substitution {
+  final DartType _topType;
+  final DartType _bottomType;
+
+  _TypeVariableEliminator(
+    this._topType,
+    this._bottomType,
+  );
+
+  @override
+  DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {
+    return upperBound ? _bottomType : _topType;
+  }
 }
