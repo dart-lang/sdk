@@ -140,6 +140,10 @@ config("dart_config") {
     }
   }
 
+  if (use_nnbd) {
+    defines += [ "DART_BUILT_WITH_NNBD_FLAG" ]
+  }
+
   if (!is_win) {
     cflags = [
       "-Werror",

@@ -123,8 +123,16 @@ class Dart : public AllStatic {
   static Dart_EntropySource entropy_source_callback() {
     return entropy_source_callback_;
   }
+
+  // TODO(dartbug.com/40342): Delete these functions.
   static void set_non_nullable_flag(bool value) { non_nullable_flag_ = value; }
-  static bool non_nullable_flag() { return non_nullable_flag_; }
+  static bool non_nullable_flag() {
+#ifdef DART_BUILT_WITH_NNBD_FLAG
+    return true;
+#else
+    return non_nullable_flag_;
+#endif
+  }
 
  private:
   static void WaitForIsolateShutdown();
