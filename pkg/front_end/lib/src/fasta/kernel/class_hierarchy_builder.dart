@@ -739,7 +739,7 @@ class ClassHierarchyNodeBuilder {
         bType = const DynamicType();
       }
       if (aType != bType) {
-        if (a.parent == classBuilder && a.formals[i].type == null) {
+        if (a.classBuilder == classBuilder && a.formals[i].type == null) {
           result = inferParameterType(classBuilder, a, a.formals[i], bType,
               hadTypesInferred, hierarchy);
         } else {
@@ -2765,6 +2765,22 @@ bool inferParameterType(
     bool hadTypesInferred,
     ClassHierarchyBuilder hierarchy) {
   debug?.log("Inferred type ${type} for ${parameterBuilder}");
+
+  if (classBuilder.library.isNonNullableByDefault) {
+    if (hadTypesInferred) {
+      type = nnbdTopMerge(
+          hierarchy.coreTypes, parameterBuilder.variable.type, type);
+      if (type != null) {
+        // The nnbd top merge exists so [type] is the inferred type.
+        parameterBuilder.variable.type = type;
+        return true;
+      }
+      // The nnbd top merge doesn't exist. An error will be reported below.
+    }
+  } else {
+    type = legacyErasure(hierarchy.coreTypes, type);
+  }
+
   if (type == parameterBuilder.variable.type) return true;
   bool result = true;
   if (hadTypesInferred) {
