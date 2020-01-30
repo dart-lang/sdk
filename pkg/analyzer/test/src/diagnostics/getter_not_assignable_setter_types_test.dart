@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -12,8 +10,6 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetterNotAssignableSetterTypesTest);
-    defineReflectiveTests(
-        GetterNotAssignableSetterTypesWithExtensionMethodsTest);
   });
 }
 
@@ -22,8 +18,8 @@ class GetterNotAssignableSetterTypesTest extends DriverResolutionTest {
   test_class_instance_dynamicGetter() async {
     await assertNoErrorsInCode(r'''
 class C {
-  get x => 0;
-  set x(String v) {}
+  get foo => 0;
+  set foo(String v) {}
 }
 ''');
   }
@@ -31,8 +27,8 @@ class C {
   test_class_instance_dynamicSetter() async {
     await assertNoErrorsInCode(r'''
 class C {
-  int get x => 0;
-  set x(v) {}
+  int get foo => 0;
+  set foo(v) {}
 }
 ''');
   }
@@ -137,8 +133,8 @@ class C {
   test_class_instance_sameTypes() async {
     await assertNoErrorsInCode(r'''
 class C {
-  int get x => 0;
-  set x(int v) {}
+  int get foo => 0;
+  set foo(int v) {}
 }
 ''');
   }
@@ -204,64 +200,55 @@ class C {
     ]);
   }
 
-  test_topLevel() async {
-    await assertErrorsInCode('''
-int get g { return 0; }
-set g(String v) {}
-''', [
-      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 8, 1),
-    ]);
-  }
-
-  test_topLevel_dynamicGetter() async {
-    await assertNoErrorsInCode(r'''
-get x => 0;
-set x(String v) {}
-''');
-  }
-
-  test_topLevel_dynamicSetter() async {
-    await assertNoErrorsInCode(r'''
-int get x => 0;
-set x(v) {}
-''');
-  }
-
-  test_topLevel_sameTypes() async {
-    await assertNoErrorsInCode(r'''
-int get x => 0;
-set x(int v) {}
-''');
-  }
-}
-
-@reflectiveTest
-class GetterNotAssignableSetterTypesWithExtensionMethodsTest
-    extends GetterNotAssignableSetterTypesTest {
-  @override
-  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.forTesting(
-        sdkVersion: '2.3.0', additionalFeatures: [Feature.extension_methods]);
-
   test_extension_instance() async {
     await assertErrorsInCode('''
 extension E on Object {
-  int get g { return 0; }
-  set g(String v) {}
+  int get foo { return 0; }
+  set foo(String v) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 34, 1),
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 34, 3),
     ]);
   }
 
   test_extension_static() async {
     await assertErrorsInCode('''
 extension E on Object {
-  static int get g { return 0; }
-  static set g(String v) {}
+  static int get foo { return 0; }
+  static set foo(String v) {}
 }
 ''', [
-      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 41, 1),
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 41, 3),
     ]);
+  }
+
+  test_topLevel() async {
+    await assertErrorsInCode('''
+int get foo { return 0; }
+set foo(String v) {}
+''', [
+      error(StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES, 8, 3),
+    ]);
+  }
+
+  test_topLevel_dynamicGetter() async {
+    await assertNoErrorsInCode(r'''
+get foo => 0;
+set foo(String v) {}
+''');
+  }
+
+  test_topLevel_dynamicSetter() async {
+    await assertNoErrorsInCode(r'''
+int get foo => 0;
+set foo(v) {}
+''');
+  }
+
+  test_topLevel_sameTypes() async {
+    await assertNoErrorsInCode(r'''
+int get foo => 0;
+set foo(int v) {}
+''');
   }
 }

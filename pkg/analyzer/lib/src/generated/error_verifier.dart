@@ -734,7 +734,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         GetterSetterTypesVerifier(
           typeSystem: _typeSystem,
           errorReporter: _errorReporter,
-        ).checkStaticGetter(node.name, node.declaredElement);
+        ).checkGetter(node.name, node.declaredElement);
       }
       if (node.isSetter) {
         FunctionExpression functionExpression = node.functionExpression;
@@ -941,7 +941,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         GetterSetterTypesVerifier(
           typeSystem: _typeSystem,
           errorReporter: _errorReporter,
-        ).checkStaticGetter(node.name, node.declaredElement);
+        ).checkGetter(node.name, node.declaredElement);
       }
       if (node.isSetter) {
         _checkForInvalidModifierOnBody(

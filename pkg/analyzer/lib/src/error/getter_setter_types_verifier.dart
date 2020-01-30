@@ -36,29 +36,35 @@ class GetterSetterTypesVerifier {
   void checkExtension(ExtensionDeclaration node) {
     for (var getterNode in node.members) {
       if (getterNode is MethodDeclaration && getterNode.isGetter) {
-        var getter = getterNode.declaredElement as PropertyAccessorElement;
-
-        var setter = getter.correspondingSetter;
-        if (setter == null) {
-          continue;
-        }
-
-        var getterType = _getGetterType(getter);
-        var setterType = _getSetterType(setter);
-        if (setterType == null) {
-          continue;
-        }
-
-        if (!_match(getterType, setterType)) {
-          var nameNode = getterNode.name;
-          var name = nameNode.name;
-          _errorReporter.reportErrorForNode(
-            _errorCode,
-            nameNode,
-            [name, getterType, setterType, name],
-          );
-        }
+        checkGetter(getterNode.name, getterNode.declaredElement);
       }
+    }
+  }
+
+  void checkGetter(
+    SimpleIdentifier nameNode,
+    PropertyAccessorElement getter,
+  ) {
+    assert(getter.isGetter);
+
+    var setter = getter.correspondingSetter;
+    if (setter == null) {
+      return;
+    }
+
+    var getterType = _getGetterType(getter);
+    var setterType = _getSetterType(setter);
+    if (setterType == null) {
+      return;
+    }
+
+    if (!_match(getterType, setterType)) {
+      var name = nameNode.name;
+      _errorReporter.reportErrorForNode(
+        _errorCode,
+        nameNode,
+        [name, getterType, setterType, name],
+      );
     }
   }
 
@@ -104,33 +110,6 @@ class GetterSetterTypesVerifier {
           }
         }
       }
-    }
-  }
-
-  void checkStaticGetter(
-    SimpleIdentifier nameNode,
-    PropertyAccessorElement getter,
-  ) {
-    assert(getter.isGetter);
-
-    var setter = getter.correspondingSetter;
-    if (setter == null) {
-      return;
-    }
-
-    var getterType = _getGetterType(getter);
-    var setterType = _getSetterType(setter);
-    if (setterType == null) {
-      return;
-    }
-
-    if (!_match(getterType, setterType)) {
-      var name = nameNode.name;
-      _errorReporter.reportErrorForNode(
-        _errorCode,
-        nameNode,
-        [name, getterType, setterType, name],
-      );
     }
   }
 
