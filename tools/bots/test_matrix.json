@@ -1444,7 +1444,8 @@
             "-ndartk-weak-asserts-${system}-${mode}-${arch}",
             "ffi",
             "language",
-            "lib/mirrors"
+            "lib/mirrors",
+            "standalone/io"
           ]
         }
       ]
@@ -2594,7 +2595,8 @@
             "-nanalyzer-asserts-strong-${system}",
             "ffi",
             "language",
-            "lib/mirrors"
+            "lib/mirrors",
+            "standalone/io"
           ]
         },
         {
@@ -2603,7 +2605,8 @@
             "-nanalyzer-asserts-weak-${system}",
             "ffi",
             "language",
-            "lib/mirrors"
+            "lib/mirrors",
+            "standalone/io"
           ]
         },
         {
