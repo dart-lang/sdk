@@ -2010,6 +2010,23 @@ void main() {new A().f^}''');
     assertNotSuggested('Object');
   }
 
+  Future<void> test_FunctionType_call() async {
+    addTestSource('''
+void f() {
+  void Function(int x) fun;
+  fun.^
+}
+''');
+
+    await computeSuggestions();
+    assertSuggest(
+      'call()',
+      selectionOffset: 6,
+      elemKind: ElementKind.METHOD,
+      isSynthetic: true,
+    );
+  }
+
   Future<void> test_generic_field() async {
     addTestSource('''
 class C<T> {

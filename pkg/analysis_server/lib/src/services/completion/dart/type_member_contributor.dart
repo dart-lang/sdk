@@ -109,6 +109,10 @@ class TypeMemberContributor extends DartCompletionContributor {
           mixins: mixins, superclassConstraints: superclassConstraints);
       return builder.suggestions.toList();
     }
+    if (type is FunctionType) {
+      return [_SuggestionBuilder._createFunctionCallSuggestion()];
+    }
+
     return const <CompletionSuggestion>[];
   }
 }
@@ -291,31 +295,9 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
         }
       }
       if (targetType.isDartCoreFunction) {
-        _addFunctionCallSuggestion();
+        addCompletionSuggestion(_createFunctionCallSuggestion());
       }
     }
-  }
-
-  void _addFunctionCallSuggestion() {
-    const callString = 'call()';
-    final element = protocol.Element(
-        protocol.ElementKind.METHOD, callString, protocol.Element.makeFlags(),
-        location: null,
-        typeParameters: null,
-        parameters: null,
-        returnType: 'void');
-    addCompletionSuggestion(CompletionSuggestion(
-      CompletionSuggestionKind.INVOCATION,
-      DART_RELEVANCE_HIGH,
-      callString,
-      callString.length,
-      0,
-      false,
-      false,
-      displayText: callString,
-      element: element,
-      returnType: 'void',
-    ));
   }
 
   /**
@@ -354,5 +336,27 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
       typesToVisit.addAll(nextType.mixins);
     }
     return result;
+  }
+
+  static CompletionSuggestion _createFunctionCallSuggestion() {
+    const callString = 'call()';
+    final element = protocol.Element(
+        protocol.ElementKind.METHOD, callString, protocol.Element.makeFlags(),
+        location: null,
+        typeParameters: null,
+        parameters: null,
+        returnType: 'void');
+    return CompletionSuggestion(
+      CompletionSuggestionKind.INVOCATION,
+      DART_RELEVANCE_HIGH,
+      callString,
+      callString.length,
+      0,
+      false,
+      false,
+      displayText: callString,
+      element: element,
+      returnType: 'void',
+    );
   }
 }
