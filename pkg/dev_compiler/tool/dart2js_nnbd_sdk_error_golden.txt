@@ -9,11 +9,11 @@ ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/intercept
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|708|17|3|'NativeTypedArrayOfDouble.[]=' ('void Function(int, double)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|729|17|3|'NativeTypedArrayOfInt.[]=' ('void Function(int, int)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/js/js.dart|351|17|3|'JsArray.[]=' ('void Function(dynamic, E)') isn't a valid override of 'JsObject.[]=' ('void Function(dynamic, dynamic)').
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1672|28|1|The operator '&' isn't defined for the class 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1674|27|1|The operator '&' isn't defined for the class 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1677|17|1|The operator '&' isn't defined for the class 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1682|18|1|The operator '&' isn't defined for the class 'JSInt'.
-ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1682|44|1|The operator '&' isn't defined for the class 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1672|28|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1674|27|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1677|17|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1682|18|1|The operator '&' isn't defined for the type 'JSInt'.
+ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1682|44|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|12140|3|7|All final variables must be initialized, but '_attributes', '_childElementCount', and 21 others are not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|15319|3|15|All final variables must be initialized, but 'elements', 'form', and 4 others are not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|15992|3|11|All final variables must be initialized, but 'length' is not.

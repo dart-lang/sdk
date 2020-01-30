@@ -3528,16 +3528,6 @@ main() {
 ''');
   }
 
-  @failingTest
-  test_undefinedEnumConstant() async {
-    await assertNoErrorsInCode(r'''
-enum E { ONE }
-E e() {
-  return E.TWO;
-}
-''');
-  }
-
   test_undefinedSuperMethod_field() async {
     await assertNoErrorsInCode(r'''
 class A {

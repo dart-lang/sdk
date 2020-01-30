@@ -437,6 +437,7 @@ import 'undefined_constructor_in_initializer_default_test.dart'
     as undefined_constructor_in_initializer_default;
 import 'undefined_constructor_in_initializer_test.dart'
     as undefined_constructor_in_initializer;
+import 'undefined_enum_constant_test.dart' as undefined_enum_constant;
 import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
 import 'undefined_extension_method_test.dart' as undefined_extension_method;
 import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
@@ -778,6 +779,7 @@ main() {
     undefined_class.main();
     undefined_constructor_in_initializer_default.main();
     undefined_constructor_in_initializer.main();
+    undefined_enum_constant.main();
     undefined_extension_getter.main();
     undefined_extension_method.main();
     undefined_extension_operator.main();

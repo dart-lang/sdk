@@ -1370,8 +1370,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
           propertyName.staticElement = element;
           _checkForStaticAccessToInstanceMember(propertyName, element);
         } else {
+          var code = typeReference.isEnum
+              ? StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT
+              : StaticTypeWarningCode.UNDEFINED_GETTER;
           _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.UNDEFINED_GETTER,
+            code,
             propertyName,
             [propertyName.name, typeReference.name],
           );

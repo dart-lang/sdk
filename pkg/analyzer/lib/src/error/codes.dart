@@ -6719,15 +6719,12 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // ```dart
   // int f(String s) => s.length;
   // ```
-  static const StaticTypeWarningCode UNDEFINED_GETTER =
-      // TODO(brianwilkerson) When the "target" is an enum, report
-      //  UNDEFINED_ENUM_CONSTANT instead.
-      StaticTypeWarningCode('UNDEFINED_GETTER',
-          "The getter '{0}' isn't defined for the class '{1}'.",
-          correction: "Try importing the library that defines '{0}', "
-              "correcting the name to the name of an existing getter, or "
-              "defining a getter or field named '{0}'.",
-          hasPublishedDocs: true);
+  static const StaticTypeWarningCode UNDEFINED_GETTER = StaticTypeWarningCode(
+      'UNDEFINED_GETTER', "The getter '{0}' isn't defined for the type '{1}'.",
+      correction: "Try importing the library that defines '{0}', "
+          "correcting the name to the name of an existing getter, or "
+          "defining a getter or field named '{0}'.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6759,7 +6756,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // int f(List<int> l) => l.removeLast();
   // ```
   static const StaticTypeWarningCode UNDEFINED_METHOD = StaticTypeWarningCode(
-      'UNDEFINED_METHOD', "The method '{0}' isn't defined for the class '{1}'.",
+      'UNDEFINED_METHOD', "The method '{0}' isn't defined for the type '{1}'.",
       correction:
           "Try correcting the name to the name of an existing method, or "
           "defining a method named '{0}'.",
@@ -6799,7 +6796,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // ```
   static const StaticTypeWarningCode UNDEFINED_OPERATOR = StaticTypeWarningCode(
       'UNDEFINED_OPERATOR',
-      "The operator '{0}' isn't defined for the class '{1}'.",
+      "The operator '{0}' isn't defined for the type '{1}'.",
       correction: "Try defining the operator '{0}'.",
       hasPublishedDocs: true);
 
@@ -6882,7 +6879,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // }
   // ```
   static const StaticTypeWarningCode UNDEFINED_SETTER = StaticTypeWarningCode(
-      'UNDEFINED_SETTER', "The setter '{0}' isn't defined for the class '{1}'.",
+      'UNDEFINED_SETTER', "The setter '{0}' isn't defined for the type '{1}'.",
       correction: "Try importing the library that defines '{0}', "
           "correcting the name to the name of an existing setter, or "
           "defining a setter or field named '{0}'.",

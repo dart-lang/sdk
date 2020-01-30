@@ -5822,7 +5822,7 @@ an import or re-arrange your code to make the function visible.
 
 ### undefined_getter
 
-_The getter '{0}' isn't defined for the class '{1}'._
+_The getter '{0}' isn't defined for the type '{1}'._
 
 #### Description
 
@@ -5914,7 +5914,7 @@ add an import or re-arrange your code to make the identifier visible.
 
 ### undefined_method
 
-_The method '{0}' isn't defined for the class '{1}'._
+_The method '{0}' isn't defined for the type '{1}'._
 
 #### Description
 
@@ -6012,7 +6012,7 @@ void f(C c) {
 
 ### undefined_operator
 
-_The operator '{0}' isn't defined for the class '{1}'._
+_The operator '{0}' isn't defined for the type '{1}'._
 
 #### Description
 
@@ -6076,7 +6076,7 @@ the imported libraries.
 
 ### undefined_setter
 
-_The setter '{0}' isn't defined for the class '{1}'._
+_The setter '{0}' isn't defined for the type '{1}'._
 
 #### Description
 

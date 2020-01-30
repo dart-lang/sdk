@@ -68,6 +68,60 @@ f(bool b, int i) => (b ? null : i).foo();
     ]);
   }
 
+  test_method_undefined() async {
+    await assertErrorsInCode(r'''
+class C {
+  f() {
+    abs();
+  }
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 22, 3),
+    ]);
+  }
+
+  test_method_undefined_cascade() async {
+    await assertErrorsInCode(r'''
+class C {}
+f(C c) {
+  c..abs();
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 3),
+    ]);
+  }
+
+  test_method_undefined_enum() async {
+    await assertErrorsInCode(r'''
+enum E { A }
+f() => E.abs();
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 22, 3),
+    ]);
+  }
+
+  test_method_undefined_mixin_cascade() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) {
+  m..abs();
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 25, 3),
+    ]);
+  }
+
+  test_method_undefined_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) {
+  m.abs();
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_METHOD, 24, 3),
+    ]);
+  }
+
   test_method_undefined_onNull() async {
     await assertErrorsInCode(r'''
 Null f(int x) => null;
