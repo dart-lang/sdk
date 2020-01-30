@@ -3000,7 +3000,7 @@ class AssistProcessor extends BaseProcessor {
     int listLoc = childArg.offset;
     String childArgSrc = getNodeText(childArg);
     if (!childArgSrc.contains(eol)) {
-      builder.addSimpleInsertion(listLoc, '<Widget>[');
+      builder.addSimpleInsertion(listLoc, '[');
       builder.addSimpleInsertion(listLoc + childArg.length, ']');
     } else {
       int newlineLoc = childArgSrc.lastIndexOf(eol);
@@ -3014,13 +3014,12 @@ class AssistProcessor extends BaseProcessor {
           getText(namedExp.offset, childArg.offset - namedExp.offset);
       String prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
-        builder.addSimpleInsertion(
-            namedExp.offset + 'child:'.length, ' <Widget>[');
+        builder.addSimpleInsertion(namedExp.offset + 'child:'.length, ' [');
         int argOffset = childArg.offset;
         builder
             .addDeletion(range.startOffsetEndOffset(argOffset - 2, argOffset));
       } else {
-        builder.addSimpleInsertion(listLoc, '<Widget>[');
+        builder.addSimpleInsertion(listLoc, '[');
       }
       String newChildArgSrc =
           _replaceSourceIndent(childArgSrc, indentOld, indentNew);

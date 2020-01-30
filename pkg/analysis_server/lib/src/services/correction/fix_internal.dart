@@ -1489,9 +1489,6 @@ class FixProcessor extends BaseProcessor {
       var changeBuilder = _newDartChangeBuilder();
       await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
         builder.addSimpleReplacement(range.node(named.name), 'children:');
-        if (expression.typeArguments == null) {
-          builder.addSimpleInsertion(expression.offset, '<Widget>');
-        }
       });
       _addFixFromBuilder(changeBuilder, DartFixKind.CONVERT_FLUTTER_CHILD);
     }

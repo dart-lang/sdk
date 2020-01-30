@@ -24,11 +24,11 @@ class ConvertFlutterChildTest extends FixProcessorTest {
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
 build() {
-  return new Container(
-    child: new Row(
+  return Container(
+    child: Row(
       child: [
-        new Text('111'),
-        new Text('222'),
+        Text('111'),
+        Text('222'),
       ],
     ),
   );
@@ -37,11 +37,11 @@ build() {
     await assertHasFix('''
 import 'package:flutter/widgets.dart';
 build() {
-  return new Container(
-    child: new Row(
-      children: <Widget>[
-        new Text('111'),
-        new Text('222'),
+  return Container(
+    child: Row(
+      children: [
+        Text('111'),
+        Text('222'),
       ],
     ),
   );
@@ -86,7 +86,7 @@ import 'package:flutter/widgets.dart';
 build() {
   return new Container(
     child: new Row(
-      child: <Widget>[
+      child: [
         new Container(),
         null,
       ],
@@ -117,7 +117,7 @@ import 'package:flutter/material.dart';
 build() {
   return new Scaffold(
     body: new Row(
-      children: <Widget>[
+      children: [
         new Container(
           width: 200.0,
           height: 300.0,
@@ -145,7 +145,7 @@ import 'package:flutter/material.dart';
 build() {
   var text = new Text('foo');
   new Row(
-    children: <Widget>[text],
+    children: [text],
   );
 }
 ''');

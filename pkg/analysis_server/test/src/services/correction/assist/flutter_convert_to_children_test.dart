@@ -54,7 +54,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      children: <Widget>[
+      children: [
         Container(
           width: 200.0,
           height: 300.0,
@@ -90,7 +90,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      children: <Widget>[
+      children: [
         Container(
           width: 200.0,
           height: 300.0,
@@ -136,7 +136,7 @@ import 'package:flutter/material.dart';
 build() {
   return Scaffold(
     body: Center(
-      children: <Widget>[GestureDetector()],
+      children: [GestureDetector()],
       key: null,
     ),
   );
