@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'statement_completion_test.dart' as statement_completion_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     statement_completion_test.main();
   }, name: 'statement');

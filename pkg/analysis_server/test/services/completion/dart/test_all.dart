@@ -33,7 +33,7 @@ import 'type_member_contributor_test.dart' as type_member_contributor_test;
 import 'uri_contributor_test.dart' as uri_contributor_test;
 import 'variable_name_contributor_test.dart' as variable_name_contributor_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     arglist_test.main();
     combinator_test.main();

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(VariableNameContributorTest);
   });
@@ -22,7 +22,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     return VariableNameContributor();
   }
 
-  test_ExpressionStatement_dont_suggest_type() async {
+  Future<void> test_ExpressionStatement_dont_suggest_type() async {
     addTestSource('''
     f() { a ^ }
     ''');
@@ -32,7 +32,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('a');
   }
 
-  test_ExpressionStatement_dont_suggest_type_semicolon() async {
+  Future<void> test_ExpressionStatement_dont_suggest_type_semicolon() async {
     addTestSource('''
     f() { a ^; }
     ''');
@@ -42,7 +42,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('a');
   }
 
-  test_ExpressionStatement_inConstructorBody() async {
+  Future<void> test_ExpressionStatement_inConstructorBody() async {
     addTestSource('''
     class A { A() { AbstractCrazyNonsenseClassName ^ } }
     ''');
@@ -63,7 +63,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
-  test_ExpressionStatement_inFunctionBody() async {
+  Future<void> test_ExpressionStatement_inFunctionBody() async {
     addTestSource('''
     f() { AbstractCrazyNonsenseClassName ^ }
     ''');
@@ -83,7 +83,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
-  test_ExpressionStatement_inMethodBody() async {
+  Future<void> test_ExpressionStatement_inMethodBody() async {
     addTestSource('''
     class A { f() { AbstractCrazyNonsenseClassName ^ } }
     ''');
@@ -103,7 +103,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
-  test_ExpressionStatement_long_semicolon() async {
+  Future<void> test_ExpressionStatement_long_semicolon() async {
     addTestSource('''
     f() { AbstractCrazyNonsenseClassName ^; }
     ''');
@@ -123,7 +123,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
-  test_ExpressionStatement_prefixed() async {
+  Future<void> test_ExpressionStatement_prefixed() async {
     addTestSource('''
     f() { prefix.AbstractCrazyNonsenseClassName ^ }
     ''');
@@ -143,7 +143,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
-  test_ExpressionStatement_prefixed_semicolon() async {
+  Future<void> test_ExpressionStatement_prefixed_semicolon() async {
     addTestSource('''
     f() { prefix.AbstractCrazyNonsenseClassName ^; }
     ''');
@@ -163,7 +163,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
-  test_ExpressionStatement_short() async {
+  Future<void> test_ExpressionStatement_short() async {
     addTestSource('''
     f() { A ^ }
     ''');
@@ -175,7 +175,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_a');
   }
 
-  test_ExpressionStatement_short_semicolon() async {
+  Future<void> test_ExpressionStatement_short_semicolon() async {
     addTestSource('''
     f() { A ^; }
     ''');
@@ -188,7 +188,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
   }
 
   @failingTest
-  test_ForStatement() async {
+  Future<void> test_ForStatement() async {
     addTestSource('''
     f() { for(AbstractCrazyNonsenseClassName ^) {} }
     ''');
@@ -208,7 +208,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
-  test_ForStatement_partial() async {
+  Future<void> test_ForStatement_partial() async {
     addTestSource('''
     f() { for(AbstractCrazyNonsenseClassName a^) {} }
     ''');
@@ -229,7 +229,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
   }
 
   @failingTest
-  test_ForStatement_prefixed() async {
+  Future<void> test_ForStatement_prefixed() async {
     addTestSource('''
     f() { for(prefix.AbstractCrazyNonsenseClassName ^) {} }
     ''');
@@ -249,7 +249,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
-  test_ForStatement_prefixed_partial() async {
+  Future<void> test_ForStatement_prefixed_partial() async {
     addTestSource('''
     f() { for(prefix.AbstractCrazyNonsenseClassName a^) {} }
     ''');
@@ -269,7 +269,7 @@ class VariableNameContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('_name');
   }
 
-  test_SimpleFormalParameter_FormalParameterList() async {
+  Future<void> test_SimpleFormalParameter_FormalParameterList() async {
     addTestSource('''
 f(A ^) {}
 ''');
@@ -281,7 +281,7 @@ f(A ^) {}
     assertNotSuggested('_a');
   }
 
-  test_SimpleFormalParameter_itself() async {
+  Future<void> test_SimpleFormalParameter_itself() async {
     addTestSource('''
 f(A n^) {}
 ''');
@@ -293,7 +293,7 @@ f(A n^) {}
     assertNotSuggested('_a');
   }
 
-  test_TopLevelVariableDeclaration_dont_suggest_type() async {
+  Future<void> test_TopLevelVariableDeclaration_dont_suggest_type() async {
     addTestSource('''
     a ^
     ''');
@@ -305,7 +305,8 @@ f(A n^) {}
     assertNotSuggested('_a');
   }
 
-  test_TopLevelVariableDeclaration_dont_suggest_type_semicolon() async {
+  Future<void>
+      test_TopLevelVariableDeclaration_dont_suggest_type_semicolon() async {
     addTestSource('''
     a ^;
     ''');
@@ -317,7 +318,7 @@ f(A n^) {}
     assertNotSuggested('_a');
   }
 
-  test_TopLevelVariableDeclaration_long() async {
+  Future<void> test_TopLevelVariableDeclaration_long() async {
     addTestSource('''
     AbstractCrazyNonsenseClassName ^
     ''');
@@ -337,7 +338,7 @@ f(A n^) {}
     assertSuggestName('_name');
   }
 
-  test_TopLevelVariableDeclaration_long_semicolon() async {
+  Future<void> test_TopLevelVariableDeclaration_long_semicolon() async {
     addTestSource('''
     AbstractCrazyNonsenseClassName ^;
     ''');
@@ -357,7 +358,7 @@ f(A n^) {}
     assertSuggestName('_name');
   }
 
-  test_TopLevelVariableDeclaration_partial() async {
+  Future<void> test_TopLevelVariableDeclaration_partial() async {
     addTestSource('''
     AbstractCrazyNonsenseClassName abs^
     ''');
@@ -377,7 +378,7 @@ f(A n^) {}
     assertSuggestName('_name');
   }
 
-  test_TopLevelVariableDeclaration_partial_semicolon() async {
+  Future<void> test_TopLevelVariableDeclaration_partial_semicolon() async {
     addTestSource('''
     AbstractCrazyNonsenseClassName abs^
     ''');
@@ -397,7 +398,7 @@ f(A n^) {}
     assertSuggestName('_name');
   }
 
-  test_TopLevelVariableDeclaration_prefixed() async {
+  Future<void> test_TopLevelVariableDeclaration_prefixed() async {
     addTestSource('''
     prefix.AbstractCrazyNonsenseClassName ^
     ''');
@@ -417,7 +418,7 @@ f(A n^) {}
     assertSuggestName('_name');
   }
 
-  test_TopLevelVariableDeclaration_prefixed_semicolon() async {
+  Future<void> test_TopLevelVariableDeclaration_prefixed_semicolon() async {
     addTestSource('''
     prefix.AbstractCrazyNonsenseClassName ^;
     ''');
@@ -437,7 +438,7 @@ f(A n^) {}
     assertSuggestName('_name');
   }
 
-  test_TopLevelVariableDeclaration_short() async {
+  Future<void> test_TopLevelVariableDeclaration_short() async {
     addTestSource('''
     A ^
     ''');
@@ -449,7 +450,7 @@ f(A n^) {}
     assertSuggestName('_a');
   }
 
-  test_TopLevelVariableDeclaration_short_semicolon() async {
+  Future<void> test_TopLevelVariableDeclaration_short_semicolon() async {
     addTestSource('''
     A ^;
     ''');

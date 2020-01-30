@@ -87,7 +87,7 @@ class DartCompletionManagerTest extends _BaseDartCompletionContributorTest {
   }
 
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
     completionManager = DartCompletionManager();
   }

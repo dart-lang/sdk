@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveTests(OverrideContributorTest);
 }
 
@@ -21,7 +21,7 @@ class OverrideContributorTest extends DartCompletionContributorTest {
     return OverrideContributor();
   }
 
-  test_alreadyOverridden() async {
+  Future<void> test_alreadyOverridden() async {
     addTestSource('''
 class A {
   void foo() {}
@@ -37,7 +37,7 @@ class B implements A {
     _assertNoOverrideContaining('bar');
   }
 
-  test_customOperator() async {
+  Future<void> test_customOperator() async {
     addTestSource('''
 class A {
   void operator &(A other) { }
@@ -58,7 +58,7 @@ class B extends A {
         selectionLength: 14);
   }
 
-  test_equalsOperator() async {
+  Future<void> test_equalsOperator() async {
     addTestSource('''
 class A {
   other^
@@ -76,7 +76,7 @@ class A {
         selectionLength: 22);
   }
 
-  test_fromMultipleSuperclasses() async {
+  Future<void> test_fromMultipleSuperclasses() async {
     addTestSource(r'''
 class A {
   A suggested1(int x) => null;
@@ -147,7 +147,7 @@ class C extends B {
         selectionLength: 16);
   }
 
-  test_fromPart() async {
+  Future<void> test_fromPart() async {
     addSource('/home/test/lib/myLib.dart', '''
 library myLib;
 part 'test.dart';
@@ -207,7 +207,7 @@ class C extends B {
         selectionLength: 27);
   }
 
-  test_inClass_of_interface() async {
+  Future<void> test_inClass_of_interface() async {
     addTestSource('''
 class A {
   void foo() {}
@@ -225,7 +225,7 @@ class B implements A {
   }''', displayText: 'foo() { … }', selectionOffset: 51, selectionLength: 0);
   }
 
-  test_inMixin_of_interface() async {
+  Future<void> test_inMixin_of_interface() async {
     addTestSource('''
 class A {
   void foo() {}
@@ -243,7 +243,7 @@ mixin M implements A {
   }''', displayText: 'foo() { … }', selectionOffset: 51, selectionLength: 0);
   }
 
-  test_inMixin_of_superclassConstraint() async {
+  Future<void> test_inMixin_of_superclassConstraint() async {
     addTestSource('''
 class A {
   void foo() {}
@@ -263,7 +263,7 @@ mixin M on A {
   }
 
   @failingTest
-  test_insideBareClass() async {
+  Future<void> test_insideBareClass() async {
     addTestSource('''
 class A {
   method() {}
@@ -285,7 +285,7 @@ method() {
         selectionLength: 22);
   }
 
-  test_outsideOfWorkspace() async {
+  Future<void> test_outsideOfWorkspace() async {
     testFile = convertPath('/home/other/lib/a.dart');
     addTestSource('''
 class A {
@@ -300,7 +300,7 @@ class B extends A {
     _assertNoOverrideContaining('foo');
   }
 
-  test_private_otherLibrary() async {
+  Future<void> test_private_otherLibrary() async {
     addSource('/home/test/lib/a.dart', '''
 class A {
   void foo() {}
@@ -328,7 +328,7 @@ class B extends A {
     }));
   }
 
-  test_private_thisLibrary() async {
+  Future<void> test_private_thisLibrary() async {
     addTestSource(r'''
 class A {
   void foo() {}
@@ -356,7 +356,7 @@ class B extends A {
   }''', displayText: '_bar() { … }', selectionOffset: 58, selectionLength: 13);
   }
 
-  test_withExistingOverride() async {
+  Future<void> test_withExistingOverride() async {
     addTestSource('''
 class A {
   method() {}
@@ -380,7 +380,7 @@ method() {
   }
 
   @failingTest
-  test_withOverrideAnnotation() async {
+  Future<void> test_withOverrideAnnotation() async {
     addTestSource('''
 class A {
   method() {}

@@ -15,7 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionManagerTest);
   });
@@ -28,7 +28,7 @@ class CompletionManagerTest extends DartCompletionContributorTest {
     return ImportedReferenceContributor();
   }
 
-  test_resolveDirectives() async {
+  Future<void> test_resolveDirectives() async {
     addSource('/home/test/lib/a.dart', '''
 library libA;
 /// My class.

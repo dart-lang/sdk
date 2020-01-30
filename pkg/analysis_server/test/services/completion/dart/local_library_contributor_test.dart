@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LocalLibraryContributorTest);
     defineReflectiveTests(LocalLibraryContributorWithExtensionMethodsTest);
@@ -24,7 +24,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     return LocalLibraryContributor();
   }
 
-  test_partFile_Constructor() async {
+  Future<void> test_partFile_Constructor() async {
     // SimpleIdentifier  TypeName  ConstructorName
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -58,7 +58,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_partFile_Constructor2() async {
+  Future<void> test_partFile_Constructor2() async {
     // SimpleIdentifier  TypeName  ConstructorName
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -92,7 +92,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_partFile_InstanceCreationExpression_assignment_filter() async {
+  Future<void>
+      test_partFile_InstanceCreationExpression_assignment_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -144,7 +145,8 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
+  Future<void>
+      test_partFile_InstanceCreationExpression_variable_declaration_filter() async {
     // ConstructorName  InstanceCreationExpression  VariableDeclarationList
     addSource('/home/test/lib/b.dart', '''
         lib B;
@@ -194,7 +196,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('m');
   }
 
-  test_partFile_TypeName() async {
+  Future<void> test_partFile_TypeName() async {
     addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
@@ -239,7 +241,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('z');
   }
 
-  test_partFile_TypeName2() async {
+  Future<void> test_partFile_TypeName2() async {
     addSource('/home/test/lib/b.dart', '''
         lib B;
         int T1;
@@ -296,7 +298,7 @@ class LocalLibraryContributorWithExtensionMethodsTest
     createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
   }
 
-  test_partFile_extension() async {
+  Future<void> test_partFile_extension() async {
     addSource('/home/test/lib/a.dart', '''
 part of libA;
 extension E on int {}
