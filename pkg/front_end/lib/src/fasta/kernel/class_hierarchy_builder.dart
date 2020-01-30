@@ -240,9 +240,8 @@ class ClassHierarchyBuilder {
   }
 
   ClassHierarchyNode getNodeFromClassBuilder(ClassBuilder classBuilder) {
-    return nodes[classBuilder.cls] ??= new ClassHierarchyNodeBuilder(
-            this, classBuilder, loader.target.enableNonNullable)
-        .build();
+    return nodes[classBuilder.cls] ??=
+        new ClassHierarchyNodeBuilder(this, classBuilder).build();
   }
 
   ClassHierarchyNode getNodeFromTypeBuilder(TypeBuilder type) {
@@ -409,9 +408,8 @@ class ClassHierarchyBuilder {
     for (int i = 0; i < classes.length; i++) {
       ClassBuilder classBuilder = classes[i];
       if (!classBuilder.isPatch) {
-        hierarchy.nodes[classBuilder.cls] = new ClassHierarchyNodeBuilder(
-                hierarchy, classBuilder, loader.target.enableNonNullable)
-            .build();
+        hierarchy.nodes[classBuilder.cls] =
+            new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
       } else {
         // TODO(ahe): Merge the injected members of patch into the hierarchy
         // node of `cls.origin`.
@@ -426,15 +424,11 @@ class ClassHierarchyNodeBuilder {
 
   final ClassBuilder classBuilder;
 
-  /// Whether non-nullable types are supported.
-  final bool enableNonNullable;
-
   bool hasNoSuchMethod = false;
 
   List<ClassMember> abstractMembers = null;
 
-  ClassHierarchyNodeBuilder(
-      this.hierarchy, this.classBuilder, this.enableNonNullable);
+  ClassHierarchyNodeBuilder(this.hierarchy, this.classBuilder);
 
   ClassBuilder get objectClass => hierarchy.objectClassBuilder;
 
@@ -736,7 +730,8 @@ class ClassHierarchyNodeBuilder {
       if (substitution != null) {
         bType = substitution.substituteType(bType);
       }
-      if (enableNonNullable &&
+      if (hierarchy
+              .coreTypes.objectClass.enclosingLibrary.isNonNullableByDefault &&
           !a.classBuilder.library.isNonNullableByDefault &&
           b.member == hierarchy.coreTypes.objectEquals) {
         // In legacy code we special case `Object.==` to infer `dynamic` instead
@@ -1184,13 +1179,13 @@ class ClassHierarchyNodeBuilder {
       member = delayedMember.withParent(classBuilder);
       hierarchy.delayedMemberChecks.add(member);
     }
-    if (mergeKind.intoCurrentClass &&
-        hierarchy.loader.target.enableNonNullable) {
+    if (mergeKind.intoCurrentClass) {
       if (member.classBuilder.library.isNonNullableByDefault &&
           !classBuilder.library.isNonNullableByDefault) {
         if (member is! DelayedMember) {
           member = new InterfaceConflict(
-              classBuilder, [member], mergeKind.forSetters, shouldModifyKernel);
+              classBuilder, [member], mergeKind.forSetters, shouldModifyKernel,
+              isAbstract: isAbstract(member));
           hierarchy.delayedMemberChecks.add(member);
         }
       }
@@ -1506,8 +1501,7 @@ class ClassHierarchyNodeBuilder {
 
   DartType addInterface(
       List<DartType> interfaces, List<DartType> superclasses, DartType type) {
-    if (hierarchy.loader.target.enableNonNullable &&
-        !classBuilder.library.isNonNullableByDefault) {
+    if (!classBuilder.library.isNonNullableByDefault) {
       type = legacyErasure(hierarchy.coreTypes, type);
     }
     if (type is InterfaceType) {
@@ -1518,18 +1512,16 @@ class ClassHierarchyNodeBuilder {
       DartType superclass = depth < myDepth ? superclasses[depth] : null;
       if (superclass is InterfaceType &&
           superclass.classNode == type.classNode) {
-        if (hierarchy.loader.target.enableNonNullable) {
-          // This is a potential conflict.
-          if (classBuilder.library.isNonNullableByDefault) {
-            superclass = nnbdTopMerge(hierarchy.coreTypes, superclass, type);
-            if (superclass == null) {
-              // This is a conflict.
-              // TODO(johnniwinther): Report errors here instead of through
-              // the computation of the [ClassHierarchy].
-              superclass = superclasses[depth];
-            } else {
-              superclasses[depth] = superclass;
-            }
+        // This is a potential conflict.
+        if (classBuilder.library.isNonNullableByDefault) {
+          superclass = nnbdTopMerge(hierarchy.coreTypes, superclass, type);
+          if (superclass == null) {
+            // This is a conflict.
+            // TODO(johnniwinther): Report errors here instead of through
+            // the computation of the [ClassHierarchy].
+            superclass = superclasses[depth];
+          } else {
+            superclasses[depth] = superclass;
           }
         }
         return superclass;
@@ -1540,18 +1532,16 @@ class ClassHierarchyNodeBuilder {
           DartType interface = interfaces[i];
           if (interface is InterfaceType &&
               interface.classNode == type.classNode) {
-            if (hierarchy.loader.target.enableNonNullable) {
-              // This is a potential conflict.
-              if (classBuilder.library.isNonNullableByDefault) {
-                interface = nnbdTopMerge(hierarchy.coreTypes, interface, type);
-                if (interface == null) {
-                  // This is a conflict.
-                  // TODO(johnniwinther): Report errors here instead of through
-                  // the computation of the [ClassHierarchy].
-                  interface = interfaces[i];
-                } else {
-                  interfaces[i] = interface;
-                }
+            // This is a potential conflict.
+            if (classBuilder.library.isNonNullableByDefault) {
+              interface = nnbdTopMerge(hierarchy.coreTypes, interface, type);
+              if (interface == null) {
+                // This is a conflict.
+                // TODO(johnniwinther): Report errors here instead of through
+                // the computation of the [ClassHierarchy].
+                interface = interfaces[i];
+              } else {
+                interfaces[i] = interface;
               }
             }
             return interface;
@@ -2469,8 +2459,11 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
 }
 
 class InterfaceConflict extends DelayedMember {
+  bool isAbstract;
+
   InterfaceConflict(ClassBuilder parent, List<ClassMember> declarations,
-      bool isSetter, bool modifyKernel)
+      bool isSetter, bool modifyKernel,
+      {this.isAbstract: true})
       : super(parent, declarations, isSetter, modifyKernel);
 
   Member combinedMemberSignatureResult;
@@ -2717,6 +2710,8 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
   static ClassMember selectConcrete(ClassMember declaration) {
     if (declaration is AbstractMemberOverridingImplementation) {
       return declaration.concreteImplementation;
+    } else if (declaration is InterfaceConflict && !declaration.isAbstract) {
+      return selectConcrete(declaration.declarations.single);
     } else {
       return declaration;
     }
@@ -2758,7 +2753,8 @@ int compareNamedParameters(VariableDeclaration a, VariableDeclaration b) {
 }
 
 bool isAbstract(ClassMember declaration) {
-  return declaration.member.isAbstract || declaration is InterfaceConflict;
+  return declaration.member.isAbstract ||
+      (declaration is InterfaceConflict && declaration.isAbstract);
 }
 
 bool inferParameterType(

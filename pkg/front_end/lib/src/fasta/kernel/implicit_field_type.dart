@@ -106,11 +106,8 @@ class _ImplicitFieldTypeAlias extends ImplicitFieldType {
 
   DartType inferType() {
     DartType type = _root.inferType();
-    if (_targetFieldBuilder.library.loader.target.enableNonNullable) {
-      if (!_targetFieldBuilder.library.isNonNullableByDefault) {
-        type =
-            legacyErasure(_targetFieldBuilder.library.loader.coreTypes, type);
-      }
+    if (!_targetFieldBuilder.library.isNonNullableByDefault) {
+      type = legacyErasure(_targetFieldBuilder.library.loader.coreTypes, type);
     }
     return _targetFieldBuilder.fieldType = type;
   }

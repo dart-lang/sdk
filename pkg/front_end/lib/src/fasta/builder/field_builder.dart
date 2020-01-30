@@ -375,11 +375,9 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
     if (fieldType is ImplicitFieldType) {
       // `fieldType` may have changed if a circularity was detected when
       // [inferredType] was computed.
-      if (library.loader.target.enableNonNullable) {
-        if (!library.isNonNullableByDefault) {
-          inferredType = legacyErasure(
-              library.loader.typeInferenceEngine.coreTypes, inferredType);
-        }
+      if (!library.isNonNullableByDefault) {
+        inferredType = legacyErasure(
+            library.loader.typeInferenceEngine.coreTypes, inferredType);
       }
       fieldType = inferredType;
 
