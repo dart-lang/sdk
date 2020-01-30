@@ -17854,7 +17854,9 @@ RawAbstractType* AbstractType::CheckInstantiatedNullability(
   }
   // TODO(regis): TypeRefs are problematic, since changing the nullability of
   // a type by cloning it may break the graph of a recursive type.
-  UNREACHABLE();
+  ASSERT(IsTypeRef());
+  return AbstractType::Handle(TypeRef::Cast(*this).type())
+      .CheckInstantiatedNullability(mode, type_param, space);
 }
 
 bool AbstractType::IsInstantiated(Genericity genericity,
