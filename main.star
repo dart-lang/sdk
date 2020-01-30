@@ -461,9 +461,6 @@ def dart_ci_builder(name, dimensions={}, **kwargs):
 
 
 def dart_ci_sandbox_builder(name, channels=CHANNELS, properties={}, **kwargs):
-    if not properties.setdefault("new_workflow_enabled", True):
-        properties.pop("new_workflow_enabled")
-
     dart_builder(
         name,
         bucket="ci.sandbox",
@@ -501,7 +498,6 @@ dart_ci_sandbox_builder(
     "flutter-frontend",
     category="cfe|fl",
     channels=["try"],
-    properties={"new_workflow_enabled": False},
     notifies="frontend-team")
 
 # flutter
@@ -511,7 +507,6 @@ dart_ci_sandbox_builder(
     category="flutter|3H",
     channels=["try"],
     execution_timeout=time.duration(5 * 60 * 60 * 1000),
-    properties={"new_workflow_enabled": False},
     triggered_by=["dart-gitiles-trigger-flutter"],
 )
 
@@ -721,7 +716,6 @@ dart_ci_sandbox_builder(
     "flutter-analyze",
     category="analyzer|fa",
     channels=["try"],
-    properties={"new_workflow_enabled": False},
     notifies=None,
     on_cq=True,
     location_regexp=[
@@ -794,7 +788,6 @@ dart_ci_sandbox_builder(
     "gclient",
     recipe="gclient",
     category="misc|g",
-    properties={"new_workflow_enabled": False},
     on_cq=True)
 dart_ci_builder(
     "debianpackage-linux",
@@ -837,7 +830,6 @@ dart_ci_sandbox_builder(
     "fuzz-linux",
     channels=[],
     notifies="dart-fuzz-testing",
-    properties={"new_workflow_enabled": False},
     schedule="0 3,4 * * *")
 
 # Try only builders
