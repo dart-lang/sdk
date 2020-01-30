@@ -60,6 +60,22 @@ main() {
 ''');
   }
 
+  test_onName_functionStatement_noType() async {
+    await resolveTestUnit('''
+f() => 1;
+main() {
+  var v = f();
+}
+''');
+    await assertHasAssistAt('v =', '''
+f() => 1;
+main() {
+  var v;
+  v = f();
+}
+''');
+  }
+
   test_onType() async {
     await resolveTestUnit('''
 main() {

@@ -2703,10 +2703,12 @@ class AssistProcessor extends BaseProcessor {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (builder) {
       if (variableList.type == null) {
-        builder.addReplacement(range.token(variableList.keyword), (builder) {
-          var type = variable.declaredElement.type;
-          builder.writeType(type);
-        });
+        final type = variable.declaredElement.type;
+        if (!type.isDynamic) {
+          builder.addReplacement(range.token(variableList.keyword), (builder) {
+            builder.writeType(type);
+          });
+        }
       }
 
       var indent = utils.getNodePrefix(statement);
