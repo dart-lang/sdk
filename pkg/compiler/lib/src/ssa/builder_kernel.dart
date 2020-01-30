@@ -217,7 +217,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
   InferredData get _inferredData => globalInferenceResults.inferredData;
 
-  DartTypes get types => closedWorld.dartTypes;
+  DartTypes get dartTypes => closedWorld.dartTypes;
 
   void push(HInstruction instruction) {
     add(instruction);
@@ -3109,7 +3109,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   /// Set the runtime type information if necessary.
   HInstruction _setListRuntimeTypeInfoIfNeeded(HInstruction object,
       InterfaceType type, SourceInformation sourceInformation) {
-    if (!_rtiNeed.classNeedsTypeArguments(type.element) || type.treatAsRaw) {
+    if (!_rtiNeed.classNeedsTypeArguments(type.element) ||
+        dartTypes.treatAsRawType(type)) {
       return object;
     }
     if (options.useNewRti) {
@@ -4046,7 +4047,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         localsHandler.substInContext(_elementMap.getDartType(type));
     if (typeValue is! InterfaceType) return false;
     InterfaceType interfaceType = typeValue;
-    if (!interfaceType.treatAsRaw) return false;
+    if (!dartTypes.treatAsRawType(interfaceType)) return false;
 
     ClassEntity cls = interfaceType.element;
     InterfaceType thisType = _elementEnvironment.getThisType(cls);
@@ -5434,7 +5435,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     DartType typeValue =
         localsHandler.substInContext(_elementMap.getDartType(type));
 
-    if (typeValue.isTop) {
+    if (dartTypes.isTopType(typeValue)) {
       stack.add(graph.addConstantBool(true, closedWorld));
       return;
     }
@@ -5567,7 +5568,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<DartType> bounds = thisType.typeArguments;
     for (int i = 0; i < bounds.length; i++) {
       DartType arg = type.typeArguments[i];
-      if (arg.isTop) continue;
+      if (dartTypes.isTopType(arg)) continue;
       TypeVariableType typeVariable = bounds[i];
       DartType bound =
           _elementEnvironment.getTypeVariableBound(typeVariable.element);

@@ -205,6 +205,8 @@ class CheckedModeHelpers {
       {bool typeCast, bool nativeCheckOnly}) {
     assert(type is! TypedefType);
 
+    DartTypes dartTypes = commonElements.dartTypes;
+
     if (type is TypeVariableType) {
       return typeCast
           ? 'subtypeOfRuntimeTypeCast'
@@ -275,16 +277,17 @@ class CheckedModeHelpers {
 
     if ((element == commonElements.listClass ||
             element == commonElements.jsArrayClass) &&
-        type.treatAsRaw) {
+        dartTypes.treatAsRawType(type)) {
       if (nativeCheckOnly) return null;
       return 'list$suffix';
     }
 
-    if (commonElements.isListSupertype(element) && type.treatAsRaw) {
+    if (commonElements.isListSupertype(element) &&
+        dartTypes.treatAsRawType(type)) {
       return nativeCheck ? 'listSuperNative$suffix' : 'listSuper$suffix';
     }
 
-    if (type is InterfaceType && !type.treatAsRaw) {
+    if (type is InterfaceType && !dartTypes.treatAsRawType(type)) {
       return typeCast ? 'subtypeCast' : 'assertSubtype';
     }
 

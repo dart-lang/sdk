@@ -182,7 +182,7 @@ class Constant {
 
   @override
   String toString() {
-    return 'Constant(name=${name.key},value=${value.toStructuredText()})';
+    return 'Constant(name=${name.key},value=${value.toStructuredText(null)})';
   }
 }
 

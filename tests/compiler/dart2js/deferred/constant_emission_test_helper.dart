@@ -10,6 +10,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/deferred_load.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_emitter/model.dart';
 import 'package:compiler/src/util/util.dart';
 import 'package:expect/expect.dart';
@@ -31,6 +32,7 @@ run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
   CompilationResult result = await runCompiler(
       memorySourceFiles: sourceFiles, outputProvider: collector);
   Compiler compiler = result.compiler;
+  DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
   ProgramLookup lookup = new ProgramLookup(compiler.backendStrategy);
   var closedWorld = compiler.backendClosedWorldForTesting;
   var elementEnvironment = closedWorld.elementEnvironment;
@@ -59,7 +61,7 @@ run(Map<String, String> sourceFiles, List<OutputUnitDescriptor> outputUnits,
 
   void processFragment(String fragmentName, Fragment fragment) {
     for (Constant constant in fragment.constants) {
-      String text = constant.value.toStructuredText();
+      String text = constant.value.toStructuredText(dartTypes);
       Set<String> expectedConstantUnit = expectedOutputUnits[text];
       if (expectedConstantUnit == null) {
         if (constant.value is DeferredGlobalConstantValue) {

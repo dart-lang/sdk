@@ -32,8 +32,8 @@ class KernelAnnotationProcessor implements AnnotationProcessor {
     KCommonElements commonElements = elementMap.commonElements;
     String annotationName;
     for (ConstantValue value in metadata) {
-      String name = readAnnotationName(
-          spannable, value, commonElements.jsAnnotationClass,
+      String name = readAnnotationName(commonElements.dartTypes, spannable,
+          value, commonElements.jsAnnotationClass,
           defaultValue: '');
       if (annotationName == null) {
         annotationName = name;

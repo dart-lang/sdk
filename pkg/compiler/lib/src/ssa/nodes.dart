@@ -1410,7 +1410,7 @@ abstract class HInstruction implements Spannable {
     // instructions with generics. It has the generic type context
     // available.
     assert(type is! TypeVariableType);
-    assert(type.treatAsRaw || type is FunctionType);
+    assert(closedWorld.dartTypes.treatAsRawType(type) || type is FunctionType);
     if (type is DynamicType) return this;
     if (type is VoidType) return this;
     if (type == closedWorld.commonElements.objectType) return this;
@@ -1419,7 +1419,8 @@ abstract class HInstruction implements Spannable {
           closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
     }
     assert(type is InterfaceType);
-    if (kind == HTypeConversion.TYPE_CHECK && !type.treatAsRaw) {
+    if (kind == HTypeConversion.TYPE_CHECK &&
+        !closedWorld.dartTypes.treatAsRawType(type)) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       InterfaceType interfaceType = type;
@@ -2940,7 +2941,7 @@ class HConstant extends HInstruction {
       : super(<HInstruction>[], constantType);
 
   @override
-  toString() => 'literal: ${constant.toStructuredText()}';
+  toString() => 'literal: ${constant.toStructuredText(null)}';
   @override
   accept(HVisitor visitor) => visitor.visitConstant(this);
 
@@ -3757,7 +3758,7 @@ class HTypeConversion extends HCheck {
         // TODO(johnniwinther): Optimize FutureOr type conversions.
         return false;
       }
-      if (!type.treatAsRaw) {
+      if (!closedWorld.dartTypes.treatAsRawType(type)) {
         // `null` always passes type conversion.
         if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
           return true;
@@ -4611,7 +4612,7 @@ AbstractBool _isTestResult(HInstruction expression, DartType dartType,
   // Currently, the abstract value domain cannot (soundly) state that an is-test
   // is definitely false, so we reuse some of the case-by-case logic from the
   // old [HIs] optimization.
-  if (dartType.isTop) return AbstractBool.True;
+  if (closedWorld.dartTypes.isTopType(dartType)) return AbstractBool.True;
   if (dartType is! InterfaceType) return AbstractBool.Maybe;
   InterfaceType type = dartType;
   ClassEntity element = type.element;
@@ -4660,7 +4661,7 @@ AbstractBool _isTestResult(HInstruction expression, DartType dartType,
   // We need the raw check because we don't have the notion of generics in the
   // backend. For example, `this` in a class `A<T>` is currently always
   // considered to have the raw type.
-  if (type.treatAsRaw) {
+  if (closedWorld.dartTypes.treatAsRawType(type)) {
     return abstractValueDomain.isInstanceOf(subsetType, element);
   }
   return AbstractBool.Maybe;

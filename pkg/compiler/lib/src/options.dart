@@ -334,6 +334,12 @@ class CompilerOptions implements DiagnosticOptions {
   /// weak or strong semantics.
   bool useWeakNullSafetySemantics = false;
 
+  /// Whether to use legacy subtype semantics rather than null-safe semantics.
+  /// This is `true` if null-safety is disabled, i.e. all code is legacy code,
+  /// or if weak null-safety semantics are being used, since we do not emit
+  /// warnings.
+  bool get useLegacySubtyping => !useNullSafety || useWeakNullSafetySemantics;
+
   /// The path to the file that contains the profiled allocations.
   ///
   /// The file must contain the Map that was produced by using

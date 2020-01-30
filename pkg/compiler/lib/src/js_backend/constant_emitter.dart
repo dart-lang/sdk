@@ -392,7 +392,7 @@ class ConstantEmitter extends ModularConstantEmitter {
         throw failedAt(
             NO_LOCATION_SPANNABLE,
             "Unexpected type variable '${variable}'"
-            " in constant '${constant.toDartText()}'");
+            " in constant '${constant.toDartText(_commonElements.dartTypes)}'");
       }
 
       jsAst.Expression rti =
@@ -463,7 +463,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   jsAst.Expression maybeAddTypeArguments(
       ConstantValue constant, InterfaceType type, jsAst.Expression value) {
     if (type is InterfaceType &&
-        !type.treatAsRaw &&
+        !_commonElements.dartTypes.treatAsRawType(type) &&
         _rtiNeed.classNeedsTypeArguments(type.element)) {
       return new jsAst.Call(
           getHelperProperty(_commonElements.setRuntimeTypeInfo),
@@ -490,7 +490,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       throw failedAt(
           NO_LOCATION_SPANNABLE,
           "Unexpected type variable '${variable}'"
-          " in constant '${constant.toDartText()}'");
+          " in constant '${constant.toDartText(_commonElements.dartTypes)}'");
     }
 
     List<jsAst.Expression> arguments = <jsAst.Expression>[];

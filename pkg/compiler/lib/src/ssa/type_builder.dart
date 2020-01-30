@@ -433,7 +433,7 @@ abstract class TypeBuilder {
 
     if (type == null) return original;
     type = type.unaliased;
-    if (type is InterfaceType && !type.treatAsRaw) {
+    if (type is InterfaceType && !_closedWorld.dartTypes.treatAsRawType(type)) {
       InterfaceType interfaceType = type;
       AbstractValue subtype =
           _abstractValueDomain.createNullableSubtype(interfaceType.element);

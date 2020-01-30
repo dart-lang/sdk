@@ -98,9 +98,9 @@ class OrderedTypeSet {
   /// Creates a new [OrderedTypeSet] for [type] when it directly extends the
   /// class which this set represents. This is for instance used to create the
   /// type set for [ClosureClassElement] which extends [Closure].
-  OrderedTypeSet extendClass(InterfaceType type) {
+  OrderedTypeSet extendClass(DartTypes dartTypes, InterfaceType type) {
     assert(
-        types.head.treatAsRaw,
+        dartTypes.treatAsRawType(types.head),
         failedAt(
             type.element,
             'Cannot extend generic class ${types.head} using '

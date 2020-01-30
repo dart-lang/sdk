@@ -912,7 +912,7 @@ abstract class BehaviorBuilder {
   }
 }
 
-List<String> _getAnnotations(DiagnosticReporter reporter,
+List<String> _getAnnotations(DartTypes dartTypes, DiagnosticReporter reporter,
     Iterable<ConstantValue> metadata, ClassEntity cls) {
   List<String> annotations = [];
   for (ConstantValue value in metadata) {
@@ -924,7 +924,7 @@ List<String> _getAnnotations(DiagnosticReporter reporter,
     // TODO(sra): Better validation of the constant.
     if (fields.length != 1 || !fields.single.isString) {
       reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-          'Annotations needs one string: ${value.toStructuredText()}');
+          'Annotations needs one string: ${value.toStructuredText(dartTypes)}');
     }
     StringConstantValue specStringConstant = fields.single;
     String specString = specStringConstant.stringValue;
@@ -933,14 +933,20 @@ List<String> _getAnnotations(DiagnosticReporter reporter,
   return annotations;
 }
 
-List<String> getCreatesAnnotations(DiagnosticReporter reporter,
-    CommonElements commonElements, Iterable<ConstantValue> metadata) {
+List<String> getCreatesAnnotations(
+    DartTypes dartTypes,
+    DiagnosticReporter reporter,
+    CommonElements commonElements,
+    Iterable<ConstantValue> metadata) {
   return _getAnnotations(
-      reporter, metadata, commonElements.annotationCreatesClass);
+      dartTypes, reporter, metadata, commonElements.annotationCreatesClass);
 }
 
-List<String> getReturnsAnnotations(DiagnosticReporter reporter,
-    CommonElements commonElements, Iterable<ConstantValue> metadata) {
+List<String> getReturnsAnnotations(
+    DartTypes dartTypes,
+    DiagnosticReporter reporter,
+    CommonElements commonElements,
+    Iterable<ConstantValue> metadata) {
   return _getAnnotations(
-      reporter, metadata, commonElements.annotationReturnsClass);
+      dartTypes, reporter, metadata, commonElements.annotationReturnsClass);
 }

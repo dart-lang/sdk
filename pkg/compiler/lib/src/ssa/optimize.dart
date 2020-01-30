@@ -81,7 +81,8 @@ class SsaOptimizerTask extends CompilerTask {
     OptimizationTestLog log;
     if (retainDataForTesting) {
       loggersForTesting ??= {};
-      loggersForTesting[member] = log = new OptimizationTestLog();
+      loggersForTesting[member] =
+          log = new OptimizationTestLog(closedWorld.dartTypes);
     }
 
     measure(() {
@@ -1174,7 +1175,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       return node;
     }
 
-    if (type.isTop) {
+    if (_closedWorld.dartTypes.isTopType(type)) {
       return _graph.addConstantBool(true, _closedWorld);
     }
     InterfaceType interfaceType = type;
@@ -1222,7 +1223,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // the notion of generics in the backend. For example, [:this:] in
       // a class [:A<T>:], is currently always considered to have the
       // raw type.
-    } else if (!RuntimeTypesSubstitutions.hasTypeArguments(type)) {
+    } else if (!RuntimeTypesSubstitutions.hasTypeArguments(
+        _closedWorld.dartTypes, type)) {
       AbstractValue expressionMask = expression.instructionType;
       AbstractBool isInstanceOf =
           _abstractValueDomain.isInstanceOf(expressionMask, element);
@@ -1247,7 +1249,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
           rep.kind == TypeInfoExpressionKind.COMPLETE &&
           rep.inputs.isEmpty) {
         DartType type = rep.dartType;
-        if (type is InterfaceType && type.treatAsRaw) {
+        if (type is InterfaceType &&
+            _closedWorld.dartTypes.treatAsRawType(type)) {
           return node.checkedInput.convertType(_closedWorld, type, node.kind)
             ..sourceInformation = node.sourceInformation;
         }
@@ -1518,7 +1521,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return node;
       }
 
-      if (!fieldType.treatAsRaw ||
+      if (!_closedWorld.dartTypes.treatAsRawType(fieldType) ||
           fieldType is TypeVariableType ||
           fieldType.unaliased is FunctionType ||
           fieldType.unaliased is FutureOrType) {
@@ -2136,7 +2139,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         return HAsCheckSimple(node.checkedInput, dartType, checkedType,
             node.isTypeError, specializedCheck, node.instructionType);
       }
-      if (dartType.isTop) {
+      if (_closedWorld.dartTypes.isTopType(dartType)) {
         return node.checkedInput;
       }
     }
@@ -2163,7 +2166,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (typeInput is HLoadType) {
       TypeExpressionRecipe recipe = typeInput.typeExpression;
       DartType dartType = recipe.type;
-      if (dartType.isTop) {
+      if (_closedWorld.dartTypes.isTopType(dartType)) {
         return _graph.addConstantBool(true, _closedWorld);
       }
 

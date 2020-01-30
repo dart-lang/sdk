@@ -158,6 +158,6 @@ class FieldVisitor {
     // We never generate accessors for top-level/static fields.
     if (!member.isInstanceMember) return true;
     DartType type = _elementEnvironment.getFieldType(member);
-    return type.isTop;
+    return _closedWorld.dartTypes.isTopType(type);
   }
 }

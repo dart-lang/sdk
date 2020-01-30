@@ -192,7 +192,6 @@
     "Dynamic invocation of 'addSuccessor'.": 1
   },
   "pkg/compiler/lib/src/ssa/types.dart": {
-    "Dynamic access of 'isTop'.": 1,
     "Dynamic access of 'element'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {

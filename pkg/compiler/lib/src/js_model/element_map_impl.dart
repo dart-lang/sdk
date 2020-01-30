@@ -141,10 +141,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
-    _commonElements =
-        new CommonElementsImpl(_elementEnvironment, _elementMap.options);
     _typeConverter = new DartTypeConverter(this);
-    _types = new KernelDartTypes(this);
+    _types = new KernelDartTypes(this, options.useLegacySubtyping);
+    _commonElements = new CommonElementsImpl(
+        _types, _elementEnvironment, _elementMap.options);
     _constantValuefier = new ConstantValuefier(this);
 
     programEnv = _elementMap.env.convert();
@@ -321,9 +321,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
       this._environment, ir.Component component, DataSource source) {
     _elementEnvironment = new JsElementEnvironment(this);
-    _commonElements = new CommonElementsImpl(_elementEnvironment, options);
     _typeConverter = new DartTypeConverter(this);
-    _types = new KernelDartTypes(this);
+    _types = new KernelDartTypes(this, options.useLegacySubtyping);
+    _commonElements =
+        new CommonElementsImpl(_types, _elementEnvironment, options);
     _constantValuefier = new ConstantValuefier(this);
 
     source.registerComponentLookup(new ComponentLookup(component));
@@ -1816,7 +1817,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           new RecordContainerDefinition(getMemberDefinition(member).location),
           thisType,
           supertype,
-          getOrderedTypeSet(supertype.element).extendClass(thisType));
+          getOrderedTypeSet(supertype.element).extendClass(_types, thisType));
       classes.register(container, containerData, new RecordEnv(memberMap));
 
       InterfaceType memberThisType = member.enclosingClass != null
@@ -1878,7 +1879,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         new ClosureClassDefinition(location),
         thisType,
         supertype,
-        getOrderedTypeSet(supertype.element).extendClass(thisType));
+        getOrderedTypeSet(supertype.element).extendClass(_types, thisType));
     classes.register(classEntity, closureData, new ClosureClassEnv(memberMap));
 
     Local closureEntity;

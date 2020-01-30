@@ -832,8 +832,8 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 
   RuntimeTypesEncoderImpl(this.rtiTags, NativeBasicData nativeData,
       this._elementEnvironment, this.commonElements, this._rtiNeed)
-      : _representationGenerator =
-            new TypeRepresentationGenerator(rtiTags, nativeData);
+      : _representationGenerator = new TypeRepresentationGenerator(
+            commonElements.dartTypes, rtiTags, nativeData);
 
   /// Returns the JavaScript template to determine at runtime if a type object
   /// is a function type.
@@ -969,6 +969,7 @@ class RuntimeTypeTags {
 
 class TypeRepresentationGenerator
     implements DartTypeVisitor<jsAst.Expression, ModularEmitter> {
+  final DartTypes _dartTypes;
   final RuntimeTypeTags _rtiTags;
   final NativeBasicData _nativeData;
 
@@ -977,7 +978,7 @@ class TypeRepresentationGenerator
   Map<TypeVariableType, jsAst.Expression> typedefBindings;
   List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
-  TypeRepresentationGenerator(this._rtiTags, this._nativeData);
+  TypeRepresentationGenerator(this._dartTypes, this._rtiTags, this._nativeData);
 
   /// Creates a type representation for [type]. [onVariable] is called to
   /// provide the type representation for type variables.
@@ -1245,7 +1246,7 @@ class TypeRepresentationGenerator
       jsAst.ObjectInitializer initializer = visit(unaliasedType, emitter);
       // We have to encode the aliased type.
       jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
-      jsAst.Expression encodedTypedef = type.treatAsRaw
+      jsAst.Expression encodedTypedef = _dartTypes.treatAsRawType(type)
           ? name
           : visitList(type.typeArguments, emitter, head: name);
 
