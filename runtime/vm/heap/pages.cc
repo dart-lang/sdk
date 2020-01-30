@@ -1387,7 +1387,7 @@ bool PageSpaceController::NeedsGarbageCollection(SpaceUsage after) const {
 #else
   intptr_t headroom = heap_->new_space()->CapacityInWords();
 #endif
-  return after.CombinedCapacityInWords() > (gc_threshold_in_words_ + headroom);
+  return after.CombinedUsedInWords() > (gc_threshold_in_words_ + headroom);
 }
 
 bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {
@@ -1397,7 +1397,7 @@ bool PageSpaceController::AlmostNeedsGarbageCollection(SpaceUsage after) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  return after.CombinedCapacityInWords() > gc_threshold_in_words_;
+  return after.CombinedUsedInWords() > gc_threshold_in_words_;
 }
 
 bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
@@ -1407,7 +1407,7 @@ bool PageSpaceController::NeedsIdleGarbageCollection(SpaceUsage current) const {
   if (heap_growth_ratio_ == 100) {
     return false;
   }
-  return current.CombinedCapacityInWords() > idle_gc_threshold_in_words_;
+  return current.CombinedUsedInWords() > idle_gc_threshold_in_words_;
 }
 
 void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
@@ -1446,9 +1446,9 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
     // Number of pages we can allocate and still be within the desired growth
     // ratio.
     const intptr_t grow_pages =
-        (static_cast<intptr_t>(after.CombinedCapacityInWords() /
+        (static_cast<intptr_t>(after.CombinedUsedInWords() /
                                desired_utilization_) -
-         (after.CombinedCapacityInWords())) /
+         (after.CombinedUsedInWords())) /
         kPageSizeInWords;
     if (garbage_ratio == 0) {
       // No garbage in the previous cycle so it would be hard to compute a
@@ -1464,8 +1464,8 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
       intptr_t local_grow_heap = 0;
       while (min < max) {
         local_grow_heap = (max + min) / 2;
-        const intptr_t limit = after.CombinedCapacityInWords() +
-                               (local_grow_heap * kPageSizeInWords);
+        const intptr_t limit =
+            after.CombinedUsedInWords() + (local_grow_heap * kPageSizeInWords);
         const intptr_t allocated_before_next_gc =
             limit - (after.CombinedUsedInWords());
         const double estimated_garbage = k * allocated_before_next_gc;
@@ -1492,7 +1492,7 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
 
   // Limit shrinkage: allow growth by at least half the pages freed by GC.
   const intptr_t freed_pages =
-      (before.CombinedCapacityInWords() - after.CombinedCapacityInWords()) /
+      (before.CombinedUsedInWords() - after.CombinedUsedInWords()) /
       kPageSizeInWords;
   grow_heap = Utils::Maximum(grow_heap, freed_pages / 2);
   heap_->RecordData(PageSpace::kAllowedGrowth, grow_heap);
@@ -1500,11 +1500,11 @@ void PageSpaceController::EvaluateGarbageCollection(SpaceUsage before,
 
   // Save final threshold compared before growing.
   gc_threshold_in_words_ =
-      after.CombinedCapacityInWords() + (kPageSizeInWords * grow_heap);
+      after.CombinedUsedInWords() + (kPageSizeInWords * grow_heap);
 
   // Set a tight idle threshold.
   idle_gc_threshold_in_words_ =
-      after.CombinedCapacityInWords() + 2 * kPageSizeInWords;
+      after.CombinedUsedInWords() + (2 * kPageSizeInWords);
 
   RecordUpdate(before, after, "gc");
 }
@@ -1513,9 +1513,9 @@ void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
   // Number of pages we can allocate and still be within the desired growth
   // ratio.
   intptr_t growth_in_pages =
-      (static_cast<intptr_t>(after.CombinedCapacityInWords() /
+      (static_cast<intptr_t>(after.CombinedUsedInWords() /
                              desired_utilization_) -
-       (after.CombinedCapacityInWords())) /
+       (after.CombinedUsedInWords())) /
       kPageSizeInWords;
 
   // Apply growth cap.
@@ -1524,11 +1524,11 @@ void PageSpaceController::EvaluateAfterLoading(SpaceUsage after) {
 
   // Save final threshold compared before growing.
   gc_threshold_in_words_ =
-      after.CombinedCapacityInWords() + (kPageSizeInWords * growth_in_pages);
+      after.CombinedUsedInWords() + (kPageSizeInWords * growth_in_pages);
 
   // Set a tight idle threshold.
   idle_gc_threshold_in_words_ =
-      after.CombinedCapacityInWords() + 2 * kPageSizeInWords;
+      after.CombinedUsedInWords() + (2 * kPageSizeInWords);
 
   RecordUpdate(after, after, "loaded");
 }
@@ -1540,10 +1540,10 @@ void PageSpaceController::RecordUpdate(SpaceUsage before,
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "UpdateGrowthLimit");
   tbes.SetNumArguments(5);
   tbes.CopyArgument(0, "Reason", reason);
-  tbes.FormatArgument(1, "Before.CombinedCapacity (kB)", "%" Pd "",
-                      RoundWordsToKB(before.CombinedCapacityInWords()));
-  tbes.FormatArgument(2, "After.CombinedCapacity (kB)", "%" Pd "",
-                      RoundWordsToKB(after.CombinedCapacityInWords()));
+  tbes.FormatArgument(1, "Before.CombinedUsed (kB)", "%" Pd "",
+                      RoundWordsToKB(before.CombinedUsedInWords()));
+  tbes.FormatArgument(2, "After.CombinedUsed (kB)", "%" Pd "",
+                      RoundWordsToKB(after.CombinedUsedInWords()));
   tbes.FormatArgument(3, "Threshold (kB)", "%" Pd "",
                       RoundWordsToKB(gc_threshold_in_words_));
   tbes.FormatArgument(4, "Idle Threshold (kB)", "%" Pd "",
