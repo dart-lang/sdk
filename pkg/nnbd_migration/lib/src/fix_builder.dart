@@ -343,14 +343,21 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   DartType modifyExpressionType(Expression node, DartType type) =>
       _wrapExceptions(node, () => type, () {
         if (type.isDynamic) return type;
-        if (!_fixBuilder._typeSystem.isNullable(type)) return type;
         var ancestor = _findNullabilityContextAncestor(node);
-        if (_needsNullCheckDueToStructure(ancestor)) {
-          return _addNullCheck(node, type);
-        }
         var context =
             InferenceContext.getContext(ancestor) ?? DynamicTypeImpl.instance;
-        if (!_fixBuilder._typeSystem.isNullable(context)) {
+        if (!_fixBuilder._typeSystem.isSubtypeOf(type, context)) {
+          // Either a cast or a null check is needed.  We prefer to do a null
+          // check if we can.
+          var nonNullType = _fixBuilder._typeSystem.promoteToNonNull(type);
+          if (_fixBuilder._typeSystem.isSubtypeOf(nonNullType, context)) {
+            return _addNullCheck(node, type);
+          } else {
+            return _addCast(node, context);
+          }
+        }
+        if (!_fixBuilder._typeSystem.isNullable(type)) return type;
+        if (_needsNullCheckDueToStructure(ancestor)) {
           return _addNullCheck(node, type);
         }
         return type;
@@ -361,6 +368,21 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
           flowAnalysis) {
     _flowAnalysis = flowAnalysis;
+  }
+
+  DartType _addCast(Expression node, DartType contextType) {
+    var checks =
+        _fixBuilder._variables.expressionChecks(_fixBuilder.source, node);
+    var info = checks != null
+        ? AtomicEditInfo(
+            NullabilityFixDescription.checkExpression, checks.edges)
+        : null;
+    (_fixBuilder._getChange(node) as NodeChangeForExpression)
+      ..introduceAsType =
+          (contextType as TypeImpl).toString(withNullability: true)
+      ..introduceAsInfo = info;
+    _flowAnalysis.asExpression_end(node, contextType);
+    return contextType;
   }
 
   DartType _addNullCheck(Expression node, DartType type) {

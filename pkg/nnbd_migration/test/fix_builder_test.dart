@@ -848,7 +848,7 @@ _f(bool/*?*/ x) {
 
   Future<void> test_binaryExpression_bar_bar_nullChecked() async {
     await analyze('''
-_f(Object/*?*/ x, Object/*?*/ y) {
+_f(bool/*?*/ x, bool/*?*/ y) {
   return x || y;
 }
 ''');

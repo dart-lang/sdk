@@ -478,10 +478,10 @@ num? f3<T extends num>(bool b, num? x, T y) => b ? x : y;
 num f4<T extends num>(bool b, num x, T y) => b ? x : y;
 
 void main() {
-  int? x1 = f1<int?/*?*/>(true, 0, null);
-  int? x2 = f2<int/*!*/>(true, 0, null);
-  int? x3 = f3<int>(true, null, 0);
-  int x4 = f4<int>(true, 0, 0);
+  int? x1 = f1<int?/*?*/>(true, 0, null) as int?;
+  int? x2 = f2<int/*!*/>(true, 0, null) as int?;
+  int? x3 = f3<int>(true, null, 0) as int?;
+  int x4 = f4<int>(true, 0, 0) as int;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1105,9 +1105,9 @@ void f(Function a) {
     // Don't assume any new nullabilities, but keep known nullabilities.
     var expected = '''
 void f(Function a) {
-  int Function<T>(String y) f1 = a;
+  int Function<T>(String y) f1 = a as int Function<T>(String);
   Function? b = null;
-  int Function<T>(String y)? f2 = b;
+  int Function<T>(String y)? f2 = b as int Function<T>(String)?;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -1144,7 +1144,7 @@ void main() {
 ''';
 
     var expected = '''
-List<int?> f(List a) => a;
+List<int?> f(List a) => a as List<int?>;
 void main() {
   f(<int?>[null]);
 }
@@ -1200,7 +1200,7 @@ void main() {
 ''';
 
     var expected = '''
-List<int?> f(Iterable<num?> a) => a;
+List<int?> f(Iterable<num?> a) => a as List<int?>;
 void main() {
   f(<num?>[null]);
 }
@@ -2007,10 +2007,10 @@ void f(
     FutureOr<int>?/*?*/ foi3,
     FutureOr<int?/*?*/>?/*?*/ foi4
 ) {
-  int i1 = foi1;
-  int? i2 = foi2;
-  int? i3 = foi3;
-  int? i4 = foi4;
+  int i1 = foi1 as int;
+  int? i2 = foi2 as int?;
+  int? i3 = foi3 as int?;
+  int? i4 = foi4 as int?;
 }
 ''';
     await _checkSingleFileChanges(content, expected);
@@ -2610,6 +2610,12 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_leave_downcast_from_dynamic_implicit() async {
+    var content = 'int f(dynamic n) => n;';
+    var expected = 'int f(dynamic n) => n;';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_libraryWithParts() async {
     var root = '/home/test/lib';
     var path1 = convertPath('$root/lib.dart');
@@ -2703,6 +2709,12 @@ void main() {
   x = f();
 }
 ''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_make_downcast_explicit() async {
+    var content = 'int f(num n) => n;';
+    var expected = 'int f(num n) => n as int;';
     await _checkSingleFileChanges(content, expected);
   }
 
@@ -3167,7 +3179,7 @@ main() {
     // TODO(paulberry): we should do something to flag the fact that g can't be
     // safely passed to f.
     var expected = '''
-Iterable<int> f(List<int?> x) => x.map(g);
+Iterable<int> f(List<int?> x) => x.map(g as int Function(int?));
 int g(int/*!*/ x) => x + 1;
 main() {
   f([null]);
@@ -4097,6 +4109,7 @@ F _f = () => null;
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40388')
   Future<void> test_typedef_assign_null_return_type_formal() async {
     var content = '''
 typedef F = T Function<T>();
