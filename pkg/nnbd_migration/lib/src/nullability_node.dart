@@ -248,22 +248,24 @@ class NullabilityGraph {
     Map<NullabilityNode, String> shortNames = {};
     int counter = 0;
     String nameNode(NullabilityNode node) {
+      if (node.isImmutable) {
+        var name = 'n${counter++}';
+        print('  $name [label="$node" shape=none]');
+        return name;
+      }
       var name = shortNames[node];
       if (name == null) {
         shortNames[node] = name = 'n${counter++}';
-        String styleSuffix = node.isNullable ? 'style=filled' : '';
+        String styleSuffix = node.isNullable ? ' style=filled' : '';
         String intentSuffix =
             node.nonNullIntent.isPresent ? ', non-null intent' : '';
-        print(
-            '  $name [label="$node (${node._nullability}$intentSuffix)"$styleSuffix]');
+        String label = '$node (${node._nullability}$intentSuffix)';
+        print('  $name [label="$label"$styleSuffix]');
         if (node is _NullabilityNodeCompound) {
           for (var component in node._components) {
             print('  ${nameNode(component)} -> $name [style=dashed]');
           }
         }
-      } else if (node.isImmutable) {
-        shortNames[node] = name = 'n${counter++}';
-        print('  $name [label="$node" shape=none]');
       }
       return name;
     }
