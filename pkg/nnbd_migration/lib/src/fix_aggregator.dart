@@ -92,11 +92,7 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
 /// Base class representing a kind of change that [FixAggregator] might make to
 /// a particular AST node.
-abstract class NodeChange {
-  /// Creates the appropriate specialized kind of [NodeChange] appropriate for
-  /// the given [node].
-  factory NodeChange(AstNode node) => node.accept(_NodeChangeVisitor._instance);
-
+abstract class NodeChange<N extends AstNode> {
   NodeChange._();
 
   /// Applies this change to the given [node], producing an [EditPlan].  The
@@ -110,12 +106,17 @@ abstract class NodeChange {
   /// they need.
   ///
   /// May return `null` if no changes need to be made.
-  EditPlan _apply(AstNode node, FixAggregator aggregator);
+  EditPlan _apply(N node, FixAggregator aggregator);
+
+  /// Creates the appropriate specialized kind of [NodeChange] appropriate for
+  /// the given [node].
+  static NodeChange<AstNode> create(AstNode node) =>
+      node.accept(_NodeChangeVisitor._instance);
 }
 
 /// Implementation of [NodeChange] specialized for operating on [Annotation]
 /// nodes.
-class NodeChangeForAnnotation extends NodeChange {
+class NodeChangeForAnnotation extends NodeChange<Annotation> {
   /// Indicates whether the node should be changed into a `required` keyword.
   bool changeToRequiredKeyword = false;
 
@@ -126,7 +127,7 @@ class NodeChangeForAnnotation extends NodeChange {
   NodeChangeForAnnotation() : super._();
 
   @override
-  EditPlan _apply(covariant Annotation node, FixAggregator aggregator) {
+  EditPlan _apply(Annotation node, FixAggregator aggregator) {
     if (!changeToRequiredKeyword) {
       return aggregator.innerPlanForNode(node);
     }
@@ -151,12 +152,12 @@ class NodeChangeForAnnotation extends NodeChange {
 
 /// Implementation of [NodeChange] specialized for operating on [AsExpression]
 /// nodes.
-class NodeChangeForAsExpression extends NodeChangeForExpression {
+class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
   /// Indicates whether the cast should be removed.
   bool removeAs = false;
 
   @override
-  EditPlan _apply(covariant AsExpression node, FixAggregator aggregator) {
+  EditPlan _apply(AsExpression node, FixAggregator aggregator) {
     if (removeAs) {
       return aggregator.planner.extract(node,
           aggregator.planForNode(node.expression) as NodeProducingEditPlan,
@@ -171,7 +172,7 @@ class NodeChangeForAsExpression extends NodeChangeForExpression {
 /// Common infrastructure used by [NodeChange] objects that operate on AST nodes
 /// with conditional behavior (if statements, if elements, and conditional
 /// expressions).
-mixin NodeChangeForConditional on NodeChange {
+mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
   /// If not `null`, indicates that the condition expression is known to
   /// evaluate to either `true` or `false`, so the other branch of the
   /// conditional is dead code and should be eliminated.
@@ -184,8 +185,8 @@ mixin NodeChangeForConditional on NodeChange {
   /// If dead code removal is warranted for [node], returns an [EditPlan] that
   /// removes the dead code (and performs appropriate updates within any
   /// descendant AST nodes that remain).  Otherwise returns `null`.
-  EditPlan _applyConditional(AstNode node, FixAggregator aggregator,
-      AstNode thenNode, AstNode elseNode) {
+  EditPlan _applyConditional(
+      N node, FixAggregator aggregator, AstNode thenNode, AstNode elseNode) {
     if (conditionValue == null) return null;
     AstNode nodeToKeep;
     NullabilityFixDescription descriptionBefore, descriptionAfter;
@@ -227,11 +228,11 @@ mixin NodeChangeForConditional on NodeChange {
 
 /// Implementation of [NodeChange] specialized for operating on
 /// [ConditionalExpression] nodes.
-class NodeChangeForConditionalExpression extends NodeChangeForExpression
+class NodeChangeForConditionalExpression
+    extends NodeChangeForExpression<ConditionalExpression>
     with NodeChangeForConditional {
   @override
-  EditPlan _apply(
-      covariant ConditionalExpression node, FixAggregator aggregator) {
+  EditPlan _apply(ConditionalExpression node, FixAggregator aggregator) {
     return _applyConditional(
             node, aggregator, node.thenExpression, node.elseExpression) ??
         super._apply(node, aggregator);
@@ -240,7 +241,8 @@ class NodeChangeForConditionalExpression extends NodeChangeForExpression
 
 /// Implementation of [NodeChange] specialized for operating on
 /// [DefaultFormalParameter] nodes.
-class NodeChangeForDefaultFormalParameter extends NodeChange {
+class NodeChangeForDefaultFormalParameter
+    extends NodeChange<DefaultFormalParameter> {
   /// Indicates whether a `required` keyword should be added to this node.
   bool addRequiredKeyword = false;
 
@@ -251,8 +253,7 @@ class NodeChangeForDefaultFormalParameter extends NodeChange {
   NodeChangeForDefaultFormalParameter() : super._();
 
   @override
-  EditPlan _apply(
-      covariant DefaultFormalParameter node, FixAggregator aggregator) {
+  EditPlan _apply(DefaultFormalParameter node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (!addRequiredKeyword) return innerPlan;
     return aggregator.planner.surround(innerPlan,
@@ -262,7 +263,7 @@ class NodeChangeForDefaultFormalParameter extends NodeChange {
 
 /// Implementation of [NodeChange] specialized for operating on [Expression]
 /// nodes.
-class NodeChangeForExpression extends NodeChange {
+class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Indicates whether the expression should be null checked.
   bool addNullCheck = false;
 
@@ -281,7 +282,7 @@ class NodeChangeForExpression extends NodeChange {
   NodeChangeForExpression() : super._();
 
   @override
-  EditPlan _apply(covariant Expression node, FixAggregator aggregator) {
+  EditPlan _apply(N node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     return _applyExpression(aggregator, innerPlan);
   }
@@ -307,11 +308,12 @@ class NodeChangeForExpression extends NodeChange {
 
 /// Implementation of [NodeChange] specialized for operating on [IfElement]
 /// nodes.
-class NodeChangeForIfElement extends NodeChange with NodeChangeForConditional {
+class NodeChangeForIfElement extends NodeChange<IfElement>
+    with NodeChangeForConditional {
   NodeChangeForIfElement() : super._();
 
   @override
-  EditPlan _apply(covariant IfElement node, FixAggregator aggregator) {
+  EditPlan _apply(IfElement node, FixAggregator aggregator) {
     return _applyConditional(
             node, aggregator, node.thenElement, node.elseElement) ??
         aggregator.innerPlanForNode(node);
@@ -320,12 +322,12 @@ class NodeChangeForIfElement extends NodeChange with NodeChangeForConditional {
 
 /// Implementation of [NodeChange] specialized for operating on [IfStatement]
 /// nodes.
-class NodeChangeForIfStatement extends NodeChange
+class NodeChangeForIfStatement extends NodeChange<IfStatement>
     with NodeChangeForConditional {
   NodeChangeForIfStatement() : super._();
 
   @override
-  EditPlan _apply(covariant IfStatement node, FixAggregator aggregator) {
+  EditPlan _apply(IfStatement node, FixAggregator aggregator) {
     return _applyConditional(
             node, aggregator, node.thenStatement, node.elseStatement) ??
         aggregator.innerPlanForNode(node);
@@ -334,11 +336,12 @@ class NodeChangeForIfStatement extends NodeChange
 
 /// Implementation of [NodeChange] specialized for operating on
 /// [MethodInvocation] nodes.
-class NodeChangeForMethodInvocation extends NodeChangeForExpression
+class NodeChangeForMethodInvocation
+    extends NodeChangeForExpression<MethodInvocation>
     with NodeChangeForNullAware {
   @override
   NodeProducingEditPlan _apply(
-      covariant MethodInvocation node, FixAggregator aggregator) {
+      MethodInvocation node, FixAggregator aggregator) {
     var target = node.target;
     var targetPlan = target == null ? null : aggregator.planForNode(target);
     var nullAwarePlan = _applyNullAware(node, aggregator);
@@ -361,13 +364,13 @@ class NodeChangeForMethodInvocation extends NodeChangeForExpression
 
 /// Common infrastructure used by [NodeChange] objects that operate on AST nodes
 /// with that can be null-aware (method invocations and propety accesses).
-mixin NodeChangeForNullAware on NodeChange {
+mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
   /// Indicates whether null-awareness should be removed.
   bool removeNullAwareness = false;
 
   /// Returns an [EditPlan] that removes null awareness, if appropriate.
   /// Otherwise returns `null`.
-  EditPlan _applyNullAware(Expression node, FixAggregator aggregator) {
+  EditPlan _applyNullAware(N node, FixAggregator aggregator) {
     if (!removeNullAwareness) return null;
     return aggregator.planner.removeNullAwareness(node,
         info:
@@ -377,11 +380,11 @@ mixin NodeChangeForNullAware on NodeChange {
 
 /// Implementation of [NodeChange] specialized for operating on [PropertyAccess]
 /// nodes.
-class NodeChangeForPropertyAccess extends NodeChangeForExpression
+class NodeChangeForPropertyAccess
+    extends NodeChangeForExpression<PropertyAccess>
     with NodeChangeForNullAware {
   @override
-  NodeProducingEditPlan _apply(
-      covariant PropertyAccess node, FixAggregator aggregator) {
+  NodeProducingEditPlan _apply(PropertyAccess node, FixAggregator aggregator) {
     var targetPlan = aggregator.planForNode(node.target);
     var nullAwarePlan = _applyNullAware(node, aggregator);
     var propertyNamePlan = aggregator.planForNode(node.propertyName);
@@ -397,7 +400,7 @@ class NodeChangeForPropertyAccess extends NodeChangeForExpression
 
 /// Implementation of [NodeChange] specialized for operating on [TypeAnnotation]
 /// nodes.
-class NodeChangeForTypeAnnotation extends NodeChange {
+class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
   /// Indicates whether the type should be made nullable by adding a `?`.
   bool makeNullable = false;
 
@@ -407,7 +410,7 @@ class NodeChangeForTypeAnnotation extends NodeChange {
   NodeChangeForTypeAnnotation() : super._();
 
   @override
-  EditPlan _apply(covariant TypeAnnotation node, FixAggregator aggregator) {
+  EditPlan _apply(TypeAnnotation node, FixAggregator aggregator) {
     var innerPlan = aggregator.innerPlanForNode(node);
     if (!makeNullable) return innerPlan;
     return aggregator.planner.makeNullable(innerPlan,
@@ -420,7 +423,8 @@ class NodeChangeForTypeAnnotation extends NodeChange {
 
 /// Implementation of [NodeChange] specialized for operating on
 /// [VariableDeclarationList] nodes.
-class NodeChangeForVariableDeclarationList extends NodeChange {
+class NodeChangeForVariableDeclarationList
+    extends NodeChange<VariableDeclarationList> {
   /// If an explicit type should be added to this variable declaration, the type
   /// that should be added.  Otherwise `null`.
   DartType addExplicitType;
@@ -428,8 +432,7 @@ class NodeChangeForVariableDeclarationList extends NodeChange {
   NodeChangeForVariableDeclarationList() : super._();
 
   @override
-  EditPlan _apply(
-      covariant VariableDeclarationList node, FixAggregator aggregator) {
+  EditPlan _apply(VariableDeclarationList node, FixAggregator aggregator) {
     List<EditPlan> innerPlans = [];
     if (addExplicitType != null) {
       var typeText =
@@ -451,7 +454,7 @@ class NodeChangeForVariableDeclarationList extends NodeChange {
 
 /// Visitor that creates an appropriate [NodeChange] object for the node being
 /// visited.
-class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange> {
+class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
   static final _instance = _NodeChangeVisitor();
 
   @override

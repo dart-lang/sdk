@@ -199,7 +199,8 @@ class FixBuilder {
 
   /// Returns the [NodeChange] object accumulating changes for the given [node],
   /// creating it if necessary.
-  NodeChange _getChange(AstNode node) => changes[node] ??= NodeChange(node);
+  NodeChange _getChange(AstNode node) =>
+      changes[node] ??= NodeChange.create(node);
 
   /// Determines whether the given [node], which is a null-aware method
   /// invocation, property access, or index expression, should remain null-aware
