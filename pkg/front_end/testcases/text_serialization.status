@@ -1200,6 +1200,7 @@ late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
 late_lowering/override: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
+nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
 nnbd/call: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure

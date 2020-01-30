@@ -1792,7 +1792,7 @@ class TypeInferrerImpl implements TypeInferrer {
       // not spec'ed anywhere.
       return const DynamicType();
     }
-    return initializerType;
+    return demoteType(initializerType);
   }
 
   void inferSyntheticVariable(VariableDeclarationImpl variable) {
