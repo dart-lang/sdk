@@ -340,9 +340,14 @@ class DecoratedType implements DecoratedTypeInfo {
             nullabilitySuffix: NullabilitySuffix.none);
       }
       for (int i = 0; i < newTypeFormals.length; i++) {
-        newTypeFormals[i].bound = type_algebra.substitute(
+        var bound = type_algebra.substitute(
             typeFormalBounds[i].toFinalType(typeProvider),
             typeFormalSubstitution);
+        if (!bound.isDynamic &&
+            !(bound.isDartCoreObject &&
+                bound.nullabilitySuffix == NullabilitySuffix.question)) {
+          newTypeFormals[i].bound = bound;
+        }
       }
       var parameters = <ParameterElement>[];
       for (int i = 0; i < type.parameters.length; i++) {

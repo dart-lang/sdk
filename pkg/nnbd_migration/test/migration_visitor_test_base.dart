@@ -108,6 +108,9 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
 
   NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(_offset++);
 
+  DecoratedType num_({NullabilityNode node}) =>
+      DecoratedType(typeProvider.numType, node ?? newNode());
+
   DecoratedType object({NullabilityNode node}) =>
       DecoratedType(typeProvider.objectType, node ?? newNode());
 

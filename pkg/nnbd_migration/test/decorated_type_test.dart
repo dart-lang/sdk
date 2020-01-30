@@ -317,6 +317,30 @@ class DecoratedTypeTest extends Object
     assertDartType(type, 'dynamic');
   }
 
+  void test_toFinalType_function_generic_bound_dynamic() {
+    var t = typeParameter('T', dynamic_);
+    var type = function(dynamic_, typeFormals: [t], node: never)
+        .toFinalType(typeProvider) as FunctionType;
+    assertDartType(type, 'dynamic Function<T>()');
+    expect(type.typeFormals[0].bound, isNull);
+  }
+
+  void test_toFinalType_function_generic_bound_num_question() {
+    var t = typeParameter('T', num_(node: always));
+    var type = function(dynamic_, typeFormals: [t], node: never)
+        .toFinalType(typeProvider) as FunctionType;
+    assertDartType(type, 'dynamic Function<T extends num?>()');
+    assertDartType(type.typeFormals[0].bound, 'num?');
+  }
+
+  void test_toFinalType_function_generic_bound_object_question() {
+    var t = typeParameter('T', object(node: always));
+    var type = function(dynamic_, typeFormals: [t], node: never)
+        .toFinalType(typeProvider) as FunctionType;
+    assertDartType(type, 'dynamic Function<T>()');
+    expect(type.typeFormals[0].bound, isNull);
+  }
+
   void test_toFinalType_function_generic_substitute_bounds() {
     var u = typeParameter('U', object(node: never));
     var t = typeParameter(
