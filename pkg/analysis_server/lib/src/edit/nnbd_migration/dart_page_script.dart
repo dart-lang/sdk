@@ -16,11 +16,17 @@ function getLine(location) {
 }
 
 // Remove highlighting from [offset].
-function removeHighlight(offset) {
+function removeHighlight(offset, lineNumber) {
   if (offset != null) {
     const anchor = document.getElementById("o" + offset);
     if (anchor != null) {
       anchor.classList.remove("target");
+    }
+  }
+  if (lineNumber != null) {
+    const line = document.querySelector(".line-" + lineNumber);
+    if (line != null) {
+      line.parentNode.classList.remove("highlight");
     }
   }
 }
@@ -64,10 +70,15 @@ function writeCodeAndRegions(data) {
 // If [callback] is present, it will be called after the server response has
 // been processed, and the content has been updated on the page.
 function navigate(path, offset, lineNumber, callback) {
-  removeHighlight(offset);
+  const currentOffset = getOffset(window.location.href);
+  const currentLineNumber = getLine(window.location.href);
+  removeHighlight(currentOffset, currentLineNumber);
   if (path == window.location.pathname) {
     // Navigating to same file; just scroll into view.
     maybeScrollIntoView(offset, lineNumber);
+    if (callback !== undefined) {
+      callback();
+    }
   } else {
     loadFile(path, offset, lineNumber, callback);
   }
@@ -169,68 +180,77 @@ function highlightAllCode(_) {
   });
 }
 
+function addArrowClickHandler(arrow) {
+  const childList = arrow.parentNode.querySelector(":scope > ul");
+  // Animating height from "auto" to "0" is not supported by CSS [1], so all we
+  // have are hacks. The `* 2` allows for events in which the list grows in
+  // height when resized, with additional text wrapping.
+  // [1] https://css-tricks.com/using-css-transitions-auto-dimensions/
+  childList.style.maxHeight = childList.offsetHeight * 2 + "px";
+  arrow.onclick = (event) => {
+    if (!childList.classList.contains("collapsed")) {
+      childList.classList.add("collapsed");
+      arrow.classList.add("collapsed");
+    } else {
+      childList.classList.remove("collapsed");
+      arrow.classList.remove("collapsed");
+    }
+  };
+}
+
+function handleNavLinkClick(event) {
+  const path = absolutePath(event.currentTarget.getAttribute("href"));
+  const offset = getOffset(event.currentTarget.getAttribute("href"));
+  const lineNumber = getLine(event.currentTarget.getAttribute("href"));
+  if (offset !== null) {
+    navigate(path, offset, lineNumber,
+        () => { pushState(path, offset, lineNumber) });
+  } else {
+    navigate(path, null, null, () => { pushState(path, null, null) });
+  }
+  event.preventDefault();
+}
+
+function handlePostLinkClick(event) {
+  // Directing the server to produce an edit; request it, then do work with
+  // the response.
+  const path = absolutePath(event.currentTarget.getAttribute("href"));
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", path);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      // Likely request new navigation and file content.
+    } else {
+      alert("Request failed; status of " + xhr.status);
+    }
+  };
+  xhr.onerror = function(e) {
+    alert(`Could not load ${path}; preview server might be disconnected.`);
+  };
+  xhr.send();
+}
+
 function addClickHandlers(parentSelector) {
   const parentElement = document.querySelector(parentSelector);
+  const navArrows = parentElement.querySelectorAll(".arrow");
+  navArrows.forEach(addArrowClickHandler);
+
   const navLinks = parentElement.querySelectorAll(".nav-link");
   navLinks.forEach((link) => {
-    link.onclick = (event) => {
-      const path = absolutePath(event.currentTarget.getAttribute("href"));
-      const offset = getOffset(event.currentTarget.getAttribute("href"));
-      const lineNumber = getLine(event.currentTarget.getAttribute("href"));
-      if (offset !== null) {
-        navigate(path, offset, lineNumber,
-            () => { pushState(path, offset, lineNumber) });
-      } else {
-        navigate(path, null, null, () => { pushState(path, null, null) });
-      }
-      event.preventDefault();
-    };
+    link.onclick = handleNavLinkClick;
   });
+
   const regions = parentElement.querySelectorAll(".region");
   regions.forEach((region) => {
     region.onclick = (event) => {
       loadRegionExplanation(region);
     };
   });
-  const navArrows = parentElement.querySelectorAll(".arrow");
-  navArrows.forEach((arrow) => {
-    const childList = arrow.parentNode.querySelector(":scope > ul");
-    // Animating height from "auto" to "0" is not supported by CSS [1], so all
-    // we have are hacks. The `* 2` allows for events in which the list grows in
-    // height when resized, with additional text wrapping.
-    // [1] https://css-tricks.com/using-css-transitions-auto-dimensions/
-    childList.style.maxHeight = childList.offsetHeight * 2 + "px";
-    arrow.onclick = (event) => {
-      if (!childList.classList.contains("collapsed")) {
-        childList.classList.add("collapsed");
-        arrow.classList.add("collapsed");
-      } else {
-        childList.classList.remove("collapsed");
-        arrow.classList.remove("collapsed");
-      }
-    };
-  });
+
   const postLinks = parentElement.querySelectorAll(".post-link");
   postLinks.forEach((link) => {
-    link.onclick = (event) => {
-      // Directing the server to produce an edit; request it, then do work with
-      // the response.
-      const path = absolutePath(event.currentTarget.getAttribute("href"));
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", path);
-      xhr.setRequestHeader("Content-Type", "application/json");
-      xhr.onload = function() {
-        if (xhr.status === 200) {
-          // Likely request new navigation and file content.
-        } else {
-          alert("Request failed; status of " + xhr.status);
-        }
-      };
-      xhr.onerror = function(e) {
-        alert(`Could not load ${path}; preview server might be disconnected.`);
-      };
-      xhr.send();
-    };
+    link.onclick = handlePostLinkClick;
   });
 }
 
@@ -267,7 +287,7 @@ function writeRegionExplanation(response) {
         const a = detailItem.appendChild(document.createElement("a"));
         a.appendChild(document.createTextNode(detail["link"]["text"]));
         a.setAttribute("href", detail["link"]["href"]);
-        a.classList.add("post-link");
+        a.classList.add("nav-link");
         detailItem.appendChild(document.createTextNode(")"));
       }
     }
