@@ -64,7 +64,7 @@
   FIELD(Class, declaration_type_offset)                                        \
   FIELD(Class, num_type_arguments_offset)                                      \
   FIELD(Class, super_type_offset)                                              \
-  FIELD(Class, type_arguments_field_offset_in_words_offset)                    \
+  FIELD(Class, host_type_arguments_field_offset_in_words_offset)               \
   FIELD(ClassTable, shared_class_table_offset)                                 \
   FIELD(ClassTable, table_offset)                                              \
   NOT_IN_PRODUCT(FIELD(SharedClassTable, class_heap_stats_table_offset))       \
@@ -115,6 +115,7 @@
   FIELD(LinkedHashMap, deleted_keys_offset)                                    \
   FIELD(LinkedHashMap, hash_mask_offset)                                       \
   FIELD(LinkedHashMap, index_offset)                                           \
+  FIELD(LinkedHashMap, type_arguments_offset)                                  \
   FIELD(LinkedHashMap, used_data_offset)                                       \
   FIELD(MarkingStackBlock, pointers_offset)                                    \
   FIELD(MarkingStackBlock, top_offset)                                         \
@@ -131,6 +132,7 @@
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(OneByteString, data_offset)                                            \
   FIELD(Pointer, c_memory_address_offset)                                      \
+  FIELD(Pointer, type_arguments_offset)                                        \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \
   FIELD(SingleTargetCache, target_offset)                                      \
@@ -251,22 +253,84 @@
       Thread, write_barrier_wrappers_thread_offset, Register, 0,               \
       kNumberOfCpuRegisters - 1,                                               \
       [](Register reg) { return (kDartAvailableCpuRegs & (1 << reg)) != 0; })) \
+                                                                               \
+  SIZEOF(ApiError, InstanceSize, RawApiError)                                  \
+  SIZEOF(Array, InstanceSize, RawArray)                                        \
   SIZEOF(Array, header_size, RawArray)                                         \
+  SIZEOF(Bool, InstanceSize, RawBool)                                          \
+  SIZEOF(Bytecode, InstanceSize, RawBytecode)                                  \
+  SIZEOF(Capability, InstanceSize, RawCapability)                              \
+  SIZEOF(Class, InstanceSize, RawClass)                                        \
+  SIZEOF(Closure, InstanceSize, RawClosure)                                    \
+  SIZEOF(ClosureData, InstanceSize, RawClosureData)                            \
+  SIZEOF(Code, InstanceSize, RawCode)                                          \
+  SIZEOF(CodeSourceMap, InstanceSize, RawCodeSourceMap)                        \
+  SIZEOF(CompressedStackMaps, InstanceSize, RawCompressedStackMaps)            \
+  SIZEOF(Context, InstanceSize, RawContext)                                    \
   SIZEOF(Context, header_size, RawContext)                                     \
+  SIZEOF(ContextScope, InstanceSize, RawContextScope)                          \
   SIZEOF(Double, InstanceSize, RawDouble)                                      \
+  SIZEOF(DynamicLibrary, InstanceSize, RawDynamicLibrary)                      \
+  SIZEOF(ExceptionHandlers, InstanceSize, RawExceptionHandlers)                \
+  SIZEOF(ExternalOneByteString, InstanceSize, RawExternalOneByteString)        \
+  SIZEOF(ExternalTwoByteString, InstanceSize, RawExternalTwoByteString)        \
+  SIZEOF(ExternalTypedData, InstanceSize, RawExternalTypedData)                \
+  SIZEOF(FfiTrampolineData, InstanceSize, RawFfiTrampolineData)                \
+  SIZEOF(Field, InstanceSize, RawField)                                        \
   SIZEOF(Float32x4, InstanceSize, RawFloat32x4)                                \
   SIZEOF(Float64x2, InstanceSize, RawFloat64x2)                                \
+  SIZEOF(Function, InstanceSize, RawFunction)                                  \
+  SIZEOF(GrowableObjectArray, InstanceSize, RawGrowableObjectArray)            \
+  SIZEOF(ICData, InstanceSize, RawICData)                                      \
+  SIZEOF(Instance, InstanceSize, RawInstance)                                  \
+  SIZEOF(Instructions, InstanceSize, RawInstructions)                          \
   SIZEOF(Instructions, UnalignedHeaderSize, RawInstructions)                   \
   SIZEOF(Int32x4, InstanceSize, RawInt32x4)                                    \
+  SIZEOF(Integer, InstanceSize, RawInteger)                                    \
+  SIZEOF(KernelProgramInfo, InstanceSize, RawKernelProgramInfo)                \
+  SIZEOF(LanguageError, InstanceSize, RawLanguageError)                        \
+  SIZEOF(Library, InstanceSize, RawLibrary)                                    \
+  SIZEOF(LibraryPrefix, InstanceSize, RawLibraryPrefix)                        \
+  SIZEOF(LinkedHashMap, InstanceSize, RawLinkedHashMap)                        \
+  SIZEOF(LocalVarDescriptors, InstanceSize, RawLocalVarDescriptors)            \
+  SIZEOF(MegamorphicCache, InstanceSize, RawMegamorphicCache)                  \
   SIZEOF(Mint, InstanceSize, RawMint)                                          \
+  SIZEOF(MirrorReference, InstanceSize, RawMirrorReference)                    \
+  SIZEOF(MonomorphicSmiableCall, InstanceSize, RawMonomorphicSmiableCall)      \
+  SIZEOF(Namespace, InstanceSize, RawNamespace)                                \
   SIZEOF(NativeArguments, StructSize, NativeArguments)                         \
-  SIZEOF(String, InstanceSize, RawString)                                      \
-  SIZEOF(TypedData, InstanceSize, RawTypedData)                                \
+  SIZEOF(Number, InstanceSize, RawNumber)                                      \
   SIZEOF(Object, InstanceSize, RawObject)                                      \
+  SIZEOF(ObjectPool, InstanceSize, RawObjectPool)                              \
+  SIZEOF(OneByteString, InstanceSize, RawOneByteString)                        \
+  SIZEOF(ParameterTypeCheck, InstanceSize, RawParameterTypeCheck)              \
+  SIZEOF(PatchClass, InstanceSize, RawPatchClass)                              \
+  SIZEOF(PcDescriptors, InstanceSize, RawPcDescriptors)                        \
+  SIZEOF(Pointer, InstanceSize, RawPointer)                                    \
+  SIZEOF(ReceivePort, InstanceSize, RawReceivePort)                            \
+  SIZEOF(RedirectionData, InstanceSize, RawRedirectionData)                    \
+  SIZEOF(RegExp, InstanceSize, RawRegExp)                                      \
+  SIZEOF(Script, InstanceSize, RawScript)                                      \
+  SIZEOF(SendPort, InstanceSize, RawSendPort)                                  \
+  SIZEOF(SignatureData, InstanceSize, RawSignatureData)                        \
+  SIZEOF(SingleTargetCache, InstanceSize, RawSingleTargetCache)                \
+  SIZEOF(Smi, InstanceSize, RawSmi)                                            \
+  SIZEOF(StackTrace, InstanceSize, RawStackTrace)                              \
+  SIZEOF(String, InstanceSize, RawString)                                      \
+  SIZEOF(SubtypeTestCache, InstanceSize, RawSubtypeTestCache)                  \
+  SIZEOF(TransferableTypedData, InstanceSize, RawTransferableTypedData)        \
+  SIZEOF(TwoByteString, InstanceSize, RawTwoByteString)                        \
+  SIZEOF(Type, InstanceSize, RawType)                                          \
+  SIZEOF(TypeArguments, InstanceSize, RawTypeArguments)                        \
+  SIZEOF(TypeParameter, InstanceSize, RawTypeParameter)                        \
+  SIZEOF(TypeRef, InstanceSize, RawTypeRef)                                    \
+  SIZEOF(TypedData, InstanceSize, RawTypedData)                                \
   SIZEOF(TypedDataBase, InstanceSize, RawTypedDataBase)                        \
-  SIZEOF(Closure, InstanceSize, RawClosure)                                    \
-  SIZEOF(GrowableObjectArray, InstanceSize, RawGrowableObjectArray)            \
-  SIZEOF(Instance, InstanceSize, RawInstance)                                  \
-  SIZEOF(LinkedHashMap, InstanceSize, RawLinkedHashMap)
+  SIZEOF(TypedDataView, InstanceSize, RawTypedDataView)                        \
+  SIZEOF(UnhandledException, InstanceSize, RawUnhandledException)              \
+  SIZEOF(UnlinkedCall, InstanceSize, RawUnlinkedCall)                          \
+  SIZEOF(UnwindError, InstanceSize, RawUnwindError)                            \
+  SIZEOF(UserTag, InstanceSize, RawUserTag)                                    \
+  SIZEOF(WeakProperty, InstanceSize, RawWeakProperty)
 
 #endif  // RUNTIME_VM_COMPILER_RUNTIME_OFFSETS_LIST_H_

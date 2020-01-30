@@ -21,7 +21,7 @@ class Utils {
   }
 
   template <typename T>
-  static inline T Maximum(T x, T y) {
+  static constexpr inline T Maximum(T x, T y) {
     return x > y ? x : y;
   }
 
@@ -352,10 +352,16 @@ class Utils {
     return bit_cast<word>(mask);
   }
 
-  static uword Bit(uint32_t n) {
-    ASSERT(n < kBitsPerWord);
-    uword bit = 1;
+  template <typename T = uword>
+  static T Bit(uint32_t n) {
+    ASSERT(n < sizeof(T) * kBitsPerByte);
+    T bit = 1;
     return bit << n;
+  }
+
+  template <typename T>
+  DART_FORCE_INLINE static bool TestBit(T mask, intptr_t position) {
+    return ((mask >> position) & 1) != 0;
   }
 
   // Decode integer in SLEB128 format from |data| and update |byte_index|.

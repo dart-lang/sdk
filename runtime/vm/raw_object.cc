@@ -377,14 +377,32 @@ void RawObject::VisitPointersPrecise(ObjectPointerVisitor* visitor) {
   uword next_field_offset = visitor->isolate()
                                 ->GetClassForHeapWalkAt(class_id)
                                 ->ptr()
-                                ->next_field_offset_in_words_
+                                ->host_next_field_offset_in_words_
                             << kWordSizeLog2;
   ASSERT(next_field_offset > 0);
   uword obj_addr = RawObject::ToAddr(this);
   uword from = obj_addr + sizeof(RawObject);
   uword to = obj_addr + next_field_offset - kWordSize;
-  visitor->VisitPointers(reinterpret_cast<RawObject**>(from),
-                         reinterpret_cast<RawObject**>(to));
+  const auto first = reinterpret_cast<RawObject**>(from);
+  const auto last = reinterpret_cast<RawObject**>(to);
+
+#if defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
+  const auto unboxed_fields_bitmap =
+      visitor->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+
+  if (!unboxed_fields_bitmap.IsEmpty()) {
+    intptr_t bit = sizeof(RawObject) / kWordSize;
+    for (RawObject** current = first; current <= last; current++) {
+      if (!unboxed_fields_bitmap.Get(bit++)) {
+        visitor->VisitPointer(current);
+      }
+    }
+  } else {
+    visitor->VisitPointers(first, last);
+  }
+#else
+  visitor->VisitPointers(first, last);
+#endif  // defined(SUPPORT_UNBOXED_INSTANCE_FIELDS)
 }
 
 bool RawObject::FindObject(FindObjectVisitor* visitor) {

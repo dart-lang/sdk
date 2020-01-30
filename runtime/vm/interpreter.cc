@@ -126,10 +126,9 @@ class InterpreterHelpers {
     RawClass* instance_class =
         thread->isolate()->class_table()->At(GetClassId(instance));
     return instance_class->ptr()->num_type_arguments_ > 0
-               ? reinterpret_cast<RawTypeArguments**>(
-                     instance
-                         ->ptr())[instance_class->ptr()
-                                      ->type_arguments_field_offset_in_words_]
+               ? reinterpret_cast<RawTypeArguments**>(instance->ptr())
+                     [instance_class->ptr()
+                          ->host_type_arguments_field_offset_in_words_]
                : TypeArguments::null();
   }
 
@@ -1205,7 +1204,7 @@ bool Interpreter::AssertAssignable(Thread* thread,
       } else if (instance_class->ptr()->num_type_arguments_ > 0) {
         instance_type_arguments = reinterpret_cast<RawTypeArguments**>(
             instance->ptr())[instance_class->ptr()
-                                 ->type_arguments_field_offset_in_words_];
+                                 ->host_type_arguments_field_offset_in_words_];
       }
       parent_function_type_arguments =
           static_cast<RawTypeArguments*>(null_value);
@@ -2333,7 +2332,7 @@ SwitchDispatch:
     BYTECODE(InitLateField, D);
     RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[0]);
-    intptr_t offset_in_words = field->ptr()->offset_or_field_id_;
+    intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
 
     instance->StorePointer(
         reinterpret_cast<RawObject**>(instance->ptr()) + offset_in_words,
@@ -2362,7 +2361,7 @@ SwitchDispatch:
     BYTECODE(StoreStaticTOS, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
     RawInstance* value = static_cast<RawInstance*>(*SP--);
-    intptr_t field_id = field->ptr()->offset_or_field_id_;
+    intptr_t field_id = field->ptr()->host_offset_or_field_id_;
     thread->field_table_values()[field_id] = value;
     DISPATCH();
   }
@@ -2370,7 +2369,7 @@ SwitchDispatch:
   {
     BYTECODE(LoadStatic, D);
     RawField* field = reinterpret_cast<RawField*>(LOAD_CONSTANT(rD));
-    intptr_t field_id = field->ptr()->offset_or_field_id_;
+    intptr_t field_id = field->ptr()->host_offset_or_field_id_;
     RawInstance* value = thread->field_table_values()[field_id];
     ASSERT((value != Object::sentinel().raw()) &&
            (value != Object::transition_sentinel().raw()));
@@ -2383,7 +2382,7 @@ SwitchDispatch:
     RawField* field = RAW_CAST(Field, LOAD_CONSTANT(rD + 1));
     RawInstance* instance = reinterpret_cast<RawInstance*>(SP[-1]);
     RawObject* value = reinterpret_cast<RawObject*>(SP[0]);
-    intptr_t offset_in_words = field->ptr()->offset_or_field_id_;
+    intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
 
     if (InterpreterHelpers::FieldNeedsGuardUpdate(field, value)) {
       SP[1] = 0;  // Unused result of runtime call.
@@ -2558,7 +2557,7 @@ SwitchDispatch:
     RawClass* cls = Class::RawCast(LOAD_CONSTANT(rD));
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
-      const intptr_t instance_size = cls->ptr()->instance_size_in_words_
+      const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;
       RawObject* result;
       if (TryAllocate(thread, class_id, instance_size, &result)) {
@@ -2588,7 +2587,7 @@ SwitchDispatch:
     RawTypeArguments* type_args = TypeArguments::RawCast(SP[-1]);
     if (LIKELY(InterpreterHelpers::IsFinalized(cls))) {
       const intptr_t class_id = cls->ptr()->id_;
-      const intptr_t instance_size = cls->ptr()->instance_size_in_words_
+      const intptr_t instance_size = cls->ptr()->host_instance_size_in_words_
                                      << kWordSizeLog2;
       RawObject* result;
       if (TryAllocate(thread, class_id, instance_size, &result)) {
@@ -2598,7 +2597,8 @@ SwitchDispatch:
           *reinterpret_cast<RawObject**>(start + offset) = null_value;
         }
         const intptr_t type_args_offset =
-            cls->ptr()->type_arguments_field_offset_in_words_ << kWordSizeLog2;
+            cls->ptr()->host_type_arguments_field_offset_in_words_
+            << kWordSizeLog2;
         *reinterpret_cast<RawObject**>(start + type_args_offset) = type_args;
         *--SP = result;
         DISPATCH();
@@ -3168,7 +3168,7 @@ SwitchDispatch:
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-    intptr_t offset_in_words = field->ptr()->offset_or_field_id_;
+    intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
 
     const intptr_t kArgc = 1;
     RawInstance* instance =
@@ -3188,7 +3188,7 @@ SwitchDispatch:
       function = FrameFunction(FP);
       instance = reinterpret_cast<RawInstance*>(SP[2]);
       field = reinterpret_cast<RawField*>(SP[3]);
-      offset_in_words = field->ptr()->offset_or_field_id_;
+      offset_in_words = field->ptr()->host_offset_or_field_id_;
       value = reinterpret_cast<RawInstance**>(instance->ptr())[offset_in_words];
     }
 
@@ -3249,7 +3249,7 @@ SwitchDispatch:
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-    intptr_t offset_in_words = field->ptr()->offset_or_field_id_;
+    intptr_t offset_in_words = field->ptr()->host_offset_or_field_id_;
     const intptr_t kArgc = 2;
     RawInstance* instance =
         reinterpret_cast<RawInstance*>(FrameArguments(FP, kArgc)[0]);
@@ -3329,7 +3329,7 @@ SwitchDispatch:
 
     // Field object is cached in function's data_.
     RawField* field = reinterpret_cast<RawField*>(function->ptr()->data_);
-    intptr_t field_id = field->ptr()->offset_or_field_id_;
+    intptr_t field_id = field->ptr()->host_offset_or_field_id_;
     RawInstance* value = thread->field_table_values()[field_id];
     if (value == Object::sentinel().raw() ||
         value == Object::transition_sentinel().raw()) {
@@ -3343,7 +3343,7 @@ SwitchDispatch:
       function = FrameFunction(FP);
       field = reinterpret_cast<RawField*>(function->ptr()->data_);
       // The field is initialized by the runtime call, but not returned.
-      intptr_t field_id = field->ptr()->offset_or_field_id_;
+      intptr_t field_id = field->ptr()->host_offset_or_field_id_;
       value = thread->field_table_values()[field_id];
     }
 

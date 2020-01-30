@@ -1097,7 +1097,7 @@ void HeapSnapshotWriter::Write() {
                 if (field.is_instance()) {
                   intptr_t flags = 1;  // Strong.
                   WriteUnsigned(flags);
-                  intptr_t index = field.Offset() / kWordSize - 1;
+                  intptr_t index = field.HostOffset() / kWordSize - 1;
                   ASSERT(index >= 0);
                   WriteUnsigned(index);
                   str = field.name();
