@@ -152,12 +152,15 @@ class UnitRenderer {
     StringBuffer regions = StringBuffer();
     int lineNumber = 1;
 
-    void writeSplitLines(String lines) {
+    void writeSplitLines(String lines,
+        {String perLineOpeningTag = '', String perLineClosingTag = ''}) {
       Iterator<String> lineIterator = LineSplitter.split(lines).iterator;
       lineIterator.moveNext();
 
       while (true) {
+        regions.write(perLineOpeningTag);
         regions.write(_htmlEscape.convert(lineIterator.current));
+        regions.write(perLineClosingTag);
         if (lineIterator.moveNext()) {
           // If we're not on the last element, end this table row, and start a
           // new table row.
@@ -168,6 +171,26 @@ class UnitRenderer {
         } else {
           break;
         }
+      }
+      if (lines.endsWith('\n')) {
+        lineNumber++;
+        regions.write('</td></tr>'
+            '<tr><td class="line-no">$lineNumber</td>'
+            '<td class="line-$lineNumber">');
+      }
+    }
+
+    /// Returns the CSS class for a region with a given [RegionType].
+    String classForRegion(RegionType type) {
+      switch (type) {
+        case RegionType.add:
+          return 'added-region';
+        case RegionType.remove:
+          return 'removed-region';
+        case RegionType.unchanged:
+          return 'unchanged-region';
+        default:
+          return null;
       }
     }
 
@@ -181,14 +204,11 @@ class UnitRenderer {
         writeSplitLines(content.substring(previousOffset, offset));
         previousOffset = offset + length;
       }
-      String regionClass = region.regionType == RegionType.fix
-          ? 'fix-region'
-          : 'non-nullable-type-region';
-      regions.write('<span class="region $regionClass" ');
-      regions.write('data-offset="$offset" data-line="$lineNumber">');
-      regions.write(
-          _htmlEscape.convert(content.substring(offset, offset + length)));
-      regions.write('</span>');
+      String regionClass = classForRegion(region.regionType);
+      String regionSpanTag = '<span class="region $regionClass" '
+          'data-offset="$offset" data-line="$lineNumber">';
+      writeSplitLines(content.substring(offset, offset + length),
+          perLineOpeningTag: regionSpanTag, perLineClosingTag: '</span>');
     }
     if (previousOffset < content.length) {
       // Last region of unmodified content.

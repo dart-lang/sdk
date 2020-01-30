@@ -124,7 +124,7 @@ bool b = a!.isEven;
     var output = jsonDecode(outputJson);
     var regions = _stripDataAttributes(output['regions']);
     expect(regions,
-        contains('int<span class="region fix-region">?</span> a = null;'));
+        contains('int<span class="region added-region">?</span> a = null;'));
   }
 
   test_regionsContainsEscapedHtml_ampersand() async {
@@ -144,7 +144,7 @@ bool b = a!.isEven;
     expect(
         regions,
         contains('List&lt;String&gt;'
-            '<span class="region fix-region">?</span> a = null;'));
+            '<span class="region added-region">?</span> a = null;'));
   }
 
   test_regionsContainsEscapedHtml_region() async {
@@ -155,8 +155,8 @@ bool b = a!.isEven;
     var regions = _stripDataAttributes(output['regions']);
     expect(
         regions,
-        contains('<span class="region non-nullable-type-region">'
-            'List&lt;String&gt;</span>'));
+        contains(
+            '<span class="region unchanged-region">List&lt;String&gt;</span>'));
   }
 
   UnitInfo unit(String path, String content, {List<RegionInfo> regions}) {

@@ -539,7 +539,7 @@ class InfoBuilder {
         if (details.isNotEmpty) {
           TypeAnnotation node = nonNullableType.key;
           regions.add(RegionInfo(
-              RegionType.nonNullableType,
+              RegionType.unchanged,
               mapper.map(node.offset),
               node.length,
               lineInfo.getLocation(node.offset).lineNumber,
@@ -587,17 +587,16 @@ class InfoBuilder {
             info != null ? _computeEdits(info, sourceOffset) : [];
         List<RegionDetail> details = _computeDetails(edit);
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
-        if (length > 0) {
-          if (explanation != null) {
-            regions.add(RegionInfo(RegionType.fix, offset, length, lineNumber,
-                explanation, details,
+        if (explanation != null) {
+          if (length > 0) {
+            regions.add(RegionInfo(RegionType.remove, offset, length,
+                lineNumber, explanation, details,
+                edits: edits));
+          } else {
+            regions.add(RegionInfo(RegionType.add, offset, replacement.length,
+                lineNumber, explanation, details,
                 edits: edits));
           }
-        }
-        if (explanation != null) {
-          regions.add(RegionInfo(RegionType.fix, offset, replacement.length,
-              lineNumber, explanation, details,
-              edits: edits));
         }
         offset += replacement.length;
       }

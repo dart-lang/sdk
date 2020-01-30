@@ -217,27 +217,23 @@ h2#unit-name {
   z-index: 200;
 }
 
-.region.fix-region {
-  /* Green means this region was added. */
+.region.added-region {
   background-color: #ccffcc;
   color: #003300;
 }
 
-.region.non-nullable-type-region {
+.region.removed-region {
+  background-color: #ff6666;
+  color: #001100;
+}
+
+.region.unchanged-region {
   background-color: rgba(0, 0, 0, 0.3);
   border-bottom: solid 2px #cccccc;
   /* Invisible text; use underlying highlighting. */
   color: rgba(0, 0, 0, 0);
   /* Reduce line height to make room for border. */
   line-height: 1;
-}
-
-/**
-  * TODO(srawlins): Stop shipping tooltips as hidden DOM. Instead, request them
-  * on each click.
-  */
-.region .tooltip {
-  display: none;
 }
 
 .target {

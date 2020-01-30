@@ -1356,9 +1356,8 @@ void f(num n, int?/*?*/ i) {
     UnitInfo unit = await buildInfoForSingleTestFile(originalContent,
         migratedContent: migratedContent, removeViaComments: false);
     List<RegionInfo> regions = unit.regions;
-    expect(regions, hasLength(4));
+    expect(regions, hasLength(3));
     // regions[0] is the addition of `?` to the type of `i`.
-    // TODO(paulberry): why does the discarded downcast appear twice?
     assertRegion(
         region: regions[1],
         offset: migratedContent.indexOf(' as int'),
@@ -1366,11 +1365,6 @@ void f(num n, int?/*?*/ i) {
         details: []);
     assertRegion(
         region: regions[2],
-        offset: migratedContent.indexOf(' as int'),
-        length: 0,
-        details: []);
-    assertRegion(
-        region: regions[3],
         offset: migratedContent.indexOf('! + 1'),
         details: ['node with no info (never)']);
   }
