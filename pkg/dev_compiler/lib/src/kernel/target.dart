@@ -49,27 +49,24 @@ class DevCompilerTarget extends Target {
           'dart:math',
           'dart:mirrors',
           'dart:typed_data',
-          if (!flags.enableNullSafety) ...[
-            'dart:indexed_db',
-            'dart:html',
-            'dart:html_common',
-            'dart:svg',
-            'dart:web_audio',
-            'dart:web_gl',
-            'dart:web_sql'
-          ]
+          'dart:indexed_db',
+          'dart:html',
+          'dart:html_common',
+          'dart:svg',
+          'dart:web_audio',
+          'dart:web_gl',
+          'dart:web_sql'
         ],
         _extraIndexedLibraries = [
           'dart:async',
           'dart:collection',
-          if (!flags.enableNullSafety) ...['dart:html', 'dart:indexed_db'],
+          'dart:html',
+          'dart:indexed_db',
           'dart:math',
-          if (!flags.enableNullSafety) ...[
-            'dart:svg',
-            'dart:web_audio',
-            'dart:web_gl',
-            'dart:web_sql'
-          ],
+          'dart:svg',
+          'dart:web_audio',
+          'dart:web_gl',
+          'dart:web_sql',
           'dart:_interceptors',
           'dart:_js_helper',
           'dart:_native_typed_data',

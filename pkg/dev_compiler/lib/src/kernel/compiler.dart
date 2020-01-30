@@ -232,8 +232,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants();
-    var nativeTypes = NativeTypeSet(coreTypes, constants,
-        enableNullSafety: options.enableNullSafety);
+    var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types, hierarchy);
     var staticTypeContext = StatefulStaticTypeContext.stacked(types);
     return ProgramCompiler._(
