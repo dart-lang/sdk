@@ -544,6 +544,178 @@ class Foo {
     assertDetail(detail: region.details[0], offset: 56, length: 4);
   }
 
+  test_functionType_nullable_asArgument() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  f(void Function(int) cb1) {}
+  g(void Function(int) cb2) {
+    f(cb2);
+  }
+  h() => f(null);
+}
+''', migratedContent: '''
+class C {
+  f(void Function(int)? cb1) {}
+  g(void Function(int) cb2) {
+    f(cb2);
+  }
+  h() => f(null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    assertRegion(
+        region: regions[0],
+        offset: 32,
+        details: ["An explicit 'null' is passed as an argument"]);
+    assertDetail(detail: regions[0].details[0], offset: 98, length: 4);
+  }
+
+  test_functionType_nullableParameter_asArgument() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  f(void Function(int) cb1) {
+    cb1(null);
+  }
+  g(void Function(int) cb2) {
+    f(cb2);
+  }
+}
+''', migratedContent: '''
+class C {
+  f(void Function(int?) cb1) {
+    cb1(null);
+  }
+  g(void Function(int?) cb2) {
+    f(cb2);
+  }
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 31,
+        details: ["An explicit 'null' is passed as an argument"]);
+    assertRegion(region: regions[1], offset: 81, details: [
+      'The function-typed element in which this parameter is declared is '
+          'assigned to a function whose matching parameter is nullable'
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 95, length: 3);
+  }
+
+  test_functionType_nullableParameter_assignment() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  void Function(int) _cb = (x) {};
+  f(void Function(int) cb) {
+    _cb = cb;
+  }
+  g() => _cb(null);
+}
+''', migratedContent: '''
+class C {
+  void Function(int?) _cb = (x) {};
+  f(void Function(int?) cb) {
+    _cb = cb;
+  }
+  g() => _cb(null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    // regions[0] is `void Function(int?) _cb`.
+    assertRegion(region: regions[1], offset: 67, details: [
+      'The function-typed element in which this parameter is declared is '
+          'assigned to a function whose matching parameter is nullable'
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 84, length: 2);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40034')
+  test_functionType_nullableParameter_typedef() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+typedef Cb = void Function(int);
+class C {
+  Cb _cb;
+  C(void Function(int) cb): _cb = cb;
+  f() => _cb(null);
+}
+''', migratedContent: '''
+typedef Cb = void Function(int?);
+class C {
+  Cb _cb;
+  C(void Function(int?) cb): _cb = cb;
+  f() => _cb(null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    // regions[0] is `typedef Cb = void Function(int?);`.
+    assertRegion(region: regions[1], offset: 75, details: [
+      'The function-typed element in which this parameter is declared is '
+          'assigned to a function whose matching parameter is nullable'
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 70, length: 2);
+  }
+
+  test_functionType_nullableParameter_fieldInitializer() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  void Function(int) _cb;
+  C(void Function(int) cb): _cb = cb;
+  f() => _cb(null);
+}
+''', migratedContent: '''
+class C {
+  void Function(int?) _cb;
+  C(void Function(int?) cb): _cb = cb;
+  f() => _cb(null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 29,
+        details: ["An explicit 'null' is passed as an argument"]);
+    assertRegion(region: regions[1], offset: 58, details: [
+      'The function-typed element in which this parameter is declared is '
+          'assigned to a function whose matching parameter is nullable'
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 70, length: 2);
+  }
+
+  test_functionType_nullableReturn() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int Function() _cb = () => 7;
+  f(int Function() cb) {
+    _cb = cb;
+  }
+  g() {
+    f(() => null);
+  }
+}
+''', migratedContent: '''
+class C {
+  int? Function() _cb = () => 7;
+  f(int? Function() cb) {
+    _cb = cb;
+  }
+  g() {
+    f(() => null);
+  }
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(region: regions[0], offset: 15, details: [
+      'A function-typed value with a nullable return type is assigned'
+    ]);
+    assertDetail(detail: regions[0].details[0], offset: 77, length: 2);
+  }
+
   test_insertedRequired_fieldFormal() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {

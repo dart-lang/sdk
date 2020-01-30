@@ -271,6 +271,28 @@ class InfoBuilder {
       EdgeOriginInfo origin, EdgeInfo edge, NullabilityFixKind fixKind) {
     AstNode node = origin.node;
     NavigationTarget target;
+    TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
+    AstNode typeParent = type?.parent;
+
+    if (typeParent is GenericFunctionType && type == typeParent.returnType) {
+      var description =
+          'A function-typed value with a nullable return type is assigned';
+      target = _proximateTargetForNode(origin.source.fullName, node);
+      return RegionDetail(description, target);
+    }
+    if (typeParent is FormalParameter) {
+      FormalParameterList parameterList =
+          typeParent.parent is DefaultFormalParameter
+              ? typeParent.parent.parent
+              : typeParent.parent;
+      if (parameterList.parent is GenericFunctionType) {
+        var description =
+            'The function-typed element in which this parameter is declared is '
+            'assigned to a function whose matching parameter is nullable';
+        target = _proximateTargetForNode(origin.source.fullName, node);
+        return RegionDetail(description, target);
+      }
+    }
 
     // Some nodes don't need a target; default formal parameters
     // without explicit default values, for example.
@@ -283,7 +305,6 @@ class InfoBuilder {
         // link to the either the corresponding parameter in the declaration in
         // the superclass, or the return type in the declaration in that
         // subclass.
-        TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
         if (type != null) {
           CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
           target = _proximateTargetForNode(
