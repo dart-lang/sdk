@@ -38,6 +38,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
 
   /// The identifier used to reference DDC's core "dart:_runtime" library from
   /// generated JS code, typically called "dart" e.g. `dart.dcall`.
+  @protected
   js_ast.Identifier runtimeModule;
 
   /// The identifier used to reference DDC's "extension method" symbols, used to

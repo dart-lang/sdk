@@ -40,7 +40,6 @@ import 'package:vm/kernel_front_end.dart';
 
 import 'src/javascript_bundle.dart';
 import 'src/strong_components.dart';
-import 'src/expression_compiler.dart';
 
 ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('train',
@@ -187,21 +186,12 @@ ${argParser.usage}
 enum _State {
   READY_FOR_INSTRUCTION,
   RECOMPILE_LIST,
-  // compileExpression
   COMPILE_EXPRESSION_EXPRESSION,
   COMPILE_EXPRESSION_DEFS,
   COMPILE_EXPRESSION_TYPEDEFS,
   COMPILE_EXPRESSION_LIBRARY_URI,
   COMPILE_EXPRESSION_KLASS,
-  COMPILE_EXPRESSION_IS_STATIC,
-  // compileExpressionToJs
-  COMPILE_EXPRESSION_TO_JS_LIBRARYURI,
-  COMPILE_EXPRESSION_TO_JS_LINE,
-  COMPILE_EXPRESSION_TO_JS_COLUMN,
-  COMPILE_EXPRESSION_TO_JS_JSMODULUES,
-  COMPILE_EXPRESSION_TO_JS_JSFRAMEVALUES,
-  COMPILE_EXPRESSION_TO_JS_MODULENAME,
-  COMPILE_EXPRESSION_TO_JS_EXPRESSION,
+  COMPILE_EXPRESSION_IS_STATIC
 }
 
 /// Actions that every compiler should implement.
@@ -253,33 +243,6 @@ abstract class CompilerInterface {
       String klass,
       bool isStatic);
 
-  /// Compiles [expression] in [libraryUri] at [line]:[column] to JavaScript
-  /// in [moduleName].
-  ///
-  /// Values listed in [jsFrameValues] are substituted for their names in the
-  /// [expression].
-  ///
-  /// Ensures that all [jsModules] are loaded and accessible inside the
-  /// expression.
-  ///
-  /// Example values of parameters:
-  /// [moduleName] is of the form '/packages/hello_world_main.dart'
-  /// [jsFrameValues] is a map from js variable name to its primitive value
-  /// or another variable name, for example
-  /// { 'x': '1', 'y': 'y', 'o': 'null' }
-  /// [jsModules] is a map from variable name to the module name, where
-  /// variable name is the name originally used in JavaScript to contain the
-  /// module object, for example:
-  /// { 'dart':'dart_sdk', 'main': '/packages/hello_world_main.dart' }
-  Future<Null> compileExpressionToJs(
-      String libraryUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsFrameValues,
-      String moduleName,
-      String expression);
-
   /// Communicates an error [msg] to the client.
   void reportError(String msg);
 }
@@ -319,9 +282,6 @@ class FrontendCompiler implements CompilerInterface {
   ArgResults _options;
 
   IncrementalCompiler _generator;
-  JavaScriptBundler _bundler;
-  Component _component;
-
   String _kernelBinaryFilename;
   String _kernelBinaryFilenameIncremental;
   String _kernelBinaryFilenameFull;
@@ -480,7 +440,6 @@ class FrontendCompiler implements CompilerInterface {
           component.uriToSource.keys);
 
       incrementalSerializer = _generator.incrementalSerializer;
-      _component = component;
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -591,12 +550,12 @@ class FrontendCompiler implements CompilerInterface {
     if (!sourceFile.parent.existsSync()) {
       sourceFile.parent.createSync(recursive: true);
     }
-    _bundler = JavaScriptBundler(
+    final bundler = JavaScriptBundler(
         component, strongComponents, fileSystemScheme, packageResolver);
     final sourceFileSink = sourceFile.openWrite();
     final manifestFileSink = manifestFile.openWrite();
     final sourceMapsFileSink = sourceMapsFile.openWrite();
-    await _bundler.compile(
+    await bundler.compile(
         results.classHierarchy,
         results.coreTypes,
         results.loadedLibraries,
@@ -878,53 +837,6 @@ class FrontendCompiler implements CompilerInterface {
   }
 
   @override
-  Future<Null> compileExpressionToJs(
-      String libraryUri,
-      int line,
-      int column,
-      Map<String, String> jsModules,
-      Map<String, String> jsFrameValues,
-      String moduleName,
-      String expression) async {
-    final String boundaryKey = Uuid().generateV4();
-    _outputStream.writeln('result $boundaryKey');
-
-    _generator.accept();
-    errors.clear();
-
-    if (_bundler != null) {
-      var kernel2jsCompiler = _bundler.compilers[moduleName];
-      assert(kernel2jsCompiler != null);
-
-      var evaluator = new ExpressionCompiler(
-          _generator.generator, kernel2jsCompiler, _component,
-          verbose: _compilerOptions.verbose,
-          onDiagnostic: _compilerOptions.onDiagnostic);
-
-      var procedure = await evaluator.compileExpressionToJs(libraryUri, line,
-          column, jsModules, jsFrameValues, moduleName, expression);
-
-      var result = procedure ?? errors[0];
-
-      // TODO(annagrin): kernelBinaryFilename is too specific
-      // rename to _outputFileName?
-      await File(_kernelBinaryFilename).writeAsString(result);
-
-      _outputStream
-          .writeln('$boundaryKey $_kernelBinaryFilename ${errors.length}');
-
-      // TODO(annagrin): do we need to add asserts/error reporting if
-      // initial compilation didn't happen and _kernelBinaryFilename
-      // is different from below?
-      if (procedure != null) {
-        _kernelBinaryFilename = _kernelBinaryFilenameIncremental;
-      }
-    } else {
-      _outputStream.writeln('$boundaryKey');
-    }
-  }
-
-  @override
   void reportError(String msg) {
     final String boundaryKey = Uuid().generateV4();
     _outputStream.writeln('result $boundaryKey');
@@ -1095,16 +1007,6 @@ class _CompileExpressionRequest {
   bool isStatic;
 }
 
-class _CompileExpressionToJsRequest {
-  String libraryUri;
-  int line;
-  int column;
-  Map<String, String> jsModules = <String, String>{};
-  Map<String, String> jsFrameValues = <String, String>{};
-  String moduleName;
-  String expression;
-}
-
 /// Listens for the compilation commands on [input] stream.
 /// This supports "interactive" recompilation mode of execution.
 void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
@@ -1112,7 +1014,6 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
     {IncrementalCompiler generator}) {
   _State state = _State.READY_FOR_INSTRUCTION;
   _CompileExpressionRequest compileExpressionRequest;
-  _CompileExpressionToJsRequest compileExpressionToJsRequest;
   String boundaryKey;
   String recompileEntryPoint;
   input
@@ -1125,8 +1026,6 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
         const String RECOMPILE_INSTRUCTION_SPACE = 'recompile ';
         const String COMPILE_EXPRESSION_INSTRUCTION_SPACE =
             'compile-expression ';
-        const String COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE =
-            'compile-expression-to-js ';
         if (string.startsWith(COMPILE_INSTRUCTION_SPACE)) {
           final String entryPoint =
               string.substring(COMPILE_INSTRUCTION_SPACE.length);
@@ -1144,24 +1043,6 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
             boundaryKey = remainder;
           }
           state = _State.RECOMPILE_LIST;
-        } else if (string
-            .startsWith(COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE)) {
-          // 'compile-expression-to-js <boundarykey>
-          // libraryUri
-          // line
-          // column
-          // jsModules (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // jsFrameValues (one k-v pair per line)
-          // ...
-          // <boundarykey>
-          // moduleName
-          // expression
-          compileExpressionToJsRequest = _CompileExpressionToJsRequest();
-          boundaryKey = string
-              .substring(COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE.length);
-          state = _State.COMPILE_EXPRESSION_TO_JS_LIBRARYURI;
         } else if (string.startsWith(COMPILE_EXPRESSION_INSTRUCTION_SPACE)) {
           // 'compile-expression <boundarykey>
           // expression
@@ -1235,54 +1116,6 @@ void listenAndCompile(CompilerInterface compiler, Stream<List<int>> input,
           compiler
               .reportError('Got $string. Expected either "true" or "false"');
         }
-        state = _State.READY_FOR_INSTRUCTION;
-        break;
-      case _State.COMPILE_EXPRESSION_TO_JS_LIBRARYURI:
-        compileExpressionToJsRequest.libraryUri = string;
-        state = _State.COMPILE_EXPRESSION_TO_JS_LINE;
-        break;
-      case _State.COMPILE_EXPRESSION_TO_JS_LINE:
-        compileExpressionToJsRequest.line = int.parse(string);
-        state = _State.COMPILE_EXPRESSION_TO_JS_COLUMN;
-        break;
-      case _State.COMPILE_EXPRESSION_TO_JS_COLUMN:
-        compileExpressionToJsRequest.column = int.parse(string);
-        state = _State.COMPILE_EXPRESSION_TO_JS_JSMODULUES;
-        break;
-      case _State.COMPILE_EXPRESSION_TO_JS_JSMODULUES:
-        if (string == boundaryKey) {
-          state = _State.COMPILE_EXPRESSION_TO_JS_JSFRAMEVALUES;
-        } else {
-          var list = string.split(':');
-          var key = list[0];
-          var value = list[1];
-          compileExpressionToJsRequest.jsModules[key] = value;
-        }
-        break;
-      case _State.COMPILE_EXPRESSION_TO_JS_JSFRAMEVALUES:
-        if (string == boundaryKey) {
-          state = _State.COMPILE_EXPRESSION_TO_JS_MODULENAME;
-        } else {
-          var list = string.split(':');
-          var key = list[0];
-          var value = list[1];
-          compileExpressionToJsRequest.jsFrameValues[key] = value;
-        }
-        break;
-      case _State.COMPILE_EXPRESSION_TO_JS_MODULENAME:
-        compileExpressionToJsRequest.moduleName = string;
-        state = _State.COMPILE_EXPRESSION_TO_JS_EXPRESSION;
-        break;
-      case _State.COMPILE_EXPRESSION_TO_JS_EXPRESSION:
-        compileExpressionToJsRequest.expression = string;
-        compiler.compileExpressionToJs(
-            compileExpressionToJsRequest.libraryUri,
-            compileExpressionToJsRequest.line,
-            compileExpressionToJsRequest.column,
-            compileExpressionToJsRequest.jsModules,
-            compileExpressionToJsRequest.jsFrameValues,
-            compileExpressionToJsRequest.moduleName,
-            compileExpressionToJsRequest.expression);
         state = _State.READY_FOR_INSTRUCTION;
         break;
     }

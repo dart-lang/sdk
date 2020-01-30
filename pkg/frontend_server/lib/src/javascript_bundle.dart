@@ -11,6 +11,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:path/path.dart' as p;
 import 'package:package_resolver/package_resolver.dart';
+
 import 'strong_components.dart';
 
 /// Produce a special bundle format for compiled JavaScript.
@@ -24,8 +25,7 @@ import 'strong_components.dart';
 /// only the updated libraries.
 class JavaScriptBundler {
   JavaScriptBundler(this._originalComponent, this._strongComponents,
-      this._fileSystemScheme, this._packageResolver)
-      : compilers = <String, ProgramCompiler>{} {
+      this._fileSystemScheme, this._packageResolver) {
     _summaries = <Component>[];
     _summaryUris = <Uri>[];
     _moduleImportForSummary = <Uri, String>{};
@@ -48,7 +48,6 @@ class JavaScriptBundler {
   final Component _originalComponent;
   final String _fileSystemScheme;
   final PackageResolver _packageResolver;
-  final Map<String, ProgramCompiler> compilers;
 
   List<Component> _summaries;
   List<Uri> _summaryUris;
@@ -93,32 +92,16 @@ class JavaScriptBundler {
       visited.add(moduleUri);
 
       final summaryComponent = _uriToComponent[moduleUri];
-
-      // module name to use in trackLibraries
-      // use full path for tracking if module uri is not a package uri
-      final String moduleName = moduleUri.scheme == 'package'
-          ? '/packages/${moduleUri.path}'
-          : moduleUri.path;
-
-      var compiler = ProgramCompiler(
+      final compiler = ProgramCompiler(
         _originalComponent,
         classHierarchy,
-        SharedCompilerOptions(
-            sourceMap: true, summarizeApi: false, moduleName: moduleName),
+        SharedCompilerOptions(sourceMap: true, summarizeApi: false),
         importToSummary,
         summaryToModule,
         coreTypes: coreTypes,
       );
 
       final jsModule = compiler.emitModule(summaryComponent);
-
-      // TODO:(annagrin): create symbol tables and pass to expression compiler
-      // so it can map dart symbols to js symbols
-      // [issue 40273](https://github.com/dart-lang/sdk/issues/40273)
-
-      // program compiler is used by ExpressionCompiler to evaluate expressions
-      // on demand
-      compilers[moduleName] = compiler;
 
       final moduleUrl = urlForComponentUri(moduleUri);
       String sourceMapBase;

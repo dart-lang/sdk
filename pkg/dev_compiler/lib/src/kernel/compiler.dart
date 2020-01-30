@@ -101,12 +101,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   FunctionNode _currentFunction;
 
-  void setIncrementalCompilationScope(Library library, Class cls) {
-    _currentLibrary = library;
-    _staticTypeContext.enterLibrary(_currentLibrary);
-    _currentClass = cls;
-  }
-
   /// Whether we are currently generating code for the body of a `JS()` call.
   bool _isInForeignJS = false;
 
@@ -2909,9 +2903,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitTypedefType(TypedefType type) =>
       visitFunctionType(type.unalias as FunctionType);
-
-  js_ast.Fun emitFunction(FunctionNode f, String name) =>
-      _emitFunction(f, name);
 
   js_ast.Fun _emitFunction(FunctionNode f, String name) {
     // normal function (sync), vs (sync*, async, async*)
