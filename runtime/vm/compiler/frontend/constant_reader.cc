@@ -220,6 +220,7 @@ RawInstance* ConstantReader::ReadConstantInternal(intptr_t constant_offset) {
       }
       const auto& obj = Object::Handle(Z, klass.EnsureIsFinalized(H.thread()));
       ASSERT(obj.IsNull());
+      ASSERT(klass.is_const());
       instance = Instance::New(klass, Heap::kOld);
       // Build type from the raw bytes (needs temporary translator).
       TypeTranslator type_translator(&reader, active_class_, true);

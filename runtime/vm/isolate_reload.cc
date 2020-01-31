@@ -193,9 +193,34 @@ void InstanceMorpher::AddObject(RawObject* object) {
 }
 
 RawInstance* InstanceMorpher::Morph(const Instance& instance) const {
+  // Code can reference constants / canonical objects either directly in the
+  // instruction stream (ia32) or via an object pool.
+  //
+  // We have the following invariants:
+  //
+  //    a) Those canonical objects don't change state (i.e. are not mutable):
+  //       our optimizer can e.g. execute loads of such constants at
+  //       compile-time.
+  //
+  //       => We ensure that const-classes with live constants cannot be
+  //          reloaded to become non-const classes (see Class::CheckReload).
+  //
+  //    b) Those canonical objects live in old space: e.g. on ia32 the scavenger
+  //       does not make the RX pages writable and therefore cannot update
+  //       pointers embedded in the instruction stream.
+  //
+  // In order to maintain these invariants we ensure to always morph canonical
+  // objects to old space.
+  const bool is_canonical = instance.IsCanonical();
+  const Heap::Space space = is_canonical ? Heap::kOld : Heap::kNew;
   const auto& result = Instance::Handle(
-      Z, Instance::NewFromCidAndSize(shared_class_table_, cid_));
+      Z, Instance::NewFromCidAndSize(shared_class_table_, cid_, space));
 
+  // We preserve the canonical bit of the object, since this object is present
+  // in the class's constants.
+  if (is_canonical) {
+    result.SetCanonical();
+  }
 #if defined(HASH_IN_OBJECT_HEADER)
   const uint32_t hash = Object::GetCachedHash(instance.raw());
   Object::SetCachedHash(result.raw(), hash);

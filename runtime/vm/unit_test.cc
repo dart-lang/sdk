@@ -199,13 +199,49 @@ const char* TestCase::GetTestLib(const char* url) {
 
 #ifndef PRODUCT
 static const char* kIsolateReloadTestLibSource =
-    "void reloadTest() native 'Reload_Test';\n";
+    "void reloadTest() native 'Test_Reload';\n"
+    "void collectNewSpace() native 'Test_CollectNewSpace';\n"
+    "void collectOldSpace() native 'Test_CollectOldSpace';\n";
 
 static const char* IsolateReloadTestLibUri() {
   return "test:isolate_reload_helper";
 }
 
-static void ReloadTest(Dart_NativeArguments native_args) {
+#define RELOAD_NATIVE_LIST(V)                                                  \
+  V(Test_Reload, 0)                                                            \
+  V(Test_CollectNewSpace, 0)                                                   \
+  V(Test_CollectOldSpace, 0)
+
+RELOAD_NATIVE_LIST(DECLARE_FUNCTION);
+
+static struct NativeEntries {
+  const char* name_;
+  Dart_NativeFunction function_;
+  int argument_count_;
+} ReloadEntries[] = {RELOAD_NATIVE_LIST(REGISTER_FUNCTION)};
+
+static Dart_NativeFunction IsolateReloadTestNativeResolver(
+    Dart_Handle name,
+    int argument_count,
+    bool* auto_setup_scope) {
+  const char* function_name = NULL;
+  Dart_Handle result = Dart_StringToCString(name, &function_name);
+  ASSERT(!Dart_IsError(result));
+  ASSERT(function_name != NULL);
+  ASSERT(auto_setup_scope != NULL);
+  *auto_setup_scope = true;
+  int num_entries = sizeof(ReloadEntries) / sizeof(struct NativeEntries);
+  for (int i = 0; i < num_entries; i++) {
+    struct NativeEntries* entry = &(ReloadEntries[i]);
+    if ((strcmp(function_name, entry->name_) == 0) &&
+        (entry->argument_count_ == argument_count)) {
+      return reinterpret_cast<Dart_NativeFunction>(entry->function_);
+    }
+  }
+  return NULL;
+}
+
+void FUNCTION_NAME(Test_Reload)(Dart_NativeArguments native_args) {
   Dart_Handle result = TestCase::TriggerReload(/* kernel_buffer= */ NULL,
                                                /* kernel_buffer_size= */ 0);
   if (Dart_IsError(result)) {
@@ -213,11 +249,14 @@ static void ReloadTest(Dart_NativeArguments native_args) {
   }
 }
 
-static Dart_NativeFunction IsolateReloadTestNativeResolver(
-    Dart_Handle name,
-    int num_of_arguments,
-    bool* auto_setup_scope) {
-  return ReloadTest;
+void FUNCTION_NAME(Test_CollectNewSpace)(Dart_NativeArguments native_args) {
+  TransitionNativeToVM transition(Thread::Current());
+  GCTestHelper::CollectNewSpace();
+}
+
+void FUNCTION_NAME(Test_CollectOldSpace)(Dart_NativeArguments native_args) {
+  TransitionNativeToVM transition(Thread::Current());
+  GCTestHelper::CollectOldSpace();
 }
 
 static Dart_Handle LoadIsolateReloadTestLib() {

@@ -606,6 +606,18 @@ class EnsureFinalizedError : public ClassReasonForCancelling {
   RawString* ToString() { return String::New(error_.ToErrorCString()); }
 };
 
+class ConstToNonConstClass : public ClassReasonForCancelling {
+ public:
+  ConstToNonConstClass(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) {}
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted("Const class cannot become non-const: %s",
+                                from_.ToCString());
+  }
+};
+
 class NativeFieldsConflict : public ClassReasonForCancelling {
  public:
   NativeFieldsConflict(Zone* zone, const Class& from, const Class& to)
@@ -710,6 +722,14 @@ void Class::CheckReload(const Class& replacement,
     }
     ASSERT(replacement.is_finalized());
     TIR_Print("Finalized replacement class for %s\n", ToCString());
+  }
+
+  if (is_finalized() && is_const() && !replacement.is_const()) {
+    if (constants() != Array::null() && Array::LengthOf(constants()) > 0) {
+      context->group_reload_context()->AddReasonForCancelling(
+          new (context->zone())
+              ConstToNonConstClass(context->zone(), *this, replacement));
+    }
   }
 
   // Native field count cannot change.

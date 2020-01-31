@@ -6884,7 +6884,8 @@ class Instance : public Object {
   }
 
   static RawInstance* NewFromCidAndSize(SharedClassTable* shared_class_table,
-                                        classid_t cid);
+                                        classid_t cid,
+                                        Heap::Space heap = Heap::kNew);
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);

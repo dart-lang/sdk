@@ -1763,6 +1763,7 @@ RawError* Object::Init(Isolate* isolate,
     cls.set_name(Symbols::Object());
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
+    cls.set_is_const();
     core_lib.AddClass(cls);
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -3635,8 +3636,9 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 }
 
 void Class::Finalize() const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(Thread::Current()->IsMutatorThread());
+  auto thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  ASSERT(thread->IsMutatorThread());
   ASSERT(!isolate->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
@@ -3651,6 +3653,16 @@ void Class::Finalize() const {
       if (FLAG_precompiled_mode) {
         isolate->shared_class_table()->SetUnboxedFieldsMapAt(id(), host_bitmap);
       }
+    }
+  }
+  const auto& functions = Array::Handle(thread->zone(), this->functions());
+  auto& function = Function::Handle(thread->zone());
+  for (intptr_t i = 0; i < functions.Length(); ++i) {
+    function ^= functions.At(i);
+    if (function.IsGenerativeConstructor() && function.is_const()) {
+      ASSERT(SuperClass() == Class::null() ||
+             Class::Handle(SuperClass()).is_const());
+      set_is_const();
     }
   }
   set_is_finalized();
@@ -17679,10 +17691,11 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
 }
 
 RawInstance* Instance::NewFromCidAndSize(SharedClassTable* shared_class_table,
-                                         classid_t cid) {
+                                         classid_t cid,
+                                         Heap::Space heap) {
   const intptr_t instance_size = shared_class_table->SizeAt(cid);
   ASSERT(instance_size > 0);
-  RawObject* raw = Object::Allocate(cid, instance_size, Heap::kNew);
+  RawObject* raw = Object::Allocate(cid, instance_size, heap);
   return reinterpret_cast<RawInstance*>(raw);
 }
 
