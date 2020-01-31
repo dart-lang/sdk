@@ -11,7 +11,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RuntimeCompletionComputerTest);
   });
@@ -87,7 +87,7 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     return null;
   }
 
-  test_class_fields() async {
+  Future<void> test_class_fields() async {
     addContextFile(r'''
 class A {
   int a;
@@ -105,7 +105,7 @@ class B extends A {
     assertSuggested('c', returnType: 'double');
   }
 
-  test_class_methods() async {
+  Future<void> test_class_methods() async {
     addContextFile(r'''
 class A {
   int a() => null;
@@ -122,7 +122,7 @@ class B extends A {
     assertSuggested('b', returnType: 'double');
   }
 
-  test_inPart() async {
+  Future<void> test_inPart() async {
     addSource('/home/test/lib/a.dart', r'''
 part 'b.dart';
 part 'context.dart';
@@ -149,7 +149,7 @@ void main() {
     assertSuggested('c', returnType: 'String');
   }
 
-  test_locals_block() async {
+  Future<void> test_locals_block() async {
     addContextFile(r'''
 class A {
   int foo;
@@ -169,7 +169,7 @@ void contextFunction() {
     assertSuggested('foo');
   }
 
-  test_locals_block_codeWithClosure() async {
+  Future<void> test_locals_block_codeWithClosure() async {
     addContextFile(r'''
 main() {
   var items = <String>[];
@@ -180,7 +180,7 @@ main() {
     assertSuggested('toUpperCase');
   }
 
-  test_locals_block_nested() async {
+  Future<void> test_locals_block_nested() async {
     addContextFile(r'''
 void main() {
   var a = 0;
@@ -200,7 +200,7 @@ void main() {
     assertNotSuggested('c');
   }
 
-  test_locals_for() async {
+  Future<void> test_locals_for() async {
     addContextFile(r'''
 void main(List<int> intItems, List<double> doubleItems) {
   for (var a = 0, b = 0.0; a < 5; a++) {
@@ -213,7 +213,7 @@ void main(List<int> intItems, List<double> doubleItems) {
     assertSuggested('b', returnType: 'double');
   }
 
-  test_locals_forEach() async {
+  Future<void> test_locals_forEach() async {
     addContextFile(r'''
 void main(List<int> intItems, List<double> doubleItems) {
   for (var a in intItems) {
@@ -228,7 +228,7 @@ void main(List<int> intItems, List<double> doubleItems) {
     assertSuggested('b', returnType: 'double');
   }
 
-  test_parameters_constructor() async {
+  Future<void> test_parameters_constructor() async {
     addContextFile(r'''
 class C {
   C(int a, double b) {
@@ -241,7 +241,7 @@ class C {
     assertSuggested('b', returnType: 'double');
   }
 
-  test_parameters_function() async {
+  Future<void> test_parameters_function() async {
     addContextFile(r'''
 void main(int a, double b) {
   // context line
@@ -252,7 +252,7 @@ void main(int a, double b) {
     assertSuggested('b', returnType: 'double');
   }
 
-  test_parameters_function_locals() async {
+  Future<void> test_parameters_function_locals() async {
     addContextFile(r'''
 void main(int a, int b) {
   String a;
@@ -266,7 +266,7 @@ void main(int a, int b) {
     assertSuggested('c', returnType: 'double');
   }
 
-  test_parameters_function_nested() async {
+  Future<void> test_parameters_function_nested() async {
     addContextFile(r'''
 void foo(int a, double b) {
   void bar(String a, bool c) {
@@ -280,7 +280,7 @@ void foo(int a, double b) {
     assertSuggested('c', returnType: 'bool');
   }
 
-  test_parameters_functionExpression() async {
+  Future<void> test_parameters_functionExpression() async {
     addContextFile(r'''
 void main(List<int> intItems, List<double> doubleItems) {
   intItems.forEach((a) {
@@ -295,7 +295,7 @@ void main(List<int> intItems, List<double> doubleItems) {
     assertSuggested('b', returnType: 'double');
   }
 
-  test_parameters_method() async {
+  Future<void> test_parameters_method() async {
     addContextFile(r'''
 class C {
   void main(int a, double b) {
@@ -308,7 +308,7 @@ class C {
     assertSuggested('b', returnType: 'double');
   }
 
-  test_parameters_method_locals() async {
+  Future<void> test_parameters_method_locals() async {
     addContextFile(r'''
 class C {
   void main(int a, int b) {
@@ -324,7 +324,7 @@ class C {
     assertSuggested('c', returnType: 'double');
   }
 
-  test_syntheticImportPrefix() async {
+  Future<void> test_syntheticImportPrefix() async {
     newFile('/test/lib/a.dart', content: 'class A {}');
     newFile('/test/lib/b.dart', content: 'class B {}');
     addContextFile(r'''
@@ -342,7 +342,7 @@ main() {
     }
   }
 
-  test_topLevelFunctions() async {
+  Future<void> test_topLevelFunctions() async {
     addContextFile(r'''
 int a() => null;
 double b() => null;
@@ -355,7 +355,7 @@ void main() {
     assertSuggested('b', returnType: 'double');
   }
 
-  test_topLevelVariables() async {
+  Future<void> test_topLevelVariables() async {
     addContextFile(r'''
 int a;
 double b;

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToSetLiteralTest);
   });
@@ -19,7 +19,7 @@ class ConvertToSetLiteralTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SET_LITERAL;
 
-  test_default_declaredType() async {
+  Future<void> test_default_declaredType() async {
     await resolveTestUnit('''
 Set s = S/*caret*/et();
 ''');
@@ -28,7 +28,7 @@ Set s = {};
 ''');
   }
 
-  test_default_minimal() async {
+  Future<void> test_default_minimal() async {
     await resolveTestUnit('''
 var s = S/*caret*/et();
 ''');
@@ -37,7 +37,7 @@ var s = <dynamic>{};
 ''');
   }
 
-  test_default_newKeyword() async {
+  Future<void> test_default_newKeyword() async {
     await resolveTestUnit('''
 var s = new S/*caret*/et();
 ''');
@@ -46,7 +46,7 @@ var s = <dynamic>{};
 ''');
   }
 
-  test_default_typeArg() async {
+  Future<void> test_default_typeArg() async {
     await resolveTestUnit('''
 var s = S/*caret*/et<int>();
 ''');
@@ -55,7 +55,7 @@ var s = <int>{};
 ''');
   }
 
-  test_from_empty() async {
+  Future<void> test_from_empty() async {
     await resolveTestUnit('''
 var s = S/*caret*/et.from([]);
 ''');
@@ -64,7 +64,7 @@ var s = <dynamic>{};
 ''');
   }
 
-  test_from_newKeyword() async {
+  Future<void> test_from_newKeyword() async {
     await resolveTestUnit('''
 var s = new S/*caret*/et.from([2, 3]);
 ''');
@@ -73,7 +73,7 @@ var s = {2, 3};
 ''');
   }
 
-  test_from_noKeyword_declaredType() async {
+  Future<void> test_from_noKeyword_declaredType() async {
     await resolveTestUnit('''
 Set s = S/*caret*/et.from([2, 3]);
 ''');
@@ -82,7 +82,7 @@ Set s = {2, 3};
 ''');
   }
 
-  test_from_noKeyword_typeArg_onConstructor() async {
+  Future<void> test_from_noKeyword_typeArg_onConstructor() async {
     await resolveTestUnit('''
 var s = S/*caret*/et<int>.from([2, 3]);
 ''');
@@ -91,7 +91,7 @@ var s = <int>{2, 3};
 ''');
   }
 
-  test_from_noKeyword_typeArg_onConstructorAndLiteral() async {
+  Future<void> test_from_noKeyword_typeArg_onConstructorAndLiteral() async {
     await resolveTestUnit('''
 var s = S/*caret*/et<int>.from(<num>[2, 3]);
 ''');
@@ -100,7 +100,7 @@ var s = <int>{2, 3};
 ''');
   }
 
-  test_from_noKeyword_typeArg_onLiteral() async {
+  Future<void> test_from_noKeyword_typeArg_onLiteral() async {
     await resolveTestUnit('''
 var s = S/*caret*/et.from(<int>[2, 3]);
 ''');
@@ -109,7 +109,7 @@ var s = <int>{2, 3};
 ''');
   }
 
-  test_from_nonEmpty() async {
+  Future<void> test_from_nonEmpty() async {
     await resolveTestUnit('''
 var s = S/*caret*/et.from([2, 3]);
 ''');
@@ -118,7 +118,7 @@ var s = {2, 3};
 ''');
   }
 
-  test_from_notALiteral() async {
+  Future<void> test_from_notALiteral() async {
     await resolveTestUnit('''
 var l = [1];
 Set s = new S/*caret*/et.from(l);
@@ -126,7 +126,7 @@ Set s = new S/*caret*/et.from(l);
     await assertNoAssist();
   }
 
-  test_from_trailingComma() async {
+  Future<void> test_from_trailingComma() async {
     await resolveTestUnit('''
 var s = S/*caret*/et.from([2, 3,]);
 ''');
@@ -135,7 +135,7 @@ var s = {2, 3,};
 ''');
   }
 
-  test_toSet_empty() async {
+  Future<void> test_toSet_empty() async {
     await resolveTestUnit('''
 var s = [].to/*caret*/Set();
 ''');
@@ -144,7 +144,7 @@ var s = <dynamic>{};
 ''');
   }
 
-  test_toSet_empty_typeArg() async {
+  Future<void> test_toSet_empty_typeArg() async {
     await resolveTestUnit('''
 var s = <int>[].to/*caret*/Set();
 ''');
@@ -153,7 +153,7 @@ var s = <int>{};
 ''');
   }
 
-  test_toSet_nonEmpty() async {
+  Future<void> test_toSet_nonEmpty() async {
     await resolveTestUnit('''
 var s = [2, 3].to/*caret*/Set();
 ''');
@@ -162,7 +162,7 @@ var s = {2, 3};
 ''');
   }
 
-  test_toSet_nonEmpty_typeArg() async {
+  Future<void> test_toSet_nonEmpty_typeArg() async {
     await resolveTestUnit('''
 var s = <int>[2, 3].to/*caret*/Set();
 ''');
@@ -171,7 +171,7 @@ var s = <int>{2, 3};
 ''');
   }
 
-  test_toSet_notALiteral() async {
+  Future<void> test_toSet_notALiteral() async {
     await resolveTestUnit('''
 var l = [];
 var s = l.to/*caret*/Set();

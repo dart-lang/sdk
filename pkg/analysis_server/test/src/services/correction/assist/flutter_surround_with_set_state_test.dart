@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterSurroundWithSetStateTest);
   });
@@ -19,7 +19,7 @@ class FlutterSurroundWithSetStateTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.SURROUND_WITH_SET_STATE;
 
-  test_outsideState() async {
+  Future<void> test_outsideState() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -39,7 +39,7 @@ class Stateless {
     await assertNoAssist();
   }
 
-  test_stateSubclass() async {
+  Future<void> test_stateSubclass() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';

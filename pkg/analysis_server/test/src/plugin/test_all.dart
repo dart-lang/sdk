@@ -13,7 +13,7 @@ import 'result_collector_test.dart' as result_collector_test;
 import 'result_converter_test.dart' as result_converter_test;
 import 'result_merger_test.dart' as result_merger_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     notification_manager_test.main();
     plugin_locator_test.main();

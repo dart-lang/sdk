@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToNormalParameterTest);
   });
@@ -20,7 +20,7 @@ class ConvertToNormalParameterTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_NULL_AWARE;
 
-  test_equal_differentTarget() async {
+  Future<void> test_equal_differentTarget() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -30,7 +30,7 @@ int f(A a1, A a2) => a1 == null ? null : a2.m();
     await assertNoAssistAt('?');
   }
 
-  test_equal_notComparedToNull() async {
+  Future<void> test_equal_notComparedToNull() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -40,7 +40,7 @@ int f(A a1, A a2) => a1 == a2 ? a2.m() : a1.m();
     await assertNoAssistAt('?');
   }
 
-  test_equal_notIdentifier() async {
+  Future<void> test_equal_notIdentifier() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -50,7 +50,7 @@ int f(A a) => a.m() == null ? 0 : a.m();
     await assertNoAssistAt('?');
   }
 
-  test_equal_notInvocation() async {
+  Future<void> test_equal_notInvocation() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -61,7 +61,7 @@ int f(A a1) => a1 == null ? null : a1 + a1;
     await assertNoAssistAt('?');
   }
 
-  test_equal_notNullPreserving() async {
+  Future<void> test_equal_notNullPreserving() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -71,7 +71,7 @@ int f(A a1, A a2) => a1 == null ? a2.m() : a1.m();
     await assertNoAssistAt('?');
   }
 
-  test_equal_notPeriod() async {
+  Future<void> test_equal_notPeriod() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -81,7 +81,7 @@ int f(A a1) => a1 == null ? null : a1?.m();
     await assertNoAssistAt('? ');
   }
 
-  test_equal_nullOnLeft() async {
+  Future<void> test_equal_nullOnLeft() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -96,7 +96,7 @@ int f(A a) => a?.m();
 ''');
   }
 
-  test_equal_nullOnLeft_noAssistWithLint() async {
+  Future<void> test_equal_nullOnLeft_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_null_aware_operators]);
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
@@ -108,7 +108,7 @@ int f(A a) => null == a ? null : a.m();
     await assertNoAssist();
   }
 
-  test_equal_nullOnRight() async {
+  Future<void> test_equal_nullOnRight() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -123,7 +123,7 @@ int f(A a) => a?.m();
 ''');
   }
 
-  test_equal_prefixedIdentifier() async {
+  Future<void> test_equal_prefixedIdentifier() async {
     await resolveTestUnit('''
 class A {
   int p;
@@ -138,7 +138,7 @@ int f(A a) => a?.p;
 ''');
   }
 
-  test_notEqual_notNullPreserving() async {
+  Future<void> test_notEqual_notNullPreserving() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -148,7 +148,7 @@ int f(A a1, A a2) => a1 != null ? a1.m() : a2.m();
     await assertNoAssistAt('?');
   }
 
-  test_notEqual_nullOnLeft() async {
+  Future<void> test_notEqual_nullOnLeft() async {
     await resolveTestUnit('''
 abstract class A {
   int m();
@@ -163,7 +163,7 @@ int f(A a) => a?.m();
 ''');
   }
 
-  test_notEqual_nullOnRight() async {
+  Future<void> test_notEqual_nullOnRight() async {
     await resolveTestUnit('''
 abstract class A {
   int m();

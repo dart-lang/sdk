@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToFieldParameterTest);
   });
@@ -19,7 +19,7 @@ class ConvertToFieldParameterTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_FIELD_PARAMETER;
 
-  test_additionalUse() async {
+  Future<void> test_additionalUse() async {
     await resolveTestUnit('''
 class A {
   int aaa2;
@@ -30,7 +30,7 @@ class A {
     await assertNoAssistAt('aaa)');
   }
 
-  test_firstInitializer() async {
+  Future<void> test_firstInitializer() async {
     await resolveTestUnit('''
 class A {
   int aaa2;
@@ -47,7 +47,7 @@ class A {
 ''');
   }
 
-  test_notPureAssignment() async {
+  Future<void> test_notPureAssignment() async {
     await resolveTestUnit('''
 class A {
   int aaa2;
@@ -57,7 +57,7 @@ class A {
     await assertNoAssistAt('aaa)');
   }
 
-  test_onParameterName_inInitializer() async {
+  Future<void> test_onParameterName_inInitializer() async {
     await resolveTestUnit('''
 class A {
   int test2;
@@ -74,7 +74,7 @@ class A {
 ''');
   }
 
-  test_onParameterName_inParameters() async {
+  Future<void> test_onParameterName_inParameters() async {
     await resolveTestUnit('''
 class A {
   int test;
@@ -91,7 +91,7 @@ class A {
 ''');
   }
 
-  test_secondInitializer() async {
+  Future<void> test_secondInitializer() async {
     await resolveTestUnit('''
 class A {
   int aaa2;

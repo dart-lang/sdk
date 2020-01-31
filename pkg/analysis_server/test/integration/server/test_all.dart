@@ -11,10 +11,7 @@ import 'set_subscriptions_test.dart' as set_subscriptions_test;
 import 'shutdown_test.dart' as shutdown_test;
 import 'status_test.dart' as status_test;
 
-/**
- * Utility for manually running all integration tests.
- */
-main() {
+void main() {
   defineReflectiveSuite(() {
     get_version_test.main();
     set_subscriptions_test.main();

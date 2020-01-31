@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertPartOfToUriTest);
   });
@@ -19,7 +19,7 @@ class ConvertPartOfToUriTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_PART_OF_TO_URI;
 
-  test_nonSibling() async {
+  Future<void> test_nonSibling() async {
     addSource('/home/test/lib/foo.dart', '''
 library foo;
 part 'src/bar.dart';
@@ -33,7 +33,7 @@ part of '../foo.dart';
 ''');
   }
 
-  test_sibling() async {
+  Future<void> test_sibling() async {
     addSource('/home/test/lib/foo.dart', '''
 library foo;
 part 'bar.dart';

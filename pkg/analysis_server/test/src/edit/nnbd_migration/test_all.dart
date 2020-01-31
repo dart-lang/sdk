@@ -10,7 +10,7 @@ import 'offset_mapper_test.dart' as offset_mapper;
 import 'region_renderer_test.dart' as region_renderer;
 import 'unit_renderer_test.dart' as unit_renderer;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     info_builder.main();
     instrumentation_renderer.main();

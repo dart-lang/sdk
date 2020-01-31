@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterMoveUpTest);
   });
@@ -19,7 +19,7 @@ class FlutterMoveUpTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_MOVE_UP;
 
-  test_first() async {
+  Future<void> test_first() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -36,7 +36,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_last() async {
+  Future<void> test_last() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';
@@ -65,7 +65,7 @@ main() {
     assertExitPosition(before: "Text('bbbbbb')");
   }
 
-  test_notInList() async {
+  Future<void> test_notInList() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';

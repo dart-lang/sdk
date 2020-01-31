@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertIntoForIndexTest);
   });
@@ -19,7 +19,7 @@ class ConvertIntoForIndexTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_INTO_FOR_INDEX;
 
-  test_bodyNotBlock() async {
+  Future<void> test_bodyNotBlock() async {
     await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) print(item);
@@ -28,7 +28,7 @@ main(List<String> items) {
     await assertNoAssistAt('for (String');
   }
 
-  test_doesNotDeclareVariable() async {
+  Future<void> test_doesNotDeclareVariable() async {
     await resolveTestUnit('''
 main(List<String> items) {
   String item;
@@ -40,7 +40,7 @@ main(List<String> items) {
     await assertNoAssistAt('for (item');
   }
 
-  test_iterableIsNotVariable() async {
+  Future<void> test_iterableIsNotVariable() async {
     await resolveTestUnit('''
 main() {
   for (String item in ['a', 'b', 'c']) {
@@ -51,7 +51,7 @@ main() {
     await assertNoAssistAt('for (String');
   }
 
-  test_iterableNotList() async {
+  Future<void> test_iterableNotList() async {
     await resolveTestUnit('''
 main(Iterable<String> items) {
   for (String item in items) {
@@ -62,7 +62,7 @@ main(Iterable<String> items) {
     await assertNoAssistAt('for (String');
   }
 
-  test_onDeclaredIdentifier_name() async {
+  Future<void> test_onDeclaredIdentifier_name() async {
     await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
@@ -80,7 +80,7 @@ main(List<String> items) {
 ''');
   }
 
-  test_onDeclaredIdentifier_type() async {
+  Future<void> test_onDeclaredIdentifier_type() async {
     await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
@@ -98,7 +98,7 @@ main(List<String> items) {
 ''');
   }
 
-  test_onFor() async {
+  Future<void> test_onFor() async {
     await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
@@ -116,7 +116,7 @@ main(List<String> items) {
 ''');
   }
 
-  test_usesI() async {
+  Future<void> test_usesI() async {
     await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
@@ -134,7 +134,7 @@ main(List<String> items) {
 ''');
   }
 
-  test_usesIJ() async {
+  Future<void> test_usesIJ() async {
     await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {
@@ -154,7 +154,7 @@ main(List<String> items) {
 ''');
   }
 
-  test_usesIJK() async {
+  Future<void> test_usesIJK() async {
     await resolveTestUnit('''
 main(List<String> items) {
   for (String item in items) {

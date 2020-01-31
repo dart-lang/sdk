@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindElementReferencesTest);
   });
@@ -20,7 +20,7 @@ main() {
 class FindElementReferencesTest extends AbstractAnalysisServerIntegrationTest {
   String pathname;
 
-  test_badTarget() async {
+  Future<void> test_badTarget() async {
     String text = r'''
 main() {
   if /* target */ (true) {
@@ -38,7 +38,7 @@ main() {
     expect(results, isNull);
   }
 
-  test_findReferences() async {
+  Future<void> test_findReferences() async {
     String text = r'''
 main() {
   foo /* target */ ('Hello');

@@ -7,7 +7,7 @@ import 'dart:convert';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('lsp_packet_transformer', () {
     test('transforms data received as individual bytes', () async {
       final payload = '{ json payload }';

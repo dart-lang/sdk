@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'nnbd_migration_test_base.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UnitRendererTest);
   });
@@ -36,7 +36,7 @@ class UnitRendererTest extends NnbdMigrationTestBase {
     return contents;
   }
 
-  test_editList_containsEdit() async {
+  Future<void> test_editList_containsEdit() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var outputJson = renderUnits()[0];
@@ -50,7 +50,7 @@ class UnitRendererTest extends NnbdMigrationTestBase {
             " line 1: Changed type 'int' to be nullable.</p>"));
   }
 
-  test_editList_containsEdit_htmlEscaped() async {
+  Future<void> test_editList_containsEdit_htmlEscaped() async {
     await buildInfoForSingleTestFile('List<String> a = null;',
         migratedContent: 'List<String>? a = null;');
     var outputJson = renderUnits()[0];
@@ -60,7 +60,7 @@ class UnitRendererTest extends NnbdMigrationTestBase {
         contains("line 1: Changed type 'List&lt;String&gt;' to be nullable."));
   }
 
-  test_editList_containsEdit_twoEdits() async {
+  Future<void> test_editList_containsEdit_twoEdits() async {
     await buildInfoForSingleTestFile('''
 int a = null;
 bool b = a.isEven;
@@ -76,7 +76,7 @@ bool b = a!.isEven;
         contains('line 2: Added a non-null assertion to nullable expression.'));
   }
 
-  test_editList_containsSummary() async {
+  Future<void> test_editList_containsSummary() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var outputJson = renderUnits()[0];
@@ -86,7 +86,7 @@ bool b = a!.isEven;
         contains('<p><strong>1</strong> edit was made to this file.'));
   }
 
-  test_editList_containsSummary_twoEdits() async {
+  Future<void> test_editList_containsSummary_twoEdits() async {
     await buildInfoForSingleTestFile('''
 int a = null;
 bool b = a.isEven;
@@ -101,7 +101,7 @@ bool b = a!.isEven;
         contains('<p><strong>2</strong> edits were made to this file.'));
   }
 
-  test_navContentContainsEscapedHtml() async {
+  Future<void> test_navContentContainsEscapedHtml() async {
     await buildInfoForSingleTestFile('List<String> a = null;',
         migratedContent: 'List<String>? a = null;');
     var outputJson = renderUnits()[0];
@@ -117,7 +117,7 @@ bool b = a!.isEven;
             r'<span id="o13">a</span> = <span id="o17">null</span>;'));
   }
 
-  test_outputContainsModifiedAndUnmodifiedRegions() async {
+  Future<void> test_outputContainsModifiedAndUnmodifiedRegions() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var outputJson = renderUnits()[0];
@@ -127,7 +127,7 @@ bool b = a!.isEven;
         contains('int<span class="region added-region">?</span> a = null;'));
   }
 
-  test_regionsContainsEscapedHtml_ampersand() async {
+  Future<void> test_regionsContainsEscapedHtml_ampersand() async {
     await buildInfoForSingleTestFile('bool a = true && false;',
         migratedContent: 'bool a = true && false;');
     var outputJson = renderUnits()[0];
@@ -135,7 +135,7 @@ bool b = a!.isEven;
     expect(output['regions'], contains('bool a = true &amp;&amp; false;'));
   }
 
-  test_regionsContainsEscapedHtml_betweenRegions() async {
+  Future<void> test_regionsContainsEscapedHtml_betweenRegions() async {
     await buildInfoForSingleTestFile('List<String> a = null;',
         migratedContent: 'List<String>? a = null;');
     var outputJson = renderUnits()[0];
@@ -147,7 +147,7 @@ bool b = a!.isEven;
             '<span class="region added-region">?</span> a = null;'));
   }
 
-  test_regionsContainsEscapedHtml_region() async {
+  Future<void> test_regionsContainsEscapedHtml_region() async {
     await buildInfoForSingleTestFile('f(List<String> a) => a.join(",");',
         migratedContent: 'f(List<String> a) => a.join(",");');
     var outputJson = renderUnits()[0];

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindTopLevelDeclarationsTest);
   });
@@ -19,7 +19,7 @@ class FindTopLevelDeclarationsTest
     extends AbstractAnalysisServerIntegrationTest {
   String pathname;
 
-  test_findTopLevelDeclarations() async {
+  Future<void> test_findTopLevelDeclarations() async {
     String text = r'''
 String qux() => 'qux';
 

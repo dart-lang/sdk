@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InlineInvocationTest);
   });
@@ -27,7 +27,7 @@ class InlineInvocationTest extends AssistProcessorTest {
     super.setUp();
   }
 
-  test_add_emptyTarget() async {
+  Future<void> test_add_emptyTarget() async {
     await resolveTestUnit('''
 var l = []..ad/*caret*/d('a')..add('b');
 ''');
@@ -36,7 +36,7 @@ var l = ['a']..add('b');
 ''');
   }
 
-  test_add_emptyTarget_noAssistWithLint() async {
+  Future<void> test_add_emptyTarget_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_inlined_adds]);
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
@@ -45,7 +45,7 @@ var l = []..ad/*caret*/d('a')..add('b');
     await assertNoAssist();
   }
 
-  test_add_nonEmptyTarget() async {
+  Future<void> test_add_nonEmptyTarget() async {
     await resolveTestUnit('''
 var l = ['a']..ad/*caret*/d('b')..add('c');
 ''');
@@ -54,7 +54,7 @@ var l = ['a', 'b']..add('c');
 ''');
   }
 
-  test_add_nonLiteralArgument() async {
+  Future<void> test_add_nonLiteralArgument() async {
     await resolveTestUnit('''
 var e = 'b';
 var l = ['a']..add/*caret*/(e);
@@ -65,7 +65,7 @@ var l = ['a', e];
 ''');
   }
 
-  test_add_nonLiteralTarget() async {
+  Future<void> test_add_nonLiteralTarget() async {
     await resolveTestUnit('''
 var l1 = [];
 var l2 = l1..ad/*caret*/d('b')..add('c');
@@ -73,14 +73,14 @@ var l2 = l1..ad/*caret*/d('b')..add('c');
     await assertNoAssist();
   }
 
-  test_add_notFirst() async {
+  Future<void> test_add_notFirst() async {
     await resolveTestUnit('''
 var l = ['a']..add('b')../*caret*/add('c');
 ''');
     await assertNoAssist();
   }
 
-  test_addAll_emptyTarget() async {
+  Future<void> test_addAll_emptyTarget() async {
     await resolveTestUnit('''
 var l = []..add/*caret*/All(['a'])..addAll(['b']);
 ''');
@@ -89,7 +89,7 @@ var l = ['a']..addAll(['b']);
 ''');
   }
 
-  test_addAll_emptyTarget_noAssistWithLint() async {
+  Future<void> test_addAll_emptyTarget_noAssistWithLint() async {
     createAnalysisOptionsFile(lints: [LintNames.prefer_inlined_adds]);
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
@@ -98,7 +98,7 @@ var l = []..add/*caret*/All(['a'])..addAll(['b']);
     await assertNoAssist();
   }
 
-  test_addAll_nonEmptyTarget() async {
+  Future<void> test_addAll_nonEmptyTarget() async {
     await resolveTestUnit('''
 var l = ['a']..add/*caret*/All(['b'])..addAll(['c']);
 ''');
@@ -107,7 +107,7 @@ var l = ['a', 'b']..addAll(['c']);
 ''');
   }
 
-  test_addAll_nonLiteralArgument() async {
+  Future<void> test_addAll_nonLiteralArgument() async {
     await resolveTestUnit('''
 var l1 = <String>[];
 var l2 = ['a']..add/*caret*/All(l1);
@@ -115,7 +115,7 @@ var l2 = ['a']..add/*caret*/All(l1);
     await assertNoAssist();
   }
 
-  test_addAll_nonLiteralTarget() async {
+  Future<void> test_addAll_nonLiteralTarget() async {
     await resolveTestUnit('''
 var l1 = [];
 var l2 = l1..addAl/*caret*/l(['b'])..addAll(['c']);
@@ -123,7 +123,7 @@ var l2 = l1..addAl/*caret*/l(['b'])..addAll(['c']);
     await assertNoAssist();
   }
 
-  test_addAll_notFirst() async {
+  Future<void> test_addAll_notFirst() async {
     await resolveTestUnit('''
 var l = ['a']..addAll(['b'])../*caret*/addAll(['c']);
 ''');

@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'nnbd_migration_test_base.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstrumentationRendererTest);
   });
@@ -29,14 +29,30 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
     return instrumentationRenderer.render();
   }
 
-  test_navigation_containsRoot() async {
-    var renderedView = await renderViewForTestFiles(
-        {convertPath('/project/lib/a.dart'): 'int a = null;'});
-    var expectedPath = convertPath('/project');
-    expect(renderedView, contains('<p class="root">$expectedPath</p>'));
+  Future<void> test_navigation_containsMultipleLinks_multipleDepths() async {
+    var renderedView = await renderViewForTestFiles({
+      convertPath('/project/lib/a.dart'): 'int a = null;',
+      convertPath('/project/lib/src/b.dart'): 'int b = null;',
+      convertPath('/project/tool.dart'): 'int c = null;'
+    });
+    renderedView = _stripAttributes(renderedView);
+    expect(renderedView, contains('''
+<ul>
+  <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;lib
+    <ul>
+      <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;src
+        <ul>
+          <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">b.dart</a> (1 modification)</li>
+        </ul>
+      </li>
+      <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
+    </ul>
+  </li>
+  <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">tool.dart</a> (1 modification)</li>
+</ul>'''));
   }
 
-  test_navigation_containsMultipleLinks_multipleRoots() async {
+  Future<void> test_navigation_containsMultipleLinks_multipleRoots() async {
     var renderedView = await renderViewForTestFiles({
       convertPath('/project/bin/bin.dart'): 'int c = null;',
       convertPath('/project/lib/a.dart'): 'int a = null;',
@@ -69,30 +85,7 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
 </ul>'''));
   }
 
-  test_navigation_containsMultipleLinks_multipleDepths() async {
-    var renderedView = await renderViewForTestFiles({
-      convertPath('/project/lib/a.dart'): 'int a = null;',
-      convertPath('/project/lib/src/b.dart'): 'int b = null;',
-      convertPath('/project/tool.dart'): 'int c = null;'
-    });
-    renderedView = _stripAttributes(renderedView);
-    expect(renderedView, contains('''
-<ul>
-  <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;lib
-    <ul>
-      <li class="dir"><span class="arrow">&#x25BC;</span>&#x1F4C1;src
-        <ul>
-          <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">b.dart</a> (1 modification)</li>
-        </ul>
-      </li>
-      <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">a.dart</a> (1 modification)</li>
-    </ul>
-  </li>
-  <li>&#x1F4C4;<a href="..." class="nav-link" data-name="...">tool.dart</a> (1 modification)</li>
-</ul>'''));
-  }
-
-  test_navigation_containsMultipleLinks_sameDepth() async {
+  Future<void> test_navigation_containsMultipleLinks_sameDepth() async {
     var renderedView = await renderViewForTestFiles({
       convertPath('/project/lib/a.dart'): 'int a = null;',
       convertPath('/project/lib/b.dart'): 'int b = null;'
@@ -109,7 +102,14 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
 </ul>'''));
   }
 
-  test_navigation_containsSingleLink_deep() async {
+  Future<void> test_navigation_containsRoot() async {
+    var renderedView = await renderViewForTestFiles(
+        {convertPath('/project/lib/a.dart'): 'int a = null;'});
+    var expectedPath = convertPath('/project');
+    expect(renderedView, contains('<p class="root">$expectedPath</p>'));
+  }
+
+  Future<void> test_navigation_containsSingleLink_deep() async {
     var renderedView = await renderViewForTestFiles(
         {convertPath('/project/lib/src/a.dart'): 'int a = null;'});
     renderedView = _stripAttributes(renderedView);
@@ -127,7 +127,7 @@ class InstrumentationRendererTest extends NnbdMigrationTestBase {
 </ul>'''));
   }
 
-  test_navigation_containsSingleLink_shallow() async {
+  Future<void> test_navigation_containsSingleLink_shallow() async {
     var renderedView = await renderViewForTestFiles(
         {convertPath('/project/a.dart'): 'int a = null;'});
     renderedView = _stripAttributes(renderedView);

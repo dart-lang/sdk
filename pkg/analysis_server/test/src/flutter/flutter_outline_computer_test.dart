@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterOutlineComputerTest);
   });
@@ -32,7 +32,7 @@ class FlutterOutlineComputerTest extends AbstractContextTest {
     addFlutterPackage();
   }
 
-  test_attribute_namedExpression() async {
+  Future<void> test_attribute_namedExpression() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
@@ -57,59 +57,63 @@ class WidgetA extends StatelessWidget {
     _assertLocation(attribute.valueLocation, 82, 2);
   }
 
-  test_attributes_bool() async {
+  Future<void> test_attributes_bool() async {
     var attribute = await _getAttribute('test', 'true');
     expect(attribute.label, 'true');
     expect(attribute.literalValueBoolean, true);
   }
 
-  test_attributes_functionExpression_hasParameters_blockExpression() async {
+  Future<void>
+      test_attributes_functionExpression_hasParameters_blockExpression() async {
     var attribute = await _getAttribute('test', '(a) {}');
     expect(attribute.label, '(…) { … }');
   }
 
-  test_attributes_functionExpression_hasParameters_bodyExpression() async {
+  Future<void>
+      test_attributes_functionExpression_hasParameters_bodyExpression() async {
     var attribute = await _getAttribute('test', '(a) => 1');
     expect(attribute.label, '(…) => …');
   }
 
-  test_attributes_functionExpression_noParameters_blockExpression() async {
+  Future<void>
+      test_attributes_functionExpression_noParameters_blockExpression() async {
     var attribute = await _getAttribute('test', '() {}');
     expect(attribute.label, '() { … }');
   }
 
-  test_attributes_functionExpression_noParameters_bodyExpression() async {
+  Future<void>
+      test_attributes_functionExpression_noParameters_bodyExpression() async {
     var attribute = await _getAttribute('test', '() => 1');
     expect(attribute.label, '() => …');
   }
 
-  test_attributes_int() async {
+  Future<void> test_attributes_int() async {
     var attribute = await _getAttribute('test', '42');
     expect(attribute.label, '42');
     expect(attribute.literalValueInteger, 42);
   }
 
-  test_attributes_listLiteral() async {
+  Future<void> test_attributes_listLiteral() async {
     var attribute = await _getAttribute('test', '[1, 2, 3]');
     expect(attribute.label, '[…]');
   }
 
-  test_attributes_mapLiteral() async {
+  Future<void> test_attributes_mapLiteral() async {
     var attribute = await _getAttribute('test', '{1: 10, 2: 20}');
     expect(attribute.label, '{…}');
   }
 
-  test_attributes_multiLine() async {
+  Future<void> test_attributes_multiLine() async {
     var attribute = await _getAttribute('test', '1 +\n 2');
     expect(attribute.label, '…');
   }
 
-  test_attributes_setLiteral() async {
+  Future<void> test_attributes_setLiteral() async {
     var attribute = await _getAttribute('test', '{1, 2}');
     expect(attribute.label, '{…}');
   }
 
-  test_attributes_string_interpolation() async {
+  Future<void> test_attributes_string_interpolation() async {
     FlutterOutline unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
 
@@ -133,13 +137,13 @@ class MyWidget extends StatelessWidget {
     expect(attribute.literalValueString, isNull);
   }
 
-  test_attributes_string_literal() async {
+  Future<void> test_attributes_string_literal() async {
     var attribute = await _getAttribute('test', "'my text'");
     expect(attribute.label, "'my text'");
     expect(attribute.literalValueString, 'my text');
   }
 
-  test_attributes_unresolved() async {
+  Future<void> test_attributes_unresolved() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
@@ -157,7 +161,7 @@ class MyWidget extends StatelessWidget {
     expect(rowOutline.attributes, isEmpty);
   }
 
-  test_children() async {
+  Future<void> test_children() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
@@ -207,7 +211,7 @@ class MyWidget extends StatelessWidget {
     }
   }
 
-  test_children_closure_blockBody() async {
+  Future<void> test_children_closure_blockBody() async {
     newFile('/home/test/lib/a.dart', content: r'''
 import 'package:flutter/widgets.dart';
 
@@ -243,7 +247,7 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
-  test_children_closure_expressionBody() async {
+  Future<void> test_children_closure_expressionBody() async {
     newFile('/home/test/lib/a.dart', content: r'''
 import 'package:flutter/widgets.dart';
 
@@ -274,7 +278,7 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
-  test_children_withCollectionElements() async {
+  Future<void> test_children_withCollectionElements() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
@@ -301,7 +305,7 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
-  test_codeOffsetLength() async {
+  Future<void> test_codeOffsetLength() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
@@ -332,7 +336,7 @@ class MyWidget extends StatelessWidget {
     expect(container.codeLength, 15);
   }
 
-  test_genericLabel_invocation() async {
+  Future<void> test_genericLabel_invocation() async {
     FlutterOutline unitOutline = await _computeOutline(r'''
 import 'package:flutter/widgets.dart';
 
@@ -388,7 +392,7 @@ class WidgetFactory {
     }
   }
 
-  test_parentAssociationLabel() async {
+  Future<void> test_parentAssociationLabel() async {
     newFile('/home/test/lib/a.dart', content: r'''
 import 'package:flutter/widgets.dart';
 
@@ -422,7 +426,7 @@ class MyWidget extends StatelessWidget {
 ''');
   }
 
-  test_variableName() async {
+  Future<void> test_variableName() async {
     FlutterOutline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 

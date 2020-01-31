@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'nnbd_migration_test_base.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RegionRendererTest);
   });
@@ -33,7 +33,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
         .render();
   }
 
-  test_modifiedOutput_containsDetail() async {
+  Future<void> test_modifiedOutput_containsDetail() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var response = jsonDecode(renderRegion(3));
@@ -45,7 +45,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     expect(detail['link']['href'], equals('test.dart?offset=8&line=1'));
   }
 
-  test_modifiedOutput_containsExplanation() async {
+  Future<void> test_modifiedOutput_containsExplanation() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var response = jsonDecode(renderRegion(3));
@@ -53,7 +53,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
         response['explanation'], equals("Changed type 'int' to be nullable"));
   }
 
-  test_modifiedOutput_containsPath() async {
+  Future<void> test_modifiedOutput_containsPath() async {
     await buildInfoForSingleTestFile('int a = null;',
         migratedContent: 'int? a = null;');
     var response = jsonDecode(renderRegion(3));
@@ -61,7 +61,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     expect(response['line'], equals(1));
   }
 
-  test_unmodifiedOutput_containsDetail() async {
+  Future<void> test_unmodifiedOutput_containsDetail() async {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int a) => a.isEven;');
     var response = jsonDecode(renderRegion(2));
@@ -75,7 +75,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
     expect(detail['link']['href'], equals('test.dart?offset=12&line=1'));
   }
 
-  test_unmodifiedOutput_containsExplanation() async {
+  Future<void> test_unmodifiedOutput_containsExplanation() async {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int a) => a.isEven;');
     var response = jsonDecode(renderRegion(2));
@@ -85,7 +85,7 @@ class RegionRendererTest extends NnbdMigrationTestBase {
             'This type is not changed; it is determined to be non-nullable'));
   }
 
-  test_unmodifiedOutput_containsPath() async {
+  Future<void> test_unmodifiedOutput_containsPath() async {
     await buildInfoForSingleTestFile('f(int a) => a.isEven;',
         migratedContent: 'f(int a) => a.isEven;');
     var response = jsonDecode(renderRegion(2));

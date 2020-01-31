@@ -46,10 +46,10 @@ class AbstractLspAnalysisServerIntegrationTest
     }
   }
 
-  newFile(String path, {String content}) =>
+  void newFile(String path, {String content}) =>
       File(path).writeAsStringSync(content ?? '');
 
-  newFolder(String path) => Directory(path).createSync(recursive: true);
+  void newFolder(String path) => Directory(path).createSync(recursive: true);
 
   @override
   void sendNotificationToServer(NotificationMessage notification) =>
@@ -102,7 +102,7 @@ class AbstractLspAnalysisServerIntegrationTest
     });
   }
 
-  tearDown() {
+  void tearDown() {
     // TODO(dantup): Graceful shutdown?
     client.close();
   }

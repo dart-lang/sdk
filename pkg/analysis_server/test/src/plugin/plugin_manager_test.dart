@@ -22,7 +22,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:watcher/watcher.dart' as watcher;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuiltInPluginInfoTest);
     defineReflectiveTests(DiscoveredPluginInfoTest);
@@ -48,7 +48,7 @@ class BuiltInPluginInfoTest {
         InstrumentationService.NULL_SERVICE);
   }
 
-  test_addContextRoot() {
+  void test_addContextRoot() {
     ContextRoot contextRoot1 = _newContextRoot('/pkg1');
     plugin.addContextRoot(contextRoot1);
     expect(plugin.contextRoots, [contextRoot1]);
@@ -56,14 +56,14 @@ class BuiltInPluginInfoTest {
     expect(plugin.contextRoots, [contextRoot1]);
   }
 
-  test_creation() {
+  void test_creation() {
     expect(plugin.pluginId, 'test plugin');
     expect(plugin.notificationManager, notificationManager);
     expect(plugin.contextRoots, isEmpty);
     expect(plugin.currentSession, isNull);
   }
 
-  test_removeContextRoot() {
+  void test_removeContextRoot() {
     ContextRoot contextRoot1 = _newContextRoot('/pkg1');
     ContextRoot contextRoot2 = _newContextRoot('/pkg2');
     plugin.addContextRoot(contextRoot1);
@@ -77,11 +77,11 @@ class BuiltInPluginInfoTest {
   }
 
   @failingTest
-  test_start_notRunning() {
+  Future<void> test_start_notRunning() {
     fail('Not tested');
   }
 
-  test_start_running() async {
+  Future<void> test_start_running() async {
     plugin.currentSession = PluginSession(plugin);
     try {
       await plugin.start('', '');
@@ -91,11 +91,11 @@ class BuiltInPluginInfoTest {
     }
   }
 
-  test_stop_notRunning() {
+  void test_stop_notRunning() {
     expect(() => plugin.stop(), throwsStateError);
   }
 
-  test_stop_running() async {
+  Future<void> test_stop_running() async {
     PluginSession session = PluginSession(plugin);
     TestServerCommunicationChannel channel =
         TestServerCommunicationChannel(session);
@@ -121,7 +121,7 @@ class DiscoveredPluginInfoTest {
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
-  test_addContextRoot() {
+  void test_addContextRoot() {
     String optionsFilePath = '/pkg1/analysis_options.yaml';
     ContextRoot contextRoot1 = _newContextRoot('/pkg1');
     contextRoot1.optionsFilePath = optionsFilePath;
@@ -139,7 +139,7 @@ class DiscoveredPluginInfoTest {
     expect(roots[0]['optionsFile'], optionsFilePath);
   }
 
-  test_creation() {
+  void test_creation() {
     expect(plugin.path, pluginPath);
     expect(plugin.executionPath, executionPath);
     expect(plugin.notificationManager, notificationManager);
@@ -147,7 +147,7 @@ class DiscoveredPluginInfoTest {
     expect(plugin.currentSession, isNull);
   }
 
-  test_removeContextRoot() {
+  void test_removeContextRoot() {
     ContextRoot contextRoot1 = _newContextRoot('/pkg1');
     ContextRoot contextRoot2 = _newContextRoot('/pkg2');
     plugin.addContextRoot(contextRoot1);
@@ -161,11 +161,11 @@ class DiscoveredPluginInfoTest {
   }
 
   @failingTest
-  test_start_notRunning() {
+  Future<void> test_start_notRunning() {
     fail('Not tested');
   }
 
-  test_start_running() async {
+  Future<void> test_start_running() async {
     plugin.currentSession = PluginSession(plugin);
     try {
       await plugin.start('', '');
@@ -175,11 +175,11 @@ class DiscoveredPluginInfoTest {
     }
   }
 
-  test_stop_notRunning() {
+  void test_stop_notRunning() {
     expect(() => plugin.stop(), throwsStateError);
   }
 
-  test_stop_running() async {
+  Future<void> test_stop_running() async {
     PluginSession session = PluginSession(plugin);
     TestServerCommunicationChannel channel =
         TestServerCommunicationChannel(session);
@@ -206,7 +206,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_addPluginToContextRoot() async {
+  Future<void> test_addPluginToContextRoot() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
@@ -218,7 +218,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   }
 
   @failingTest
-  test_addPluginToContextRoot_pubspec() async {
+  Future<void> test_addPluginToContextRoot_pubspec() async {
     // We can't successfully run pub until after the analyzer_plugin package has
     // been published.
     fail('Cannot run pub');
@@ -240,7 +240,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_broadcastRequest_many() async {
+  Future<void> test_broadcastRequest_many() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -269,7 +269,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_broadcastRequest_many_noContextRoot() async {
+  Future<void> test_broadcastRequest_many_noContextRoot() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -296,7 +296,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_broadcastRequest_noCurrentSession() async {
+  Future<void> test_broadcastRequest_noCurrentSession() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -320,7 +320,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_broadcastWatchEvent() async {
+  Future<void> test_broadcastWatchEvent() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -346,7 +346,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_pluginsForContextRoot_multiple() async {
+  Future<void> test_pluginsForContextRoot_multiple() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(
@@ -376,7 +376,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_pluginsForContextRoot_one() async {
+  Future<void> test_pluginsForContextRoot_one() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
@@ -395,7 +395,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_removedContextRoot() async {
+  Future<void> test_removedContextRoot() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkgPath = pkg1Dir.resolveSymbolicLinksSync();
     await withPlugin(test: (String pluginPath) async {
@@ -413,7 +413,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_restartPlugins() async {
+  Future<void> test_restartPlugins() async {
     io.Directory pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     String pkg1Path = pkg1Dir.resolveSymbolicLinksSync();
     io.Directory pkg2Dir = io.Directory.systemTemp.createTempSync('pkg2');
@@ -565,7 +565,7 @@ class PluginSessionFromDiskTest extends PluginTestSupport {
   @SkippedTest(
       reason: 'flaky timeouts',
       issue: 'https://github.com/dart-lang/sdk/issues/38629')
-  test_start_notRunning() async {
+  Future<void> test_start_notRunning() async {
     await withPlugin(test: (String pluginPath) async {
       String packagesPath = path.join(pluginPath, '.packages');
       String mainPath = path.join(pluginPath, 'bin', 'plugin.dart');
@@ -629,7 +629,7 @@ class PluginSessionTest with ResourceProviderMixin {
     fail('The method handleOnError is not implemented');
   }
 
-  test_handleResponse() async {
+  Future<void> test_handleResponse() async {
     TestServerCommunicationChannel(session);
     Response response = PluginVersionCheckResult(
             true, 'name', 'version', <String>[],
@@ -658,13 +658,13 @@ class PluginSessionTest with ResourceProviderMixin {
     expect(channel.sentRequests[0].method, 'plugin.versionCheck');
   }
 
-  test_start_notCompatible() async {
+  Future<void> test_start_notCompatible() async {
     session.isCompatible = false;
     expect(await session.start(path.join(pluginPath, 'byteStore'), sdkPath),
         isFalse);
   }
 
-  test_start_running() async {
+  Future<void> test_start_running() async {
     TestServerCommunicationChannel(session);
     try {
       await session.start(null, '');
@@ -674,11 +674,11 @@ class PluginSessionTest with ResourceProviderMixin {
     }
   }
 
-  test_stop_notRunning() {
+  void test_stop_notRunning() {
     expect(() => session.stop(), throwsStateError);
   }
 
-  test_stop_running() async {
+  Future<void> test_stop_running() async {
     TestServerCommunicationChannel channel =
         TestServerCommunicationChannel(session);
     await session.stop();
@@ -923,7 +923,7 @@ class TestNotificationManager implements NotificationManager {
   }
 
   @override
-  noSuchMethod(Invocation invocation) {
+  dynamic noSuchMethod(Invocation invocation) {
     fail('Unexpected invocation of ${invocation.memberName}');
   }
 

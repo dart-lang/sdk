@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportedElementsComputerTest);
   });
@@ -45,12 +45,12 @@ class ImportedElementsComputerTest extends AbstractContextTest {
   }
 
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');
   }
 
-  test_dartAsync_noPrefix() async {
+  Future<void> test_dartAsync_noPrefix() async {
     String selection = 'Future<String> f = null;';
     String content = '''
 import 'dart:async';
@@ -66,7 +66,7 @@ printer() {
     ]);
   }
 
-  test_dartAsync_prefix() async {
+  Future<void> test_dartAsync_prefix() async {
     String selection = 'a.Future<String> f = null;';
     String content = '''
 import 'dart:async' as a;
@@ -82,7 +82,7 @@ printer() {
     ]);
   }
 
-  test_dartCore_noPrefix() async {
+  Future<void> test_dartCore_noPrefix() async {
     String selection = "String s = '';";
     String content = '''
 blankLine() {
@@ -96,7 +96,7 @@ blankLine() {
     ]);
   }
 
-  test_dartCore_prefix() async {
+  Future<void> test_dartCore_prefix() async {
     String selection = "core.String s = '';";
     String content = '''
 import 'dart:core' as core;
@@ -111,7 +111,7 @@ blankLine() {
     ]);
   }
 
-  test_dartMath_noPrefix() async {
+  Future<void> test_dartMath_noPrefix() async {
     String selection = 'new Random();';
     String content = '''
 import 'dart:math';
@@ -126,7 +126,7 @@ bool randomBool() {
     ]);
   }
 
-  test_import_simple() async {
+  Future<void> test_import_simple() async {
     String selection = "import 'dart:math';";
     String content = '''
 $selection
@@ -139,7 +139,7 @@ bool randomBool() {
     expect(importedElements, hasLength(0));
   }
 
-  test_import_simple_show() async {
+  Future<void> test_import_simple_show() async {
     String selection = "import 'dart:math' show Random;";
     String content = '''
 $selection
@@ -152,7 +152,7 @@ bool randomBool() {
     expect(importedElements, hasLength(0));
   }
 
-  test_multiple() async {
+  Future<void> test_multiple() async {
     String selection = r'''
 main() {
   Random r = new Random();
@@ -172,7 +172,7 @@ $selection
     ]);
   }
 
-  test_none_comment() async {
+  Future<void> test_none_comment() async {
     String selection = 'comment';
     String content = '''
 // Method $selection.
@@ -184,7 +184,7 @@ blankLine() {
     expect(importedElements, hasLength(0));
   }
 
-  test_none_constructorDeclarationReturnType() async {
+  Future<void> test_none_constructorDeclarationReturnType() async {
     String selection = r'''
 class A {
   A();
@@ -198,7 +198,7 @@ $selection
     expect(importedElements, hasLength(0));
   }
 
-  test_none_partialNames() async {
+  Future<void> test_none_partialNames() async {
     String selection = 'x + y';
     String content = '''
 plusThree(int xx) {
@@ -210,7 +210,7 @@ plusThree(int xx) {
     expect(importedElements, hasLength(0));
   }
 
-  test_none_wholeNames() async {
+  Future<void> test_none_wholeNames() async {
     String selection = 'x + y + 1';
     String content = '''
 plusThree(int x) {
@@ -222,7 +222,7 @@ plusThree(int x) {
     expect(importedElements, hasLength(0));
   }
 
-  test_package_multipleInSame() async {
+  Future<void> test_package_multipleInSame() async {
     addPackageFile('foo', 'foo.dart', '''
 class A {
   static String a = '';
@@ -244,7 +244,7 @@ blankLine() {
     ]);
   }
 
-  test_package_noPrefix() async {
+  Future<void> test_package_noPrefix() async {
     addPackageFile('foo', 'foo.dart', '''
 class Foo {
   static String first = '';
@@ -263,7 +263,7 @@ blankLine() {
     ]);
   }
 
-  test_package_prefix_selected_class() async {
+  Future<void> test_package_prefix_selected_class() async {
     addPackageFile('foo', 'foo.dart', '''
 class Foo {
   static String first = '';
@@ -282,7 +282,7 @@ blankLine() {
     ]);
   }
 
-  test_package_prefix_selected_function() async {
+  Future<void> test_package_prefix_selected_function() async {
     addPackageFile('foo', 'foo.dart', '''
 String foo() => '';
 ''');
@@ -299,7 +299,7 @@ blankLine() {
     ]);
   }
 
-  test_package_prefix_selected_getter() async {
+  Future<void> test_package_prefix_selected_getter() async {
     addPackageFile('foo', 'foo.dart', '''
 String foo = '';
 ''');
@@ -316,7 +316,7 @@ blankLine() {
     ]);
   }
 
-  test_package_prefix_selected_setter() async {
+  Future<void> test_package_prefix_selected_setter() async {
     addPackageFile('foo', 'foo.dart', '''
 String foo = '';
 ''');
@@ -333,7 +333,7 @@ main() {
     ]);
   }
 
-  test_package_prefix_unselected() async {
+  Future<void> test_package_prefix_unselected() async {
     addPackageFile('foo', 'foo.dart', '''
 class Foo {
   static String first = '';
@@ -352,7 +352,7 @@ blankLine() {
     ]);
   }
 
-  test_package_prefixedAndNot() async {
+  Future<void> test_package_prefixedAndNot() async {
     addPackageFile('foo', 'foo.dart', '''
 class Foo {
   static String first = '';
@@ -374,7 +374,7 @@ blankLine() {
     ]);
   }
 
-  test_self() async {
+  Future<void> test_self() async {
     String selection = 'A parent;';
     String content = '''
 class A {
@@ -387,7 +387,7 @@ class A {
     ]);
   }
 
-  test_wholeFile_noImports() async {
+  Future<void> test_wholeFile_noImports() async {
     String content = '''
 blankLine() {
   String s = '';
@@ -400,7 +400,7 @@ blankLine() {
     ]);
   }
 
-  test_wholeFile_withImports() async {
+  Future<void> test_wholeFile_withImports() async {
     String content = '''
 import 'dart:math';
 bool randomBool() {

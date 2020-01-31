@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InitializationTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class InitializationTest extends AbstractLspAnalysisServerIntegrationTest {
-  test_initialize_invalidParams() async {
+  Future<void> test_initialize_invalidParams() async {
     final params = {'processId': 'invalid'};
     final request = RequestMessage(
       Either2<num, String>.t1(1),

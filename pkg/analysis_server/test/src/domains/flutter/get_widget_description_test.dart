@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'base.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetWidgetDescriptionTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class GetWidgetDescriptionTest extends FlutterBase {
-  test_kind_required() async {
+  Future<void> test_kind_required() async {
     addTestFile(r'''
 import 'package:flutter/material.dart';
 
@@ -35,7 +35,7 @@ void main() {
     expect(property.value.stringValue, 'aaa');
   }
 
-  test_notInstanceCreation() async {
+  Future<void> test_notInstanceCreation() async {
     addTestFile(r'''
 void main() {
   42;
@@ -49,7 +49,7 @@ void main() {
     );
   }
 
-  test_unresolvedInstanceCreation() async {
+  Future<void> test_unresolvedInstanceCreation() async {
     addTestFile(r'''
 void main() {
   new Foo();

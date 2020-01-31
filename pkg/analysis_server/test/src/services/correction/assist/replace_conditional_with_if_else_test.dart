@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceConditionalWithIfElseTest);
   });
@@ -19,7 +19,7 @@ class ReplaceConditionalWithIfElseTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.REPLACE_CONDITIONAL_WITH_IF_ELSE;
 
-  test_assignment() async {
+  Future<void> test_assignment() async {
     await resolveTestUnit('''
 main() {
   var v;
@@ -50,14 +50,14 @@ main() {
 ''');
   }
 
-  test_noEnclosingStatement() async {
+  Future<void> test_noEnclosingStatement() async {
     await resolveTestUnit('''
 var v = true ? 111 : 222;
 ''');
     await assertNoAssistAt('? 111');
   }
 
-  test_notConditional() async {
+  Future<void> test_notConditional() async {
     await resolveTestUnit('''
 main() {
   var v = 42;
@@ -66,7 +66,7 @@ main() {
     await assertNoAssistAt('v = 42');
   }
 
-  test_return() async {
+  Future<void> test_return() async {
     await resolveTestUnit('''
 main() {
   return true ? 111 : 222;
@@ -83,7 +83,7 @@ main() {
 ''');
   }
 
-  test_variableDeclaration() async {
+  Future<void> test_variableDeclaration() async {
     await resolveTestUnit('''
 main() {
   int a = 1, vvv = true ? 111 : 222, b = 2;

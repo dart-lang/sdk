@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
   });
@@ -28,7 +28,7 @@ void _fail(String message) {
 @reflectiveTest
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
   @failingTest
-  test_setSubscriptions() {
+  Future<void> test_setSubscriptions() {
     // This test times out on the bots and has been disabled to keep them green.
     // We need to discover the cause and re-enable it.
 

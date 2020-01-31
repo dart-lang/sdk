@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToListLiteralTest);
   });
@@ -19,7 +19,7 @@ class ConvertToListLiteralTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_LIST_LITERAL;
 
-  test_default_declaredType() async {
+  Future<void> test_default_declaredType() async {
     await resolveTestUnit('''
 List l = Li/*caret*/st();
 ''');
@@ -28,7 +28,7 @@ List l = [];
 ''');
   }
 
-  test_default_minimal() async {
+  Future<void> test_default_minimal() async {
     await resolveTestUnit('''
 var l = Li/*caret*/st();
 ''');
@@ -37,7 +37,7 @@ var l = [];
 ''');
   }
 
-  test_default_newKeyword() async {
+  Future<void> test_default_newKeyword() async {
     await resolveTestUnit('''
 var l = new Li/*caret*/st();
 ''');
@@ -46,14 +46,14 @@ var l = [];
 ''');
   }
 
-  test_default_tooManyArguments() async {
+  Future<void> test_default_tooManyArguments() async {
     await resolveTestUnit('''
 var l = Li/*caret*/st(5);
 ''');
     await assertNoAssist();
   }
 
-  test_default_typeArg() async {
+  Future<void> test_default_typeArg() async {
     await resolveTestUnit('''
 var l = Li/*caret*/st<int>();
 ''');

@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StatusTest);
   });
@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class StatusTest extends AbstractAnalysisServerIntegrationTest {
-  test_status() {
+  Future<void> test_status() {
     // After we kick off analysis, we should get one server.status message with
     // analyzing=true, and another server.status message after that with
     // analyzing=false.

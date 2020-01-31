@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterWrapPaddingTest);
   });
@@ -19,7 +19,7 @@ class FlutterWrapPaddingTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_PADDING;
 
-  test_aroundContainer() async {
+  Future<void> test_aroundContainer() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -42,7 +42,7 @@ class FakeFlutter {
 ''');
   }
 
-  test_aroundPadding() async {
+  Future<void> test_aroundPadding() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';

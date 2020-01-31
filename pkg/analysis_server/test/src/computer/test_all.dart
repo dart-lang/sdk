@@ -12,7 +12,7 @@ import 'import_elements_computer_test.dart' as import_elements_computer;
 import 'imported_elements_computer_test.dart' as imported_elements_computer;
 import 'outline_computer_test.dart' as outline_computer;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     closing_labels_computer.main();
     folding_computer.main();
