@@ -22,8 +22,8 @@ import 'kernel_helpers.dart';
 class DevCompilerTarget extends Target {
   // TODO(39698) Turn these back into const lists returned from the getters
   // once we don't have to exclude libraries from the forked NNBD sdk.
-  List<String> _extraRequiredLibraries;
-  List<String> _extraIndexedLibraries;
+  final List<String> _extraRequiredLibraries;
+  final List<String> _extraIndexedLibraries;
 
   DevCompilerTarget(this.flags)
       : _extraRequiredLibraries = [

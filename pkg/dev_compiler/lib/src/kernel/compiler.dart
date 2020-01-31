@@ -2298,7 +2298,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _extensionTypes.isNativeInterface(c);
   }
 
-  var _forwardingCache = HashMap<Class, Map<String, Member>>();
+  final _forwardingCache = HashMap<Class, Map<String, Member>>();
 
   Member _lookupForwardedMember(Class c, String name) {
     // We only care about public methods.
