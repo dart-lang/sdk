@@ -138,7 +138,10 @@ class WorkspaceSymbols {
       for (var library in libraries) {
         library.declarations.forEach(addDeclaration);
       }
-    } on _MaxNumberOfDeclarationsError {}
+    } on _MaxNumberOfDeclarationsError {
+      // Uses an exception to short circuit the recursion when there are too
+      // many declarations.
+    }
 
     return declarations;
   }

@@ -901,7 +901,10 @@ class Driver implements ServerStarter {
       try {
         String oldPath = i == 0 ? path : '$path.$i';
         File(oldPath).renameSync('$path.${i + 1}');
-      } catch (e) {}
+      } catch (e) {
+        // If a file can't be renamed, then leave it and attempt to rename the
+        // remaining files.
+      }
     }
   }
 }

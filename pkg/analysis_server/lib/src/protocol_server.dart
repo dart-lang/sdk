@@ -325,7 +325,10 @@ Location _locationForArgs(
       startLine = offsetLocation.lineNumber;
       startColumn = offsetLocation.columnNumber;
     }
-  } on AnalysisException {}
+  } on AnalysisException {
+    // TODO(brianwilkerson) It doesn't look like the code in the try block
+    //  should be able to throw an exception. Try removing the try statement.
+  }
   return Location(unitElement.source.fullName, range.offset, range.length,
       startLine, startColumn);
 }
