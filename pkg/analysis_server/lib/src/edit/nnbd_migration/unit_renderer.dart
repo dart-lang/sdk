@@ -34,7 +34,7 @@ class UnitRenderer {
   /// Return the path context used to manipulate paths.
   path.Context get pathContext => migrationInfo.pathContext;
 
-  /// Builds an HTML view of the instrumentation information in [unitInfo].
+  /// Builds a JSON view of the instrumentation information in [unitInfo].
   String render() {
     Map<String, dynamic> response = {
       'thisUnit': migrationInfo.computeName(unitInfo),
@@ -45,33 +45,23 @@ class UnitRenderer {
     return jsonEncode(response);
   }
 
-  String _computeEditList() {
-    var content = StringBuffer();
-    var editCount = unitInfo.fixRegions.length;
-    // TODO(srawlins): Change the edit count to be badge-like (number in a
-    //  circle).
-    if (editCount == 1) {
-      content
-          .write('<p><strong>$editCount</strong> edit was made to this file. '
-              "Click the edit's checkbox to toggle its reviewed state.</p>");
-    } else {
-      content
-          .write('<p><strong>$editCount</strong> edits were made to this file. '
-              "Click an edit's checkbox to toggle its reviewed state.</p>");
-    }
-    for (var region in unitInfo.fixRegions) {
-      content.write('<p class="edit">');
-      // TODO(srawlins): Make checkboxes functional.
-      content.write('<input type="checkbox" title="Click to mark reviewed" '
-          'disabled="disabled"> ');
-      content.write('line ${region.lineNumber}: ');
-      content.write(_htmlEscape.convert(region.explanation));
-      content.write('.</p>');
-    }
-    return content.toString();
+  /// Returns the list of edits, as JSON.
+  Map<String, Object> _computeEditList() {
+    var response = <String, Object>{
+      'editCount': unitInfo.fixRegions.length,
+      'edits': [
+        for (var region in unitInfo.fixRegions)
+          {
+            'line': region.lineNumber,
+            'explanation': region.explanation,
+            'offset': region.offset,
+          },
+      ],
+    };
+    return response;
   }
 
-  /// Return the content of the file with navigation links and anchors added.
+  /// Returns the content of the file with navigation links and anchors added.
   ///
   /// The content of the file (not including added links and anchors) will be
   /// HTML-escaped.
@@ -145,8 +135,11 @@ class UnitRenderer {
     return navContent2.toString();
   }
 
-  /// Return the content of regions, based on the [unitInfo] for both
+  /// Returns the content of regions, based on the [unitInfo] for both
   /// unmodified and modified regions.
+  ///
+  /// The content of the file (not including added links and anchors) will be
+  /// HTML-escaped.
   String _computeRegionContent() {
     String content = unitInfo.content;
     StringBuffer regions = StringBuffer();
@@ -218,8 +211,8 @@ class UnitRenderer {
     return regions.toString();
   }
 
-  /// Return the URL that will navigate to the given [target] in the file at the
-  /// given [relativePath].
+  /// Returns the URL that will navigate to the given [target] in the file at
+  /// the given [relativePath].
   String _uriForRelativePath(String relativePath, NavigationTarget target) {
     var queryParams = {
       'offset': target.offset,

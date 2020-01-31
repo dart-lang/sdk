@@ -193,7 +193,7 @@ h2#unit-name {
 }
 
 .regions tr.highlight td:last-child {
-  background-color: rgba(0, 0, 128, 0.5);
+  background-color: #444444;
 }
 
 .regions td.line-no {
@@ -207,7 +207,7 @@ h2#unit-name {
 }
 
 .regions tr.highlight td.line-no {
-  border-right: solid #0000ff 2px;
+  border-right: solid #cccccc 2px;
 }
 
 .region {
@@ -291,6 +291,10 @@ h2#unit-name {
   margin: 3px 0;
   padding-left: 21px;
   text-indent: -21px;
+}
+
+.edit-list .edit-link {
+  cursor: pointer;
 }
 
 .footer {

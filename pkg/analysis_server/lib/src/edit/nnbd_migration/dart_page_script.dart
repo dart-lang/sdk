@@ -52,14 +52,54 @@ function relativePath(path) {
   }
 }
 
+// Write the contents of the Edit List, from JSON data [editListData].
+function writeEditList(editListData) {
+  const editList = document.querySelector(".edit-list .panel-content");
+  editList.innerHTML = "";
+  const p = editList.appendChild(document.createElement("p"));
+  const countElement = p.appendChild(document.createElement("strong"));
+  const editCount = editListData["editCount"];
+  countElement.appendChild(document.createTextNode(editCount));
+  if (editCount == 1) {
+    p.appendChild(document.createTextNode(
+        " edit was made to this file. Click the edit's checkbox to toggle " +
+        "its reviewed state."));
+  } else {
+    p.appendChild(document.createTextNode(
+        " edits were made to this file. Click an edit's checkbox to toggle " +
+        "its reviewed state."));
+  }
+  for (const edit of editListData["edits"]) {
+    const editP = editList.appendChild(document.createElement("p"));
+    editP.classList.add("edit");
+    const checkbox = editP.appendChild(document.createElement("input"));
+    checkbox.setAttribute("type", "checkbox");
+    checkbox.setAttribute("title", "Click to mark reviewed");
+    checkbox.setAttribute("disabled", "disabled");
+    editP.appendChild(document.createTextNode(
+        `line ${edit["line"]}: ${edit["explanation"]}. `));
+    const a = editP.appendChild(document.createElement("a"));
+    a.classList.add("edit-link");
+    const offset = edit["offset"];
+    a.dataset.offset = offset;
+    const line = edit["line"];
+    a.dataset.line = line;
+    a.appendChild(document.createTextNode("[view]"));
+    a.onclick = (event) => {
+      navigate(window.location.pathname, offset, line,
+          () => { pushState(window.location.pathname, offset, line) });
+      loadRegionExplanation(a);
+    };
+  }
+}
+
 // Load data from [data] into the .code and the .regions divs.
 function writeCodeAndRegions(data) {
   const regions = document.querySelector(".regions");
   const code = document.querySelector(".code");
-  const editList = document.querySelector(".edit-list .panel-content");
   regions.innerHTML = data["regions"];
   code.innerHTML = data["navContent"];
-  editList.innerHTML = data["editList"];
+  writeEditList(data["editList"]);
   highlightAllCode();
   addClickHandlers(".code");
   addClickHandlers(".regions");
@@ -75,7 +115,7 @@ function navigate(path, offset, lineNumber, callback) {
   removeHighlight(currentOffset, currentLineNumber);
   if (path == window.location.pathname) {
     // Navigating to same file; just scroll into view.
-    maybeScrollIntoView(offset, lineNumber);
+    maybeScrollToAndHighlight(offset, lineNumber);
     if (callback !== undefined) {
       callback();
     }
@@ -84,37 +124,46 @@ function navigate(path, offset, lineNumber, callback) {
   }
 }
 
+function maybeScrollIntoView(element) {
+  const rect = element.getBoundingClientRect();
+  // TODO(srawlins): Only scroll smoothly when on the same page.
+  if (rect.bottom > window.innerHeight) {
+    element.scrollIntoView({behavior: "smooth", block: "end"});
+  }
+  if (rect.top < 0) {
+    element.scrollIntoView({behavior: "smooth"});
+  }
+}
+
 // Scroll target with id [offset] into view if it is not currently in view.
 //
 // If [offset] is null, instead scroll the "unit-name" header, at the top of the
 // page, into view.
 //
-// Also add the "target" class, highlighting the target.
-function maybeScrollIntoView(offset, lineNumber) {
+// Also add the "target" class, highlighting the target. Also add the
+// "highlight" class to the entire line on which the target lies.
+function maybeScrollToAndHighlight(offset, lineNumber) {
   var target;
+  var line;
   if (offset !== null) {
     target = document.getElementById("o" + offset);
+    line = document.querySelector(".line-" + lineNumber);
+    if (target !== null) {
+      maybeScrollIntoView(target);
+      target.classList.add("target");
+    } else if (line != null) {
+      // If the target doesn't exist, but the line does, scroll that into view
+      // instead.
+      maybeScrollIntoView(line);
+    }
+    if (line != null) {
+      line.parentNode.classList.add("highlight");
+    }
   } else {
     // If no offset is given, this is likely a navigation link, and we need to
     // scroll back to the top of the page.
     target = document.getElementById("unit-name");
-  }
-  if (target != null) {
-    const rect = target.getBoundingClientRect();
-    // TODO(srawlins): Only scroll smoothly when on the same page.
-    if (rect.bottom > window.innerHeight) {
-      target.scrollIntoView({behavior: "smooth", block: "end"});
-    }
-    if (rect.top < 0) {
-      target.scrollIntoView({behavior: "smooth"});
-    }
-    if (target !== document.getElementById("unit-name")) {
-      target.classList.add("target");
-      if (lineNumber != null) {
-        const line = document.querySelector(".line-" + lineNumber);
-        line.parentNode.classList.add("highlight");
-      }
-    }
+    maybeScrollIntoView(target);
   }
 }
 
@@ -129,7 +178,7 @@ function loadFile(path, offset, lineNumber, callback) {
     if (xhr.status === 200) {
       const response = JSON.parse(xhr.responseText);
       writeCodeAndRegions(response);
-      maybeScrollIntoView(offset, lineNumber);
+      maybeScrollToAndHighlight(offset, lineNumber);
       updatePage(path, offset);
       if (callback !== undefined) {
         callback();
