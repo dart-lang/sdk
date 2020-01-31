@@ -6239,6 +6239,8 @@ class BoxIntegerInstr : public BoxInstr {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
+  virtual SpeculativeMode speculative_mode() const { return kNotSpeculative; }
+
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
 
