@@ -1308,7 +1308,7 @@ void AllocateObjectInstr::AddExtraInfoToSExpression(
     SExpList* sexp,
     FlowGraphSerializer* s) const {
   Instruction::AddExtraInfoToSExpression(sexp, s);
-  s->AddExtraInteger(sexp, "size", cls().instance_size());
+  s->AddExtraInteger(sexp, "size", cls().target_instance_size());
   if (auto const closure = s->DartValueToSExp(closure_function())) {
     sexp->AddExtra("closure_function", closure);
   }

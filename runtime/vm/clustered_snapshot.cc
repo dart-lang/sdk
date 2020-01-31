@@ -182,19 +182,57 @@ class ClassSerializationCluster : public SerializationCluster {
     if (s->kind() != Snapshot::kFullAOT) {
       s->Write<uint32_t>(cls->ptr()->binary_declaration_);
     }
-    s->Write<int32_t>(cls->ptr()->instance_size_in_words_);
-    s->Write<int32_t>(cls->ptr()->next_field_offset_in_words_);
-    s->Write<int32_t>(cls->ptr()->type_arguments_field_offset_in_words_);
+    s->Write<int32_t>(Class::target_instance_size_in_words(cls));
+    s->Write<int32_t>(Class::target_next_field_offset_in_words(cls));
+    s->Write<int32_t>(Class::target_type_arguments_field_offset_in_words(cls));
     s->Write<int16_t>(cls->ptr()->num_type_arguments_);
     s->Write<uint16_t>(cls->ptr()->num_native_fields_);
     s->WriteTokenPosition(cls->ptr()->token_pos_);
     s->WriteTokenPosition(cls->ptr()->end_token_pos_);
     s->Write<uint32_t>(cls->ptr()->state_bits_);
+
+    // In AOT, the bitmap of unboxed fields should also be serialized
+    if (FLAG_precompiled_mode) {
+      s->WriteUnsigned64(
+          CalculateTargetUnboxedFieldsBitmap(s, class_id).Value());
+    }
   }
 
  private:
   GrowableArray<RawClass*> predefined_;
   GrowableArray<RawClass*> objects_;
+
+  UnboxedFieldBitmap CalculateTargetUnboxedFieldsBitmap(Serializer* s,
+                                                        intptr_t class_id) {
+    const auto unboxed_fields_bitmap_host =
+        s->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(class_id);
+
+    UnboxedFieldBitmap unboxed_fields_bitmap;
+    if (unboxed_fields_bitmap_host.IsEmpty() ||
+        kWordSize == compiler::target::kWordSize) {
+      unboxed_fields_bitmap = unboxed_fields_bitmap_host;
+    } else {
+      ASSERT(kWordSize == 8 && compiler::target::kWordSize == 4);
+      // A new bitmap is built if the word sizes in the target and
+      // host are different
+      unboxed_fields_bitmap.Reset();
+      intptr_t target_i = 0, host_i = 0;
+
+      while (host_i < UnboxedFieldBitmap::Length()) {
+        // Each unboxed field has constant length, therefore the number of
+        // words used by it should double when compiling from 64-bit to 32-bit.
+        if (unboxed_fields_bitmap_host.Get(host_i++)) {
+          unboxed_fields_bitmap.Set(target_i++);
+          unboxed_fields_bitmap.Set(target_i++);
+        } else {
+          // For object pointers, the field is always one word length
+          target_i++;
+        }
+      }
+    }
+
+    return unboxed_fields_bitmap;
+  }
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
 
@@ -240,18 +278,35 @@ class ClassDeserializationCluster : public DeserializationCluster {
       }
 #endif
       if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
-        cls->ptr()->instance_size_in_words_ = d->Read<int32_t>();
-        cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
+        cls->ptr()->host_instance_size_in_words_ = d->Read<int32_t>();
+        cls->ptr()->host_next_field_offset_in_words_ = d->Read<int32_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        // Only one pair is serialized. The target field only exists when
+        // DART_PRECOMPILED_RUNTIME is not defined
+        cls->ptr()->target_instance_size_in_words_ =
+            cls->ptr()->host_instance_size_in_words_;
+        cls->ptr()->target_next_field_offset_in_words_ =
+            cls->ptr()->host_next_field_offset_in_words_;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
       } else {
         d->Read<int32_t>();  // Skip.
         d->Read<int32_t>();  // Skip.
       }
-      cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
+      cls->ptr()->host_type_arguments_field_offset_in_words_ =
+          d->Read<int32_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      cls->ptr()->target_type_arguments_field_offset_in_words_ =
+          cls->ptr()->host_type_arguments_field_offset_in_words_;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
       cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
       cls->ptr()->end_token_pos_ = d->ReadTokenPosition();
       cls->ptr()->state_bits_ = d->Read<uint32_t>();
+
+      if (FLAG_precompiled_mode) {
+        d->ReadUnsigned64();  // Skip unboxed fields bitmap.
+      }
     }
 
     for (intptr_t id = start_index_; id < stop_index_; id++) {
@@ -268,9 +323,18 @@ class ClassDeserializationCluster : public DeserializationCluster {
         cls->ptr()->binary_declaration_ = d->Read<uint32_t>();
       }
 #endif
-      cls->ptr()->instance_size_in_words_ = d->Read<int32_t>();
-      cls->ptr()->next_field_offset_in_words_ = d->Read<int32_t>();
-      cls->ptr()->type_arguments_field_offset_in_words_ = d->Read<int32_t>();
+      cls->ptr()->host_instance_size_in_words_ = d->Read<int32_t>();
+      cls->ptr()->host_next_field_offset_in_words_ = d->Read<int32_t>();
+      cls->ptr()->host_type_arguments_field_offset_in_words_ =
+          d->Read<int32_t>();
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      cls->ptr()->target_instance_size_in_words_ =
+          cls->ptr()->host_instance_size_in_words_;
+      cls->ptr()->target_next_field_offset_in_words_ =
+          cls->ptr()->host_next_field_offset_in_words_;
+      cls->ptr()->target_type_arguments_field_offset_in_words_ =
+          cls->ptr()->host_type_arguments_field_offset_in_words_;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
       cls->ptr()->num_type_arguments_ = d->Read<int16_t>();
       cls->ptr()->num_native_fields_ = d->Read<uint16_t>();
       cls->ptr()->token_pos_ = d->ReadTokenPosition();
@@ -279,6 +343,12 @@ class ClassDeserializationCluster : public DeserializationCluster {
 
       table->AllocateIndex(class_id);
       table->SetAt(class_id, cls);
+
+      if (FLAG_precompiled_mode) {
+        const UnboxedFieldBitmap unboxed_fields_map(d->ReadUnsigned64());
+        d->isolate()->shared_class_table()->SetUnboxedFieldsMapAt(
+            class_id, unboxed_fields_map);
+      }
     }
   }
 
@@ -935,13 +1005,13 @@ class FieldSerializationCluster : public SerializationCluster {
           kind == Snapshot::kFullAOT ||
           // Do not reset const fields.
           Field::ConstBit::decode(field->ptr()->kind_bits_)) {
-        s->Push(s->field_table()->At(field->ptr()->offset_or_field_id_));
+        s->Push(s->field_table()->At(field->ptr()->host_offset_or_field_id_));
       } else {
         // Otherwise, for static fields we write out the initial static value.
         s->Push(field->ptr()->saved_initial_value_);
       }
     } else {
-      s->Push(Smi::New(field->ptr()->offset_or_field_id_));
+      s->Push(Smi::New(Field::TargetOffsetOf(field)));
     }
   }
 
@@ -1001,14 +1071,14 @@ class FieldSerializationCluster : public SerializationCluster {
             Field::ConstBit::decode(field->ptr()->kind_bits_)) {
           WriteFieldValue(
               "static value",
-              s->field_table()->At(field->ptr()->offset_or_field_id_));
+              s->field_table()->At(field->ptr()->host_offset_or_field_id_));
         } else {
           // Otherwise, for static fields we write out the initial static value.
           WriteFieldValue("static value", field->ptr()->saved_initial_value_);
         }
-        s->WriteUnsigned(field->ptr()->offset_or_field_id_);
+        s->WriteUnsigned(field->ptr()->host_offset_or_field_id_);
       } else {
-        WriteFieldValue("offset", Smi::New(field->ptr()->offset_or_field_id_));
+        WriteFieldValue("offset", Smi::New(Field::TargetOffsetOf(field)));
       }
     }
   }
@@ -1057,10 +1127,13 @@ class FieldDeserializationCluster : public DeserializationCluster {
         intptr_t field_id = d->ReadUnsigned();
         d->field_table()->SetAt(
             field_id, reinterpret_cast<RawInstance*>(value_or_offset));
-        field->ptr()->offset_or_field_id_ = field_id;
+        field->ptr()->host_offset_or_field_id_ = field_id;
       } else {
-        field->ptr()->offset_or_field_id_ =
+        field->ptr()->host_offset_or_field_id_ =
             Smi::Value(Smi::RawCast(value_or_offset));
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        field->ptr()->target_offset_ = field->ptr()->host_offset_or_field_id_;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
       }
     }
   }
@@ -2722,23 +2795,34 @@ class InstanceSerializationCluster : public SerializationCluster {
   explicit InstanceSerializationCluster(intptr_t cid)
       : SerializationCluster("Instance"), cid_(cid) {
     RawClass* cls = Isolate::Current()->class_table()->At(cid);
-    next_field_offset_in_words_ = cls->ptr()->next_field_offset_in_words_;
-    instance_size_in_words_ = cls->ptr()->instance_size_in_words_;
-    ASSERT(next_field_offset_in_words_ > 0);
-    ASSERT(instance_size_in_words_ > 0);
+    host_next_field_offset_in_words_ =
+        cls->ptr()->host_next_field_offset_in_words_;
+    ASSERT(host_next_field_offset_in_words_ > 0);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    target_next_field_offset_in_words_ =
+        cls->ptr()->target_next_field_offset_in_words_;
+    target_instance_size_in_words_ = cls->ptr()->target_instance_size_in_words_;
+    ASSERT(target_next_field_offset_in_words_ > 0);
+    ASSERT(target_instance_size_in_words_ > 0);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
   ~InstanceSerializationCluster() {}
 
   void Trace(Serializer* s, RawObject* object) {
     RawInstance* instance = Instance::RawCast(object);
     objects_.Add(instance);
-
-    intptr_t next_field_offset = next_field_offset_in_words_ << kWordSizeLog2;
+    const intptr_t next_field_offset = host_next_field_offset_in_words_
+                                       << kWordSizeLog2;
+    const auto unboxed_fields_bitmap =
+        s->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(cid_);
     intptr_t offset = Instance::NextFieldOffset();
     while (offset < next_field_offset) {
-      RawObject* raw_obj = *reinterpret_cast<RawObject**>(
-          reinterpret_cast<uword>(instance->ptr()) + offset);
-      s->Push(raw_obj);
+      // Skips unboxed fields
+      if (!unboxed_fields_bitmap.Get(offset / kWordSize)) {
+        RawObject* raw_obj = *reinterpret_cast<RawObject**>(
+            reinterpret_cast<uword>(instance->ptr()) + offset);
+        s->Push(raw_obj);
+      }
       offset += kWordSize;
     }
   }
@@ -2748,8 +2832,12 @@ class InstanceSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     s->WriteUnsigned(count);
 
-    s->Write<int32_t>(next_field_offset_in_words_);
-    s->Write<int32_t>(instance_size_in_words_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    s->Write<int32_t>(target_next_field_offset_in_words_);
+    s->Write<int32_t>(target_instance_size_in_words_);
+#else
+    s->Write<int32_t>(host_next_field_offset_in_words_);
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 
     for (intptr_t i = 0; i < count; i++) {
       RawInstance* instance = objects_[i];
@@ -2758,17 +2846,28 @@ class InstanceSerializationCluster : public SerializationCluster {
   }
 
   void WriteFill(Serializer* s) {
-    intptr_t next_field_offset = next_field_offset_in_words_ << kWordSizeLog2;
+    intptr_t next_field_offset = host_next_field_offset_in_words_
+                                 << kWordSizeLog2;
     const intptr_t count = objects_.length();
+    const auto shared_class_table = s->isolate()->shared_class_table();
     for (intptr_t i = 0; i < count; i++) {
       RawInstance* instance = objects_[i];
       AutoTraceObject(instance);
       s->Write<bool>(instance->IsCanonical());
+      const auto unboxed_fields_bitmap =
+          shared_class_table->GetUnboxedFieldsMapAt(cid_);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
-        RawObject* raw_obj = *reinterpret_cast<RawObject**>(
-            reinterpret_cast<uword>(instance->ptr()) + offset);
-        s->WriteElementRef(raw_obj, offset);
+        if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
+          // Writes 32 bits of the unboxed value at a time
+          const uword value = *reinterpret_cast<uword*>(
+              reinterpret_cast<uword>(instance->ptr()) + offset);
+          s->WriteWordWith32BitWrites(value);
+        } else {
+          RawObject* raw_obj = *reinterpret_cast<RawObject**>(
+              reinterpret_cast<uword>(instance->ptr()) + offset);
+          s->WriteElementRef(raw_obj, offset);
+        }
         offset += kWordSize;
       }
     }
@@ -2776,8 +2875,11 @@ class InstanceSerializationCluster : public SerializationCluster {
 
  private:
   const intptr_t cid_;
-  intptr_t next_field_offset_in_words_;
-  intptr_t instance_size_in_words_;
+  intptr_t host_next_field_offset_in_words_;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  intptr_t target_next_field_offset_in_words_;
+  intptr_t target_instance_size_in_words_;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   GrowableArray<RawInstance*> objects_;
 };
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -2806,16 +2908,26 @@ class InstanceDeserializationCluster : public DeserializationCluster {
     intptr_t instance_size =
         Object::RoundedAllocationSize(instance_size_in_words_ * kWordSize);
 
+    const auto shared_class_table = d->isolate()->shared_class_table();
     for (intptr_t id = start_index_; id < stop_index_; id++) {
       RawInstance* instance = reinterpret_cast<RawInstance*>(d->Ref(id));
       bool is_canonical = d->Read<bool>();
       Deserializer::InitializeHeader(instance, cid_, instance_size,
                                      is_canonical);
+      const auto unboxed_fields_bitmap =
+          shared_class_table->GetUnboxedFieldsMapAt(cid_);
       intptr_t offset = Instance::NextFieldOffset();
       while (offset < next_field_offset) {
-        RawObject** p = reinterpret_cast<RawObject**>(
-            reinterpret_cast<uword>(instance->ptr()) + offset);
-        *p = d->ReadRef();
+        if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
+          uword* p = reinterpret_cast<uword*>(
+              reinterpret_cast<uword>(instance->ptr()) + offset);
+          // Reads 32 bits of the unboxed value at a time
+          *p = d->ReadWordWith32BitReads();
+        } else {
+          RawObject** p = reinterpret_cast<RawObject**>(
+              reinterpret_cast<uword>(instance->ptr()) + offset);
+          *p = d->ReadRef();
+        }
         offset += kWordSize;
       }
       if (offset < instance_size) {

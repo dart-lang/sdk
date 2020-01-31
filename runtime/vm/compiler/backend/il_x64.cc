@@ -2128,8 +2128,9 @@ void GuardFieldTypeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps =
-      (IsUnboxedStore() && opt) ? 2 : ((IsPotentialUnboxedStore()) ? 3 : 0);
+  const intptr_t kNumTemps = (IsUnboxedStore() && opt)
+                                 ? (FLAG_precompiled_mode ? 0 : 2)
+                                 : (IsPotentialUnboxedStore() ? 3 : 0);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
                       ((IsUnboxedStore() && opt && is_initialization()) ||
@@ -2140,8 +2141,10 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {
     summary->set_in(1, Location::RequiresFpuRegister());
-    summary->set_temp(0, Location::RequiresRegister());
-    summary->set_temp(1, Location::RequiresRegister());
+    if (!FLAG_precompiled_mode) {
+      summary->set_temp(0, Location::RequiresRegister());
+      summary->set_temp(1, Location::RequiresRegister());
+    }
   } else if (IsPotentialUnboxedStore()) {
     summary->set_in(1, ShouldEmitStoreBarrier() ? Location::WritableRegister()
                                                 : Location::RequiresRegister());
@@ -2186,9 +2189,33 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (IsUnboxedStore() && compiler->is_optimizing()) {
     XmmRegister value = locs()->in(1).fpu_reg();
+    const intptr_t cid = slot().field().UnboxedFieldCid();
+
+    // Real unboxed field
+    if (FLAG_precompiled_mode) {
+      switch (cid) {
+        case kDoubleCid:
+          __ Comment("UnboxedDoubleStoreInstanceFieldInstr");
+          __ movsd(compiler::FieldAddress(instance_reg, offset_in_bytes),
+                   value);
+          return;
+        case kFloat32x4Cid:
+          __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
+          __ movups(compiler::FieldAddress(instance_reg, offset_in_bytes),
+                    value);
+          return;
+        case kFloat64x2Cid:
+          __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+          __ movups(compiler::FieldAddress(instance_reg, offset_in_bytes),
+                    value);
+          return;
+        default:
+          UNREACHABLE();
+      }
+    }
+
     Register temp = locs()->temp(0).reg();
     Register temp2 = locs()->temp(1).reg();
-    const intptr_t cid = slot().field().UnboxedFieldCid();
 
     if (is_initialization()) {
       const Class* cls = NULL;
@@ -2533,8 +2560,9 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      (IsUnboxedLoad() && opt) ? 1 : ((IsPotentialUnboxedLoad()) ? 2 : 0);
+  const intptr_t kNumTemps = (IsUnboxedLoad() && opt)
+                                 ? (FLAG_precompiled_mode ? 0 : 1)
+                                 : (IsPotentialUnboxedLoad() ? 2 : 0);
   LocationSummary* locs = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       (opt && !IsPotentialUnboxedLoad()) ? LocationSummary::kNoCall
@@ -2543,7 +2571,9 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(0, Location::RequiresRegister());
 
   if (IsUnboxedLoad() && opt) {
-    locs->set_temp(0, Location::RequiresRegister());
+    if (!FLAG_precompiled_mode) {
+      locs->set_temp(0, Location::RequiresRegister());
+    }
   } else if (IsPotentialUnboxedLoad()) {
     locs->set_temp(0, opt ? Location::RequiresFpuRegister()
                           : Location::FpuRegisterLocation(XMM1));
@@ -2558,9 +2588,34 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     XmmRegister result = locs()->out(0).fpu_reg();
+    const intptr_t cid = slot().field().UnboxedFieldCid();
+
+    // Real unboxed field
+    if (FLAG_precompiled_mode) {
+      switch (cid) {
+        case kDoubleCid:
+          __ Comment("UnboxedDoubleLoadFieldInstr");
+          __ movsd(result,
+                   compiler::FieldAddress(instance_reg, OffsetInBytes()));
+          break;
+        case kFloat32x4Cid:
+          __ Comment("UnboxedFloat32x4LoadFieldInstr");
+          __ movups(result,
+                    compiler::FieldAddress(instance_reg, OffsetInBytes()));
+          break;
+        case kFloat64x2Cid:
+          __ Comment("UnboxedFloat64x2LoadFieldInstr");
+          __ movups(result,
+                    compiler::FieldAddress(instance_reg, OffsetInBytes()));
+          break;
+        default:
+          UNREACHABLE();
+      }
+      return;
+    }
+
     Register temp = locs()->temp(0).reg();
     __ movq(temp, compiler::FieldAddress(instance_reg, OffsetInBytes()));
-    intptr_t cid = slot().field().UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         __ Comment("UnboxedDoubleLoadFieldInstr");
@@ -2890,7 +2945,7 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Label no_call;
 
-  __ movq(temp, compiler::FieldAddress(instance, field().Offset()));
+  __ movq(temp, compiler::FieldAddress(instance, field().TargetOffset()));
   __ CompareObject(temp, Object::sentinel());
   __ j(NOT_EQUAL, &no_call, compiler::Assembler::kNearJump);
 

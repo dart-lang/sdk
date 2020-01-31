@@ -137,7 +137,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     view->RecomputeDataFieldForInternalTypedData();
   }
 
-  void VisitPointers(RawObject** first, RawObject** last) {
+  virtual void VisitPointers(RawObject** first, RawObject** last) {
     ASSERT(Utils::IsAligned(first, sizeof(*first)));
     ASSERT(Utils::IsAligned(last, sizeof(*last)));
     for (RawObject** current = first; current <= last; current++) {

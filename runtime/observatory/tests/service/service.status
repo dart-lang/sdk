@@ -14,6 +14,11 @@ valid_source_locations_test: Pass, Slow # Generally slow, even in release-x64.
 [ $arch == arm ]
 process_service_test: Pass, Fail # Issue 24344
 
+# Test uses service API and relies on correct class names
+[ $builder_tag == obfuscated ]
+dominator_tree_vm_test: SkipByDesign
+dominator_tree_vm_with_double_field_test: SkipByDesign
+
 # Tests with known analyzer issues
 [ $compiler == dart2analyzer ]
 developer_extension_test: SkipByDesign

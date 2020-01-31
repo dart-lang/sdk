@@ -2158,8 +2158,9 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
 LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
                                                               bool opt) const {
   const intptr_t kNumInputs = 2;
-  const intptr_t kNumTemps =
-      (IsUnboxedStore() && opt) ? 2 : ((IsPotentialUnboxedStore()) ? 2 : 0);
+  const intptr_t kNumTemps = (IsUnboxedStore() && opt)
+                                 ? (FLAG_precompiled_mode ? 0 : 2)
+                                 : (IsPotentialUnboxedStore() ? 2 : 0);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
                       ((IsUnboxedStore() && opt && is_initialization()) ||
@@ -2170,8 +2171,10 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {
     summary->set_in(1, Location::RequiresFpuRegister());
-    summary->set_temp(0, Location::RequiresRegister());
-    summary->set_temp(1, Location::RequiresRegister());
+    if (!FLAG_precompiled_mode) {
+      summary->set_temp(0, Location::RequiresRegister());
+      summary->set_temp(1, Location::RequiresRegister());
+    }
   } else if (IsPotentialUnboxedStore()) {
     summary->set_in(1, ShouldEmitStoreBarrier() ? Location::WritableRegister()
                                                 : Location::RequiresRegister());
@@ -2195,9 +2198,29 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (IsUnboxedStore() && compiler->is_optimizing()) {
     const VRegister value = locs()->in(1).fpu_reg();
+    const intptr_t cid = slot().field().UnboxedFieldCid();
+
+    if (FLAG_precompiled_mode) {
+      switch (cid) {
+        case kDoubleCid:
+          __ Comment("UnboxedDoubleStoreInstanceFieldInstr");
+          __ StoreDFieldToOffset(value, instance_reg, offset_in_bytes);
+          return;
+        case kFloat32x4Cid:
+          __ Comment("UnboxedFloat32x4StoreInstanceFieldInstr");
+          __ StoreQFieldToOffset(value, instance_reg, offset_in_bytes);
+          return;
+        case kFloat64x2Cid:
+          __ Comment("UnboxedFloat64x2StoreInstanceFieldInstr");
+          __ StoreQFieldToOffset(value, instance_reg, offset_in_bytes);
+          return;
+        default:
+          UNREACHABLE();
+      }
+    }
+
     const Register temp = locs()->temp(0).reg();
     const Register temp2 = locs()->temp(1).reg();
-    const intptr_t cid = slot().field().UnboxedFieldCid();
 
     if (is_initialization()) {
       const Class* cls = NULL;
@@ -2534,8 +2557,9 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
                                                      bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps =
-      (IsUnboxedLoad() && opt) ? 1 : ((IsPotentialUnboxedLoad()) ? 1 : 0);
+  const intptr_t kNumTemps = (IsUnboxedLoad() && opt)
+                                 ? (FLAG_precompiled_mode ? 0 : 1)
+                                 : (IsPotentialUnboxedLoad() ? 1 : 0);
   LocationSummary* locs = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps,
       (opt && !IsPotentialUnboxedLoad()) ? LocationSummary::kNoCall
@@ -2544,7 +2568,9 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
   locs->set_in(0, Location::RequiresRegister());
 
   if (IsUnboxedLoad() && opt) {
-    locs->set_temp(0, Location::RequiresRegister());
+    if (!FLAG_precompiled_mode) {
+      locs->set_temp(0, Location::RequiresRegister());
+    }
   } else if (IsPotentialUnboxedLoad()) {
     locs->set_temp(0, Location::RequiresRegister());
   }
@@ -2557,9 +2583,30 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     const VRegister result = locs()->out(0).fpu_reg();
-    const Register temp = locs()->temp(0).reg();
-    __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
     const intptr_t cid = slot().field().UnboxedFieldCid();
+
+    if (FLAG_precompiled_mode) {
+      switch (cid) {
+        case kDoubleCid:
+          __ Comment("UnboxedDoubleLoadFieldInstr");
+          __ LoadDFieldFromOffset(result, instance_reg, OffsetInBytes());
+          return;
+        case kFloat32x4Cid:
+          __ Comment("UnboxedFloat32x4LoadFieldInstr");
+          __ LoadQFieldFromOffset(result, instance_reg, OffsetInBytes());
+          return;
+        case kFloat64x2Cid:
+          __ Comment("UnboxedFloat64x2LoadFieldInstr");
+          __ LoadQFieldFromOffset(result, instance_reg, OffsetInBytes());
+          return;
+        default:
+          UNREACHABLE();
+      }
+    }
+
+    const Register temp = locs()->temp(0).reg();
+
+    __ LoadFieldFromOffset(temp, instance_reg, OffsetInBytes());
     switch (cid) {
       case kDoubleCid:
         __ Comment("UnboxedDoubleLoadFieldInstr");
@@ -2875,7 +2922,7 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
   compiler::Label no_call;
 
-  __ ldr(temp, compiler::FieldAddress(instance, field().Offset()));
+  __ ldr(temp, compiler::FieldAddress(instance, field().TargetOffset()));
   __ CompareObject(temp, Object::sentinel());
   __ b(&no_call, NE);
 

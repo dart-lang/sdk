@@ -240,33 +240,33 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 #if defined(DEBUG)
   // Basic checking.
   cls = object_store->object_class();
-  ASSERT(Instance::InstanceSize() == cls.instance_size());
+  ASSERT(Instance::InstanceSize() == cls.host_instance_size());
   cls = object_store->integer_implementation_class();
-  ASSERT(Integer::InstanceSize() == cls.instance_size());
+  ASSERT(Integer::InstanceSize() == cls.host_instance_size());
   cls = object_store->smi_class();
-  ASSERT(Smi::InstanceSize() == cls.instance_size());
+  ASSERT(Smi::InstanceSize() == cls.host_instance_size());
   cls = object_store->mint_class();
-  ASSERT(Mint::InstanceSize() == cls.instance_size());
+  ASSERT(Mint::InstanceSize() == cls.host_instance_size());
   cls = object_store->one_byte_string_class();
-  ASSERT(OneByteString::InstanceSize() == cls.instance_size());
+  ASSERT(OneByteString::InstanceSize() == cls.host_instance_size());
   cls = object_store->two_byte_string_class();
-  ASSERT(TwoByteString::InstanceSize() == cls.instance_size());
+  ASSERT(TwoByteString::InstanceSize() == cls.host_instance_size());
   cls = object_store->external_one_byte_string_class();
-  ASSERT(ExternalOneByteString::InstanceSize() == cls.instance_size());
+  ASSERT(ExternalOneByteString::InstanceSize() == cls.host_instance_size());
   cls = object_store->external_two_byte_string_class();
-  ASSERT(ExternalTwoByteString::InstanceSize() == cls.instance_size());
+  ASSERT(ExternalTwoByteString::InstanceSize() == cls.host_instance_size());
   cls = object_store->double_class();
-  ASSERT(Double::InstanceSize() == cls.instance_size());
+  ASSERT(Double::InstanceSize() == cls.host_instance_size());
   cls = object_store->bool_class();
-  ASSERT(Bool::InstanceSize() == cls.instance_size());
+  ASSERT(Bool::InstanceSize() == cls.host_instance_size());
   cls = object_store->array_class();
-  ASSERT(Array::InstanceSize() == cls.instance_size());
+  ASSERT(Array::InstanceSize() == cls.host_instance_size());
   cls = object_store->immutable_array_class();
-  ASSERT(ImmutableArray::InstanceSize() == cls.instance_size());
+  ASSERT(ImmutableArray::InstanceSize() == cls.host_instance_size());
   cls = object_store->weak_property_class();
-  ASSERT(WeakProperty::InstanceSize() == cls.instance_size());
+  ASSERT(WeakProperty::InstanceSize() == cls.host_instance_size());
   cls = object_store->linked_hash_map_class();
-  ASSERT(LinkedHashMap::InstanceSize() == cls.instance_size());
+  ASSERT(LinkedHashMap::InstanceSize() == cls.host_instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
@@ -1358,7 +1358,7 @@ void ClassFinalizer::VerifyImplicitFieldOffsets() {
   fields_array ^= cls.fields();
   ASSERT(fields_array.Length() == ByteBuffer::NumberOfFields());
   field ^= fields_array.At(0);
-  ASSERT(field.Offset() == ByteBuffer::data_offset());
+  ASSERT(field.HostOffset() == ByteBuffer::data_offset());
   name ^= field.name();
   expected_name ^= String::New("_data");
   ASSERT(String::EqualsIgnoringPrivateKey(name, expected_name));

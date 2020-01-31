@@ -71,17 +71,17 @@ static void Finish(Thread* thread) {
   // Verify that closure field offsets are identical in Dart and C++.
   ASSERT(fields.Length() == 6);
   field ^= fields.At(0);
-  ASSERT(field.Offset() == Closure::instantiator_type_arguments_offset());
+  ASSERT(field.HostOffset() == Closure::instantiator_type_arguments_offset());
   field ^= fields.At(1);
-  ASSERT(field.Offset() == Closure::function_type_arguments_offset());
+  ASSERT(field.HostOffset() == Closure::function_type_arguments_offset());
   field ^= fields.At(2);
-  ASSERT(field.Offset() == Closure::delayed_type_arguments_offset());
+  ASSERT(field.HostOffset() == Closure::delayed_type_arguments_offset());
   field ^= fields.At(3);
-  ASSERT(field.Offset() == Closure::function_offset());
+  ASSERT(field.HostOffset() == Closure::function_offset());
   field ^= fields.At(4);
-  ASSERT(field.Offset() == Closure::context_offset());
+  ASSERT(field.HostOffset() == Closure::context_offset());
   field ^= fields.At(5);
-  ASSERT(field.Offset() == Closure::hash_offset());
+  ASSERT(field.HostOffset() == Closure::hash_offset());
 #endif  // defined(DEBUG)
 
   // Eagerly compile Bool class, bool constants are used from within compiler.
