@@ -102,11 +102,40 @@ main() {}
     } else {
       // Fail.
       print('Golden file does not match.');
-      var diff = Process.runSync('diff', [goldenFile.path, errorFile.path]);
-      print(diff.stdout);
       print('\nTo update the golden file, run:'
           '\n  ${Platform.executable} ${Platform.script} '
           '${argv.join(' ')} --update-golden');
+
+      // Compare the two sorted lists to show what errors changed.  Note, we
+      // don't use `diff` as an external tool because it is not available on
+      // windows bots.
+      var toAdd = <String>[];
+      var toRemove = <String>[];
+      var goldenList = golden.trim().split('\n');
+      int i = 0, j = 0;
+      for (; i < errorList.length && j < goldenList.length;) {
+        int compare = errorList[i].compareTo(goldenList[j]);
+        if (compare == 0) {
+          i++;
+          j++;
+        } else if (compare < 0) {
+          toAdd.add(errorList[i]);
+          i++;
+        } else {
+          toRemove.add(goldenList[j]);
+          j++;
+        }
+      }
+      for (; i < errorList.length; i++) {
+        toAdd.add(errorList[i]);
+      }
+      for (; j < goldenList.length; j++) {
+        toRemove.add(goldenList[j]);
+      }
+      print('\nNew errors:');
+      print(toAdd.join('\n'));
+      print('\nErrors that can be removed from the golden file:');
+      print(toRemove.join('\n'));
       exit(1);
     }
   }
