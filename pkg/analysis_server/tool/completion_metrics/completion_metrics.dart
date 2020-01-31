@@ -26,7 +26,7 @@ import 'visitors.dart';
 
 // TODO(jwren) have the analysis root and verbose option be configurable via a
 //  command line UX
-main() async {
+Future<void> main() async {
   await CompletionMetricsComputer('', true).computeCompletionMetrics();
 }
 
@@ -164,18 +164,6 @@ class CompletionMetricsComputer {
     mRRComputer.clear();
   }
 
-  /// Given some [ResolvedUnitResult] return the first error of high severity
-  /// if such an error exists, null otherwise.
-  err.AnalysisError _getFirstErrorOrNull(
-      ResolvedUnitResult resolvedUnitResult) {
-    for (var error in resolvedUnitResult.errors) {
-      if (error.severity == Severity.error) {
-        return error;
-      }
-    }
-    return null;
-  }
-
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
       ResolvedUnitResult resolvedUnitResult, int offset,
       [DeclarationsTracker declarationsTracker]) async {
@@ -214,6 +202,18 @@ class CompletionMetricsComputer {
 
     suggestions.sort(completionComparator);
     return suggestions;
+  }
+
+  /// Given some [ResolvedUnitResult] return the first error of high severity
+  /// if such an error exists, null otherwise.
+  err.AnalysisError _getFirstErrorOrNull(
+      ResolvedUnitResult resolvedUnitResult) {
+    for (var error in resolvedUnitResult.errors) {
+      if (error.severity == Severity.error) {
+        return error;
+      }
+    }
+    return null;
   }
 
   Place _placementInSuggestionList(List<CompletionSuggestion> suggestions,

@@ -1623,7 +1623,7 @@ class _ParameterReferenceFinder extends RecursiveAstVisitor<void> {
 /// Copied from lib/src/services/correction/base_processor.dart, but [hasReturn]
 /// was added.
 // TODO(brianwilkerson) Decide whether to unify the two classes.
-class _ReturnTypeComputer extends RecursiveAstVisitor {
+class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
   final TypeSystem typeSystem;
 
   DartType returnType;
@@ -1634,10 +1634,10 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
   _ReturnTypeComputer(this.typeSystem);
 
   @override
-  visitBlockFunctionBody(BlockFunctionBody node) {}
+  void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     hasReturn = true;
     // prepare expression
     Expression expression = node.expression;

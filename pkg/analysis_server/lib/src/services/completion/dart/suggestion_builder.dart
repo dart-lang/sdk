@@ -182,7 +182,7 @@ mixin ElementSuggestionBuilder {
 /**
  * This class creates suggestions based upon top-level elements.
  */
-class LibraryElementSuggestionBuilder extends SimpleElementVisitor
+class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
     with ElementSuggestionBuilder {
   @override
   final LibraryElement containingLibrary;
@@ -195,7 +195,7 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor
       this.containingLibrary, this.kind, this.typesOnly, this.instCreation);
 
   @override
-  visitClassElement(ClassElement element) {
+  void visitClassElement(ClassElement element) {
     if (instCreation) {
       element.visitChildren(this);
     } else {
@@ -204,7 +204,7 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor
   }
 
   @override
-  visitConstructorElement(ConstructorElement element) {
+  void visitConstructorElement(ConstructorElement element) {
     if (instCreation) {
       ClassElement classElem = element.enclosingElement;
       if (classElem != null) {
@@ -217,14 +217,14 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor
   }
 
   @override
-  visitExtensionElement(ExtensionElement element) {
+  void visitExtensionElement(ExtensionElement element) {
     if (!instCreation) {
       addSuggestion(element);
     }
   }
 
   @override
-  visitFunctionElement(FunctionElement element) {
+  void visitFunctionElement(FunctionElement element) {
     if (!typesOnly) {
       int relevance = element.library == containingLibrary
           ? DART_RELEVANCE_LOCAL_FUNCTION
@@ -234,14 +234,14 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor
   }
 
   @override
-  visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
+  void visitFunctionTypeAliasElement(FunctionTypeAliasElement element) {
     if (!instCreation) {
       addSuggestion(element);
     }
   }
 
   @override
-  visitPropertyAccessorElement(PropertyAccessorElement element) {
+  void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (!typesOnly) {
       PropertyInducingElement variable = element.variable;
       int relevance = variable.library == containingLibrary

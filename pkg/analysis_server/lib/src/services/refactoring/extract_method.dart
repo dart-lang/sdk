@@ -1076,7 +1076,7 @@ class _ExtractMethodAnalyzer extends StatementAnalyzer {
   bool _isFirstSelectedNode(AstNode node) => identical(firstSelectedNode, node);
 }
 
-class _GetSourcePatternVisitor extends GeneralizingAstVisitor {
+class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
   final SourceRange partRange;
   final _SourcePattern pattern;
   final List<SourceEdit> replaceEdits;
@@ -1084,7 +1084,7 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor {
   _GetSourcePatternVisitor(this.partRange, this.pattern, this.replaceEdits);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     SourceRange nodeRange = range.node(node);
     if (partRange.covers(nodeRange)) {
       Element element = _getLocalElement(node);
@@ -1119,16 +1119,16 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor {
   }
 }
 
-class _HasAwaitVisitor extends GeneralizingAstVisitor {
+class _HasAwaitVisitor extends GeneralizingAstVisitor<void> {
   bool result = false;
 
   @override
-  visitAwaitExpression(AwaitExpression node) {
+  void visitAwaitExpression(AwaitExpression node) {
     result = true;
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     if (node.awaitKeyword != null) {
       result = true;
     }
@@ -1136,14 +1136,14 @@ class _HasAwaitVisitor extends GeneralizingAstVisitor {
   }
 }
 
-class _HasReturnStatementVisitor extends RecursiveAstVisitor {
+class _HasReturnStatementVisitor extends RecursiveAstVisitor<void> {
   bool hasReturn = false;
 
   @override
-  visitBlockFunctionBody(BlockFunctionBody node) {}
+  void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     hasReturn = true;
   }
 }
@@ -1318,7 +1318,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
   }
 }
 
-class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor {
+class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor<void> {
   final ExtractMethodRefactoringImpl ref;
   final Element element;
   bool result = false;
@@ -1326,7 +1326,7 @@ class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor {
   _IsUsedAfterSelectionVisitor(this.ref, this.element);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     Element nodeElement = node.staticElement;
     if (identical(nodeElement, element)) {
       int nodeOffset = node.offset;
@@ -1350,7 +1350,7 @@ class _Occurrence {
   _Occurrence(this.range, this.isSelection);
 }
 
-class _ReturnTypeComputer extends RecursiveAstVisitor {
+class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
   final TypeSystem typeSystem;
 
   DartType returnType;
@@ -1358,10 +1358,10 @@ class _ReturnTypeComputer extends RecursiveAstVisitor {
   _ReturnTypeComputer(this.typeSystem);
 
   @override
-  visitBlockFunctionBody(BlockFunctionBody node) {}
+  void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     // prepare expression
     Expression expression = node.expression;
     if (expression == null) {

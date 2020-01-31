@@ -107,7 +107,7 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-class _ConflictValidatorVisitor extends RecursiveAstVisitor {
+class _ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   final RefactoringStatus result;
   final String newName;
   final LocalElement target;
@@ -122,7 +122,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
   );
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     Element nodeElement = node.staticElement;
     if (nodeElement != null && nodeElement.name == newName) {
       // Duplicate declaration.

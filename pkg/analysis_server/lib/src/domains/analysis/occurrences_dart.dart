@@ -22,11 +22,11 @@ void addDartOccurrences(OccurrencesCollector collector, CompilationUnit unit) {
   });
 }
 
-class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor {
+class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   final Map<Element, List<int>> elementsOffsets = <Element, List<int>>{};
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     if (element != null) {
       _addOccurrence(element, node.offset);

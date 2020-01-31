@@ -48,7 +48,7 @@ class KeywordContributor extends DartCompletionContributor {
 /**
  * A visitor for generating keyword suggestions.
  */
-class _KeywordVisitor extends GeneralizingAstVisitor {
+class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   final DartCompletionRequest request;
   final Object entity;
   final List<CompletionSuggestion> suggestions;
@@ -64,7 +64,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       (body is BlockFunctionBody && body.beginToken.isSynthetic);
 
   @override
-  visitArgumentList(ArgumentList node) {
+  void visitArgumentList(ArgumentList node) {
     if (request is DartCompletionRequestImpl) {
       //TODO(danrubel) consider adding opType to the API then remove this cast
       OpType opType = (request as DartCompletionRequestImpl).opType;
@@ -102,7 +102,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitAsExpression(AsExpression node) {
+  void visitAsExpression(AsExpression node) {
     if (identical(entity, node.asOperator) &&
         node.expression is ParenthesizedExpression) {
       _addSuggestion(Keyword.ASYNC, DART_RELEVANCE_HIGH);
@@ -112,7 +112,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitBlock(Block node) {
+  void visitBlock(Block node) {
     Statement prevStmt = OpType.getPreviousStatement(node, entity);
     if (prevStmt is TryStatement) {
       if (prevStmt.finallyBlock == null) {
@@ -154,7 +154,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(ClassDeclaration node) {
     // Don't suggest class name
     if (entity == node.name) {
       return;
@@ -176,7 +176,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(CompilationUnit node) {
     var previousMember;
     for (var member in node.childEntities) {
       if (entity == member) {
@@ -245,7 +245,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.initializers.isNotEmpty) {
       if (entity is ConstructorInitializer) {
         _addSuggestion(Keyword.ASSERT);
@@ -272,26 +272,26 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitDefaultFormalParameter(DefaultFormalParameter node) {
+  void visitDefaultFormalParameter(DefaultFormalParameter node) {
     if (entity == node.defaultValue) {
       _addExpressionKeywords(node);
     }
   }
 
   @override
-  visitExpression(Expression node) {
+  void visitExpression(Expression node) {
     _addExpressionKeywords(node);
   }
 
   @override
-  visitExpressionFunctionBody(ExpressionFunctionBody node) {
+  void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
     }
   }
 
   @override
-  visitExtensionDeclaration(ExtensionDeclaration node) {
+  void visitExtensionDeclaration(ExtensionDeclaration node) {
     // Don't suggest extension name
     if (entity == node.name) {
       return;
@@ -306,7 +306,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(FieldDeclaration node) {
     VariableDeclarationList fields = node.fields;
     if (entity != fields) {
       return;
@@ -334,7 +334,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForEachParts(ForEachParts node) {
+  void visitForEachParts(ForEachParts node) {
     if (entity == node.inKeyword) {
       Token previous = node.findPrevious(node.inKeyword);
       if (previous is SyntheticStringToken && previous.lexeme == 'in') {
@@ -350,14 +350,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForElement(ForElement node) {
+  void visitForElement(ForElement node) {
     _addCollectionElementKeywords();
     _addExpressionKeywords(node);
     return super.visitForElement(node);
   }
 
   @override
-  visitFormalParameterList(FormalParameterList node) {
+  void visitFormalParameterList(FormalParameterList node) {
     AstNode constructorDeclaration =
         node.thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDeclaration != null) {
@@ -380,7 +380,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForParts(ForParts node) {
+  void visitForParts(ForParts node) {
     // Actual: for (int x i^)
     // Parsed: for (int x; i^;)
     // Handle the degenerate case while typing - for (int x i^)
@@ -395,7 +395,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitForStatement(ForStatement node) {
+  void visitForStatement(ForStatement node) {
     // Actual: for (va^)
     // Parsed: for (va^; ;)
     if (node.forLoopParts == entity) {
@@ -404,7 +404,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(FunctionExpression node) {
     if (entity == node.body) {
       FunctionBody body = node.body;
       if (!body.isAsynchronous) {
@@ -423,14 +423,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitIfElement(IfElement node) {
+  void visitIfElement(IfElement node) {
     _addCollectionElementKeywords();
     _addExpressionKeywords(node);
     return super.visitIfElement(node);
   }
 
   @override
-  visitIfStatement(IfStatement node) {
+  void visitIfStatement(IfStatement node) {
     if (_isPreviousTokenSynthetic(entity, TokenType.CLOSE_PAREN)) {
       // analyzer parser
       // Actual: if (x i^)
@@ -452,7 +452,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     if (entity == node.asKeyword) {
       if (node.deferredKeyword == null) {
         _addSuggestion(Keyword.DEFERRED, DART_RELEVANCE_HIGH);
@@ -469,7 +469,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (entity == node.constructorName) {
       // no keywords in 'new ^' expression
     } else {
@@ -478,7 +478,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitIsExpression(IsExpression node) {
+  void visitIsExpression(IsExpression node) {
     if (entity == node.isOperator) {
       _addSuggestion(Keyword.IS, DART_RELEVANCE_HIGH);
     } else {
@@ -487,18 +487,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitLibraryIdentifier(LibraryIdentifier node) {
+  void visitLibraryIdentifier(LibraryIdentifier node) {
     // no suggestions
   }
 
   @override
-  visitListLiteral(ListLiteral node) {
+  void visitListLiteral(ListLiteral node) {
     _addCollectionElementKeywords();
     super.visitListLiteral(node);
   }
 
   @override
-  visitMethodDeclaration(MethodDeclaration node) {
+  void visitMethodDeclaration(MethodDeclaration node) {
     if (entity == node.body) {
       if (isEmptyBody(node.body)) {
         _addClassBodyKeywords();
@@ -516,7 +516,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     if (entity == node.methodName || entity == node.argumentList) {
       // no keywords in '.' expressions or type argument lists
       // Note that we're checking the argumentList rather than the typeArgumentList
@@ -529,7 +529,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(MixinDeclaration node) {
     // Don't suggest mixin name
     if (entity == node.name) {
       return;
@@ -551,19 +551,19 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitNamedExpression(NamedExpression node) {
+  void visitNamedExpression(NamedExpression node) {
     if (entity is SimpleIdentifier && entity == node.expression) {
       _addExpressionKeywords(node);
     }
   }
 
   @override
-  visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     // ignored
   }
 
   @override
-  visitParenthesizedExpression(ParenthesizedExpression node) {
+  void visitParenthesizedExpression(ParenthesizedExpression node) {
     Expression expression = node.expression;
     if (expression is Identifier || expression is PropertyAccess) {
       if (entity == node.rightParenthesis) {
@@ -580,14 +580,14 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitPrefixedIdentifier(PrefixedIdentifier node) {
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
     if (entity != node.identifier) {
       _addExpressionKeywords(node);
     }
   }
 
   @override
-  visitPropertyAccess(PropertyAccess node) {
+  void visitPropertyAccess(PropertyAccess node) {
     // suggestions before '.' but not after
     if (entity != node.propertyName) {
       super.visitPropertyAccess(node);
@@ -595,37 +595,37 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
     }
   }
 
   @override
-  visitSetOrMapLiteral(SetOrMapLiteral node) {
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _addCollectionElementKeywords();
     super.visitSetOrMapLiteral(node);
   }
 
   @override
-  visitSpreadElement(SpreadElement node) {
+  void visitSpreadElement(SpreadElement node) {
     _addExpressionKeywords(node);
     return super.visitSpreadElement(node);
   }
 
   @override
-  visitStringLiteral(StringLiteral node) {
+  void visitStringLiteral(StringLiteral node) {
     // ignored
   }
 
   @override
-  visitSwitchCase(SwitchCase node) {
+  void visitSwitchCase(SwitchCase node) {
     _addStatementKeywords(node);
     return super.visitSwitchCase(node);
   }
 
   @override
-  visitSwitchStatement(SwitchStatement node) {
+  void visitSwitchStatement(SwitchStatement node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
     } else if (entity == node.rightBracket) {
@@ -651,7 +651,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitTryStatement(TryStatement node) {
+  void visitTryStatement(TryStatement node) {
     var obj = entity;
     if (obj is CatchClause ||
         (obj is KeywordToken && obj.value() == Keyword.FINALLY)) {
@@ -663,7 +663,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(VariableDeclaration node) {
     if (entity == node.initializer) {
       _addExpressionKeywords(node);
     }

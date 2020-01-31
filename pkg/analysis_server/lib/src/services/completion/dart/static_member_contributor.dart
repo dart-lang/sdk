@@ -46,7 +46,7 @@ class StaticMemberContributor extends DartCompletionContributor {
  * This class visits elements in a class and provides suggestions based upon
  * the visible static members in that class.
  */
-class _SuggestionBuilder extends GeneralizingElementVisitor {
+class _SuggestionBuilder extends GeneralizingElementVisitor<void> {
   /**
    * The library containing the unit in which the completion is requested.
    */
@@ -60,41 +60,41 @@ class _SuggestionBuilder extends GeneralizingElementVisitor {
   _SuggestionBuilder(this.containingLibrary);
 
   @override
-  visitClassElement(ClassElement element) {
+  void visitClassElement(ClassElement element) {
     element.visitChildren(this);
   }
 
   @override
-  visitConstructorElement(ConstructorElement element) {
+  void visitConstructorElement(ConstructorElement element) {
     _addSuggestion(element);
   }
 
   @override
-  visitElement(Element element) {
+  void visitElement(Element element) {
     // ignored
   }
 
   @override
-  visitExtensionElement(ExtensionElement element) {
+  void visitExtensionElement(ExtensionElement element) {
     element.visitChildren(this);
   }
 
   @override
-  visitFieldElement(FieldElement element) {
+  void visitFieldElement(FieldElement element) {
     if (element.isStatic) {
       _addSuggestion(element);
     }
   }
 
   @override
-  visitMethodElement(MethodElement element) {
+  void visitMethodElement(MethodElement element) {
     if (element.isStatic && !element.isOperator) {
       _addSuggestion(element);
     }
   }
 
   @override
-  visitPropertyAccessorElement(PropertyAccessorElement element) {
+  void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (element.isStatic) {
       _addSuggestion(element);
     }

@@ -42,23 +42,23 @@ class UriContributor extends DartCompletionContributor {
   }
 }
 
-class _UriSuggestionBuilder extends SimpleAstVisitor {
+class _UriSuggestionBuilder extends SimpleAstVisitor<void> {
   final DartCompletionRequest request;
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
   _UriSuggestionBuilder(this.request);
 
   @override
-  visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirective node) {
     visitNamespaceDirective(node);
   }
 
   @override
-  visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     visitNamespaceDirective(node);
   }
 
-  visitNamespaceDirective(NamespaceDirective node) {
+  void visitNamespaceDirective(NamespaceDirective node) {
     StringLiteral uri = node.uri;
     if (uri is SimpleStringLiteral) {
       int offset = request.offset;
@@ -99,7 +99,7 @@ class _UriSuggestionBuilder extends SimpleAstVisitor {
   }
 
   @override
-  visitSimpleStringLiteral(SimpleStringLiteral node) {
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
     AstNode parent = node.parent;
     if (parent is NamespaceDirective && parent.uri == node) {
       String partialUri = _extractPartialUri(node);

@@ -753,6 +753,39 @@ lsp.Element toElement(server.LineInfo lineInfo, server.Element element) =>
       element.returnType,
     );
 
+lsp.FlutterOutline toFlutterOutline(
+        server.LineInfo lineInfo, server.FlutterOutline outline) =>
+    lsp.FlutterOutline(
+      outline.kind.name,
+      outline.label,
+      outline.className,
+      outline.variableName,
+      outline.attributes != null
+          ? outline.attributes
+              .map(
+                  (attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
+              .toList()
+          : null,
+      outline.dartElement != null
+          ? toElement(lineInfo, outline.dartElement)
+          : null,
+      toRange(lineInfo, outline.offset, outline.length),
+      toRange(lineInfo, outline.codeOffset, outline.codeLength),
+      outline.children != null
+          ? outline.children.map((c) => toFlutterOutline(lineInfo, c)).toList()
+          : null,
+    );
+
+lsp.FlutterOutlineAttribute toFlutterOutlineAttribute(
+        server.LineInfo lineInfo, server.FlutterOutlineAttribute attribute) =>
+    lsp.FlutterOutlineAttribute(
+        attribute.name,
+        attribute.label,
+        attribute.valueLocation != null
+            ? toRange(lineInfo, attribute.valueLocation.offset,
+                attribute.valueLocation.length)
+            : null);
+
 lsp.FoldingRange toFoldingRange(
     server.LineInfo lineInfo, server.FoldingRegion region) {
   final range = toRange(lineInfo, region.offset, region.length);
@@ -822,39 +855,6 @@ lsp.Outline toOutline(server.LineInfo lineInfo, server.Outline outline) =>
           ? outline.children.map((c) => toOutline(lineInfo, c)).toList()
           : null,
     );
-
-lsp.FlutterOutline toFlutterOutline(
-        server.LineInfo lineInfo, server.FlutterOutline outline) =>
-    lsp.FlutterOutline(
-      outline.kind.name,
-      outline.label,
-      outline.className,
-      outline.variableName,
-      outline.attributes != null
-          ? outline.attributes
-              .map(
-                  (attribute) => toFlutterOutlineAttribute(lineInfo, attribute))
-              .toList()
-          : null,
-      outline.dartElement != null
-          ? toElement(lineInfo, outline.dartElement)
-          : null,
-      toRange(lineInfo, outline.offset, outline.length),
-      toRange(lineInfo, outline.codeOffset, outline.codeLength),
-      outline.children != null
-          ? outline.children.map((c) => toFlutterOutline(lineInfo, c)).toList()
-          : null,
-    );
-
-lsp.FlutterOutlineAttribute toFlutterOutlineAttribute(
-        server.LineInfo lineInfo, server.FlutterOutlineAttribute attribute) =>
-    lsp.FlutterOutlineAttribute(
-        attribute.name,
-        attribute.label,
-        attribute.valueLocation != null
-            ? toRange(lineInfo, attribute.valueLocation.offset,
-                attribute.valueLocation.length)
-            : null);
 
 lsp.Position toPosition(server.CharacterLocation location) {
   // LSP is zero-based, but analysis server is 1-based.
@@ -977,7 +977,7 @@ lsp.WorkspaceEdit toWorkspaceEdit(
 
 Map<String, List<lsp.TextEdit>> toWorkspaceEditChanges(
     List<FileEditInformation> edits) {
-  createEdit(FileEditInformation file) {
+  MapEntry<String, List<lsp.TextEdit>> createEdit(FileEditInformation file) {
     final edits =
         file.edits.map((edit) => toTextEdit(file.lineInfo, edit)).toList();
     return MapEntry(file.doc.uri, edits);

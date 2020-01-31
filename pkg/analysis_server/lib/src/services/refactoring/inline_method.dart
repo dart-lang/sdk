@@ -660,14 +660,14 @@ class _ReferenceProcessor {
   }
 }
 
-class _ReturnsValidatorVisitor extends RecursiveAstVisitor {
+class _ReturnsValidatorVisitor extends RecursiveAstVisitor<void> {
   final RefactoringStatus result;
   int _numReturns = 0;
 
   _ReturnsValidatorVisitor(this.result);
 
   @override
-  visitReturnStatement(ReturnStatement node) {
+  void visitReturnStatement(ReturnStatement node) {
     _numReturns++;
     if (_numReturns == 2) {
       result.addError('Ambiguous return value.', newLocation_fromNode(node));
@@ -765,7 +765,7 @@ class _SourcePart {
 /**
  * A visitor that fills [_SourcePart] with fields, parameters and variables.
  */
-class _VariablesVisitor extends GeneralizingAstVisitor {
+class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   /**
    * The [ExecutableElement] being inlined.
    */
@@ -786,7 +786,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
   _VariablesVisitor(this.methodElement, this.bodyRange, this.result);
 
   @override
-  visitNode(AstNode node) {
+  void visitNode(AstNode node) {
     SourceRange nodeRange = range.node(node);
     if (!bodyRange.intersects(nodeRange)) {
       return null;
@@ -795,7 +795,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     SourceRange nodeRange = range.node(node);
     if (bodyRange.covers(nodeRange)) {
       _addMemberQualifier(node);
@@ -805,7 +805,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitThisExpression(ThisExpression node) {
+  void visitThisExpression(ThisExpression node) {
     int offset = node.offset;
     if (bodyRange.contains(offset)) {
       result.addExplicitThisOffset(offset);

@@ -52,13 +52,13 @@ typedef VoidElementProcessor = void Function(Element element);
 /**
  * A visitor that finds the deep-most [Element] that contains the [nameOffset].
  */
-class _ElementByNameOffsetVisitor extends GeneralizingElementVisitor {
+class _ElementByNameOffsetVisitor extends GeneralizingElementVisitor<void> {
   final int nameOffset;
 
   _ElementByNameOffsetVisitor(this.nameOffset);
 
   @override
-  visitElement(Element element) {
+  void visitElement(Element element) {
     if (element.nameOffset != -1 &&
         !element.isSynthetic &&
         element.nameOffset == nameOffset) {
@@ -71,7 +71,7 @@ class _ElementByNameOffsetVisitor extends GeneralizingElementVisitor {
 /**
  * A [GeneralizingElementVisitor] adapter for [ElementProcessor].
  */
-class _ElementVisitorAdapter extends GeneralizingElementVisitor {
+class _ElementVisitorAdapter extends GeneralizingElementVisitor<void> {
   final BoolElementProcessor processor;
 
   _ElementVisitorAdapter(this.processor);
@@ -88,7 +88,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor {
 /**
  * A [GeneralizingElementVisitor] for visiting top-level elements.
  */
-class _TopLevelElementsVisitor extends GeneralizingElementVisitor {
+class _TopLevelElementsVisitor extends GeneralizingElementVisitor<void> {
   final VoidElementProcessor processor;
 
   _TopLevelElementsVisitor(this.processor);

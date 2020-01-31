@@ -3161,13 +3161,13 @@ class AssistProcessor extends BaseProcessor {
   }
 }
 
-class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor {
+class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor<void> {
   final _SimpleIdentifierVisitor visitor;
 
   _SimpleIdentifierRecursiveAstVisitor(this.visitor);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     visitor(node);
   }
 }
@@ -3176,13 +3176,13 @@ class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor {
  * A visitor used to find all of the classes that define members referenced via
  * `super`.
  */
-class _SuperclassReferenceFinder extends RecursiveAstVisitor {
+class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
   final List<ClassElement> referencedClasses = <ClassElement>[];
 
   _SuperclassReferenceFinder();
 
   @override
-  visitSuperExpression(SuperExpression node) {
+  void visitSuperExpression(SuperExpression node) {
     AstNode parent = node.parent;
     if (parent is BinaryExpression) {
       _addElement(parent.staticElement);
