@@ -3637,6 +3637,7 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 
 void Class::Finalize() const {
   auto thread = Thread::Current();
+  auto Z = thread->zone();
   Isolate* isolate = thread->isolate();
   ASSERT(thread->IsMutatorThread());
   ASSERT(!isolate->all_classes_finalized());
@@ -3655,16 +3656,24 @@ void Class::Finalize() const {
       }
     }
   }
-  const auto& functions = Array::Handle(thread->zone(), this->functions());
-  auto& function = Function::Handle(thread->zone());
-  for (intptr_t i = 0; i < functions.Length(); ++i) {
-    function ^= functions.At(i);
-    if (function.IsGenerativeConstructor() && function.is_const()) {
-      ASSERT(SuperClass() == Class::null() ||
-             Class::Handle(SuperClass()).is_const());
+
+  if (SuperClass() == Class::null() ||
+      Class::Handle(Z, SuperClass()).is_const()) {
+    const auto& fields = Array::Handle(Z, this->fields());
+    auto& field = Field::Handle(Z);
+    bool is_const = true;
+    for (intptr_t i = 0; i < fields.Length(); ++i) {
+      field ^= fields.At(i);
+      if (!field.is_static() && !field.is_final()) {
+        is_const = false;
+        break;
+      }
+    }
+    if (is_const) {
       set_is_const();
     }
   }
+
   set_is_finalized();
 }
 
