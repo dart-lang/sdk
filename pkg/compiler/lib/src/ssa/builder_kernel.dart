@@ -387,6 +387,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return options.useNewRti;
       case 'VARIANCE':
         return options.enableVariance;
+      case 'LEGACY':
+        return options.useLegacySubtyping;
       default:
         return null;
     }
