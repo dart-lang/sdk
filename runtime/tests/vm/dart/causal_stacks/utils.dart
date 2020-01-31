@@ -591,8 +591,8 @@ Future<void> doTestsCausal() async {
           ]);
 }
 
-// For: --no-causal-async-stacks
-Future<void> doTestsNoCausal() async {
+// For: --no-causal-async-stacks --no-lazy-async-stacks
+Future<void> doTestsNoCausalNoLazy() async {
   final allYieldExpected = const <String>[
     r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
     r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
@@ -631,7 +631,7 @@ Future<void> doTestsNoCausal() async {
             r'^#10     doTestAwait ',
             r'^#11     _AsyncAwaitCompleter.start ',
             r'^#12     doTestAwait ',
-            r'^#13     doTestsNoCausal ',
+            r'^#13     doTestsNoCausalNoLazy ',
             r'^#14     _RootZone.runUnary ',
             r'^#15     _FutureListener.handleValue ',
             r'^#16     Future._propagateToListeners.handleValueCallback ',
@@ -682,7 +682,7 @@ Future<void> doTestsNoCausal() async {
             r'^#10     doTestAwaitThen ',
             r'^#11     _AsyncAwaitCompleter.start ',
             r'^#12     doTestAwaitThen ',
-            r'^#13     doTestsNoCausal ',
+            r'^#13     doTestsNoCausalNoLazy ',
             r'^#14     _RootZone.runUnary ',
             r'^#15     _FutureListener.handleValue ',
             r'^#16     Future._propagateToListeners.handleValueCallback ',
@@ -728,7 +728,7 @@ Future<void> doTestsNoCausal() async {
             r'^#10     doTestAwaitCatchError ',
             r'^#11     _AsyncAwaitCompleter.start ',
             r'^#12     doTestAwaitCatchError ',
-            r'^#13     doTestsNoCausal ',
+            r'^#13     doTestsNoCausalNoLazy ',
             r'^#14     _RootZone.runUnary ',
             r'^#15     _FutureListener.handleValue ',
             r'^#16     Future._propagateToListeners.handleValueCallback ',
