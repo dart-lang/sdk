@@ -2505,7 +2505,17 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv, bool isLegacy) {
 
     var sBounds = Rti._getGenericFunctionBounds(s);
     var tBounds = Rti._getGenericFunctionBounds(t);
-    if (!typesEqual(sBounds, tBounds, isLegacy)) return false;
+    int sLength = _Utils.arrayLength(sBounds);
+    int tLength = _Utils.arrayLength(tBounds);
+    if (sLength != tLength) return false;
+    for (int i = 0; i < sLength; i++) {
+      var sBound = _Utils.arrayAt(sBounds, i);
+      var tBound = _Utils.arrayAt(tBounds, i);
+      if (!_isSubtype(universe, sBound, sEnv, tBound, tEnv, isLegacy) ||
+          !_isSubtype(universe, tBound, tEnv, sBound, sEnv, isLegacy)) {
+        return false;
+      }
+    }
 
     sEnv = sEnv == null ? sBounds : _Utils.arrayConcat(sBounds, sEnv);
     tEnv = tEnv == null ? tBounds : _Utils.arrayConcat(tBounds, tEnv);
@@ -2693,91 +2703,6 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv, bool isLegacy) {
   }
   return true;
 }
-
-/// Types are equal if they are structurally equal up to renaming of bound type
-/// variables and equating all top types.
-///
-/// We ignore renaming of bound type variables because we operate on de Bruijn
-/// indices, not names.
-bool typeEqual(Rti s, Rti t, bool isLegacy) {
-  if (_Utils.isIdentical(s, t)) return true;
-
-  if (isTopType(s, isLegacy)) return isTopType(t, isLegacy);
-
-  int sKind = Rti._getKind(s);
-  int tKind = Rti._getKind(t);
-  if (sKind != tKind) return false;
-
-  switch (sKind) {
-    case Rti.kindStar:
-    case Rti.kindQuestion:
-    case Rti.kindFutureOr:
-      return typeEqual(_castToRti(Rti._getPrimary(s)),
-          _castToRti(Rti._getPrimary(t)), isLegacy);
-
-    case Rti.kindInterface:
-      if (Rti._getInterfaceName(s) != Rti._getInterfaceName(t)) return false;
-      return typesEqual(Rti._getInterfaceTypeArguments(s),
-          Rti._getInterfaceTypeArguments(t), isLegacy);
-
-    case Rti.kindBinding:
-      return typeEqual(
-              Rti._getBindingBase(s), Rti._getBindingBase(t), isLegacy) &&
-          typesEqual(Rti._getBindingArguments(s), Rti._getBindingArguments(t),
-              isLegacy);
-
-    case Rti.kindFunction:
-      return typeEqual(
-              Rti._getReturnType(s), Rti._getReturnType(t), isLegacy) &&
-          functionParametersEqual(Rti._getFunctionParameters(s),
-              Rti._getFunctionParameters(t), isLegacy);
-
-    case Rti.kindGenericFunction:
-      return typeEqual(Rti._getGenericFunctionBase(s),
-              Rti._getGenericFunctionBase(t), isLegacy) &&
-          typesEqual(Rti._getGenericFunctionBounds(s),
-              Rti._getGenericFunctionBounds(t), isLegacy);
-
-    default:
-      return false;
-  }
-}
-
-bool typesEqual(Object sArray, Object tArray, isLegacy) {
-  int sLength = _Utils.arrayLength(sArray);
-  int tLength = _Utils.arrayLength(tArray);
-  if (sLength != tLength) return false;
-  for (int i = 0; i < sLength; i++) {
-    if (!typeEqual(_castToRti(_Utils.arrayAt(sArray, i)),
-        _castToRti(_Utils.arrayAt(tArray, i)), isLegacy)) return false;
-  }
-  return true;
-}
-
-bool namedTypesEqual(Object sArray, Object tArray, isLegacy) {
-  int sLength = _Utils.arrayLength(sArray);
-  int tLength = _Utils.arrayLength(tArray);
-  assert(sLength.isEven);
-  assert(tLength.isEven);
-  if (sLength != tLength) return false;
-  for (int i = 0; i < sLength; i += 2) {
-    if (_Utils.asString(_Utils.arrayAt(sArray, i)) !=
-        _Utils.asString(_Utils.arrayAt(tArray, i))) return false;
-    if (!typeEqual(_castToRti(_Utils.arrayAt(sArray, i + 1)),
-        _castToRti(_Utils.arrayAt(tArray, i + 1)), isLegacy)) return false;
-  }
-  return true;
-}
-
-// TODO(fishythefish): Support required named parameters.
-bool functionParametersEqual(_FunctionParameters sParameters,
-        _FunctionParameters tParameters, isLegacy) =>
-    typesEqual(_FunctionParameters._getRequiredPositional(sParameters),
-        _FunctionParameters._getRequiredPositional(tParameters), isLegacy) &&
-    typesEqual(_FunctionParameters._getOptionalPositional(sParameters),
-        _FunctionParameters._getOptionalPositional(tParameters), isLegacy) &&
-    namedTypesEqual(_FunctionParameters._getOptionalNamed(sParameters),
-        _FunctionParameters._getOptionalNamed(tParameters), isLegacy);
 
 bool isLegacyTopType(Rti t) => isTopType(t, true);
 bool isNnbdTopType(Rti t) => isTopType(t, false);

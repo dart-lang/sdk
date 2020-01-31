@@ -46,12 +46,16 @@ additional details see the [announcement].
   enforced consistently in `ddc`. It will now be enforced in both.
 * JS interop classes with an index operator are now static errors.
 
+ [announcement]: https://github.com/dart-lang/sdk/issues/38994
+
 #### Dart2JS
 
 * JS interop classes with an index operator are now static errors instead of
   causing invalid code in dart2js.
-
- [announcement]: https://github.com/dart-lang/sdk/issues/38994
+* **Breaking Change**: The subtyping rule for generic functions is now more
+  forgiving. Corresponding type parameter bounds now only need to be mutual
+  subtypes rather than structurally equal up to renaming of bound type variables
+  and equating all top types.
 
 #### Linter
 

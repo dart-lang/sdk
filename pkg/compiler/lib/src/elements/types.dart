@@ -82,21 +82,6 @@ abstract class DartType {
 
   bool _equals(DartType other, _Assumptions assumptions);
 
-  /// Returns `true` if `this` is structurally equal to [other] up to renaming
-  /// of bound type variables (trivially true) and equating all top types.
-  ///
-  /// This method handles the common cases of identity and top types. Types
-  /// should add any additional logic by implementing
-  /// [_equalsModuloTopInternal].
-  bool _equalsModuloTop(DartType other, bool isLegacy) {
-    other = other.unaliased;
-    if (identical(this, other)) return true;
-    if (_isTop(isLegacy)) return other._isTop(isLegacy);
-    return _equalsModuloTopInternal(other, isLegacy);
-  }
-
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy);
-
   @override
   String toString() => _DartTypeToStringVisitor().run(this);
 }
@@ -194,14 +179,6 @@ class LegacyType extends DartType {
 
   bool _equalsInternal(LegacyType other, _Assumptions assumptions) =>
       baseType._equals(other.baseType, assumptions);
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) {
-    if (other is LegacyType) {
-      return baseType._equalsModuloTop(other.baseType, isLegacy);
-    }
-    return false;
-  }
 }
 
 class NullableType extends DartType {
@@ -243,14 +220,6 @@ class NullableType extends DartType {
 
   bool _equalsInternal(NullableType other, _Assumptions assumptions) =>
       baseType._equals(other.baseType, assumptions);
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) {
-    if (other is NullableType) {
-      return baseType._equalsModuloTop(other.baseType, isLegacy);
-    }
-    return false;
-  }
 }
 
 class InterfaceType extends DartType {
@@ -321,15 +290,6 @@ class InterfaceType extends DartType {
     return identical(element, other.element) &&
         _equalTypes(typeArguments, other.typeArguments, assumptions);
   }
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) {
-    if (other is InterfaceType) {
-      return identical(element, other.element) &&
-          _equalTypesModuloTop(typeArguments, other.typeArguments, isLegacy);
-    }
-    return false;
-  }
 }
 
 class TypedefType extends DartType {
@@ -392,13 +352,6 @@ class TypedefType extends DartType {
     return identical(element, other.element) &&
         _equalTypes(typeArguments, other.typeArguments, assumptions);
   }
-
-  @override
-  bool _equalsModuloTop(DartType other, bool isLegacy) =>
-      unaliased._equalsModuloTop(other, isLegacy);
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) => false;
 }
 
 class TypeVariableType extends DartType {
@@ -429,14 +382,6 @@ class TypeVariableType extends DartType {
 
   @override
   bool _equals(DartType other, _Assumptions assumptions) {
-    if (other is TypeVariableType) {
-      return identical(other.element, element);
-    }
-    return false;
-  }
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool legacy) {
     if (other is TypeVariableType) {
       return identical(other.element, element);
     }
@@ -492,14 +437,6 @@ class FunctionTypeVariable extends DartType {
   }
 
   @override
-  bool _equalsModuloTopInternal(DartType other, bool legacy) {
-    if (other is FunctionTypeVariable) {
-      return index == other.index;
-    }
-    return false;
-  }
-
-  @override
   R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
       visitor.visitFunctionTypeVariable(this, argument);
 }
@@ -519,9 +456,6 @@ class NeverType extends DartType {
   @override
   bool _equals(DartType other, _Assumptions assumptions) =>
       identical(this, other);
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) => false;
 }
 
 class VoidType extends DartType {
@@ -543,9 +477,6 @@ class VoidType extends DartType {
   bool _equals(DartType other, _Assumptions assumptions) {
     return identical(this, other);
   }
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) => false;
 }
 
 class DynamicType extends DartType {
@@ -567,9 +498,6 @@ class DynamicType extends DartType {
   bool _equals(DartType other, _Assumptions assumptions) {
     return identical(this, other);
   }
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) => false;
 }
 
 class ErasedType extends DartType {
@@ -590,9 +518,6 @@ class ErasedType extends DartType {
   @override
   bool _equals(DartType other, _Assumptions assumptions) =>
       identical(this, other);
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) => false;
 }
 
 /// Represents a type which is simultaneously top and bottom.
@@ -624,9 +549,6 @@ class AnyType extends DartType {
   @override
   bool _equals(DartType other, _Assumptions assumptions) =>
       identical(this, other);
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) => false;
 }
 
 class FunctionType extends DartType {
@@ -753,23 +675,6 @@ class FunctionType extends DartType {
     }
     return result;
   }
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) {
-    if (other is FunctionType) {
-      return returnType._equalsModuloTop(other.returnType, isLegacy) &&
-          _equalTypesModuloTop(
-              parameterTypes, other.parameterTypes, isLegacy) &&
-          _equalTypesModuloTop(
-              optionalParameterTypes, other.optionalParameterTypes, isLegacy) &&
-          equalElements(namedParameters, other.namedParameters) &&
-          _equalTypesModuloTop(
-              namedParameterTypes, other.namedParameterTypes, isLegacy) &&
-          _equalTypesModuloTop(
-              typeVariableBounds, other.typeVariableBounds, isLegacy);
-    }
-    return false;
-  }
 }
 
 class FutureOrType extends DartType {
@@ -812,14 +717,6 @@ class FutureOrType extends DartType {
   bool _equalsInternal(FutureOrType other, _Assumptions assumptions) {
     return typeArgument._equals(other.typeArgument, assumptions);
   }
-
-  @override
-  bool _equalsModuloTopInternal(DartType other, bool isLegacy) {
-    if (other is FutureOrType) {
-      return typeArgument._equalsModuloTop(other.typeArgument, isLegacy);
-    }
-    return false;
-  }
 }
 
 bool _equalTypes(List<DartType> a, List<DartType> b, _Assumptions assumptions) {
@@ -828,14 +725,6 @@ bool _equalTypes(List<DartType> a, List<DartType> b, _Assumptions assumptions) {
     if (!a[index]._equals(b[index], assumptions)) {
       return false;
     }
-  }
-  return true;
-}
-
-bool _equalTypesModuloTop(List<DartType> a, List<DartType> b, bool isLegacy) {
-  if (a.length != b.length) return false;
-  for (int i = 0; i < a.length; i++) {
-    if (!a[i]._equalsModuloTop(b[i], isLegacy)) return false;
   }
   return true;
 }
@@ -1756,9 +1645,17 @@ abstract class DartTypes {
         if (s is FunctionType) {
           if (t.isGeneric) {
             if (!s.isGeneric) return false;
-            if (!_equalTypesModuloTop(s.typeVariableBounds,
-                t.typeVariableBounds, useLegacySubtyping)) {
+            List<DartType> sBounds = s.typeVariableBounds;
+            List<DartType> tBounds = t.typeVariableBounds;
+            int length = sBounds.length;
+            if (length != tBounds.length) {
               return false;
+            }
+            for (int i = 0; i < length; i++) {
+              if (!_isSubtype(sBounds[i], sEnv, tBounds[i], tEnv) ||
+                  !_isSubtype(tBounds[i], tEnv, sBounds[i], sEnv)) {
+                return false;
+              }
             }
             sEnv = sEnv.toSet()..addAll(s.typeVariables);
             tEnv = tEnv.toSet()..addAll(t.typeVariables);
