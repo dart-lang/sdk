@@ -1290,6 +1290,11 @@ class ClassHierarchyNodeBuilder {
 
       superclasses = new List<DartType>(supernode.superclasses.length + 1);
       DartType supertype = classBuilder.supertype.build(classBuilder.library);
+      if (supertype is! InterfaceType) {
+        // If the superclass is not an interface type we use Object instead.
+        // A similar normalization is performed on [supernode] above.
+        supertype = hierarchy.coreTypes.objectNonNullableRawType;
+      }
       superclasses.setRange(0, superclasses.length - 1,
           substSupertypes(supertype, supernode.superclasses));
       superclasses[superclasses.length - 1] = recordSupertype(supertype);

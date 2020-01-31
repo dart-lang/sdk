@@ -38,3 +38,8 @@ abstract class Class3b extends Class3a {
 class Class3c extends Class3b {
   /*member: Class3c.==:bool* Function(Object*)**/
 }
+
+/*class: Foo:Foo,Object*/
+class Foo extends /*error: TypeNotFound*/ Unresolved {
+  /*member: Foo.==:bool* Function(Object*)**/
+}
