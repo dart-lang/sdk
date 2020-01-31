@@ -3791,6 +3791,13 @@ NullableOperatorCallWarning:
   template: "Operator '#name' is called on '#type' which is potentially null."
   severity: WARNING
 
+NullableTearoffError:
+  template: "Can't tear off method '#name' from a potentially null value."
+
+NullableTearoffWarning:
+  template: "Tearing off method '#name' from a potentially null value."
+  severity: WARNING
+
 ThrowingNotAssignableToObjectError:
   template: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
 

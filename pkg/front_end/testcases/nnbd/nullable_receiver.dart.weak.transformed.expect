@@ -48,14 +48,17 @@ library;
 //   b.toString(0);
 //     ^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:12: Warning: Assigning value of type 'void Function()?' to a variable of type 'Function'.
-//  - 'Function' is from 'dart:core'.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:17: Warning: Tearing off method 'call' from a potentially null value.
 //   Function f1 = a;
-//            ^
+//                 ^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:19: Warning: Assigning value of type 'void Function()?' to a variable of type 'void Function()'.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:24: Warning: Tearing off method 'call' from a potentially null value.
 //   void Function() f2 = a;
-//                   ^
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:31:25: Warning: Tearing off method 'call' from a potentially null value.
+//   void Function()? f3 = a;
+//                         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -85,9 +88,9 @@ static method error(core::String? s, self::A? a, self::B? b) → dynamic {
   a.{self::A::baz} = 42;
   a.{self::A::call}();
   b.{self::B::toString}(0);
-  core::Function f1 = let final self::A? #t1 = a in #t1.==(null) ?{() →? void} null : #t1.{self::A::call};
-  () → void f2 = let final self::A? #t2 = a in #t2.==(null) ?{() →? void} null : #t2.{self::A::call};
-  () →? void f3 = let final self::A? #t3 = a in #t3.==(null) ?{() →? void} null : #t3.{self::A::call};
+  core::Function f1 = a as{TypeError} core::Function;
+  () → void f2 = a as{TypeError} () → void;
+  () →? void f3 = a as{TypeError} () →? void;
 }
 static method ok<T extends core::Object? = core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic {
   s.{core::String::==}(s);

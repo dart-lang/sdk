@@ -1253,6 +1253,7 @@ nnbd/simple_never: TextSerializationFailure
 nnbd/sink_hierarchy: TextSerializationFailure
 nnbd/strictly_non_nullable_warnings: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure
+nnbd/tearoff_from_nullable_receiver: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSerializationFailure # Was: Pass

@@ -6419,6 +6419,53 @@ Message _withArgumentsNullableSuperclassWarning(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNullableTearoffError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't tear off method '#name' from a potentially null value.""",
+        withArguments: _withArgumentsNullableTearoffError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableTearoffError =
+    const Code<Message Function(String name)>(
+  "NullableTearoffError",
+  templateNullableTearoffError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableTearoffError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableTearoffError,
+      message:
+          """Can't tear off method '${name}' from a potentially null value.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNullableTearoffWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Tearing off method '#name' from a potentially null value.""",
+        withArguments: _withArgumentsNullableTearoffWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableTearoffWarning =
+    const Code<Message Function(String name)>(
+        "NullableTearoffWarning", templateNullableTearoffWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableTearoffWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableTearoffWarning,
+      message:
+          """Tearing off method '${name}' from a potentially null value.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeObjectExtends = messageObjectExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

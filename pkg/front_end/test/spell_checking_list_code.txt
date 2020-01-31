@@ -643,6 +643,7 @@ notion
 nr
 ns
 nsm
+nt
 nth
 nullabilities
 nullability

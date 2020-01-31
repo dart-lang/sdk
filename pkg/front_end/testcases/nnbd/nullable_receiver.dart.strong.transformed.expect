@@ -48,14 +48,17 @@ library;
 //   b.toString(0);
 //     ^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:12: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'Function'.
-//  - 'Function' is from 'dart:core'.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:17: Error: Can't tear off method 'call' from a potentially null value.
 //   Function f1 = a;
-//            ^
+//                 ^
 //
-// pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:19: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'void Function()'.
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:24: Error: Can't tear off method 'call' from a potentially null value.
 //   void Function() f2 = a;
-//                   ^
+//                        ^
+//
+// pkg/front_end/testcases/nnbd/nullable_receiver.dart:31:25: Error: Can't tear off method 'call' from a potentially null value.
+//   void Function()? f3 = a;
+//                         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -115,14 +118,15 @@ Try calling using ?. instead.
 Try calling using ?. instead.
   b.toString(0);
     ^^^^^^^^" in b.{self::B::toString}(0);
-  core::Function f1 = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:12: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'Function'.
- - 'Function' is from 'dart:core'.
+  core::Function f1 = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:29:17: Error: Can't tear off method 'call' from a potentially null value.
   Function f1 = a;
-           ^" in (let final self::A? #t10 = a in #t10.==(null) ?{() →? void} null : #t10.{self::A::call}) as{TypeError} core::Function;
-  () → void f2 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:19: Error: A value of type 'void Function()?' can't be assigned to a variable of type 'void Function()'.
+                ^" in a as{TypeError} core::Function;
+  () → void f2 = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:30:24: Error: Can't tear off method 'call' from a potentially null value.
   void Function() f2 = a;
-                  ^" in (let final self::A? #t12 = a in #t12.==(null) ?{() →? void} null : #t12.{self::A::call}) as{TypeError} () → void;
-  () →? void f3 = let final self::A? #t13 = a in #t13.==(null) ?{() →? void} null : #t13.{self::A::call};
+                       ^" in a as{TypeError} () → void;
+  () →? void f3 = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_receiver.dart:31:25: Error: Can't tear off method 'call' from a potentially null value.
+  void Function()? f3 = a;
+                        ^" in a as{TypeError} () →? void;
 }
 static method ok<T extends core::Object? = core::Object?>(core::String? s, self::A? a, self::ok::T% t, self::B? b, core::Invocation i) → dynamic {
   s.{core::String::==}(s);

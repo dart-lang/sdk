@@ -487,6 +487,10 @@ NullableSuperclassError/analyzerCode: Fail
 NullableSuperclassError/example: Fail
 NullableSuperclassWarning/analyzerCode: Fail
 NullableSuperclassWarning/example: Fail
+NullableTearoffError/analyzerCode: Fail
+NullableTearoffError/example: Fail
+NullableTearoffWarning/analyzerCode: Fail
+NullableTearoffWarning/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail
