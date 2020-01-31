@@ -3211,6 +3211,27 @@ typedef struct {
 DART_EXPORT bool Dart_IsKernelIsolate(Dart_Isolate isolate);
 DART_EXPORT bool Dart_KernelIsolateIsRunning();
 DART_EXPORT Dart_Port Dart_KernelPort();
+
+/**
+ * Compiles the given `script_uri` to a kernel file.
+ *
+ * \param platform_kernel A buffer containing the kernel of the platform (e.g.
+ * `vm_platform_strong.dill`). The VM does not take ownership of this memory.
+ *
+ * \param platform_kernel_size The length of the platform_kernel buffer.
+ *
+ * \return Returns the result of the compilation.
+ *
+ * On a successful compilation the returned [Dart_KernelCompilationResult] has
+ * a status of [Dart_KernelCompilationStatus_Ok] and the `kernel`/`kernel_size`
+ * fields are set. The caller takes ownership of the malloc()ed buffer.
+ *
+ * On a failed compilation the `error` might be set describing the reason for
+ * the failed compilation. The caller takes ownership of the malloc()ed
+ * error.
+ *
+ * Requires there to be a current isolate.
+ */
 DART_EXPORT Dart_KernelCompilationResult
 Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
