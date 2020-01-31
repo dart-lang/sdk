@@ -122,7 +122,9 @@ class _GeneratorTable extends _CacheTable {
     if (name != null) {
       js_ast.Expression init = _defs.remove(t);
       assert(init != null);
-      return js.statement('let # = () => ((# = #.constFn(#))());',
+      // TODO(vsm): Change back to `let`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      return js.statement('var # = () => ((# = #.constFn(#))());',
           [name, name, _runtimeModule, init]);
     }
     return null;

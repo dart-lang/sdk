@@ -5541,7 +5541,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js.call('# || #.#', [constAliasId, _constTable, constAliasProperty]);
     constAliasCache[node] = constAccessor;
     var constJs = super.visitConstant(node);
-    moduleItems.add(js.statement('let #;', [constAliasId]));
+    // TODO(vsm): Change back to `let`.
+    // See https://github.com/dart-lang/sdk/issues/40380.
+    moduleItems.add(js.statement('var #;', [constAliasId]));
 
     var func = js_ast.Fun(
         [],
