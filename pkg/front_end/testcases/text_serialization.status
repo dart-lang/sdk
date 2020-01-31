@@ -281,6 +281,7 @@ general/part_not_part_of_same_named_library: TextSerializationFailure
 general/part_part_of_different_unnamed_library: TextSerializationFailure
 general/part_part_of_differently_named_library: TextSerializationFailure
 general/platform: TextSerializationFailure
+general/platform_invalid_uris/main: TextSerializationFailure
 general/prefer_baseclass: TextSerializationFailure # Was: Pass
 general/private_method_tearoff: TextSerializationFailure # Was: Pass
 general/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
@@ -1243,6 +1244,7 @@ nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/nullable_receiver: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
+nnbd/platform_optional_parameters/main: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
 nnbd/required: TextSerializationFailure

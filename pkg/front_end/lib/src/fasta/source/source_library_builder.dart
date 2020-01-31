@@ -569,7 +569,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   Uri resolve(Uri baseUri, String uri, int uriOffset, {isPart: false}) {
     if (uri == null) {
-      addProblem(messageExpectedUri, uriOffset, noLength, this.uri);
+      addProblem(messageExpectedUri, uriOffset, noLength, fileUri);
       return new Uri(scheme: MALFORMED_URI_SCHEME);
     }
     Uri parsedUri;
@@ -580,7 +580,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       // or to the initial quote if no position is given.
       // (Assumes the directive is using a single-line string.)
       addProblem(templateCouldNotParseUri.withArguments(uri, e.message),
-          uriOffset + 1 + (e.offset ?? -1), 1, this.uri);
+          uriOffset + 1 + (e.offset ?? -1), 1, fileUri);
       return new Uri(
           scheme: MALFORMED_URI_SCHEME, query: Uri.encodeQueryComponent(uri));
     }
@@ -3081,7 +3081,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                   formal.name, formal.variable.type, isNonNullableByDefault),
               formal.charOffset,
               formal.name.length,
-              uri);
+              fileUri);
         } else {
           addProblem(
               templateOptionalNonNullableWithoutInitializerWarning
@@ -3089,7 +3089,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                       isNonNullableByDefault),
               formal.charOffset,
               formal.name.length,
-              uri);
+              fileUri);
         }
       }
     }

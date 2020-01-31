@@ -256,6 +256,9 @@ class LibraryInfo {
 
   const LibraryInfo(this.name, this.uri, this.patches,
       {this.isSupported: true});
+
+  /// The import uri for the defined library.
+  Uri get importUri => Uri.parse('dart:${name}');
 }
 
 class LibrariesSpecificationException {
