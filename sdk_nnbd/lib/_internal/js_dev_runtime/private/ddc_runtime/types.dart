@@ -1343,15 +1343,22 @@ bool _isSubtype(t1, t2, bool strictMode) => JS('bool', '''(() => {
       // given a type parameter `T1 extends U1` from g1, and a type parameter
       // `T2 extends U2` from g2, we must ensure that:
       //
-      //      U2 == U1
+      //      U1 == U2
+      //
+      // given a legacy type can be equivalent to nullable or non-nullable
+      // versions of the same type. The language spec recomends testing for
+      // mutual subtypes to allow this behaivor.
       //
       // (Note there is no variance in the type bounds of type parameters of
       // generic functions).
       let t1Bounds = $t1.instantiateTypeBounds(fresh);
       let t2Bounds = $t2.instantiateTypeBounds(fresh);
       for (let i = 0; i < formalCount; i++) {
-        if (t2Bounds[i] != t1Bounds[i]) {
-          return false;
+        if (t1Bounds[i] != t2Bounds[i]) {
+          if (!($_isSubtype(t1Bounds[i], t2Bounds[i], $strictMode)
+              && $_isSubtype(t2Bounds[i], t1Bounds[i], $strictMode))) {
+            return false;
+          }
         }
       }
     }
@@ -1620,6 +1627,7 @@ class _TypeInferrer {
   /// In the case where `false` is returned, some bogus constraints may have
   /// been added to [_protoConstraints].  It is the caller's responsibility to
   /// discard them if necessary.
+  // TODO(#40326) Update to support null safety subtyping algorithm.
   bool _isSubtypeMatch(Object subtype, Object supertype) {
     // A type variable `T` in `L` is a subtype match for any type schema `Q`:
     // - Under constraint `T <: Q`.
