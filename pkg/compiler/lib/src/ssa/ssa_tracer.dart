@@ -486,7 +486,10 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   @override
-  String visitReturn(HReturn node) => "Return: ${temporaryId(node.inputs[0])}";
+  String visitReturn(HReturn node) {
+    if (node.inputs.isEmpty) return "Return";
+    return "Return: ${temporaryId(node.inputs.single)}";
+  }
 
   @override
   String visitShiftLeft(HShiftLeft node) =>

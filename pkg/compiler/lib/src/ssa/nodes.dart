@@ -3192,10 +3192,11 @@ class HLessEqual extends HRelational {
   bool dataEquals(HInstruction other) => true;
 }
 
+/// Return statement, either with or without a value.
 class HReturn extends HControlFlow {
-  HReturn(AbstractValueDomain domain, HInstruction value,
+  HReturn(AbstractValueDomain domain, HInstruction /*?*/ value,
       SourceInformation sourceInformation)
-      : super(domain, <HInstruction>[value]) {
+      : super(domain, [if (value != null) value]) {
     this.sourceInformation = sourceInformation;
   }
   @override

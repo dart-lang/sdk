@@ -2593,15 +2593,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitReturn(HReturn node) {
-    assert(node.inputs.length == 1);
-    HInstruction input = node.inputs[0];
-    if (input.isConstantNull()) {
-      pushStatement(
-          new js.Return().withSourceInformation(node.sourceInformation));
+    if (node.inputs.isEmpty) {
+      pushStatement(js.Return().withSourceInformation(node.sourceInformation));
     } else {
-      use(node.inputs[0]);
+      use(node.inputs.single);
       pushStatement(
-          new js.Return(pop()).withSourceInformation(node.sourceInformation));
+          js.Return(pop()).withSourceInformation(node.sourceInformation));
     }
   }
 

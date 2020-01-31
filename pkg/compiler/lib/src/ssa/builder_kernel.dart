@@ -602,7 +602,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       // Use dynamic type because the type computed by the inferrer is
       // narrowed to the type annotation.
       HInstruction parameter =
-          new HParameterValue(field, _abstractValueDomain.dynamicType);
+          HParameterValue(field, _abstractValueDomain.dynamicType);
       // Add the parameter as the last instruction of the entry block.
       // If the method is intercepted, we want the actual receiver
       // to be the first parameter.
@@ -615,7 +615,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
       // possibly its type but not the initializer.
       value.sourceInformation ??= _sourceInformationBuilder.buildSet(node);
       if (!_fieldAnalysis.getFieldData(field).isElided) {
-        add(new HFieldSet(_abstractValueDomain, field, thisInstruction, value));
+        add(HFieldSet(_abstractValueDomain, field, thisInstruction, value));
       }
     } else {
       if (node.initializer != null) {
@@ -629,7 +629,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         stack.add(graph.addConstantNull(closedWorld));
       }
       HInstruction value = pop();
-      _closeAndGotoExit(new HReturn(_abstractValueDomain, value,
+      _closeAndGotoExit(HReturn(_abstractValueDomain, value,
           _sourceInformationBuilder.buildReturn(node)));
     }
     _closeFunction();
@@ -1266,7 +1266,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _elementMap.getFunctionType(originalClosureNode);
     HInstruction rti =
         _typeBuilder.analyzeTypeArgumentNewRti(functionType, sourceElement);
-    close(new HReturn(_abstractValueDomain, rti,
+    close(HReturn(_abstractValueDomain, rti,
             _sourceInformationBuilder.buildReturn(originalClosureNode)))
         .addSuccessor(graph.exit);
     _closeFunction();
@@ -1310,7 +1310,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
                   null, _abstractValueDomain.boolType));
             },
             visitThen: () {
-              _closeAndGotoExit(new HReturn(
+              _closeAndGotoExit(HReturn(
                   _abstractValueDomain,
                   graph.addConstantBool(false, closedWorld),
                   _sourceInformationBuilder.buildReturn(functionNode)));
@@ -1416,8 +1416,7 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         _abstractValueDomain.dynamicType, // TODO: better type.
         sourceInformation));
 
-    _closeAndGotoExit(
-        new HReturn(_abstractValueDomain, pop(), sourceInformation));
+    _closeAndGotoExit(HReturn(_abstractValueDomain, pop(), sourceInformation));
 
     _closeFunction();
   }
@@ -1805,10 +1804,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
   void visitReturnStatement(ir.ReturnStatement node) {
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildReturn(node);
-    HInstruction value;
-    if (node.expression == null) {
-      value = graph.addConstantNull(closedWorld);
-    } else {
+    HInstruction value = null;
+    if (node.expression != null) {
       node.expression.accept(this);
       value = pop();
       if (_currentFrame.asyncMarker == AsyncMarker.ASYNC) {
@@ -6232,11 +6229,13 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     return currentNode is ir.ForInStatement;
   }
 
-  void _emitReturn(HInstruction value, SourceInformation sourceInformation) {
+  void _emitReturn(
+      HInstruction /*?*/ value, SourceInformation sourceInformation) {
     if (_inliningStack.isEmpty) {
       _closeAndGotoExit(
-          new HReturn(_abstractValueDomain, value, sourceInformation));
+          HReturn(_abstractValueDomain, value, sourceInformation));
     } else {
+      value ??= graph.addConstantNull(closedWorld);
       localsHandler.updateLocal(_returnLocal, value);
     }
   }
