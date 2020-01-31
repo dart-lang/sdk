@@ -86,6 +86,9 @@ class Dart2TypeSystem extends TypeSystem {
   /// The cached instance of `Object?`.
   InterfaceTypeImpl _objectQuestionCached;
 
+  /// The cached instance of `Object*`.
+  InterfaceTypeImpl _objectStarCached;
+
   /// The cached instance of `Object!`.
   InterfaceTypeImpl _objectNoneCached;
 
@@ -110,6 +113,10 @@ class Dart2TypeSystem extends TypeSystem {
   InterfaceTypeImpl get objectQuestion =>
       _objectQuestionCached ??= (typeProvider.objectType as TypeImpl)
           .withNullability(NullabilitySuffix.question);
+
+  InterfaceTypeImpl get objectStar =>
+      _objectStarCached ??= (typeProvider.objectType as TypeImpl)
+          .withNullability(NullabilitySuffix.star);
 
   InterfaceType get _interfaceTypeFunctionNone {
     return typeProvider.functionType.element.instantiate(

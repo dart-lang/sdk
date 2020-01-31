@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
@@ -13,10 +14,12 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/type_system.dart';
+import 'package:meta/meta.dart';
 
 class InheritanceOverrideVerifier {
   static const _missingOverridesKey = 'missingOverrides';
@@ -230,20 +233,14 @@ class _ClassVerifier {
         //  diagnostic should be reported on the name of the mixin defining the
         //  method. In other cases, it should be reported on the name of the
         //  overriding method. The classNameNode is always wrong.
-        if (!typeSystem.isOverrideSubtypeOf(
-            concreteElement.type, interfaceElement.type)) {
-          reporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_OVERRIDE,
-            classNameNode,
-            [
-              name.name,
-              interfaceElement.enclosingElement.name,
-              interfaceElement.type,
-              concreteElement.enclosingElement.name,
-              concreteElement.type,
-            ],
-          );
-        }
+        _CorrectOverrideHelper(
+          typeSystem: typeSystem,
+          errorReporter: reporter,
+          thisMember: concreteElement,
+        ).verify(
+          superMember: interfaceElement,
+          errorNode: classNameNode,
+        );
       }
 
       _reportInheritedAbstractMembers(inheritedAbstract);
@@ -275,35 +272,35 @@ class _ClassVerifier {
     if (member.isStatic) return;
 
     var name = Name(libraryUri, member.name);
+    var correctOverrideHelper = _CorrectOverrideHelper(
+      typeSystem: typeSystem,
+      errorReporter: reporter,
+      thisMember: member,
+    );
+
     for (var superInterface in allSuperinterfaces) {
       var superMember = superInterface.declared[name];
-      if (superMember != null) {
-        // The case when members have different kinds is reported in verifier.
-        // TODO(scheglov) Do it here?
-        if (member.kind != superMember.kind) {
-          continue;
-        }
+      if (superMember == null) {
+        continue;
+      }
 
-        if (!typeSystem.isOverrideSubtypeOf(member.type, superMember.type)) {
-          reporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_OVERRIDE,
-            node,
-            [
-              name.name,
-              member.enclosingElement.name,
-              member.type,
-              superMember.enclosingElement.name,
-              superMember.type,
-            ],
-          );
-        }
-        if (methodParameterNodes != null) {
-          _checkForOptionalParametersDifferentDefaultValues(
-            superMember,
-            member,
-            methodParameterNodes,
-          );
-        }
+      // The case when members have different kinds is reported in verifier.
+      // TODO(scheglov) Do it here?
+      if (member.kind != superMember.kind) {
+        continue;
+      }
+
+      correctOverrideHelper.verify(
+        superMember: superMember,
+        errorNode: node,
+      );
+
+      if (methodParameterNodes != null) {
+        _checkForOptionalParametersDifferentDefaultValues(
+          superMember,
+          member,
+          methodParameterNodes,
+        );
       }
     }
   }
@@ -697,5 +694,185 @@ class _ClassVerifier {
     // reported, there's no need to report another.
     if (x == null || y == null) return true;
     return x == y;
+  }
+}
+
+class _CorrectOverrideHelper {
+  final TypeSystemImpl _typeSystem;
+  final ErrorReporter _errorReporter;
+
+  final ExecutableElement _thisMember;
+  FunctionType _thisTypeForSubtype;
+
+  bool _hasCovariant = false;
+  Substitution _thisSubstitution;
+  Substitution _superSubstitution;
+
+  _CorrectOverrideHelper({
+    @required TypeSystemImpl typeSystem,
+    @required ErrorReporter errorReporter,
+    @required ExecutableElement thisMember,
+  })  : _typeSystem = typeSystem,
+        _errorReporter = errorReporter,
+        _thisMember = thisMember {
+    _computeThisTypeForSubtype();
+  }
+
+  /// Check that [_thisMember] is a valid override of the [superMember], taking
+  /// into account covariant parameters.  If not, report the error.
+  void verify({
+    @required ExecutableElement superMember,
+    @required AstNode errorNode,
+  }) {
+    var superType = superMember.type;
+    if (!_typeSystem.isSubtypeOf(_thisTypeForSubtype, superType)) {
+      _reportInvalidOverride(errorNode, _thisMember, superMember);
+      return;
+    }
+
+    // If no covariant parameters, then the subtype checking above is enough.
+    if (!_hasCovariant) {
+      return;
+    }
+
+    _initSubstitutions(superType);
+
+    var thisParameters = _thisMember.parameters;
+    for (var i = 0; i < thisParameters.length; i++) {
+      var thisParameter = thisParameters[i];
+      if (thisParameter.isCovariant) {
+        var superParameter = _correspondingParameter(
+          superType.parameters,
+          thisParameter,
+          i,
+        );
+        if (superParameter != null) {
+          var thisParameterType = thisParameter.type;
+          var superParameterType = superParameter.type;
+
+          if (_thisSubstitution != null) {
+            thisParameterType = _thisSubstitution.substituteType(
+              thisParameterType,
+            );
+            superParameterType = _superSubstitution.substituteType(
+              superParameterType,
+            );
+          }
+
+          if (!_typeSystem.isSubtypeOf(superParameterType, thisParameterType) &&
+              !_typeSystem.isSubtypeOf(thisParameterType, superParameterType)) {
+            _reportInvalidOverride(errorNode, _thisMember, superMember);
+          }
+        }
+      }
+    }
+  }
+
+  /// Fill [_thisTypeForSubtype]. If [_thisMember] has covariant formal
+  /// parameters, replace their types with `Object?` or `Object`.
+  void _computeThisTypeForSubtype() {
+    var parameters = _thisMember.parameters;
+
+    List<ParameterElement> newParameters;
+    for (var i = 0; i < parameters.length; i++) {
+      var parameter = parameters[i];
+      if (parameter.isCovariant) {
+        _hasCovariant = true;
+        newParameters ??= parameters.toList(growable: false);
+        newParameters[i] = ParameterElementImpl.synthetic(
+          parameter.name,
+          _typeSystem.isNonNullableByDefault
+              ? _typeSystem.objectQuestion
+              : _typeSystem.objectStar,
+          // ignore: deprecated_member_use_from_same_package
+          parameter.parameterKind,
+        );
+      }
+    }
+
+    var type = _thisMember.type;
+    if (newParameters != null) {
+      _thisTypeForSubtype = FunctionTypeImpl(
+        typeFormals: type.typeFormals,
+        parameters: newParameters,
+        returnType: type.returnType,
+        nullabilitySuffix: type.nullabilitySuffix,
+      );
+    } else {
+      _thisTypeForSubtype = type;
+    }
+  }
+
+  /// We know that [_thisMember] has a covariant parameter, which we need
+  /// to check against the corresponding parameters in [superType]. their types
+  /// should be compatible. If [_thisMember] (and correspondingly [superType])
+  /// has type parameters, we need to convert types of formal parameters in
+  /// both to the same type parameters.
+  void _initSubstitutions(FunctionType superType) {
+    var thisParameters = _thisMember.typeParameters;
+    var superParameters = superType.typeFormals;
+    if (thisParameters.isEmpty) {
+      return;
+    }
+
+    var newParameters = <TypeParameterElement>[];
+    var newTypes = <TypeParameterType>[];
+    for (var i = 0; i < thisParameters.length; i++) {
+      var newParameter = TypeParameterElementImpl.synthetic(
+        thisParameters[i].name,
+      );
+      newParameters.add(newParameter);
+
+      var newType = newParameter.instantiate(
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+      newTypes.add(newType);
+    }
+
+    _thisSubstitution = Substitution.fromPairs(thisParameters, newTypes);
+    _superSubstitution = Substitution.fromPairs(superParameters, newTypes);
+  }
+
+  void _reportInvalidOverride(
+    AstNode node,
+    ExecutableElement member,
+    ExecutableElement superMember,
+  ) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.INVALID_OVERRIDE,
+      node,
+      [
+        member.name,
+        member.enclosingElement.name,
+        member.type,
+        superMember.enclosingElement.name,
+        superMember.type,
+      ],
+    );
+  }
+
+  /// Return an element of [parameters] that corresponds for the [proto],
+  /// or `null` if no such parameter exist.
+  static ParameterElement _correspondingParameter(
+    List<ParameterElement> parameters,
+    ParameterElement proto,
+    int protoIndex,
+  ) {
+    if (proto.isPositional) {
+      if (parameters.length > protoIndex) {
+        var parameter = parameters[protoIndex];
+        if (parameter.isPositional) {
+          return parameter;
+        }
+      }
+    } else {
+      assert(proto.isNamed);
+      for (var parameter in parameters) {
+        if (parameter.isNamed && parameter.name == proto.name) {
+          return parameter;
+        }
+      }
+    }
+    return null;
   }
 }

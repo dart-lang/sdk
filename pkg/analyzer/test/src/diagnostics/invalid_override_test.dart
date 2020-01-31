@@ -92,6 +92,34 @@ class B	extends A {
     ]);
   }
 
+  test_method_covariant_1() async {
+    await assertNoErrorsInCode(r'''
+abstract class A<T> {
+  A<U> foo<U>(covariant A<Map<T, U>> a);
+}
+
+abstract class B<U, T> extends A<T> {
+  B<U, V> foo<V>(B<U, Map<T, V>> a);
+}
+''');
+  }
+
+  test_method_covariant_2() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  R foo<R>(VA<R> v);
+}
+
+abstract class B implements A {
+  R foo<R>(covariant VB<R> v);
+}
+
+abstract class VA<T> {}
+
+abstract class VB<T> implements VA<T> {}
+''');
+  }
+
   test_method_named_fewerNamedParameters() async {
     await assertErrorsInCode('''
 class A {
