@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'info_builder_test.dart' as info_builder;
 import 'instrumentation_renderer_test.dart' as instrumentation_renderer;
+import 'navigation_tree_renderer_test.dart' as navigation_tree_renderer;
 import 'offset_mapper_test.dart' as offset_mapper;
 import 'region_renderer_test.dart' as region_renderer;
 import 'unit_renderer_test.dart' as unit_renderer;
@@ -14,6 +15,7 @@ void main() {
   defineReflectiveSuite(() {
     info_builder.main();
     instrumentation_renderer.main();
+    navigation_tree_renderer.main();
     offset_mapper.main();
     region_renderer.main();
     unit_renderer.main();

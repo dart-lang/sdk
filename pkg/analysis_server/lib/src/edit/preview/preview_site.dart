@@ -14,6 +14,7 @@ import 'package:analysis_server/src/edit/preview/highlight_css_page.dart';
 import 'package:analysis_server/src/edit/preview/highlight_js_page.dart';
 import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
 import 'package:analysis_server/src/edit/preview/index_file_page.dart';
+import 'package:analysis_server/src/edit/preview/navigation_tree_page.dart';
 import 'package:analysis_server/src/edit/preview/not_found_page.dart';
 import 'package:analysis_server/src/edit/preview/region_page.dart';
 import 'package:analysis_server/src/status/pages.dart';
@@ -27,6 +28,8 @@ class PreviewSite extends Site implements AbstractGetHandler {
 
   /// The path of the JS page used to associate highlighting within a Dart file.
   static const highlightJSPagePath = '/js/highlight.pack.js';
+
+  static const navigationTreePath = '/_preview/navigationTree.json';
 
   /// The state of the migration being previewed.
   final MigrationState migrationState;
@@ -102,6 +105,10 @@ class PreviewSite extends Site implements AbstractGetHandler {
         // Note: `return await` needed due to
         // https://github.com/dart-lang/language/issues/791
         return await respond(request, HighlightJSPage(this));
+      } else if (path == navigationTreePath) {
+        // Note: `return await` needed due to
+        // https://github.com/dart-lang/language/issues/791
+        return await respond(request, NavigationTreePage(this));
       } else if (path == '/' || path == migrationInfo.includedRoot) {
         // Note: `return await` needed due to
         // https://github.com/dart-lang/language/issues/791

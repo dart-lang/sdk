@@ -82,6 +82,7 @@ h2#unit-name {
 
 .nav-inner li:not(.dir) {
   margin-left: 20px;
+  margin-bottom: 3px;
 }
 
 .nav-inner li.dir .arrow {
@@ -115,6 +116,19 @@ h2#unit-name {
   cursor: inherit;
   font-weight: 600;
   text-decoration: none;
+}
+
+.edit-count {
+  background-color: #cccc00;
+  border-radius: 15px;
+  color: #000000;
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  margin-left: 5px;
+  min-width: 25px;
+  padding: 5px 0;
+  text-align: center;
 }
 
 .content {

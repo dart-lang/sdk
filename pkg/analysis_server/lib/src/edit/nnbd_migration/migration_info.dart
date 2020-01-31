@@ -68,8 +68,8 @@ class MigrationInfo {
     List<UnitLink> links = [];
     for (UnitInfo unit in units) {
       int count = unit.fixRegions.length;
-      links.add(
-          UnitLink(_pathTo(target: unit), computeName(unit).split('/'), count));
+      links.add(UnitLink(
+          _pathTo(target: unit), path.split(computeName(unit)), count));
     }
     return links;
   }

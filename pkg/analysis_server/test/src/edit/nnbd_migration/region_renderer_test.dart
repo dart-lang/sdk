@@ -20,8 +20,8 @@ void main() {
 
 @reflectiveTest
 class RegionRendererTest extends NnbdMigrationTestBase {
-  /// Render [libraryInfo], using a [MigrationInfo] which knows only about this
-  /// library.
+  /// Render the region at [offset], using a [MigrationInfo] which knows only
+  /// about the library at `infos.single`.
   String renderRegion(int offset) {
     String packageRoot = convertPath('/package');
     MigrationInfo migrationInfo =

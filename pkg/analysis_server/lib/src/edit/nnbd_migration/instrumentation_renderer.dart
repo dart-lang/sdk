@@ -6,7 +6,6 @@ import 'package:analysis_server/src/edit/nnbd_migration/dart_page_script.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/dart_page_style.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/unit_link.dart';
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
 
@@ -30,7 +29,7 @@ mustache.Template _template = mustache.Template(r'''
       <div class="nav-inner">
         <p class="panel-heading">Navigation</p>
         <p class="root">{{{ root }}}</p>
-{{{ links }}}
+        <div class="nav-tree"></div>
       </div><!-- /nav-inner -->
     </div><!-- /nav -->
     '''
@@ -94,60 +93,10 @@ class InstrumentationRenderer {
       'root': migrationInfo.includedRoot,
       'dartPageScript': dartPageScript,
       'dartPageStyle': dartPageStyle,
-      'links': _renderNavigation(),
       'highlightJsPath': migrationInfo.highlightJsPath,
       'highlightStylePath': migrationInfo.highlightStylePath,
       'generationDate': migrationInfo.migrationDate,
     };
     return _template.renderString(mustacheContext);
   }
-
-  /// Renders the navigation link tree.
-  String _renderNavigation() {
-    var linkData = migrationInfo.unitLinks();
-    var buffer = StringBuffer();
-    _renderNavigationSubtree(linkData, 0, buffer);
-    return buffer.toString();
-  }
-
-  /// Renders the navigation link subtree at [depth].
-  void _renderNavigationSubtree(
-      List<UnitLink> links, int depth, StringBuffer buffer) {
-    var linksGroupedByDirectory = _groupBy(
-        links.where((link) => link.depth > depth),
-        (UnitLink link) => link.pathParts[depth]);
-    // Each subtree is indented four spaces more than its parent: two for the
-    // parent <ul> and two for the parent <li>.
-    var indent = '    ' * depth;
-    buffer.writeln('$indent<ul>');
-    linksGroupedByDirectory
-        .forEach((String directoryName, Iterable<UnitLink> groupedLinks) {
-      buffer.write('$indent  <li class="dir">');
-      buffer.writeln(
-          '<span class="arrow">&#x25BC;</span>&#x1F4C1;$directoryName');
-      _renderNavigationSubtree(groupedLinks, depth + 1, buffer);
-      buffer.writeln('$indent  </li>');
-    });
-    for (var link in links.where((link) => link.depth == depth)) {
-      var modifications =
-          link.modificationCount == 1 ? 'modification' : 'modifications';
-      buffer.writeln('$indent  <li>'
-          '&#x1F4C4;<a href="${link.url}" class="nav-link" data-name="${link.relativePath}">'
-          '${link.fileName}</a> (${link.modificationCount} $modifications)'
-          '</li>');
-    }
-    buffer.writeln('$indent</ul>');
-  }
-}
-
-/// Groups the items in [iterable] by the result of applying [groupFn] to each
-/// item.
-Map<K, List<T>> _groupBy<K, T>(
-    Iterable<T> iterable, K Function(T item) groupFn) {
-  var result = <K, List<T>>{};
-  for (var item in iterable) {
-    var key = groupFn(item);
-    result.putIfAbsent(key, () => <T>[]).add(item);
-  }
-  return result;
 }

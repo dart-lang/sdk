@@ -282,8 +282,6 @@ function handlePostLinkClick(event) {
 
 function addClickHandlers(parentSelector) {
   const parentElement = document.querySelector(parentSelector);
-  const navArrows = parentElement.querySelectorAll(".arrow");
-  navArrows.forEach(addArrowClickHandler);
 
   const navLinks = parentElement.querySelectorAll(".nav-link");
   navLinks.forEach((link) => {
@@ -301,6 +299,63 @@ function addClickHandlers(parentSelector) {
   postLinks.forEach((link) => {
     link.onclick = handlePostLinkClick;
   });
+}
+
+function writeNavigationSubtree(parentElement, tree) {
+  const ul = parentElement.appendChild(document.createElement('ul'));
+  for (const entity of tree) {
+    const li = ul.appendChild(document.createElement('li'));
+    if (entity["type"] == "directory") {
+      li.classList.add("dir");
+      const arrow = li.appendChild(document.createElement('span'));
+      arrow.classList.add("arrow");
+      arrow.innerHTML = "&#x25BC;";
+      const icon = li.appendChild(document.createElement('span'));
+      icon.innerHTML = "&#x1F4C1;";
+      li.appendChild(document.createTextNode(entity["name"]));
+      writeNavigationSubtree(li, entity["subtree"]);
+      addArrowClickHandler(arrow);
+    } else {
+      li.innerHTML = "&#x1F4C4;";
+      const a = li.appendChild(document.createElement("a"));
+      a.classList.add("nav-link");
+      a.dataset.name = entity["path"];
+      a.setAttribute("href", entity["href"]);
+      a.appendChild(document.createTextNode(entity["name"]));
+      a.onclick = handleNavLinkClick;
+      const editCount = entity["editCount"];
+      if (editCount > 0) {
+        const editsBadge = li.appendChild(document.createElement("span"));
+        editsBadge.classList.add("edit-count");
+        const edits = editCount == 1 ? 'edit' : 'edits';
+        editsBadge.setAttribute("title", `${editCount} ${edits}`);
+        editsBadge.appendChild(document.createTextNode(editCount));
+      }
+    }
+  }
+}
+
+// Load the navigation tree into the ".nav-tree" div.
+function loadNavigationTree(region) {
+  // Request the navigation tree, then do work with the response.
+  const xhr = new XMLHttpRequest();
+  const path = "/_preview/navigationTree.json";
+  xhr.open("GET", path);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.onload = function() {
+    if (xhr.status === 200) {
+      const response = JSON.parse(xhr.responseText);
+      const navTree = document.querySelector(".nav-tree");
+      navTree.innerHTML = "";
+      writeNavigationSubtree(navTree, response);
+    } else {
+      alert(`Request failed; status of ${xhr.status}`);
+    }
+  };
+  xhr.onerror = function(e) {
+    alert(`Could not load ${path}; preview server might be disconnected.`);
+  };
+  xhr.send();
 }
 
 function writeRegionExplanation(response) {
@@ -408,13 +463,13 @@ document.addEventListener("DOMContentLoaded", (event) => {
   const offset = getOffset(window.location.href);
   const lineNumber = getLine(window.location.href);
   const root = document.querySelector(".root").textContent;
+  loadNavigationTree();
   if (path !== "/" && path !== root) {
     // TODO(srawlins): replaceState?
     loadFile(path, offset, lineNumber,
         () => { pushState(path, offset, lineNumber) });
   }
   resizePanels();
-  addClickHandlers(".nav-panel");
 });
 
 window.addEventListener("popstate", (event) => {
