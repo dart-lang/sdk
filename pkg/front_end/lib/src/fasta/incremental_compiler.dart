@@ -313,7 +313,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     if (changed) {
-      await dillLoadedData.buildOutlines();
+      // We suppress finalization errors because they have already been
+      // reported.
+      await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
     }
     if (userBuilders.isEmpty) userBuilders = null;
     return newDillLibraryBuilders;
@@ -911,7 +913,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       appendLibraries(data, bytesLength);
 
-      await dillLoadedData.buildOutlines();
+      // We suppress finalization errors because they will reported via
+      // problemsAsJson fields (with better precision).
+      await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
       userBuilders = <Uri, LibraryBuilder>{};
       platformBuilders = <LibraryBuilder>[];
       dillLoadedData.loader.builders.forEach((uri, builder) {
@@ -1066,7 +1070,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
       if (loadedAnything) {
-        await dillLoadedData.buildOutlines();
+        // We suppress finalization errors because they will reported via
+        // problemsAsJson fields (with better precision).
+        await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
         userBuilders = <Uri, LibraryBuilder>{};
         platformBuilders = <LibraryBuilder>[];
         dillLoadedData.loader.builders.forEach((uri, builder) {

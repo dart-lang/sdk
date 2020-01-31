@@ -1,0 +1,33 @@
+main = <No Member>;
+library from "org-dartlang-test:///lib1.dart" as lib1 {
+
+  static method x() → dynamic {
+    dart.core::print("lib1.x!");
+  }
+}
+library from "org-dartlang-test:///lib2.dart" as lib2 {
+
+  static method x() → dynamic {
+    dart.core::print("lib2.x!");
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:2:1: Error: 'x' is exported from both 'org-dartlang-test:///lib1.dart' and 'org-dartlang-test:///lib2.dart'.
+// export "lib2.dart" show x;
+// ^
+//
+
+  export "org-dartlang-test:///lib1.dart";
+  export "org-dartlang-test:///lib2.dart";
+
+  static const field dynamic _exports# = #C1 /* from null */;
+  static method main() → dynamic {
+    dart.core::print("exports!");
+  }
+}
+constants  {
+  #C1 = "{\"x\":\"'x' is exported from both 'org-dartlang-test:///lib1.dart' and 'org-dartlang-test:///lib2.dart'.\"}"
+}

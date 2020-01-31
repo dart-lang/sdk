@@ -9,6 +9,7 @@ import 'dart:convert' show jsonDecode;
 import 'package:kernel/ast.dart'
     show
         Class,
+        ConstantExpression,
         DartType,
         DynamicType,
         Extension,
@@ -23,6 +24,7 @@ import 'package:kernel/ast.dart'
         Procedure,
         Reference,
         StaticGet,
+        StringConstant,
         StringLiteral,
         Typedef;
 
@@ -91,6 +93,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   // state field.
   bool isReadyToBuild = false;
   bool isReadyToFinalizeExports = false;
+  bool suppressFinalizationErrors = false;
   bool isBuilt = false;
   bool isBuiltAndMarked = false;
 
@@ -183,8 +186,16 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     String name = member.name.name;
     if (name == "_exports#") {
       Field field = member;
-      StringLiteral string = field.initializer;
-      Map<dynamic, dynamic> json = jsonDecode(string.value);
+      String stringValue;
+      if (field.initializer is ConstantExpression) {
+        ConstantExpression constantExpression = field.initializer;
+        StringConstant string = constantExpression.constant;
+        stringValue = string.value;
+      } else {
+        StringLiteral string = field.initializer;
+        stringValue = string.value;
+      }
+      Map<dynamic, dynamic> json = jsonDecode(stringValue);
       unserializableExports =
           json != null ? new Map<String, String>.from(json) : null;
     } else {
@@ -254,8 +265,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isReadyToBuild = true;
   }
 
-  void markAsReadyToFinalizeExports() {
+  void markAsReadyToFinalizeExports({bool suppressFinalizationErrors: false}) {
     isReadyToFinalizeExports = true;
+    this.suppressFinalizationErrors = suppressFinalizationErrors;
   }
 
   void finalizeExports() {
@@ -273,7 +285,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           Message message = messageText == null
               ? templateTypeNotFound.withArguments(name)
               : templateUnspecified.withArguments(messageText);
-          addProblem(message, -1, noLength, null);
+          if (!suppressFinalizationErrors) {
+            addProblem(message, -1, noLength, null);
+          }
           declaration = new InvalidTypeDeclarationBuilder(
               name, message.withoutLocation());
       }

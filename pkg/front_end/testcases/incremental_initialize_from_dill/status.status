@@ -14,7 +14,6 @@ no_outline_change_11: Crash # Doesn't work on DillLibraryBuilders.
 no_outline_change_12: Crash # Doesn't work on DillLibraryBuilders.
 no_outline_change_13: Crash # Doesn't work on DillLibraryBuilders.
 no_outline_change_14: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_18: Crash # Doesn't work on DillLibraryBuilders.
 no_outline_change_21: Crash # Doesn't work on DillLibraryBuilders.
 no_outline_change_24: Crash # Doesn't work on DillLibraryBuilders.
 no_outline_change_27: Crash # Doesn't work on DillLibraryBuilders.

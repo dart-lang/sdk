@@ -87,10 +87,11 @@ class DillLoader extends Loader {
     return buildOutline(builder);
   }
 
-  void finalizeExports() {
+  void finalizeExports({bool suppressFinalizationErrors: false}) {
     builders.forEach((Uri uri, LibraryBuilder builder) {
       DillLibraryBuilder library = builder;
-      library.markAsReadyToFinalizeExports();
+      library.markAsReadyToFinalizeExports(
+          suppressFinalizationErrors: suppressFinalizationErrors);
     });
   }
 

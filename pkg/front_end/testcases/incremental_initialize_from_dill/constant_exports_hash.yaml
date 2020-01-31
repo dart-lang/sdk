@@ -1,0 +1,48 @@
+# Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE.md file.
+
+# Force creation of "_exports#" caused by unserializable exports. It becomes
+# constant. Initializing from it should still be possible.
+
+type: newworld
+worlds:
+  - entry: main.dart
+    errors: true
+    sources:
+      main.dart: |
+        export "lib1.dart" show x;
+        export "lib2.dart" show x;
+        main() {
+          print("exports");
+        }
+      lib1.dart: |
+        x() {
+          print("lib1.x!");
+        }
+      lib2.dart: |
+        x() {
+          print("lib2.x!");
+        }
+    expectedLibraryCount: 3
+  - entry: main.dart
+    errors: true
+    expectInitializeFromDill: true
+    invalidate:
+      - main.dart
+    sources:
+      main.dart: |
+        export "lib1.dart" show x;
+        export "lib2.dart" show x;
+        main() {
+          print("exports!");
+        }
+      lib1.dart: |
+        x() {
+          print("lib1.x!");
+        }
+      lib2.dart: |
+        x() {
+          print("lib2.x!");
+        }
+    expectedLibraryCount: 3

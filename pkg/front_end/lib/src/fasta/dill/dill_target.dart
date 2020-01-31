@@ -52,10 +52,11 @@ class DillTarget extends TargetImplementation {
   }
 
   @override
-  Future<Null> buildOutlines() async {
+  Future<Null> buildOutlines({bool suppressFinalizationErrors: false}) async {
     if (loader.libraries.isNotEmpty) {
       await loader.buildOutlines();
-      loader.finalizeExports();
+      loader.finalizeExports(
+          suppressFinalizationErrors: suppressFinalizationErrors);
     }
     isLoaded = true;
   }
