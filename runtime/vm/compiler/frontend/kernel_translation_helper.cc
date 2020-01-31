@@ -2257,6 +2257,9 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kIsExpression:
       ReadPosition();    // read position.
+      if (translation_helper_.info().kernel_binary_version() >= 38) {
+        SkipFlags();  // read flags.
+      }
       SkipExpression();  // read operand.
       SkipDartType();    // read type.
       return;

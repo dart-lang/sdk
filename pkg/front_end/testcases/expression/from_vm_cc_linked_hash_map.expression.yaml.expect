@@ -5,12 +5,12 @@ method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dynami
     if(!a._usedData.{dart.core::Object::==}(b._usedData) || !a._deletedKeys.{dart.core::Object::==}(b._deletedKeys) || !a._hashMask.{dart.core::Object::==}(b._hashMask) || !a._index.length.{dart.core::Object::==}(b._index.length) || !a._data.length.{dart.core::Object::==}(b._data.length)) {
       return false;
     }
-    for (dart.core::int* i = 0; i.{dart.core::num::<}(a._index.length as{TypeError} dart.core::num*); i = i.{dart.core::num::+}(1)) {
+    for (dart.core::int* i = 0; i.{dart.core::num::<}(a._index.length as{TypeError,ForDynamic} dart.core::num*); i = i.{dart.core::num::+}(1)) {
       if(!a._index.[](i).{dart.core::Object::==}(b._index.[](i))) {
         return false;
       }
     }
-    for (dart.core::int* i = 0; i.{dart.core::num::<}(a._data.length as{TypeError} dart.core::num*); i = i.{dart.core::num::+}(1)) {
+    for (dart.core::int* i = 0; i.{dart.core::num::<}(a._data.length as{TypeError,ForDynamic} dart.core::num*); i = i.{dart.core::num::+}(1)) {
       dynamic ad = a._data.[](i);
       dynamic bd = b._data.[](i);
       if(!dart.core::identical(ad, bd) && !(ad.{dart.core::Object::==}(a) && bd.{dart.core::Object::==}(b))) {

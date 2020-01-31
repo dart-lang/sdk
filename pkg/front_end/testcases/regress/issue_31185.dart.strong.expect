@@ -25,7 +25,7 @@ static method test1() → core::int* {
 static method test2() → core::int* {
   return invalid-expression "pkg/front_end/testcases/regress/issue_31185.dart:12:12: Error: Can't assign to a parenthesized expression.
   return (i) ++ (i);
-           ^" as{TypeError} core::int*;
+           ^" as{TypeError,ForDynamic} core::int*;
   self::i;
 }
 static method main() → dynamic {

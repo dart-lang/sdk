@@ -32,7 +32,7 @@ class E extends self::C<core::num*> {
   method f(covariant generic-covariant-impl core::int* x) → void {}
 }
 static method test() → dynamic {
-  (core::Object*) →* dynamic x = (new self::D::•().{self::C::g4}() as{TypeError} (core::int*) →* dynamic) as (core::Object*) →* dynamic;
+  (core::Object*) →* dynamic x = (new self::D::•().{self::C::g4}() as{TypeError,CovarianceCheck} (core::int*) →* dynamic) as (core::Object*) →* dynamic;
   x.call("hi");
   new self::E::•().{self::C::g1}(1.5);
 }

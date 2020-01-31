@@ -22,17 +22,17 @@ class Foo<T extends self::A? = self::A?> extends core::Object {
     : super core::Object::•()
     ;
   method doPromotionsToNullable(generic-covariant-impl self::Foo::T% t) → dynamic {
-    if(t is self::B?) {
+    if(t is{ForNonNullableByDefault} self::B?) {
       self::Foo::T% bar = t{self::Foo::T% & self::B? /* '%' & '?' = '%' */};
-      if(t{self::Foo::T% & self::B? /* '%' & '?' = '%' */} is self::C?) {
+      if(t{self::Foo::T% & self::B? /* '%' & '?' = '%' */} is{ForNonNullableByDefault} self::C?) {
         self::Foo::T% baz = t{self::Foo::T% & self::C? /* '%' & '?' = '%' */};
       }
     }
   }
   method doPromotionsToNonNullable(generic-covariant-impl self::Foo::T% t) → dynamic {
-    if(t is self::B) {
+    if(t is{ForNonNullableByDefault} self::B) {
       self::Foo::T% bar = t{self::Foo::T% & self::B /* '%' & '!' = '!' */};
-      if(t{self::Foo::T% & self::B /* '%' & '!' = '!' */} is self::C) {
+      if(t{self::Foo::T% & self::B /* '%' & '!' = '!' */} is{ForNonNullableByDefault} self::C) {
         self::Foo::T baz = t{self::Foo::T & self::C /* '!' & '!' = '!' */};
       }
     }

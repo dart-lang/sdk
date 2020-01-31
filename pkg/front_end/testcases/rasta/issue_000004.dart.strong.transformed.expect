@@ -29,7 +29,7 @@ static method fact5() → dynamic {
       final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
       {
         n = #t1;
-        f = f.{core::num::*}(n as{TypeError} core::num*) as{TypeError} core::int*;
+        f = f.{core::num::*}(n as{TypeError,ForDynamic} core::num*) as{TypeError} core::int*;
       }
     }
   }
@@ -43,7 +43,7 @@ static method fact6() → dynamic {
       final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
       {
         self::global = #t2;
-        f = f.{core::num::*}(self::global as{TypeError} core::num*) as{TypeError} core::int*;
+        f = f.{core::num::*}(self::global as{TypeError,ForDynamic} core::num*) as{TypeError} core::int*;
       }
     }
   }

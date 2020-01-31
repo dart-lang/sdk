@@ -160,18 +160,18 @@ static method foo(dynamic dynVar) → dynamic {
   } =>#t18;
   core::List<dynamic>* lhs21 = block {
     final core::List<dynamic>* #t20 = <dynamic>[];
-    for (final dynamic #t21 in (spread as dynamic) as{TypeError} core::Iterable<dynamic>*)
+    for (final dynamic #t21 in (spread as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*)
       #t20.{core::List::add}(#t21);
   } =>#t20;
   core::Set<dynamic>* set21 = block {
     final core::Set<dynamic>* #t22 = col::LinkedHashSet::•<dynamic>();
-    for (final dynamic #t23 in (spread as dynamic) as{TypeError} core::Iterable<dynamic>*)
+    for (final dynamic #t23 in (spread as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*)
       #t22.{core::Set::add}(#t23);
     #t22.{core::Set::add}(42);
   } =>#t22;
   core::Map<dynamic, dynamic>* map21 = block {
     final core::Map<dynamic, dynamic>* #t24 = <dynamic, dynamic>{};
-    for (final core::MapEntry<dynamic, dynamic>* #t25 in ((mapSpread as dynamic) as{TypeError} core::Map<dynamic, dynamic>*).{core::Map::entries})
+    for (final core::MapEntry<dynamic, dynamic>* #t25 in ((mapSpread as dynamic) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries})
       #t24.{core::Map::[]=}(#t25.{core::MapEntry::key}, #t25.{core::MapEntry::value});
     #t24.{core::Map::[]=}("baz", 42);
   } =>#t24;
@@ -377,14 +377,14 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   } =>#t91;
   core::List<core::int*>* list110 = block {
     final core::List<core::int*>* #t95 = <core::int*>[];
-    for (final dynamic #t96 in dynVar as{TypeError} core::Iterable<dynamic>*) {
+    for (final dynamic #t96 in dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
       final core::int* #t97 = #t96 as{TypeError} core::int*;
       #t95.{core::List::add}(#t97);
     }
   } =>#t95;
   core::Map<core::num*, core::int*>* map110 = block {
     final core::Map<core::num*, core::int*>* #t98 = <core::num*, core::int*>{};
-    for (final core::MapEntry<dynamic, dynamic>* #t99 in (dynVar as{TypeError} core::Map<dynamic, dynamic>*).{core::Map::entries}) {
+    for (final core::MapEntry<dynamic, dynamic>* #t99 in (dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}) {
       final core::num* #t100 = #t99.{core::MapEntry::key} as{TypeError} core::num*;
       final core::int* #t101 = #t99.{core::MapEntry::value} as{TypeError} core::int*;
       #t98.{core::Map::[]=}(#t100, #t101);

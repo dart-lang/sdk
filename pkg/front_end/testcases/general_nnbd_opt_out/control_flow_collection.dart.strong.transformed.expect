@@ -8,14 +8,14 @@ static method main() → dynamic {
   final core::List<core::int*>* aList = block {
     final core::List<core::int*>* #t1 = <core::int*>[];
     #t1.{core::List::add}(1);
-    if(self::oracle() as{TypeError} core::bool*)
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
       #t1.{core::List::add}(2);
-    if(self::oracle() as{TypeError} core::bool*)
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
       #t1.{core::List::add}(3);
     else
       #t1.{core::List::add}(1.{core::int::unary-}());
-    if(self::oracle() as{TypeError} core::bool*)
-      if(self::oracle() as{TypeError} core::bool*)
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
         #t1.{core::List::add}(4);
     {
       core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[5, 6, 7]).{core::Iterable::iterator};
@@ -28,7 +28,7 @@ static method main() → dynamic {
       core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[8, 9, 10]).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current};
-        if(self::oracle() as{TypeError} core::bool*)
+        if(self::oracle() as{TypeError,ForDynamic} core::bool*)
           #t1.{core::List::add}(i);
       }
     }
@@ -38,14 +38,14 @@ static method main() → dynamic {
   final core::Set<core::int*>* aSet = block {
     final core::Set<core::int*>* #t2 = col::LinkedHashSet::•<core::int*>();
     #t2.{core::Set::add}(1);
-    if(self::oracle() as{TypeError} core::bool*)
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
       #t2.{core::Set::add}(2);
-    if(self::oracle() as{TypeError} core::bool*)
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
       #t2.{core::Set::add}(3);
     else
       #t2.{core::Set::add}(1.{core::int::unary-}());
-    if(self::oracle() as{TypeError} core::bool*)
-      if(self::oracle() as{TypeError} core::bool*)
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
         #t2.{core::Set::add}(4);
     {
       core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[5, 6, 7]).{core::Iterable::iterator};
@@ -58,7 +58,7 @@ static method main() → dynamic {
       core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[8, 9, 10]).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current};
-        if(self::oracle() as{TypeError} core::bool*)
+        if(self::oracle() as{TypeError,ForDynamic} core::bool*)
           #t2.{core::Set::add}(i);
       }
     }
@@ -68,14 +68,14 @@ static method main() → dynamic {
   final core::Map<core::int*, core::int*>* aMap = block {
     final core::Map<core::int*, core::int*>* #t3 = <core::int*, core::int*>{};
     #t3.{core::Map::[]=}(1, 1);
-    if(self::oracle() as{TypeError} core::bool*)
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
       #t3.{core::Map::[]=}(2, 2);
-    if(self::oracle() as{TypeError} core::bool*)
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
       #t3.{core::Map::[]=}(3, 3);
     else
       #t3.{core::Map::[]=}(1.{core::int::unary-}(), 1.{core::int::unary-}());
-    if(self::oracle() as{TypeError} core::bool*)
-      if(self::oracle() as{TypeError} core::bool*)
+    if(self::oracle() as{TypeError,ForDynamic} core::bool*)
+      if(self::oracle() as{TypeError,ForDynamic} core::bool*)
         #t3.{core::Map::[]=}(4, 4);
     {
       core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[5, 6, 7]).{core::Iterable::iterator};
@@ -88,7 +88,7 @@ static method main() → dynamic {
       core::Iterator<core::int*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::int*>*>(<core::int*>[8, 9, 10]).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         core::int* i = :sync-for-iterator.{core::Iterator::current};
-        if(self::oracle() as{TypeError} core::bool*)
+        if(self::oracle() as{TypeError,ForDynamic} core::bool*)
           #t3.{core::Map::[]=}(i, i);
       }
     }

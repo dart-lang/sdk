@@ -66,7 +66,7 @@ static field core::Object* field1 = [@vm.inferred-type.metadata=!] self::getValu
 static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
 static method getValue() → core::Object* {
-  self::A* aa = self::getDynamic() as{TypeError} self::A*;
+  self::A* aa = self::getDynamic() as{TypeError,ForDynamic} self::A*;
   return [@vm.inferred-type.metadata=!] aa.{self::A::foo}();
 }
 static method use1([@vm.inferred-type.metadata=#lib::DeepCaller1] self::DeepCaller1* x) → dynamic

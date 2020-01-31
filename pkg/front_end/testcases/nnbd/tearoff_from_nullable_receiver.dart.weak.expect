@@ -55,31 +55,31 @@ class C extends core::Object {
 static method functionContext(() → core::int f) → dynamic {}
 static method nullableFunctionContext(() →? core::int f) → dynamic {}
 static method foo<T extends self::C? = self::C?>(self::C? c, self::foo::T% t, self::foo::T? nt) → dynamic {
-  self::functionContext((null as self::C?) as{TypeError} () → core::int);
-  self::nullableFunctionContext((null as self::C?) as{TypeError} () →? core::int);
+  self::functionContext((null as{ForNonNullableByDefault} self::C?) as{TypeError} () → core::int);
+  self::nullableFunctionContext((null as{ForNonNullableByDefault} self::C?) as{TypeError} () →? core::int);
   self::functionContext(c as{TypeError} () → core::int);
   self::nullableFunctionContext(c as{TypeError} () →? core::int);
   self::functionContext(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:18:19: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()'.
   functionContext(t); // Error.
-                  ^" in t as{TypeError} () → core::int);
+                  ^" in t as{TypeError,ForNonNullableByDefault} () → core::int);
   self::nullableFunctionContext(let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:19:27: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()?'.
   nullableFunctionContext(t); // Error.
-                          ^" in t as{TypeError} () →? core::int);
+                          ^" in t as{TypeError,ForNonNullableByDefault} () →? core::int);
   self::functionContext(let final<BottomType> #t3 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:20:19: Error: The argument type 'T?' can't be assigned to the parameter type 'int Function()'.
   functionContext(nt); // Error.
-                  ^" in nt as{TypeError} () → core::int);
+                  ^" in nt as{TypeError,ForNonNullableByDefault} () → core::int);
   self::nullableFunctionContext(let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:21:27: Error: The argument type 'T?' can't be assigned to the parameter type 'int Function()?'.
   nullableFunctionContext(nt); // Error.
-                          ^" in nt as{TypeError} () →? core::int);
+                          ^" in nt as{TypeError,ForNonNullableByDefault} () →? core::int);
 }
 static method bar<T extends self::C = self::C>(self::C c, self::bar::T t) → dynamic {
   self::functionContext(let final self::C #t5 = c in #t5.==(null) ?{() → core::int} null : #t5.{self::C::call});
   self::nullableFunctionContext(let final self::C #t6 = c in #t6.==(null) ?{() → core::int} null : #t6.{self::C::call});
   self::functionContext(let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:27:19: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()'.
   functionContext(t); // Shouldn't result in a compile-time error.
-                  ^" in t as{TypeError} () → core::int);
+                  ^" in t as{TypeError,ForNonNullableByDefault} () → core::int);
   self::nullableFunctionContext(let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/tearoff_from_nullable_receiver.dart:28:27: Error: The argument type 'T' can't be assigned to the parameter type 'int Function()?'.
   nullableFunctionContext(t); // Shouldn't result in a compile-time error.
-                          ^" in t as{TypeError} () →? core::int);
+                          ^" in t as{TypeError,ForNonNullableByDefault} () →? core::int);
 }
 static method main() → dynamic {}

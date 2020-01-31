@@ -776,6 +776,7 @@ class CollectionTransformer extends Transformer {
     assert(fileOffset != TreeNode.noOffset);
     return new AsExpression(expression, type)
       ..isTypeError = true
+      ..isForNonNullableByDefault = _currentLibrary.isNonNullableByDefault
       ..fileOffset = fileOffset;
   }
 

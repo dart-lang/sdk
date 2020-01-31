@@ -10,7 +10,7 @@ class Foo extends core::Object implements no_::Bar {
     : super core::Object::•()
     ;
   no-such-method-forwarder get /* from org-dartlang-testcase:///no_such_method_private_setter_lib.dart */ _x() → core::int*
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError} core::int*;
+    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
   no-such-method-forwarder set /* from org-dartlang-testcase:///no_such_method_private_setter_lib.dart */ _x(core::int* value) → void
     return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }

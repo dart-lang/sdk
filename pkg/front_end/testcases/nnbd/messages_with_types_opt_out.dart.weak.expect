@@ -235,20 +235,20 @@ static field core::double nonNullableVar = 4.0;
 static method testOptIn() → dynamic {
   mes::nullableVar = let final<BottomType> #t7 = invalid-expression "pkg/front_end/testcases/nnbd/messages_with_types_opt_in.dart:32:17: Error: A value of type 'double' can't be assigned to a variable of type 'int Function()?'.
   nullableVar = nonNullableVar;
-                ^" in mes::nonNullableVar as{TypeError} () →? core::int;
+                ^" in mes::nonNullableVar as{TypeError,ForNonNullableByDefault} () →? core::int;
   mes::nonNullableVar = let final<BottomType> #t8 = invalid-expression "pkg/front_end/testcases/nnbd/messages_with_types_opt_in.dart:33:20: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'double'.
   nonNullableVar = nullableVar;
-                   ^" in mes::nullableVar as{TypeError} core::double;
+                   ^" in mes::nullableVar as{TypeError,ForNonNullableByDefault} core::double;
   self::legacyVar = let final<BottomType> #t9 = invalid-expression "pkg/front_end/testcases/nnbd/messages_with_types_opt_in.dart:34:15: Error: A value of type 'int Function()?' can't be assigned to a variable of type 'String'.
   legacyVar = nullableVar;
-              ^" in mes::nullableVar as{TypeError} core::String*;
+              ^" in mes::nullableVar as{TypeError,ForNonNullableByDefault} core::String*;
   mes::nullableVar = let final<BottomType> #t10 = invalid-expression "pkg/front_end/testcases/nnbd/messages_with_types_opt_in.dart:35:17: Error: A value of type 'String' can't be assigned to a variable of type 'int Function()?'.
   nullableVar = legacyVar;
-                ^" in self::legacyVar as{TypeError} () →? core::int;
+                ^" in self::legacyVar as{TypeError,ForNonNullableByDefault} () →? core::int;
   mes::nonNullableVar = let final<BottomType> #t11 = invalid-expression "pkg/front_end/testcases/nnbd/messages_with_types_opt_in.dart:36:20: Error: A value of type 'String' can't be assigned to a variable of type 'double'.
   nonNullableVar = legacyVar;
-                   ^" in self::legacyVar as{TypeError} core::double;
+                   ^" in self::legacyVar as{TypeError,ForNonNullableByDefault} core::double;
   self::legacyVar = let final<BottomType> #t12 = invalid-expression "pkg/front_end/testcases/nnbd/messages_with_types_opt_in.dart:37:15: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   legacyVar = nonNullableVar;
-              ^" in mes::nonNullableVar as{TypeError} core::String*;
+              ^" in mes::nonNullableVar as{TypeError,ForNonNullableByDefault} core::String*;
 }

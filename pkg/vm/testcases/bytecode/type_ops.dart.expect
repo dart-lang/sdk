@@ -692,7 +692,7 @@ ConstantPool {
   class D<P extends dart.core::Object* = dynamic, Q extends dart.core::Object* = dynamic> extends #lib::C<dart.core::int*, #lib::D::Q*, #lib::D::P*> {
     generic-covariant-impl field dart.core::Map<#lib::D::P*, #lib::D::Q*>* foo;
     constructor •(dynamic tt) → #lib::D<#lib::D::P*, #lib::D::Q*>*
-      : #lib::D::foo = tt as{TypeError} dart.core::Map<#lib::D::P*, #lib::D::Q*>*, super #lib::C::•()
+      : #lib::D::foo = tt as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*, super #lib::C::•()
       ;
     method foo2(dynamic y) → dynamic {
       if(y is #lib::A<#lib::D::P*>*) {
@@ -701,7 +701,7 @@ ConstantPool {
       if(y is #lib::C<dynamic, #lib::D::Q*, dart.core::List<#lib::D::P*>*>*) {
         dart.core::print("22");
       }
-      [@vm.call-site-attributes.metadata=receiverType:#lib::D<#lib::D::P*, #lib::D::Q*>*] this.{#lib::D::foo} = y as{TypeError} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
+      [@vm.call-site-attributes.metadata=receiverType:#lib::D<#lib::D::P*, #lib::D::Q*>*] this.{#lib::D::foo} = y as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
     }
     method foo3<T1 extends dart.core::Object* = dynamic, T2 extends dart.core::Object* = dynamic>(dynamic z) → dynamic {
       if(z is #lib::A<#lib::D::foo3::T1*>*) {
@@ -713,8 +713,8 @@ ConstantPool {
       return (z as dart.core::Map<#lib::D::foo3::T2*, #lib::D::Q*>*).{dart.core::Map::values};
     }
     method foo4(dynamic w) → dart.core::Map<#lib::D::P*, #lib::D::Q*>* {
-      dart.core::List<dart.core::Map<#lib::D::P*, #lib::D::Q*>*>* list = <dart.core::Map<#lib::D::P*, #lib::D::Q*>*>[w as{TypeError} dart.core::Map<#lib::D::P*, #lib::D::Q*>*];
-      return w as{TypeError} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
+      dart.core::List<dart.core::Map<#lib::D::P*, #lib::D::Q*>*>* list = <dart.core::Map<#lib::D::P*, #lib::D::Q*>*>[w as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*];
+      return w as{TypeError,ForDynamic} dart.core::Map<#lib::D::P*, #lib::D::Q*>*;
     }
   }
   class E<P extends dart.core::String* = dart.core::String*> extends dart.core::Object {
@@ -754,7 +754,7 @@ ConstantPool {
     return x as #lib::A<dart.core::int*>*;
   }
   static method foo5(dynamic x) → void {
-    #lib::globalVar = x as{TypeError} dart.core::List<dart.core::Iterable<dynamic>*>*;
+    #lib::globalVar = x as{TypeError,ForDynamic} dart.core::List<dart.core::Iterable<dynamic>*>*;
   }
   static method main() → dynamic {}
 }

@@ -63,14 +63,14 @@ namespace dart {
   V(_Int32x4ArrayView, ._, TypedData_Int32x4ArrayView_factory, 0x9bfbd6d5)     \
   V(_Float64x2ArrayView, ._, TypedData_Float64x2ArrayView_factory, 0x1a383408) \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0x59765a4a)                 \
-  V(_StringBase, _interpolate, StringBaseInterpolate, 0xe5a934d2)              \
+  V(_StringBase, _interpolate, StringBaseInterpolate, 0xc0a650e4)              \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x22a26db3)             \
   V(_Double, _add, DoubleAdd, 0x2f5c036a)                                      \
   V(_Double, _sub, DoubleSub, 0x6d3cec71)                                      \
   V(_Double, _mul, DoubleMul, 0x648e67af)                                      \
   V(_Double, _div, DoubleDiv, 0x6d72d7d4)                                      \
-  V(::, min, MathMin, 0x07b1ad15)                                              \
-  V(::, max, MathMax, 0xa40283bc)                                              \
+  V(::, min, MathMin, 0x935b799b)                                              \
+  V(::, max, MathMax, 0xe188dec2)                                              \
   V(::, _doublePow, MathDoublePow, 0x5ae04e61)                                 \
   V(::, _intPow, MathIntPow, 0x569ffd3f)                                       \
   V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0xbe902b89)        \
@@ -191,7 +191,7 @@ namespace dart {
   V(_Double, >=, Double_greaterEqualThan, 0x2961f8ee)                          \
   V(_Double, <, Double_lessThan, 0xcbff42e5)                                   \
   V(_Double, <=, Double_lessEqualThan, 0xd2253d90)                             \
-  V(_Double, ==, Double_equal, 0xa7dfa02b)                                     \
+  V(_Double, ==, Double_equal, 0x6a306911)                                     \
   V(_Double, +, Double_add, 0xf7d8da94)                                        \
   V(_Double, -, Double_sub, 0xc8dda725)                                        \
   V(_Double, *, Double_mul, 0x2dac85a2)                                        \
@@ -239,7 +239,7 @@ namespace dart {
   V(_IntegerImplementation, *, Integer_mul, 0xefe7fbce)                        \
   V(_IntegerImplementation, _moduloFromInteger, Integer_moduloFromInteger,     \
     0xbc75fece)                                                                \
-  V(_IntegerImplementation, ~/, Integer_truncDivide, 0xfb066107)               \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 0x42d9b723)               \
   V(_IntegerImplementation, unary-, Integer_negate, 0xdb5f0d70)                \
   V(_IntegerImplementation, _bitAndFromInteger, Integer_bitAndFromInteger,     \
     0xb7e724d2)                                                                \
@@ -253,7 +253,7 @@ namespace dart {
   V(_IntegerImplementation, _greaterThanFromInteger,                           \
     Integer_greaterThanFromInt, 0x3366ff66)                                    \
   V(_IntegerImplementation, >, Integer_greaterThan, 0xe74b678c)                \
-  V(_IntegerImplementation, ==, Integer_equal, 0xb6faea0e)                     \
+  V(_IntegerImplementation, ==, Integer_equal, 0xdf47652c)                     \
   V(_IntegerImplementation, _equalToInteger, Integer_equalToInteger,           \
     0x39d3cd05)                                                                \
   V(_IntegerImplementation, <, Integer_lessThan, 0xcbff42e5)                   \

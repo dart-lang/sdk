@@ -210,9 +210,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
   bool hasUserDefinedNoSuchMethod(
       Class klass, ClassHierarchy hierarchy, Class objectClass);
 
-  void transformProcedureToNoSuchMethodForwarder(
-      Member noSuchMethodInterface, KernelTarget target, Procedure procedure);
-
   /// Returns whether a covariant parameter was seen and more methods thus have
   /// to be checked.
   bool checkMethodOverride(Types types, Procedure declaredMember,
@@ -1006,7 +1003,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     return noSuchMethod != null && noSuchMethod.enclosingClass != objectClass;
   }
 
-  @override
   void transformProcedureToNoSuchMethodForwarder(
       Member noSuchMethodInterface, KernelTarget target, Procedure procedure) {
     String prefix =
@@ -1024,6 +1020,8 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (procedure.function.returnType is! VoidType) {
       result = new AsExpression(result, procedure.function.returnType)
         ..isTypeError = true
+        ..isForDynamic = true
+        ..isForNonNullableByDefault = library.isNonNullableByDefault
         ..fileOffset = procedure.fileOffset;
     }
     procedure.function.body = new ReturnStatement(result)

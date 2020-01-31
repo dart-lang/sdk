@@ -1442,13 +1442,27 @@ class Printer extends Visitor<Null> {
 
   visitIsExpression(IsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
-    writeSpaced('is');
+    writeSpaced(
+        node.isForNonNullableByDefault ? 'is{ForNonNullableByDefault}' : 'is');
     writeType(node.type);
   }
 
   visitAsExpression(AsExpression node) {
     writeExpression(node.operand, Precedence.BITWISE_OR);
-    writeSpaced(node.isTypeError ? 'as{TypeError}' : 'as');
+    List<String> flags = <String>[];
+    if (node.isTypeError) {
+      flags.add('TypeError');
+    }
+    if (node.isCovarianceCheck) {
+      flags.add('CovarianceCheck');
+    }
+    if (node.isForDynamic) {
+      flags.add('ForDynamic');
+    }
+    if (node.isForNonNullableByDefault) {
+      flags.add('ForNonNullableByDefault');
+    }
+    writeSpaced(flags.isNotEmpty ? 'as{${flags.join(',')}}' : 'as');
     writeType(node.type);
   }
 

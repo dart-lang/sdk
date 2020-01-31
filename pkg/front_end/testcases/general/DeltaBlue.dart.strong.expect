@@ -52,22 +52,22 @@ abstract class Constraint extends core::Object {
     self::planner.{self::Planner::incrementalAdd}(this);
   }
   method satisfy(dynamic mark) → self::Constraint* {
-    this.{self::Constraint::chooseMethod}(mark as{TypeError} core::int*);
+    this.{self::Constraint::chooseMethod}(mark as{TypeError,ForDynamic} core::int*);
     if(!this.{self::Constraint::isSatisfied}()) {
       if(this.{self::Constraint::strength}.{core::Object::==}(#C22)) {
         core::print("Could not satisfy a required constraint!");
       }
       return null;
     }
-    this.{self::Constraint::markInputs}(mark as{TypeError} core::int*);
+    this.{self::Constraint::markInputs}(mark as{TypeError,ForDynamic} core::int*);
     self::Variable* out = this.{self::Constraint::output}();
     self::Constraint* overridden = out.{self::Variable::determinedBy};
     if(!overridden.{core::Object::==}(null))
       overridden.{self::Constraint::markUnsatisfied}();
     out.{self::Variable::determinedBy} = this;
-    if(!self::planner.{self::Planner::addPropagate}(this, mark as{TypeError} core::int*))
+    if(!self::planner.{self::Planner::addPropagate}(this, mark as{TypeError,ForDynamic} core::int*))
       core::print("Cycle encountered");
-    out.{self::Variable::mark} = mark as{TypeError} core::int*;
+    out.{self::Variable::mark} = mark as{TypeError,ForDynamic} core::int*;
     return overridden;
   }
   method destroyConstraint() → void {

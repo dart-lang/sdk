@@ -56,7 +56,7 @@ class Class<T extends self::A* = self::A*> extends core::Object {
     if(t is self::B*) {
       core::List<self::Class::T*>* ys = <self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}];
       alias = ys;
-      self::xs = alias as{TypeError} core::List<self::B*>*;
+      self::xs = alias as{TypeError,ForDynamic} core::List<self::B*>*;
     }
   }
   method method2b(generic-covariant-impl self::Class::T* t) → void {
@@ -64,7 +64,7 @@ class Class<T extends self::A* = self::A*> extends core::Object {
     if(t is self::B*) {
       core::List<core::List<self::Class::T*>*>* yss = <core::List<self::Class::T*>*>[<self::Class::T*>[t{self::Class::T* & self::B* /* '*' & '*' = '*' */}]];
       alias = yss;
-      self::xss = alias as{TypeError} core::List<core::List<self::B*>*>*;
+      self::xss = alias as{TypeError,ForDynamic} core::List<core::List<self::B*>*>*;
     }
   }
 }

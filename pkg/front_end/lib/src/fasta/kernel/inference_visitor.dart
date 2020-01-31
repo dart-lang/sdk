@@ -3531,6 +3531,8 @@ class InferenceVisitor
         }
         binary = new AsExpression(binary, binaryType)
           ..isTypeError = true
+          ..isCovarianceCheck = true
+          ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
           ..fileOffset = fileOffset;
       }
     }
@@ -3616,6 +3618,8 @@ class InferenceVisitor
         }
         unary = new AsExpression(unary, unaryType)
           ..isTypeError = true
+          ..isCovarianceCheck = true
+          ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
           ..fileOffset = fileOffset;
       }
     }
@@ -3693,6 +3697,8 @@ class InferenceVisitor
         }
         read = new AsExpression(read, readType)
           ..isTypeError = true
+          ..isCovarianceCheck = true
+          ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
           ..fileOffset = fileOffset;
       }
     }
@@ -3867,6 +3873,8 @@ class InferenceVisitor
         }
         read = new AsExpression(read, readType)
           ..isTypeError = true
+          ..isCovarianceCheck = true
+          ..isForNonNullableByDefault = inferrer.isNonNullableByDefault
           ..fileOffset = fileOffset;
       }
       Member member = readTarget.member;

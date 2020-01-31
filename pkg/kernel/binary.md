@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 37;
+  UInt32 formatVersion = 38;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -776,6 +776,7 @@ type FileUriExpression extends Expression {
 type IsExpression extends Expression {
   Byte tag = 37;
   FileOffset fileOffset;
+  Byte flags (isForNonNullableByDefault);
   Expression operand;
   DartType type;
 }
@@ -783,7 +784,7 @@ type IsExpression extends Expression {
 type AsExpression extends Expression {
   Byte tag = 38;
   FileOffset fileOffset;
-  Byte flags (isTypeError);
+  Byte flags (isTypeError,isCovarianceCheck,isForDynamic,isForNonNullableByDefault);
   Expression operand;
   DartType type;
 }

@@ -703,6 +703,8 @@ class TypeInferrerImpl implements TypeInferrer {
         // Insert an implicit downcast.
         result = new AsExpression(expression, initialContextType)
           ..isTypeError = true
+          ..isForNonNullableByDefault = isNonNullableByDefault
+          ..isForDynamic = expressionType is DynamicType
           ..fileOffset = fileOffset;
         break;
       case AssignabilityKind.assignableTearoff:
@@ -713,6 +715,7 @@ class TypeInferrerImpl implements TypeInferrer {
             _tearOffCall(expression, expressionType, fileOffset).tearoff,
             initialContextType)
           ..isTypeError = true
+          ..isForNonNullableByDefault = isNonNullableByDefault
           ..fileOffset = fileOffset;
         break;
       case AssignabilityKind.unassignable:
@@ -867,6 +870,7 @@ class TypeInferrerImpl implements TypeInferrer {
         // [contextType] directly here.
         hasAnyTypeVariables(contextType) ? const BottomType() : contextType)
       ..isTypeError = true
+      ..isForNonNullableByDefault = isNonNullableByDefault
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
       errorNode = helper.wrapInProblem(
@@ -1797,6 +1801,8 @@ class TypeInferrerImpl implements TypeInferrer {
       case MethodContravarianceCheckKind.checkMethodReturn:
         AsExpression replacement = new AsExpression(expression, inferredType)
           ..isTypeError = true
+          ..isCovarianceCheck = true
+          ..isForNonNullableByDefault = isNonNullableByDefault
           ..fileOffset = fileOffset;
         if (instrumentation != null) {
           int offset = arguments.fileOffset == -1
@@ -1811,6 +1817,8 @@ class TypeInferrerImpl implements TypeInferrer {
             desugaredInvocation.name, desugaredInvocation.interfaceTarget);
         AsExpression asExpression = new AsExpression(propertyGet, functionType)
           ..isTypeError = true
+          ..isCovarianceCheck = true
+          ..isForNonNullableByDefault = isNonNullableByDefault
           ..fileOffset = fileOffset;
         MethodInvocation replacement = new MethodInvocation(
             asExpression, callName, desugaredInvocation.arguments);
@@ -2782,6 +2790,8 @@ class TypeInferrerImpl implements TypeInferrer {
             ..fileOffset = fileOffset,
           result.inferredType)
         ..isTypeError = true
+        ..isCovarianceCheck = true
+        ..isForNonNullableByDefault = isNonNullableByDefault
         ..fileOffset = fileOffset;
       if (instrumentation != null) {
         int offset =
@@ -2876,6 +2886,8 @@ class TypeInferrerImpl implements TypeInferrer {
       PropertyGet propertyGet = new PropertyGet(receiver, getter.name, getter);
       AsExpression asExpression = new AsExpression(propertyGet, functionType)
         ..isTypeError = true
+        ..isCovarianceCheck = true
+        ..isForNonNullableByDefault = isNonNullableByDefault
         ..fileOffset = fileOffset;
       replacement = new MethodInvocation(asExpression, callName, arguments);
       if (instrumentation != null) {
@@ -2951,6 +2963,8 @@ class TypeInferrerImpl implements TypeInferrer {
       PropertyGet propertyGet = new PropertyGet(receiver, field.name, field);
       AsExpression asExpression = new AsExpression(propertyGet, functionType)
         ..isTypeError = true
+        ..isCovarianceCheck = true
+        ..isForNonNullableByDefault = isNonNullableByDefault
         ..fileOffset = fileOffset;
       replacement = new MethodInvocation(asExpression, callName, arguments);
       if (instrumentation != null) {

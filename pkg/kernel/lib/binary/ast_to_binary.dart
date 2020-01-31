@@ -1597,6 +1597,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   void visitIsExpression(IsExpression node) {
     writeByte(Tag.IsExpression);
     writeOffset(node.fileOffset);
+    writeByte(node.flags);
     writeNode(node.operand);
     writeNode(node.type);
   }

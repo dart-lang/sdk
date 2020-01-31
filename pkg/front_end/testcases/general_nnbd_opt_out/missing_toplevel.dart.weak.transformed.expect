@@ -67,7 +67,7 @@ static field dynamic missingBinary = let final self::ClassWithProperty* #t1 = se
  - 'EmptyClass' is from 'pkg/front_end/testcases/general_nnbd_opt_out/missing_toplevel.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '+'.
 var missingBinary = classWithProperty.property += 2;
-                                               ^" as{TypeError} self::EmptyClass*;
+                                               ^" as{TypeError,ForDynamic} self::EmptyClass*;
 static field dynamic missingIndexGet = let final self::ClassWithIndexSet* #t2 = self::classWithIndexSet in let final core::int* #t3 = 0 in let final dynamic #t4 = invalid-expression "pkg/front_end/testcases/general_nnbd_opt_out/missing_toplevel.dart:30:40: Error: The method '[]' isn't defined for the class 'ClassWithIndexSet'.
  - 'ClassWithIndexSet' is from 'pkg/front_end/testcases/general_nnbd_opt_out/missing_toplevel.dart'.
 Try correcting the name to the name of an existing method, or defining a method named '[]'.

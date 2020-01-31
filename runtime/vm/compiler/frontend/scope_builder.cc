@@ -803,6 +803,9 @@ void ScopeBuilder::VisitExpression() {
     }
     case kIsExpression:
       helper_.ReadPosition();  // read position.
+      if (translation_helper_.info().kernel_binary_version() >= 38) {
+        helper_.ReadFlags();  // read flags.
+      }
       VisitExpression();       // read operand.
       VisitDartType();         // read type.
       return;

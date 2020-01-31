@@ -27,7 +27,7 @@ class D extends self::C implements self::B {
     : super self::C::•()
     ;
   no-such-method-forwarder method foo() → self::B*
-    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError} self::B*;
+    return this.{self::C::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} self::B*;
 }
 static method main() → dynamic {}
 

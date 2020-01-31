@@ -28,7 +28,7 @@ static method test() → dynamic {
  - 'FutureOr' is from 'dart:async'.
 Try correcting the name to the name of an existing method, or defining a method named '+'.
                           /*@ type=int* */ y) => /*info:DYNAMIC_CAST,info:DYNAMIC_INVOKE*/ x /*error:UNDEFINED_OPERATOR*/ +
-                                                                                                                          ^" as{TypeError} asy::FutureOr<core::String*>*));
+                                                                                                                          ^" as{TypeError,ForDynamic} asy::FutureOr<core::String*>*));
   asy::Future<core::String*>* results3 = results.{asy::Future::then}<core::String*>((core::List<core::int*>* list) → asy::FutureOr<core::String*>* => list.{core::Iterable::fold}<asy::FutureOr<core::String*>*>("", let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:31:111: Error: The argument type 'String Function(String, int)' can't be assigned to the parameter type 'FutureOr<String> Function(FutureOr<String>, int)'.
  - 'FutureOr' is from 'dart:async'.
                   /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@ returnType=String* */ (String

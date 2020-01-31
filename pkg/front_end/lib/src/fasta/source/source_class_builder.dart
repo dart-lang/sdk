@@ -422,7 +422,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     cls.procedures.add(cloned);
     cloned.parent = cls;
 
-    SourceLibraryBuilder library = this.library;
     library.forwardersOrigins.add(cloned);
     library.forwardersOrigins.add(procedure);
   }

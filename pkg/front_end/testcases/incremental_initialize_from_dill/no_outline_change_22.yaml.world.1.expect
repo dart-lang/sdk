@@ -284,7 +284,7 @@ library from "org-dartlang-test:///main.dart" as main {
       dart._internal::Sort::sort<dart.core::int*>(this, let final (dart.core::int*, dart.core::int*) →* dart.core::int* #t7 = compare in #t7.{dart.core::Object::==}(null) ?{(dart.core::int*, dart.core::int*) →* dart.core::int*} #C6 : #t7);
     }
     static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → dart.core::int* {
-      return dart.core::Comparable::compare(a as{TypeError} dart.core::Comparable<dynamic>*, b as{TypeError} dart.core::Comparable<dynamic>*);
+      return dart.core::Comparable::compare(a as{TypeError,ForDynamic} dart.core::Comparable<dynamic>*, b as{TypeError,ForDynamic} dart.core::Comparable<dynamic>*);
     }
     method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([dart.math::Random* random = #C2]) → void {
       random.{dart.core::Object::==}(null) ?{dart.math::Random*} random = dart.math::Random::•() : null;

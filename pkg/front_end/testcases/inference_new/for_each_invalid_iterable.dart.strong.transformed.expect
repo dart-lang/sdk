@@ -52,7 +52,7 @@ static method test() → dynamic /* originally async */ {
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
             {
-              core::int* x = #t2 as{TypeError} core::int*;
+              core::int* x = #t2 as{TypeError,ForDynamic} core::int*;
             }
           }
         }
@@ -71,7 +71,7 @@ static method test() → dynamic /* originally async */ {
               if(_in::unsafeCast<core::bool*>(:result)) {
                 final dynamic #t6 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  core::int* x = #t6 as{TypeError} core::int*;
+                  core::int* x = #t6 as{TypeError,ForDynamic} core::int*;
                 }
               }
               else
@@ -92,7 +92,7 @@ static method test() → dynamic /* originally async */ {
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             final dynamic #t9 = :sync-for-iterator.{core::Iterator::current};
             {
-              y = #t9 as{TypeError} core::int*;
+              y = #t9 as{TypeError,ForDynamic} core::int*;
             }
           }
         }
@@ -111,7 +111,7 @@ static method test() → dynamic /* originally async */ {
               if(_in::unsafeCast<core::bool*>(:result)) {
                 final dynamic #t13 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  y = #t13 as{TypeError} core::int*;
+                  y = #t13 as{TypeError,ForDynamic} core::int*;
                 }
               }
               else

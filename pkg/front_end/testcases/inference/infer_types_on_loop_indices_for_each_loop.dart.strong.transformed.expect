@@ -94,7 +94,7 @@ static method test() → dynamic {
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       dynamic x = :sync-for-iterator.{core::Iterator::current};
       {
-        core::String* y = x as{TypeError} core::String*;
+        core::String* y = x as{TypeError,ForDynamic} core::String*;
       }
     }
   }
@@ -119,7 +119,7 @@ Try changing the type of the variable.
       final self::Foo* #t6 = :sync-for-iterator.{core::Iterator::current};
       {
         z = #t6;
-        core::String* y = z as{TypeError} core::String*;
+        core::String* y = z as{TypeError,ForDynamic} core::String*;
       }
     }
   }
@@ -129,18 +129,18 @@ Try changing the type of the variable.
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
       {
-        self::Foo* x = #t7 as{TypeError} self::Foo*;
+        self::Foo* x = #t7 as{TypeError,ForDynamic} self::Foo*;
         self::Foo* y = x;
       }
     }
   }
   dynamic iter2 = list;
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(iter2 as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
       {
-        self::Foo* x = #t8 as{TypeError} self::Foo*;
+        self::Foo* x = #t8 as{TypeError,ForDynamic} self::Foo*;
         self::Foo* y = x;
       }
     }
@@ -156,7 +156,7 @@ Try changing the type of the variable.
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       dynamic x = :sync-for-iterator.{core::Iterator::current};
       {
-        core::String* y = x as{TypeError} core::String*;
+        core::String* y = x as{TypeError,ForDynamic} core::String*;
       }
     }
   }
