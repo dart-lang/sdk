@@ -3409,9 +3409,15 @@ class FixProcessor extends BaseProcessor {
   }
 
   Future<void> _addFix_removeEmptyCatch() async {
+    var catchClause = node.parent as CatchClause;
+    var tryStatement = catchClause.parent as TryStatement;
+    if (tryStatement.catchClauses.length == 1 &&
+        tryStatement.finallyBlock == null) {
+      return;
+    }
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
-      builder.addDeletion(utils.getLinesRange(range.node(node.parent)));
+      builder.addDeletion(utils.getLinesRange(range.node(catchClause)));
     });
     _addFixFromBuilder(changeBuilder, DartFixKind.REMOVE_EMPTY_CATCH);
   }
