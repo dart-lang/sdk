@@ -121,6 +121,13 @@ void main() {
       });
     });
   });
+
+  test("a list of branches is parsed", () {
+    var testMatrix = TestMatrix.fromJson({
+      "branches": ["master", "stable"]
+    });
+    expect(testMatrix.branches, unorderedEquals(["master", "stable"]));
+  });
 }
 
 void expectJsonError(String error, Map<String, dynamic> json) {

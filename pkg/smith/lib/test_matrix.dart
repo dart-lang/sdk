@@ -12,6 +12,7 @@ import 'configuration.dart';
 class TestMatrix {
   final List<Configuration> configurations;
   final List<Builder> builders;
+  final List<String> branches;
 
   /// Reads a test matrix from the file at [path].
   static TestMatrix fromPath(String path) {
@@ -53,9 +54,10 @@ class TestMatrix {
 
     var builderConfigurations = <Map>[...?json["builder_configurations"]];
     var builders = parseBuilders(builderConfigurations, configurations);
+    var branches = <String>[...?json["branches"]];
 
-    return TestMatrix._(configurations, builders);
+    return TestMatrix._(configurations, builders, branches);
   }
 
-  TestMatrix._(this.configurations, this.builders);
+  TestMatrix._(this.configurations, this.builders, this.branches);
 }
