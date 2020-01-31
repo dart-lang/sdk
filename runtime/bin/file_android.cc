@@ -669,7 +669,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   struct stat buf;
   int result = fstat(fd, &buf);
   if (result == -1) {
-    return kOther;
+    return kTypeError;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;

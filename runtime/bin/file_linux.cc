@@ -666,7 +666,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
   struct stat64 buf;
   int result = TEMP_FAILURE_RETRY(fstat64(fd, &buf));
   if (result == -1) {
-    return kOther;
+    return kTypeError;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;

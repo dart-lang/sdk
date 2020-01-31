@@ -713,7 +713,11 @@ void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
   ASSERT((fd == STDIN_FILENO) || (fd == STDOUT_FILENO) ||
          (fd == STDERR_FILENO));
   File::StdioHandleType type = File::GetStdioHandleType(static_cast<int>(fd));
-  Dart_SetIntegerReturnValue(args, type);
+  if (type == File::StdioHandleType::kTypeError) {
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
+  } else {
+    Dart_SetIntegerReturnValue(args, type);
+  }
 }
 
 void FUNCTION_NAME(File_GetType)(Dart_NativeArguments args) {

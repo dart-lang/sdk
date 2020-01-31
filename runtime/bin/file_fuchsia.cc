@@ -622,7 +622,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
     // fstat() on fds 0, 1, 2 on Fuchsia return -1 with errno ENOTSUP,
     // but if they are opened, then we can read/write them, so pretend they
     // are kPipe.
-    return ((errno == ENOTSUP) && fd_is_valid(fd)) ? kPipe : kOther;
+    return ((errno == ENOTSUP) && fd_is_valid(fd)) ? kPipe : kTypeError;
   }
   if (S_ISCHR(buf.st_mode)) {
     return kTerminal;
