@@ -6,6 +6,7 @@ general/abstract_members: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug30695: TypeCheckError
 general/ignore_function: TypeCheckError
+general/invalid_operator: TypeCheckError
 general/mixin_application_override: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError
 general/override_check_accessor_basic: TypeCheckError

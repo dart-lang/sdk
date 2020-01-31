@@ -2131,6 +2131,13 @@ ExternalTypedef:
 OperatorWithOptionalFormals:
   template: "An operator can't have optional parameters."
 
+OperatorWithTypeParameters:
+  template: "Types parameters aren't allowed when defining an operator."
+  tip: "Try removing the type parameters."
+  analyzerCode: TYPE_PARAMETER_ON_OPERATOR
+  script:
+    - "class C { operator []<T>(T t) => null; }"
+
 PlatformPrivateLibraryAccess:
   template: "Can't access platform private library."
   analyzerCode: IMPORT_INTERNAL_LIBRARY

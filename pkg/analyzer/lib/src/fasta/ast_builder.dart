@@ -21,6 +21,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageMissingAssignableSelector,
         messageNativeClauseShouldBeAnnotation,
         messageTypedefNotFunction,
+        messageOperatorWithTypeParameters,
         templateDuplicateLabelInSwitchStatement,
         templateExpectedButGot,
         templateExpectedIdentifier,
@@ -892,6 +893,10 @@ class AstBuilder extends StackListener {
     } else if (name is _OperatorName) {
       operatorKeyword = name.operatorKeyword;
       nameId = name.name;
+      if (typeParameters != null) {
+        handleRecoverableError(messageOperatorWithTypeParameters,
+            typeParameters.beginToken, typeParameters.endToken);
+      }
     } else {
       throw UnimplementedError(
           'name is an instance of ${name.runtimeType} in endClassMethod');

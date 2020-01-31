@@ -642,6 +642,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
   ParserErrorCode.TYPE_BEFORE_FACTORY,
   ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR,
+  ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR,
   ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
   ParserErrorCode.UNEXPECTED_TOKEN,
   ParserErrorCode.VAR_AND_TYPE,

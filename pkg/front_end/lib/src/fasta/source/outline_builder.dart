@@ -1049,6 +1049,11 @@ class OutlineBuilder extends StackListenerImpl {
           }
         }
       }
+      if (typeVariables != null) {
+        TypeVariableBuilder typeVariableBuilder = typeVariables.first;
+        addProblem(messageOperatorWithTypeParameters,
+            typeVariableBuilder.charOffset, typeVariableBuilder.name.length);
+      }
     } else {
       name = nameOrOperator;
       kind = computeProcedureKind(getOrSet);

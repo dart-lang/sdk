@@ -37,6 +37,7 @@ general/external_import: RuntimeError # The native extension to import doesn't e
 general/ignore_function: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
 general/invalid_type: TypeCheckError
+general/invalid_operator: TypeCheckError
 general/invocations: RuntimeError
 general/issue34899: TypeCheckError
 general/issue37776: RuntimeError

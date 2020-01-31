@@ -207,6 +207,8 @@ general/interface_covariantImpl_from_class: TextSerializationFailure
 general/interface_covariantInterface_from_class: TextSerializationFailure
 general/invalid_assignment: TextSerializationFailure # Was: Pass
 general/invalid_cast: TextSerializationFailure # Was: Pass
+general/invalid_operator: TypeCheckError
+general/invalid_operator2: TextSerializationFailure
 general/invalid_type: TypeCheckError
 general/invocations: TextSerializationFailure # Was: RuntimeError
 general/issue129167943: TextSerializationFailure
@@ -1520,6 +1522,7 @@ runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerial
 runtime_checks_new/stub_from_interface_covariant_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFailure # Was: Pass
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
+triple_shift/invalid_operator: TextSerializationFailure
 top_level_variance_test: TextSerializationFailure
 unified_collections/mixed_entries: TextSerializationFailure
 unified_collections/string_concatenation: TextSerializationFailure

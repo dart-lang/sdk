@@ -6606,6 +6606,17 @@ const MessageCode messageOperatorWithOptionalFormals = const MessageCode(
     message: r"""An operator can't have optional parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeOperatorWithTypeParameters =
+    messageOperatorWithTypeParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageOperatorWithTypeParameters = const MessageCode(
+    "OperatorWithTypeParameters",
+    analyzerCodes: <String>["TYPE_PARAMETER_ON_OPERATOR"],
+    message: r"""Types parameters aren't allowed when defining an operator.""",
+    tip: r"""Try removing the type parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateOverriddenMethodCause =
     const Template<Message Function(String name)>(
         messageTemplate: r"""This is the overridden method ('#name').""",
