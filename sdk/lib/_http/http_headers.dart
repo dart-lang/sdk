@@ -8,6 +8,8 @@ part of dart._http;
 
 class _HttpHeaders implements HttpHeaders {
   final Map<String, List<String>> _headers;
+  // The original header names keyed by the lowercase header names.
+  Map<String, String> _originalHeaderNames;
   final String protocolVersion;
 
   bool _mutable = true; // Are the headers currently mutable?
@@ -40,10 +42,10 @@ class _HttpHeaders implements HttpHeaders {
     }
   }
 
-  List<String> operator [](String name) => _headers[name.toLowerCase()];
+  List<String> operator [](String name) => _headers[_validateField(name)];
 
   String value(String name) {
-    name = name.toLowerCase();
+    name = _validateField(name);
     List<String> values = _headers[name];
     if (values == null) return null;
     if (values.length > 1) {
@@ -52,13 +54,21 @@ class _HttpHeaders implements HttpHeaders {
     return values[0];
   }
 
-  void add(String name, value) {
+  void add(String name, value, {bool preserveHeaderCase: false}) {
     _checkMutable();
-    _addAll(_validateField(name), value);
+    String lowercaseName = _validateField(name);
+
+    // TODO(zichangguo): Consider storing all previously cased name for each
+    // entity instead of replacing name.
+    if (preserveHeaderCase && name != lowercaseName) {
+      (_originalHeaderNames ??= {})[lowercaseName] = name;
+    } else {
+      _originalHeaderNames?.remove(lowercaseName);
+    }
+    _addAll(lowercaseName, value);
   }
 
   void _addAll(String name, value) {
-    assert(name == _validateField(name));
     if (value is Iterable) {
       for (var v in value) {
         _add(name, _validateValue(v));
@@ -68,14 +78,20 @@ class _HttpHeaders implements HttpHeaders {
     }
   }
 
-  void set(String name, Object value) {
+  void set(String name, Object value, {bool preserveHeaderCase: false}) {
     _checkMutable();
-    name = _validateField(name);
-    _headers.remove(name);
-    if (name == HttpHeaders.transferEncodingHeader) {
+    String lowercaseName = _validateField(name);
+    _headers.remove(lowercaseName);
+    _originalHeaderNames?.remove(lowercaseName);
+    if (lowercaseName == HttpHeaders.transferEncodingHeader) {
       _chunkedTransferEncoding = false;
     }
-    _addAll(name, value);
+    if (preserveHeaderCase && name != lowercaseName) {
+      (_originalHeaderNames ??= {})[lowercaseName] = name;
+    } else {
+      _originalHeaderNames?.remove(lowercaseName);
+    }
+    _addAll(lowercaseName, value);
   }
 
   void remove(String name, Object value) {
@@ -88,7 +104,10 @@ class _HttpHeaders implements HttpHeaders {
       if (index != -1) {
         values.removeRange(index, index + 1);
       }
-      if (values.length == 0) _headers.remove(name);
+      if (values.length == 0) {
+        _headers.remove(name);
+        _originalHeaderNames?.remove(name);
+      }
     }
     if (name == HttpHeaders.transferEncodingHeader && value == "chunked") {
       _chunkedTransferEncoding = false;
@@ -99,10 +118,14 @@ class _HttpHeaders implements HttpHeaders {
     _checkMutable();
     name = _validateField(name);
     _headers.remove(name);
+    _originalHeaderNames?.remove(name);
   }
 
-  void forEach(void f(String name, List<String> values)) {
-    _headers.forEach(f);
+  void forEach(void action(String name, List<String> values)) {
+    _headers.forEach((String name, List<String> values) {
+      String originalName = _originalHeaderName(name);
+      action(originalName, values);
+    });
   }
 
   void noFolding(String name) {
@@ -498,14 +521,15 @@ class _HttpHeaders implements HttpHeaders {
   String toString() {
     StringBuffer sb = new StringBuffer();
     _headers.forEach((String name, List<String> values) {
-      sb..write(name)..write(": ");
+      String originalName = _originalHeaderName(name);
+      sb..write(originalName)..write(": ");
       bool fold = _foldHeader(name);
       for (int i = 0; i < values.length; i++) {
         if (i > 0) {
           if (fold) {
             sb.write(", ");
           } else {
-            sb..write("\n")..write(name)..write(": ");
+            sb..write("\n")..write(originalName)..write(": ");
           }
         }
         sb.write(values[i]);
@@ -591,7 +615,7 @@ class _HttpHeaders implements HttpHeaders {
     for (var i = 0; i < field.length; i++) {
       if (!_HttpParser._isTokenChar(field.codeUnitAt(i))) {
         throw new FormatException(
-            "Invalid HTTP header field name: ${json.encode(field)}");
+            "Invalid HTTP header field name: ${json.encode(field)}", field, i);
       }
     }
     return field.toLowerCase();
@@ -602,10 +626,15 @@ class _HttpHeaders implements HttpHeaders {
     for (var i = 0; i < value.length; i++) {
       if (!_HttpParser._isValueChar(value.codeUnitAt(i))) {
         throw new FormatException(
-            "Invalid HTTP header field value: ${json.encode(value)}");
+            "Invalid HTTP header field value: ${json.encode(value)}", value, i);
       }
     }
     return value;
+  }
+
+  String _originalHeaderName(String name) {
+    return (_originalHeaderNames == null ? null : _originalHeaderNames[name]) ??
+        name;
   }
 }
 

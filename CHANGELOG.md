@@ -17,6 +17,14 @@ used (see Issue [39627][]).
 
 #### `dart:io`
 
+* **Breaking change** [#33501](https://github.com/dart-lang/sdk/issues/33501):
+An named parameter is added to `add` and `set` for class `HttpHeaders`.
+The signature of has been changed from `void add(String name, Object value)` to
+`void add(String name, Object value, {bool preserveHeaderCase: false})`. Same change
+is applied to `set`. `preserveHeaderCase` will preserve the case of `name`
+instead of converting them to lowercase. `HttpHeader.forEach()` provides the current
+case of each header.
+
 ### Dart VM
 
 ### Tools

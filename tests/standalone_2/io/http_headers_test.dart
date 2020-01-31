@@ -580,6 +580,76 @@ void testFolding() {
   Expect.isTrue(str.contains(': d'));
 }
 
+void testLowercaseAdd() {
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.add('A', 'a');
+  Expect.equals(headers['a'][0], headers['A'][0]);
+  Expect.equals(headers['A'][0], 'a');
+  headers.add('Foo', 'Foo', preserveHeaderCase: true);
+  Expect.equals(headers['Foo'][0], 'Foo');
+  // Header field is Foo.
+  Expect.isTrue(headers.toString().contains('Foo:'));
+
+  headers.add('FOo', 'FOo', preserveHeaderCase: true);
+  // Header field changes to FOo.
+  Expect.isTrue(headers.toString().contains('FOo:'));
+
+  headers.add('FOO', 'FOO', preserveHeaderCase: false);
+  // Header field
+  Expect.isTrue(!headers.toString().contains('Foo:'));
+  Expect.isTrue(!headers.toString().contains('FOo:'));
+  Expect.isTrue(headers.toString().contains('FOO'));
+}
+
+void testLowercaseSet() {
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.add('test', 'lower cases');
+  // 'Test' should override 'test' entity
+  headers.set('TEST', 'upper cases', preserveHeaderCase: true);
+  Expect.isTrue(headers.toString().contains('TEST: upper cases'));
+  Expect.equals(1, headers['test'].length);
+  Expect.equals(headers['test'][0], 'upper cases');
+
+  // Latest header will be stored.
+  headers.set('Test', 'mixed cases', preserveHeaderCase: true);
+  Expect.isTrue(headers.toString().contains('Test: mixed cases'));
+  Expect.equals(1, headers['test'].length);
+  Expect.equals(headers['test'][0], 'mixed cases');
+}
+
+void testForEach() {
+  _HttpHeaders headers = new _HttpHeaders("1.1");
+  headers.add('header1', 'value1');
+  headers.add('header2', 'value2');
+  headers.add('HEADER1', 'value3', preserveHeaderCase: true);
+  headers.add('HEADER3', 'value4', preserveHeaderCase: true);
+
+  bool myHeader1 = false;
+  bool myHeader2 = false;
+  bool myHeader3 = false;
+  int totalValues = 0;
+  headers.forEach((String name, List<String> values) {
+    totalValues += values.length;
+    if (name == "HEADER1") {
+      myHeader1 = true;
+      Expect.isTrue(values.indexOf("value 1") != -1);
+      Expect.isTrue(values.indexOf("value 3") != -1);
+    }
+    if (name == "header2") {
+      myHeader2 = true;
+      Expect.isTrue(values.indexOf("value 2") != -1);
+    }
+    if (name == "HEADER3") {
+      myHeader3 = true;
+      Expect.isTrue(values.indexOf("value 4") != -1);
+    }
+  });
+  Expect.isTrue(myHeader1);
+  Expect.isTrue(myHeader2);
+  Expect.isTrue(myHeader3);
+  Expect.equals(4, totalValues);
+}
+
 main() {
   testMultiValue();
   testDate();
@@ -599,4 +669,6 @@ main() {
   testInvalidFieldValue();
   testClear();
   testFolding();
+  testLowercaseAdd();
+  testLowercaseSet();
 }

@@ -92,7 +92,7 @@ vars = {
   "glob_tag": "1.1.7",
   "html_tag" : "0.14.0+1",
   "http_io_rev": "2fa188caf7937e313026557713f7feffedd4978b",
-  "http_multi_server_tag" : "2.0.5",
+  "http_multi_server_tag" : "98c2789fc1c47544afc8efbec5fa9c1499ecf5e2",
   "http_parser_tag" : "3.1.3",
   "http_retry_tag": "0.1.1",
   "http_tag" : "0.12.0+2",
