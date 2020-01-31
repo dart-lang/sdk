@@ -1,3 +1,6 @@
+## 0.39.6
+* Add support for `@Unsafe` annotation as `isUnsafe` and `hasUnsafe`.
+
 ## 0.39.5-dev
 * Deprecated `ClassElement.instantiateToBounds()` and
   `FunctionTypeAliasElement.instantiateToBounds()`. With the null-safety

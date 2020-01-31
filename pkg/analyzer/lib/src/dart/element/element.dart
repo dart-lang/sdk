@@ -2392,6 +2392,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of the top-level variable used to mark a class as being sealed.
   static const String _SEALED_VARIABLE_NAME = "sealed";
 
+  /// The name of the top-level variable used to mark a method as unsafe.
+  static const String _UNSAFE_VARIABLE_NAME = "Unsafe";
+
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
   static const String _VISIBLE_FOR_TEMPLATE_VARIABLE_NAME =
@@ -2538,6 +2541,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isSealed =>
       element is PropertyAccessorElement &&
       element.name == _SEALED_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isUnsafe =>
+      element is PropertyAccessorElement &&
+      element.name == _UNSAFE_VARIABLE_NAME &&
       element.library?.name == _META_LIB_NAME;
 
   @override
@@ -2858,6 +2867,18 @@ abstract class ElementImpl implements Element {
     for (var i = 0; i < metadata.length; i++) {
       var annotation = metadata[i];
       if (annotation.isSealed) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get hasUnsafe {
+    var metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isUnsafe) {
         return true;
       }
     }
