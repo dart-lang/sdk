@@ -1737,6 +1737,15 @@
           "fileset": "dart2js_nnbd"
         },
         {
+          "name": "ddc legacy weak co19 tests",
+          "arguments": [
+            "-ndartdevk-weak-linux-release-chrome",
+            "co19_2"
+          ],
+          "shards": 6,
+          "fileset": "dart2js_nnbd"
+        },
+        {
           "name": "ddc nnbd strong tests",
           "arguments": [
             "-ndartdevk-strong-linux-release-chrome",
