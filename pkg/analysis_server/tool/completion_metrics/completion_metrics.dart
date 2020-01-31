@@ -22,6 +22,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 
 import 'metrics_util.dart';
+import 'relevance_analyzers.dart';
 import 'visitors.dart';
 
 // TODO(jwren) have the analysis root and verbose option be configurable via a
@@ -40,6 +41,8 @@ class CompletionMetricsComputer {
   /// When enabled, expected, but missing completion tokens will be printed to
   /// stdout.
   final bool _verbose;
+
+  final RelevanceAnalyzer _relevanceAnalyzer = null;
 
   CompletionMetricsComputer(this._rootPath, this._verbose);
 
@@ -103,6 +106,8 @@ class CompletionMetricsComputer {
 
               mRRComputer.addReciprocalRank(place);
 
+              _relevanceAnalyzer?.report(expectedCompletion);
+
               if (place.denominator != 0) {
                 includedCount++;
               } else {
@@ -162,6 +167,9 @@ class CompletionMetricsComputer {
     completionKindCounter.clear();
     completionElementKindCounter.clear();
     mRRComputer.clear();
+
+    _relevanceAnalyzer?.printData();
+    _relevanceAnalyzer?.clear();
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
