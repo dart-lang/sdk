@@ -277,6 +277,24 @@ class Required {
   const Required([this.reason = '']);
 }
 
+
+/// Used to annotate an unsafe method or value in a class.
+///
+/// This annotation is expected to be used in sensitive libraries where API
+/// usage typically requires a security review.
+class Unsafe {
+
+  /// Human readable reason of why this construct is unsafe.
+  ///
+  /// This is required because unsafe annotations are not self-explanatory.
+  /// Explanation should give alternative APIs to use if applicable. It should
+  /// also link to documentation with more details as to why the API is unsafe.
+  final String reason;
+
+  /// Initialize a newly created instance with a given reason.
+  const Unsafe(this.reason);
+}
+
 class _AlwaysThrows {
   const _AlwaysThrows();
 }

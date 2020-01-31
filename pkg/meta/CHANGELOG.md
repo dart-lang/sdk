@@ -1,3 +1,8 @@
+## 1.1.9
+
+* Introduce `@Unsafe` to annotate methods or values that typically require
+  a security audit to use.
+
 ## 1.1.8
 
 * Introduce `@nonVirtual` to annotate instance members that should not be
