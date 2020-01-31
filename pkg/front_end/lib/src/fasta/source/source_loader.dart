@@ -911,6 +911,7 @@ class SourceLoader extends Loader {
     } else {
       hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
       Component component = computeFullComponent();
+      hierarchy.coreTypes = coreTypes;
       hierarchy.applyTreeChanges(const [], component.libraries,
           reissueAmbiguousSupertypesFor: component);
     }

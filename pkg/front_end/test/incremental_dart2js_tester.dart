@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:developer";
 import 'dart:io' show Platform;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
@@ -17,11 +18,14 @@ import "incremental_utils.dart" as util;
 main(List<String> args) async {
   bool fast = false;
   bool useExperimentalInvalidation = false;
+  bool addDebugBreaks = false;
   for (String arg in args) {
     if (arg == "--fast") {
       fast = true;
     } else if (arg == "--experimental") {
       useExperimentalInvalidation = true;
+    } else if (arg == "--addDebugBreaks") {
+      addDebugBreaks = true;
     } else {
       throw "Unsupported argument: $arg";
     }
@@ -157,6 +161,9 @@ main(List<String> args) async {
         print("=====");
         print("=====");
       }
+    }
+    if (addDebugBreaks) {
+      debugger();
     }
     print("-----");
   }

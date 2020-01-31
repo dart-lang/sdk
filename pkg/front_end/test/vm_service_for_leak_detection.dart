@@ -14,6 +14,8 @@ main(List<String> args) async {
           "package:front_end/src/fasta/source/source_extension_builder.dart"),
       "SourceExtensionBuilder",
       ["_extension"]));
+  interests.add(new helper.Interest(
+      Uri.parse("package:kernel/ast.dart"), "Library", ["fileUri"]));
   helper.VMServiceHeapHelper heapHelper = new helper.VMServiceHeapHelper(
       interests,
       [
@@ -25,15 +27,10 @@ main(List<String> args) async {
         new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Extension",
             ["name", "fileUri"]),
       ],
-      false);
+      true);
   heapHelper.start([
-    Platform.script.resolve("incremental_load_from_dill_suite.dart").toString(),
-    "-DaddDebugBreaks=true",
-    // "--",
-    // "incremental_load_from_dill/no_outline_change_34"
-    // "incremental_load_from_dill/no_outline_change_10"
-    "incremental_load_from_dill/deleting_file"
-    // "incremental_load_from_dill/no_outline_change_2"
-    // "incremental_load_from_dill/incremental_serialization_1"
+    Platform.script.resolve("incremental_dart2js_tester.dart").toString(),
+    "--fast",
+    "--addDebugBreaks",
   ]);
 }

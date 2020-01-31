@@ -126,7 +126,6 @@ class VMServiceHeapHelper {
                 }
               }
               String sbToString = sb.toString();
-              print(sbToString);
               if (!seenPrints.add(sbToString)) {
                 duplicatePrints.add(sbToString);
               }
@@ -142,7 +141,8 @@ class VMServiceHeapHelper {
         print("This might be a memory leak!");
         print("");
         for (String s in duplicatePrints) {
-          print("$s");
+          int count = groupedByToString[s].length;
+          print("$s ($count)");
           print("");
         }
         print("======================================");
