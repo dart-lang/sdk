@@ -451,6 +451,14 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   final Map<Class, _ClassInfo> _infoMap =
       new LinkedHashMap<Class, _ClassInfo>();
 
+  List<ForTestingClassInfo> getTestingClassInfo() {
+    List<ForTestingClassInfo> result = new List<ForTestingClassInfo>();
+    for (_ClassInfo info in _infoMap.values) {
+      result.add(new ForTestingClassInfo._(info));
+    }
+    return result;
+  }
+
   _ClassInfo infoFor(Class c) {
     _ClassInfo info = _infoMap[c];
     info?.used = true;
@@ -1442,6 +1450,25 @@ int _intervalListSize(Uint32List intervalList) {
     size += intervalList[i + 1] - intervalList[i];
   }
   return size;
+}
+
+class ForTestingClassInfo {
+  final Class classNode;
+  final List<Member> lazyDeclaredGettersAndCalls;
+  final List<Member> lazyDeclaredSetters;
+  final List<Member> lazyImplementedGettersAndCalls;
+  final List<Member> lazyImplementedSetters;
+  final List<Member> lazyInterfaceGettersAndCalls;
+  final List<Member> lazyInterfaceSetters;
+
+  ForTestingClassInfo._(_ClassInfo c)
+      : classNode = c.classNode,
+        lazyDeclaredGettersAndCalls = c.lazyDeclaredGettersAndCalls,
+        lazyDeclaredSetters = c.lazyDeclaredSetters,
+        lazyImplementedGettersAndCalls = c.lazyImplementedGettersAndCalls,
+        lazyImplementedSetters = c.lazyImplementedSetters,
+        lazyInterfaceGettersAndCalls = c.lazyInterfaceGettersAndCalls,
+        lazyInterfaceSetters = c.lazyInterfaceSetters;
 }
 
 class _ClassInfo {
