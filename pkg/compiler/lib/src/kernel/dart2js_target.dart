@@ -13,6 +13,7 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 
 import 'invocation_mirror_constants.dart';
@@ -92,7 +93,8 @@ class Dart2jsTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg)}) {
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
       JsInteropChecks(
               diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)

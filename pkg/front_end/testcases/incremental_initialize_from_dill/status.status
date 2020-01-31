@@ -4,9 +4,6 @@
 
 # Status file for the test suite ../test/incremental_load_from_dill_test.dart.
 
-ffi_01: Crash # Class hierarchy is out of date.
-ffi_02: Crash # Class hierarchy is out of date.
-
 no_outline_change_1: Crash # Doesn't work on DillLibraryBuilders.
 no_outline_change_2: Crash # Doesn't work on DillLibraryBuilders.
 no_outline_change_6: Crash # Doesn't work on DillLibraryBuilders.

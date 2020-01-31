@@ -67,6 +67,9 @@ import 'package:kernel/kernel.dart' show loadComponentFromBytes;
 
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 
+import 'package:kernel/target/changed_structure_notifier.dart'
+    show ChangedStructureNotifier;
+
 import 'package:kernel/target/targets.dart'
     show TargetFlags, DiagnosticReporter;
 
@@ -655,7 +658,8 @@ class TestVmTarget extends VmTarget {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg)}) {
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
     if (enabled) {
       super.performModularTransformationsOnLibraries(
           component,

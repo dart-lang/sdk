@@ -10,6 +10,7 @@ import 'package:kernel/clone.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/mixin_full_resolution.dart'
     as transformMixins show transformLibraries;
@@ -110,7 +111,8 @@ class VmTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
     super.performPreConstantEvaluationTransformations(
         component, coreTypes, libraries, diagnosticReporter,
         logger: logger);
@@ -140,15 +142,22 @@ class VmTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg)}) {
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex,
         doSuperResolution: false /* resolution is done in Dart VM */);
     logger?.call("Transformed mixin applications");
 
     transformFfi.ReplacedMembers replacedFields =
-        transformFfiDefinitions.transformLibraries(component, coreTypes,
-            hierarchy, libraries, diagnosticReporter, referenceFromIndex);
+        transformFfiDefinitions.transformLibraries(
+            component,
+            coreTypes,
+            hierarchy,
+            libraries,
+            diagnosticReporter,
+            referenceFromIndex,
+            changedStructureNotifier);
     transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
         libraries, diagnosticReporter, replacedFields, referenceFromIndex);
     logger?.call("Transformed ffi annotations");

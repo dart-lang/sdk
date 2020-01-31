@@ -40,7 +40,10 @@ import 'package:kernel/kernel.dart'
 
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 
-import '../api_prototype/file_system.dart' show FileSystemEntity;
+import 'package:kernel/target/changed_structure_notifier.dart'
+    show ChangedStructureNotifier;
+
+import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator, isLegalIdentifier;
@@ -142,7 +145,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   static final Uri debugExprUri =
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
 
-  KernelTarget userCode;
+  IncrementalKernelTarget userCode;
   Set<Library> previousSourceBuilders;
 
   IncrementalCompiler.fromComponent(
@@ -232,6 +235,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             await userCode.buildComponent(verify: c.options.verify);
       }
       hierarchy ??= userCode.loader.hierarchy;
+      if (hierarchy != null && userCode.classesChangedStructure != null) {
+        hierarchy.applyMemberChanges(userCode.classesChangedStructure,
+            findDescendants: true);
+      }
       recordNonFullComponentForTesting(componentWithDill);
 
       // Perform actual dill usage tracking.
@@ -562,7 +569,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<LibraryBuilder> reusedLibraries,
       ExperimentalInvalidation experimentalInvalidation,
       Uri firstEntryPoint) {
-    userCode = new KernelTarget(
+    userCode = new IncrementalKernelTarget(
         new HybridFileSystem(
             new MemoryFileSystem(
                 new Uri(scheme: "org-dartlang-debug", path: "/")),
@@ -1682,7 +1689,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       Set<Uri> uris = new Set<Uri>.from(userCode.loader.builders.keys);
       uris.removeAll(dillLoadedData.loader.builders.keys);
       if (previousSourceBuilders != null) {
-        for(Library library in previousSourceBuilders) {
+        for (Library library in previousSourceBuilders) {
           uris.add(library.importUri);
         }
       }
@@ -1762,4 +1769,20 @@ class ExperimentalInvalidation {
       : assert(rebuildBodies != null),
         assert(originalNotReusedLibraries != null),
         assert(missingSources != null);
+}
+
+class IncrementalKernelTarget extends KernelTarget
+    implements ChangedStructureNotifier {
+  Set<Class> classesChangedStructure;
+  IncrementalKernelTarget(FileSystem fileSystem, bool includeComments,
+      DillTarget dillTarget, UriTranslator uriTranslator)
+      : super(fileSystem, includeComments, dillTarget, uriTranslator);
+
+  ChangedStructureNotifier get changedStructureNotifier => this;
+
+  @override
+  void forClass(Class c) {
+    classesChangedStructure ??= new Set<Class>();
+    classesChangedStructure.add(c);
+  }
 }
