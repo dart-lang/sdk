@@ -6,7 +6,7 @@
 regexp/lookbehind_test/01: Skip # Flaky in uncatchable way.  Issue 36280
 
 [ $mode == debug ]
-regexp/pcre_test: Slow # Issue 22008
+regexp/pcre_test: Slow, Pass # Issue 22008
 
 [ $arch == x64 && $system == windows ]
 stopwatch_test: Skip # Flaky test due to expected performance behaviour.
@@ -22,7 +22,7 @@ type_tostring_test: SkipByDesign # Expects names in Type.toString()
 bigint_js_test: SkipByDesign # JavaScript-specific test
 
 [ $compiler == dart2js && $runtime != none ]
-regexp/pcre_test: Slow # Issue 21593
+regexp/pcre_test: Slow, Pass # Issue 21593
 
 # We no longer expect Dart2 tests to run with the standalone VM without the new
 # common front end, but for now we get better coverage by still running them in
@@ -43,19 +43,19 @@ bigint_test/03: SkipSlow # modPow is very slow
 bigint_test/15: SkipSlow # modPow is very slow
 int_parse_with_limited_ints_test: Skip # Requires fixed-size int64 support.
 typed_data_with_limited_ints_test: Skip # Requires fixed-size int64 support.
-uri_parse_test: Slow
-uri_test: Slow
+uri_parse_test: Slow, Pass
+uri_test: Slow, Pass
 
 [ $compiler == dartkb || $compiler == dartkp ]
-bigint_parse_radix_test: Slow # --no_intrinsify
+bigint_parse_radix_test: Slow, Pass # --no_intrinsify
 bigint_test/03: SkipSlow # --no_intrinsify
 bigint_test/15: SkipSlow # --no_intrinsify
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 regexp/global_test: Skip # Issue 21709
-regexp/pcre_test: Slow
+regexp/pcre_test: Slow, Pass
 
 [ $hot_reload || $hot_reload_rollback ]
 bigint_parse_radix_test: Skip # Issue 31659. Issue 34361.
 bigint_test: Skip # Issue 31659
-integer_parsed_mul_div_vm_test: Slow # Slow
+integer_parsed_mul_div_vm_test: Slow, Pass # Slow

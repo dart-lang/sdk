@@ -8,14 +8,14 @@ LibTest/html/*: SkipByDesign # d8 is not a browser
 WebPlatformTest/*: SkipByDesign # d8 is not a browser
 
 [ $compiler == dart2js && $runtime == d8 && $host_checked ]
-LibTest/collection/ListBase/ListBase_class_A01_t04: Slow
-LibTest/collection/ListBase/ListBase_class_A01_t05: Slow
-LibTest/collection/ListBase/ListBase_class_A01_t06: Slow
-LibTest/collection/ListMixin/ListMixin_class_A01_t04: Slow
-LibTest/collection/ListMixin/ListMixin_class_A01_t05: Slow
-LibTest/collection/ListMixin/ListMixin_class_A01_t06: Slow
-LibTest/core/List/List_class_A01_t05: Slow
-LibTest/core/List/List_class_A01_t06: Slow
+LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t05: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t04: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t05: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t06: Slow, Pass
+LibTest/core/List/List_class_A01_t05: Slow, Pass
+LibTest/core/List/List_class_A01_t06: Slow, Pass
 
 [ $compiler == dart2js && $runtime == ie11 ]
 LibTest/collection/ListBase/ListBase_class_A01_t04: SkipSlow # slow babeljs transformation

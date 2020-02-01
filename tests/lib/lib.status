@@ -12,8 +12,8 @@ developer/timeline_test: Skip # Not supported
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 
 [ $runtime == ff ]
-convert/streamed_conversion_utf8_decode_test: Slow # Issue 12029
-mirrors/mirrors_reader_test: Slow # Issue 16589
+convert/streamed_conversion_utf8_decode_test: Slow, Pass # Issue 12029
+mirrors/mirrors_reader_test: Slow, Pass # Issue 16589
 
 [ $runtime == ie11 ]
 html/request_animation_frame_test: Skip # Times out. Issue 22167
@@ -31,7 +31,7 @@ html/xhr_test/xhr: Skip # Times out.  Issue 21527
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 
 [ $runtime == chrome && $system == linux ]
-mirrors/native_class_test: Slow
+mirrors/native_class_test: Slow, Pass
 
 [ $runtime == chrome && $system == macos ]
 convert/streamed_conversion_utf8_encode_test: SkipSlow # Times out. Issue 22050

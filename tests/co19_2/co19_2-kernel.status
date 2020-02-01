@@ -3,9 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $builder_tag == bytecode_interpreter ]
-LibTest/collection/ListBase/ListBase_class_A01_t04: Slow
-LibTest/collection/ListBase/ListBase_class_A01_t05: Slow
-LibTest/collection/ListBase/ListBase_class_A01_t06: Slow
+LibTest/collection/ListBase/ListBase_class_A01_t04: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t05: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t06: Slow, Pass
 
 [ $compiler == dartkb ]
 LibTest/isolate/Isolate/kill_A01_t01: Skip # Issue 37699
@@ -18,9 +18,9 @@ Language/Statements/For/syntax_t20: Crash # Assertion error: kernel_shadow_ast.d
 LanguageFeatures/Constant-update-2018/NewOperators_A01_t06/none: Crash
 
 [ $runtime == vm ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Slow # Does many calls
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow # Does many calls
-LibTest/core/List/List_class_A01_t02: Slow # Does many calls
+LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass # Does many calls
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass # Does many calls
+LibTest/core/List/List_class_A01_t02: Slow, Pass # Does many calls
 LibTest/io/RawDatagramSocket/*: Skip # RawDatagramSocket are flacky. Skip them all until rewritten
 
 [ $fasta ]
@@ -182,12 +182,12 @@ LanguageFeatures/regression/34803_t02: Crash
 LibTest/isolate/Isolate/spawn_A06_t03: Crash
 
 [ $runtime == vm && $system == macos && ($compiler == dartk || $compiler == dartkb) ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Slow
-LibTest/collection/ListBase/ListBase_class_A01_t03: Slow
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow
-LibTest/collection/ListMixin/ListMixin_class_A01_t03: Slow
-LibTest/core/List/List_class_A01_t02: Slow
-LibTest/core/List/List_class_A01_t03: Slow
+LibTest/collection/ListBase/ListBase_class_A01_t02: Slow, Pass
+LibTest/collection/ListBase/ListBase_class_A01_t03: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Slow, Pass
+LibTest/collection/ListMixin/ListMixin_class_A01_t03: Slow, Pass
+LibTest/core/List/List_class_A01_t02: Slow, Pass
+LibTest/core/List/List_class_A01_t03: Slow, Pass
 
 [ $runtime != vm && ($compiler == dartk || $compiler == dartkb) ]
 Language/Classes/Constructors/Constant_Constructors/potentially_constant_expression_t01: Crash

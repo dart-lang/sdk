@@ -19,7 +19,7 @@ mixin_declaration/*: Skip # See https://github.com/dart-lang/language/issues/7
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
 
 [ $mode == debug ]
-class/large_class_declaration_test: Slow
+class/large_class_declaration_test: Slow, Pass
 
 [ $mode == product ]
 assert/assert_test: SkipByDesign # Requires checked mode.
@@ -45,4 +45,4 @@ identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM
 regress/regress22780_test/01: Crash # Issue 29094
 regress/regress23244_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
 vm/optimized_guarded_field_isolates_test: Skip # https://dartbug.com/36097: Ongoing concurrency work.
-vm/optimized_stacktrace_test: Slow
+vm/optimized_stacktrace_test: Slow, Pass
