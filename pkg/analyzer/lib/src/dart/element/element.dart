@@ -2392,8 +2392,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// The name of the top-level variable used to mark a class as being sealed.
   static const String _SEALED_VARIABLE_NAME = "sealed";
 
-  /// The name of the top-level variable used to mark a method as unsafe.
-  static const String _UNSAFE_VARIABLE_NAME = "Unsafe";
+  /// The name of the top-level class used to mark an API as unsafe.
+  static const String _UNSAFE_CLASS_NAME = "Unsafe";
 
   /// The name of the top-level variable used to mark a method as being
   /// visible for templates.
@@ -2545,8 +2545,8 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isUnsafe =>
-      element is PropertyAccessorElement &&
-      element.name == _UNSAFE_VARIABLE_NAME &&
+      element is ClassElement &&
+      element.name == _UNSAFE_CLASS_NAME &&
       element.library?.name == _META_LIB_NAME;
 
   @override
