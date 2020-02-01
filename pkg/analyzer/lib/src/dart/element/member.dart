@@ -486,6 +486,9 @@ abstract class Member implements Element {
   bool get hasSealed => _declaration.hasSealed;
 
   @override
+  bool get hasUnsafe => _declaration.hasUnsafe;
+
+  @override
   bool get hasVisibleForTemplate => _declaration.hasVisibleForTemplate;
 
   @override

@@ -585,6 +585,9 @@ abstract class Element implements AnalysisTarget {
   /// Return `true` if this element has an annotation of the form `@sealed`.
   bool get hasSealed;
 
+  /// Return `true` if this element has an annotation of the form `@Unsafe`.
+  bool get hasUnsafe;
+
   /// Return `true` if this element has an annotation of the form
   /// `@visibleForTemplate`.
   bool get hasVisibleForTemplate;
@@ -781,6 +784,9 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated class as being
   /// sealed.
   bool get isSealed;
+
+  /// Return `true` if this annotation marks a method or field as unsafe.
+  bool get isUnsafe;
 
   /// Return `true` if this annotation marks the associated member as being
   /// visible for template files.
