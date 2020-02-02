@@ -42,7 +42,7 @@ ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dar
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28344|3|15|All final variables must be initialized, but 'form', 'labels', and 5 others are not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|29082|3|12|All final variables must be initialized, but 'readyState' and 'track' are not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|29888|3|12|All final variables must be initialized, but 'decodedFrameCount', 'droppedFrameCount', and 2 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|38890|3|8|All final variables must be initialized, but 'sourceCapabilities' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|38892|3|8|All final variables must be initialized, but 'sourceCapabilities' is not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|453|3|13|All final variables must be initialized, but 'origin' is not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|8511|3|15|All final variables must be initialized, but 'options' is not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|972|3|11|All final variables must be initialized, but 'origin' is not.

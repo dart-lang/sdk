@@ -87,7 +87,7 @@
     "Dynamic access of 'firstChild'.": 2,
     "Dynamic invocation of 'append'.": 1,
     "Dynamic access of 'tagName'.": 2,
-    "Dynamic invocation of 'call'.": 1,
+    "Dynamic invocation of 'call'.": 2,
     "Dynamic invocation of 'dart.dom.html::_initKeyboardEvent'.": 1,
     "Dynamic access of 'attributes'.": 1,
     "Dynamic invocation of '[]'.": 1,

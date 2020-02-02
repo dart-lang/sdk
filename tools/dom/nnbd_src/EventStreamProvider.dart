@@ -265,7 +265,9 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
     }
     // Remove current event listener.
     _unlisten();
-    _onData = _wrapZone<Event>(handleData);
+    _onData = handleData == null
+        ? null
+        : _wrapZone<Event>((e) => (handleData as dynamic)(e));
     _tryResume();
   }
 
