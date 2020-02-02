@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
+import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/error/duplicate_definition_verifier.dart';
 import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/error/literal_element_verifier.dart';
@@ -3572,15 +3573,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       ExecutableElement mixinMember =
           _inheritanceManager.getMember(mixinType, nameObject, forSuper: true);
 
-      if (mixinMember != null &&
-          !_typeSystem.isOverrideSubtypeOf(
-              superMember.type, mixinMember.type)) {
-        _errorReporter.reportErrorForNode(
+      if (mixinMember != null) {
+        var isCorrect = CorrectOverrideHelper(
+          typeSystem: _typeSystem,
+          errorReporter: _errorReporter,
+          thisMember: superMember,
+        ).isCorrectOverrideOf(
+          superMember: mixinMember,
+        );
+        if (!isCorrect) {
+          _errorReporter.reportErrorForNode(
             CompileTimeErrorCode
                 .MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE,
             mixinName.name,
-            [name, mixinMember.type, superMember.type]);
-        return true;
+            [name, mixinMember.type, superMember.type],
+          );
+          return true;
+        }
       }
     }
     return false;
