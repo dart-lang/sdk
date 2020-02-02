@@ -73,7 +73,7 @@ analyzer_plugin/test/*: SkipByDesign # Only meant to run on vm
 analyzer_plugin/tool/*: SkipByDesign # Only meant to run on vm
 build_integration/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
 compiler/tool/*: SkipByDesign # Only meant to run on vm
-dartdev/test/command_test: SkipByDesign # Only meant to run on vm (uses dart:io)
+dartdev/test/*: SkipByDesign # Only meant to run on vm
 dartfix/test/*: SkipByDesign # Only meant to run on vm
 front_end/test/*: SkipByDesign # Only meant to run on vm, most use dart:mirrors and dart:io
 front_end/tool/*: SkipByDesign # Only meant to run on vm

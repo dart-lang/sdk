@@ -134,6 +134,7 @@ vars = {
   "source_maps_tag": "8af7cc1a1c3a193c1fba5993ce22a546a319c40e",
   "source_span_tag": "1.5.5",
   "stack_trace_tag": "1.9.3",
+  "stagehand_tag": "v3.3.6",
   "stream_channel_tag": "2.0.0",
   "string_scanner_tag": "1.0.3",
   "test_descriptor_tag": "1.1.1",
@@ -380,6 +381,8 @@ deps = {
       "@" + Var("source_map_stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
       Var("dart_git") + "stack_trace.git" + "@" + Var("stack_trace_tag"),
+  Var("dart_root") + "/third_party/pkg/stagehand":
+      Var("dart_git") + "stagehand.git" + "@" + Var("stagehand_tag"),
   Var("dart_root") + "/third_party/pkg/stream_channel":
       Var("dart_git") + "stream_channel.git" +
       "@" + Var("stream_channel_tag"),

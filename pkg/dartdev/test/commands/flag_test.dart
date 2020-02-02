@@ -13,7 +13,9 @@ void main() {
 
 void help() {
   TestProject p;
+
   tearDown(() => p?.dispose());
+
   test('--help', () {
     p = project();
 
