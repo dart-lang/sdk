@@ -116,6 +116,9 @@ class InfoBuilder {
 
   /// Return detail text for a fix built from an edge with origin info [origin]
   /// and [fixKind].
+  ///
+  /// Text is meant to be used as the beginning of a sentence. It is written in
+  /// present tense, beginning with a capital letter, not ending in a period.
   String _baseDescriptionForOrigin(
       EdgeOriginInfo origin, NullabilityFixKind fixKind) {
     AstNode node = origin.node;
@@ -162,8 +165,8 @@ class InfoBuilder {
     }
 
     if (origin.kind == EdgeOriginKind.listLengthConstructor) {
-      return 'List value type must be nullable because a length is specified,'
-          ' and the list items are initialized as null.';
+      return 'A length is specified in the "List()" constructor and the list '
+          'items are initialized to null';
     }
 
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
@@ -171,10 +174,6 @@ class InfoBuilder {
 
     if (origin.kind == EdgeOriginKind.uninitializedRead) {
       return 'Used on line $lineNumber, when it is possibly uninitialized';
-    }
-
-    if (parent is ArgumentList) {
-      return capitalize('$nullableValue is passed as an argument');
     }
 
     /// If the [node] is inside the return expression for a function body,
@@ -226,7 +225,9 @@ class InfoBuilder {
       }
     } else if (node is InvocationExpression &&
         origin.kind == EdgeOriginKind.namedParameterNotSupplied) {
-      return 'This named parameter was omitted in a call to this function';
+      return 'This named parameter is omitted in a call to this function';
+    } else if (parent is ArgumentList) {
+      return capitalize('$nullableValue is passed as an argument');
     } else if (parent is VariableDeclaration) {
       AstNode grandparent = parent.parent?.parent;
       if (grandparent is FieldDeclaration) {

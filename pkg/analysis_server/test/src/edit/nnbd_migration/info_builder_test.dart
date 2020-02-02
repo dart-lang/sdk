@@ -840,8 +840,8 @@ void f() {
     expect(regions, hasLength(2));
     // regions[0] is `num? a`.
     assertRegion(region: regions[1], offset: 39, details: [
-      'List value type must be nullable because a length is specified,'
-          ' and the list items are initialized as null.'
+      'A length is specified in the "List()" constructor and the list items '
+          'are initialized to null'
     ]);
   }
 
@@ -1272,10 +1272,32 @@ void g({int? i}) {}
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(region: regions[0], offset: 30, details: [
-      'This named parameter was omitted in a call to this function',
+      'This named parameter is omitted in a call to this function',
       "This parameter has an implicit default value of 'null'",
     ]);
     assertDetail(detail: regions[0].details[0], offset: 11, length: 3);
+  }
+
+  Future<void> test_parameter_named_omittedInCall_inArgumentList() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+int f({int compare}) => 7
+void g() {
+  h(f());
+}
+void h(int x) {}
+''', migratedContent: '''
+int f({int? compare}) => 7
+void g() {
+  h(f());
+}
+void h(int x) {}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 10, details: [
+      "This parameter has an implicit default value of 'null'",
+      'This named parameter is omitted in a call to this function'
+    ]);
   }
 
   Future<void> test_parameter_optional_explicitDefault_null() async {
