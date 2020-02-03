@@ -122,6 +122,16 @@ class EditPlanTest extends AbstractSingleUnitTest {
         'var x = (1 == 2) == true;');
   }
 
+  Future<void> test_addBinaryPostfix_to_expression_function() async {
+    await analyze('var x = () => null;');
+    checkPlan(
+        planner.addBinaryPostfix(
+            planner.passThrough(findNode.functionExpression('()')),
+            TokenType.AS,
+            'Object'),
+        'var x = (() => null) as Object;');
+  }
+
   Future<void> test_addBinaryPrefix_allowCascade() async {
     await analyze('f(x) => 1..isEven;');
     checkPlan(
@@ -161,6 +171,14 @@ class EditPlanTest extends AbstractSingleUnitTest {
         planner.addBinaryPrefix('1', TokenType.EQ_EQ,
             planner.passThrough(findNode.integerLiteral('2'))),
         'var x = (1 == 2) == true;');
+  }
+
+  Future<void> test_addBinaryPrefix_to_expression_function() async {
+    await analyze('f(x) => () => null;');
+    checkPlan(
+        planner.addBinaryPrefix('x', TokenType.EQ,
+            planner.passThrough(findNode.functionExpression('()'))),
+        'f(x) => x = () => null;');
   }
 
   Future<void> test_addUnaryPostfix_inner_precedence_add_parens() async {
