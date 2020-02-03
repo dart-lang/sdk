@@ -97,7 +97,6 @@ Thread::Thread(bool is_vm_isolate)
       deferred_interrupts_mask_(0),
       deferred_interrupts_(0),
       stack_overflow_count_(0),
-      bump_allocate_(false),
       hierarchy_info_(NULL),
       type_usage_info_(NULL),
       pending_functions_(GrowableObjectArray::null()),

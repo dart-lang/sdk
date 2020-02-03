@@ -2504,15 +2504,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   ASSERT(thread->no_callback_scope_depth() == 0);
   Heap* heap = thread->heap();
 
-  uword address;
-
-  // In a bump allocation scope, all allocations go into old space.
-  if (thread->bump_allocate() && (space != Heap::kCode)) {
-    DEBUG_ASSERT(heap->old_space()->CurrentThreadOwnsDataLock());
-    address = heap->old_space()->TryAllocateDataBumpLocked(size);
-  } else {
-    address = heap->Allocate(size, space);
-  }
+  uword address = heap->Allocate(size, space);
   if (UNLIKELY(address == 0)) {
     if (thread->top_exit_frame_info() != 0) {
       // Use the preallocated out of memory exception to avoid calling

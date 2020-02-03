@@ -1139,22 +1139,4 @@ WritableCodePages::~WritableCodePages() {
   isolate_->heap()->WriteProtectCode(true);
 }
 
-BumpAllocateScope::BumpAllocateScope(Thread* thread)
-    : ThreadStackResource(thread), no_reload_scope_(thread->isolate(), thread) {
-  ASSERT(!thread->bump_allocate());
-  // If the background compiler thread is not disabled, there will be a cycle
-  // between the symbol table lock and the old space data lock.
-  BackgroundCompiler::Disable(thread->isolate());
-  thread->heap()->WaitForMarkerTasks(thread);
-  thread->heap()->old_space()->AcquireDataLock();
-  thread->set_bump_allocate(true);
-}
-
-BumpAllocateScope::~BumpAllocateScope() {
-  ASSERT(thread()->bump_allocate());
-  thread()->set_bump_allocate(false);
-  thread()->heap()->old_space()->ReleaseDataLock();
-  BackgroundCompiler::Enable(thread()->isolate());
-}
-
 }  // namespace dart

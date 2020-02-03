@@ -1176,11 +1176,6 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
       HANDLESCOPE(T);
       StackZone zone(T);
 
-      // The kernel loader is about to allocate a bunch of new libraries,
-      // classes and functions into old space. Force growth, and use of the
-      // bump allocator instead of freelists.
-      BumpAllocateScope bump_allocate_scope(T);
-
       // NOTE: We do not attach a finalizer for this object, because the
       // embedder will free it once the isolate group has shutdown.
       const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
@@ -5174,11 +5169,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  // The kernel loader is about to allocate a bunch of new libraries, classes,
-  // and functions into old space. Force growth, and use of the bump allocator
-  // instead of freelists.
-  BumpAllocateScope bump_allocate_scope(T);
-
   // NOTE: We do not attach a finalizer for this object, because the embedder
   // will free it once the isolate group has shutdown.
   const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
@@ -5422,11 +5412,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  // The kernel loader is about to allocate a bunch of new libraries, classes,
-  // and functions into old space. Force growth, and use of the bump allocator
-  // instead of freelists.
-  BumpAllocateScope bump_allocate_scope(T);
-
   // NOTE: We do not attach a finalizer for this object, because the embedder
   // will/should free it once the isolate group has shutdown.
   // See also http://dartbug.com/37030.
@@ -5490,11 +5475,6 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   API_TIMELINE_DURATION(T);
   Isolate* I = T->isolate();
   CHECK_CALLBACK_STATE(T);
-
-  // The kernel loader is about to allocate a bunch of new libraries, classes,
-  // and functions into old space. Force growth, and use of the bump allocator
-  // instead of freelists.
-  BumpAllocateScope bump_allocate_scope(T);
 
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
