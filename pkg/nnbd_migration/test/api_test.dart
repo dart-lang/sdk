@@ -3670,6 +3670,24 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_promotion_preserves_complex_types() async {
+    var content = '''
+int/*!*/ f(List<int/*?*/>/*?*/ x) {
+  x ??= [0];
+  return x[0];
+}
+''';
+    // `x ??= [0]` promotes x from List<int?>? to List<int?>.  Since there is
+    // still a `?` on the `int`, `x[0]` must be null checked.
+    var expected = '''
+int/*!*/ f(List<int?/*?*/>?/*?*/ x) {
+  x ??= [0];
+  return x[0]!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_redirecting_constructor_factory() async {
     var content = '''
 class C {

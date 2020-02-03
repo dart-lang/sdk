@@ -55,8 +55,11 @@ class FlowAnalysisHelper {
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       flow;
 
-  FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting)
-      : this._(TypeSystemTypeOperations(typeSystem),
+  FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting,
+      {ElementTypeProvider elementTypeProvider = const ElementTypeProvider()})
+      : this._(
+            TypeSystemTypeOperations(typeSystem,
+                elementTypeProvider: elementTypeProvider),
             retainDataForTesting ? FlowAnalysisDataForTesting() : null);
 
   FlowAnalysisHelper._(this._typeOperations, this.dataForTesting);
@@ -289,7 +292,7 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
 
   FlowAnalysisHelperForMigration(
       TypeSystem typeSystem, this.migrationResolutionHooks)
-      : super(typeSystem, false);
+      : super(typeSystem, false, elementTypeProvider: migrationResolutionHooks);
 
   @override
   LocalVariableTypeProvider get localVariableTypeProvider {
@@ -315,7 +318,10 @@ class TypeSystemTypeOperations
     implements TypeOperations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
 
-  TypeSystemTypeOperations(this.typeSystem);
+  final ElementTypeProvider elementTypeProvider;
+
+  TypeSystemTypeOperations(this.typeSystem,
+      {this.elementTypeProvider = const ElementTypeProvider()});
 
   @override
   bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
@@ -339,7 +345,7 @@ class TypeSystemTypeOperations
 
   @override
   DartType variableType(PromotableElement variable) {
-    return variable.type;
+    return elementTypeProvider.getVariableType(variable);
   }
 }
 
