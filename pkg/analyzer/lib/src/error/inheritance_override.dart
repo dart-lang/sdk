@@ -601,7 +601,10 @@ class _ClassVerifier {
     } else {
       var candidatesStr = conflict.candidates.map((candidate) {
         var className = candidate.enclosingElement.name;
-        return '$className.${name.name} (${candidate.displayName})';
+        var typeStr = candidate.type.getDisplayString(
+          withNullability: typeSystem.isNonNullableByDefault,
+        );
+        return '$className.${name.name} ($typeStr)';
       }).join(', ');
 
       reporter.reportErrorForNode(
