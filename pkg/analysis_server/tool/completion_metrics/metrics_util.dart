@@ -50,8 +50,12 @@ class Counter {
 
   void printCounterValues() {
     print('Counts for \'$name\':');
-    _buckets.forEach((id, count) =>
-        print('[$id] $count (${printPercentage(count / _totalCount, 2)})'));
+    if (totalCount > 0) {
+      _buckets.forEach((id, count) =>
+          print('[$id] $count (${printPercentage(count / _totalCount, 2)})'));
+    } else {
+      print('<no counts>');
+    }
   }
 }
 
