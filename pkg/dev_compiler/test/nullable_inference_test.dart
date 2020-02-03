@@ -498,7 +498,7 @@ Future expectNotNull(String code, String expectedNotNull) async {
       // against the underlying constant value instead.
       .map((e) {
         if (e is ConstantExpression) {
-          Constant c = e.constant;
+          var c = e.constant;
           if (c is DoubleConstant &&
               c.value.isFinite &&
               c.value.truncateToDouble() == c.value) {
@@ -669,10 +669,10 @@ const nullCheck = const _NullCheck();
       experiments: const {},
       environmentDefines: const {});
   if (!identical(oldCompilerState, _compilerState)) inference = null;
-  fe.DdcResult result =
+  var result =
       await fe.compile(_compilerState, [mainUri], diagnosticMessageHandler);
   expect(succeeded, true);
 
-  Set<Library> librariesFromDill = result.computeLibrariesFromDill();
+  var librariesFromDill = result.computeLibrariesFromDill();
   return CompileResult(result.component, librariesFromDill);
 }

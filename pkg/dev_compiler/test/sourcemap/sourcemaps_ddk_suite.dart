@@ -50,15 +50,15 @@ class DevCompilerRunner implements CompilerRunner {
 
   @override
   Future<Null> run(Uri inputFile, Uri outputFile, Uri outWrapperFile) async {
-    Uri outDir = outputFile.resolve('.');
-    String outputFilename = outputFile.pathSegments.last;
+    var outDir = outputFile.resolve('.');
+    var outputFilename = outputFile.pathSegments.last;
 
-    File sdkJsFile = findInOutDir('gen/utils/dartdevc/kernel/es6/dart_sdk.js');
+    var sdkJsFile = findInOutDir('gen/utils/dartdevc/kernel/es6/dart_sdk.js');
     var jsSdkPath = sdkJsFile.uri;
 
-    File ddcSdkSummary = findInOutDir('ddc_sdk.dill');
+    var ddcSdkSummary = findInOutDir('ddc_sdk.dill');
 
-    List<String> args = <String>[
+    var args = <String>[
       "--packages=${sdkRoot.uri.resolve(".packages").toFilePath()}",
       '--modules=es6',
       '--dart-sdk-summary=${ddcSdkSummary.path}',
@@ -67,7 +67,7 @@ class DevCompilerRunner implements CompilerRunner {
       inputFile.toFilePath()
     ];
 
-    bool succeeded = false;
+    var succeeded = false;
     try {
       var result = await compile(args, compilerState: context.compilerState);
       context.compilerState =

@@ -12,7 +12,7 @@ void main() {
   /*s:3*/ print(b);
   /*s:4*/ a = 42;
   /*s:5*/ print(a);
-  int d = /*s:6*/ 42;
+  var d = /*s:6*/ 42;
   /*s:7*/ print(d);
   int e = /*s:8*/ 41, f, g = /*s:9*/ 42;
   /*s:10*/ print(e);

@@ -66,8 +66,8 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
   @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
     data.outDir = await Directory.systemTemp.createTemp('stacktrace-test');
-    String code = await File.fromUri(data.uri).readAsString();
-    Test test = processTestCode(code, knownMarkers);
+    var code = await File.fromUri(data.uri).readAsString();
+    var test = processTestCode(code, knownMarkers);
     await testStackTrace(test, marker, _compile,
         jsPreambles: _getPreambles,
         useJsMethodNamesOnAbsence: true,
@@ -98,10 +98,10 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
   String _convertName(String name) {
     if (name == null) return null;
     // Hack for DDC naming scheme.
-    String result = name;
+    var result = name;
     if (result.startsWith('new ')) result = result.substring(4);
     if (result.startsWith('Object.')) result = result.substring(7);
-    String inputName =
+    var inputName =
         INPUT_FILE_NAME.substring(0, INPUT_FILE_NAME.indexOf('.') + 1);
     if (result.startsWith(inputName)) {
       result = result.substring(inputName.length);
@@ -113,10 +113,10 @@ class TestStackTrace extends Step<Data, Data, ChainContext> {
 Directory _cachedDdcDir;
 Directory getDdcDir() {
   Directory search() {
-    Directory dir = File.fromUri(Platform.script).parent;
-    Uri dirUrl = dir.uri;
+    var dir = File.fromUri(Platform.script).parent;
+    var dirUrl = dir.uri;
     if (dirUrl.pathSegments.contains('dev_compiler')) {
-      for (int i = dirUrl.pathSegments.length - 2; i >= 0; --i) {
+      for (var i = dirUrl.pathSegments.length - 2; i >= 0; --i) {
         // Directory uri ends in empty string
         if (dirUrl.pathSegments[i] == 'dev_compiler') break;
         dir = dir.parent;
@@ -164,7 +164,7 @@ void createHtmlWrapper(File sdkJsFile, Uri outputFile, String jsContent,
     String outputFilename, Uri outDir) {
   // For debugging via HTML, Chrome and ./pkg/test_runner/bin/http_server.dart.
   var sdkFile = File(p.relative(sdkJsFile.path, from: sdkRoot.path));
-  String jsRootDart = '/root_dart/${sdkFile.uri}';
+  var jsRootDart = '/root_dart/${sdkFile.uri}';
   File.fromUri(outputFile.resolve('$outputFilename.html.js')).writeAsStringSync(
       jsContent.replaceFirst("from 'dart_sdk.js'", "from '$jsRootDart'"));
   File.fromUri(outputFile.resolve('$outputFilename.html.html'))

@@ -166,7 +166,7 @@ List<String> _patchLibrary(List<String> partsContents, String patchContents,
   var patchFinder = PatchFinder.parseAndVisit(patchContents, useNnbd: useNnbd);
 
   // Merge `external` declarations with the corresponding `@patch` code.
-  bool failed = false;
+  var failed = false;
   for (var partContent in partsContents) {
     var partEdits = StringEditBuffer(partContent);
     var partUnit = _parseString(partContent, useNnbd: useNnbd).unit;
@@ -207,20 +207,20 @@ class PatchApplier extends GeneralizingAstVisitor<void> {
 
     // To patch a library, we must have a library directive
     var libDir = unit.directives.first as LibraryDirective;
-    int importPos = unit.directives
+    var importPos = unit.directives
         .lastWhere((d) => d is ImportDirective, orElse: () => libDir)
         .end;
     for (var d in patch.unit.directives.whereType<ImportDirective>()) {
       _merge(d, importPos);
     }
 
-    int partPos = unit.directives.last.end;
+    var partPos = unit.directives.last.end;
     for (var d in patch.unit.directives.whereType<PartDirective>()) {
       _merge(d, partPos);
     }
 
     // Merge declarations from the patch
-    int declPos = edits.original.length;
+    var declPos = edits.original.length;
     for (var d in patch.mergeDeclarations) {
       _merge(d, declPos);
     }
@@ -274,8 +274,8 @@ class PatchApplier extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    Annotation patchMeta = patchNode.metadata.lastWhere(_isPatchAnnotation);
-    int start = patchMeta.endToken.next.offset;
+    var patchMeta = patchNode.metadata.lastWhere(_isPatchAnnotation);
+    var start = patchMeta.endToken.next.offset;
     var code = patch.contents.substring(start, patchNode.end);
 
     // Const factory constructors can't be legally parsed from the patch file,
@@ -416,7 +416,7 @@ class StringEditBuffer {
     // Sort edits by start location.
     _edits.sort();
 
-    int consumed = 0;
+    var consumed = 0;
     for (var edit in _edits) {
       if (consumed > edit.begin) {
         sb = StringBuffer();
@@ -460,7 +460,7 @@ class _StringEdit implements Comparable<_StringEdit> {
 
   @override
   int compareTo(_StringEdit other) {
-    int diff = begin - other.begin;
+    var diff = begin - other.begin;
     if (diff != 0) return diff;
     return end - other.end;
   }
@@ -489,7 +489,7 @@ String _generateLibrariesDart(
 }
 
 String relativizeLibraryUri(Uri libRoot, Uri uri, bool useNnbd) {
-  String relativePath = relativizeUri(libRoot, uri, isWindows);
+  var relativePath = relativizeUri(libRoot, uri, isWindows);
   // During the nnbd-migration we may have paths that reach out into the
   // non-nnbd directory.
   if (relativePath.startsWith('..')) {

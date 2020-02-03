@@ -102,7 +102,7 @@ class DevCompilerTarget extends Target {
     // Multi-root scheme used by modular test framework.
     if (uri.scheme == 'dev-dart-app') return true;
 
-    String scriptName = uri.path;
+    var scriptName = uri.path;
     return scriptName.contains('tests/compiler/dartdevc_native');
   }
 

@@ -245,7 +245,7 @@ class _RenameVisitor extends VariableDeclarationVisitor {
       // TODO(jmesserly): what's the most readable scheme here? Maybe 1-letter
       // names in some cases?
       candidate = name == 'function' ? 'func' : '${name}\$';
-      for (int i = 0;
+      for (var i = 0;
           scopes.any((scope) => scope.used.contains(candidate));
           i++) {
         candidate = '${name}\$$i';
@@ -415,7 +415,7 @@ String toJSIdentifier(String name) {
 
   // Escape any invalid characters
   StringBuffer buffer;
-  for (int i = 0; i < name.length; i++) {
+  for (var i = 0; i < name.length; i++) {
     var ch = name[i];
     var needsEscape = ch == r'$' || invalidCharInIdentifier.hasMatch(ch);
     if (needsEscape && buffer == null) {

@@ -66,7 +66,7 @@ class JSTypeRep extends SharedJSTypeRep<DartType> {
   /// returns the corresponding class in `dart:_interceptors`:
   /// `JSBool`, `JSString`, and `JSNumber` respectively, otherwise null.
   Class getImplementationClass(DartType t) {
-    JSType rep = typeFor(t);
+    var rep = typeFor(t);
     // Number, String, and Bool are final
     if (rep == JSType.jsNumber) return _jsNumber;
     if (rep == JSType.jsBoolean) return _jsBool;

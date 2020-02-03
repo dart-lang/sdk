@@ -120,7 +120,7 @@ class _GeneratorTable extends _CacheTable {
   js_ast.Statement _dischargeType(DartType t) {
     var name = _names.remove(t);
     if (name != null) {
-      js_ast.Expression init = _defs.remove(t);
+      var init = _defs.remove(t);
       assert(init != null);
       // TODO(vsm): Change back to `let`.
       // See https://github.com/dart-lang/sdk/issues/40380.
