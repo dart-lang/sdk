@@ -62,7 +62,7 @@ Try accessing using ?. instead.
                                   ^" in (let final self::Class? #t12 = c in #t12.{core::Object::==}(null) ?{core::int?} null : #t12{self::Class}.{self::Class::next}.{self::Class::[]}(0)).{core::num::+}(2));
   let final self::Class? #t13 = c in #t13.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t14 = #t13{self::Class}.{self::Class::next} in let final core::int #t15 = 0 in let final core::int #t16 = #t14.{self::Class::[]}(#t15).{core::num::+}(1) in let final void #t17 = #t14.{self::Class::[]=}(#t15, #t16) in #t16;
   let final self::Class? #t18 = c in #t18.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t19 = #t18{self::Class}.{self::Class::next} in let final core::int #t20 = 0 in #t19.{self::Class::[]=}(#t20, #t19.{self::Class::[]}(#t20).{core::num::+}(1));
-  self::throwsInStrong(() → core::bool* => let final<BottomType> #t21 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:29:37: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+  self::throwsInStrong(() → core::bool => let final<BottomType> #t21 = invalid-expression "pkg/front_end/testcases/nnbd/shorting_stop.dart:29:37: Error: Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
 Try accessing using ?. instead.
   throwsInStrong(() => (c?.next[0]).isEven); // error
                                     ^^^^^^" in (let final self::Class? #t22 = c in #t22.{core::Object::==}(null) ?{core::int?} null : #t22{self::Class}.{self::Class::next}.{self::Class::[]}(0)).{core::int::isEven});

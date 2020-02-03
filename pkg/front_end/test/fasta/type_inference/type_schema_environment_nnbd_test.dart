@@ -562,30 +562,78 @@ class TypeSchemaEnvironmentTest {
           listClassThisType,
           [T.parameter],
           [T, T],
-          [coreTypes.intLegacyRawType, coreTypes.doubleLegacyRawType],
+          [coreTypes.intNonNullableRawType, coreTypes.doubleNonNullableRawType],
           null,
           inferredTypes,
           testLib);
-      expect(inferredTypes[0], coreTypes.numLegacyRawType);
+      expect(inferredTypes[0], coreTypes.numNonNullableRawType);
     }
     {
       // Test an instantiation of [1, 2.0] with a context of List<Object>.  This
       // should infer as List<Object> during downwards inference.
       List<DartType> inferredTypes = <DartType>[new UnknownType()];
       TypeParameterType T = listClassThisType.typeArguments[0];
-      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], null,
-          null, _list(coreTypes.objectLegacyRawType), inferredTypes, testLib);
-      expect(inferredTypes[0], coreTypes.objectLegacyRawType);
+      env.inferGenericFunctionOrType(
+          listClassThisType,
+          [T.parameter],
+          null,
+          null,
+          _list(coreTypes.objectNonNullableRawType),
+          inferredTypes,
+          testLib);
+      expect(inferredTypes[0], coreTypes.objectNonNullableRawType);
       // And upwards inference should preserve the type.
       env.inferGenericFunctionOrType(
           listClassThisType,
           [T.parameter],
           [T, T],
-          [coreTypes.intLegacyRawType, coreTypes.doubleLegacyRawType],
-          _list(coreTypes.objectLegacyRawType),
+          [coreTypes.intNonNullableRawType, coreTypes.doubleNonNullableRawType],
+          _list(coreTypes.objectNonNullableRawType),
           inferredTypes,
           testLib);
-      expect(inferredTypes[0], coreTypes.objectLegacyRawType);
+      expect(inferredTypes[0], coreTypes.objectNonNullableRawType);
+    }
+    {
+      // Test an instantiation of [1, 2.0, null] with no context.  This should
+      // infer as List<?> during downwards inference.
+      List<DartType> inferredTypes = <DartType>[new UnknownType()];
+      TypeParameterType T = listClassThisType.typeArguments[0];
+      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], null,
+          null, null, inferredTypes, testLib);
+      expect(inferredTypes[0], new UnknownType());
+      // And upwards inference should refine it to List<num?>.
+      env.inferGenericFunctionOrType(
+          listClassThisType,
+          [T.parameter],
+          [T, T, T],
+          [
+            coreTypes.intNonNullableRawType,
+            coreTypes.doubleNonNullableRawType,
+            coreTypes.nullType
+          ],
+          null,
+          inferredTypes,
+          testLib);
+      expect(inferredTypes[0], coreTypes.numNullableRawType);
+    }
+    {
+      // Test an instantiation of legacy [1, 2.0] with no context.
+      // This should infer as List<?> during downwards inference.
+      List<DartType> inferredTypes = <DartType>[new UnknownType()];
+      TypeParameterType T = listClassThisType.typeArguments[0];
+      env.inferGenericFunctionOrType(listClassThisType, [T.parameter], null,
+          null, null, inferredTypes, testLib);
+      expect(inferredTypes[0], new UnknownType());
+      // And upwards inference should refine it to List<num!>.
+      env.inferGenericFunctionOrType(
+          listClassThisType,
+          [T.parameter],
+          [T, T],
+          [coreTypes.intLegacyRawType, coreTypes.doubleLegacyRawType],
+          null,
+          inferredTypes,
+          testLib);
+      expect(inferredTypes[0], coreTypes.numNonNullableRawType);
     }
   }
 

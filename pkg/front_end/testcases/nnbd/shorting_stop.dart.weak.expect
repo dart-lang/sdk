@@ -54,7 +54,7 @@ static method test(self::Class? c) → dynamic {
   self::throwsInStrong(() → core::int => (let final self::Class? #t9 = c in #t9.{core::Object::==}(null) ?{core::int?} null : #t9{self::Class}.{self::Class::next}.{self::Class::[]}(0)).{core::num::+}(2));
   let final self::Class? #t10 = c in #t10.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t11 = #t10{self::Class}.{self::Class::next} in let final core::int #t12 = 0 in let final core::int #t13 = #t11.{self::Class::[]}(#t12).{core::num::+}(1) in let final void #t14 = #t11.{self::Class::[]=}(#t12, #t13) in #t13;
   let final self::Class? #t15 = c in #t15.{core::Object::==}(null) ?{core::int?} null : let final self::Class #t16 = #t15{self::Class}.{self::Class::next} in let final core::int #t17 = 0 in #t16.{self::Class::[]=}(#t17, #t16.{self::Class::[]}(#t17).{core::num::+}(1));
-  self::throwsInStrong(() → core::bool* => (let final self::Class? #t18 = c in #t18.{core::Object::==}(null) ?{core::int?} null : #t18{self::Class}.{self::Class::next}.{self::Class::[]}(0)).{core::int::isEven});
+  self::throwsInStrong(() → core::bool => (let final self::Class? #t18 = c in #t18.{core::Object::==}(null) ?{core::int?} null : #t18{self::Class}.{self::Class::next}.{self::Class::[]}(0)).{core::int::isEven});
 }
 static method _inStrongMode() → core::bool {
   (core::String?) → core::Null? f = (core::String? s) → core::Null? {

@@ -133,7 +133,7 @@ static method hest() → dynamic /* originally async */ {
       #L1:
       {
         {
-          dynamic :stream = asy::Stream::fromIterable<core::String>(<core::String*>["hest"]);
+          dynamic :stream = asy::Stream::fromIterable<core::String>(<core::String>["hest"]);
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::String>? :for-iterator = new asy::_StreamIterator::•<core::String>(:stream);
           try

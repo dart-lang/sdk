@@ -149,6 +149,7 @@ general/cycles: TextSerializationFailure # Was: Pass
 general/default_values: TextSerializationFailure # Was: Pass
 general/deferred_lib: TextSerializationFailure # Was: Pass
 general/deferred_type_annotation: TextSerializationFailure # Was: Pass
+general/demote_closure_types: TextSerializationFailure
 general/duplicated_bad_prefix: TextSerializationFailure # Was: Pass
 general/duplicated_bad_prefix_lib1: TextSerializationFailure # Was: Pass
 general/duplicated_bad_prefix_lib2: TextSerializationFailure # Was: Pass
@@ -289,6 +290,7 @@ general/prefer_baseclass: TextSerializationFailure # Was: Pass
 general/private_method_tearoff: TextSerializationFailure # Was: Pass
 general/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
 general/promoted_access: TextSerializationFailure
+general/promoted_null_aware_access: TextSerializationFailure
 general/public_method_tearoff: TextSerializationFailure # Was: Pass
 general/public_method_tearoff_lib: TextSerializationFailure # Was: Pass
 general/qualified: TextSerializationFailure # Was: Pass
@@ -1210,11 +1212,14 @@ nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
 nnbd/call: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
+nnbd/demote_closure_types: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure
 nnbd/forin: TextSerializationFailure
 nnbd/function_types: TextSerializationFailure
 nnbd/generic_override: TextSerializationFailure
 nnbd/infer_if_null: TextSerializationFailure
+nnbd/infer_from_opt_in: TextSerializationFailure
+nnbd/infer_from_opt_out: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/inheritance_from_opt_out: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure

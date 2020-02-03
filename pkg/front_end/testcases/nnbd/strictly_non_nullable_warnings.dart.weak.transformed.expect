@@ -9,12 +9,12 @@ static method warning(core::String s, core::List<core::String> l) → dynamic {
   let final core::String #t4 = s in #t4.{core::String::==}(null) ?{core::String} "foo" : #t4;
   s.{core::String::==}(null) ?{core::String} s = "foo" : null;
   block {
-    final core::List<core::String*> #t5 = <core::String*>[];
-    final core::Iterable<core::String*>? #t6 = l;
+    final core::List<core::String> #t5 = <core::String>[];
+    final core::Iterable<core::String>? #t6 = l;
     if(!#t6.{core::Object::==}(null)) {
-      core::Iterator<core::String*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String*>*>(#t6{core::Iterable<core::String*>}).{core::Iterable::iterator};
+      core::Iterator<core::String>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::String>*>(#t6{core::Iterable<core::String>}).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
-        final core::String* #t7 = :sync-for-iterator.{core::Iterator::current};
+        final core::String #t7 = :sync-for-iterator.{core::Iterator::current};
         #t5.{core::List::add}(#t7);
       }
     }

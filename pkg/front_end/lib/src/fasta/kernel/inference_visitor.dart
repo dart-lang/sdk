@@ -5283,8 +5283,9 @@ class InferenceVisitor
       initializerResult = inferrer.inferExpression(node.initializer,
           declaredType, !inferrer.isTopLevel || node.isImplicitlyTyped,
           isVoidAllowed: true);
-      inferredType =
-          inferrer.inferDeclarationType(initializerResult.inferredType);
+      inferredType = inferrer.inferDeclarationType(
+          initializerResult.inferredType,
+          forSyntheticVariable: node.name == null);
       inferrer.flowAnalysis.initialize(node);
     } else {
       inferredType = const DynamicType();

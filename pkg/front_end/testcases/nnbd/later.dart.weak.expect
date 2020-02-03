@@ -110,7 +110,7 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
   } =>#t1;
 }
 static method hest() → dynamic async {
-  await for (core::String s in asy::Stream::fromIterable<core::String>(<core::String*>["hest"])) {
+  await for (core::String s in asy::Stream::fromIterable<core::String>(<core::String>["hest"])) {
     core::print(s);
   }
   return "hest";

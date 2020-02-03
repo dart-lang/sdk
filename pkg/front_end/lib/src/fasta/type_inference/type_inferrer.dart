@@ -356,7 +356,7 @@ class ClosureContext {
           returnExpressionTypes[i]);
     }
 
-    return inferredType;
+    return demoteTypeInLibrary(inferredType, inferrer.library.library);
   }
 
   DartType _wrapAsyncOrGenerator(
@@ -540,6 +540,10 @@ class TypeInferrerImpl implements TypeInferrer {
       return isNonNullableByDefault
           ? const NeverType(Nullability.nonNullable)
           : type;
+    }
+    if (type is TypeParameterType && type.promotedBound != null) {
+      return new TypeParameterType(type.parameter, Nullability.nonNullable,
+          computeNonNullable(type.promotedBound));
     }
     return type.withNullability(library.nonNullable);
   }
@@ -1841,7 +1845,8 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   /// Modifies a type as appropriate when inferring a declared variable's type.
-  DartType inferDeclarationType(DartType initializerType) {
+  DartType inferDeclarationType(DartType initializerType,
+      {bool forSyntheticVariable: false}) {
     if (initializerType is BottomType ||
         (initializerType is InterfaceType &&
             initializerType.classNode == coreTypes.nullClass)) {
@@ -1851,7 +1856,11 @@ class TypeInferrerImpl implements TypeInferrer {
       // not spec'ed anywhere.
       return const DynamicType();
     }
-    return demoteType(initializerType);
+    if (forSyntheticVariable) {
+      return nonNullifyInLibrary(initializerType, library.library);
+    } else {
+      return demoteTypeInLibrary(initializerType, library.library);
+    }
   }
 
   void inferSyntheticVariable(VariableDeclarationImpl variable) {
@@ -1861,7 +1870,8 @@ class TypeInferrerImpl implements TypeInferrer {
         variable.initializer, const UnknownType(), true,
         isVoidAllowed: true);
     variable.initializer = result.expression..parent = variable;
-    DartType inferredType = inferDeclarationType(result.inferredType);
+    DartType inferredType =
+        inferDeclarationType(result.inferredType, forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
         new InstrumentationValueForType(inferredType));
     variable.type = inferredType;
@@ -1882,7 +1892,8 @@ class TypeInferrerImpl implements TypeInferrer {
       variable.initializer = result.expression..parent = variable;
       nullAwareGuards = const Link<NullAwareGuard>();
     }
-    DartType inferredType = inferDeclarationType(result.inferredType);
+    DartType inferredType =
+        inferDeclarationType(result.inferredType, forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
         new InstrumentationValueForType(inferredType));
     variable.type = inferredType;
@@ -2483,7 +2494,7 @@ class TypeInferrerImpl implements TypeInferrer {
         }
         instrumentation?.record(uriForInstrumentation, formal.fileOffset,
             'type', new InstrumentationValueForType(inferredType));
-        formal.type = inferredType;
+        formal.type = demoteTypeInLibrary(inferredType, library.library);
       }
 
       if (isNonNullableByDefault && performNnbdChecks) {
