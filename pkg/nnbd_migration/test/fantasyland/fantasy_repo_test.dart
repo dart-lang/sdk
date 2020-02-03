@@ -11,6 +11,8 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'src/filesystem_test_base.dart';
+
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FantasyRepoSettingsTest);
@@ -106,7 +108,7 @@ class FantasyRepoE2ETest {
     // Use the repo builder to clone this and verify that the right files are
     // checked out.
     Directory repoRoot = Directory(path.join(tempDir.path, 'repoRoot'));
-    await FantasyRepo.buildFrom(
+    await FantasyRepo.buildGitRepoFrom(
         FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot,
         launcher: launcher);
 
@@ -132,7 +134,7 @@ class FantasyRepoE2ETest {
 
     // Finally, use the repoBuilder to update a repository from head and verify
     // we did it right.
-    await FantasyRepo.buildFrom(
+    await FantasyRepo.buildGitRepoFrom(
         FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot,
         launcher: launcher);
 
@@ -146,26 +148,16 @@ class FantasyRepoE2ETest {
   }
 }
 
-class MockDirectory extends Mock implements Directory {}
-
-class MockFile extends Mock implements File {}
-
 class MockSubprocessLauncher extends Mock implements SubprocessLauncher {}
 
 @reflectiveTest
-class FantasyRepoTest {
-  // TODO(jcollins-g): extend MemoryResourceProvider and analyzer File
-  // implementations and port over, or add mock_filesystem to third_party.
-  Map<String, MockFile> mockFiles;
-  Map<String, MockDirectory> mockDirectories;
-  MockDirectory Function(String) directoryBuilder;
-  MockFile Function(String) fileBuilder;
+class FantasyRepoTest extends FilesystemTestBase {
   MockSubprocessLauncher mockLauncher;
   String parentPath;
   String repoPath;
 
   setUp() {
-    mockFiles = {};
+    super.setUp();
     mockDirectories = {};
     fileBuilder = (String s) {
       mockFiles[s] ??= MockFile();
@@ -189,7 +181,7 @@ class FantasyRepoTest {
     FantasyRepoSettings settings = FantasyRepoSettings.fromName(repoName);
     when(directoryBuilder(repoPath).exists())
         .thenAnswer((_) => Future.value(false));
-    await FantasyRepo.buildFrom(settings, mockDirectories[repoPath],
+    await FantasyRepo.buildGitRepoFrom(settings, mockDirectories[repoPath],
         launcher: mockLauncher, fileBuilder: fileBuilder);
   }
 

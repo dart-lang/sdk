@@ -63,7 +63,8 @@ abstract class FantasyWorkspaceImpl extends FantasyWorkspace {
     if (_repos.containsKey(repoSettings.name)) return _repos[repoSettings.name];
     Directory repoRoot = Directory(path.canonicalize(
         path.join(workspaceRoot.path, _repoSubDir, repoSettings.name)));
-    _repos[repoSettings.name] = FantasyRepo.buildFrom(repoSettings, repoRoot);
+    _repos[repoSettings.name] =
+        FantasyRepo.buildGitRepoFrom(repoSettings, repoRoot);
     return _repos[repoSettings.name];
   }
 }
@@ -98,7 +99,7 @@ class FantasyWorkspaceTopLevelDevDepsImpl extends FantasyWorkspaceImpl {
     FantasyRepo containingRepo =
         await addRepoToWorkspace(packageSettings.repoSettings);
     FantasySubPackage fantasySubPackage =
-        FantasySubPackage(packageSettings, containingRepo, this);
+        FantasySubPackage(packageSettings, containingRepo);
     subPackages[fantasySubPackage.name] = fantasySubPackage;
 
     // Add a symlink to the top level directory.
