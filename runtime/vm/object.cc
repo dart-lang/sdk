@@ -2451,10 +2451,31 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
       cur += compiler::target::kWordSize;
     }
   } else {
-    uword initial_value = reinterpret_cast<uword>(null_);
-    while (cur < end) {
-      *reinterpret_cast<uword*>(cur) = initial_value;
-      cur += kWordSize;
+    uword initial_value;
+    bool needs_init;
+    if (RawObject::IsTypedDataBaseClassId(class_id)) {
+      initial_value = 0;
+      // If the size is greater than both kNewAllocatableSize and
+      // kAllocatablePageSize, the object must have been allocated to a new
+      // large page, which must already have been zero initialized by the OS.
+      needs_init = Heap::IsAllocatableInNewSpace(size) ||
+                   Heap::IsAllocatableViaFreeLists(size);
+    } else {
+      initial_value = reinterpret_cast<uword>(null_);
+      needs_init = true;
+    }
+    if (needs_init) {
+      while (cur < end) {
+        *reinterpret_cast<uword*>(cur) = initial_value;
+        cur += kWordSize;
+      }
+    } else {
+#if defined(DEBUG)
+      while (cur < end) {
+        ASSERT(*reinterpret_cast<uword*>(cur) == initial_value);
+        cur += kWordSize;
+      }
+#endif
     }
   }
   uint32_t tags = 0;
@@ -22536,9 +22557,6 @@ RawTypedData* TypedData::New(intptr_t class_id,
     result ^= raw;
     result.SetLength(len);
     result.RecomputeDataField();
-    if (len > 0) {
-      memset(result.DataAddr(0), 0, length_in_bytes);
-    }
   }
   return result.raw();
 }

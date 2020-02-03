@@ -275,6 +275,9 @@ class Heap {
   static bool IsAllocatableInNewSpace(intptr_t size) {
     return size <= kNewAllocatableSize;
   }
+  static bool IsAllocatableViaFreeLists(intptr_t size) {
+    return size < kAllocatablePageSize;
+  }
 
 #ifndef PRODUCT
   void PrintToJSONObject(Space space, JSONObject* object) const;
@@ -300,6 +303,7 @@ class Heap {
   }
 
   static const intptr_t kNewAllocatableSize = 256 * KB;
+  static const intptr_t kAllocatablePageSize = 64 * KB;
 
   intptr_t GetTLABSize() {
     // Inspired by V8 tlab size. More than threshold for old space allocation,
