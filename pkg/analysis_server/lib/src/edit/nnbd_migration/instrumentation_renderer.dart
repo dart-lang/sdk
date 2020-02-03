@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/edit/nnbd_migration/dart_page_script.dart';
-import 'package:analysis_server/src/edit/nnbd_migration/dart_page_style.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/migration_info.dart';
 import 'package:analysis_server/src/edit/nnbd_migration/path_mapper.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/resources/resources.g.dart'
+    as resources;
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
 
@@ -91,8 +91,8 @@ class InstrumentationRenderer {
   String render() {
     Map<String, dynamic> mustacheContext = {
       'root': migrationInfo.includedRoot,
-      'dartPageScript': dartPageScript,
-      'dartPageStyle': dartPageStyle,
+      'dartPageScript': resources.migration_js,
+      'dartPageStyle': resources.migration_css,
       'highlightJsPath': migrationInfo.highlightJsPath,
       'highlightStylePath': migrationInfo.highlightStylePath,
       'generationDate': migrationInfo.migrationDate,

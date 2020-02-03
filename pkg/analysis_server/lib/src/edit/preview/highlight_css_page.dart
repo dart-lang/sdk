@@ -4,7 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_css.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/resources/resources.g.dart'
+    as resources;
 import 'package:analysis_server/src/edit/preview/preview_page.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
@@ -17,7 +18,7 @@ class HighlightCssPage extends PreviewPage {
 
   /// Initialize a newly created CSS page within the given [site].
   HighlightCssPage(PreviewSite site)
-      : super(site, PreviewSite.highlightCssPagePath.substring(1));
+      : super(site, PreviewSite.highlightCssPath.substring(1));
 
   @override
   void generateBody(Map<String, String> params) {
@@ -29,9 +30,8 @@ class HighlightCssPage extends PreviewPage {
     buf.write(pageContent());
   }
 
-  /// Return the content of the page, decoding it if it hasn't been decoded
-  /// before.
+  /// Return the content of the page.
   String pageContent() {
-    return _pageContent ??= decodeHighlightCss();
+    return _pageContent ??= resources.highlight_css;
   }
 }

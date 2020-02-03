@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const dartPageScript = r'''
 function getOffset(location) {
   const root = document.querySelector(".root").textContent;
   return new URL(location, "file://" + root + "/dummy.txt")
@@ -525,4 +524,3 @@ window.addEventListener("scroll", (event) => {
   }
   debounce(resizePanels, 200)();
 });
-''';

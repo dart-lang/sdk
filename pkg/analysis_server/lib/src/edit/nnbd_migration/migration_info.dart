@@ -52,11 +52,11 @@ class MigrationInfo {
   MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot)
       : migrationDate = DateTime.now().toString();
 
-  /// The path to the highlight.js script, relative to [unitInfo].
-  String get highlightJsPath => PreviewSite.highlightJSPagePath;
+  /// The path to the highlight.pack.js script, relative to [unitInfo].
+  String get highlightJsPath => PreviewSite.highlightJsPath;
 
-  /// The path to the highlight.js stylesheet, relative to [unitInfo].
-  String get highlightStylePath => PreviewSite.highlightCssPagePath;
+  /// The path to the highlight.pack.js stylesheet, relative to [unitInfo].
+  String get highlightStylePath => PreviewSite.highlightCssPath;
 
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.

@@ -24,10 +24,10 @@ import 'package:analyzer/file_system/file_system.dart';
 class PreviewSite extends Site implements AbstractGetHandler {
   /// The path of the CSS page used to style the semantic highlighting within a
   /// Dart file.
-  static const highlightCssPagePath = '/css/androidstudio.css';
+  static const highlightCssPath = '/highlight.css';
 
   /// The path of the JS page used to associate highlighting within a Dart file.
-  static const highlightJSPagePath = '/js/highlight.pack.js';
+  static const highlightJsPath = '/highlight.pack.js';
 
   static const navigationTreePath = '/_preview/navigationTree.json';
 
@@ -97,11 +97,11 @@ class PreviewSite extends Site implements AbstractGetHandler {
     }
     String path = uri.path;
     try {
-      if (path == highlightCssPagePath) {
+      if (path == highlightCssPath) {
         // Note: `return await` needed due to
         // https://github.com/dart-lang/language/issues/791
         return await respond(request, HighlightCssPage(this));
-      } else if (path == highlightJSPagePath) {
+      } else if (path == highlightJsPath) {
         // Note: `return await` needed due to
         // https://github.com/dart-lang/language/issues/791
         return await respond(request, HighlightJSPage(this));
