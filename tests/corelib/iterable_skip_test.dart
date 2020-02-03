@@ -15,7 +15,6 @@ main() {
   Iterable<int> skip0 = list1.skip(0);
   Expect.isTrue(skip0 is! List);
   Iterator<int> it = skip0.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(1, it.current);
   Expect.isTrue(it.moveNext());
@@ -23,45 +22,36 @@ main() {
   Expect.isTrue(it.moveNext());
   Expect.equals(3, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<int> skip1 = list1.skip(1);
   Expect.isTrue(skip1 is! List);
   Expect.isTrue(skip1.skip(2).skip(1) is! List);
   it = skip1.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(2, it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(3, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<int> skip2 = list1.skip(2);
   Expect.isTrue(skip2 is! List);
   Expect.isTrue(skip2.skip(2).skip(1) is! List);
   it = skip2.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(3, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<int> skip3 = list1.skip(3);
   Expect.isTrue(skip3 is! List);
   Expect.isTrue(skip3.skip(2).skip(1) is! List);
   it = skip3.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<int> skip4 = list1.skip(4);
   Expect.isTrue(skip4 is! List);
   Expect.isTrue(skip4.skip(2).skip(1) is! List);
   it = skip4.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   skip0 = list1.skip(0);
   skip1 = skip0.skip(1);
@@ -69,7 +59,6 @@ main() {
   skip3 = skip2.skip(1);
   skip4 = skip3.skip(1);
   it = skip0.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(1, it.current);
   Expect.isTrue(it.moveNext());
@@ -77,83 +66,62 @@ main() {
   Expect.isTrue(it.moveNext());
   Expect.equals(3, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
   it = skip1.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(2, it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(3, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
   it = skip2.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(3, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
   it = skip3.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
   it = skip4.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   skip0 = list2.skip(0);
   Expect.isTrue(skip0 is! List);
   Expect.isTrue(skip0.skip(2).skip(1) is! List);
   it = skip0.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(4, it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(5, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   skip1 = list2.skip(1);
   Expect.isTrue(skip1 is! List);
   Expect.isTrue(skip1.skip(2).skip(1) is! List);
   it = skip1.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(5, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   skip2 = list2.skip(2);
   Expect.isTrue(skip2 is! List);
   Expect.isTrue(skip2.skip(2).skip(1) is! List);
   it = skip2.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   skip3 = list2.skip(3);
   Expect.isTrue(skip3 is! List);
   Expect.isTrue(skip3.skip(2).skip(1) is! List);
   it = skip3.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<String> skip02 = list3.skip(0);
   Expect.isTrue(skip02 is! List);
   Expect.isTrue(skip02.skip(2).skip(1) is! List);
   Iterator<String> it2 = skip02.iterator;
-  Expect.isNull(it2.current);
   Expect.isFalse(it2.moveNext());
-  Expect.isNull(it2.current);
 
   Iterable<String> skip12 = list3.skip(1);
   Expect.isTrue(skip12 is! List);
   Expect.isTrue(skip12.skip(2).skip(1) is! List);
   it2 = skip12.iterator;
-  Expect.isNull(it2.current);
   Expect.isFalse(it2.moveNext());
-  Expect.isNull(it2.current);
 
   skip0 = set1.skip(0);
   List<int> copied = skip0.toList();
@@ -165,7 +133,6 @@ main() {
   Expect.isTrue(copied[0] != copied[2]);
   Expect.isTrue(copied[1] != copied[2]);
   it = skip0.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.isNotNull(it.current);
   Expect.isTrue(it.moveNext());
@@ -173,7 +140,6 @@ main() {
   Expect.isTrue(it.moveNext());
   Expect.isNotNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   skip1 = set1.skip(1);
   copied = skip1.toList();
@@ -182,48 +148,36 @@ main() {
   Expect.isTrue(set1.contains(copied[1]));
   Expect.isTrue(copied[0] != copied[1]);
   it = skip1.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.isNotNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.isNotNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   skip2 = set1.skip(2);
   copied = skip2.toList();
   Expect.equals(1, copied.length);
   Expect.isTrue(set1.contains(copied[0]));
   it = skip2.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.isNotNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   skip3 = set1.skip(3);
   it = skip3.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   skip4 = set1.skip(4);
   it = skip4.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   var dynamicSkip0 = set2.skip(0);
   var dynamicIt = dynamicSkip0.iterator;
-  Expect.isNull(dynamicIt.current);
   Expect.isFalse(dynamicIt.moveNext());
-  Expect.isNull(dynamicIt.current);
 
   var dynamicSkip1 = set2.skip(1);
   dynamicIt = dynamicSkip1.iterator;
-  Expect.isNull(dynamicIt.current);
   Expect.isFalse(dynamicIt.moveNext());
-  Expect.isNull(dynamicIt.current);
 
   testSkipTake(Iterable input, int skip, int take) {
     List expected = [];

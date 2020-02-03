@@ -14,31 +14,24 @@ main() {
 
   Iterable<int> takeWhileFalse = list1.takeWhile((x) => false);
   Iterator<int> it = takeWhileFalse.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<int> takeWhileOdd = list1.takeWhile((x) => x.isOdd);
   it = takeWhileOdd.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(1, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<int> takeWhileLessThan3 = list1.takeWhile((x) => x < 3);
   it = takeWhileLessThan3.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(1, it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(2, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<int> takeEverything = list1.takeWhile((x) => true);
   it = takeEverything.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(1, it.current);
   Expect.isTrue(it.moveNext());
@@ -46,55 +39,40 @@ main() {
   Expect.isTrue(it.moveNext());
   Expect.equals(3, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<int> takeWhileEven = list1.takeWhile((x) => x.isEven);
   it = takeWhileFalse.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   takeWhileFalse = list2.takeWhile((x) => false);
   it = takeWhileFalse.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   takeWhileEven = list2.takeWhile((x) => x.isEven);
   it = takeWhileEven.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(4, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   takeEverything = list2.takeWhile((x) => true);
   it = takeEverything.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(4, it.current);
   Expect.isTrue(it.moveNext());
   Expect.equals(5, it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   Iterable<String> takeWhileFalse2 = list3.takeWhile((x) => false);
   Iterator<String> it2 = takeWhileFalse2.iterator;
-  Expect.isNull(it2.current);
   Expect.isFalse(it2.moveNext());
-  Expect.isNull(it2.current);
 
   Iterable<String> takeEverything2 = list3.takeWhile((x) => true);
   it2 = takeEverything2.iterator;
-  Expect.isNull(it2.current);
   Expect.isFalse(it2.moveNext());
-  Expect.isNull(it2.current);
 
   takeWhileFalse = set1.takeWhile((x) => false);
   it = takeWhileFalse.iterator;
-  Expect.isNull(it.current);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   takeEverything = set1.takeWhile((x) => true);
   List<int> copied = takeEverything.toList();
@@ -106,7 +84,6 @@ main() {
   Expect.isTrue(copied[0] != copied[2]);
   Expect.isTrue(copied[1] != copied[2]);
   it = takeEverything.iterator;
-  Expect.isNull(it.current);
   Expect.isTrue(it.moveNext());
   Expect.isTrue(it.current != null);
   Expect.isTrue(it.moveNext());
@@ -114,17 +91,12 @@ main() {
   Expect.isTrue(it.moveNext());
   Expect.isTrue(it.current != null);
   Expect.isFalse(it.moveNext());
-  Expect.isNull(it.current);
 
   var dynamicTakeWhileFalse = set2.takeWhile((x) => false);
   var dynamicIt = dynamicTakeWhileFalse.iterator;
-  Expect.isNull(dynamicIt.current);
   Expect.isFalse(dynamicIt.moveNext());
-  Expect.isNull(dynamicIt.current);
 
   var dynamicTakeEverything = set2.takeWhile((x) => true);
   dynamicIt = dynamicTakeEverything.iterator;
-  Expect.isNull(dynamicIt.current);
   Expect.isFalse(dynamicIt.moveNext());
-  Expect.isNull(dynamicIt.current);
 }
