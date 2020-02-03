@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C {
-  int y;
+  int y = 42;
   D? f() => new D();
   C h() => this;
 }

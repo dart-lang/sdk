@@ -6,10 +6,6 @@ library;
 //   foo({x}) {}
 //        ^
 //
-// pkg/front_end/testcases/nnbd/required.dart:41:26: Error: Can't have a default value in a function type.
-//   Function(int a, [int b = 42]) f2;
-//                          ^
-//
 // pkg/front_end/testcases/nnbd/required.dart:51:18: Error: Non-optional parameters can't have a default value.
 // Try removing the default value or making the parameter optional.
 //   Function(int a = 42, [int b]) f2;
@@ -78,7 +74,7 @@ class C extends self::A {
     ;
   method foo({core::int x = #C1}) → dynamic {}
 }
-static field ({a: core::int, required b: core::int}) → dynamic field;
+static field ({a: core::int, required b: core::int}) → dynamic field = ({core::int a = #C1, required core::int b = #C2}) → core::Null? {};
 static method method({core::int a = #C1, required core::int b = #C2, required final core::int c = #C2}) → dynamic {}
 static method ok() → dynamic {
   ({a: core::int, required b: core::int}) → dynamic f;

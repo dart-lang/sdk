@@ -3833,6 +3833,20 @@ OptionalNonNullableWithoutInitializerWarning:
   template: "Optional parameter '#name' doesn't have a default value and its type '#type' doesn't allow null."
   severity: WARNING
 
+FieldNonNullableWithoutInitializerError:
+  template: "Field '#name' should be initialized because its type '#type' doesn't allow null."
+
+FieldNonNullableWithoutInitializerWarning:
+  template: "Field '#name' isn't initialized and its type '#type' doesn't allow null."
+  severity: WARNING
+
+FieldNonNullableNotInitializedByConstructorError:
+  template: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
+
+FieldNonNullableNotInitializedByConstructorWarning:
+  template: "This constructor doesn't initialize field '#name' and its type '#type' doesn't allow null."
+  severity: WARNING
+
 NonNullableOptOut:
   template: "Null safety features are disabled for this library."
   tip: "Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`."

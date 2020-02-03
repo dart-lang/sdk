@@ -22,6 +22,7 @@ import 'package:kernel/ast.dart'
         Initializer,
         InterfaceType,
         InvalidInitializer,
+        InvalidType,
         Library,
         Name,
         NamedExpression,
@@ -88,6 +89,10 @@ import '../messages.dart'
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
         noLength,
+        templateFieldNonNullableNotInitializedByConstructorError,
+        templateFieldNonNullableNotInitializedByConstructorWarning,
+        templateFieldNonNullableWithoutInitializerError,
+        templateFieldNonNullableWithoutInitializerWarning,
         templateFinalFieldNotInitialized,
         templateFinalFieldNotInitializedByConstructor,
         templateInferredPackageUri,
@@ -826,6 +831,30 @@ class KernelTarget extends TargetImplementation {
                   field.name.name.length,
                   field.fileUri);
             }
+          } else if (field.type is! InvalidType &&
+              field.type.isPotentiallyNonNullable &&
+              (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
+            SourceLibraryBuilder library = builder.library;
+            if (library.isNonNullableByDefault &&
+                library.loader.performNnbdChecks) {
+              if (library.loader.nnbdStrongMode) {
+                library.addProblem(
+                    templateFieldNonNullableWithoutInitializerError
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    library.fileUri);
+              } else {
+                library.addProblem(
+                    templateFieldNonNullableWithoutInitializerWarning
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    library.fileUri);
+              }
+            }
           }
         }
       }
@@ -855,6 +884,29 @@ class KernelTarget extends TargetImplementation {
                       .withLocation(field.fileUri, field.fileOffset,
                           field.name.name.length)
                 ]);
+          } else if (field.type is! InvalidType &&
+              field.type.isPotentiallyNonNullable) {
+            SourceLibraryBuilder library = builder.library;
+            if (library.isNonNullableByDefault &&
+                library.loader.performNnbdChecks) {
+              if (library.loader.nnbdStrongMode) {
+                library.addProblem(
+                    templateFieldNonNullableNotInitializedByConstructorError
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    library.fileUri);
+              } else {
+                library.addProblem(
+                    templateFieldNonNullableNotInitializedByConstructorWarning
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    library.fileUri);
+              }
+            }
           }
         }
       }

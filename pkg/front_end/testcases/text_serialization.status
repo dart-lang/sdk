@@ -208,8 +208,8 @@ general/interface_covariantImpl_from_class: TextSerializationFailure
 general/interface_covariantInterface_from_class: TextSerializationFailure
 general/invalid_assignment: TextSerializationFailure # Was: Pass
 general/invalid_cast: TextSerializationFailure # Was: Pass
-general/invalid_operator: TypeCheckError
 general/invalid_operator2: TextSerializationFailure
+general/invalid_operator: TypeCheckError
 general/invalid_type: TypeCheckError
 general/invocations: TextSerializationFailure # Was: RuntimeError
 general/issue129167943: TextSerializationFailure
@@ -340,6 +340,7 @@ general/unused_methods: TextSerializationFailure # Was: Pass
 general/var_as_type_name: TextSerializationFailure # Was: Pass
 general/void_methods: TextSerializationFailure
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/well_boundness_checks_in_outline: TextSerializationFailure
 general/with_dependencies/extension_from_dill/extension_from_dill: TextSerializationFailure
 general/with_dependencies/variance_from_dill/variance_from_dill: TextSerializationFailure
 general_nnbd_opt_out/DeltaBlue: TextSerializationFailure # Was: Pass
@@ -1234,6 +1235,7 @@ nnbd/missing_required_named_parameter: TextSerializationFailure
 nnbd/no_null_shorting: TextSerializationFailure
 nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
 nnbd/no_null_shorting_extension: TextSerializationFailure
+nnbd/non_nullable_field_initialization: TextSerializationFailure
 nnbd/null_access: TextSerializationFailure
 nnbd/null_aware_chain: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
@@ -1523,8 +1525,8 @@ runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerial
 runtime_checks_new/stub_from_interface_covariant_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFailure # Was: Pass
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
-triple_shift/invalid_operator: TextSerializationFailure
 top_level_variance_test: TextSerializationFailure
+triple_shift/invalid_operator: TextSerializationFailure
 unified_collections/mixed_entries: TextSerializationFailure
 unified_collections/string_concatenation: TextSerializationFailure
 variance/class_type_parameter_modifier: TextSerializationFailure

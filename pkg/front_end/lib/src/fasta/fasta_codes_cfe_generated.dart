@@ -702,6 +702,156 @@ Message _withArgumentsFfiTypeMismatch(DartType _type, DartType _type2,
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateFieldNonNullableNotInitializedByConstructorError = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""This constructor should initialize field '#name' because its type '#type' doesn't allow null.""",
+        withArguments:
+            _withArgumentsFieldNonNullableNotInitializedByConstructorError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeFieldNonNullableNotInitializedByConstructorError = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "FieldNonNullableNotInitializedByConstructorError",
+  templateFieldNonNullableNotInitializedByConstructorError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNonNullableNotInitializedByConstructorError(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFieldNonNullableNotInitializedByConstructorError,
+      message:
+          """This constructor should initialize field '${name}' because its type '${type}' doesn't allow null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateFieldNonNullableNotInitializedByConstructorWarning = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""This constructor doesn't initialize field '#name' and its type '#type' doesn't allow null.""",
+        withArguments:
+            _withArgumentsFieldNonNullableNotInitializedByConstructorWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeFieldNonNullableNotInitializedByConstructorWarning = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "FieldNonNullableNotInitializedByConstructorWarning",
+        templateFieldNonNullableNotInitializedByConstructorWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNonNullableNotInitializedByConstructorWarning(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFieldNonNullableNotInitializedByConstructorWarning,
+      message:
+          """This constructor doesn't initialize field '${name}' and its type '${type}' doesn't allow null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateFieldNonNullableWithoutInitializerError = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Field '#name' should be initialized because its type '#type' doesn't allow null.""",
+        withArguments: _withArgumentsFieldNonNullableWithoutInitializerError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeFieldNonNullableWithoutInitializerError = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "FieldNonNullableWithoutInitializerError",
+  templateFieldNonNullableWithoutInitializerError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNonNullableWithoutInitializerError(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFieldNonNullableWithoutInitializerError,
+      message:
+          """Field '${name}' should be initialized because its type '${type}' doesn't allow null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateFieldNonNullableWithoutInitializerWarning = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Field '#name' isn't initialized and its type '#type' doesn't allow null.""",
+        withArguments: _withArgumentsFieldNonNullableWithoutInitializerWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeFieldNonNullableWithoutInitializerWarning = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "FieldNonNullableWithoutInitializerWarning",
+        templateFieldNonNullableWithoutInitializerWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNonNullableWithoutInitializerWarning(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFieldNonNullableWithoutInitializerWarning,
+      message:
+          """Field '${name}' isn't initialized and its type '${type}' doesn't allow null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateForInLoopElementTypeNotAssignable = const Template<
             Message Function(

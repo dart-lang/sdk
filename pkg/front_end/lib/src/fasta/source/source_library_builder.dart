@@ -27,6 +27,7 @@ import 'package:kernel/ast.dart'
         FunctionNode,
         FunctionType,
         InterfaceType,
+        InvalidType,
         Library,
         LibraryDependency,
         LibraryPart,
@@ -3057,10 +3058,45 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     addProblem(message, fileOffset, noLength, fileUri, context: context);
   }
 
-  void checkBoundsInField(Field field, TypeEnvironment typeEnvironment) {
-    checkBoundsInType(
-        field.type, typeEnvironment, field.fileUri, field.fileOffset,
+  void checkTypesInField(
+      FieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
+    // Check the bounds in the field's type.
+    checkBoundsInType(fieldBuilder.field.type, typeEnvironment,
+        fieldBuilder.fileUri, fieldBuilder.field.fileOffset,
         allowSuperBounded: true);
+
+    // Check that the field has an initializer if its type is potentially
+    // non-nullable.
+    if (isNonNullableByDefault && loader.performNnbdChecks) {
+      // Only static and top-level fields are checked here.  Instance fields are
+      // checked elsewhere.
+      DartType fieldType = fieldBuilder.field.type;
+      if (!fieldBuilder.isDeclarationInstanceMember &&
+          !fieldBuilder.field.isLate &&
+          fieldType is! InvalidType &&
+          fieldType.isPotentiallyNonNullable &&
+          !fieldBuilder.hasInitializer) {
+        if (loader.nnbdStrongMode) {
+          addProblem(
+              templateFieldNonNullableWithoutInitializerError.withArguments(
+                  fieldBuilder.name,
+                  fieldBuilder.field.type,
+                  isNonNullableByDefault),
+              fieldBuilder.charOffset,
+              fieldBuilder.name.length,
+              fileUri);
+        } else {
+          addProblem(
+              templateFieldNonNullableWithoutInitializerWarning.withArguments(
+                  fieldBuilder.name,
+                  fieldBuilder.field.type,
+                  isNonNullableByDefault),
+              fieldBuilder.charOffset,
+              fieldBuilder.name.length,
+              fileUri);
+        }
+      }
+    }
   }
 
   void checkInitializersInFormals(List<FormalParameterBuilder> formals) {
@@ -3334,7 +3370,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is FieldBuilder) {
-        checkBoundsInField(declaration.field, typeEnvironment);
+        checkTypesInField(declaration, typeEnvironment);
       } else if (declaration is ProcedureBuilder) {
         checkBoundsInFunctionNode(declaration.procedure.function,
             typeEnvironment, declaration.fileUri);
