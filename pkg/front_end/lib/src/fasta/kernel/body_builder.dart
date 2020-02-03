@@ -344,12 +344,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         classBuilder =
             declarationBuilder is ClassBuilder ? declarationBuilder : null,
         enableNative = libraryBuilder.loader.target.backendTarget
-            .enableNative(libraryBuilder.uri),
+            .enableNative(libraryBuilder.importUri),
         stringExpectedAfterNative = libraryBuilder
             .loader.target.backendTarget.nativeExtensionExpectsString,
-        ignoreMainInGetMainClosure = libraryBuilder.uri.scheme == 'dart' &&
-            (libraryBuilder.uri.path == "_builtin" ||
-                libraryBuilder.uri.path == "ui"),
+        ignoreMainInGetMainClosure =
+            libraryBuilder.importUri.scheme == 'dart' &&
+                (libraryBuilder.importUri.path == "_builtin" ||
+                    libraryBuilder.importUri.path == "ui"),
         needsImplicitSuperInitializer = declarationBuilder is ClassBuilder &&
             coreTypes?.objectClass != declarationBuilder.cls,
         typePromoter = typeInferrer?.typePromoter,

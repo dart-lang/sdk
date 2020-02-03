@@ -114,7 +114,7 @@ class OutlineBuilder extends StackListenerImpl {
   OutlineBuilder(SourceLibraryBuilder library)
       : libraryBuilder = library,
         enableNative =
-            library.loader.target.backendTarget.enableNative(library.uri),
+            library.loader.target.backendTarget.enableNative(library.importUri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString;
 

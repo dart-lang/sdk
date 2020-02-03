@@ -103,7 +103,7 @@ class TypeVariableBuilder extends TypeDeclarationBuilderImpl {
       } else {
         library.addProblem(
             templateInternalProblemUnfinishedTypeVariable.withArguments(
-                name, library?.uri),
+                name, library?.importUri),
             parameter.fileOffset,
             name.length,
             fileUri);

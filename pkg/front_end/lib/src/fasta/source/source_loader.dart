@@ -205,16 +205,17 @@ class SourceLoader extends Loader {
     if (bytes == null) {
       // Error recovery.
       if (uri.scheme == untranslatableUriScheme) {
-        Message message = templateUntranslatableUri.withArguments(library.uri);
+        Message message =
+            templateUntranslatableUri.withArguments(library.importUri);
         library.addProblemAtAccessors(message);
-        bytes = synthesizeSourceForMissingFile(library.uri, null);
+        bytes = synthesizeSourceForMissingFile(library.importUri, null);
       } else if (!uri.hasScheme) {
         return internalProblem(
             templateInternalProblemUriMissingScheme.withArguments(uri),
             -1,
-            library.uri);
+            library.importUri);
       } else if (uri.scheme == SourceLibraryBuilder.MALFORMED_URI_SCHEME) {
-        bytes = synthesizeSourceForMissingFile(library.uri, null);
+        bytes = synthesizeSourceForMissingFile(library.importUri, null);
       }
       if (bytes != null) {
         Uint8List zeroTerminatedBytes = new Uint8List(bytes.length + 1);
@@ -233,7 +234,7 @@ class SourceLoader extends Loader {
       } on FileSystemException catch (e) {
         Message message = templateCantReadFile.withArguments(uri, e.message);
         library.addProblemAtAccessors(message);
-        rawBytes = synthesizeSourceForMissingFile(library.uri, message);
+        rawBytes = synthesizeSourceForMissingFile(library.importUri, message);
       }
       Uint8List zeroTerminatedBytes = new Uint8List(rawBytes.length + 1);
       zeroTerminatedBytes.setRange(0, rawBytes.length, rawBytes);
@@ -255,7 +256,7 @@ class SourceLoader extends Loader {
     Token token = result.tokens;
     if (!suppressLexicalErrors) {
       List<int> source = getSource(bytes);
-      Uri importUri = library.uri;
+      Uri importUri = library.importUri;
       if (library.isPatch) {
         // For patch files we create a "fake" import uri.
         // We cannot use the import uri from the patched library because
@@ -879,7 +880,7 @@ class SourceLoader extends Loader {
     builders.forEach((Uri uri, LibraryBuilder libraryBuilder) {
       if (!libraryBuilder.isPatch &&
           (libraryBuilder.loader == this ||
-              libraryBuilder.uri.scheme == "dart" ||
+              libraryBuilder.importUri.scheme == "dart" ||
               libraryBuilder == this.first)) {
         if (libraries.add(libraryBuilder.library)) {
           workList.add(libraryBuilder.library);

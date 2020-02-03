@@ -1150,7 +1150,8 @@ class TypeInferrerImpl implements TypeInferrer {
                         thisBuilder.kind,
                         inferredTypeArguments)
                     : const ObjectAccessTarget.missing(),
-                isPlatform: extensionBuilder.library.uri.scheme == 'dart');
+                isPlatform:
+                    extensionBuilder.library.importUri.scheme == 'dart');
             if (noneMoreSpecific.isNotEmpty) {
               bool isMostSpecific = true;
               for (ExtensionAccessCandidate other in noneMoreSpecific) {
@@ -2502,7 +2503,7 @@ class TypeInferrerImpl implements TypeInferrer {
                         formal.name, formal.type, isNonNullableByDefault),
                 formal.fileOffset,
                 formal.name.length,
-                library.uri);
+                library.importUri);
           } else {
             library.addProblem(
                 templateOptionalNonNullableWithoutInitializerWarning
@@ -2510,7 +2511,7 @@ class TypeInferrerImpl implements TypeInferrer {
                         formal.name, formal.type, isNonNullableByDefault),
                 formal.fileOffset,
                 formal.name.length,
-                library.uri);
+                library.importUri);
           }
         }
       }
@@ -2526,14 +2527,14 @@ class TypeInferrerImpl implements TypeInferrer {
                     .withArguments(formal.name),
                 formal.fileOffset,
                 formal.name.length,
-                library.uri);
+                library.importUri);
           } else {
             library.addProblem(
                 templateRequiredNamedParameterHasDefaultValueWarning
                     .withArguments(formal.name),
                 formal.fileOffset,
                 formal.name.length,
-                library.uri);
+                library.importUri);
           }
         }
       }

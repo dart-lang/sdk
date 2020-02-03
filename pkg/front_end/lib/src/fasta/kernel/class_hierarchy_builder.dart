@@ -2553,7 +2553,7 @@ class InterfaceConflict extends DelayedMember {
           debug?.log("Combined Member Signature: "
               "${fullName(bestSoFar)} !<: ${fullName(candidate)}");
 
-          String uri = '${classBuilder.library.uri}';
+          String uri = '${classBuilder.library.importUri}';
           if (uri == 'dart:js' &&
                   classBuilder.fileUri.pathSegments.last == 'js.dart' ||
               uri == 'dart:_interceptors' &&

@@ -977,8 +977,8 @@ class KernelTarget extends TargetImplementation {
 
   @override
   void readPatchFiles(SourceLibraryBuilder library) {
-    assert(library.uri.scheme == "dart");
-    List<Uri> patches = uriTranslator.getDartPatches(library.uri.path);
+    assert(library.importUri.scheme == "dart");
+    List<Uri> patches = uriTranslator.getDartPatches(library.importUri.path);
     if (patches != null) {
       SourceLibraryBuilder first;
       for (Uri patch in patches) {
@@ -992,7 +992,7 @@ class KernelTarget extends TargetImplementation {
               origin: library, fileUri: patch, accessor: library);
           first.parts.add(part);
           first.partOffsets.add(-1);
-          part.partOfUri = first.uri;
+          part.partOfUri = first.importUri;
         }
       }
     }
