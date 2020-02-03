@@ -48,7 +48,6 @@ DEFINE_FLAG(bool,
             two_args_smi_icd,
             true,
             "Generate special IC stubs for two args Smi operations");
-DECLARE_FLAG(bool, unbox_numeric_fields);
 
 class SubclassFinder {
  public:
@@ -877,12 +876,12 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
 }
 
 bool LoadFieldInstr::IsUnboxedLoad() const {
-  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+  return slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
 bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
-  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+  return slot().IsDartField() &&
          FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
@@ -914,12 +913,12 @@ AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
 }
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+  return slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+  return slot().IsDartField() &&
          FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 

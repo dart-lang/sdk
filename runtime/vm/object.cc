@@ -93,11 +93,6 @@ DECLARE_FLAG(bool, write_protect_code);
 DECLARE_FLAG(bool, precompiled_mode);
 DECLARE_FLAG(int, max_polymorphic_checks);
 
-DEFINE_FLAG(bool,
-            unbox_numeric_fields,
-            true,
-            "Support unboxed double and float32x4 fields.");
-
 static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
 static const char* const kSetterPrefix = "set:";
@@ -9031,7 +9026,7 @@ RawField* Field::Original() const {
 }
 
 const Object* Field::CloneForUnboxed(const Object& value) const {
-  if (FLAG_unbox_numeric_fields && is_unboxing_candidate() && !is_nullable()) {
+  if (is_unboxing_candidate() && !is_nullable()) {
     switch (guarded_cid()) {
       case kDoubleCid:
       case kFloat32x4Cid:
