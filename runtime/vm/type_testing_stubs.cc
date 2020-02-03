@@ -113,7 +113,7 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
   if (type.IsType() || type.IsTypeParameter()) {
     // TODO(dartbug.com/39755): Add support for specialized NNBD TTS.
     const bool should_specialize =
-        !FLAG_precompiled_mode && lazy_specialize && type.IsNullable();
+        !FLAG_precompiled_mode && lazy_specialize && type.IsLegacy();
     return should_specialize ? StubCode::LazySpecializeTypeTest().raw()
                              : StubCode::DefaultTypeTest().raw();
   }
