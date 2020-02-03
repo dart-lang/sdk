@@ -1179,6 +1179,7 @@ instantiate_to_bound/typedef_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
+late_lowering/initializer_rewrite: TextSerializationFailure
 late_lowering/instance_field_with_initializer: TextSerializationFailure
 late_lowering/instance_field_without_initializer: TextSerializationFailure
 late_lowering/instance_final_field_without_initializer: TextSerializationFailure
