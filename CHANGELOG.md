@@ -17,6 +17,16 @@ used (see Issue [39627][]).
 
 #### `dart:io`
 
+* The `Process` class will now throw a `StateError` if the process is detached
+  upon accessing the `exitCode` getter. It also now throws when the process is
+  detached without stdio upon accessing the `stdin`, `stdout`, and `stderr`
+  getters. Previously these getters would all return `null`.
+
+* The `Socket` class will now throw a `SocketException` if the socket has been
+  destroyed or upgraded to a secure socket upon setting or getting socket
+  options. Previously setting a socket options would be ignored and getting a
+  socket option would return `null`.
+
 ### Dart VM
 
 ### Tools

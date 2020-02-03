@@ -510,7 +510,7 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       _stdout ?? (throw StateError("Process is detached"));
 
   Stream<List<int>> get stderr =>
-      _stdout ?? (throw StateError("Process is detached"));
+      _stderr ?? (throw StateError("Process is detached"));
 
   IOSink get stdin => _stdin ?? (throw StateError("Process is detached"));
 
