@@ -42,7 +42,11 @@ class CompletionMetricsComputer {
   /// stdout.
   final bool _verbose;
 
-  final RelevanceAnalyzer _relevanceAnalyzer = null;
+  /// A non-null list of [RelevanceAnalyzer]s to execute when computing the
+  /// completion metrics.
+  final List<RelevanceAnalyzer> _relevanceAnalyzers = [];
+
+  final CompletionPerformance _performance = CompletionPerformance();
 
   CompletionMetricsComputer(this._rootPath, this._verbose);
 
@@ -79,6 +83,7 @@ class CompletionMetricsComputer {
       for (var filePath in context.contextRoot.analyzedFiles()) {
         if (AnalysisEngine.isDartFileName(filePath)) {
           try {
+            // TODO (jwren) break this block into one or more additional methods
             final resolvedUnitResult =
                 await context.currentSession.getResolvedUnit(filePath);
 
@@ -106,7 +111,16 @@ class CompletionMetricsComputer {
 
               mRRComputer.addReciprocalRank(place);
 
-              _relevanceAnalyzer?.report(expectedCompletion);
+              if (_relevanceAnalyzers.isNotEmpty) {
+                var dartCompletionRequest =
+                    await DartCompletionRequestImpl.from(CompletionRequestImpl(
+                        resolvedUnitResult,
+                        expectedCompletion.offset,
+                        _performance));
+
+                _relevanceAnalyzers.forEach((analyzer) =>
+                    analyzer.report(expectedCompletion, dartCompletionRequest));
+              }
 
               if (place.denominator != 0) {
                 includedCount++;
@@ -161,15 +175,19 @@ class CompletionMetricsComputer {
     print(
         'Number of unsuccessful completions = $notIncludedCount (${printPercentage(percentNotIncluded)})');
 
+    if (_relevanceAnalyzers.isNotEmpty) {
+      print('\nRelevance Analysis:');
+      _relevanceAnalyzers.forEach((analyzer) => analyzer
+        ..printData()
+        ..clear());
+    }
+
     includedCount = 0;
     notIncludedCount = 0;
     completionMissedTokenCounter.clear();
     completionKindCounter.clear();
     completionElementKindCounter.clear();
     mRRComputer.clear();
-
-    _relevanceAnalyzer?.printData();
-    _relevanceAnalyzer?.clear();
   }
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
