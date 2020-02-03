@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -79,6 +80,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
   InterfaceType get stringType => typeProvider.stringType;
 
   TypeProvider get typeProvider => result.typeProvider;
+
+  TypeSystemImpl get typeSystem => result.typeSystem;
 
   /// Whether `DartType.toString()` with nullability should be asked.
   bool get typeToStringWithNullability => false;

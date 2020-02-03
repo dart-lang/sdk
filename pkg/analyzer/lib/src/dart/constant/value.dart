@@ -9,9 +9,9 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 
 /// The state of an object representing a boolean value.
@@ -146,6 +146,9 @@ class ConstructorInvocation {
 
 /// A representation of an instance of a Dart class.
 class DartObjectImpl implements DartObject {
+  // ignore: unused_field
+  final TypeSystemImpl _typeSystem;
+
   @override
   final ParameterizedType type;
 
@@ -153,22 +156,25 @@ class DartObjectImpl implements DartObject {
   final InstanceState _state;
 
   /// Initialize a newly created object to have the given [type] and [_state].
-  DartObjectImpl(this.type, this._state);
+  DartObjectImpl(this._typeSystem, this.type, this._state);
 
   /// Create an object to represent an unknown value.
-  factory DartObjectImpl.validWithUnknownValue(ParameterizedType type) {
+  factory DartObjectImpl.validWithUnknownValue(
+    TypeSystemImpl typeSystem,
+    ParameterizedType type,
+  ) {
     if (type.element.library.isDartCore) {
       if (type.isDartCoreBool) {
-        return DartObjectImpl(type, BoolState.UNKNOWN_VALUE);
+        return DartObjectImpl(typeSystem, type, BoolState.UNKNOWN_VALUE);
       } else if (type.isDartCoreDouble) {
-        return DartObjectImpl(type, DoubleState.UNKNOWN_VALUE);
+        return DartObjectImpl(typeSystem, type, DoubleState.UNKNOWN_VALUE);
       } else if (type.isDartCoreInt) {
-        return DartObjectImpl(type, IntState.UNKNOWN_VALUE);
+        return DartObjectImpl(typeSystem, type, IntState.UNKNOWN_VALUE);
       } else if (type.isDartCoreString) {
-        return DartObjectImpl(type, StringState.UNKNOWN_VALUE);
+        return DartObjectImpl(typeSystem, type, StringState.UNKNOWN_VALUE);
       }
     }
-    return DartObjectImpl(type, GenericState.UNKNOWN_VALUE);
+    return DartObjectImpl(typeSystem, type, GenericState.UNKNOWN_VALUE);
   }
 
   Map<String, DartObjectImpl> get fields => _state.fields;
@@ -208,35 +214,50 @@ class DartObjectImpl implements DartObject {
   }
 
   /// Return the result of invoking the '+' operator on this object with the
-  /// given [rightOperand]. The [typeProvider] is the type provider used to find
-  /// known types.
+  /// given [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl add(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+  DartObjectImpl add(TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
     InstanceState result = _state.add(rightOperand._state);
     if (result is IntState) {
-      return DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.intType,
+        result,
+      );
     } else if (result is DoubleState) {
-      return DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.doubleType,
+        result,
+      );
     } else if (result is StringState) {
-      return DartObjectImpl(typeProvider.stringType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.stringType,
+        result,
+      );
     }
     // We should never get here.
     throw StateError("add returned a ${result.runtimeType}");
   }
 
-  /// Return the result of invoking the '~' operator on this object. The
-  /// [typeProvider] is the type provider used to find known types.
+  /// Return the result of invoking the '~' operator on this object.
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl bitNot(TypeProvider typeProvider) =>
-      DartObjectImpl(typeProvider.intType, _state.bitNot());
+  DartObjectImpl bitNot(TypeSystemImpl typeSystem) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.intType,
+      _state.bitNot(),
+    );
+  }
 
   /// Return the result of casting this object to the given [castType].
-  DartObjectImpl castToType(TypeProvider typeProvider, TypeSystem typeSystem,
-      DartObjectImpl castType) {
+  DartObjectImpl castToType(
+      TypeSystemImpl typeSystem, DartObjectImpl castType) {
     _assertType(castType);
     if (isNull) {
       return this;
@@ -249,119 +270,147 @@ class DartObjectImpl implements DartObject {
   }
 
   /// Return the result of invoking the ' ' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl concatenate(
-          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      DartObjectImpl(
-          typeProvider.stringType, _state.concatenate(rightOperand._state));
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.stringType,
+      _state.concatenate(rightOperand._state),
+    );
+  }
 
-  /// Return the result of applying boolean conversion to this object. The
-  /// [typeProvider] is the type provider used to find known types.
+  /// Return the result of applying boolean conversion to this object.
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl convertToBool(TypeProvider typeProvider) {
-    InterfaceType boolType = typeProvider.boolType;
+  DartObjectImpl convertToBool(TypeSystemImpl typeSystem) {
+    InterfaceType boolType = typeSystem.typeProvider.boolType;
     if (identical(type, boolType)) {
       return this;
     }
-    return DartObjectImpl(boolType, _state.convertToBool());
+    return DartObjectImpl(typeSystem, boolType, _state.convertToBool());
   }
 
   /// Return the result of invoking the '/' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for
   /// an object of this kind.
   DartObjectImpl divide(
-      TypeProvider typeProvider, DartObjectImpl rightOperand) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
     InstanceState result = _state.divide(rightOperand._state);
     if (result is IntState) {
-      return DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.intType,
+        result,
+      );
     } else if (result is DoubleState) {
-      return DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.doubleType,
+        result,
+      );
     }
     // We should never get here.
     throw StateError("divide returned a ${result.runtimeType}");
   }
 
   /// Return the result of invoking the '&' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerAnd(
-      TypeProvider typeProvider, DartObjectImpl rightOperand, bool allowBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
     if (allowBool && isBool && rightOperand.isBool) {
       return DartObjectImpl(
-          typeProvider.boolType, _state.logicalAnd(rightOperand._state));
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        _state.logicalAnd(rightOperand._state),
+      );
     } else if (isInt && rightOperand.isInt) {
       return DartObjectImpl(
-          typeProvider.intType, _state.bitAnd(rightOperand._state));
+        typeSystem,
+        typeSystem.typeProvider.intType,
+        _state.bitAnd(rightOperand._state),
+      );
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
   /// Return the result of invoking the '|' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerOr(
-      TypeProvider typeProvider, DartObjectImpl rightOperand, bool allowBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
     if (allowBool && isBool && rightOperand.isBool) {
       return DartObjectImpl(
-          typeProvider.boolType, _state.logicalOr(rightOperand._state));
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        _state.logicalOr(rightOperand._state),
+      );
     } else if (isInt && rightOperand.isInt) {
       return DartObjectImpl(
-          typeProvider.intType, _state.bitOr(rightOperand._state));
+        typeSystem,
+        typeSystem.typeProvider.intType,
+        _state.bitOr(rightOperand._state),
+      );
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
   /// Return the result of invoking the '^' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl eagerXor(
-      TypeProvider typeProvider, DartObjectImpl rightOperand, bool allowBool) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand, bool allowBool) {
     if (allowBool && isBool && rightOperand.isBool) {
       return DartObjectImpl(
-          typeProvider.boolType, _state.logicalXor(rightOperand._state));
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        _state.logicalXor(rightOperand._state),
+      );
     } else if (isInt && rightOperand.isInt) {
       return DartObjectImpl(
-          typeProvider.intType, _state.bitXor(rightOperand._state));
+        typeSystem,
+        typeSystem.typeProvider.intType,
+        _state.bitXor(rightOperand._state),
+      );
     }
     throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT);
   }
 
   /// Return the result of invoking the '==' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl equalEqual(
-      TypeProvider typeProvider, DartObjectImpl rightOperand) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
     if (isNull || rightOperand.isNull) {
       return DartObjectImpl(
-          typeProvider.boolType,
-          isNull && rightOperand.isNull
-              ? BoolState.TRUE_STATE
-              : BoolState.FALSE_STATE);
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        isNull && rightOperand.isNull
+            ? BoolState.TRUE_STATE
+            : BoolState.FALSE_STATE,
+      );
     }
     if (isBoolNumStringOrNull) {
       return DartObjectImpl(
-          typeProvider.boolType, _state.equalEqual(rightOperand._state));
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        _state.equalEqual(rightOperand._state),
+      );
     }
     throw EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
@@ -387,38 +436,43 @@ class DartObjectImpl implements DartObject {
   }
 
   /// Return the result of invoking the '&gt;' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl greaterThan(
-          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      DartObjectImpl(
-          typeProvider.boolType, _state.greaterThan(rightOperand._state));
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.boolType,
+      _state.greaterThan(rightOperand._state),
+    );
+  }
 
   /// Return the result of invoking the '&gt;=' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl greaterThanOrEqual(
-          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      DartObjectImpl(typeProvider.boolType,
-          _state.greaterThanOrEqual(rightOperand._state));
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.boolType,
+      _state.greaterThanOrEqual(rightOperand._state),
+    );
+  }
 
   /// Return the result of testing whether this object has the given
   /// [testedType].
-  DartObjectImpl hasType(TypeProvider typeProvider, TypeSystem typeSystem,
-      DartObjectImpl testedType) {
+  DartObjectImpl hasType(TypeSystemImpl typeSystem, DartObjectImpl testedType) {
     _assertType(testedType);
     DartType typeType = (testedType._state as TypeState)._type;
     BoolState state;
     if (isNull) {
-      if (typeType == typeProvider.objectType ||
-          typeType == typeProvider.dynamicType ||
-          typeType == typeProvider.nullType) {
+      if (typeType == typeSystem.typeProvider.objectType ||
+          typeType == typeSystem.typeProvider.dynamicType ||
+          typeType == typeSystem.typeProvider.nullType) {
         state = BoolState.TRUE_STATE;
       } else {
         state = BoolState.FALSE_STATE;
@@ -426,232 +480,310 @@ class DartObjectImpl implements DartObject {
     } else {
       state = BoolState.from(typeSystem.isSubtypeOf(type, typeType));
     }
-    return DartObjectImpl(typeProvider.boolType, state);
+    return DartObjectImpl(typeSystem, typeSystem.typeProvider.boolType, state);
   }
 
   /// Return the result of invoking the '~/' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl integerDivide(
-          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      DartObjectImpl(
-          typeProvider.intType, _state.integerDivide(rightOperand._state));
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.intType,
+      _state.integerDivide(rightOperand._state),
+    );
+  }
 
   /// Return the result of invoking the identical function on this object with
   /// the [rightOperand]. The [typeProvider] is the type provider used to find
   /// known types.
+  @Deprecated('Use isIdentical2() instead')
   DartObjectImpl isIdentical(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
+    var typeSystem = TypeSystemImpl(
+      implicitCasts: false,
+      isNonNullableByDefault: false,
+      strictInference: false,
+      typeProvider: typeProvider,
+    );
+    return isIdentical2(typeSystem, rightOperand);
+  }
+
+  /// Return the result of invoking the identical function on this object with
+  /// the [rightOperand].
+  DartObjectImpl isIdentical2(
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
     return DartObjectImpl(
-        typeProvider.boolType, _state.isIdentical(rightOperand._state));
+      typeSystem,
+      typeSystem.typeProvider.boolType,
+      _state.isIdentical(rightOperand._state),
+    );
   }
 
   /// Return the result of invoking the '&&' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl lazyAnd(TypeProvider typeProvider,
-          DartObjectImpl Function() rightOperandComputer) =>
-      DartObjectImpl(typeProvider.boolType,
-          _state.lazyAnd(() => rightOperandComputer()?._state));
+  DartObjectImpl lazyAnd(TypeSystemImpl typeSystem,
+      DartObjectImpl Function() rightOperandComputer) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.boolType,
+      _state.lazyAnd(() => rightOperandComputer()?._state),
+    );
+  }
 
   /// Return the result of invoking the '==' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lazyEqualEqual(
-      TypeProvider typeProvider, DartObjectImpl rightOperand) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
     if (isNull || rightOperand.isNull) {
       return DartObjectImpl(
-          typeProvider.boolType,
-          isNull && rightOperand.isNull
-              ? BoolState.TRUE_STATE
-              : BoolState.FALSE_STATE);
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        isNull && rightOperand.isNull
+            ? BoolState.TRUE_STATE
+            : BoolState.FALSE_STATE,
+      );
     }
     if (isBoolNumStringOrNull) {
       return DartObjectImpl(
-          typeProvider.boolType, _state.lazyEqualEqual(rightOperand._state));
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        _state.lazyEqualEqual(rightOperand._state),
+      );
     }
     throw EvaluationException(
         CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
   }
 
   /// Return the result of invoking the '||' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl lazyOr(TypeProvider typeProvider,
+  DartObjectImpl lazyOr(TypeSystemImpl typeSystem,
           DartObjectImpl Function() rightOperandComputer) =>
-      DartObjectImpl(typeProvider.boolType,
-          _state.lazyOr(() => rightOperandComputer()?._state));
+      DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.boolType,
+        _state.lazyOr(() => rightOperandComputer()?._state),
+      );
 
   /// Return the result of invoking the '&lt;' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lessThan(
-          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      DartObjectImpl(
-          typeProvider.boolType, _state.lessThan(rightOperand._state));
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.boolType,
+      _state.lessThan(rightOperand._state),
+    );
+  }
 
   /// Return the result of invoking the '&lt;=' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lessThanOrEqual(
-          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      DartObjectImpl(
-          typeProvider.boolType, _state.lessThanOrEqual(rightOperand._state));
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.boolType,
+      _state.lessThanOrEqual(rightOperand._state),
+    );
+  }
 
-  /// Return the result of invoking the '!' operator on this object. The
-  /// [typeProvider] is the type provider used to find known types.
+  /// Return the result of invoking the '!' operator on this object.
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl logicalNot(TypeProvider typeProvider) =>
-      DartObjectImpl(typeProvider.boolType, _state.logicalNot());
+  DartObjectImpl logicalNot(TypeSystemImpl typeSystem) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.boolType,
+      _state.logicalNot(),
+    );
+  }
 
   /// Return the result of invoking the '&gt;&gt;&gt;' operator on this object
-  /// with the [rightOperand]. The [typeProvider] is the type provider used to
-  /// find known types.
+  /// with the [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl logicalShiftRight(
-          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      DartObjectImpl(
-          typeProvider.intType, _state.logicalShiftRight(rightOperand._state));
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.intType,
+      _state.logicalShiftRight(rightOperand._state),
+    );
+  }
 
   /// Return the result of invoking the '-' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl minus(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+  DartObjectImpl minus(TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
     InstanceState result = _state.minus(rightOperand._state);
     if (result is IntState) {
-      return DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.intType,
+        result,
+      );
     } else if (result is DoubleState) {
-      return DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.doubleType,
+        result,
+      );
     }
     // We should never get here.
     throw StateError("minus returned a ${result.runtimeType}");
   }
 
-  /// Return the result of invoking the '-' operator on this object. The
-  /// [typeProvider] is the type provider used to find known types.
+  /// Return the result of invoking the '-' operator on this object.
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl negated(TypeProvider typeProvider) {
+  DartObjectImpl negated(TypeSystemImpl typeSystem) {
     InstanceState result = _state.negated();
     if (result is IntState) {
-      return DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.intType,
+        result,
+      );
     } else if (result is DoubleState) {
-      return DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.doubleType,
+        result,
+      );
     }
     // We should never get here.
     throw StateError("negated returned a ${result.runtimeType}");
   }
 
   /// Return the result of invoking the '!=' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl notEqual(
-      TypeProvider typeProvider, DartObjectImpl rightOperand) {
-    return equalEqual(typeProvider, rightOperand).logicalNot(typeProvider);
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return equalEqual(typeSystem, rightOperand).logicalNot(typeSystem);
   }
 
-  /// Return the result of converting this object to a 'String'. The
-  /// [typeProvider] is the type provider used to find known types.
+  /// Return the result of converting this object to a 'String'.
   ///
   /// Throws an [EvaluationException] if the object cannot be converted to a
   /// 'String'.
-  DartObjectImpl performToString(TypeProvider typeProvider) {
-    InterfaceType stringType = typeProvider.stringType;
+  DartObjectImpl performToString(TypeSystemImpl typeSystem) {
+    InterfaceType stringType = typeSystem.typeProvider.stringType;
     if (identical(type, stringType)) {
       return this;
     }
-    return DartObjectImpl(stringType, _state.convertToString());
+    return DartObjectImpl(typeSystem, stringType, _state.convertToString());
   }
 
   /// Return the result of invoking the '%' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl remainder(
-      TypeProvider typeProvider, DartObjectImpl rightOperand) {
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
     InstanceState result = _state.remainder(rightOperand._state);
     if (result is IntState) {
-      return DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.intType,
+        result,
+      );
     } else if (result is DoubleState) {
-      return DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.doubleType,
+        result,
+      );
     }
     // We should never get here.
     throw StateError("remainder returned a ${result.runtimeType}");
   }
 
   /// Return the result of invoking the '&lt;&lt;' operator on this object with
-  /// the [rightOperand]. The [typeProvider] is the type provider used to find
-  /// known types.
+  /// the [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl shiftLeft(
-          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      DartObjectImpl(
-          typeProvider.intType, _state.shiftLeft(rightOperand._state));
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.intType,
+      _state.shiftLeft(rightOperand._state),
+    );
+  }
 
   /// Return the result of invoking the '&gt;&gt;' operator on this object with
-  /// the [rightOperand]. The [typeProvider] is the type provider used to find
-  /// known types.
+  /// the [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl shiftRight(
-          TypeProvider typeProvider, DartObjectImpl rightOperand) =>
-      DartObjectImpl(
-          typeProvider.intType, _state.shiftRight(rightOperand._state));
+      TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.intType,
+      _state.shiftRight(rightOperand._state),
+    );
+  }
 
-  /// Return the result of invoking the 'length' getter on this object. The
-  /// [typeProvider] is the type provider used to find known types.
+  /// Return the result of invoking the 'length' getter on this object.
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl stringLength(TypeProvider typeProvider) =>
-      DartObjectImpl(typeProvider.intType, _state.stringLength());
+  DartObjectImpl stringLength(TypeSystemImpl typeSystem) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.intType,
+      _state.stringLength(),
+    );
+  }
 
   /// Return the result of invoking the '*' operator on this object with the
-  /// [rightOperand]. The [typeProvider] is the type provider used to find known
-  /// types.
+  /// [rightOperand].
   ///
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
-  DartObjectImpl times(TypeProvider typeProvider, DartObjectImpl rightOperand) {
+  DartObjectImpl times(TypeSystemImpl typeSystem, DartObjectImpl rightOperand) {
     InstanceState result = _state.times(rightOperand._state);
     if (result is IntState) {
-      return DartObjectImpl(typeProvider.intType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.intType,
+        result,
+      );
     } else if (result is DoubleState) {
-      return DartObjectImpl(typeProvider.doubleType, result);
+      return DartObjectImpl(
+        typeSystem,
+        typeSystem.typeProvider.doubleType,
+        result,
+      );
     }
     // We should never get here.
     throw StateError("times returned a ${result.runtimeType}");

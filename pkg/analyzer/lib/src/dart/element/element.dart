@@ -1824,9 +1824,17 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   EvaluationResultImpl get evaluationResult {
     if (_evaluationResult == null) {
       Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
-        name: DartObjectImpl(library.typeProvider.intType, IntState(_index))
+        name: DartObjectImpl(
+          library.typeSystem,
+          library.typeProvider.intType,
+          IntState(_index),
+        )
       };
-      DartObjectImpl value = DartObjectImpl(type, GenericState(fieldMap));
+      DartObjectImpl value = DartObjectImpl(
+        library.typeSystem,
+        type,
+        GenericState(fieldMap),
+      );
       _evaluationResult = EvaluationResultImpl(value);
     }
     return _evaluationResult;
@@ -1868,8 +1876,13 @@ class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
           constantValues.add(field.evaluationResult.value);
         }
       }
-      _evaluationResult =
-          EvaluationResultImpl(DartObjectImpl(type, ListState(constantValues)));
+      _evaluationResult = EvaluationResultImpl(
+        DartObjectImpl(
+          library.typeSystem,
+          type,
+          ListState(constantValues),
+        ),
+      );
     }
     return _evaluationResult;
   }

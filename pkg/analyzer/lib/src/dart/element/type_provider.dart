@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:meta/meta.dart';
 
 /// Provide common functionality shared by the various TypeProvider
@@ -363,10 +364,20 @@ class TypeProviderImpl extends TypeProviderBase {
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
   }
 
+  @deprecated
   @override
   DartObjectImpl get nullObject {
     if (_nullObject == null) {
-      _nullObject = DartObjectImpl(nullType, NullState.NULL_STATE);
+      _nullObject = DartObjectImpl(
+        TypeSystemImpl(
+          implicitCasts: false,
+          isNonNullableByDefault: false,
+          strictInference: false,
+          typeProvider: this,
+        ),
+        nullType,
+        NullState.NULL_STATE,
+      );
     }
     return _nullObject;
   }

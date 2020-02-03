@@ -448,12 +448,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
   /// is not a constant boolean value.
   EvaluationResultImpl _getConstantBooleanValue(Expression expression) {
     if (expression is BooleanLiteral) {
-      if (expression.value) {
-        return EvaluationResultImpl(DartObjectImpl(null, BoolState.from(true)));
-      } else {
-        return EvaluationResultImpl(
-            DartObjectImpl(null, BoolState.from(false)));
-      }
+      return EvaluationResultImpl(
+        DartObjectImpl(
+          _typeSystem,
+          _typeSystem.typeProvider.boolType,
+          BoolState.from(expression.value),
+        ),
+      );
     }
 
     // Don't consider situations where we could evaluate to a constant boolean

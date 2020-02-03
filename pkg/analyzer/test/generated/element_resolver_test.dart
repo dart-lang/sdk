@@ -555,27 +555,6 @@ class ElementResolverTest with ResourceProviderMixin, ElementsTypesMixin {
     _listener.assertNoErrors();
   }
 
-  test_visitEnumDeclaration() async {
-    CompilationUnitElementImpl compilationUnitElement =
-        ElementFactory.compilationUnit('foo.dart');
-    EnumElementImpl enumElement =
-        ElementFactory.enumElement(_typeProvider, ('E'));
-    compilationUnitElement.enums = <ClassElement>[enumElement];
-    EnumDeclaration enumNode = AstTestFactory.enumDeclaration2('E', []);
-    Annotation annotationNode =
-        AstTestFactory.annotation(AstTestFactory.identifier3('a'));
-    annotationNode.element = ElementFactory.classElement2('A');
-    annotationNode.elementAnnotation =
-        ElementAnnotationImpl(compilationUnitElement);
-    enumNode.metadata.add(annotationNode);
-    enumNode.name.staticElement = enumElement;
-    List<ElementAnnotation> metadata = <ElementAnnotation>[
-      annotationNode.elementAnnotation
-    ];
-    _resolveNode(enumNode);
-    expect(metadata[0].element, annotationNode.element);
-  }
-
   test_visitExportDirective_noCombinators() async {
     ExportDirective directive = AstTestFactory.exportDirective2(null);
     directive.element = ElementFactory.exportFor(

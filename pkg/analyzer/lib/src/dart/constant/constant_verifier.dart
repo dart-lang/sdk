@@ -11,7 +11,6 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -22,6 +21,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 
 /// Instances of the class `ConstantVerifier` traverse an AST structure looking
 /// for additional errors and warnings not covered by the parser and resolver.
@@ -30,6 +30,9 @@ import 'package:analyzer/src/generated/engine.dart';
 class ConstantVerifier extends RecursiveAstVisitor<void> {
   /// The error reporter by which errors will be reported.
   final ErrorReporter _errorReporter;
+
+  /// The type operations.
+  final TypeSystemImpl _typeSystem;
 
   /// The type provider used to access the known types.
   final TypeProvider _typeProvider;
@@ -51,7 +54,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created constant verifier.
   ConstantVerifier(ErrorReporter errorReporter, LibraryElement currentLibrary,
-      TypeProvider typeProvider, DeclaredVariables declaredVariables,
+      DeclaredVariables declaredVariables,
       // TODO(brianwilkerson) Remove the unused parameter `forAnalysisDriver`.
       {bool forAnalysisDriver,
       // TODO(paulberry): make [featureSet] a required parameter.
@@ -59,9 +62,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       : this._(
             errorReporter,
             currentLibrary,
-            typeProvider,
-            declaredVariables,
             currentLibrary.typeSystem,
+            currentLibrary.typeProvider,
+            declaredVariables,
             featureSet ??
                 (currentLibrary.context.analysisOptions as AnalysisOptionsImpl)
                     .contextFeatures);
@@ -69,16 +72,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ConstantVerifier._(
       this._errorReporter,
       this._currentLibrary,
+      this._typeSystem,
       this._typeProvider,
       this.declaredVariables,
-      TypeSystem typeSystem,
       FeatureSet featureSet)
       : _constantUpdate2018Enabled =
             featureSet.isEnabled(Feature.constant_update_2018),
         _intType = _typeProvider.intType,
         _evaluationEngine = ConstantEvaluationEngine(
             _typeProvider, declaredVariables,
-            typeSystem: typeSystem, experimentStatus: featureSet);
+            typeSystem: _typeSystem, experimentStatus: featureSet);
 
   @override
   void visitAnnotation(Annotation node) {
@@ -515,7 +518,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         Expression defaultValue = parameter.defaultValue;
         DartObjectImpl result;
         if (defaultValue == null) {
-          result = DartObjectImpl(_typeProvider.nullType, NullState.NULL_STATE);
+          result = DartObjectImpl(
+            _typeSystem,
+            _typeProvider.nullType,
+            NullState.NULL_STATE,
+          );
         } else {
           result = _validate(
               defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
