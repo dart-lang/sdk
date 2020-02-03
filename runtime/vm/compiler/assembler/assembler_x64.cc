@@ -2198,12 +2198,12 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
     Bind(&join);
   } else {
     testq(object, Immediate(kSmiTagMask));
-    movq(result, Immediate(kSmiCid));
+    movq(result, Immediate(target::ToRawSmi(kSmiCid)));
     j(EQUAL, &smi, Assembler::kNearJump);
     LoadClassId(result, object);
+    SmiTag(result);
 
     Bind(&smi);
-    SmiTag(result);
   }
 }
 

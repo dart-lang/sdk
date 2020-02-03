@@ -1485,29 +1485,6 @@ DEFINE_BACKEND(StoreUntagged, (NoLocation, Register obj, Register value)) {
   __ StoreToOffset(kWord, value, obj, instr->offset_from_tagged());
 }
 
-LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
-  const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register object = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
-  const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
-  // Using NNBDMode::kLegacyLib is safe, because it throws a wider
-  // net over the types accepting a Smi value, especially during the nnbd
-  // migration that does not guarantee soundness.
-  if (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, value_type) ||
-      value_type.IsTypeParameter()) {
-    __ LoadTaggedClassIdMayBeSmi(result, object);
-  } else {
-    __ LoadClassId(result, object);
-    __ SmiTag(result);
-  }
-}
-
 Representation LoadIndexedInstr::representation() const {
   switch (class_id_) {
     case kArrayCid:

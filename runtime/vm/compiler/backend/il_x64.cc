@@ -1274,40 +1274,6 @@ DEFINE_BACKEND(StoreUntagged, (NoLocation, Register obj, Register value)) {
   __ movq(compiler::Address(obj, instr->offset_from_tagged()), value);
 }
 
-LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
-  const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register object = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
-  const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
-  // Using NNBDMode::kLegacyLib is safe, because it throws a wider
-  // net over the types accepting a Smi value, especially during the nnbd
-  // migration that does not guarantee soundness.
-  if (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, value_type) ||
-      value_type.IsTypeParameter()) {
-    // We don't use Assembler::LoadTaggedClassIdMayBeSmi() here---which uses
-    // a conditional move instead---because it is slower, probably due to
-    // branch prediction usually working just fine in this case.
-    compiler::Label load, done;
-    __ testq(object, compiler::Immediate(kSmiTagMask));
-    __ j(NOT_ZERO, &load, compiler::Assembler::kNearJump);
-    __ LoadImmediate(result, compiler::Immediate(Smi::RawValue(kSmiCid)));
-    __ jmp(&done);
-    __ Bind(&load);
-    __ LoadClassId(result, object);
-    __ SmiTag(result);
-    __ Bind(&done);
-  } else {
-    __ LoadClassId(result, object);
-    __ SmiTag(result);
-  }
-}
-
 class BoxAllocationSlowPath : public TemplateSlowPathCode<Instruction> {
  public:
   BoxAllocationSlowPath(Instruction* instruction,

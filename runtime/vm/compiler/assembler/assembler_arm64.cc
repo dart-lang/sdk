@@ -1162,9 +1162,17 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
 }
 
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
-  LoadClassIdMayBeSmi(TMP, object);
-  // Finally, tag the result.
-  SmiTag(result, TMP);
+  if (result == object) {
+    LoadClassIdMayBeSmi(TMP, object);
+    SmiTag(result, TMP);
+  } else {
+    Label done;
+    LoadImmediate(result, target::ToRawSmi(kSmiCid));
+    BranchIfSmi(object, &done);
+    LoadClassId(result, object);
+    SmiTag(result);
+    Bind(&done);
+  }
 }
 
 // Frame entry and exit.
