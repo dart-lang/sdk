@@ -146,7 +146,6 @@ class ConstructorInvocation {
 
 /// A representation of an instance of a Dart class.
 class DartObjectImpl implements DartObject {
-  // ignore: unused_field
   final TypeSystemImpl _typeSystem;
 
   @override
@@ -208,7 +207,8 @@ class DartObjectImpl implements DartObject {
   @override
   bool operator ==(Object object) {
     if (object is DartObjectImpl) {
-      return type == object.type && _state == object._state;
+      return _typeSystem.runtimeTypesEqual(type, object.type) &&
+          _state == object._state;
     }
     return false;
   }
