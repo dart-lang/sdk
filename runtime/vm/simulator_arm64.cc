@@ -2857,11 +2857,11 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
       } else if ((U == 0) && (opcode == 0x1e)) {
         if (instr->Bit(23) == 1) {
           // Format(instr, "vmin'vsz 'vd, 'vn, 'vm");
-          const float m = (vn_flt > vm_flt) ? vm_flt : vn_flt;
+          const float m = fminf(vn_flt, vm_flt);
           res = bit_cast<int32_t, float>(m);
         } else {
           // Format(instr, "vmax'vsz 'vd, 'vn, 'vm");
-          const float m = (vn_flt < vm_flt) ? vm_flt : vn_flt;
+          const float m = fmaxf(vn_flt, vm_flt);
           res = bit_cast<int32_t, float>(m);
         }
       } else if ((U == 0) && (opcode == 0x1f)) {
@@ -2931,11 +2931,11 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
       } else if ((U == 0) && (opcode == 0x1e)) {
         if (instr->Bit(23) == 1) {
           // Format(instr, "vmin'vsz 'vd, 'vn, 'vm");
-          const double m = (vn_dbl > vm_dbl) ? vm_dbl : vn_dbl;
+          const double m = fmin(vn_dbl, vm_dbl);
           res = bit_cast<int64_t, double>(m);
         } else {
           // Format(instr, "vmax'vsz 'vd, 'vn, 'vm");
-          const double m = (vn_dbl < vm_dbl) ? vm_dbl : vn_dbl;
+          const double m = fmax(vn_dbl, vm_dbl);
           res = bit_cast<int64_t, double>(m);
         }
       } else {
