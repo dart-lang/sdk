@@ -161,9 +161,10 @@ class Operators2 {
 }
 
 class Operators3 {
-  operator ==([a]) => true;
+  operator ==([dynamic a]) => true;
   //           ^
   // [analyzer] COMPILE_TIME_ERROR.OPTIONAL_PARAMETER_IN_OPERATOR
+  //                   ^
   // [cfe] An operator can't have optional parameters.
   operator <([a]) => true;
   //          ^
