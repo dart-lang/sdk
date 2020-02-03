@@ -25,7 +25,7 @@ class ConvertToMapLiteralTest extends FixProcessorLintTest {
 
   Future<void> test_default_declaredType() async {
     await resolveTestUnit('''
-Map m = /*LINT*/Map();
+Map m = Map();
 ''');
     await assertHasFix('''
 Map m = {};
@@ -35,7 +35,7 @@ Map m = {};
   Future<void> test_default_linkedHashMap() async {
     await resolveTestUnit('''
 import 'dart:collection';
-var m = /*LINT*/LinkedHashMap();
+var m = LinkedHashMap();
 ''');
     await assertHasFix('''
 import 'dart:collection';
@@ -45,7 +45,7 @@ var m = {};
 
   Future<void> test_default_minimal() async {
     await resolveTestUnit('''
-var m = /*LINT*/Map();
+var m = Map();
 ''');
     await assertHasFix('''
 var m = {};
@@ -54,7 +54,7 @@ var m = {};
 
   Future<void> test_default_newKeyword() async {
     await resolveTestUnit('''
-var m = /*LINT*/new Map();
+var m = new Map();
 ''');
     await assertHasFix('''
 var m = {};
@@ -63,7 +63,7 @@ var m = {};
 
   Future<void> test_default_typeArg() async {
     await resolveTestUnit('''
-var m = /*LINT*/Map<String, int>();
+var m = Map<String, int>();
 ''');
     await assertHasFix('''
 var m = <String, int>{};

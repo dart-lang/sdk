@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,14 +25,18 @@ class ConvertToRelativeImportTest extends FixProcessorLintTest {
   String get lintCode => LintNames.prefer_relative_imports;
 
   Future<void> test_relativeImport() async {
-    addSource('/home/test/lib/foo.dart', '');
+    addSource('/home/test/lib/foo.dart', '''
+class C {}
+''');
     testFile = convertPath('/home/test/lib/src/test.dart');
     await resolveTestUnit('''
-import /*LINT*/'package:test/foo.dart';
+import 'package:test/foo.dart';
+C c;
 ''');
 
     await assertHasFix('''
 import '../foo.dart';
+C c;
 ''');
   }
 
@@ -50,47 +55,61 @@ import /*LINT*/'package:test1/foo.dart';
     addSource('/home/test/lib/foo.dart', '');
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestUnit('''
-import /*LINT*/'package:test/foo';
+import 'package:test/foo';
 ''');
 
     await assertHasFix('''
 import 'foo';
-''');
+''',
+        errorFilter: (error) =>
+            error.errorCode != CompileTimeErrorCode.URI_DOES_NOT_EXIST);
   }
 
   Future<void> test_relativeImportRespectQuoteStyle() async {
-    addSource('/home/test/lib/foo.dart', '');
+    addSource('/home/test/lib/foo.dart', '''
+class C {}
+''');
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestUnit('''
-import /*LINT*/"package:test/foo.dart";
+import "package:test/foo.dart";
+C c;
 ''');
 
     await assertHasFix('''
 import "foo.dart";
+C c;
 ''');
   }
 
   Future<void> test_relativeImportSameDirectory() async {
-    addSource('/home/test/lib/foo.dart', '');
+    addSource('/home/test/lib/foo.dart', '''
+class C {}
+''');
     testFile = convertPath('/home/test/lib/bar.dart');
     await resolveTestUnit('''
-import /*LINT*/'package:test/foo.dart';
+import 'package:test/foo.dart';
+C c;
 ''');
 
     await assertHasFix('''
 import 'foo.dart';
+C c;
 ''');
   }
 
   Future<void> test_relativeImportSubDirectory() async {
-    addSource('/home/test/lib/baz/foo.dart', '');
+    addSource('/home/test/lib/baz/foo.dart', '''
+class C {}
+''');
     testFile = convertPath('/home/test/lib/test.dart');
     await resolveTestUnit('''
-import /*LINT*/'package:test/baz/foo.dart';
+import 'package:test/baz/foo.dart';
+C c;
 ''');
 
     await assertHasFix('''
 import 'baz/foo.dart';
+C c;
 ''');
   }
 }

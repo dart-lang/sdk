@@ -30,7 +30,7 @@ class SortChildPropertiesLastTest extends FixProcessorLintTest {
 import 'package:flutter/material.dart';
 main() {
   Column(
-    /*LINT*/children: <Widget>[
+    children: <Widget>[
       Text('aaa'),
       Text('bbbbbb'),
       Text('ccccccccc'),

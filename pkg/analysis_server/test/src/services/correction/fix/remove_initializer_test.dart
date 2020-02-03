@@ -26,7 +26,7 @@ class RemoveInitializerTest extends FixProcessorLintTest {
   Future<void> test_field() async {
     await resolveTestUnit('''
 class Test {
-  int /*LINT*/x = null;
+  int x = null;
 }
 ''');
     await assertHasFix('''
@@ -39,7 +39,7 @@ class Test {
   Future<void> test_forLoop() async {
     await resolveTestUnit('''
 void f() {
-  for (var /*LINT*/i = null; i != null; i++) {
+  for (var i = null; i != null; i++) {
   }
 }
 ''');
@@ -53,7 +53,7 @@ void f() {
 
   Future<void> test_listOfVariableDeclarations() async {
     await resolveTestUnit('''
-String a = 'a', /*LINT*/b = null, c = 'c';
+String a = 'a', b = null, c = 'c';
 ''');
     await assertHasFix('''
 String a = 'a', b, c = 'c';
@@ -62,7 +62,7 @@ String a = 'a', b, c = 'c';
 
   Future<void> test_parameter_optionalNamed() async {
     await resolveTestUnit('''
-void f({String /*LINT*/s = null}) {}
+void f({String s = null}) {}
 ''');
     await assertHasFix('''
 void f({String s}) {}
@@ -71,7 +71,7 @@ void f({String s}) {}
 
   Future<void> test_parameter_optionalPositional() async {
     await resolveTestUnit('''
-void f([String /*LINT*/s = null]) {}
+void f([String s = null]) {}
 ''');
     await assertHasFix('''
 void f([String s]) {}
@@ -80,7 +80,7 @@ void f([String s]) {}
 
   Future<void> test_topLevel() async {
     await resolveTestUnit('''
-var /*LINT*/x = null;
+var x = null;
 ''');
     await assertHasFix('''
 var x;

@@ -25,7 +25,7 @@ class ConvertToSetLiteralTest extends FixProcessorLintTest {
 
   Future<void> test_default_declaredType() async {
     await resolveTestUnit('''
-Set s = /*LINT*/Set();
+Set s = Set();
 ''');
     await assertHasFix('''
 Set s = {};
@@ -34,7 +34,7 @@ Set s = {};
 
   Future<void> test_default_minimal() async {
     await resolveTestUnit('''
-var s = /*LINT*/Set();
+var s = Set();
 ''');
     await assertHasFix('''
 var s = <dynamic>{};
@@ -43,7 +43,7 @@ var s = <dynamic>{};
 
   Future<void> test_default_newKeyword() async {
     await resolveTestUnit('''
-var s = /*LINT*/new Set();
+var s = new Set();
 ''');
     await assertHasFix('''
 var s = <dynamic>{};
@@ -52,7 +52,7 @@ var s = <dynamic>{};
 
   Future<void> test_default_typeArg() async {
     await resolveTestUnit('''
-var s = /*LINT*/Set<int>();
+var s = Set<int>();
 ''');
     await assertHasFix('''
 var s = <int>{};
@@ -65,7 +65,7 @@ var s = <int>{};
     await resolveTestUnit('''
 import 'dart:collection';
 
-var s = /*LINT*/LinkedHashSet<int>();
+var s = LinkedHashSet<int>();
 ''');
     await assertHasFix('''
 import 'dart:collection';
@@ -76,7 +76,7 @@ var s = <int>{};
 
   Future<void> test_from_empty() async {
     await resolveTestUnit('''
-var s = /*LINT*/Set.from([]);
+var s = Set.from([]);
 ''');
     await assertHasFix('''
 var s = <dynamic>{};
@@ -89,7 +89,7 @@ var s = <dynamic>{};
     // type.
     await resolveTestUnit('''
 void f(Set<int> s) {}
-var s = f(/*LINT*/Set.from([]));
+var s = f(Set.from([]));
 ''');
     await assertHasFix('''
 void f(Set<int> s) {}
@@ -99,7 +99,7 @@ var s = f({});
 
   Future<void> test_from_newKeyword() async {
     await resolveTestUnit('''
-var s = /*LINT*/new Set.from([2, 3]);
+var s = new Set.from([2, 3]);
 ''');
     await assertHasFix('''
 var s = {2, 3};
@@ -108,7 +108,7 @@ var s = {2, 3};
 
   Future<void> test_from_noKeyword_declaredType() async {
     await resolveTestUnit('''
-Set s = /*LINT*/Set.from([2, 3]);
+Set s = Set.from([2, 3]);
 ''');
     await assertHasFix('''
 Set s = {2, 3};
@@ -117,7 +117,7 @@ Set s = {2, 3};
 
   Future<void> test_from_noKeyword_typeArg_onConstructor() async {
     await resolveTestUnit('''
-var s = /*LINT*/Set<int>.from([2, 3]);
+var s = Set<int>.from([2, 3]);
 ''');
     await assertHasFix('''
 var s = <int>{2, 3};
@@ -126,7 +126,7 @@ var s = <int>{2, 3};
 
   Future<void> test_from_noKeyword_typeArg_onConstructorAndLiteral() async {
     await resolveTestUnit('''
-var s = /*LINT*/Set<int>.from(<num>[2, 3]);
+var s = Set<int>.from(<num>[2, 3]);
 ''');
     await assertHasFix('''
 var s = <int>{2, 3};
@@ -135,7 +135,7 @@ var s = <int>{2, 3};
 
   Future<void> test_from_noKeyword_typeArg_onLiteral() async {
     await resolveTestUnit('''
-var s = /*LINT*/Set.from(<int>[2, 3]);
+var s = Set.from(<int>[2, 3]);
 ''');
     await assertHasFix('''
 var s = <int>{2, 3};
@@ -144,7 +144,7 @@ var s = <int>{2, 3};
 
   Future<void> test_from_nonEmpty() async {
     await resolveTestUnit('''
-var s = /*LINT*/Set.from([2, 3]);
+var s = Set.from([2, 3]);
 ''');
     await assertHasFix('''
 var s = {2, 3};
@@ -161,7 +161,7 @@ Set s = /*LINT*/new Set.from(l);
 
   Future<void> test_from_trailingComma() async {
     await resolveTestUnit('''
-var s = /*LINT*/Set.from([2, 3,]);
+var s = Set.from([2, 3,]);
 ''');
     await assertHasFix('''
 var s = {2, 3,};
@@ -170,7 +170,7 @@ var s = {2, 3,};
 
   Future<void> test_toSet_empty() async {
     await resolveTestUnit('''
-var s = /*LINT*/[].toSet();
+var s = [].toSet();
 ''');
     await assertHasFix('''
 var s = <dynamic>{};
@@ -179,7 +179,7 @@ var s = <dynamic>{};
 
   Future<void> test_toSet_empty_typeArg() async {
     await resolveTestUnit('''
-var s = /*LINT*/<int>[].toSet();
+var s = <int>[].toSet();
 ''');
     await assertHasFix('''
 var s = <int>{};
@@ -188,7 +188,7 @@ var s = <int>{};
 
   Future<void> test_toSet_nonEmpty() async {
     await resolveTestUnit('''
-var s = /*LINT*/[2, 3].toSet();
+var s = [2, 3].toSet();
 ''');
     await assertHasFix('''
 var s = {2, 3};
@@ -197,7 +197,7 @@ var s = {2, 3};
 
   Future<void> test_toSet_nonEmpty_typeArg() async {
     await resolveTestUnit('''
-var s = /*LINT*/<int>[2, 3].toSet();
+var s = <int>[2, 3].toSet();
 ''');
     await assertHasFix('''
 var s = <int>{2, 3};

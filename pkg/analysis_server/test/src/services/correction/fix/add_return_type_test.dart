@@ -27,9 +27,10 @@ class AddReturnTypeLintTest extends FixProcessorLintTest {
     await resolveTestUnit('''
 class A {
   void m() {
-    /*LINT*/f() {
+    f() {
       return '';
     }
+    f();
   }
 }
 ''');
@@ -39,6 +40,7 @@ class A {
     String f() {
       return '';
     }
+    f();
   }
 }
 ''');
@@ -48,7 +50,8 @@ class A {
     await resolveTestUnit('''
 class A {
   void m() {
-    /*LINT*/f() => '';
+    f() => '';
+    f();
   }
 }
 ''');
@@ -56,6 +59,7 @@ class A {
 class A {
   void m() {
     String f() => '';
+    f();
   }
 }
 ''');
@@ -64,7 +68,7 @@ class A {
   Future<void> test_method_block_noReturn() async {
     await resolveTestUnit('''
 class A {
-  /*LINT*/m() {
+  m() {
   }
 }
 ''');
@@ -74,7 +78,7 @@ class A {
   Future<void> test_method_block_returnDynamic() async {
     await resolveTestUnit('''
 class A {
-  /*LINT*/m(p) {
+  m(p) {
     return p;
   }
 }
@@ -85,7 +89,7 @@ class A {
   Future<void> test_method_block_returnNoValue() async {
     await resolveTestUnit('''
 class A {
-  /*LINT*/m() {
+  m() {
     return;
   }
 }
@@ -102,7 +106,7 @@ class A {
   Future<void> test_method_block_singleReturn() async {
     await resolveTestUnit('''
 class A {
-  /*LINT*/m() {
+  m() {
     return '';
   }
 }
@@ -119,7 +123,7 @@ class A {
   Future<void> test_method_expression() async {
     await resolveTestUnit('''
 class A {
-  /*LINT*/m() => '';
+  m() => '';
 }
 ''');
     await assertHasFix('''
@@ -131,7 +135,7 @@ class A {
 
   Future<void> test_topLevelFunction_block() async {
     await resolveTestUnit('''
-/*LINT*/f() {
+f() {
   return '';
 }
 ''');
@@ -144,7 +148,7 @@ String f() {
 
   Future<void> test_topLevelFunction_expression() async {
     await resolveTestUnit('''
-/*LINT*/f() => '';
+f() => '';
 ''');
     await assertHasFix('''
 String f() => '';

@@ -30,7 +30,7 @@ class A {
 }
 class B extends A {
   @override
-  int get /*LINT*/x => super.x;
+  int get x => super.x;
 }
 ''');
     await assertHasFix('''
@@ -46,7 +46,7 @@ class B extends A {
     await resolveTestUnit('''
 class A {
   @override
-  String /*LINT*/toString() => super.toString();
+  String toString() => super.toString();
 }
 ''');
     await assertHasFix('''

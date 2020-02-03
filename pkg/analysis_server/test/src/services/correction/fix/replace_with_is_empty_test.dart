@@ -26,7 +26,7 @@ class ReplaceWithIsEmptyTest extends FixProcessorLintTest {
   Future<void> test_constantOnLeft_equal() async {
     await resolveTestUnit('''
 f(List c) {
-  if (/*LINT*/0 == c.length) {}
+  if (0 == c.length) {}
 }
 ''');
     await assertHasFix('''
@@ -39,7 +39,7 @@ f(List c) {
   Future<void> test_constantOnLeft_greaterThan() async {
     await resolveTestUnit('''
 f(List c) {
-  if (/*LINT*/1 > c.length) {}
+  if (1 > c.length) {}
 }
 ''');
     await assertHasFix('''
@@ -52,7 +52,7 @@ f(List c) {
   Future<void> test_constantOnLeft_greaterThanOrEqual() async {
     await resolveTestUnit('''
 f(List c) {
-  if (/*LINT*/0 >= c.length) {}
+  if (0 >= c.length) {}
 }
 ''');
     await assertHasFix('''
@@ -65,7 +65,7 @@ f(List c) {
   Future<void> test_constantOnRight_equal() async {
     await resolveTestUnit('''
 f(List c) {
-  if (/*LINT*/c.length == 0) {}
+  if (c.length == 0) {}
 }
 ''');
     await assertHasFix('''
@@ -78,7 +78,7 @@ f(List c) {
   Future<void> test_constantOnRight_lessThan() async {
     await resolveTestUnit('''
 f(List c) {
-  if (/*LINT*/c.length < 1) {}
+  if (c.length < 1) {}
 }
 ''');
     await assertHasFix('''
@@ -91,7 +91,7 @@ f(List c) {
   Future<void> test_constantOnRight_lessThanOrEqual() async {
     await resolveTestUnit('''
 f(List c) {
-  if (/*LINT*/c.length <= 0) {}
+  if (c.length <= 0) {}
 }
 ''');
     await assertHasFix('''

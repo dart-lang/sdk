@@ -25,7 +25,7 @@ class ConvertToListLiteralTest extends FixProcessorLintTest {
 
   Future<void> test_default_declaredType() async {
     await resolveTestUnit('''
-List l = /*LINT*/List();
+List l = List();
 ''');
     await assertHasFix('''
 List l = [];
@@ -34,7 +34,7 @@ List l = [];
 
   Future<void> test_default_minimal() async {
     await resolveTestUnit('''
-var l = /*LINT*/List();
+var l = List();
 ''');
     await assertHasFix('''
 var l = [];
@@ -43,7 +43,7 @@ var l = [];
 
   Future<void> test_default_newKeyword() async {
     await resolveTestUnit('''
-var l = /*LINT*/new List();
+var l = new List();
 ''');
     await assertHasFix('''
 var l = [];
@@ -59,7 +59,7 @@ var l = /*LINT*/List(5);
 
   Future<void> test_default_typeArg() async {
     await resolveTestUnit('''
-var l = /*LINT*/List<int>();
+var l = List<int>();
 ''');
     await assertHasFix('''
 var l = <int>[];

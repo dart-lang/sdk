@@ -25,7 +25,7 @@ class AddRequiredTest extends FixProcessorLintTest {
 
   Future<void> test_withAssert() async {
     await resolveTestUnit('''
-void function({String /*LINT*/param}) {
+void function({String param}) {
   assert(param != null);
 }
 ''');

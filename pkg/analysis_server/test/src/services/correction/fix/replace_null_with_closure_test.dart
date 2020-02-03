@@ -25,7 +25,6 @@ class ReplaceNullWithClosureTest extends FixProcessorLintTest {
 
   /// Currently failing since the LINT annotation is tagging the ArgumentList
   /// where the fix (and lint) expect a NullLiteral.
-  /// todo (pq): re-write FixProcessorLintTest to run the actual lints.
   @failingTest
   Future<void> test_null_closure_literal() async {
     await resolveTestUnit('''
@@ -45,12 +44,12 @@ main() {
   Future<void> test_null_closure_named_expression() async {
     await resolveTestUnit('''
 main() {
-  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: /*LINT*/null);
+  [1, 3, 5].firstWhere((e) => e.isEven, orElse: null);
 }
 ''');
     await assertHasFix('''
 main() {
-  [1, 3, 5].firstWhere((e) => e.isOdd, orElse: () => null);
+  [1, 3, 5].firstWhere((e) => e.isEven, orElse: () => null);
 }
 ''');
   }

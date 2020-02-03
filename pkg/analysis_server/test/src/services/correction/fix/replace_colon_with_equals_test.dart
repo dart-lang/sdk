@@ -25,14 +25,10 @@ class ReplaceColonWithEqualsTest extends FixProcessorLintTest {
 
   Future<void> test_method() async {
     await resolveTestUnit('''
-void f1({int a}) { }    
-
-f1({a/*LINT*/: 1}) => null;
+void f({int a: 1}) => null;
 ''');
     await assertHasFix('''
-void f1({int a}) { }    
-
-f1({a = 1}) => null;
+void f({int a = 1}) => null;
 ''');
   }
 }

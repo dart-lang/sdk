@@ -27,7 +27,7 @@ class UseRethrowTest extends FixProcessorLintTest {
     await resolveTestUnit('''
 void bad1() {
   try {} catch (e) {
-    throw/*LINT*/ e;
+    throw e;
   }
 }
 ''');

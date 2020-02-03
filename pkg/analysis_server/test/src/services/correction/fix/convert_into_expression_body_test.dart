@@ -28,7 +28,7 @@ class ConvertIntoExpressionBodyTest extends FixProcessorLintTest {
     await resolveTestUnit('''
 class A {
   mmm() async { 
-    return 42; /*LINT*/
+    return 42;
   }
 }
 ''');

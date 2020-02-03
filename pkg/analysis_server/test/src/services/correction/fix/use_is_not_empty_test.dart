@@ -25,13 +25,13 @@ class UseIsNotEmptyTest extends FixProcessorLintTest {
 
   Future<void> test_notIsEmpty() async {
     await resolveTestUnit('''
-f(c) {
-  if (/*LINT*/!c.isEmpty) {}
+f(List<int> l) {
+  if (!l.isEmpty) {}
 }
 ''');
     await assertHasFix('''
-f(c) {
-  if (c.isNotEmpty) {}
+f(List<int> l) {
+  if (l.isNotEmpty) {}
 }
 ''');
   }

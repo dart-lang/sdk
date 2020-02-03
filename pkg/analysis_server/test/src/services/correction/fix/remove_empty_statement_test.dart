@@ -27,7 +27,7 @@ class RemoveEmptyStatementTest extends FixProcessorLintTest {
     await resolveTestUnit('''
 void foo() {
   while(true) {
-    /*LINT*/;
+    ;
   }
 }
 ''');

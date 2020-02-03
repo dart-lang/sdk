@@ -26,7 +26,7 @@ class ConvertToIfNullTest extends FixProcessorLintTest {
   Future<void> test_equalEqual() async {
     await resolveTestUnit('''
 void f(String s) {
-  print(/*LINT*/s == null ? 'default' : s);
+  print(s == null ? 'default' : s);
 }
 ''');
     await assertHasFix('''
@@ -39,7 +39,7 @@ void f(String s) {
   Future<void> test_notEqual() async {
     await resolveTestUnit('''
 void f(String s) {
-  print(/*LINT*/s != null ? s : 'default');
+  print(s != null ? s : 'default');
 }
 ''');
     await assertHasFix('''

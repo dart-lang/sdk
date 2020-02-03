@@ -25,15 +25,15 @@ class AddOverrideTest extends FixProcessorLintTest {
 
   Future<void> test_field() async {
     await resolveTestUnit('''
-class abstract Test {
+abstract class Test {
   int get t;
 }
 class Sub extends Test {
-  int /*LINT*/t = 42;
+  int t = 42;
 }
 ''');
     await assertHasFix('''
-class abstract Test {
+abstract class Test {
   int get t;
 }
 class Sub extends Test {
@@ -49,7 +49,7 @@ class Test {
   int get t => null;
 }
 class Sub extends Test {
-  int get /*LINT*/t => null;
+  int get t => null;
 }
 ''');
     await assertHasFix('''
@@ -69,7 +69,7 @@ class Test {
   void t() { }
 }
 class Sub extends Test {
-  void /*LINT*/t() { }
+  void t() { }
 }
 ''');
     await assertHasFix('''
@@ -90,7 +90,7 @@ class Test {
 }
 class Sub extends Test {
   /// Doc comment.
-  void /*LINT*/t() { }
+  void t() { }
 }
 ''');
     await assertHasFix('''
@@ -114,7 +114,7 @@ class Sub extends Test {
   /**
    * Doc comment.
    */
-  void /*LINT*/t() { }
+  void t() { }
 }
 ''');
     await assertHasFix('''
@@ -139,8 +139,9 @@ class Test {
 class Sub extends Test {
   /// Doc comment.
   @foo
-  void /*LINT*/t() { }
+  void t() { }
 }
+const foo = '';
 ''');
     await assertHasFix('''
 class Test {
@@ -152,6 +153,7 @@ class Sub extends Test {
   @foo
   void t() { }
 }
+const foo = '';
 ''');
   }
 
@@ -162,7 +164,7 @@ class Test {
 }
 class Sub extends Test {
   // Non-doc comment.
-  void /*LINT*/t() { }
+  void t() { }
 }
 ''');
     await assertHasFix('''

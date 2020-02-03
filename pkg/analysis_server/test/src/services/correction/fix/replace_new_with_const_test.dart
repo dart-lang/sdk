@@ -23,13 +23,14 @@ class ReplaceNewWithConstTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_const_constructors;
 
-  Future<void> test_basic() async {
+  Future<void> test_new() async {
     await resolveTestUnit('''
 class C {
   const C();
 }
 main() {
-  var c = new C/*LINT*/();
+  var c = new C();
+  print(c);
 }
 ''');
     await assertHasFix('''
@@ -38,17 +39,19 @@ class C {
 }
 main() {
   var c = const C();
+  print(c);
 }
 ''');
   }
 
-  Future<void> test_not_present() async {
+  Future<void> test_noKeyword() async {
     await resolveTestUnit('''
 class C {
   const C();
 }
 main() {
-  var c = C/*LINT*/();
+  var c = C();
+  print(c);
 }
 ''');
     // handled by ADD_CONST

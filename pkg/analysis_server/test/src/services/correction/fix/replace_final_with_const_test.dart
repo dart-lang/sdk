@@ -25,7 +25,7 @@ class ReplaceFinalWithConstTest extends FixProcessorLintTest {
 
   Future<void> test_method() async {
     await resolveTestUnit('''
-/*LINT*/final int a = 1;
+final int a = 1;
 ''');
     await assertHasFix('''
 const int a = 1;
