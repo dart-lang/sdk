@@ -15,13 +15,25 @@ void format() {
 
   tearDown(() => p?.dispose());
 
+  test('implicit --help', () {
+    p = project();
+    var result = p.runSync('format');
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('Idiomatically formats Dart source code.'));
+    expect(result.stdout,
+        contains('dartfmt [options...] [files or directories...]'));
+    expect(result.stdout, contains('dartfmt -w .'));
+  });
+
   test('--help', () {
     p = project();
     var result = p.runSync('format', ['--help']);
     expect(result.exitCode, 0);
-    expect(result.stdout, contains('Format one or more Dart files.'));
-    expect(result.stdout, contains('Usage: dartdev format [arguments]'));
-    expect(
-        result.stdout, contains('Run "dartdev help" to see global options.'));
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('Idiomatically formats Dart source code.'));
+    expect(result.stdout,
+        contains('dartfmt [options...] [files or directories...]'));
+    expect(result.stdout, contains('dartfmt -w .'));
   });
 }

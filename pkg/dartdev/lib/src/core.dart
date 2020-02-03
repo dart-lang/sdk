@@ -33,6 +33,15 @@ Future<Process> startProcess(
   return Process.start(executable, arguments, workingDirectory: cwd);
 }
 
+ProcessResult runSync(
+  String executable,
+  List<String> arguments, {
+  String cwd,
+}) {
+  log.trace('$executable ${arguments.join(' ')}');
+  return Process.runSync(executable, arguments, workingDirectory: cwd);
+}
+
 void routeToStdout(
   Process process, {
   bool logToTrace = false,
