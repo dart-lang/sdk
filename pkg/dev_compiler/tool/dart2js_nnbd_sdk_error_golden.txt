@@ -1,8 +1,8 @@
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '&': int.& (&), JSNumber.& (&).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '<<': int.<< (<<), JSNumber.<< (<<).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '>>': int.>> (>>), JSNumber.>> (>>).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '\|': int.\| (\|), JSNumber.\| (\|).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '^': int.^ (^), JSNumber.^ (^).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '&': int.& (int Function(int)), JSNumber.& (num Function(num)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '<<': int.<< (int Function(int)), JSNumber.<< (num Function(num)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '>>': int.>> (int Function(int)), JSNumber.>> (num Function(num)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '\|': int.\| (int Function(int)), JSNumber.\| (num Function(num)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '^': int.^ (int Function(int)), JSNumber.^ (num Function(num)).
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1153|7|14|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1155|7|12|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1157|7|17|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
