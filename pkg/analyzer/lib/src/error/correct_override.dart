@@ -17,7 +17,6 @@ import 'package:meta/meta.dart';
 
 class CorrectOverrideHelper {
   final TypeSystemImpl _typeSystem;
-  final ErrorReporter _errorReporter;
 
   final ExecutableElement _thisMember;
   FunctionType _thisTypeForSubtype;
@@ -28,10 +27,8 @@ class CorrectOverrideHelper {
 
   CorrectOverrideHelper({
     @required TypeSystemImpl typeSystem,
-    @required ErrorReporter errorReporter,
     @required ExecutableElement thisMember,
   })  : _typeSystem = typeSystem,
-        _errorReporter = errorReporter,
         _thisMember = thisMember {
     _computeThisTypeForSubtype();
   }
@@ -89,11 +86,22 @@ class CorrectOverrideHelper {
   /// error.
   void verify({
     @required ExecutableElement superMember,
+    @required ErrorReporter errorReporter,
     @required AstNode errorNode,
   }) {
     var isCorrect = isCorrectOverrideOf(superMember: superMember);
     if (!isCorrect) {
-      _reportInvalidOverride(errorNode, _thisMember, superMember);
+      errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.INVALID_OVERRIDE,
+        errorNode,
+        [
+          _thisMember.name,
+          _thisMember.enclosingElement.name,
+          _thisMember.type,
+          superMember.enclosingElement.name,
+          superMember.type,
+        ],
+      );
     }
   }
 
@@ -160,24 +168,6 @@ class CorrectOverrideHelper {
 
     _thisSubstitution = Substitution.fromPairs(thisParameters, newTypes);
     _superSubstitution = Substitution.fromPairs(superParameters, newTypes);
-  }
-
-  void _reportInvalidOverride(
-    AstNode node,
-    ExecutableElement member,
-    ExecutableElement superMember,
-  ) {
-    _errorReporter.reportErrorForNode(
-      CompileTimeErrorCode.INVALID_OVERRIDE,
-      node,
-      [
-        member.name,
-        member.enclosingElement.name,
-        member.type,
-        superMember.enclosingElement.name,
-        superMember.type,
-      ],
-    );
   }
 
   /// Return an element of [parameters] that corresponds for the [proto],

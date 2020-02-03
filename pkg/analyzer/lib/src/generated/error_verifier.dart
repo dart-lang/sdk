@@ -3576,7 +3576,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       if (mixinMember != null) {
         var isCorrect = CorrectOverrideHelper(
           typeSystem: _typeSystem,
-          errorReporter: _errorReporter,
           thisMember: superMember,
         ).isCorrectOverrideOf(
           superMember: mixinMember,
