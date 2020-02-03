@@ -1730,12 +1730,15 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
 }
 
 void ProcedureAttributesMetadata::InitializeFromFlags(uint8_t flags) {
-  const int kDynamicUsesBit = 1 << 0;
+  const int kMethodOrSetterCalledDynamicallyBit = 1 << 0;
   const int kNonThisUsesBit = 1 << 1;
   const int kTearOffUsesBit = 1 << 2;
   const int kThisUsesBit = 1 << 3;
+  const int kGetterCalledDynamicallyBit = 1 << 4;
 
-  has_dynamic_invocations = (flags & kDynamicUsesBit) != 0;
+  method_or_setter_called_dynamically =
+      (flags & kMethodOrSetterCalledDynamicallyBit) != 0;
+  getter_called_dynamically = (flags & kGetterCalledDynamicallyBit) != 0;
   has_this_uses = (flags & kThisUsesBit) != 0;
   has_non_this_uses = (flags & kNonThisUsesBit) != 0;
   has_tearoff_uses = (flags & kTearOffUsesBit) != 0;
@@ -1758,6 +1761,8 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
 
   const uint8_t flags = helper_->ReadByte();
   metadata->InitializeFromFlags(flags);
+  metadata->method_or_setter_selector_id = helper_->ReadUInt();
+  metadata->getter_selector_id = helper_->ReadUInt();
   return true;
 }
 

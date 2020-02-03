@@ -19,6 +19,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
+#include "vm/dispatch_table.h"
 #include "vm/flags.h"
 #include "vm/heap/heap.h"
 #include "vm/heap/pointer_block.h"
@@ -1306,6 +1307,9 @@ Isolate::~Isolate() {
 
   delete reverse_pc_lookup_cache_;
   reverse_pc_lookup_cache_ = nullptr;
+
+  delete dispatch_table_;
+  dispatch_table_ = nullptr;
 
   if (FLAG_enable_interpreter) {
     delete background_compiler_;

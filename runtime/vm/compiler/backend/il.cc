@@ -8,6 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
+#include "vm/compiler/aot/dispatch_table_generator.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/evaluator.h"
@@ -19,6 +20,7 @@
 #include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/cpu.h"
@@ -3435,6 +3437,10 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* LoadClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
+  // TODO(dartbug.com/40188): Allow this to canonicalize into an untagged
+  // constant and make a subsequent DispatchTableCallInstr canonicalize into a
+  // StaticCall.
+  if (representation() == kUntagged) return this;
   const intptr_t cid = object()->Type()->ToCid();
   if (cid != kDynamicCid) {
     const auto& smi = Smi::ZoneHandle(flow_graph->zone(), Smi::New(cid));
@@ -3921,15 +3927,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // [Intrinsify]).
   const Function& function = compiler->parsed_function().function();
 
-  // For functions which need an args descriptor the switchable call sites will
-  // transition directly to calling via a stub (and therefore never call the
-  // monomorphic entry).
-  //
-  // See runtime_entry.cc:DEFINE_RUNTIME_ENTRY(UnlinkedCall)
-  const bool needs_args_descriptor =
-      function.HasOptionalParameters() || function.IsGeneric();
-
-  if (function.IsDynamicFunction() && !needs_args_descriptor) {
+  if (function.NeedsMonomorphicCheckedEntry(compiler->zone())) {
     compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
     if (!FLAG_precompiled_mode) {
       __ MonomorphicCheckedEntryJIT();
@@ -4260,12 +4258,19 @@ void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Using NNBDMode::kLegacyLib is safe, because it throws a wider
   // net over the types accepting a Smi value, especially during the nnbd
   // migration that does not guarantee soundness.
-  if (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, value_type) ||
-      value_type.IsTypeParameter()) {
-    __ LoadTaggedClassIdMayBeSmi(result, object);
+  if (input_can_be_smi_ &&
+      (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, value_type) ||
+       value_type.IsTypeParameter())) {
+    if (representation() == kTagged) {
+      __ LoadTaggedClassIdMayBeSmi(result, object);
+    } else {
+      __ LoadClassIdMayBeSmi(result, object);
+    }
   } else {
     __ LoadClassId(result, object);
-    __ SmiTag(result);
+    if (representation() == kTagged) {
+      __ SmiTag(result);
+    }
   }
 }
 
@@ -4405,6 +4410,41 @@ const BinaryFeedback& InstanceCallInstr::BinaryFeedback() {
     }
   }
   return *binary_;
+}
+
+DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
+    Zone* zone,
+    const InstanceCallBaseInstr* call,
+    Value* cid,
+    const compiler::TableSelector* selector) {
+  InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount() + 1);
+  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+    args->Add(call->ArgumentValueAt(i)->CopyWithType());
+  }
+  args->Add(cid);
+  auto dispatch_table_call = new (zone) DispatchTableCallInstr(
+      call->token_pos(), call->interface_target(), selector, args,
+      call->type_args_len(), call->argument_names());
+  if (call->has_inlining_id()) {
+    dispatch_table_call->set_inlining_id(call->inlining_id());
+  }
+  return dispatch_table_call;
+}
+
+void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Array& arguments_descriptor = Array::ZoneHandle();
+  if (selector()->requires_args_descriptor) {
+    ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
+    arguments_descriptor = args_info.ToArgumentsDescriptor();
+  }
+  const Register cid_reg = locs()->in(0).reg();
+  compiler->EmitDispatchTableCall(cid_reg, selector()->offset,
+                                  arguments_descriptor);
+  compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
+                                 RawPcDescriptors::kOther, locs());
+  __ Drop(ArgumentCount());
+
+  compiler->AddDispatchTableCallTarget(selector());
 }
 
 const CallTargets& StaticCallInstr::Targets() {
@@ -4562,6 +4602,12 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
       flow_graph->zone(), this, target, new_target->AggregateCallCount());
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
   return specialized;
+}
+
+Definition* DispatchTableCallInstr::Canonicalize(FlowGraph* flow_graph) {
+  // TODO(dartbug.com/40188): Allow this to canonicalize into a StaticCall when
+  // when input class id is constant;
+  return this;
 }
 
 Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {

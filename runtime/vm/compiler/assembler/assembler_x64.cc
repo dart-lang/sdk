@@ -1235,6 +1235,10 @@ void Assembler::LoadIsolate(Register dst) {
   movq(dst, Address(THR, target::Thread::isolate_offset()));
 }
 
+void Assembler::LoadDispatchTable(Register dst) {
+  movq(dst, Address(THR, target::Thread::dispatch_table_array_offset()));
+}
+
 void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {

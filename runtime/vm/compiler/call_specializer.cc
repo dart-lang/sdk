@@ -1804,5 +1804,9 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
   flow_graph_->InsertBefore(call, store, call->env(), FlowGraph::kEffect);
 }
 
+void CallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
+  // Only implemented for AOT.
+}
+
 }  // namespace dart
 #endif  // DART_PRECOMPILED_RUNTIME

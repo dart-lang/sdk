@@ -10,11 +10,11 @@ class Element extends core::Object {
     ;
 }
 class InheritedElement extends self::Element {
-[@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<#lib::Element*, dart.core::Object*>] [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false]  final field core::Map<self::Element*, core::Object*>* _dependents = <self::Element*, core::Object*>{};
+[@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<#lib::Element*, dart.core::Object*>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  final field core::Map<self::Element*, core::Object*>* _dependents = <self::Element*, core::Object*>{};
   synthetic constructor •() → self::InheritedElement*
     : super self::Element::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method setDependencies([@vm.inferred-type.metadata=!] self::Element* dependent, [@vm.inferred-type.metadata=dart.core::_Smi?] core::Object* value) → void {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method setDependencies([@vm.inferred-type.metadata=!] self::Element* dependent, [@vm.inferred-type.metadata=dart.core::_Smi?] core::Object* value) → void {
     [@vm.call-site-attributes.metadata=receiverType:dart.core::Map<#lib::Element*, dart.core::Object*>*] [@vm.direct-call.metadata=dart.collection::__InternalLinkedHashMap&_HashVMBase&MapMixin&_LinkedHashMapMixin::[]=] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::InheritedElement::_dependents] [@vm.inferred-type.metadata=dart.collection::_InternalLinkedHashMap<#lib::Element*, dart.core::Object*>] this.{self::InheritedElement::_dependents}.{core::Map::[]=}(dependent, value);
   }
 }

@@ -546,6 +546,18 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void DispatchTableCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  const String& name =
+      String::Handle(interface_target().QualifiedUserVisibleName());
+  f->Print(" cid=");
+  class_id()->PrintTo(f);
+  f->Print(" %s<%" Pd ">", name.ToCString(), type_args_len());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentValueAt(i)->PrintTo(f);
+  }
+}
+
 void StrictCompareInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(kind()));
   left()->PrintTo(f);

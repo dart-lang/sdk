@@ -55,6 +55,7 @@ class UnboxIntegerInstr;
 
 namespace compiler {
 class BlockBuilder;
+struct TableSelector;
 }
 
 class Value : public ZoneAllocated {
@@ -396,6 +397,7 @@ struct InstrAttrs {
   M(FfiCall, _)                                                                \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
+  M(DispatchTableCall, _)                                                      \
   M(StaticCall, _)                                                             \
   M(LoadLocal, kNoGC)                                                          \
   M(DropTemps, kNoGC)                                                          \
@@ -3997,6 +3999,67 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallInstr);
 };
 
+// Instance call using the global dispatch table.
+//
+// Takes untagged ClassId of the receiver as extra input.
+class DispatchTableCallInstr : public TemplateDartCall<1> {
+ public:
+  DispatchTableCallInstr(TokenPosition token_pos,
+                         const Function& interface_target,
+                         const compiler::TableSelector* selector,
+                         InputsArray* arguments,
+                         intptr_t type_args_len,
+                         const Array& argument_names)
+      : TemplateDartCall(DeoptId::kNone,
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos),
+        interface_target_(interface_target),
+        selector_(selector) {
+    ASSERT(selector != nullptr);
+    ASSERT(interface_target_.IsNotTemporaryScopedHandle());
+    ASSERT(!arguments->is_empty());
+  }
+
+  static DispatchTableCallInstr* FromCall(
+      Zone* zone,
+      const InstanceCallBaseInstr* call,
+      Value* cid,
+      const compiler::TableSelector* selector);
+
+  DECLARE_INSTRUCTION(DispatchTableCall)
+
+  const Function& interface_target() const { return interface_target_; }
+  const compiler::TableSelector* selector() const { return selector_; }
+
+  Value* class_id() const { return InputAt(InputCount() - 1); }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return (idx == (InputCount() - 1)) ? kUntagged : kTagged;
+  }
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool CanBecomeDeoptimizationTarget() const { return false; }
+
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const Function& interface_target_;
+  const compiler::TableSelector* selector_;
+
+  DISALLOW_COPY_AND_ASSIGN(DispatchTableCallInstr);
+};
+
 class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   StrictCompareInstr(TokenPosition token_pos,
@@ -5802,9 +5865,15 @@ class StoreUntaggedInstr : public TemplateInstruction<2, NoThrow> {
 
 class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  explicit LoadClassIdInstr(Value* object) { SetInputAt(0, object); }
+  explicit LoadClassIdInstr(Value* object,
+                            Representation representation = kTagged,
+                            bool input_can_be_smi = true)
+      : representation_(representation), input_can_be_smi_(input_can_be_smi) {
+    ASSERT(representation == kTagged || representation == kUntagged);
+    SetInputAt(0, object);
+  }
 
-  virtual Representation representation() const { return kTagged; }
+  virtual Representation representation() const { return representation_; }
   DECLARE_INSTRUCTION(LoadClassId)
   virtual CompileType ComputeType() const;
 
@@ -5814,9 +5883,16 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    auto other_load = other->AsLoadClassId();
+    return other_load->representation_ == representation_ &&
+           other_load->input_can_be_smi_ == input_can_be_smi_;
+  }
 
  private:
+  Representation representation_;
+  bool input_can_be_smi_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
 

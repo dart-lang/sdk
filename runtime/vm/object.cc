@@ -8763,6 +8763,48 @@ RawCode* Function::EnsureHasCode() const {
   return CurrentCode();
 }
 
+bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (!IsDynamicFunction()) {
+    return false;
+  }
+
+  // For functions which need an args descriptor the switchable call sites will
+  // transition directly to calling via a stub (and therefore never call the
+  // monomorphic entry).
+  //
+  // See runtime_entry.cc:DEFINE_RUNTIME_ENTRY(UnlinkedCall)
+  if (HasOptionalParameters() || IsGeneric()) {
+    return false;
+  }
+
+  // If table dispatch is disabled, all instance calls use switchable calls.
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+        FLAG_use_table_dispatch)) {
+    return true;
+  }
+
+  // Method extractors are always called dynamically (for now).
+  // See dartbug.com/40188.
+  if (IsMethodExtractor()) {
+    return true;
+  }
+
+  // Use the results of TFA to determine whether this function is ever
+  // called dynamically, i.e. using switchable calls.
+  kernel::ProcedureAttributesMetadata metadata;
+  metadata = kernel::ProcedureAttributesOf(*this, zone);
+  if (IsGetterFunction() || IsImplicitGetterFunction()) {
+    return metadata.getter_called_dynamically;
+  } else {
+    return metadata.method_or_setter_called_dynamically;
+  }
+#else
+  UNREACHABLE();
+  return true;
+#endif
+}
+
 bool Function::MayHaveUncheckedEntryPoint(Isolate* I) const {
   return FLAG_enable_multiple_entrypoints &&
          (NeedsArgumentTypeChecks(I) || IsImplicitClosureFunction());

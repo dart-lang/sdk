@@ -1215,6 +1215,16 @@ void Assembler::RestorePinnedRegisters() {
   ldr(NULL_REG, compiler::Address(THR, target::Thread::object_null_offset()));
 }
 
+void Assembler::SetupGlobalPoolAndDispatchTable() {
+  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  if (FLAG_use_table_dispatch) {
+    ldr(DISPATCH_TABLE_REG,
+        Address(THR, target::Thread::dispatch_table_array_offset()));
+  }
+}
+
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
   if (!FLAG_check_code_pointer) {

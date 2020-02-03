@@ -216,6 +216,7 @@ class Serializer : public ThreadStackResource {
   void WriteVersionAndFeatures(bool is_vm_snapshot);
 
   void Serialize();
+  void PrintSnapshotSizes();
 
   FieldTable* field_table() { return field_table_; }
 
@@ -382,6 +383,8 @@ class Serializer : public ThreadStackResource {
   intptr_t next_ref_index_;
   SmiObjectIdMap smi_ids_;
   FieldTable* field_table_;
+
+  intptr_t dispatch_table_size_ = 0;
 
   // True if writing VM snapshot, false for Isolate snapshot.
   bool vm_;

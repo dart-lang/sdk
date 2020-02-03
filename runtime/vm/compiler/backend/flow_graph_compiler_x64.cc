@@ -12,6 +12,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
+#include "vm/dispatch_table.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -1205,6 +1206,22 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   GenerateStaticDartCall(deopt_id, token_pos, RawPcDescriptors::kOther, locs,
                          function, entry_kind);
   __ Drop(count_with_type_args, RCX);
+}
+
+void FlowGraphCompiler::EmitDispatchTableCall(
+    Register cid_reg,
+    int32_t selector_offset,
+    const Array& arguments_descriptor) {
+  const Register table_reg = RAX;
+  ASSERT(cid_reg != table_reg);
+  ASSERT(cid_reg != ARGS_DESC_REG);
+  if (!arguments_descriptor.IsNull()) {
+    __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
+  }
+  const intptr_t offset = (selector_offset - DispatchTable::OriginElement()) *
+                          compiler::target::kWordSize;
+  __ LoadDispatchTable(table_reg);
+  __ call(compiler::Address(table_reg, cid_reg, TIMES_8, offset));
 }
 
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(

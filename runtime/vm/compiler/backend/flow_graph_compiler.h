@@ -28,6 +28,10 @@ class GrowableArray;
 class ParsedFunction;
 class SpeculativeInliningPolicy;
 
+namespace compiler {
+struct TableSelector;
+}
+
 // Used in methods which need conditional access to a temporary register.
 // May only be used to allocate a single temporary register.
 class TemporaryRegisterAllocator : public ValueObject {
@@ -416,6 +420,10 @@ class FlowGraphCompiler : public ValueObject {
   const GrowableArray<BlockEntryInstr*>& block_order() const {
     return block_order_;
   }
+  const GrowableArray<const compiler::TableSelector*>&
+  dispatch_table_call_targets() const {
+    return dispatch_table_call_targets_;
+  }
 
   // If 'ForcedOptimization()' returns 'true', we are compiling in optimized
   // mode for a function which cannot deoptimize. Certain optimizations, e.g.
@@ -690,6 +698,10 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t total_ic_calls,
                        Code::EntryKind entry_kind = Code::EntryKind::kNormal);
 
+  void EmitDispatchTableCall(Register cid_reg,
+                             int32_t selector_offset,
+                             const Array& arguments_descriptor);
+
   Condition EmitEqualityRegConstCompare(Register reg,
                                         const Object& obj,
                                         bool needs_number_check,
@@ -862,6 +874,7 @@ class FlowGraphCompiler : public ValueObject {
   Zone* zone() const { return zone_; }
 
   void AddStubCallTarget(const Code& code);
+  void AddDispatchTableCallTarget(const compiler::TableSelector* selector);
 
   RawArray* edge_counters_array() const { return edge_counters_array_.raw(); }
 
@@ -1119,6 +1132,8 @@ class FlowGraphCompiler : public ValueObject {
   // TODO(srdjan): Evaluate if we should store allocation stub targets into a
   // separate table?
   GrowableArray<StaticCallsStruct*> static_calls_target_table_;
+  // The table selectors of all dispatch table calls in the current function.
+  GrowableArray<const compiler::TableSelector*> dispatch_table_call_targets_;
   const bool is_optimizing_;
   SpeculativeInliningPolicy* speculative_policy_;
   // Set to true if optimized code has IC calls.

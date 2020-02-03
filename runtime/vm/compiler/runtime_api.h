@@ -921,6 +921,7 @@ class Thread : public AllStatic {
   static word object_null_offset();
   static word bool_true_offset();
   static word bool_false_offset();
+  static word dispatch_table_array_offset();
   static word top_offset();
   static word end_offset();
   static word isolate_offset();

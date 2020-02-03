@@ -115,6 +115,7 @@ extern const char* fpu_reg_names[kNumberOfFpuRegisters];
 const Register TMP = R16;  // Used as scratch register by assembler.
 const Register TMP2 = R17;
 const Register PP = R27;  // Caches object pool pointer in generated code.
+const Register DISPATCH_TABLE_REG = R21;  // Dispatch table register.
 const Register CODE_REG = R24;
 const Register FPREG = FP;          // Frame pointer register.
 const Register SPREG = R15;         // Stack pointer register.
@@ -178,8 +179,8 @@ const intptr_t kReservedCpuRegisters =
     (1 << SPREG) |  // Dart SP
     (1 << FPREG) | (1 << TMP) | (1 << TMP2) | (1 << PP) | (1 << THR) |
     (1 << LR) | (1 << BARRIER_MASK) | (1 << NULL_REG) | (1 << R31) |  // C++ SP
-    (1 << R18);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 11;
+    (1 << R18) | (1 << DISPATCH_TABLE_REG);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 12;
 // CPU registers available to Dart allocator.
 const RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;

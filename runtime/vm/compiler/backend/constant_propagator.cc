@@ -431,6 +431,10 @@ void ConstantPropagator::VisitPolymorphicInstanceCall(
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitDispatchTableCall(DispatchTableCallInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
   const auto kind = instr->function().recognized_kind();
   switch (kind) {

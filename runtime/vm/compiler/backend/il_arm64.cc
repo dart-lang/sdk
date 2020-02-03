@@ -300,6 +300,17 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
+LocationSummary* DispatchTableCallInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new (zone)
+      LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
+  summary->set_in(0, Location::RegisterLocation(R0));  // ClassId
+  summary->set_out(0, Location::RegisterLocation(R0));
+  return summary;
+}
+
 LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 1;
@@ -1052,9 +1063,7 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, compiler::Address(THR, Thread::global_object_pool_offset()));
-    __ sub(PP, PP,
-           compiler::Operand(kHeapObjectTag));  // Pool in PP is untagged!
+    __ SetupGlobalPoolAndDispatchTable();
   }
 
   __ set_constant_pool_allowed(true);
@@ -1241,10 +1250,7 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ StoreToOffset(CODE_REG, FPREG,
                    kPcMarkerSlotFromFp * compiler::target::kWordSize);
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, compiler::Address(
-                   THR, compiler::target::Thread::global_object_pool_offset()));
-    __ sub(PP, PP,
-           compiler::Operand(kHeapObjectTag));  // Pool in PP is untagged!
+    __ SetupGlobalPoolAndDispatchTable();
   } else {
     // We now load the pool pointer (PP) with a GC safe value as we are about to
     // invoke dart code. We don't need a real object pool here.

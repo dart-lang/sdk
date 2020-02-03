@@ -1587,6 +1587,8 @@ class Assembler : public AssemblerBase {
   // e.g. BARRIER_MASK and NULL_REG.
   void RestorePinnedRegisters();
 
+  void SetupGlobalPoolAndDispatchTable();
+
   void EnterDartFrame(intptr_t frame_size, Register new_pp = kNoRegister);
   void EnterOsrFrame(intptr_t extra_size, Register new_pp = kNoRegister);
   void LeaveDartFrame(RestorePP restore_pp = kRestoreCallerPP);

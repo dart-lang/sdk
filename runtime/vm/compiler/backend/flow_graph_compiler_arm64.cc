@@ -13,6 +13,7 @@
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
+#include "vm/dispatch_table.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -1212,6 +1213,21 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   GenerateStaticDartCall(deopt_id, token_pos, RawPcDescriptors::kOther, locs,
                          function, entry_kind);
   __ Drop(count_with_type_args);
+}
+
+void FlowGraphCompiler::EmitDispatchTableCall(
+    Register cid_reg,
+    int32_t selector_offset,
+    const Array& arguments_descriptor) {
+  ASSERT(cid_reg != ARGS_DESC_REG);
+  if (!arguments_descriptor.IsNull()) {
+    __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
+  }
+  const intptr_t offset = selector_offset - DispatchTable::OriginElement();
+  __ AddImmediate(cid_reg, cid_reg, offset);
+  __ ldr(LR, compiler::Address(DISPATCH_TABLE_REG, cid_reg, UXTX,
+                               compiler::Address::Scaled));
+  __ blr(LR);
 }
 
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(

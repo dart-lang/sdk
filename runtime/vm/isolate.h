@@ -46,6 +46,7 @@ class Capability;
 class CodeIndexTable;
 class Debugger;
 class DeoptContext;
+class DispatchTable;
 class ExternalTypedData;
 class HandleScope;
 class HandleVisitor;
@@ -966,6 +967,9 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   void set_obfuscation_map(const char** map) { obfuscation_map_ = map; }
   const char** obfuscation_map() const { return obfuscation_map_; }
 
+  const DispatchTable* dispatch_table() const { return dispatch_table_; }
+  void set_dispatch_table(DispatchTable* table) { dispatch_table_ = table; }
+
   // Returns the pc -> code lookup cache object for this isolate.
   ReversePcLookupCache* reverse_pc_lookup_cache() const {
     return reverse_pc_lookup_cache_;
@@ -1292,6 +1296,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   Dart_QualifiedFunctionName* embedder_entry_points_ = nullptr;
   const char** obfuscation_map_ = nullptr;
 
+  DispatchTable* dispatch_table_ = nullptr;
   ReversePcLookupCache* reverse_pc_lookup_cache_ = nullptr;
 
   // Used during message sending of messages between isolates.

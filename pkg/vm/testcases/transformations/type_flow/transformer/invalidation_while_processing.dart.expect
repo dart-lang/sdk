@@ -3,28 +3,28 @@ import self as self;
 import "dart:core" as core;
 
 abstract class I extends core::Object {
-  abstract method foo() → void;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  abstract method foo() → void;
 }
 class T1 extends core::Object implements self::I {
   synthetic constructor •() → self::T1*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method foo() → void {}
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {}
 }
 class T2 extends core::Object implements self::I {
   synthetic constructor •() → self::T2*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method foo() → void {}
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {}
 }
 class Point extends core::Object {
-[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false]  final field self::I* x;
+[@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  final field self::I* x;
   const constructor •([@vm.inferred-type.metadata=!] self::I* x) → self::Point*
     : self::Point::x = x, super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method newPoint1() → self::Point*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method newPoint1() → self::Point*
     return new self::Point::•([@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!] this.{self::Point::x});
-[@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  method newPoint2() → self::Point*
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method newPoint2() → self::Point*
     return new self::Point::•([@vm.direct-call.metadata=#lib::Point::x] [@vm.inferred-type.metadata=!] this.{self::Point::x});
 }
 static method getX([@vm.inferred-type.metadata=#lib::Point] dynamic point) → dynamic {

@@ -2789,6 +2789,8 @@ class Function : public Object {
            !(is_static() || (kind() == RawFunction::kConstructor));
   }
 
+  bool NeedsMonomorphicCheckedEntry(Zone* zone) const;
+
   bool MayHaveUncheckedEntryPoint(Isolate* I) const;
 
   TokenPosition token_pos() const {

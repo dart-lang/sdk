@@ -708,6 +708,7 @@ class Assembler : public AssemblerBase {
   void LoadImmediate(Register reg, const Immediate& imm);
 
   void LoadIsolate(Register dst);
+  void LoadDispatchTable(Register dst);
   void LoadObject(Register dst, const Object& obj);
   void LoadUniqueObject(Register dst, const Object& obj);
   void LoadNativeEntry(Register dst,

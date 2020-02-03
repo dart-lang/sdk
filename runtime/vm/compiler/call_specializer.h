@@ -52,6 +52,8 @@ class CallSpecializer : public FlowGraphVisitor {
   // Use propagated class ids to optimize, replace or eliminate instructions.
   void ApplyClassIds();
 
+  virtual void ReplaceInstanceCallsWithDispatchTableCalls();
+
   void InsertBefore(Instruction* next,
                     Instruction* instr,
                     Environment* env,

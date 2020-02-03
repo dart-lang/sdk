@@ -1039,6 +1039,14 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   __ Drop(count_with_type_args);
 }
 
+void FlowGraphCompiler::EmitDispatchTableCall(
+    Register cid_reg,
+    int32_t selector_offset,
+    const Array& arguments_descriptor) {
+  // Only generated with precompilation.
+  UNREACHABLE();
+}
+
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     Register reg,
     const Object& obj,

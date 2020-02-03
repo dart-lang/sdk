@@ -779,6 +779,11 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
                                      assembler()->CodeSize(), NULL, &code));
 }
 
+void FlowGraphCompiler::AddDispatchTableCallTarget(
+    const compiler::TableSelector* selector) {
+  dispatch_table_call_targets_.Add(selector);
+}
+
 CompilerDeoptInfo* FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());

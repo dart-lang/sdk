@@ -8,27 +8,46 @@ import 'package:kernel/ast.dart';
 
 /// Metadata for annotating procedures with various attributes.
 class ProcedureAttributesMetadata {
-  final bool hasDynamicUses;
+  static const int kInvalidSelectorId = 0;
+
+  final bool methodOrSetterCalledDynamically;
+  final bool getterCalledDynamically;
   final bool hasThisUses;
   final bool hasNonThisUses;
   final bool hasTearOffUses;
+  final int methodOrSetterSelectorId;
+  final int getterSelectorId;
 
   const ProcedureAttributesMetadata(
-      {this.hasDynamicUses: true,
+      {this.methodOrSetterCalledDynamically: true,
+      this.getterCalledDynamically: true,
       this.hasThisUses: true,
       this.hasNonThisUses: true,
-      this.hasTearOffUses: true});
+      this.hasTearOffUses: true,
+      this.methodOrSetterSelectorId: kInvalidSelectorId,
+      this.getterSelectorId: kInvalidSelectorId});
 
   const ProcedureAttributesMetadata.noDynamicUses()
-      : this(hasDynamicUses: false);
+      : this(
+            methodOrSetterCalledDynamically: false,
+            getterCalledDynamically: false);
 
   @override
   String toString() {
     final attrs = <String>[];
-    if (!hasDynamicUses) attrs.add('hasDynamicUses:false');
+    if (!methodOrSetterCalledDynamically) {
+      attrs.add('methodOrSetterCalledDynamically:false');
+    }
+    if (!getterCalledDynamically) attrs.add('getterCalledDynamically:false');
     if (!hasThisUses) attrs.add('hasThisUses:false');
     if (!hasNonThisUses) attrs.add('hasNonThisUses:false');
     if (!hasTearOffUses) attrs.add('hasTearOffUses:false');
+    if (methodOrSetterSelectorId != kInvalidSelectorId) {
+      attrs.add('methodOrSetterSelectorId:$methodOrSetterSelectorId');
+    }
+    if (getterSelectorId != kInvalidSelectorId) {
+      attrs.add('getterSelectorId:$getterSelectorId');
+    }
     return attrs.join(',');
   }
 }
@@ -36,10 +55,11 @@ class ProcedureAttributesMetadata {
 /// Repository for [ProcedureAttributesMetadata].
 class ProcedureAttributesMetadataRepository
     extends MetadataRepository<ProcedureAttributesMetadata> {
-  static const int kDynamicUsesBit = 1 << 0;
+  static const int kMethodOrSetterCalledDynamicallyBit = 1 << 0;
   static const int kNonThisUsesBit = 1 << 1;
   static const int kTearOffUsesBit = 1 << 2;
   static const int kThisUsesBit = 1 << 3;
+  static const int kGetterCalledDynamicallyBit = 1 << 4;
 
   static const repositoryTag = 'vm.procedure-attributes.metadata';
 
@@ -52,8 +72,11 @@ class ProcedureAttributesMetadataRepository
 
   int _getFlags(ProcedureAttributesMetadata metadata) {
     int flags = 0;
-    if (metadata.hasDynamicUses) {
-      flags |= kDynamicUsesBit;
+    if (metadata.methodOrSetterCalledDynamically) {
+      flags |= kMethodOrSetterCalledDynamicallyBit;
+    }
+    if (metadata.getterCalledDynamically) {
+      flags |= kGetterCalledDynamicallyBit;
     }
     if (metadata.hasThisUses) {
       flags |= kThisUsesBit;
@@ -71,25 +94,41 @@ class ProcedureAttributesMetadataRepository
   void writeToBinary(
       ProcedureAttributesMetadata metadata, Node node, BinarySink sink) {
     sink.writeByte(_getFlags(metadata));
+    sink.writeUInt30(metadata.methodOrSetterSelectorId);
+    sink.writeUInt30(metadata.getterSelectorId);
   }
 
   @override
   ProcedureAttributesMetadata readFromBinary(Node node, BinarySource source) {
     final int flags = source.readByte();
 
-    final bool hasDynamicUses = (flags & kDynamicUsesBit) != 0;
+    final bool methodOrSetterCalledDynamically =
+        (flags & kMethodOrSetterCalledDynamicallyBit) != 0;
+    final bool getterCalledDynamically =
+        (flags & kGetterCalledDynamicallyBit) != 0;
     final bool hasThisUses = (flags & kThisUsesBit) != 0;
     final bool hasNonThisUses = (flags & kNonThisUsesBit) != 0;
     final bool hasTearOffUses = (flags & kTearOffUsesBit) != 0;
 
+    final int methodOrSetterSelectorId = source.readUInt();
+    final int getterSelectorId = source.readUInt();
+
     return new ProcedureAttributesMetadata(
-        hasDynamicUses: hasDynamicUses,
+        methodOrSetterCalledDynamically: methodOrSetterCalledDynamically,
+        getterCalledDynamically: getterCalledDynamically,
         hasThisUses: hasThisUses,
         hasNonThisUses: hasNonThisUses,
-        hasTearOffUses: hasTearOffUses);
+        hasTearOffUses: hasTearOffUses,
+        methodOrSetterSelectorId: methodOrSetterSelectorId,
+        getterSelectorId: getterSelectorId);
   }
 
   /// Converts [metadata] into a bytecode attribute.
-  Constant getBytecodeAttribute(ProcedureAttributesMetadata metadata) =>
-      IntConstant(_getFlags(metadata));
+  Constant getBytecodeAttribute(ProcedureAttributesMetadata metadata) {
+    return ListConstant(const DynamicType(), [
+      IntConstant(_getFlags(metadata)),
+      IntConstant(metadata.methodOrSetterSelectorId),
+      IntConstant(metadata.getterSelectorId),
+    ]);
+  }
 }
