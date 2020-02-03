@@ -322,7 +322,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _typeFormalBounds = previousTypeFormalBounds;
     }
     _variables.recordDecoratedElementType(
-        declaredElement, decoratedFunctionType);
+        declaredElement.function, decoratedFunctionType);
     return null;
   }
 
@@ -346,7 +346,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _typeFormalBounds = previousTypeFormalBounds;
     }
     _variables.recordDecoratedElementType(
-        node.declaredElement, decoratedFunctionType);
+        (node.declaredElement as GenericTypeAliasElement).function,
+        decoratedFunctionType);
     return null;
   }
 

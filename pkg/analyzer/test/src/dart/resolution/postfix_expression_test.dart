@@ -2,8 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'driver_resolution.dart';
@@ -175,10 +177,40 @@ f<T>(T? x) {
 }
 ''');
 
+    var postfixExpression = findNode.postfix('x!');
     assertPostfixExpression(
-      findNode.postfix('x!'),
+      postfixExpression,
       element: null,
       type: 'T',
     );
+    expect(
+        postfixExpression.staticType,
+        TypeMatcher<TypeParameterType>().having(
+            (t) => t.bound.getDisplayString(withNullability: true),
+            'bound',
+            'Object'));
+  }
+
+  test_nullCheck_typeParameter_already_promoted() async {
+    await assertNoErrorsInCode('''
+f<T>(T? x) {
+  if (x is num?) {
+    x!;
+  }
+}
+''');
+
+    var postfixExpression = findNode.postfix('x!');
+    assertPostfixExpression(
+      postfixExpression,
+      element: null,
+      type: 'T',
+    );
+    expect(
+        postfixExpression.staticType,
+        TypeMatcher<TypeParameterType>().having(
+            (t) => t.bound.getDisplayString(withNullability: true),
+            'bound',
+            'num'));
   }
 }

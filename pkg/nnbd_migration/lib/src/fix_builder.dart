@@ -174,8 +174,7 @@ class FixBuilder {
         element.isSynthetic &&
         !element.variable.isSynthetic) {
       var variableType = _variables
-          .decoratedElementType(element.variable)
-          .toFinalType(typeProvider);
+          .toFinalType(_variables.decoratedElementType(element.variable));
       if (element.isSetter) {
         return FunctionTypeImpl(
             returnType: typeProvider.voidType,
@@ -193,7 +192,7 @@ class FixBuilder {
             nullabilitySuffix: NullabilitySuffix.none);
       }
     } else {
-      return _variables.decoratedElementType(element).toFinalType(typeProvider);
+      return _variables.toFinalType(_variables.decoratedElementType(element));
     }
   }
 
@@ -603,7 +602,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         ..makeNullableType = decoratedType;
     }
     (node as GenericFunctionTypeImpl).type =
-        decoratedType.toFinalType(_fixBuilder.typeProvider);
+        _fixBuilder._variables.toFinalType(decoratedType);
     super.visitGenericFunctionType(node);
   }
 
@@ -617,7 +616,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         ..makeNullable = true
         ..makeNullableType = decoratedType;
     }
-    node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
+    node.type = _fixBuilder._variables.toFinalType(decoratedType);
     super.visitTypeName(node);
   }
 

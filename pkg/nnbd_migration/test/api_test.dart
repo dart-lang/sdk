@@ -3308,6 +3308,24 @@ test(int?/*?*/ j) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_null_check_type_parameter_type_with_nullable_bound() async {
+    var content = '''
+abstract class C<E, T extends Iterable<E>/*?*/> {
+  void f(T iter) {
+    for(var i in iter) {}
+  }
+}
+''';
+    var expected = '''
+abstract class C<E, T extends Iterable<E>?/*?*/> {
+  void f(T iter) {
+    for(var i in iter!) {}
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_null_in_conditional_expression() async {
     var content = '''
 void f() {

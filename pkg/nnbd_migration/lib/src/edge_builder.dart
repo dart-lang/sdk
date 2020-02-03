@@ -1506,7 +1506,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var typeArguments = typeName.typeArguments?.arguments;
     var element = typeName.name.staticElement;
     if (element is GenericTypeAliasElement) {
-      final typedefType = _variables.decoratedElementType(element);
+      final typedefType = _variables.decoratedElementType(element.function);
       final typeNameType = _variables.decoratedTypeAnnotation(source, typeName);
 
       Map<TypeParameterElement, DecoratedType> substitutions;

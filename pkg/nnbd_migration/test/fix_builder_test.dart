@@ -2261,7 +2261,6 @@ _f(_C/*?*/ c) => c?.toString;
         findNode.propertyAccess('c?.toString'), 'String Function()?');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40313')
   Future<void> test_propertyAccess_nullAware_potentiallyNullable() async {
     // In the code example below, the `?.` is not changed to `.` because `T`
     // might be instantiated to `int?`, in which case the null check is still

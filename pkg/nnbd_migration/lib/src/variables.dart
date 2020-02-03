@@ -6,12 +6,16 @@ import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart' as type_algebra;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/already_migrated_code_decorator.dart';
@@ -35,6 +39,8 @@ class OffsetEndPair {
 class Variables implements VariableRecorder, VariableRepository {
   final NullabilityGraph _graph;
 
+  final TypeProvider _typeProvider;
+
   final _conditionalDiscards = <Source, Map<int, ConditionalDiscard>>{};
 
   final _decoratedElementTypes = <Element, DecoratedType>{};
@@ -56,9 +62,9 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final NullabilityMigrationInstrumentation /*?*/ instrumentation;
 
-  Variables(this._graph, TypeProvider typeProvider, {this.instrumentation})
+  Variables(this._graph, this._typeProvider, {this.instrumentation})
       : _alreadyMigratedCodeDecorator =
-            AlreadyMigratedCodeDecorator(_graph, typeProvider);
+            AlreadyMigratedCodeDecorator(_graph, _typeProvider);
 
   @override
   Map<ClassElement, DecoratedType> decoratedDirectSupertypes(
@@ -93,13 +99,23 @@ class Variables implements VariableRecorder, VariableRepository {
     return decoratedTypeAnnotation;
   }
 
+  /// Note: the optional argument [allowNullUnparentedBounds] is intended for
+  /// the FixBuilder stage only, to allow it to cope with the situation where
+  /// a type parameter element with a null parent doesn't have a decorated type
+  /// associated with it.  This can arise because synthetic type parameter
+  /// elements get created as a result of type system operations during
+  /// resolution, and fortunately it isn't a problem during the FixBuilder stage
+  /// because at that point the types we are dealing with are all
+  /// post-migration types, so their bounds already reflect the correct
+  /// nullabilities.
   @override
-  DecoratedType decoratedTypeParameterBound(
-      TypeParameterElement typeParameter) {
-    if (typeParameter.enclosingElement == null) {
+  DecoratedType decoratedTypeParameterBound(TypeParameterElement typeParameter,
+      {bool allowNullUnparentedBounds = false}) {
+    var enclosingElement = typeParameter.enclosingElement;
+    if (enclosingElement == null) {
       var decoratedType =
           DecoratedType.decoratedTypeParameterBound(typeParameter);
-      if (decoratedType == null) {
+      if (decoratedType == null && !allowNullUnparentedBounds) {
         throw StateError(
             'A decorated type for the bound of $typeParameter should '
             'have been stored by the NodeBuilder via recordTypeParameterBound');
@@ -108,14 +124,25 @@ class Variables implements VariableRecorder, VariableRepository {
     } else {
       var decoratedType = _decoratedTypeParameterBounds[typeParameter];
       if (decoratedType == null) {
-        if (_graph.isBeingMigrated(typeParameter.library.source)) {
-          throw StateError(
-              'A decorated type for the bound of $typeParameter should '
-              'have been stored by the NodeBuilder via '
-              'recordTypeParameterBound');
+        if (enclosingElement is GenericFunctionTypeElement) {
+          // Each time code containing a typedef is re-analyzed, fresh elements
+          // are created for type parameters.  So it's possible that we may not
+          // be able to find the decorated type for the type parameter, but we
+          // can find the decorated type for the enclosing generic function type
+          // and use its decorated type parameter bounds.
+          int i = enclosingElement.typeParameters.indexOf(typeParameter);
+          decoratedType =
+              decoratedElementType(enclosingElement).typeFormalBounds[i];
+        } else {
+          if (_graph.isBeingMigrated(typeParameter.library.source)) {
+            throw StateError(
+                'A decorated type for the bound of $typeParameter should '
+                'have been stored by the NodeBuilder via '
+                'recordTypeParameterBound');
+          }
+          decoratedType = _alreadyMigratedCodeDecorator.decorate(
+              typeParameter.bound ?? DynamicTypeImpl.instance, typeParameter);
         }
-        decoratedType = _alreadyMigratedCodeDecorator.decorate(
-            typeParameter.bound ?? DynamicTypeImpl.instance, typeParameter);
         instrumentation?.externalDecoratedTypeParameterBound(
             typeParameter, decoratedType);
         _decoratedTypeParameterBounds[typeParameter] = decoratedType;
@@ -209,6 +236,113 @@ class Variables implements VariableRecorder, VariableRepository {
     bool newlyAdded = (_unnecessaryCasts[source] ??= {})
         .add(uniqueIdentifierForSpan(node.offset, node.end));
     assert(newlyAdded);
+  }
+
+  /// Convert this decorated type into the [DartType] that it will represent
+  /// after the code has been migrated.
+  ///
+  /// This method should be used after nullability propagation; it makes use of
+  /// the nullabilities associated with nullability nodes to determine which
+  /// types should be nullable and which types should not.
+  DartType toFinalType(DecoratedType decoratedType) {
+    var type = decoratedType.type;
+    if (type.isVoid || type.isDynamic) return type;
+    if (type.isBottom || type.isDartCoreNull) {
+      if (decoratedType.node.isNullable) {
+        return (_typeProvider.nullType as TypeImpl)
+            .withNullability(NullabilitySuffix.none);
+      } else {
+        return NeverTypeImpl.instance;
+      }
+    }
+    var nullabilitySuffix = decoratedType.node.isNullable
+        ? NullabilitySuffix.question
+        : NullabilitySuffix.none;
+    if (type is FunctionType) {
+      var newTypeFormals = <TypeParameterElementImpl>[];
+      var typeFormalSubstitution = <TypeParameterElement, DartType>{};
+      for (var typeFormal in decoratedType.typeFormals) {
+        var newTypeFormal = TypeParameterElementImpl.synthetic(typeFormal.name);
+        newTypeFormals.add(newTypeFormal);
+        typeFormalSubstitution[typeFormal] = TypeParameterTypeImpl(
+            newTypeFormal,
+            nullabilitySuffix: NullabilitySuffix.none);
+      }
+      for (int i = 0; i < newTypeFormals.length; i++) {
+        var bound = type_algebra.substitute(
+            toFinalType(decoratedType.typeFormalBounds[i]),
+            typeFormalSubstitution);
+        if (!bound.isDynamic &&
+            !(bound.isDartCoreObject &&
+                bound.nullabilitySuffix == NullabilitySuffix.question)) {
+          newTypeFormals[i].bound = bound;
+        }
+      }
+      var parameters = <ParameterElement>[];
+      for (int i = 0; i < type.parameters.length; i++) {
+        var origParameter = type.parameters[i];
+        ParameterKind parameterKind;
+        DecoratedType parameterType;
+        var name = origParameter.name;
+        if (origParameter.isNamed) {
+          // TODO(paulberry): infer ParameterKind.NAMED_REQUIRED when
+          // appropriate. See https://github.com/dart-lang/sdk/issues/38596.
+          parameterKind = ParameterKind.NAMED;
+          parameterType = decoratedType.namedParameters[name];
+        } else {
+          parameterKind = origParameter.isOptional
+              ? ParameterKind.POSITIONAL
+              : ParameterKind.REQUIRED;
+          parameterType = decoratedType.positionalParameters[i];
+        }
+        parameters.add(ParameterElementImpl.synthetic(
+            name,
+            type_algebra.substitute(
+                toFinalType(parameterType), typeFormalSubstitution),
+            parameterKind));
+      }
+      return FunctionTypeImpl(
+        typeFormals: newTypeFormals,
+        parameters: parameters,
+        returnType: type_algebra.substitute(
+          toFinalType(decoratedType.returnType),
+          typeFormalSubstitution,
+        ),
+        nullabilitySuffix: nullabilitySuffix,
+      );
+    } else if (type is InterfaceType) {
+      return InterfaceTypeImpl(
+        element: type.element,
+        typeArguments: [
+          for (var arg in decoratedType.typeArguments) toFinalType(arg)
+        ],
+        nullabilitySuffix: nullabilitySuffix,
+      );
+    } else if (type is TypeParameterType) {
+      var element = type.element;
+      var decoratedBound =
+          decoratedTypeParameterBound(element, allowNullUnparentedBounds: true);
+      // Note: it's possible that we won't have a decorated type parameter bound
+      // for the type parameter.  If that happens, it's because it was a type
+      // parameter that was synthetically generated from other type parameters
+      // during resolution (e.g. because of a LUB computation or a
+      // substitution).  If this occurs, then the type parameters it was based
+      // on should have had bounds reflecting their final types, so we can just
+      // use the element's bound.
+      var finalBound =
+          decoratedBound == null ? element.bound : toFinalType(decoratedBound);
+      // The easiest way to override the bound is to create a
+      // TypeParameterMember and supply the new bound.
+      var member = TypeParameterMember(
+          element.declaration, type_algebra.Substitution.empty, finalBound);
+      return TypeParameterTypeImpl(member,
+          nullabilitySuffix: nullabilitySuffix);
+    } else {
+      // The above cases should cover all possible types.  On the off chance
+      // they don't, fall back on returning DecoratedType.type.
+      assert(false, 'Unexpected type (${type.runtimeType})');
+      return type;
+    }
   }
 
   /// Queries whether, prior to migration, an unnecessary cast existed at

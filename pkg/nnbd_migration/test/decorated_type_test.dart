@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/variables.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,16 +25,20 @@ main() {
 class DecoratedTypeTest extends Object
     with DecoratedTypeTester
     implements DecoratedTypeTesterBase {
-  final graph = NullabilityGraph();
+  final NullabilityGraph graph;
 
   final TypeProvider typeProvider;
 
+  final Variables _variables;
+
   factory DecoratedTypeTest() {
     var typeProvider = TestTypeProvider();
-    return DecoratedTypeTest._(typeProvider);
+    var graph = NullabilityGraph();
+    var variables = Variables(graph, typeProvider);
+    return DecoratedTypeTest._(graph, typeProvider, variables);
   }
 
-  DecoratedTypeTest._(this.typeProvider);
+  DecoratedTypeTest._(this.graph, this.typeProvider, this._variables);
 
   NullabilityNode get always => graph.always;
 
@@ -302,41 +307,41 @@ class DecoratedTypeTest extends Object
 
   void test_toFinalType_bottom_non_nullable() {
     var type =
-        DecoratedType(NeverTypeImpl.instance, never).toFinalType(typeProvider);
+        _variables.toFinalType(DecoratedType(NeverTypeImpl.instance, never));
     assertDartType(type, 'Never');
   }
 
   void test_toFinalType_bottom_nullable() {
     var type =
-        DecoratedType(NeverTypeImpl.instance, always).toFinalType(typeProvider);
+        _variables.toFinalType(DecoratedType(NeverTypeImpl.instance, always));
     assertDartType(type, 'Null');
   }
 
   void test_toFinalType_dynamic() {
-    var type = dynamic_.toFinalType(typeProvider);
+    var type = _variables.toFinalType(dynamic_);
     assertDartType(type, 'dynamic');
   }
 
   void test_toFinalType_function_generic_bound_dynamic() {
     var t = typeParameter('T', dynamic_);
-    var type = function(dynamic_, typeFormals: [t], node: never)
-        .toFinalType(typeProvider) as FunctionType;
+    var type = _variables.toFinalType(
+        function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T>()');
     expect(type.typeFormals[0].bound, isNull);
   }
 
   void test_toFinalType_function_generic_bound_num_question() {
     var t = typeParameter('T', num_(node: always));
-    var type = function(dynamic_, typeFormals: [t], node: never)
-        .toFinalType(typeProvider) as FunctionType;
+    var type = _variables.toFinalType(
+        function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends num?>()');
     assertDartType(type.typeFormals[0].bound, 'num?');
   }
 
   void test_toFinalType_function_generic_bound_object_question() {
     var t = typeParameter('T', object(node: always));
-    var type = function(dynamic_, typeFormals: [t], node: never)
-        .toFinalType(typeProvider) as FunctionType;
+    var type = _variables.toFinalType(
+        function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T>()');
     expect(type.typeFormals[0].bound, isNull);
   }
@@ -347,8 +352,9 @@ class DecoratedTypeTest extends Object
         'T', list(typeParameterType(u, node: never), node: never));
     var v = typeParameter(
         'V', list(typeParameterType(u, node: never), node: never));
-    var type = function(dynamic_, typeFormals: [t, u, v], node: never)
-        .toFinalType(typeProvider) as FunctionType;
+    var type = _variables.toFinalType(
+            function(dynamic_, typeFormals: [t, u, v], node: never))
+        as FunctionType;
     assertDartType(
         type,
         'dynamic Function<T extends List<U>, U extends Object, '
@@ -370,11 +376,10 @@ class DecoratedTypeTest extends Object
 
   void test_toFinalType_function_generic_substitute_named() {
     var t = typeParameter('T', object(node: never));
-    var type = function(dynamic_,
-            typeFormals: [t],
-            named: {'x': list(typeParameterType(t, node: never), node: never)},
-            node: never)
-        .toFinalType(typeProvider) as FunctionType;
+    var type = _variables.toFinalType(function(dynamic_,
+        typeFormals: [t],
+        named: {'x': list(typeParameterType(t, node: never), node: never)},
+        node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends Object>({List<T> x})');
     expect(type.typeFormals[0], isNot(same(t)));
     expect(
@@ -386,11 +391,10 @@ class DecoratedTypeTest extends Object
 
   void test_toFinalType_function_generic_substitute_optional() {
     var t = typeParameter('T', object(node: never));
-    var type = function(dynamic_,
-            typeFormals: [t],
-            positional: [list(typeParameterType(t, node: never), node: never)],
-            node: never)
-        .toFinalType(typeProvider) as FunctionType;
+    var type = _variables.toFinalType(function(dynamic_,
+        typeFormals: [t],
+        positional: [list(typeParameterType(t, node: never), node: never)],
+        node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends Object>([List<T>])');
     expect(type.typeFormals[0], isNot(same(t)));
     expect(
@@ -402,11 +406,10 @@ class DecoratedTypeTest extends Object
 
   void test_toFinalType_function_generic_substitute_required() {
     var t = typeParameter('T', object());
-    var type = function(dynamic_,
-            typeFormals: [t],
-            required: [list(typeParameterType(t, node: never), node: never)],
-            node: never)
-        .toFinalType(typeProvider) as FunctionType;
+    var type = _variables.toFinalType(function(dynamic_,
+        typeFormals: [t],
+        required: [list(typeParameterType(t, node: never), node: never)],
+        node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends Object>(List<T>)');
     expect(type.typeFormals[0], isNot(same(t)));
     expect(
@@ -418,9 +421,10 @@ class DecoratedTypeTest extends Object
 
   void test_toFinalType_function_generic_substitute_return_type() {
     var t = typeParameter('T', object(node: never));
-    var type = function(list(typeParameterType(t, node: never), node: never),
-            typeFormals: [t], node: never)
-        .toFinalType(typeProvider) as FunctionType;
+    var type = _variables.toFinalType(function(
+        list(typeParameterType(t, node: never), node: never),
+        typeFormals: [t],
+        node: never)) as FunctionType;
     assertDartType(type, 'List<T> Function<T extends Object>()');
     expect(type.typeFormals[0], isNot(same(t)));
     expect(
@@ -432,116 +436,116 @@ class DecoratedTypeTest extends Object
 
   void test_toFinalType_function_named_parameter_non_nullable() {
     var xType = int_(node: never);
-    var type = function(dynamic_, named: {'x': xType}, node: never)
-        .toFinalType(typeProvider);
+    var type = _variables
+        .toFinalType(function(dynamic_, named: {'x': xType}, node: never));
     assertDartType(type, 'dynamic Function({int x})');
   }
 
   void test_toFinalType_function_named_parameter_nullable() {
     var xType = int_(node: always);
-    var type = function(dynamic_, named: {'x': xType}, node: never)
-        .toFinalType(typeProvider);
+    var type = _variables
+        .toFinalType(function(dynamic_, named: {'x': xType}, node: never));
     assertDartType(type, 'dynamic Function({int? x})');
   }
 
   void test_toFinalType_function_non_nullable() {
-    var type = function(dynamic_, node: never).toFinalType(typeProvider);
+    var type = _variables.toFinalType(function(dynamic_, node: never));
     assertDartType(type, 'dynamic Function()');
   }
 
   void test_toFinalType_function_nullable() {
-    var type = function(dynamic_, node: always).toFinalType(typeProvider);
+    var type = _variables.toFinalType(function(dynamic_, node: always));
     assertDartType(type, 'dynamic Function()?');
   }
 
   void test_toFinalType_function_optional_parameter_non_nullable() {
     var argType = int_(node: never);
-    var type = function(dynamic_, positional: [argType], node: never)
-        .toFinalType(typeProvider);
+    var type = _variables
+        .toFinalType(function(dynamic_, positional: [argType], node: never));
     assertDartType(type, 'dynamic Function([int])');
   }
 
   void test_toFinalType_function_optional_parameter_nullable() {
     var argType = int_(node: always);
-    var type = function(dynamic_, positional: [argType], node: never)
-        .toFinalType(typeProvider);
+    var type = _variables
+        .toFinalType(function(dynamic_, positional: [argType], node: never));
     assertDartType(type, 'dynamic Function([int?])');
   }
 
   void test_toFinalType_function_required_parameter_non_nullable() {
     var argType = int_(node: never);
-    var type = function(dynamic_, required: [argType], node: never)
-        .toFinalType(typeProvider);
+    var type = _variables
+        .toFinalType(function(dynamic_, required: [argType], node: never));
     assertDartType(type, 'dynamic Function(int)');
   }
 
   void test_toFinalType_function_required_parameter_nullable() {
     var argType = int_(node: always);
-    var type = function(dynamic_, required: [argType], node: never)
-        .toFinalType(typeProvider);
+    var type = _variables
+        .toFinalType(function(dynamic_, required: [argType], node: never));
     assertDartType(type, 'dynamic Function(int?)');
   }
 
   void test_toFinalType_function_return_type_non_nullable() {
     var returnType = int_(node: never);
-    var type = function(returnType, node: never).toFinalType(typeProvider);
+    var type = _variables.toFinalType(function(returnType, node: never));
     assertDartType(type, 'int Function()');
   }
 
   void test_toFinalType_function_return_type_nullable() {
     var returnType = int_(node: always);
-    var type = function(returnType, node: never).toFinalType(typeProvider);
+    var type = _variables.toFinalType(function(returnType, node: never));
     assertDartType(type, 'int? Function()');
   }
 
   void test_toFinalType_interface_non_nullable() {
-    var type = int_(node: never).toFinalType(typeProvider);
+    var type = _variables.toFinalType(int_(node: never));
     assertDartType(type, 'int');
   }
 
   void test_toFinalType_interface_nullable() {
-    var type = int_(node: always).toFinalType(typeProvider);
+    var type = _variables.toFinalType(int_(node: always));
     assertDartType(type, 'int?');
   }
 
   void test_toFinalType_interface_type_argument_non_nullable() {
     var argType = int_(node: never);
-    var type = list(argType, node: never).toFinalType(typeProvider);
+    var type = _variables.toFinalType(list(argType, node: never));
     assertDartType(type, 'List<int>');
   }
 
   void test_toFinalType_interface_type_argument_nullable() {
     var argType = int_(node: always);
-    var type = list(argType, node: never).toFinalType(typeProvider);
+    var type = _variables.toFinalType(list(argType, node: never));
     assertDartType(type, 'List<int?>');
   }
 
   void test_toFinalType_null_non_nullable() {
-    var type = DecoratedType(null_.type, never).toFinalType(typeProvider);
+    var type = _variables.toFinalType(DecoratedType(null_.type, never));
     assertDartType(type, 'Never');
   }
 
   void test_toFinalType_null_nullable() {
-    var type = DecoratedType(null_.type, always).toFinalType(typeProvider);
+    var type = _variables.toFinalType(DecoratedType(null_.type, always));
     assertDartType(type, 'Null');
   }
 
   void test_toFinalType_typeParameter_non_nullable() {
     var t = typeParameter('T', object(node: never));
-    var type = typeParameterType(t, node: never).toFinalType(typeProvider);
+    var type = _variables.toFinalType(typeParameterType(t, node: never));
     expect(type, TypeMatcher<TypeParameterType>());
     assertDartType(type, 'T');
   }
 
   void test_toFinalType_typeParameter_nullable() {
     var t = typeParameter('T', object(node: never));
-    var type = typeParameterType(t, node: always).toFinalType(typeProvider);
+    var type = _variables.toFinalType(typeParameterType(t, node: always));
     expect(type, TypeMatcher<TypeParameterType>());
     assertDartType(type, 'T?');
   }
 
   void test_toFinalType_void() {
-    var type = void_.toFinalType(typeProvider);
+    var type = _variables.toFinalType(void_);
     assertDartType(type, 'void');
   }
 

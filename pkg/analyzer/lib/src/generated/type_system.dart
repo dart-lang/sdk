@@ -3585,8 +3585,12 @@ abstract class TypeSystem implements public.TypeSystem {
           );
         }
       } else {
+        // Note: we need to use `element.declaration` because `element` might
+        // itself be a TypeParameterMember (due to a previous promotion), and
+        // you can't create a TypeParameterMember wrapping a
+        // TypeParameterMember.
         return TypeParameterTypeImpl(
-          TypeParameterMember(element, null, promotedBound),
+          TypeParameterMember(element.declaration, null, promotedBound),
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }
