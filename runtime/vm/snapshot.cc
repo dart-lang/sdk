@@ -1013,6 +1013,11 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
     WriteIndexedObject(object_id);
     return true;
   } else {
+    // We do this check down here, because it's quite expensive.
+    if (!rawobj->InVMIsolateHeap()) {
+      return false;
+    }
+
     switch (id) {
       VM_OBJECT_CLASS_LIST(VM_OBJECT_WRITE)
       case kTypedDataUint32ArrayCid: {
@@ -1073,17 +1078,17 @@ intptr_t ForwardList::FindObject(RawObject* raw) {
 
 void ForwardList::SetObjectId(RawObject* object, intptr_t id) {
   if (object->IsNewObject()) {
-    isolate()->forward_table_new()->SetValue(object, id);
+    isolate()->forward_table_new()->SetValueExclusive(object, id);
   } else {
-    isolate()->forward_table_old()->SetValue(object, id);
+    isolate()->forward_table_old()->SetValueExclusive(object, id);
   }
 }
 
 intptr_t ForwardList::GetObjectId(RawObject* object) {
   if (object->IsNewObject()) {
-    return isolate()->forward_table_new()->GetValue(object);
+    return isolate()->forward_table_new()->GetValueExclusive(object);
   } else {
-    return isolate()->forward_table_old()->GetValue(object);
+    return isolate()->forward_table_old()->GetValueExclusive(object);
   }
 }
 
@@ -1127,7 +1132,7 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Now check if it is an object from the VM isolate. These objects are shared
   // by all isolates.
-  if (rawobj->InVMIsolateHeap() && HandleVMIsolateObject(rawobj)) {
+  if (HandleVMIsolateObject(rawobj)) {
     return true;
   }
 

@@ -339,6 +339,7 @@ class PageSpace {
   }
 
   bool Contains(uword addr) const;
+  bool ContainsUnsafe(uword addr) const;
   bool Contains(uword addr, HeapPage::PageType type) const;
   bool DataContains(uword addr) const;
   bool IsValidAddress(uword addr) const { return Contains(addr); }
@@ -566,6 +567,7 @@ class PageSpace {
 
   bool enable_concurrent_mark_;
 
+  friend class BasePageIterator;
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;
   friend class ExclusiveLargePageIterator;

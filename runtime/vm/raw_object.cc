@@ -17,7 +17,13 @@
 namespace dart {
 
 bool RawObject::InVMIsolateHeap() const {
-  return Dart::vm_isolate()->heap()->Contains(ToAddr(this));
+  // All "vm-isolate" objects are pre-marked and in old space
+  // (see [Object::FinalizeVMIsolate]).
+  if (!IsOldObject() || !IsMarked()) return false;
+
+  auto heap = Dart::vm_isolate()->heap();
+  ASSERT(heap->UsedInWords(Heap::kNew) == 0);
+  return heap->old_space()->ContainsUnsafe(ToAddr(this));
 }
 
 void RawObject::Validate(Isolate* isolate) const {

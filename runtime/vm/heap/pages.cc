@@ -580,29 +580,14 @@ void PageSpace::FreeExternal(intptr_t size) {
   usage_.external_in_words -= size_in_words;
 }
 
-// Provides exclusive access to all pages, and ensures they are walkable.
-class ExclusivePageIterator : ValueObject {
+class BasePageIterator : ValueObject {
  public:
-  explicit ExclusivePageIterator(const PageSpace* space)
-      : space_(space), ml_(&space->pages_lock_) {
-    space_->MakeIterable();
-    list_ = kRegular;
-    page_ = space_->pages_;
-    if (page_ == NULL) {
-      list_ = kExecutable;
-      page_ = space_->exec_pages_;
-      if (page_ == NULL) {
-        list_ = kLarge;
-        page_ = space_->large_pages_;
-        if (page_ == NULL) {
-          list_ = kImage;
-          page_ = space_->image_pages_;
-        }
-      }
-    }
-  }
+  explicit BasePageIterator(const PageSpace* space) : space_(space) {}
+
   HeapPage* page() const { return page_; }
+
   bool Done() const { return page_ == NULL; }
+
   void Advance() {
     ASSERT(!Done());
     page_ = page_->next();
@@ -621,14 +606,52 @@ class ExclusivePageIterator : ValueObject {
     ASSERT((page_ != NULL) || (list_ == kImage));
   }
 
- private:
+ protected:
   enum List { kRegular, kExecutable, kLarge, kImage };
 
-  const PageSpace* space_;
+  void Initialize() {
+    list_ = kRegular;
+    page_ = space_->pages_;
+    if (page_ == NULL) {
+      list_ = kExecutable;
+      page_ = space_->exec_pages_;
+      if (page_ == NULL) {
+        list_ = kLarge;
+        page_ = space_->large_pages_;
+        if (page_ == NULL) {
+          list_ = kImage;
+          page_ = space_->image_pages_;
+        }
+      }
+    }
+  }
+
+  const PageSpace* space_ = nullptr;
+  List list_;
+  HeapPage* page_ = nullptr;
+};
+
+// Provides unsafe access to all pages. Assumes pages are walkable.
+class UnsafeExclusivePageIterator : public BasePageIterator {
+ public:
+  explicit UnsafeExclusivePageIterator(const PageSpace* space)
+      : BasePageIterator(space) {
+    Initialize();
+  }
+};
+
+// Provides exclusive access to all pages, and ensures they are walkable.
+class ExclusivePageIterator : public BasePageIterator {
+ public:
+  explicit ExclusivePageIterator(const PageSpace* space)
+      : BasePageIterator(space), ml_(&space->pages_lock_) {
+    space_->MakeIterable();
+    Initialize();
+  }
+
+ private:
   MutexLocker ml_;
   NoSafepointScope no_safepoint;
-  List list_;
-  HeapPage* page_;
 };
 
 // Provides exclusive access to code pages, and ensures they are walkable.
@@ -705,6 +728,15 @@ void PageSpace::UpdateMaxUsed() {
 
 bool PageSpace::Contains(uword addr) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if (it.page()->Contains(addr)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool PageSpace::ContainsUnsafe(uword addr) const {
+  for (UnsafeExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->Contains(addr)) {
       return true;
     }
