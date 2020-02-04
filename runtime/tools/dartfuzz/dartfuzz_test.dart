@@ -152,7 +152,7 @@ abstract class TestRunner {
 
 /// Concrete test runner of Dart JIT.
 class TestRunnerJIT implements TestRunner {
-  TestRunnerJIT(String prefix, String tag, String top, String tmp, this.env,
+  TestRunnerJIT(String prefix, String tag, this.top, String tmp, this.env,
       this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
@@ -168,18 +168,20 @@ class TestRunnerJIT implements TestRunner {
     return runCommand(cmd, env);
   }
 
-  void printReproductionCommand() => print(cmd.join(" "));
+  void printReproductionCommand() =>
+      print(cmd.join(" ").replaceAll('$top/', ''));
 
   String description;
   String dart;
   String fileName;
+  final String top;
   Map<String, String> env;
   List<String> cmd;
 }
 
 /// Concrete test runner of Dart AOT.
 class TestRunnerAOT implements TestRunner {
-  TestRunnerAOT(String prefix, String tag, String top, String tmp,
+  TestRunnerAOT(String prefix, String tag, this.top, this.tmp,
       Map<String, String> e, this.fileName, List<String> extraFlags) {
     description = '$prefix-$tag';
     precompiler = '$top/pkg/vm/tool/precompiler2';
@@ -205,8 +207,11 @@ class TestRunnerAOT implements TestRunner {
       "DART_CONFIGURATION='${env['DART_CONFIGURATION']}'",
       "DART_VM_FLAGS='${env['DART_VM_FLAGS']}'",
       ...cmd
-    ].join(" "));
-    print([dart, snapshot].join(" "));
+    ].join(" ").replaceAll('$top/', '').replaceAll('$tmp/', ''));
+    print([dart, snapshot]
+        .join(" ")
+        .replaceAll('$top/', '')
+        .replaceAll('$tmp/', ''));
   }
 
   String description;
@@ -214,13 +219,15 @@ class TestRunnerAOT implements TestRunner {
   String dart;
   String fileName;
   String snapshot;
+  final String top;
+  final String tmp;
   Map<String, String> env;
   List<String> cmd;
 }
 
 /// Concrete test runner of bytecode.
 class TestRunnerKBC implements TestRunner {
-  TestRunnerKBC(String prefix, String tag, String top, String tmp, this.env,
+  TestRunnerKBC(String prefix, String tag, this.top, this.tmp, this.env,
       this.fileName, List<String> extraFlags, bool kbcSrc) {
     description = '$prefix-$tag';
     dart = '$top/out/$tag/dart';
@@ -253,9 +260,10 @@ class TestRunnerKBC implements TestRunner {
   void printReproductionCommand() {
     if (generate != null) {
       print([generate, '--gen-bytecode', platform, '-o', dill, fileName]
-          .join(" "));
+          .join(" ")
+          .replaceAll('$top/', ''));
     }
-    print(cmd.join(" "));
+    print(cmd.join(" ").replaceAll('$top/', '').replaceAll('$tmp/', ''));
   }
 
   String description;
@@ -264,14 +272,16 @@ class TestRunnerKBC implements TestRunner {
   String dill;
   String dart;
   String fileName;
+  final String top;
+  final String tmp;
   Map<String, String> env;
   List<String> cmd;
 }
 
 /// Concrete test runner of Dart2JS.
 class TestRunnerDJS implements TestRunner {
-  TestRunnerDJS(String prefix, String tag, String top, String tmp, this.env,
-      this.fileName) {
+  TestRunnerDJS(
+      String prefix, String tag, this.top, this.tmp, this.env, this.fileName) {
     description = '$prefix-$tag';
     dart2js = '$top/sdk/bin/dart2js';
     js = '$tmp/out.js';
@@ -286,14 +296,19 @@ class TestRunnerDJS implements TestRunner {
   }
 
   void printReproductionCommand() {
-    print([dart2js, fileName, '-o', js].join(" "));
-    print(['nodejs', js].join(" "));
+    print([dart2js, fileName, '-o', js]
+        .join(" ")
+        .replaceAll('$top/', '')
+        .replaceAll('$tmp/', ''));
+    print('nodejs out.js');
   }
 
   String description;
   String dart2js;
   String fileName;
   String js;
+  final String top;
+  final String tmp;
   Map<String, String> env;
 }
 
@@ -547,7 +562,8 @@ class DartFuzzTest {
   void showReproduce() {
     print("\n-- BEGIN REPRODUCE  --\n");
     print("DART SDK REVISION: $dartSdkRevision\n");
-    print("dartfuzz.dart --${fp ? "" : "no-"}fp --${ffi ? "" : "no-"}ffi "
+    print(
+        "dart runtime/tools/dartfuzz/dartfuzz.dart --${fp ? "" : "no-"}fp --${ffi ? "" : "no-"}ffi "
         "--${flatTp ? "" : "no-"}flat "
         "--seed ${seed} $fileName");
     print("\n-- RUN 1 --\n");
@@ -687,14 +703,9 @@ class DartFuzzTestSession {
   }
 
   static String getDartSdkRevision(String top) {
-    top = getTop(top);
     ProcessResult res =
-        Process.runSync('git', ['--git-dir=$top/.git', 'rev-parse', 'HEAD']);
-    if (debug) {
-      print('\ngit rev-parse HEAD result:\n'
-          '${res.exitCode}\n${res.stdout}\n');
-    }
-    return res.stdout;
+        Process.runSync(Platform.resolvedExecutable, ['--version']);
+    return res.stderr;
   }
 
   // Picks a mode (command line or random).
