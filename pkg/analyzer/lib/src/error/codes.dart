@@ -5096,6 +5096,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('SUPER_INITIALIZER_IN_OBJECT',
           "The class 'Object' can't invoke a constructor from a superclass.");
 
+  /// It is an error if any case of a switch statement except the last case
+  /// (the default case if present) may complete normally. The previous
+  /// syntactic restriction requiring the last statement of each case to be
+  /// one of an enumerated list of statements (break, continue, return,
+  /// throw, or rethrow) is removed.
+  static const CompileTimeErrorCode SWITCH_CASE_COMPLETES_NORMALLY =
+      CompileTimeErrorCode('SWITCH_CASE_COMPLETES_NORMALLY',
+          "The 'case' should not complete normally.",
+          correction: "Try adding 'break', or 'return', etc.");
+
   /**
    * Parameters:
    * 0: the name of the type used in the instance creation that should be

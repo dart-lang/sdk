@@ -1885,6 +1885,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [StaticWarningCode.CASE_BLOCK_NOT_TERMINATED].
    */
   void _checkForCaseBlocksNotTerminated(SwitchStatement statement) {
+    if (_isNonNullableByDefault) return;
+
     NodeList<SwitchMember> members = statement.members;
     int lastMember = members.length - 1;
     for (int i = 0; i < lastMember; i++) {

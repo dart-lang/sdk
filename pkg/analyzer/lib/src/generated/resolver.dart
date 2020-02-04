@@ -1692,6 +1692,17 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(
         node.expression, _enclosingSwitchStatementExpressionType);
     super.visitSwitchCase(node);
+
+    var flow = _flowAnalysis?.flow;
+    if (flow != null && flow.isReachable) {
+      var switchStatement = node.parent as SwitchStatement;
+      if (switchStatement.members.last != node && node.statements.isNotEmpty) {
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
+          node.keyword,
+        );
+      }
+    }
   }
 
   @override

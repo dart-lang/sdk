@@ -412,6 +412,8 @@ import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
     as super_in_redirecting_constructor;
 import 'super_initializer_in_object_test.dart' as super_initializer_in_object;
+import 'switch_case_completes_normally_test.dart'
+    as switch_case_completes_normally;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
 import 'todo_test.dart' as todo_test;
@@ -764,6 +766,7 @@ main() {
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();
     super_initializer_in_object.main();
+    switch_case_completes_normally.main();
     switch_expression_not_assignable.main();
     todo_test.main();
     top_level_instance_getter.main();

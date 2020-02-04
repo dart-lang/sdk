@@ -700,42 +700,6 @@ f() {
     ]);
   }
 
-  test_caseBlockNotTerminated() async {
-    await assertNoErrorsInCode(r'''
-f(int p) {
-  for (int i = 0; i < 10; i++) {
-    switch (p) {
-      case 0:
-        break;
-      case 1:
-        continue;
-      case 2:
-        return;
-      case 3:
-        throw new Object();
-      case 4:
-      case 5:
-        return;
-      case 6:
-      default:
-        return;
-    }
-  }
-}
-''');
-  }
-
-  test_caseBlockNotTerminated_lastCase() async {
-    await assertNoErrorsInCode(r'''
-f(int p) {
-  switch (p) {
-    case 0:
-      p = p + 1;
-  }
-}
-''');
-  }
-
   test_class_type_alias_documentationComment() async {
     await assertNoErrorsInCode('''
 /**
