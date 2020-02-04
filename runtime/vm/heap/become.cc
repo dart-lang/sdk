@@ -294,11 +294,9 @@ void Become::FollowForwardingPointers(Thread* thread) {
   isolate->VisitObjectPointers(&pointer_visitor,
                                ValidationPolicy::kValidateFrames);
 #ifndef PRODUCT
-  if (FLAG_support_service) {
-    ObjectIdRing* ring = isolate->object_id_ring();
-    ASSERT(ring != NULL);
-    ring->VisitPointers(&pointer_visitor);
-  }
+  ObjectIdRing* ring = isolate->object_id_ring();
+  ASSERT(ring != NULL);
+  ring->VisitPointers(&pointer_visitor);
 #endif  // !PRODUCT
 
   // Weak persistent handles.

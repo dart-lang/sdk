@@ -12245,7 +12245,7 @@ void Library::AllocatePrivateKey() const {
   Isolate* isolate = thread->isolate();
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_support_reload && isolate->group()->IsReloading()) {
+  if (isolate->group()->IsReloading()) {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
     IsolateReloadContext* reload_context = isolate->reload_context();

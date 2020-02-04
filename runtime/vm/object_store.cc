@@ -42,9 +42,6 @@ void ObjectStore::Init(Isolate* isolate) {
 
 #ifndef PRODUCT
 void ObjectStore::PrintToJSONObject(JSONObject* jsobj) {
-  if (!FLAG_support_service) {
-    return;
-  }
   jsobj->AddProperty("type", "_ObjectStore");
 
   {

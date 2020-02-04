@@ -399,10 +399,8 @@ void CompactorTask::Run() {
         }
 #ifndef PRODUCT
         case 5: {
-          if (FLAG_support_service) {
-            TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
-            isolate_->object_id_ring()->VisitPointers(compactor_);
-          }
+          TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
+          isolate_->object_id_ring()->VisitPointers(compactor_);
           break;
         }
 #endif  // !PRODUCT

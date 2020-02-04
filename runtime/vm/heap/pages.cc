@@ -859,9 +859,6 @@ void PageSpace::WriteProtect(bool read_only) {
 
 #ifndef PRODUCT
 void PageSpace::PrintToJSONObject(JSONObject* object) const {
-  if (!FLAG_support_service) {
-    return;
-  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "old");
@@ -900,9 +897,6 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
 
 void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
                                          JSONStream* stream) const {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
   heap_map.AddProperty("freeClassId", static_cast<intptr_t>(kFreeListElement));

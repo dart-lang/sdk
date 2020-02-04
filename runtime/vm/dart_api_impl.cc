@@ -5721,9 +5721,7 @@ DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data) {
 #if !defined(PRODUCT)
-  if (FLAG_support_service) {
-    Service::RegisterIsolateEmbedderCallback(name, callback, user_data);
-  }
+  Service::RegisterIsolateEmbedderCallback(name, callback, user_data);
 #endif
 }
 
@@ -5732,18 +5730,14 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data) {
 #if !defined(PRODUCT)
-  if (FLAG_support_service) {
-    Service::RegisterRootEmbedderCallback(name, callback, user_data);
-  }
+  Service::RegisterRootEmbedderCallback(name, callback, user_data);
 #endif
 }
 
 DART_EXPORT void Dart_SetEmbedderInformationCallback(
     Dart_EmbedderInformationCallback callback) {
 #if !defined(PRODUCT)
-  if (FLAG_support_service) {
-    Service::SetEmbedderInformationCallback(callback);
-  }
+  Service::SetEmbedderInformationCallback(callback);
 #endif
 }
 
@@ -5753,9 +5747,6 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
 #if defined(PRODUCT)
   return NULL;
 #else
-  if (!FLAG_support_service) {
-    return NULL;
-  }
   if (listen_callback != NULL) {
     if (Service::stream_listen_callback() != NULL) {
       return strdup(
@@ -5825,9 +5816,6 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 DART_EXPORT char* Dart_SetFileModifiedCallback(
     Dart_FileModifiedCallback file_modified_callback) {
 #if !defined(PRODUCT)
-  if (!FLAG_support_service) {
-    return NULL;
-  }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
     if (IsolateGroupReloadContext::file_modified_callback() != NULL) {

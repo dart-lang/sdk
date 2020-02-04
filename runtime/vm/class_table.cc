@@ -403,9 +403,6 @@ void ClassTable::SetAt(intptr_t index, RawClass* raw_cls) {
 
 #ifndef PRODUCT
 void ClassTable::PrintToJSONObject(JSONObject* object) {
-  if (!FLAG_support_service) {
-    return;
-  }
   Class& cls = Class::Handle();
   object->AddProperty("type", "ClassList");
   {
@@ -429,9 +426,6 @@ intptr_t SharedClassTable::ClassOffsetFor(intptr_t cid) {
 
 
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream, bool internal) {
-  if (!FLAG_support_service) {
-    return;
-  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   Heap* heap = isolate->heap();

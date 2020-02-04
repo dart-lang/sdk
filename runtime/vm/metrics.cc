@@ -89,9 +89,6 @@ static const char* UnitString(intptr_t unit) {
 }
 
 void Metric::PrintJSON(JSONStream* stream) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject obj(stream);
   obj.AddProperty("type", "Counter");
   obj.AddProperty("name", name_);

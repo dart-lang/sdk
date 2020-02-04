@@ -382,17 +382,11 @@ void IsolateGroup::UnscheduleThread(Thread* thread,
 
 #ifndef PRODUCT
 void IsolateGroup::PrintJSON(JSONStream* stream, bool ref) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject jsobj(stream);
   PrintToJSONObject(&jsobj, ref);
 }
 
 void IsolateGroup::PrintToJSONObject(JSONObject* jsobj, bool ref) {
-  if (!FLAG_support_service) {
-    return;
-  }
   jsobj->AddProperty("type", (ref ? "@IsolateGroup" : "IsolateGroup"));
   jsobj->AddServiceId(ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, id());
 
@@ -412,9 +406,6 @@ void IsolateGroup::PrintToJSONObject(JSONObject* jsobj, bool ref) {
 }
 
 void IsolateGroup::PrintMemoryUsageJSON(JSONStream* stream) {
-  if (!FLAG_support_service) {
-    return;
-  }
   int64_t used = 0;
   int64_t capacity = 0;
   int64_t external_used = 0;
@@ -931,15 +922,15 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
         if (oob_tag.IsSmi()) {
           switch (Smi::Cast(oob_tag).Value()) {
             case Message::kServiceOOBMsg: {
-              if (FLAG_support_service) {
-                const Error& error =
-                    Error::Handle(Service::HandleIsolateMessage(I, oob_msg));
-                if (!error.IsNull()) {
-                  status = ProcessUnhandledException(error);
-                }
-              } else {
-                UNREACHABLE();
+#ifndef PRODUCT
+              const Error& error =
+                  Error::Handle(Service::HandleIsolateMessage(I, oob_msg));
+              if (!error.IsNull()) {
+                status = ProcessUnhandledException(error);
               }
+#else
+              UNREACHABLE();
+#endif
               break;
             }
             case Message::kIsolateLibOOBMsg: {
@@ -1002,7 +993,7 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
 
 #ifndef PRODUCT
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
+  if (Isolate::IsVMInternalIsolate(I)) {
     return;
   }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
@@ -1018,7 +1009,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 }
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(I)) {
+  if (Isolate::IsVMInternalIsolate(I)) {
     return;
   }
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
@@ -1322,9 +1313,7 @@ Isolate::~Isolate() {
 #if !defined(PRODUCT)
   delete debugger_;
   debugger_ = nullptr;
-  if (FLAG_support_service) {
-    delete object_id_ring_;
-  }
+  delete object_id_ring_;
   object_id_ring_ = nullptr;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = nullptr;
@@ -1476,9 +1465,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   }
 
 #ifndef PRODUCT
-  if (FLAG_support_service) {
-    ObjectIdRing::Init(result);
-  }
+  ObjectIdRing::Init(result);
 #endif  // !PRODUCT
 
   // Add to isolate list. Shutdown and delete the isolate on failure.
@@ -1704,7 +1691,7 @@ const char* Isolate::MakeRunnable() {
   }
 #endif
 #ifndef PRODUCT
-  if (FLAG_support_service && !Isolate::IsVMInternalIsolate(this) &&
+  if (!Isolate::IsVMInternalIsolate(this) &&
       Service::isolate_stream.enabled()) {
     ServiceEvent runnableEvent(this, ServiceEvent::kIsolateRunnable);
     Service::HandleEvent(&runnableEvent);
@@ -2532,9 +2519,6 @@ static const char* ExceptionPauseInfoToServiceEnum(Dart_ExceptionPauseInfo pi) {
 }
 
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
   jsobj.AddServiceId(ISOLATE_SERVICE_ID_FORMAT_STRING,
@@ -2684,9 +2668,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 }
 
 void Isolate::PrintMemoryUsageJSON(JSONStream* stream) {
-  if (!FLAG_support_service) {
-    return;
-  }
   heap()->PrintMemoryUsageJSON(stream);
 }
 
@@ -2778,9 +2759,6 @@ RawField* Isolate::GetDeoptimizingBoxedField() {
 
 #ifndef PRODUCT
 RawError* Isolate::InvokePendingServiceExtensionCalls() {
-  if (!FLAG_support_service) {
-    return Error::null();
-  }
   GrowableObjectArray& calls =
       GrowableObjectArray::Handle(GetAndClearPendingServiceExtensionCalls());
   if (calls.IsNull()) {
@@ -2915,7 +2893,7 @@ void Isolate::AppendServiceExtensionCall(const Instance& closure,
 // done atomically.
 void Isolate::RegisterServiceExtensionHandler(const String& name,
                                               const Instance& closure) {
-  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(this)) {
+  if (Isolate::IsVMInternalIsolate(this)) {
     return;
   }
   GrowableObjectArray& handlers =
@@ -2949,9 +2927,6 @@ void Isolate::RegisterServiceExtensionHandler(const String& name,
 // to Dart code unless you can ensure that the operations will can be
 // done atomically.
 RawInstance* Isolate::LookupServiceExtensionHandler(const String& name) {
-  if (!FLAG_support_service) {
-    return Instance::null();
-  }
   const GrowableObjectArray& handlers =
       GrowableObjectArray::Handle(registered_service_extension_handlers());
   if (handlers.IsNull()) {

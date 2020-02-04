@@ -185,8 +185,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
   R(show_invisible_isolates, false, bool, false,                               \
     "Show invisible isolates in the vm-service.")                              \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
-  C(support_reload, false, false, bool, true, "Support isolate reload.")       \
-  R(support_service, false, bool, true, "Support the service protocol.")       \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
   D(trace_ic, bool, false, "Trace IC handling")                                \

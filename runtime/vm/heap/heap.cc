@@ -979,7 +979,7 @@ void Heap::RecordAfterGC(GCType type) {
          (type == kMarkSweep && gc_old_space_in_progress_) ||
          (type == kMarkCompact && gc_old_space_in_progress_));
 #ifndef PRODUCT
-  if (FLAG_support_service && Service::gc_stream.enabled() &&
+  if (Service::gc_stream.enabled() &&
       !Isolate::IsVMInternalIsolate(isolate())) {
     ServiceEvent event(isolate(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);

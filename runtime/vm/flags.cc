@@ -487,9 +487,6 @@ void Flags::PrintFlags() {
 
 #ifndef PRODUCT
 void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
-  if (!FLAG_support_service) {
-    return;
-  }
   if (flag->IsUnrecognized() || flag->type_ == Flag::kFlagHandler ||
       flag->type_ == Flag::kOptionHandler) {
     return;
@@ -531,9 +528,6 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
 }
 
 void Flags::PrintJSON(JSONStream* js) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "FlagList");
   JSONArray jsarr(&jsobj, "flags");
