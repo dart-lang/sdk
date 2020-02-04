@@ -214,13 +214,15 @@ def GenerateBuildfilesIfNeeded():
     return True
 
 
-def RunGNIfNeeded(out_dir, target_os, mode, arch, use_nnbd):
+def RunGNIfNeeded(out_dir, target_os, mode, arch, use_nnbd, sanitizer):
     if os.path.isfile(os.path.join(out_dir, 'args.gn')):
         return
     gn_os = 'host' if target_os == HOST_OS else target_os
     gn_command = [
         'python',
         os.path.join(DART_ROOT, 'tools', 'gn.py'),
+        '--sanitizer',
+        sanitizer,
         '-m',
         mode,
         '-a',
@@ -291,7 +293,7 @@ def BuildOneConfig(options, targets, target_os, mode, arch, sanitizer):
     using_goma = False
     # TODO(zra): Remove auto-run of gn, replace with prompt for user to run
     # gn.py manually.
-    RunGNIfNeeded(out_dir, target_os, mode, arch, options.nnbd)
+    RunGNIfNeeded(out_dir, target_os, mode, arch, options.nnbd, sanitizer)
     command = ['ninja', '-C', out_dir]
     if options.verbose:
         command += ['-v']
