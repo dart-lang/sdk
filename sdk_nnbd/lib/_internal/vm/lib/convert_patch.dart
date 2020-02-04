@@ -115,7 +115,7 @@ class _BuildJsonListener extends _JsonListener {
    * started. If the container is a [Map], there is also a current [key]
    * which is also stored on the stack.
    */
-  final List<String> stack = <String>[];
+  final List<Object?> stack = [];
   /** The current [Map] or [List] being built. */
   var currentContainer;
   /** The most recently read property key. */
@@ -133,7 +133,7 @@ class _BuildJsonListener extends _JsonListener {
   void popContainer() {
     value = currentContainer;
     currentContainer = stack.removeLast();
-    if (currentContainer is Map) key = stack.removeLast();
+    if (currentContainer is Map) key = stack.removeLast() as String;
   }
 
   void handleString(String value) {
