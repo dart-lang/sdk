@@ -67,19 +67,13 @@ class SubprocessLauncher {
       Map<String, String> environment,
       bool includeParentEnvironment = true,
       void Function(String) perLine}) async {
-    Completer<Future<Iterable<Map>>> startedProcess = Completer();
-
-    await maxParallel.addFutureFromClosure(() async {
-      Future<Iterable<Map>> runStreamedImmediateFuture;
-      runStreamedImmediateFuture = runStreamedImmediate(executable, arguments,
+    return maxParallel.runFutureFromClosure(() async {
+      return runStreamedImmediate(executable, arguments,
           workingDirectory: workingDirectory,
           environment: environment,
           includeParentEnvironment: includeParentEnvironment,
           perLine: perLine);
-      startedProcess.complete(runStreamedImmediateFuture);
-      return runStreamedImmediateFuture;
     });
-    return await startedProcess.future;
   }
 
   /// A wrapper around start/await process.exitCode that will display the

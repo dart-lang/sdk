@@ -55,4 +55,33 @@ class MultiFutureTrackerTest {
 
     return await testTracker.wait();
   }
+
+  Future<void> test_runsSeriallyAtLowLimit() async {
+    var completer1 = Completer();
+
+    testTracker = MultiFutureTracker(1);
+    var runFuture1 = testTracker.runFutureFromClosure(() => completer1.future);
+    var runFuture2 = testTracker.runFutureFromClosure(() => null);
+
+    // Both futures _should_ timeout.
+    await expectLater(runFuture1.timeout(Duration(milliseconds: 1)),
+        throwsA(TypeMatcher<TimeoutException>()));
+    await expectLater(runFuture2.timeout(Duration(milliseconds: 1)),
+        throwsA(TypeMatcher<TimeoutException>()));
+    expect(completer1.isCompleted, isFalse);
+
+    completer1.complete();
+
+    // Now, these should complete normally.
+    await runFuture1;
+    await runFuture2;
+  }
+
+  Future<void> test_returnsValueFromRun() async {
+    testTracker = MultiFutureTracker(1);
+    await expectLater(
+        await testTracker.runFutureFromClosure(() async => true), equals(true));
+    await expectLater(
+        await testTracker.runFutureFromClosure(() => true), equals(true));
+  }
 }

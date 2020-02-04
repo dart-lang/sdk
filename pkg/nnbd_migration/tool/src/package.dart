@@ -156,9 +156,8 @@ class GitPackage extends Package {
             workingDirectory: packagePath);
         // TODO(jcollins-g): allow for migrating dependencies?
       }
-      await pubTracker.addFutureFromClosure(() =>
+      await pubTracker.runFutureFromClosure(() =>
           launcher.runStreamed('pub', ['get'], workingDirectory: packagePath));
-      await pubTracker.wait();
     }
   }
 
