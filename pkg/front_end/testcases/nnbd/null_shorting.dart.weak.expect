@@ -14,12 +14,12 @@ library;
 //   throws(() => (n1?.nonNullable1Method()).nullable1);
 //                                           ^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/null_shorting.dart:226:33: Warning: Operator '+' is called on 'Class1?' which is potentially null.
+// pkg/front_end/testcases/nnbd/null_shorting.dart:220:33: Warning: Operator '+' is called on 'Class1?' which is potentially null.
 //  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
 //   throws(() => n1?.nonNullable1 + 0);
 //                                 ^
 //
-// pkg/front_end/testcases/nnbd/null_shorting.dart:227:16: Warning: Operator 'unary-' is called on 'Class1?' which is potentially null.
+// pkg/front_end/testcases/nnbd/null_shorting.dart:221:16: Warning: Operator 'unary-' is called on 'Class1?' which is potentially null.
 //  - 'Class1' is from 'pkg/front_end/testcases/nnbd/null_shorting.dart'.
 //   throws(() => -n1?.nonNullable1);
 //                ^

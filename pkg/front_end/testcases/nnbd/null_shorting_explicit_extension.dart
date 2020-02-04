@@ -203,8 +203,6 @@ void indexAccess(Class1? n1, Class2? n2, Class3? n3) {
   nullable2 = Extension2(n2)?.[nullable2] += 0;
   Extension2(n2)?.[nullable2] += 0;
   nullable2 = Extension2(n2)?.[nullable2] += 0;
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  //  update.
   Extension2(n2)?.[nullable2]++;
   nullable2 = Extension2(n2)?.[nullable2]++;
   ++Extension2(n2)?.[nullable2];
@@ -220,8 +218,6 @@ void indexAccess(Class1? n1, Class2? n2, Class3? n3) {
   Extension1(n1)?.nonNullable2[nullable2][nullable2]?.nonNullable2Method();
   Extension1(n1)?.nonNullable2[nullable2][nullable2] += 0;
   nullable2 = Extension1(n1)?.nonNullable2[nullable2][nullable2] += 0;
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  //  update.
   Extension1(n1)?.nonNullable2[nullable2][nullable2]++;
   nullable2 = Extension1(n1)?.nonNullable2[nullable2][nullable2]++;
   ++Extension1(n1)?.nonNullable2[nullable2][nullable2];
@@ -236,8 +232,6 @@ void indexAccess(Class1? n1, Class2? n2, Class3? n3) {
   nullable1 = Extension1(n1)?.[nullable1]?.[nullable1] ??= nullable1;
   Extension3(n3)?.[nullable3]?.[nullable2] += 0;
   nullable2 = Extension3(n3)?.[nullable3]?.[nullable2] += 0;
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  //  update.
   Extension3(n3)?.[nullable3]?.[nullable2]++;
   nullable2 = Extension3(n3)?.[nullable3]?.[nullable2]++;
   ++Extension3(n3)?.[nullable3]?.[nullable2];
@@ -253,8 +247,6 @@ void operatorAccess(Class1? n1, Class2? n2) {
   nullable2 = Extension2(n2)?.nonNullable2 += 0;
   Extension2(n2)?.nonNullable2.nonNullable2 += 0;
   nullable2 = Extension2(n2)?.nonNullable2.nonNullable2 += 0;
-  // TODO(johnniwinther): ++ should probably not be null-shorted, awaiting spec
-  //  update.
   Extension2(n2)?.nonNullable2++;
   nullable2 = Extension2(n2)?.nonNullable2++;
   ++Extension2(n2)?.nonNullable2;
