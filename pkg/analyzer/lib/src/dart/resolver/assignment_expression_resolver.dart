@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -27,7 +26,6 @@ import 'package:meta/meta.dart';
 class AssignmentExpressionResolver {
   final ResolverVisitor _resolver;
   final FlowAnalysisHelper _flowAnalysis;
-  final ElementTypeProvider _elementTypeProvider;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
   final AssignmentExpressionShared _assignmentShared;
@@ -35,10 +33,8 @@ class AssignmentExpressionResolver {
   AssignmentExpressionResolver({
     @required ResolverVisitor resolver,
     @required FlowAnalysisHelper flowAnalysis,
-    @required ElementTypeProvider elementTypeProvider,
   })  : _resolver = resolver,
         _flowAnalysis = flowAnalysis,
-        _elementTypeProvider = elementTypeProvider,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
@@ -141,8 +137,7 @@ class AssignmentExpressionResolver {
    * TODO(scheglov) this is duplicate
    */
   DartType _getExpressionType(Expression expr, {bool read = false}) =>
-      getExpressionType(expr, _typeSystem, _typeProvider,
-          read: read, elementTypeProvider: _elementTypeProvider);
+      getExpressionType(expr, _typeSystem, _typeProvider, read: read);
 
   /**
    * Return the static type of the given [expression] that is to be used for
@@ -154,9 +149,7 @@ class AssignmentExpressionResolver {
     if (expression is NullLiteral) {
       return _typeProvider.nullType;
     }
-    DartType type = read
-        ? getReadType(expression, elementTypeProvider: _elementTypeProvider)
-        : expression.staticType;
+    DartType type = read ? getReadType(expression) : expression.staticType;
     return _resolveTypeParameter(type);
   }
 
@@ -168,13 +161,13 @@ class AssignmentExpressionResolver {
   DartType _getStaticType2(Expression expression, {bool read = false}) {
     DartType type;
     if (read) {
-      type = getReadType(expression, elementTypeProvider: _elementTypeProvider);
+      type = getReadType(expression);
     } else {
       if (expression is SimpleIdentifier && expression.inSetterContext()) {
         var element = expression.staticElement;
         if (element is PromotableElement) {
           // We're writing to the element so ignore promotions.
-          type = _elementTypeProvider.getVariableType(element);
+          type = element.type;
         } else {
           type = expression.staticType;
         }
@@ -290,9 +283,7 @@ class AssignmentExpressionResolver {
       }
 
       var operatorElement = node.staticElement;
-      var type =
-          _elementTypeProvider.safeExecutableReturnType(operatorElement) ??
-              DynamicTypeImpl.instance;
+      var type = operatorElement?.returnType ?? DynamicTypeImpl.instance;
       type = _typeSystem.refineBinaryExpressionType(
         leftReadType,
         operator,

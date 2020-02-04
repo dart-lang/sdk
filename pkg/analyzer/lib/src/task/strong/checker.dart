@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart' show StrongModeCode;
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
@@ -25,11 +24,10 @@ import 'package:analyzer/src/summary/idl.dart';
 /// gets the known static type of the expression.
 DartType getExpressionType(
     Expression expression, TypeSystemImpl typeSystem, TypeProvider typeProvider,
-    {bool read = false,
-    ElementTypeProvider elementTypeProvider = const ElementTypeProvider()}) {
+    {bool read = false}) {
   DartType type;
   if (read) {
-    type = getReadType(expression, elementTypeProvider: elementTypeProvider);
+    type = getReadType(expression);
   } else {
     type = expression.staticType;
   }
@@ -37,13 +35,12 @@ DartType getExpressionType(
   return type;
 }
 
-DartType getReadType(Expression expression,
-    {ElementTypeProvider elementTypeProvider = const ElementTypeProvider()}) {
+DartType getReadType(Expression expression) {
   if (expression is IndexExpression) {
     var staticElement = expression.auxiliaryElements?.staticElement;
     return staticElement == null
         ? DynamicTypeImpl.instance
-        : elementTypeProvider.getExecutableReturnType(staticElement);
+        : staticElement.returnType;
   }
   {
     Element setter;
@@ -57,7 +54,7 @@ DartType getReadType(Expression expression,
     if (setter is PropertyAccessorElement && setter.isSetter) {
       var getter = setter.variable.getter;
       if (getter != null) {
-        var type = elementTypeProvider.getExecutableReturnType(getter);
+        var type = getter.returnType;
         // The return type might be `null` when we perform top-level inference.
         // The first stage collects references to build the dependency graph.
         // TODO(scheglov) Maybe preliminary set types to `dynamic`?
@@ -71,7 +68,7 @@ DartType getReadType(Expression expression,
       var staticElement = aux.staticElement;
       return staticElement == null
           ? DynamicTypeImpl.instance
-          : elementTypeProvider.getExecutableReturnType(staticElement);
+          : staticElement.returnType;
     }
   }
   return expression.staticType;

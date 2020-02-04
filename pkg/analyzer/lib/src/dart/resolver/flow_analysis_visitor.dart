@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
@@ -55,11 +54,8 @@ class FlowAnalysisHelper {
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       flow;
 
-  FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting,
-      {ElementTypeProvider elementTypeProvider = const ElementTypeProvider()})
-      : this._(
-            TypeSystemTypeOperations(typeSystem,
-                elementTypeProvider: elementTypeProvider),
+  FlowAnalysisHelper(TypeSystem typeSystem, bool retainDataForTesting)
+      : this._(TypeSystemTypeOperations(typeSystem),
             retainDataForTesting ? FlowAnalysisDataForTesting() : null);
 
   FlowAnalysisHelper._(this._typeOperations, this.dataForTesting);
@@ -292,13 +288,7 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
 
   FlowAnalysisHelperForMigration(
       TypeSystem typeSystem, this.migrationResolutionHooks)
-      : super(typeSystem, false, elementTypeProvider: migrationResolutionHooks);
-
-  @override
-  LocalVariableTypeProvider get localVariableTypeProvider {
-    return _LocalVariableTypeProvider(this,
-        elementTypeProvider: migrationResolutionHooks);
-  }
+      : super(typeSystem, false);
 
   @override
   void topLevelDeclaration_enter(
@@ -318,10 +308,7 @@ class TypeSystemTypeOperations
     implements TypeOperations<PromotableElement, DartType> {
   final TypeSystemImpl typeSystem;
 
-  final ElementTypeProvider elementTypeProvider;
-
-  TypeSystemTypeOperations(this.typeSystem,
-      {this.elementTypeProvider = const ElementTypeProvider()});
+  TypeSystemTypeOperations(this.typeSystem);
 
   @override
   bool isSameType(covariant TypeImpl type1, covariant TypeImpl type2) {
@@ -345,7 +332,7 @@ class TypeSystemTypeOperations
 
   @override
   DartType variableType(PromotableElement variable) {
-    return elementTypeProvider.getVariableType(variable);
+    return variable.type;
   }
 }
 
@@ -564,11 +551,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   final FlowAnalysisHelper _manager;
 
-  final ElementTypeProvider _elementTypeProvider;
-
-  _LocalVariableTypeProvider(this._manager,
-      {ElementTypeProvider elementTypeProvider = const ElementTypeProvider()})
-      : _elementTypeProvider = elementTypeProvider;
+  _LocalVariableTypeProvider(this._manager);
 
   @override
   DartType getType(SimpleIdentifier node) {
@@ -577,6 +560,6 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       var promotedType = _manager.flow?.variableRead(node, variable);
       if (promotedType != null) return promotedType;
     }
-    return _elementTypeProvider.getVariableType(variable);
+    return variable.type;
   }
 }

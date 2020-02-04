@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -143,6 +144,7 @@ class FixBuilder {
   /// makes note of changes that need to be made.
   void visitAll() {
     try {
+      ElementTypeProvider.current = MigrationResolutionHooksImpl(this);
       unit.accept(_FixBuilderPreVisitor(this));
       unit.accept(_resolver);
       unit.accept(_FixBuilderPostVisitor(this));
@@ -152,6 +154,8 @@ class FixBuilder {
       } else {
         rethrow;
       }
+    } finally {
+      ElementTypeProvider.current = const ElementTypeProvider();
     }
   }
 
@@ -268,15 +272,15 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   @override
   List<ParameterElement> getExecutableParameters(ExecutableElement element) =>
-      getExecutableType(element).parameters;
+      getExecutableType(element as ElementImplWithFunctionType).parameters;
 
   @override
-  DartType getExecutableReturnType(FunctionTypedElement element) =>
-      getExecutableType(element).returnType;
+  DartType getExecutableReturnType(Element element) =>
+      getExecutableType(element as ElementImplWithFunctionType).returnType;
 
   @override
-  FunctionType getExecutableType(FunctionTypedElement element) =>
-      _wrapExceptions(_fixBuilder.unit, () => element.type, () {
+  FunctionType getExecutableType(ElementImplWithFunctionType element) =>
+      _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
         var type = _fixBuilder._computeMigratedType(element);
         Element baseElement = element;
         if (baseElement is Member) {
@@ -286,8 +290,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       });
 
   @override
-  DartType getFieldType(FieldElement element) =>
-      _wrapExceptions(_fixBuilder.unit, () => element.type, () {
+  DartType getFieldType(PropertyInducingElementImpl element) =>
+      _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
         assert(!element.isSynthetic);
         return _fixBuilder._computeMigratedType(element);
       });
@@ -308,13 +312,13 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
               _transformCollectionElements(node.elements, node.typeArguments));
 
   @override
-  DartType getVariableType(VariableElement variable) =>
-      _wrapExceptions(_fixBuilder.unit, () => variable.type, () {
+  DartType getVariableType(VariableElementImpl variable) =>
+      _wrapExceptions(_fixBuilder.unit, () => variable.typeInternal, () {
         if (variable.library == null) {
           // This is a synthetic variable created during resolution (e.g. a
           // parameter of a function type), so the type it currently has is the
           // correct post-migration type.
-          return variable.type;
+          return variable.typeInternal;
         }
         return _fixBuilder._computeMigratedType(variable);
       });

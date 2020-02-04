@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart' as type_algebra;
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -379,11 +380,11 @@ class Variables implements VariableRecorder, VariableRepository {
     }
 
     if (element is FunctionTypedElement) {
-      decoratedType =
-          _alreadyMigratedCodeDecorator.decorate(element.type, element);
+      decoratedType = _alreadyMigratedCodeDecorator.decorate(
+          element.preMigrationType, element);
     } else if (element is VariableElement) {
-      decoratedType =
-          _alreadyMigratedCodeDecorator.decorate(element.type, element);
+      decoratedType = _alreadyMigratedCodeDecorator.decorate(
+          element.preMigrationType, element);
     } else {
       // TODO(paulberry)
       throw UnimplementedError('Decorating ${element.runtimeType}');
@@ -473,5 +474,29 @@ class Variables implements VariableRecorder, VariableRepository {
     // computed from `end` as `end*(end + 1)/2`.  We use `~/` for integer
     // division.
     return end * (end + 1) ~/ 2 + offset;
+  }
+}
+
+extension on FunctionTypedElement {
+  FunctionType get preMigrationType {
+    var previousElementTypeProvider = ElementTypeProvider.current;
+    try {
+      ElementTypeProvider.current = const ElementTypeProvider();
+      return type;
+    } finally {
+      ElementTypeProvider.current = previousElementTypeProvider;
+    }
+  }
+}
+
+extension on VariableElement {
+  DartType get preMigrationType {
+    var previousElementTypeProvider = ElementTypeProvider.current;
+    try {
+      ElementTypeProvider.current = const ElementTypeProvider();
+      return type;
+    } finally {
+      ElementTypeProvider.current = previousElementTypeProvider;
+    }
   }
 }

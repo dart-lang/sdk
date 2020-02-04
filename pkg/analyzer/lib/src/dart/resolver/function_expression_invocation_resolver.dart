@@ -13,22 +13,18 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
 /// Helper for resolving [FunctionExpressionInvocation]s.
 class FunctionExpressionInvocationResolver {
   final ResolverVisitor _resolver;
-  final ElementTypeProvider _elementTypeProvider;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
 
   FunctionExpressionInvocationResolver({
     @required ResolverVisitor resolver,
-    @required ElementTypeProvider elementTypeProvider,
   })  : _resolver = resolver,
-        _elementTypeProvider = elementTypeProvider,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper;
 
@@ -112,7 +108,7 @@ class FunctionExpressionInvocationResolver {
       );
     }
 
-    var rawType = _elementTypeProvider.getExecutableType(callElement);
+    var rawType = callElement.type;
     _resolve(node, rawType);
   }
 
@@ -136,7 +132,7 @@ class FunctionExpressionInvocationResolver {
     }
 
     node.staticElement = callElement;
-    var rawType = _elementTypeProvider.getExecutableType(callElement);
+    var rawType = callElement.type;
     _resolve(node, rawType);
   }
 
