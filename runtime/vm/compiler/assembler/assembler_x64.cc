@@ -1798,7 +1798,7 @@ void Assembler::LeaveStubFrame() {
 // RDX receiver, RBX ICData entries array
 // Preserve R10 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntryJIT() {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
@@ -1831,7 +1831,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
 }
 
 void Assembler::MonomorphicCheckedEntryAOT() {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   intptr_t start = CodeSize();
   Label have_cid, miss;
   Bind(&miss);
@@ -1862,7 +1862,7 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 }
 
 void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   while (CodeSize() < target::Instructions::kMonomorphicEntryOffsetJIT) {
     int3();
   }

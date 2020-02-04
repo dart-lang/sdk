@@ -482,6 +482,9 @@ class Object {
   static RawClass* code_class() { return code_class_; }
   static RawClass* bytecode_class() { return bytecode_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
+  static RawClass* instructions_section_class() {
+    return instructions_section_class_;
+  }
   static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
   static RawClass* code_source_map_class() { return code_source_map_class_; }
@@ -766,6 +769,8 @@ class Object {
   static RawClass* code_class_;                 // Class of the Code vm object.
   static RawClass* bytecode_class_;      // Class of the Bytecode vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
+  static RawClass*
+      instructions_section_class_;       // Class of InstructionsSection.
   static RawClass* object_pool_class_;   // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;   // Class of PcDescriptors vm object.
   static RawClass* code_source_map_class_;  // Class of CodeSourceMap vm object.
@@ -5039,19 +5044,11 @@ class Instructions : public Object {
     return SizeBits::decode(instr->ptr()->size_and_flags_);
   }
 
-  bool HasSingleEntryPoint() const {
+  bool HasMonomorphicEntry() const {
     return FlagsBits::decode(raw_ptr()->size_and_flags_);
   }
-  static bool HasSingleEntryPoint(const RawInstructions* instr) {
+  static bool HasMonomorphicEntry(const RawInstructions* instr) {
     return FlagsBits::decode(instr->ptr()->size_and_flags_);
-  }
-
-  static bool ContainsPc(RawInstructions* instruction, uword pc) {
-    const uword offset = pc - PayloadStart(instruction);
-    // We use <= instead of < here because the saved-pc can be outside the
-    // instruction stream if the last instruction is a call we don't expect to
-    // return (e.g. because it throws an exception).
-    return offset <= static_cast<uword>(Size(instruction));
   }
 
   uword PayloadStart() const { return PayloadStart(raw()); }
@@ -5089,7 +5086,7 @@ class Instructions : public Object {
 
   static uword MonomorphicEntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
-    if (!HasSingleEntryPoint(instr)) {
+    if (HasMonomorphicEntry(instr)) {
       entry += !FLAG_precompiled_mode ? kMonomorphicEntryOffsetJIT
                                       : kMonomorphicEntryOffsetAOT;
     }
@@ -5098,7 +5095,7 @@ class Instructions : public Object {
 
   static uword EntryPoint(const RawInstructions* instr) {
     uword entry = PayloadStart(instr);
-    if (!HasSingleEntryPoint(instr)) {
+    if (HasMonomorphicEntry(instr)) {
       entry += !FLAG_precompiled_mode ? kPolymorphicEntryOffsetJIT
                                       : kPolymorphicEntryOffsetAOT;
     }
@@ -5148,7 +5145,7 @@ class Instructions : public Object {
                     SizeBits::update(value, raw_ptr()->size_and_flags_));
   }
 
-  void SetHasSingleEntryPoint(bool value) const {
+  void SetHasMonomorphicEntry(bool value) const {
     StoreNonPointer(&raw_ptr()->size_and_flags_,
                     FlagsBits::update(value, raw_ptr()->size_and_flags_));
   }
@@ -5157,7 +5154,7 @@ class Instructions : public Object {
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static RawInstructions* New(intptr_t size, bool has_single_entry_point);
+  static RawInstructions* New(intptr_t size, bool has_monomorphic_entry);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
@@ -5165,6 +5162,34 @@ class Instructions : public Object {
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
   friend class ImageWriter;
+};
+
+// Used only to provide memory accounting for the bare instruction payloads
+// we serialize, since they are no longer part of RawInstructions objects.
+class InstructionsSection : public Object {
+ public:
+  // Excludes HeaderSize().
+  intptr_t Size() const { return raw_ptr()->payload_length_; }
+  static intptr_t Size(const RawInstructionsSection* instr) {
+    return instr->ptr()->payload_length_;
+  }
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawInstructionsSection) ==
+           OFFSET_OF_RETURNED_VALUE(RawInstructionsSection, data));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t size) {
+    return Utils::RoundUp(HeaderSize() + size, kObjectAlignment);
+  }
+
+  static intptr_t HeaderSize() {
+    return Utils::RoundUp(sizeof(RawInstructionsSection), kWordSize);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(InstructionsSection, Object);
+  friend class Class;
 };
 
 class LocalVarDescriptors : public Object {
@@ -5542,11 +5567,6 @@ class Code : public Object {
     return code->ptr()->instructions_;
   }
 
-  // Returns the entry point of [InstructionsOf(code)].
-  static uword EntryPointOf(const RawCode* code) {
-    return Instructions::EntryPoint(InstructionsOf(code));
-  }
-
   static intptr_t saved_instructions_offset() {
     return OFFSET_OF(RawCode, instructions_);
   }
@@ -5596,12 +5616,38 @@ class Code : public Object {
   bool is_alive() const { return AliveBit::decode(raw_ptr()->state_bits_); }
   void set_is_alive(bool value) const;
 
-  // Returns the payload start of [instructions()].
-  uword PayloadStart() const {
-    return Instructions::PayloadStart(instructions());
+  bool HasMonomorphicEntry() const { return HasMonomorphicEntry(raw()); }
+  static bool HasMonomorphicEntry(const RawCode* code) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return code->ptr()->entry_point_ != code->ptr()->monomorphic_entry_point_;
+#else
+    return Instructions::HasMonomorphicEntry(InstructionsOf(code));
+#endif
   }
+
+  // Returns the payload start of [instructions()].
+  uword PayloadStart() const { return PayloadStartOf(raw()); }
+  static uword PayloadStartOf(const RawCode* code) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    const uword entry_offset = HasMonomorphicEntry(code)
+                                   ? Instructions::kPolymorphicEntryOffsetAOT
+                                   : 0;
+    return EntryPointOf(code) - entry_offset;
+#else
+    return Instructions::PayloadStart(InstructionsOf(code));
+#endif
+  }
+
   // Returns the entry point of [instructions()].
-  uword EntryPoint() const { return Instructions::EntryPoint(instructions()); }
+  uword EntryPoint() const { return EntryPointOf(raw()); }
+  static uword EntryPointOf(const RawCode* code) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return code->ptr()->entry_point_;
+#else
+    return Instructions::EntryPoint(InstructionsOf(code));
+#endif
+  }
+
   // Returns the unchecked entry point of [instructions()].
   uword UncheckedEntryPoint() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -5612,7 +5658,11 @@ class Code : public Object {
   }
   // Returns the monomorphic entry point of [instructions()].
   uword MonomorphicEntryPoint() const {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->monomorphic_entry_point_;
+#else
     return Instructions::MonomorphicEntryPoint(instructions());
+#endif
   }
   // Returns the unchecked monomorphic entry point of [instructions()].
   uword MonomorphicUncheckedEntryPoint() const {
@@ -5622,8 +5672,16 @@ class Code : public Object {
     return MonomorphicEntryPoint() + raw_ptr()->unchecked_offset_;
 #endif
   }
+
   // Returns the size of [instructions()].
-  intptr_t Size() const { return Instructions::Size(instructions()); }
+  intptr_t Size() const { return PayloadSizeOf(raw()); }
+  static intptr_t PayloadSizeOf(const RawCode* code) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return code->ptr()->instructions_length_;
+#else
+    return Instructions::Size(InstructionsOf(code));
+#endif
+  }
 
   RawObjectPool* GetObjectPool() const;
   // Returns whether the given PC address is in [instructions()].
@@ -5632,8 +5690,8 @@ class Code : public Object {
   }
 
   // Returns whether the given PC address is in [InstructionsOf(code)].
-  static bool ContainsInstructionAt(const RawCode* code, uword addr) {
-    return Instructions::ContainsPc(InstructionsOf(code), addr);
+  static bool ContainsInstructionAt(const RawCode* code, uword pc) {
+    return RawCode::ContainsPC(code, pc);
   }
 
   // Returns true if there is a debugger breakpoint set in this code object.
@@ -6037,11 +6095,13 @@ class Code : public Object {
 
   // Returns the unchecked entry point offset for [instructions_].
   uint32_t UncheckedEntryPointOffset() const {
+    return UncheckedEntryPointOffsetOf(raw());
+  }
+  static uint32_t UncheckedEntryPointOffsetOf(RawCode* code) {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
-    return raw_ptr()->unchecked_entry_point_ - raw_ptr()->entry_point_;
 #else
-    return raw_ptr()->unchecked_offset_;
+    return code->ptr()->unchecked_offset_;
 #endif
   }
 
@@ -6079,6 +6139,7 @@ class Code : public Object {
   friend class FunctionSerializationCluster;
   friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
+  friend class Deserializer;           // for InitializeCachedEntryPointsFrom
   friend class StubCode;               // for set_object_pool
   friend class MegamorphicCacheTable;  // for set_object_pool
   friend class CodePatcher;            // for set_instructions

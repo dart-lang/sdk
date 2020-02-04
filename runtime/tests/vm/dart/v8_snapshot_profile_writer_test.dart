@@ -11,7 +11,12 @@ import "package:vm/v8_snapshot_profile.dart";
 
 import 'use_flag_test_helper.dart';
 
-test({String dillPath, bool useAsm, bool stripFlag, bool stripUtil}) async {
+test(
+    {String dillPath,
+    bool useAsm,
+    bool useBare,
+    bool stripFlag,
+    bool stripUtil}) async {
   // The assembler may add extra unnecessary information to the compiled
   // snapshot whether or not we generate DWARF information in the assembly, so
   // we force the use of a utility when generating assembly.
@@ -23,6 +28,7 @@ test({String dillPath, bool useAsm, bool stripFlag, bool stripUtil}) async {
 
   final tempDirPrefix = 'v8-snapshot-profile' +
       (useAsm ? '-assembly' : '-elf') +
+      (useBare ? '-bare' : '-nonbare') +
       (stripFlag ? '-intstrip' : '') +
       (stripUtil ? '-extstrip' : '');
 
@@ -32,6 +38,7 @@ test({String dillPath, bool useAsm, bool stripFlag, bool stripUtil}) async {
     final snapshotPath = path.join(tempDir, 'test.snap');
     final commonSnapshotArgs = [
       if (stripFlag) '--strip',
+      useBare ? '--use-bare-instructions' : '--no-use-bare-instructions',
       "--write-v8-snapshot-profile-to=$profilePath",
       dillPath,
     ];
@@ -71,7 +78,7 @@ test({String dillPath, bool useAsm, bool stripFlag, bool stripUtil}) async {
     // graph (in some cases the shallow size can legitimately be 0, e.g. for
     // "base objects").
     for (final int node in profile.nodes) {
-      Expect.notEquals(profile[node].type, "Unknown",
+      Expect.notEquals("Unknown", profile[node].type,
           "unknown node at ID ${profile[node].id}");
     }
 
@@ -89,6 +96,7 @@ test({String dillPath, bool useAsm, bool stripFlag, bool stripUtil}) async {
     final actual = await File(strippedPath).length();
     final expected = profile.accountedBytes;
 
+    final bareUsed = useBare ? "bare" : "non-bare";
     final fileType = useAsm ? "assembly" : "ELF";
     String stripPrefix = "";
     if (stripFlag && stripUtil) {
@@ -100,7 +108,7 @@ test({String dillPath, bool useAsm, bool stripFlag, bool stripUtil}) async {
     }
 
     Expect.approxEquals(expected, actual, 0.03 * actual,
-        "failed on $stripPrefix$fileType snapshot type.");
+        "failed on $bareUsed $stripPrefix$fileType snapshot type.");
   });
 }
 
@@ -214,7 +222,17 @@ main() async {
 
     // Test stripped ELF generation directly.
     await test(
-        dillPath: dillPath, stripFlag: true, stripUtil: false, useAsm: false);
+        dillPath: dillPath,
+        stripFlag: true,
+        stripUtil: false,
+        useAsm: false,
+        useBare: false);
+    await test(
+        dillPath: dillPath,
+        stripFlag: true,
+        stripUtil: false,
+        useAsm: false,
+        useBare: true);
 
     // We neither generate assembly nor have a stripping utility on Windows.
     if (Platform.isWindows) {
@@ -228,7 +246,17 @@ main() async {
     } else {
       // Test unstripped ELF generation that is then stripped externally.
       await test(
-          dillPath: dillPath, stripFlag: false, stripUtil: true, useAsm: false);
+          dillPath: dillPath,
+          stripFlag: false,
+          stripUtil: true,
+          useAsm: false,
+          useBare: false);
+      await test(
+          dillPath: dillPath,
+          stripFlag: false,
+          stripUtil: true,
+          useAsm: false,
+          useBare: true);
     }
 
     // TODO(sstrickl): Currently we can't assemble for SIMARM64 on MacOSX.
@@ -241,9 +269,29 @@ main() async {
 
     // Test stripped assembly generation that is then compiled and stripped.
     await test(
-        dillPath: dillPath, stripFlag: true, stripUtil: true, useAsm: true);
+        dillPath: dillPath,
+        stripFlag: true,
+        stripUtil: true,
+        useAsm: true,
+        useBare: false);
+    await test(
+        dillPath: dillPath,
+        stripFlag: true,
+        stripUtil: true,
+        useAsm: true,
+        useBare: true);
     // Test unstripped assembly generation that is then compiled and stripped.
     await test(
-        dillPath: dillPath, stripFlag: false, stripUtil: true, useAsm: true);
+        dillPath: dillPath,
+        stripFlag: false,
+        stripUtil: true,
+        useAsm: true,
+        useBare: false);
+    await test(
+        dillPath: dillPath,
+        stripFlag: false,
+        stripUtil: true,
+        useAsm: true,
+        useBare: true);
   });
 }
