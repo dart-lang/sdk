@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveAwaitTest);
   });
@@ -23,7 +23,7 @@ class RemoveAwaitTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.await_only_futures;
 
-  test_intLiteral() async {
+  Future<void> test_intLiteral() async {
     await resolveTestUnit('''
 bad() async {
   print(/*LINT*/await 23);
@@ -36,7 +36,7 @@ bad() async {
 ''');
   }
 
-  test_stringLiteral() async {
+  Future<void> test_stringLiteral() async {
     await resolveTestUnit('''
 bad() async {
   print(/*LINT*/await 'hola');

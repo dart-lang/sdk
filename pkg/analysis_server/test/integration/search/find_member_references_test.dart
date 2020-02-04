@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FindMemberReferencesTest);
   });
@@ -18,7 +18,7 @@ main() {
 class FindMemberReferencesTest extends AbstractAnalysisServerIntegrationTest {
   String pathname;
 
-  test_findMemberReferences() async {
+  Future<void> test_findMemberReferences() async {
     String text = r'''
 String qux() => 'qux';
 

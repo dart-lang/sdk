@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ChangeToStaticAccessClassTest);
     defineReflectiveTests(ChangeToStaticAccessExtensionTest);
@@ -20,7 +20,7 @@ class ChangeToStaticAccessClassTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CHANGE_TO_STATIC_ACCESS;
 
-  test_method() async {
+  Future<void> test_method() async {
     await resolveTestUnit('''
 class A {
   static foo() {}
@@ -39,7 +39,7 @@ main(A a) {
 ''');
   }
 
-  test_method_importType() async {
+  Future<void> test_method_importType() async {
     addSource('/home/test/lib/a.dart', r'''
 class A {
   static foo() {}
@@ -67,7 +67,7 @@ main(B b) {
 ''');
   }
 
-  test_method_prefixLibrary() async {
+  Future<void> test_method_prefixLibrary() async {
     await resolveTestUnit('''
 import 'dart:async' as pref;
 main(pref.Future f) {
@@ -82,7 +82,7 @@ main(pref.Future f) {
 ''');
   }
 
-  test_property() async {
+  Future<void> test_property() async {
     await resolveTestUnit('''
 class A {
   static get foo => 42;
@@ -101,7 +101,7 @@ main(A a) {
 ''');
   }
 
-  test_property_importType() async {
+  Future<void> test_property_importType() async {
     addSource('/home/test/lib/a.dart', r'''
 class A {
   static get foo => null;
@@ -135,7 +135,7 @@ class ChangeToStaticAccessExtensionTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CHANGE_TO_STATIC_ACCESS;
 
-  test_method() async {
+  Future<void> test_method() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     await resolveTestUnit('''
 extension E on int {
@@ -156,7 +156,7 @@ main() {
   }
 
   @failingTest
-  test_property() async {
+  Future<void> test_property() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     await resolveTestUnit('''
 extension E on int {

@@ -77,6 +77,7 @@ abstract class PSDependency {
   PSGitRepo get git;
   PSHost get host;
   PSNode get name;
+  PSEntry get path;
   PSEntry get version;
 }
 
@@ -150,6 +151,8 @@ class _PSDependency extends PSDependency {
   @override
   PSNode name;
   @override
+  PSEntry path;
+  @override
   PSEntry version;
   @override
   PSHost host;
@@ -181,6 +184,9 @@ class _PSDependency extends PSDependency {
         }
         YamlScalar key = k;
         switch (key.toString()) {
+          case 'path':
+            dep.path = _processScalar(key, v);
+            break;
           case 'version':
             dep.version = _processScalar(key, v);
             break;

@@ -293,7 +293,7 @@ class StaticUse {
     }
     if (constant != null) {
       sb.write('=');
-      sb.write(constant.toStructuredText());
+      sb.write(constant.toStructuredText(null));
     }
     return sb.toString();
   }
@@ -908,7 +908,7 @@ class ConstantUse {
 
   /// Short textual representation use for testing.
   String get shortText {
-    return value.toDartText();
+    return value.toDartText(null);
   }
 
   /// Constant used as the initial value of a field.
@@ -934,5 +934,5 @@ class ConstantUse {
   int get hashCode => value.hashCode;
 
   @override
-  String toString() => 'ConstantUse(${value.toStructuredText()})';
+  String toString() => 'ConstantUse(${value.toStructuredText(null)})';
 }

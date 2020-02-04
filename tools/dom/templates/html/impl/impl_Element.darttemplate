@@ -14,7 +14,7 @@ class _ChildrenElementList extends ListBase<Element>
     : _childElements = element._children,
       _element = element;
 
-  bool contains(Object element) => _childElements.contains(element);
+  bool contains(Object$NULLABLE element) => _childElements.contains(element);
 
 
   bool get isEmpty {
@@ -55,11 +55,11 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
-  void sort([int compare(Element a, Element b)]) {
+  void sort([int compare(Element a, Element b)$NULLABLE]) {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random$NULLABLE random]) {
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
@@ -81,7 +81,7 @@ class _ChildrenElementList extends ListBase<Element>
     for (var e in removed) e.remove();
   }
 
-  void fillRange(int start, int end, [Element fillValue]) {
+  void fillRange(int start, int end, [Element$NULLABLE fillValue]) {
     throw new UnimplementedError();
   }
 
@@ -98,7 +98,7 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnimplementedError();
   }
 
-  bool remove(Object object) {
+  bool remove(Object$NULLABLE object) {
     if (object is Element) {
       Element element = object;
       if (identical(element.parentNode, _element)) {
@@ -280,11 +280,11 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void sort([Comparator<E> compare]) {
+  void sort([Comparator<E>$NULLABLE compare]) {
     throw new UnsupportedError('Cannot sort list');
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random$NULLABLE random]) {
     throw new UnsupportedError('Cannot shuffle list');
   }
 
@@ -764,7 +764,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * * [Pseudo-elements](https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements)
    *   from MDN.
    */
-  CssStyleDeclaration getComputedStyle([String pseudoElement]) {
+  CssStyleDeclaration getComputedStyle([String$NULLABLE pseudoElement]) {
     if (pseudoElement == null) {
       pseudoElement = '';
     }
@@ -1319,7 +1319,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      BaseElement base = _parseDocument.createElement('base');
+      BaseElement base = _parseDocument.createElement('base') $#NULLSAFECAST(as BaseElement);
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }

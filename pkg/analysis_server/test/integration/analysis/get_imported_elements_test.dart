@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetImportedElementsIntegrationTest);
   });
@@ -36,7 +36,8 @@ class AnalysisGetImportedElementsIntegrationTest
    * with the first character that matches [target] and having the given
    * [length] matches the given list of [expected] imported elements.
    */
-  checkElements(String target, List<ImportedElements> expected) async {
+  Future<void> checkElements(
+      String target, List<ImportedElements> expected) async {
     bool equals(
         ImportedElements actualElements, ImportedElements expectedElements) {
       if (actualElements.path.endsWith(expectedElements.path) &&
@@ -93,13 +94,13 @@ class AnalysisGetImportedElementsIntegrationTest
   }
 
   @override
-  setUp() {
+  Future<void> setUp() {
     return super.setUp().then((_) {
       pathname = sourcePath('test.dart');
     });
   }
 
-  test_getImportedElements_none() async {
+  Future<void> test_getImportedElements_none() async {
     text = r'''
 main() {}
 ''';
@@ -110,7 +111,7 @@ main() {}
     await checkNoElements('main() {}');
   }
 
-  test_getImportedElements_some() async {
+  Future<void> test_getImportedElements_some() async {
     String selection = r'''
 main() {
   Random r = new Random();

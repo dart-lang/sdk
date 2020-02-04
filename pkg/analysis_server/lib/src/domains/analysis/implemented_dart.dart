@@ -17,7 +17,7 @@ class ImplementedComputer {
 
   ImplementedComputer(this.searchEngine, this.unitElement);
 
-  compute() async {
+  Future<void> compute() async {
     for (var element in unitElement.mixins) {
       await _computeForClassElement(element);
     }

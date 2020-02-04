@@ -1173,18 +1173,6 @@ main(A<V> p) {
     ]);
   }
 
-  test_undefinedEnumConstant() async {
-    // We should be reporting UNDEFINED_ENUM_CONSTANT here.
-    await assertErrorsInCode(r'''
-enum E { ONE }
-E e() {
-  return E.TWO;
-}
-''', [
-      error(StaticTypeWarningCode.UNDEFINED_GETTER, 34, 3),
-    ]);
-  }
-
   test_unqualifiedReferenceToNonLocalStaticMember_getter() async {
     await assertErrorsInCode(r'''
 class A {

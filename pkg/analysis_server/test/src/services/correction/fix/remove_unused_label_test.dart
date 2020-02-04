@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnusedLabelTest);
   });
@@ -19,7 +19,7 @@ class RemoveUnusedLabelTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNUSED_LABEL;
 
-  test_unused_onWhile() async {
+  Future<void> test_unused_onWhile() async {
     await resolveTestUnit('''
 f() {
   x:
@@ -37,7 +37,7 @@ f() {
 ''');
   }
 
-  test_unused_onWhile_sameLine() async {
+  Future<void> test_unused_onWhile_sameLine() async {
     await resolveTestUnit('''
 f() {
   x: while (true) {

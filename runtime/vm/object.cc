@@ -693,14 +693,19 @@ void Object::Init(Isolate* isolate) {
     // to lookup class class in the class table where it is not registered yet.
     cls.raw_ = class_class_;
     ASSERT(builtin_vtables_[kClassCid] == fake.vtable());
-    cls.set_instance_size(Class::InstanceSize());
-    cls.set_next_field_offset(Class::NextFieldOffset());
+    cls.set_instance_size(
+        Class::InstanceSize(),
+        compiler::target::RoundedAllocationSize(RTN::Class::InstanceSize()));
+    const intptr_t host_next_field_offset = Class::NextFieldOffset();
+    const intptr_t target_next_field_offset = RTN::Class::NextFieldOffset();
+    cls.set_next_field_offset(host_next_field_offset, target_next_field_offset);
     cls.set_id(Class::kClassId);
     cls.set_state_bits(0);
     cls.set_is_finalized();
     cls.set_is_declaration_loaded();
     cls.set_is_type_finalized();
-    cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments);
+    cls.set_type_arguments_field_offset_in_words(Class::kNoTypeArguments,
+                                                 RTN::Class::kNoTypeArguments);
     cls.set_num_type_arguments(0);
     cls.set_num_native_fields(0);
     cls.InitEmptyFields();
@@ -708,19 +713,23 @@ void Object::Init(Isolate* isolate) {
   }
 
   // Allocate and initialize the null class.
-  cls = Class::New<Instance>(kNullCid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate);
   cls.set_num_type_arguments(0);
   isolate->object_store()->set_null_class(cls);
 
   // Allocate and initialize the free list element class.
-  cls = Class::New<FreeListElement::FakeInstance>(kFreeListElement, isolate);
+  cls =
+      Class::New<FreeListElement::FakeInstance,
+                 RTN::FreeListElement::FakeInstance>(kFreeListElement, isolate);
   cls.set_num_type_arguments(0);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
   // Allocate and initialize the forwarding corpse class.
-  cls = Class::New<ForwardingCorpse::FakeInstance>(kForwardingCorpse, isolate);
+  cls = Class::New<ForwardingCorpse::FakeInstance,
+                   RTN::ForwardingCorpse::FakeInstance>(kForwardingCorpse,
+                                                        isolate);
   cls.set_num_type_arguments(0);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
@@ -744,132 +753,136 @@ void Object::Init(Isolate* isolate) {
   }
 
   // Allocate the remaining VM internal classes.
-  cls = Class::New<TypeArguments>(isolate);
+  cls = Class::New<TypeArguments, RTN::TypeArguments>(isolate);
   type_arguments_class_ = cls.raw();
 
-  cls = Class::New<PatchClass>(isolate);
+  cls = Class::New<PatchClass, RTN::PatchClass>(isolate);
   patch_class_class_ = cls.raw();
 
-  cls = Class::New<Function>(isolate);
+  cls = Class::New<Function, RTN::Function>(isolate);
   function_class_ = cls.raw();
 
-  cls = Class::New<ClosureData>(isolate);
+  cls = Class::New<ClosureData, RTN::ClosureData>(isolate);
   closure_data_class_ = cls.raw();
 
-  cls = Class::New<SignatureData>(isolate);
+  cls = Class::New<SignatureData, RTN::SignatureData>(isolate);
   signature_data_class_ = cls.raw();
 
-  cls = Class::New<RedirectionData>(isolate);
+  cls = Class::New<RedirectionData, RTN::RedirectionData>(isolate);
   redirection_data_class_ = cls.raw();
 
-  cls = Class::New<FfiTrampolineData>(isolate);
+  cls = Class::New<FfiTrampolineData, RTN::FfiTrampolineData>(isolate);
   ffi_trampoline_data_class_ = cls.raw();
 
-  cls = Class::New<Field>(isolate);
+  cls = Class::New<Field, RTN::Field>(isolate);
   field_class_ = cls.raw();
 
-  cls = Class::New<Script>(isolate);
+  cls = Class::New<Script, RTN::Script>(isolate);
   script_class_ = cls.raw();
 
-  cls = Class::New<Library>(isolate);
+  cls = Class::New<Library, RTN::Library>(isolate);
   library_class_ = cls.raw();
 
-  cls = Class::New<Namespace>(isolate);
+  cls = Class::New<Namespace, RTN::Namespace>(isolate);
   namespace_class_ = cls.raw();
 
-  cls = Class::New<KernelProgramInfo>(isolate);
+  cls = Class::New<KernelProgramInfo, RTN::KernelProgramInfo>(isolate);
   kernel_program_info_class_ = cls.raw();
 
-  cls = Class::New<Code>(isolate);
+  cls = Class::New<Code, RTN::Code>(isolate);
   code_class_ = cls.raw();
 
-  cls = Class::New<Bytecode>(isolate);
+  cls = Class::New<Bytecode, RTN::Bytecode>(isolate);
   bytecode_class_ = cls.raw();
 
-  cls = Class::New<Instructions>(isolate);
+  cls = Class::New<Instructions, RTN::Instructions>(isolate);
   instructions_class_ = cls.raw();
 
-  cls = Class::New<ObjectPool>(isolate);
+  cls = Class::New<ObjectPool, RTN::ObjectPool>(isolate);
   object_pool_class_ = cls.raw();
 
-  cls = Class::New<PcDescriptors>(isolate);
+  cls = Class::New<PcDescriptors, RTN::PcDescriptors>(isolate);
   pc_descriptors_class_ = cls.raw();
 
-  cls = Class::New<CodeSourceMap>(isolate);
+  cls = Class::New<CodeSourceMap, RTN::CodeSourceMap>(isolate);
   code_source_map_class_ = cls.raw();
 
-  cls = Class::New<CompressedStackMaps>(isolate);
+  cls = Class::New<CompressedStackMaps, RTN::CompressedStackMaps>(isolate);
   compressed_stackmaps_class_ = cls.raw();
 
-  cls = Class::New<LocalVarDescriptors>(isolate);
+  cls = Class::New<LocalVarDescriptors, RTN::LocalVarDescriptors>(isolate);
   var_descriptors_class_ = cls.raw();
 
-  cls = Class::New<ExceptionHandlers>(isolate);
+  cls = Class::New<ExceptionHandlers, RTN::ExceptionHandlers>(isolate);
   exception_handlers_class_ = cls.raw();
 
-  cls = Class::New<Context>(isolate);
+  cls = Class::New<Context, RTN::Context>(isolate);
   context_class_ = cls.raw();
 
-  cls = Class::New<ContextScope>(isolate);
+  cls = Class::New<ContextScope, RTN::ContextScope>(isolate);
   context_scope_class_ = cls.raw();
 
-  cls = Class::New<ParameterTypeCheck>(isolate);
+  cls = Class::New<ParameterTypeCheck, RTN::ParameterTypeCheck>(isolate);
   dyncalltypecheck_class_ = cls.raw();
 
-  cls = Class::New<SingleTargetCache>(isolate);
+  cls = Class::New<SingleTargetCache, RTN::SingleTargetCache>(isolate);
   singletargetcache_class_ = cls.raw();
 
-  cls = Class::New<UnlinkedCall>(isolate);
+  cls = Class::New<UnlinkedCall, RTN::UnlinkedCall>(isolate);
   unlinkedcall_class_ = cls.raw();
 
-  cls = Class::New<MonomorphicSmiableCall>(isolate);
+  cls =
+      Class::New<MonomorphicSmiableCall, RTN::MonomorphicSmiableCall>(isolate);
   monomorphicsmiablecall_class_ = cls.raw();
 
-  cls = Class::New<ICData>(isolate);
+  cls = Class::New<ICData, RTN::ICData>(isolate);
   icdata_class_ = cls.raw();
 
-  cls = Class::New<MegamorphicCache>(isolate);
+  cls = Class::New<MegamorphicCache, RTN::MegamorphicCache>(isolate);
   megamorphic_cache_class_ = cls.raw();
 
-  cls = Class::New<SubtypeTestCache>(isolate);
+  cls = Class::New<SubtypeTestCache, RTN::SubtypeTestCache>(isolate);
   subtypetestcache_class_ = cls.raw();
 
-  cls = Class::New<ApiError>(isolate);
+  cls = Class::New<ApiError, RTN::ApiError>(isolate);
   api_error_class_ = cls.raw();
 
-  cls = Class::New<LanguageError>(isolate);
+  cls = Class::New<LanguageError, RTN::LanguageError>(isolate);
   language_error_class_ = cls.raw();
 
-  cls = Class::New<UnhandledException>(isolate);
+  cls = Class::New<UnhandledException, RTN::UnhandledException>(isolate);
   unhandled_exception_class_ = cls.raw();
 
-  cls = Class::New<UnwindError>(isolate);
+  cls = Class::New<UnwindError, RTN::UnwindError>(isolate);
   unwind_error_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
 
   // Pre-allocate classes in the vm isolate so that we can for example create a
   // symbol table and populate it with some frequently used strings as symbols.
-  cls = Class::New<Array>(isolate);
+  cls = Class::New<Array, RTN::Array>(isolate);
   isolate->object_store()->set_array_class(cls);
-  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
+                                      RTN::Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls = Class::New<Array>(kImmutableArrayCid, isolate);
+  cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate);
   isolate->object_store()->set_immutable_array_class(cls);
-  cls.set_type_arguments_field_offset(Array::type_arguments_offset());
+  cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
+                                      RTN::Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
-  cls = Class::New<GrowableObjectArray>(isolate);
+  cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate);
   isolate->object_store()->set_growable_object_array_class(cls);
   cls.set_type_arguments_field_offset(
-      GrowableObjectArray::type_arguments_offset());
+      GrowableObjectArray::type_arguments_offset(),
+      RTN::GrowableObjectArray::type_arguments_offset());
   cls.set_num_type_arguments(1);
   cls = Class::NewStringClass(kOneByteStringCid, isolate);
   isolate->object_store()->set_one_byte_string_class(cls);
   cls = Class::NewStringClass(kTwoByteStringCid, isolate);
   isolate->object_store()->set_two_byte_string_class(cls);
-  cls = Class::New<Mint>(isolate);
+  cls = Class::New<Mint, RTN::Mint>(isolate);
   isolate->object_store()->set_mint_class(cls);
-  cls = Class::New<Double>(isolate);
+  cls = Class::New<Double, RTN::Double>(isolate);
   isolate->object_store()->set_double_class(cls);
 
   // Ensure that class kExternalTypedDataUint8ArrayCid is registered as we
@@ -991,7 +1004,7 @@ void Object::Init(Isolate* isolate) {
   // as we do not have any VM isolate snapshot at this time.
   *vm_isolate_snapshot_object_table_ = Object::empty_array().raw();
 
-  cls = Class::New<Instance>(kDynamicCid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kDynamicCid, isolate);
   cls.set_is_abstract();
   cls.set_num_type_arguments(0);
   cls.set_is_finalized();
@@ -999,21 +1012,21 @@ void Object::Init(Isolate* isolate) {
   cls.set_is_type_finalized();
   dynamic_class_ = cls.raw();
 
-  cls = Class::New<Instance>(kVoidCid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kVoidCid, isolate);
   cls.set_num_type_arguments(0);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   void_class_ = cls.raw();
 
-  cls = Class::New<Instance>(kNeverCid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kNeverCid, isolate);
   cls.set_num_type_arguments(0);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
   never_class_ = cls.raw();
 
-  cls = Class::New<Type>(isolate);
+  cls = Class::New<Type, RTN::Type>(isolate);
   cls.set_is_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
@@ -1045,7 +1058,7 @@ void Object::Init(Isolate* isolate) {
   cls.SetFunctions(Object::empty_array());
 
   // Allocate and initialize singleton true and false boolean objects.
-  cls = Class::New<Bool>(isolate);
+  cls = Class::New<Bool, RTN::Bool>(isolate);
   isolate->object_store()->set_bool_class(cls);
   *bool_true_ = Bool::New(true);
   *bool_false_ = Bool::New(false);
@@ -1571,7 +1584,7 @@ RawError* Object::Init(Isolate* isolate,
 
     // All RawArray fields will be initialized to an empty array, therefore
     // initialize array class first.
-    cls = Class::New<Array>(isolate);
+    cls = Class::New<Array, RTN::Array>(isolate);
     object_store->set_array_class(cls);
 
     // VM classes that are parameterized (Array, ImmutableArray,
@@ -1579,15 +1592,17 @@ RawError* Object::Init(Isolate* isolate,
     // CalculateFieldOffsets() is not called, so we need to set the offset of
     // their type_arguments_ field, which is explicitly declared in their
     // respective Raw* classes.
-    cls.set_type_arguments_field_offset(Array::type_arguments_offset());
+    cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
+                                        RTN::Array::type_arguments_offset());
     cls.set_num_type_arguments(1);
 
     // Set up the growable object array class (Has to be done after the array
     // class is setup as one of its field is an array object).
-    cls = Class::New<GrowableObjectArray>(isolate);
+    cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate);
     object_store->set_growable_object_array_class(cls);
     cls.set_type_arguments_field_offset(
-        GrowableObjectArray::type_arguments_offset());
+        GrowableObjectArray::type_arguments_offset(),
+        RTN::GrowableObjectArray::type_arguments_offset());
     cls.set_num_type_arguments(1);
 
     // Initialize hash set for canonical types.
@@ -1603,13 +1618,14 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_canonical_type_arguments(array);
 
     // Setup type class early in the process.
-    const Class& type_cls = Class::Handle(zone, Class::New<Type>(isolate));
+    const Class& type_cls =
+        Class::Handle(zone, Class::New<Type, RTN::Type>(isolate));
     const Class& type_ref_cls =
-        Class::Handle(zone, Class::New<TypeRef>(isolate));
-    const Class& type_parameter_cls =
-        Class::Handle(zone, Class::New<TypeParameter>(isolate));
-    const Class& library_prefix_cls =
-        Class::Handle(zone, Class::New<LibraryPrefix>(isolate));
+        Class::Handle(zone, Class::New<TypeRef, RTN::TypeRef>(isolate));
+    const Class& type_parameter_cls = Class::Handle(
+        zone, Class::New<TypeParameter, RTN::TypeParameter>(isolate));
+    const Class& library_prefix_cls = Class::Handle(
+        zone, Class::New<LibraryPrefix, RTN::LibraryPrefix>(isolate));
 
     // Pre-allocate the OneByteString class needed by the symbol table.
     cls = Class::NewStringClass(kOneByteStringCid, isolate);
@@ -1666,9 +1682,10 @@ RawError* Object::Init(Isolate* isolate,
     RegisterPrivateClass(cls, Symbols::_GrowableList(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Array>(kImmutableArrayCid, isolate);
+    cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate);
     object_store->set_immutable_array_class(cls);
-    cls.set_type_arguments_field_offset(Array::type_arguments_offset());
+    cls.set_type_arguments_field_offset(Array::type_arguments_offset(),
+                                        RTN::Array::type_arguments_offset());
     cls.set_num_type_arguments(1);
     ASSERT(object_store->immutable_array_class() !=
            object_store->array_class());
@@ -1707,30 +1724,31 @@ RawError* Object::Init(Isolate* isolate,
     ASSERT(!isolate_lib.IsNull());
     ASSERT(isolate_lib.raw() == Library::IsolateLibrary());
 
-    cls = Class::New<Capability>(isolate);
+    cls = Class::New<Capability, RTN::Capability>(isolate);
     RegisterPrivateClass(cls, Symbols::_CapabilityImpl(), isolate_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<ReceivePort>(isolate);
+    cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate);
     RegisterPrivateClass(cls, Symbols::_RawReceivePortImpl(), isolate_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<SendPort>(isolate);
+    cls = Class::New<SendPort, RTN::SendPort>(isolate);
     RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<TransferableTypedData>(isolate);
+    cls =
+        Class::New<TransferableTypedData, RTN::TransferableTypedData>(isolate);
     RegisterPrivateClass(cls, Symbols::_TransferableTypedDataImpl(),
                          isolate_lib);
     pending_classes.Add(cls);
 
     const Class& stacktrace_cls =
-        Class::Handle(zone, Class::New<StackTrace>(isolate));
+        Class::Handle(zone, Class::New<StackTrace, RTN::StackTrace>(isolate));
     RegisterPrivateClass(stacktrace_cls, Symbols::_StackTrace(), core_lib);
     pending_classes.Add(stacktrace_cls);
     // Super type set below, after Object is allocated.
 
-    cls = Class::New<RegExp>(isolate);
+    cls = Class::New<RegExp, RTN::RegExp>(isolate);
     RegisterPrivateClass(cls, Symbols::_RegExp(), core_lib);
     pending_classes.Add(cls);
 
@@ -1740,11 +1758,12 @@ RawError* Object::Init(Isolate* isolate,
     // The script and token index of these pre-allocated classes is set up in
     // the parser when the corelib script is compiled (see
     // Parser::ParseClassDefinition).
-    cls = Class::New<Instance>(kInstanceCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kInstanceCid, isolate);
     object_store->set_object_class(cls);
     cls.set_name(Symbols::Object());
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
+    cls.set_is_const();
     core_lib.AddClass(cls);
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -1754,12 +1773,12 @@ RawError* Object::Init(Isolate* isolate,
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_object_type(type);
 
-    cls = Class::New<Bool>(isolate);
+    cls = Class::New<Bool, RTN::Bool>(isolate);
     object_store->set_bool_class(cls);
     RegisterClass(cls, Symbols::Bool(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Instance>(kNullCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate);
     object_store->set_null_class(cls);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -1781,33 +1800,33 @@ RawError* Object::Init(Isolate* isolate,
                          core_lib);
     pending_classes.Add(type_parameter_cls);
 
-    cls = Class::New<Integer>(isolate);
+    cls = Class::New<Integer, RTN::Integer>(isolate);
     object_store->set_integer_implementation_class(cls);
     RegisterPrivateClass(cls, Symbols::_IntegerImplementation(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Smi>(isolate);
+    cls = Class::New<Smi, RTN::Smi>(isolate);
     object_store->set_smi_class(cls);
     RegisterPrivateClass(cls, Symbols::_Smi(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Mint>(isolate);
+    cls = Class::New<Mint, RTN::Mint>(isolate);
     object_store->set_mint_class(cls);
     RegisterPrivateClass(cls, Symbols::_Mint(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<Double>(isolate);
+    cls = Class::New<Double, RTN::Double>(isolate);
     object_store->set_double_class(cls);
     RegisterPrivateClass(cls, Symbols::_Double(), core_lib);
     pending_classes.Add(cls);
 
     // Class that represents the Dart class _Closure and C++ class Closure.
-    cls = Class::New<Closure>(isolate);
+    cls = Class::New<Closure, RTN::Closure>(isolate);
     object_store->set_closure_class(cls);
     RegisterPrivateClass(cls, Symbols::_Closure(), core_lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<WeakProperty>(isolate);
+    cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate);
     object_store->set_weak_property_class(cls);
     RegisterPrivateClass(cls, Symbols::_WeakProperty(), core_lib);
 
@@ -1824,7 +1843,7 @@ RawError* Object::Init(Isolate* isolate,
     ASSERT(!lib.IsNull());
     ASSERT(lib.raw() == Library::MirrorsLibrary());
 
-    cls = Class::New<MirrorReference>(isolate);
+    cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate);
     RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 #endif
 
@@ -1840,9 +1859,11 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
     ASSERT(!lib.IsNull());
     ASSERT(lib.raw() == Library::CollectionLibrary());
-    cls = Class::New<LinkedHashMap>(isolate);
+    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate);
     object_store->set_linked_hash_map_class(cls);
-    cls.set_type_arguments_field_offset(LinkedHashMap::type_arguments_offset());
+    cls.set_type_arguments_field_offset(
+        LinkedHashMap::type_arguments_offset(),
+        RTN::LinkedHashMap::type_arguments_offset());
     cls.set_num_type_arguments(2);
     RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
     pending_classes.Add(cls);
@@ -1858,7 +1879,7 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_bootstrap_library(ObjectStore::kDeveloper, lib);
     ASSERT(!lib.IsNull());
     ASSERT(lib.raw() == Library::DeveloperLibrary());
-    cls = Class::New<UserTag>(isolate);
+    cls = Class::New<UserTag, RTN::UserTag>(isolate);
     RegisterPrivateClass(cls, Symbols::_UserTag(), lib);
     pending_classes.Add(cls);
 
@@ -1901,10 +1922,10 @@ RawError* Object::Init(Isolate* isolate,
                                          isolate);                             \
   RegisterPrivateClass(cls, Symbols::_External##clazz(), lib);
 
-    cls =
-        Class::New<Instance>(kByteBufferCid, isolate, /*register_class=*/false);
-    cls.set_instance_size(0);
-    cls.set_next_field_offset(-kWordSize);
+    cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate,
+                                              /*register_class=*/false);
+    cls.set_instance_size(0, 0);
+    cls.set_next_field_offset(-kWordSize, -compiler::target::kWordSize);
     isolate->RegisterClass(cls);
     RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
     pending_classes.Add(cls);
@@ -1912,39 +1933,42 @@ RawError* Object::Init(Isolate* isolate,
     CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
     // Register Float32x4, Int32x4, and Float64x2 in the object store.
-    cls = Class::New<Float32x4>(isolate);
+    cls = Class::New<Float32x4, RTN::Float32x4>(isolate);
     RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
     pending_classes.Add(cls);
     object_store->set_float32x4_class(cls);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
-                               /*is_abstract=*/true);
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float32x4(), lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_float32x4_type(type);
 
-    cls = Class::New<Int32x4>(isolate);
+    cls = Class::New<Int32x4, RTN::Int32x4>(isolate);
     RegisterPrivateClass(cls, Symbols::_Int32x4(), lib);
     pending_classes.Add(cls);
     object_store->set_int32x4_class(cls);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
-                               /*is_abstract=*/true);
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int32x4(), lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
     type = Type::NewNonParameterizedType(cls);
     object_store->set_int32x4_type(type);
 
-    cls = Class::New<Float64x2>(isolate);
+    cls = Class::New<Float64x2, RTN::Float64x2>(isolate);
     RegisterPrivateClass(cls, Symbols::_Float64x2(), lib);
     pending_classes.Add(cls);
     object_store->set_float64x2_class(cls);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
-                               /*is_abstract=*/true);
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Float64x2(), lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -1958,8 +1982,9 @@ RawError* Object::Init(Isolate* isolate,
 
     // Abstract class that represents the Dart class Type.
     // Note that this class is implemented by Dart class _AbstractType.
-    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
-                               /*is_abstract=*/true);
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Type(), core_lib);
@@ -1968,8 +1993,9 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_type_type(type);
 
     // Abstract class that represents the Dart class Function.
-    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
-                               /*is_abstract=*/true);
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
     RegisterClass(cls, Symbols::Function(), core_lib);
@@ -1981,7 +2007,7 @@ RawError* Object::Init(Isolate* isolate,
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_function_type(type);
 
-    cls = Class::New<Number>(isolate);
+    cls = Class::New<Number, RTN::Number>(isolate);
     RegisterClass(cls, Symbols::Number(), core_lib);
     pending_classes.Add(cls);
     type = Type::NewNonParameterizedType(cls);
@@ -1991,8 +2017,9 @@ RawError* Object::Init(Isolate* isolate,
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_number_type(type);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
-                               /*is_abstract=*/true);
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Int(), core_lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -2004,8 +2031,9 @@ RawError* Object::Init(Isolate* isolate,
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_int_type(type);
 
-    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
-                               /*is_abstract=*/true);
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
     RegisterClass(cls, Symbols::Double(), core_lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -2018,8 +2046,9 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_non_nullable_double_type(type);
 
     name = Symbols::_String().raw();
-    cls = Class::New<Instance>(kIllegalCid, isolate, /*register_class=*/true,
-                               /*is_abstract=*/true);
+    cls = Class::New<Instance, RTN::Instance>(kIllegalCid, isolate,
+                                              /*register_class=*/true,
+                                              /*is_abstract=*/true);
     RegisterClass(cls, name, core_lib);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
@@ -2170,7 +2199,7 @@ RawError* Object::Init(Isolate* isolate,
     }
     object_store->set_bootstrap_library(ObjectStore::kFfi, lib);
 
-    cls = Class::New<Instance>(kFfiNativeTypeCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kFfiNativeTypeCid, isolate);
     cls.set_num_type_arguments(0);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
@@ -2178,7 +2207,7 @@ RawError* Object::Init(Isolate* isolate,
     RegisterClass(cls, Symbols::FfiNativeType(), lib);
 
 #define REGISTER_FFI_TYPE_MARKER(clazz)                                        \
-  cls = Class::New<Instance>(kFfi##clazz##Cid, isolate);                       \
+  cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate);        \
   cls.set_num_type_arguments(0);                                               \
   cls.set_is_prefinalized();                                                   \
   pending_classes.Add(cls);                                                    \
@@ -2186,8 +2215,9 @@ RawError* Object::Init(Isolate* isolate,
     CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_TYPE_MARKER);
 #undef REGISTER_FFI_TYPE_MARKER
 
-    cls = Class::New<Instance>(kFfiNativeFunctionCid, isolate);
-    cls.set_type_arguments_field_offset(Pointer::type_arguments_offset());
+    cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid, isolate);
+    cls.set_type_arguments_field_offset(Pointer::type_arguments_offset(),
+                                        RTN::Pointer::type_arguments_offset());
     cls.set_num_type_arguments(1);
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
@@ -2198,8 +2228,11 @@ RawError* Object::Init(Isolate* isolate,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiPointer(), lib);
 
-    cls = Class::New<DynamicLibrary>(kFfiDynamicLibraryCid, isolate);
-    cls.set_instance_size(DynamicLibrary::InstanceSize());
+    cls = Class::New<DynamicLibrary, RTN::DynamicLibrary>(kFfiDynamicLibraryCid,
+                                                          isolate);
+    cls.set_instance_size(DynamicLibrary::InstanceSize(),
+                          compiler::target::RoundedAllocationSize(
+                              RTN::DynamicLibrary::InstanceSize()));
     cls.set_is_prefinalized();
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FfiDynamicLibrary(), lib);
@@ -2213,7 +2246,7 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_bootstrap_library(ObjectStore::kWasm, lib);
 
 #define REGISTER_WASM_TYPE(clazz)                                              \
-  cls = Class::New<Instance>(k##clazz##Cid, isolate);                          \
+  cls = Class::New<Instance, RTN::Instance>(k##clazz##Cid, isolate);           \
   cls.set_num_type_arguments(0);                                               \
   cls.set_is_prefinalized();                                                   \
   pending_classes.Add(cls);                                                    \
@@ -2263,33 +2296,33 @@ RawError* Object::Init(Isolate* isolate,
     // stored in the object store. Yet we still need to create their Class
     // object so that they get put into the class_table (as a side effect of
     // Class::New()).
-    cls = Class::New<Instance>(kInstanceCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kInstanceCid, isolate);
     object_store->set_object_class(cls);
 
-    cls = Class::New<LibraryPrefix>(isolate);
-    cls = Class::New<Type>(isolate);
-    cls = Class::New<TypeRef>(isolate);
-    cls = Class::New<TypeParameter>(isolate);
+    cls = Class::New<LibraryPrefix, RTN::LibraryPrefix>(isolate);
+    cls = Class::New<Type, RTN::Type>(isolate);
+    cls = Class::New<TypeRef, RTN::TypeRef>(isolate);
+    cls = Class::New<TypeParameter, RTN::TypeParameter>(isolate);
 
-    cls = Class::New<Array>(isolate);
+    cls = Class::New<Array, RTN::Array>(isolate);
     object_store->set_array_class(cls);
 
-    cls = Class::New<Array>(kImmutableArrayCid, isolate);
+    cls = Class::New<Array, RTN::Array>(kImmutableArrayCid, isolate);
     object_store->set_immutable_array_class(cls);
 
-    cls = Class::New<GrowableObjectArray>(isolate);
+    cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(isolate);
     object_store->set_growable_object_array_class(cls);
 
-    cls = Class::New<LinkedHashMap>(isolate);
+    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate);
     object_store->set_linked_hash_map_class(cls);
 
-    cls = Class::New<Float32x4>(isolate);
+    cls = Class::New<Float32x4, RTN::Float32x4>(isolate);
     object_store->set_float32x4_class(cls);
 
-    cls = Class::New<Int32x4>(isolate);
+    cls = Class::New<Int32x4, RTN::Int32x4>(isolate);
     object_store->set_int32x4_class(cls);
 
-    cls = Class::New<Float64x2>(isolate);
+    cls = Class::New<Float64x2, RTN::Float64x2>(isolate);
     object_store->set_float64x2_class(cls);
 
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
@@ -2307,44 +2340,45 @@ RawError* Object::Init(Isolate* isolate,
     CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
 
-    cls = Class::New<Instance>(kFfiNativeTypeCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kFfiNativeTypeCid, isolate);
     object_store->set_ffi_native_type_class(cls);
 
 #define REGISTER_FFI_CLASS(clazz)                                              \
-  cls = Class::New<Instance>(kFfi##clazz##Cid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(kFfi##clazz##Cid, isolate);
     CLASS_LIST_FFI_TYPE_MARKER(REGISTER_FFI_CLASS);
 #undef REGISTER_FFI_CLASS
 
 #define REGISTER_WASM_CLASS(clazz)                                             \
-  cls = Class::New<Instance>(k##clazz##Cid, isolate);
+  cls = Class::New<Instance, RTN::Instance>(k##clazz##Cid, isolate);
     CLASS_LIST_WASM(REGISTER_WASM_CLASS);
 #undef REGISTER_WASM_CLASS
 
-    cls = Class::New<Instance>(kFfiNativeFunctionCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kFfiNativeFunctionCid, isolate);
 
     cls = Class::NewPointerClass(kFfiPointerCid, isolate);
     object_store->set_ffi_pointer_class(cls);
 
-    cls = Class::New<DynamicLibrary>(kFfiDynamicLibraryCid, isolate);
+    cls = Class::New<DynamicLibrary, RTN::DynamicLibrary>(kFfiDynamicLibraryCid,
+                                                          isolate);
 
-    cls = Class::New<Instance>(kByteBufferCid, isolate,
-                               /*register_isolate=*/false);
-    cls.set_instance_size_in_words(0);
+    cls = Class::New<Instance, RTN::Instance>(kByteBufferCid, isolate,
+                                              /*register_isolate=*/false);
+    cls.set_instance_size_in_words(0, 0);
     isolate->RegisterClass(cls);
 
-    cls = Class::New<Integer>(isolate);
+    cls = Class::New<Integer, RTN::Integer>(isolate);
     object_store->set_integer_implementation_class(cls);
 
-    cls = Class::New<Smi>(isolate);
+    cls = Class::New<Smi, RTN::Smi>(isolate);
     object_store->set_smi_class(cls);
 
-    cls = Class::New<Mint>(isolate);
+    cls = Class::New<Mint, RTN::Mint>(isolate);
     object_store->set_mint_class(cls);
 
-    cls = Class::New<Double>(isolate);
+    cls = Class::New<Double, RTN::Double>(isolate);
     object_store->set_double_class(cls);
 
-    cls = Class::New<Closure>(isolate);
+    cls = Class::New<Closure, RTN::Closure>(isolate);
     object_store->set_closure_class(cls);
 
     cls = Class::NewStringClass(kOneByteStringCid, isolate);
@@ -2359,26 +2393,27 @@ RawError* Object::Init(Isolate* isolate,
     cls = Class::NewStringClass(kExternalTwoByteStringCid, isolate);
     object_store->set_external_two_byte_string_class(cls);
 
-    cls = Class::New<Bool>(isolate);
+    cls = Class::New<Bool, RTN::Bool>(isolate);
     object_store->set_bool_class(cls);
 
-    cls = Class::New<Instance>(kNullCid, isolate);
+    cls = Class::New<Instance, RTN::Instance>(kNullCid, isolate);
     object_store->set_null_class(cls);
 
-    cls = Class::New<Capability>(isolate);
-    cls = Class::New<ReceivePort>(isolate);
-    cls = Class::New<SendPort>(isolate);
-    cls = Class::New<StackTrace>(isolate);
-    cls = Class::New<RegExp>(isolate);
-    cls = Class::New<Number>(isolate);
+    cls = Class::New<Capability, RTN::Capability>(isolate);
+    cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate);
+    cls = Class::New<SendPort, RTN::SendPort>(isolate);
+    cls = Class::New<StackTrace, RTN::StackTrace>(isolate);
+    cls = Class::New<RegExp, RTN::RegExp>(isolate);
+    cls = Class::New<Number, RTN::Number>(isolate);
 
-    cls = Class::New<WeakProperty>(isolate);
+    cls = Class::New<WeakProperty, RTN::WeakProperty>(isolate);
     object_store->set_weak_property_class(cls);
 
-    cls = Class::New<MirrorReference>(isolate);
-    cls = Class::New<UserTag>(isolate);
+    cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate);
+    cls = Class::New<UserTag, RTN::UserTag>(isolate);
 
-    cls = Class::New<TransferableTypedData>(isolate);
+    cls =
+        Class::New<TransferableTypedData, RTN::TransferableTypedData>(isolate);
   }
   return Error::null();
 }
@@ -2647,7 +2682,7 @@ RawAbstractType* Class::RareType() const {
   return ClassFinalizer::FinalizeType(*this, type);
 }
 
-template <class FakeObject>
+template <class FakeObject, class TargetFakeObject>
 RawClass* Class::New(Isolate* isolate, bool register_class) {
   ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
@@ -2660,9 +2695,15 @@ RawClass* Class::New(Isolate* isolate, bool register_class) {
   Object::VerifyBuiltinVtable<FakeObject>(FakeObject::kClassId);
   result.set_token_pos(TokenPosition::kNoSource);
   result.set_end_token_pos(TokenPosition::kNoSource);
-  result.set_instance_size(FakeObject::InstanceSize());
-  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
-  result.set_next_field_offset(FakeObject::NextFieldOffset());
+  result.set_instance_size(FakeObject::InstanceSize(),
+                           compiler::target::RoundedAllocationSize(
+                               TargetFakeObject::InstanceSize()));
+  result.set_type_arguments_field_offset_in_words(kNoTypeArguments,
+                                                  RTN::Class::kNoTypeArguments);
+  const intptr_t host_next_field_offset = FakeObject::NextFieldOffset();
+  const intptr_t target_next_field_offset = TargetFakeObject::NextFieldOffset();
+  result.set_next_field_offset(host_next_field_offset,
+                               target_next_field_offset);
   COMPILE_ASSERT((FakeObject::kClassId != kInstanceCid));
   result.set_id(FakeObject::kClassId);
   result.set_num_type_arguments(0);
@@ -2727,7 +2768,7 @@ RawArray* Class::OffsetToFieldMap(bool original_classes) const {
   Array& array = Array::Handle(raw_ptr()->offset_in_words_to_field_);
   if (array.IsNull()) {
     ASSERT(is_finalized());
-    const intptr_t length = raw_ptr()->instance_size_in_words_;
+    const intptr_t length = raw_ptr()->host_instance_size_in_words_;
     array = Array::New(length, Heap::kOld);
     Class& cls = Class::Handle(this->raw());
     Array& fields = Array::Handle();
@@ -2737,7 +2778,7 @@ RawArray* Class::OffsetToFieldMap(bool original_classes) const {
       for (intptr_t i = 0; i < fields.Length(); ++i) {
         f ^= fields.At(i);
         if (f.is_instance()) {
-          array.SetAt(f.Offset() >> kWordSizeLog2, f);
+          array.SetAt(f.HostOffset() >> kWordSizeLog2, f);
         }
       }
       cls = cls.SuperClass(original_classes);
@@ -3120,51 +3161,127 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name) const {
   return TypeParameter::null();
 }
 
-void Class::CalculateFieldOffsets() const {
+UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
   Array& flds = Array::Handle(fields());
   const Class& super = Class::Handle(SuperClass());
-  intptr_t offset = 0;
-  intptr_t type_args_field_offset = kNoTypeArguments;
+  intptr_t host_offset = 0;
+  UnboxedFieldBitmap host_bitmap{};
+  // Target offsets might differ if the word size are different
+  intptr_t target_offset = 0;
+  intptr_t host_type_args_field_offset = kNoTypeArguments;
+  intptr_t target_type_args_field_offset = RTN::Class::kNoTypeArguments;
   if (super.IsNull()) {
-    offset = Instance::NextFieldOffset();
-    ASSERT(offset > 0);
+    host_offset = Instance::NextFieldOffset();
+    target_offset = RTN::Instance::NextFieldOffset();
+    ASSERT(host_offset > 0);
+    ASSERT(target_offset > 0);
   } else {
     ASSERT(super.is_finalized() || super.is_prefinalized());
-    type_args_field_offset = super.type_arguments_field_offset();
-    offset = super.next_field_offset();
-    ASSERT(offset > 0);
+    host_type_args_field_offset = super.host_type_arguments_field_offset();
+    target_type_args_field_offset = super.target_type_arguments_field_offset();
+    host_offset = super.host_next_field_offset();
+    ASSERT(host_offset > 0);
+    target_offset = super.target_next_field_offset();
+    ASSERT(target_offset > 0);
     // We should never call CalculateFieldOffsets for native wrapper
     // classes, assert this.
     ASSERT(num_native_fields() == 0);
     set_num_native_fields(super.num_native_fields());
+
+    if (FLAG_precompiled_mode) {
+      host_bitmap =
+          Isolate::Current()->shared_class_table()->GetUnboxedFieldsMapAt(
+              super.id());
+    }
   }
   // If the super class is parameterized, use the same type_arguments field,
   // otherwise, if this class is the first in the super chain to be
   // parameterized, introduce a new type_arguments field.
-  if (type_args_field_offset == kNoTypeArguments) {
+  if (host_type_args_field_offset == kNoTypeArguments) {
+    ASSERT(target_type_args_field_offset == RTN::Class::kNoTypeArguments);
     const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
     if (!type_params.IsNull()) {
       ASSERT(type_params.Length() > 0);
       // The instance needs a type_arguments field.
-      type_args_field_offset = offset;
-      offset += kWordSize;
+      host_type_args_field_offset = host_offset;
+      target_type_args_field_offset = target_offset;
+      host_offset += kWordSize;
+      target_offset += compiler::target::kWordSize;
     }
+  } else {
+    ASSERT(target_type_args_field_offset != RTN::Class::kNoTypeArguments);
   }
-  set_type_arguments_field_offset(type_args_field_offset);
-  ASSERT(offset > 0);
+
+  set_type_arguments_field_offset(host_type_args_field_offset,
+                                  target_type_args_field_offset);
+  ASSERT(host_offset > 0);
+  ASSERT(target_offset > 0);
   Field& field = Field::Handle();
-  intptr_t len = flds.Length();
+  const intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     // Offset is computed only for instance fields.
     if (!field.is_static()) {
-      ASSERT(field.Offset() == 0);
-      field.SetOffset(offset);
-      offset += kWordSize;
+      ASSERT(field.HostOffset() == 0);
+      ASSERT(field.TargetOffset() == 0);
+      field.SetOffset(host_offset, target_offset);
+
+      if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
+        intptr_t field_size;
+        switch (field.guarded_cid()) {
+          case kDoubleCid:
+            field_size = sizeof(RawDouble::value_);
+            break;
+          case kFloat32x4Cid:
+            field_size = sizeof(RawFloat32x4::value_);
+            break;
+          case kFloat64x2Cid:
+            field_size = sizeof(RawFloat64x2::value_);
+            break;
+          default:
+            UNREACHABLE();
+            field_size = 0;
+            break;
+        }
+
+        const intptr_t host_num_words = field_size / kWordSize;
+        const intptr_t host_next_offset = host_offset + field_size;
+        const intptr_t host_next_position = host_next_offset / kWordSize;
+
+        const intptr_t target_next_offset = target_offset + field_size;
+        const intptr_t target_next_position =
+            target_next_offset / compiler::target::kWordSize;
+
+        // The bitmap has fixed length. Checks if the offset position is smaller
+        // than its length. If it is not, than the field should be boxed
+        if (host_next_position <= UnboxedFieldBitmap::Length() &&
+            target_next_position <= UnboxedFieldBitmap::Length()) {
+          for (intptr_t j = 0; j < host_num_words; j++) {
+            // Activate the respective bit in the bitmap, indicating that the
+            // content is not a pointer
+            host_bitmap.Set(host_offset / kWordSize);
+            host_offset += kWordSize;
+          }
+
+          ASSERT(host_offset == host_next_offset);
+          target_offset = target_next_offset;
+        } else {
+          // Make the field boxed
+          field.set_is_unboxing_candidate(false);
+          host_offset += kWordSize;
+          target_offset += compiler::target::kWordSize;
+        }
+      } else {
+        host_offset += kWordSize;
+        target_offset += compiler::target::kWordSize;
+      }
     }
   }
-  set_instance_size(RoundedAllocationSize(offset));
-  set_next_field_offset(offset);
+  set_instance_size(RoundedAllocationSize(host_offset),
+                    compiler::target::RoundedAllocationSize(target_offset));
+  set_next_field_offset(host_offset, target_offset);
+
+  return host_bitmap;
 }
 
 void Class::AddInvocationDispatcher(const String& target_name,
@@ -3519,20 +3636,44 @@ void Class::set_invocation_dispatcher_cache(const Array& cache) const {
 }
 
 void Class::Finalize() const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(Thread::Current()->IsMutatorThread());
+  auto thread = Thread::Current();
+  auto Z = thread->zone();
+  Isolate* isolate = thread->isolate();
+  ASSERT(thread->IsMutatorThread());
   ASSERT(!isolate->all_classes_finalized());
   ASSERT(!is_finalized());
   // Prefinalized classes have a VM internal representation and no Dart fields.
   // Their instance size  is precomputed and field offsets are known.
   if (!is_prefinalized()) {
-    // Compute offsets of instance fields and instance size.
-    CalculateFieldOffsets();
+    // Compute offsets of instance fields, instance size and bitmap for unboxed
+    // fields.
+    const auto host_bitmap = CalculateFieldOffsets();
     if (raw() == isolate->class_table()->At(id())) {
       // Sets the new size in the class table.
       isolate->class_table()->SetAt(id(), raw());
+      if (FLAG_precompiled_mode) {
+        isolate->shared_class_table()->SetUnboxedFieldsMapAt(id(), host_bitmap);
+      }
     }
   }
+
+  if (SuperClass() == Class::null() ||
+      Class::Handle(Z, SuperClass()).is_const()) {
+    const auto& fields = Array::Handle(Z, this->fields());
+    auto& field = Field::Handle(Z);
+    bool is_const = true;
+    for (intptr_t i = 0; i < fields.Length(); ++i) {
+      field ^= fields.At(i);
+      if (!field.is_static() && !field.is_final()) {
+        is_const = false;
+        break;
+      }
+    }
+    if (is_const) {
+      set_is_const();
+    }
+  }
+
   set_is_finalized();
 }
 
@@ -4040,7 +4181,7 @@ bool Class::InjectCIDFields() const {
   return true;
 }
 
-template <class FakeInstance>
+template <class FakeInstance, class TargetFakeInstance>
 RawClass* Class::NewCommon(intptr_t index) {
   ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
@@ -4055,9 +4196,17 @@ RawClass* Class::NewCommon(intptr_t index) {
                                                                  : index);
   result.set_token_pos(TokenPosition::kNoSource);
   result.set_end_token_pos(TokenPosition::kNoSource);
-  result.set_instance_size(FakeInstance::InstanceSize());
-  result.set_type_arguments_field_offset_in_words(kNoTypeArguments);
-  result.set_next_field_offset(FakeInstance::NextFieldOffset());
+  const intptr_t host_instance_size = FakeInstance::InstanceSize();
+  const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
+      TargetFakeInstance::InstanceSize());
+  result.set_instance_size(host_instance_size, target_instance_size);
+  result.set_type_arguments_field_offset_in_words(kNoTypeArguments,
+                                                  RTN::Class::kNoTypeArguments);
+  const intptr_t host_next_field_offset = FakeInstance::NextFieldOffset();
+  const intptr_t target_next_field_offset =
+      TargetFakeInstance::NextFieldOffset();
+  result.set_next_field_offset(host_next_field_offset,
+                               target_next_field_offset);
   result.set_id(index);
   result.set_num_type_arguments(kUnknownNumTypeArguments);
   result.set_num_native_fields(0);
@@ -4068,12 +4217,13 @@ RawClass* Class::NewCommon(intptr_t index) {
   return result.raw();
 }
 
-template <class FakeInstance>
+template <class FakeInstance, class TargetFakeInstance>
 RawClass* Class::New(intptr_t index,
                      Isolate* isolate,
                      bool register_class,
                      bool is_abstract) {
-  Class& result = Class::Handle(NewCommon<FakeInstance>(index));
+  Class& result =
+      Class::Handle(NewCommon<FakeInstance, TargetFakeInstance>(index));
   if (is_abstract) {
     result.set_is_abstract();
   }
@@ -4088,7 +4238,8 @@ RawClass* Class::New(const Library& lib,
                      const Script& script,
                      TokenPosition token_pos,
                      bool register_class) {
-  Class& result = Class::Handle(NewCommon<Instance>(kIllegalCid));
+  Class& result =
+      Class::Handle(NewCommon<Instance, RTN::Instance>(kIllegalCid));
   result.set_library(lib);
   result.set_name(name);
   result.set_script(script);
@@ -4097,7 +4248,7 @@ RawClass* Class::New(const Library& lib,
   // The size gets initialized to 0. Once the class gets finalized the class
   // finalizer will set the correct size.
   ASSERT(!result.is_finalized() && !result.is_prefinalized());
-  result.set_instance_size_in_words(0);
+  result.set_instance_size_in_words(0, 0);
 
   if (register_class) {
     Isolate::Current()->RegisterClass(result);
@@ -4106,7 +4257,7 @@ RawClass* Class::New(const Library& lib,
 }
 
 RawClass* Class::NewInstanceClass() {
-  return Class::New<Instance>(kIllegalCid, Isolate::Current());
+  return Class::New<Instance, RTN::Instance>(kIllegalCid, Isolate::Current());
 }
 
 RawClass* Class::NewNativeWrapper(const Library& library,
@@ -4121,9 +4272,13 @@ RawClass* Class::NewNativeWrapper(const Library& library,
     cls.set_super_type(Type::Handle(Type::ObjectType()));
     // Compute instance size. First word contains a pointer to a properly
     // sized typed array once the first native field has been set.
-    intptr_t instance_size = sizeof(RawInstance) + kWordSize;
-    cls.set_instance_size(RoundedAllocationSize(instance_size));
-    cls.set_next_field_offset(instance_size);
+    const intptr_t host_instance_size = sizeof(RawInstance) + kWordSize;
+    const intptr_t target_instance_size =
+        sizeof(RawInstance) + compiler::target::kWordSize;
+    cls.set_instance_size(
+        RoundedAllocationSize(host_instance_size),
+        compiler::target::RoundedAllocationSize(target_instance_size));
+    cls.set_next_field_offset(host_instance_size, target_instance_size);
     cls.set_num_native_fields(field_count);
     cls.set_is_finalized();
     cls.set_is_declaration_loaded();
@@ -4137,21 +4292,33 @@ RawClass* Class::NewNativeWrapper(const Library& library,
 }
 
 RawClass* Class::NewStringClass(intptr_t class_id, Isolate* isolate) {
-  intptr_t instance_size;
+  intptr_t host_instance_size, target_instance_size;
   if (class_id == kOneByteStringCid) {
-    instance_size = OneByteString::InstanceSize();
+    host_instance_size = OneByteString::InstanceSize();
+    target_instance_size = compiler::target::RoundedAllocationSize(
+        RTN::OneByteString::InstanceSize());
   } else if (class_id == kTwoByteStringCid) {
-    instance_size = TwoByteString::InstanceSize();
+    host_instance_size = TwoByteString::InstanceSize();
+    target_instance_size = compiler::target::RoundedAllocationSize(
+        RTN::TwoByteString::InstanceSize());
   } else if (class_id == kExternalOneByteStringCid) {
-    instance_size = ExternalOneByteString::InstanceSize();
+    host_instance_size = ExternalOneByteString::InstanceSize();
+    target_instance_size = compiler::target::RoundedAllocationSize(
+        RTN::ExternalOneByteString::InstanceSize());
   } else {
     ASSERT(class_id == kExternalTwoByteStringCid);
-    instance_size = ExternalTwoByteString::InstanceSize();
+    host_instance_size = ExternalTwoByteString::InstanceSize();
+    target_instance_size = compiler::target::RoundedAllocationSize(
+        RTN::ExternalTwoByteString::InstanceSize());
   }
-  Class& result =
-      Class::Handle(New<String>(class_id, isolate, /*register_class=*/false));
-  result.set_instance_size(instance_size);
-  result.set_next_field_offset(String::NextFieldOffset());
+  Class& result = Class::Handle(
+      New<String, RTN::String>(class_id, isolate, /*register_class=*/false));
+  result.set_instance_size(host_instance_size, target_instance_size);
+
+  const intptr_t host_next_field_offset = String::NextFieldOffset();
+  const intptr_t target_next_field_offset = RTN::String::NextFieldOffset();
+  result.set_next_field_offset(host_next_field_offset,
+                               target_next_field_offset);
   result.set_is_prefinalized();
   isolate->RegisterClass(result);
   return result.raw();
@@ -4159,11 +4326,17 @@ RawClass* Class::NewStringClass(intptr_t class_id, Isolate* isolate) {
 
 RawClass* Class::NewTypedDataClass(intptr_t class_id, Isolate* isolate) {
   ASSERT(RawObject::IsTypedDataClassId(class_id));
-  intptr_t instance_size = TypedData::InstanceSize();
-  Class& result = Class::Handle(
-      New<TypedData>(class_id, isolate, /*register_class=*/false));
-  result.set_instance_size(instance_size);
-  result.set_next_field_offset(TypedData::NextFieldOffset());
+  const intptr_t host_instance_size = TypedData::InstanceSize();
+  const intptr_t target_instance_size =
+      compiler::target::RoundedAllocationSize(RTN::TypedData::InstanceSize());
+  Class& result = Class::Handle(New<TypedData, RTN::TypedData>(
+      class_id, isolate, /*register_class=*/false));
+  result.set_instance_size(host_instance_size, target_instance_size);
+
+  const intptr_t host_next_field_offset = TypedData::NextFieldOffset();
+  const intptr_t target_next_field_offset = RTN::TypedData::NextFieldOffset();
+  result.set_next_field_offset(host_next_field_offset,
+                               target_next_field_offset);
   result.set_is_prefinalized();
   isolate->RegisterClass(result);
   return result.raw();
@@ -4171,11 +4344,18 @@ RawClass* Class::NewTypedDataClass(intptr_t class_id, Isolate* isolate) {
 
 RawClass* Class::NewTypedDataViewClass(intptr_t class_id, Isolate* isolate) {
   ASSERT(RawObject::IsTypedDataViewClassId(class_id));
-  const intptr_t instance_size = TypedDataView::InstanceSize();
-  Class& result = Class::Handle(
-      New<TypedDataView>(class_id, isolate, /*register_class=*/false));
-  result.set_instance_size(instance_size);
-  result.set_next_field_offset(TypedDataView::NextFieldOffset());
+  const intptr_t host_instance_size = TypedDataView::InstanceSize();
+  const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
+      RTN::TypedDataView::InstanceSize());
+  Class& result = Class::Handle(New<TypedDataView, RTN::TypedDataView>(
+      class_id, isolate, /*register_class=*/false));
+  result.set_instance_size(host_instance_size, target_instance_size);
+
+  const intptr_t host_next_field_offset = TypedDataView::NextFieldOffset();
+  const intptr_t target_next_field_offset =
+      RTN::TypedDataView::NextFieldOffset();
+  result.set_next_field_offset(host_next_field_offset,
+                               target_next_field_offset);
   result.set_is_prefinalized();
   isolate->RegisterClass(result);
   return result.raw();
@@ -4184,11 +4364,18 @@ RawClass* Class::NewTypedDataViewClass(intptr_t class_id, Isolate* isolate) {
 RawClass* Class::NewExternalTypedDataClass(intptr_t class_id,
                                            Isolate* isolate) {
   ASSERT(RawObject::IsExternalTypedDataClassId(class_id));
-  intptr_t instance_size = ExternalTypedData::InstanceSize();
-  Class& result = Class::Handle(
-      New<ExternalTypedData>(class_id, isolate, /*register_class=*/false));
-  result.set_instance_size(instance_size);
-  result.set_next_field_offset(ExternalTypedData::NextFieldOffset());
+  const intptr_t host_instance_size = ExternalTypedData::InstanceSize();
+  const intptr_t target_instance_size = compiler::target::RoundedAllocationSize(
+      RTN::ExternalTypedData::InstanceSize());
+  Class& result = Class::Handle(New<ExternalTypedData, RTN::ExternalTypedData>(
+      class_id, isolate, /*register_class=*/false));
+
+  const intptr_t host_next_field_offset = ExternalTypedData::NextFieldOffset();
+  const intptr_t target_next_field_offset =
+      RTN::ExternalTypedData::NextFieldOffset();
+  result.set_instance_size(host_instance_size, target_instance_size);
+  result.set_next_field_offset(host_next_field_offset,
+                               target_next_field_offset);
   result.set_is_prefinalized();
   isolate->RegisterClass(result);
   return result.raw();
@@ -4196,12 +4383,20 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id,
 
 RawClass* Class::NewPointerClass(intptr_t class_id, Isolate* isolate) {
   ASSERT(RawObject::IsFfiPointerClassId(class_id));
-  intptr_t instance_size = Pointer::InstanceSize();
-  Class& result =
-      Class::Handle(New<Pointer>(class_id, isolate, /*register_class=*/false));
-  result.set_instance_size(instance_size);
-  result.set_type_arguments_field_offset(Pointer::type_arguments_offset());
-  result.set_next_field_offset(Pointer::NextFieldOffset());
+  intptr_t host_instance_size = Pointer::InstanceSize();
+  intptr_t target_instance_size =
+      compiler::target::RoundedAllocationSize(RTN::Pointer::InstanceSize());
+  Class& result = Class::Handle(
+      New<Pointer, RTN::Pointer>(class_id, isolate, /*register_class=*/false));
+  result.set_instance_size(host_instance_size, target_instance_size);
+  result.set_type_arguments_field_offset(Pointer::type_arguments_offset(),
+                                         RTN::Pointer::type_arguments_offset());
+
+  const intptr_t host_next_field_offset = Pointer::NextFieldOffset();
+  const intptr_t target_next_field_offset = RTN::Pointer::NextFieldOffset();
+
+  result.set_next_field_offset(host_next_field_offset,
+                               target_next_field_offset);
   result.set_is_prefinalized();
   isolate->RegisterClass(result);
   return result.raw();
@@ -8793,12 +8988,6 @@ RawField* Field::Original() const {
   }
 }
 
-void Instance::SetField(const Field& field, const Object& value) const {
-  field.RecordStore(value);
-  const Object* stored_value = field.CloneForUnboxed(value);
-  StorePointer(FieldAddr(field), stored_value->raw());
-}
-
 const Object* Field::CloneForUnboxed(const Object& value) const {
   if (FLAG_unbox_numeric_fields && is_unboxing_candidate() && !is_nullable()) {
     switch (guarded_cid()) {
@@ -8993,7 +9182,7 @@ void Field::InitializeNew(const Field& result,
   result.set_name(name);
   result.set_is_static(is_static);
   if (!is_static) {
-    result.SetOffset(0);
+    result.SetOffset(0, 0);
   }
   result.set_is_final(is_final);
   result.set_is_const(is_const);
@@ -9005,7 +9194,12 @@ void Field::InitializeNew(const Field& result,
   result.set_end_token_pos(end_token_pos);
   result.set_has_nontrivial_initializer(false);
   result.set_has_initializer(false);
-  result.set_is_unboxing_candidate(!is_final && !is_late && !is_static);
+  if (FLAG_precompiled_mode) {
+    // May be updated by KernelLoader::ReadInferredType
+    result.set_is_unboxing_candidate(false);
+  } else {
+    result.set_is_unboxing_candidate(!is_final && !is_late && !is_static);
+  }
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_is_declared_in_bytecode(false));
   NOT_IN_PRECOMPILED(result.set_binary_declaration_offset(0));
@@ -9592,7 +9786,7 @@ void Field::SetStaticValue(const Instance& value,
 }
 
 static StaticTypeExactnessState TrivialTypeExactnessFor(const Class& cls) {
-  const intptr_t type_arguments_offset = cls.type_arguments_field_offset();
+  const intptr_t type_arguments_offset = cls.host_type_arguments_field_offset();
   ASSERT(type_arguments_offset != Class::kNoTypeArguments);
   if (StaticTypeExactnessState::CanRepresentAsTriviallyExact(
           type_arguments_offset / kWordSize)) {
@@ -16892,10 +17086,19 @@ uint32_t Instance::CanonicalizeHash() const {
   hash = instance_size / kWordSize;
   uword this_addr = reinterpret_cast<uword>(this->raw_ptr());
   Instance& member = Instance::Handle();
+  const auto unboxed_fields_bitmap =
+      thread->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(
+          GetClassId());
+
   for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
        offset += kWordSize) {
-    member ^= *reinterpret_cast<RawObject**>(this_addr + offset);
-    hash = CombineHashes(hash, member.CanonicalizeHash());
+    if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
+      hash =
+          CombineHashes(hash, *reinterpret_cast<intptr_t*>(this_addr + offset));
+    } else {
+      member ^= *reinterpret_cast<RawObject**>(this_addr + offset);
+      hash = CombineHashes(hash, member.CanonicalizeHash());
+    }
   }
   hash = FinalizeHash(hash, String::kHashBits);
   thread->heap()->SetCanonicalHash(raw(), hash);
@@ -16927,15 +17130,22 @@ bool Instance::CheckAndCanonicalizeFields(Thread* thread,
                                           const char** error_str) const {
   ASSERT(error_str != NULL);
   ASSERT(*error_str == NULL);
-  if (GetClassId() >= kNumPredefinedCids) {
+  const intptr_t class_id = GetClassId();
+  if (class_id >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
     Zone* zone = thread->zone();
     Object& obj = Object::Handle(zone);
     const intptr_t instance_size = SizeFromClass();
     ASSERT(instance_size != 0);
+    const auto unboxed_fields_bitmap =
+        thread->isolate()->shared_class_table()->GetUnboxedFieldsMapAt(
+            GetClassId());
     for (intptr_t offset = Instance::NextFieldOffset(); offset < instance_size;
          offset += kWordSize) {
+      if (unboxed_fields_bitmap.Get(offset / kWordSize)) {
+        continue;
+      }
       obj = *this->FieldAddrAtOffset(offset);
       if (obj.IsInstance() && !obj.IsSmi() && !obj.IsCanonical()) {
         if (obj.IsNumber() || obj.IsString()) {
@@ -17014,6 +17224,53 @@ bool Instance::CheckIsCanonical(Thread* thread) const {
 }
 #endif  // DEBUG
 
+RawObject* Instance::GetField(const Field& field) const {
+  if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
+    switch (field.guarded_cid()) {
+      case kDoubleCid:
+        return Double::New(
+            LoadNonPointer(reinterpret_cast<double_t*>(FieldAddr(field))));
+      case kFloat32x4Cid:
+        return Float32x4::New(
+            *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
+      case kFloat64x2Cid:
+        return Float64x2::New(
+            *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
+      default:
+        UNREACHABLE();
+        return nullptr;
+    }
+  } else {
+    return *FieldAddr(field);
+  }
+}
+
+void Instance::SetField(const Field& field, const Object& value) const {
+  if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
+    switch (field.guarded_cid()) {
+      case kDoubleCid:
+        StoreNonPointer(reinterpret_cast<double_t*>(FieldAddr(field)),
+                        Double::Cast(value).value());
+        break;
+      case kFloat32x4Cid:
+        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+                        Float32x4::Cast(value).value());
+        break;
+      case kFloat64x2Cid:
+        StoreNonPointer(reinterpret_cast<simd128_value_t*>(FieldAddr(field)),
+                        Float64x2::Cast(value).value());
+        break;
+      default:
+        UNREACHABLE();
+        break;
+    }
+  } else {
+    field.RecordStore(value);
+    const Object* stored_value = field.CloneForUnboxed(value);
+    StorePointer(FieldAddr(field), stored_value->raw());
+  }
+}
+
 RawAbstractType* Instance::GetType(Heap::Space space) const {
   if (IsNull()) {
     return Type::NullType();
@@ -17058,7 +17315,7 @@ RawAbstractType* Instance::GetType(Heap::Space space) const {
 RawTypeArguments* Instance::GetTypeArguments() const {
   ASSERT(!IsType());
   const Class& cls = Class::Handle(clazz());
-  intptr_t field_offset = cls.type_arguments_field_offset();
+  intptr_t field_offset = cls.host_type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
   TypeArguments& type_arguments = TypeArguments::Handle();
   type_arguments ^= *FieldAddrAtOffset(field_offset);
@@ -17069,7 +17326,7 @@ void Instance::SetTypeArguments(const TypeArguments& value) const {
   ASSERT(!IsType());
   ASSERT(value.IsNull() || value.IsCanonical());
   const Class& cls = Class::Handle(clazz());
-  intptr_t field_offset = cls.type_arguments_field_offset();
+  intptr_t field_offset = cls.host_type_arguments_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
   SetFieldAtOffset(field_offset, value);
 }
@@ -17436,17 +17693,18 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
   if (cls.EnsureIsFinalized(thread) != Error::null()) {
     return Instance::null();
   }
-  intptr_t instance_size = cls.instance_size();
+  intptr_t instance_size = cls.host_instance_size();
   ASSERT(instance_size > 0);
   RawObject* raw = Object::Allocate(cls.id(), instance_size, space);
   return reinterpret_cast<RawInstance*>(raw);
 }
 
 RawInstance* Instance::NewFromCidAndSize(SharedClassTable* shared_class_table,
-                                         classid_t cid) {
+                                         classid_t cid,
+                                         Heap::Space heap) {
   const intptr_t instance_size = shared_class_table->SizeAt(cid);
   ASSERT(instance_size > 0);
-  RawObject* raw = Object::Allocate(cid, instance_size, Heap::kNew);
+  RawObject* raw = Object::Allocate(cid, instance_size, heap);
   return reinterpret_cast<RawInstance*>(raw);
 }
 
@@ -17455,7 +17713,7 @@ bool Instance::IsValidFieldOffset(intptr_t offset) const {
   REUSABLE_CLASS_HANDLESCOPE(thread);
   Class& cls = thread->ClassHandle();
   cls = clazz();
-  return (offset >= 0 && offset <= (cls.instance_size() - kWordSize));
+  return (offset >= 0 && offset <= (cls.host_instance_size() - kWordSize));
 }
 
 intptr_t Instance::ElementSizeFor(intptr_t cid) {
@@ -17618,7 +17876,9 @@ RawAbstractType* AbstractType::CheckInstantiatedNullability(
   }
   // TODO(regis): TypeRefs are problematic, since changing the nullability of
   // a type by cloning it may break the graph of a recursive type.
-  UNREACHABLE();
+  ASSERT(IsTypeRef());
+  return AbstractType::Handle(TypeRef::Cast(*this).type())
+      .CheckInstantiatedNullability(mode, type_param, space);
 }
 
 bool AbstractType::IsInstantiated(Genericity genericity,

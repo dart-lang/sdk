@@ -37,7 +37,7 @@ class E extends self::D {
     : super self::D::•()
     ;
   no-such-method-forwarder get foo() → core::int*
-    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError} core::int*;
+    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::int*;
 }
 static method expectTypeError(() →* dynamic callback) → void {
   try {

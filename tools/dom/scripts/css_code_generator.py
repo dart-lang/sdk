@@ -157,7 +157,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
   String _browserPropertyName(String propertyName) {
-    String name = _readCache(propertyName);
+    String$NULLABLE name = _readCache(propertyName);
     if (name is String) return name;
     name = _supportedBrowserPropertyName(propertyName);
     _writeCache(propertyName, name);
@@ -177,7 +177,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
   static final _propertyCache = JS('', '{}');
-  static String _readCache(String key) =>
+  static String$NULLABLE _readCache(String key) =>
     JS('String|Null', '#[#]', _propertyCache, key);
   static void _writeCache(String key, String value) {
     JS('void', '#[#] = #', _propertyCache, key, value);
@@ -192,7 +192,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
         replacedMs);
   }
 
-  void _setPropertyHelper(String propertyName, String value, [String priority]) {
+  void _setPropertyHelper(String propertyName, String$NULLABLE value,
+                          [String$NULLABLE priority]) {
     if (value == null) value = '';
     if (priority == null) priority = '';
     JS('void', '#.setProperty(#, #, #)', this, propertyName, value, priority);
@@ -214,7 +215,7 @@ $!MEMBERS
   String get %s => this._%s;
 
   /** Sets the value of "%s" */
-  set %s(String value) {
+  set %s(String$NULLABLE value) {
     _%s = value == null ? '' : value;
   }
   @Returns('String')
@@ -247,7 +248,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 """)
 
     class_file.write("""
-  void _setAll(String propertyName, String value) {
+  void _setAll(String propertyName, String$NULLABLE value) {
     value = value == null ? '' : value;
     for (Element element in _elementIterable) {
       JS('void', '#.style[#] = #', element, propertyName, value);

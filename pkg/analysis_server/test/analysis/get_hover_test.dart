@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisHoverTest);
   });
@@ -40,7 +40,7 @@ class AnalysisHoverTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_class_declaration() async {
+  Future<void> test_class_declaration() async {
     addTestFile('''
 class A<E> {}
 class I1<K, V> {}
@@ -58,7 +58,7 @@ class B<T> extends A<T> with M1, M2<int> implements I1<int, String>, I2 {}
     expect(hover.propagatedType, isNull);
   }
 
-  test_class_declaration_abstract() async {
+  Future<void> test_class_declaration_abstract() async {
     addTestFile('''
 class A {}
 abstract class B extends A {}
@@ -69,7 +69,7 @@ abstract class B extends A {}
     expect(hover.propagatedType, isNull);
   }
 
-  test_constructor_named() async {
+  Future<void> test_constructor_named() async {
     addTestFile('''
 library my.library;
 class A {
@@ -100,7 +100,7 @@ main() {
     }
   }
 
-  test_constructor_noKeyword_const() async {
+  Future<void> test_constructor_noKeyword_const() async {
     addTestFile('''
 library my.library;
 class A {
@@ -127,7 +127,7 @@ main() {
     expect(hover.parameter, isNull);
   }
 
-  test_constructor_noKeyword_new() async {
+  Future<void> test_constructor_noKeyword_new() async {
     addTestFile('''
 library my.library;
 class A {}
@@ -152,7 +152,7 @@ main() {
     expect(hover.parameter, isNull);
   }
 
-  test_constructor_synthetic() async {
+  Future<void> test_constructor_synthetic() async {
     addTestFile('''
 library my.library;
 class A {
@@ -178,7 +178,7 @@ main() {
     expect(hover.parameter, isNull);
   }
 
-  test_constructor_synthetic_withTypeArgument() async {
+  Future<void> test_constructor_synthetic_withTypeArgument() async {
     addTestFile('''
 library my.library;
 class A<T> {}
@@ -220,7 +220,7 @@ main() {
     }
   }
 
-  test_dartdoc_block() async {
+  Future<void> test_dartdoc_block() async {
     addTestFile('''
 /**
  * doc aaa
@@ -233,7 +233,7 @@ main() {
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
-  test_dartdoc_inherited_fromInterface() async {
+  Future<void> test_dartdoc_inherited_fromInterface() async {
     addTestFile('''
 class A {
   /// my doc
@@ -248,7 +248,7 @@ class B implements A {
     expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
   }
 
-  test_dartdoc_inherited_fromSuper_direct() async {
+  Future<void> test_dartdoc_inherited_fromSuper_direct() async {
     addTestFile('''
 class A {
   /// my doc
@@ -263,7 +263,7 @@ class B extends A {
     expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
   }
 
-  test_dartdoc_inherited_fromSuper_indirect() async {
+  Future<void> test_dartdoc_inherited_fromSuper_indirect() async {
     addTestFile('''
 class A {
   /// my doc
@@ -279,7 +279,7 @@ class C extends B {
     expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
   }
 
-  test_dartdoc_inherited_preferSuper() async {
+  Future<void> test_dartdoc_inherited_preferSuper() async {
     addTestFile('''
 class A {
   /// my doc
@@ -298,7 +298,7 @@ class C extends B implements I {
     expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
   }
 
-  test_dartdoc_line() async {
+  Future<void> test_dartdoc_line() async {
     addTestFile('''
 /// doc aaa
 /// doc bbb
@@ -309,7 +309,7 @@ main() {
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
-  test_enum_declaration() async {
+  Future<void> test_enum_declaration() async {
     addTestFile('''
 enum MyEnum {AAA, BBB, CCC}
 ''');
@@ -319,7 +319,7 @@ enum MyEnum {AAA, BBB, CCC}
     expect(hover.propagatedType, isNull);
   }
 
-  test_extensionDeclaration() async {
+  Future<void> test_extensionDeclaration() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 class A {}
@@ -333,7 +333,7 @@ extension E on A {}
     expect(hover.propagatedType, isNull);
   }
 
-  test_function_topLevel_declaration() async {
+  Future<void> test_function_topLevel_declaration() async {
     addTestFile('''
 library my.library;
 /// doc aaa
@@ -356,7 +356,7 @@ List<String> fff(int a, String b) {
     expect(hover.parameter, isNull);
   }
 
-  test_getter_synthetic() async {
+  Future<void> test_getter_synthetic() async {
     addTestFile('''
 library my.library;
 class A {
@@ -381,7 +381,7 @@ main(A a) {
     expect(hover.propagatedType, isNull);
   }
 
-  test_integerLiteral() async {
+  Future<void> test_integerLiteral() async {
     addTestFile('''
 main() {
   foo(123);
@@ -406,7 +406,7 @@ foo(Object myParameter) {}
     expect(hover.parameter, 'Object myParameter');
   }
 
-  test_integerLiteral_promoted() async {
+  Future<void> test_integerLiteral_promoted() async {
     addTestFile('''
 main() {
   foo(123);
@@ -431,7 +431,7 @@ foo(double myParameter) {}
     expect(hover.parameter, 'double myParameter');
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = AnalysisGetHoverParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -440,7 +440,7 @@ foo(double myParameter) {}
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
         AnalysisGetHoverParams(convertPath('/foo/../bar/test.dart'), 0)
             .toRequest('0');
@@ -451,7 +451,7 @@ foo(double myParameter) {}
     );
   }
 
-  test_localVariable_declaration() async {
+  Future<void> test_localVariable_declaration() async {
     addTestFile('''
 library my.library;
 class A {
@@ -475,7 +475,7 @@ class A {
     expect(hover.parameter, isNull);
   }
 
-  test_localVariable_reference_withPropagatedType() async {
+  Future<void> test_localVariable_reference_withPropagatedType() async {
     addTestFile('''
 library my.library;
 main() {
@@ -496,7 +496,7 @@ main() {
     expect(hover.propagatedType, null);
   }
 
-  test_method_declaration() async {
+  Future<void> test_method_declaration() async {
     addTestFile('''
 library my.library;
 class A {
@@ -521,7 +521,7 @@ class A {
     expect(hover.parameter, isNull);
   }
 
-  test_method_reference() async {
+  Future<void> test_method_reference() async {
     addTestFile('''
 library my.library;
 class A {
@@ -549,7 +549,7 @@ main(A a) {
     expect(hover.parameter, isNull);
   }
 
-  test_method_reference_deprecated() async {
+  Future<void> test_method_reference_deprecated() async {
     addTestFile('''
 class A {
   @deprecated
@@ -567,7 +567,7 @@ main() {
     expect(hover.isDeprecated, isTrue);
   }
 
-  test_method_reference_genericMethod() async {
+  Future<void> test_method_reference_genericMethod() async {
     addTestFile('''
 library my.library;
 
@@ -599,7 +599,7 @@ f(Stream<int> s) {
     expect(hover.parameter, isNull);
   }
 
-  test_mixin_declaration() async {
+  Future<void> test_mixin_declaration() async {
     addTestFile('''
 mixin A on B, C implements D, E {}
 class B {}
@@ -614,7 +614,7 @@ class E {}
   }
 
   @failingTest
-  test_mixin_reference() async {
+  Future<void> test_mixin_reference() async {
     addTestFile('''
 mixin A {}
 abstract class B {}
@@ -626,7 +626,7 @@ class C with A implements B {}
     expect(hover.propagatedType, isNull);
   }
 
-  test_noHoverInfo() async {
+  Future<void> test_noHoverInfo() async {
     addTestFile('''
 library my.library;
 main() {
@@ -637,7 +637,7 @@ main() {
     expect(hover, isNull);
   }
 
-  test_nonNullable() async {
+  Future<void> test_nonNullable() async {
     createAnalysisOptionsFile(experiments: ['non-nullable']);
     addTestFile('''
 int? f(double? a) => null;
@@ -651,7 +651,7 @@ main() {
     expect(hover.staticType, 'int? Function(double?)');
   }
 
-  test_parameter_declaration_fieldFormal() async {
+  Future<void> test_parameter_declaration_fieldFormal() async {
     addTestFile('''
 class A {
   /// The field documentation.
@@ -672,7 +672,7 @@ main() {
     expect(hover.staticType, 'int');
   }
 
-  test_parameter_declaration_required() async {
+  Future<void> test_parameter_declaration_required() async {
     addTestFile('''
 library my.library;
 class A {
@@ -696,7 +696,7 @@ class A {
     expect(hover.parameter, isNull);
   }
 
-  test_parameter_reference_fieldFormal() async {
+  Future<void> test_parameter_reference_fieldFormal() async {
     addTestFile('''
 class A {
   /// The field documentation.

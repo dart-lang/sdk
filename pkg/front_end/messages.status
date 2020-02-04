@@ -387,6 +387,8 @@ InvalidVoid/part_wrapped_script1: Fail
 InvalidVoid/part_wrapped_script2: Fail
 InvalidVoid/script1: Fail
 InvalidVoid/script2: Fail
+JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
+JsInteropIndexNotSupported/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionInvalidInDotPackages/part_wrapped_script: Fail # Importing file in the (now) part.
 LanguageVersionMismatchInPart/analyzerCode: Fail
@@ -485,6 +487,10 @@ NullableSuperclassError/analyzerCode: Fail
 NullableSuperclassError/example: Fail
 NullableSuperclassWarning/analyzerCode: Fail
 NullableSuperclassWarning/example: Fail
+NullableTearoffError/analyzerCode: Fail
+NullableTearoffError/example: Fail
+NullableTearoffWarning/analyzerCode: Fail
+NullableTearoffWarning/example: Fail
 OperatorMinusParameterMismatch/example: Fail
 OperatorParameterMismatch0/analyzerCode: Fail
 OperatorParameterMismatch0/example: Fail

@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_search_domain.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementReferencesTest);
   });
@@ -128,7 +128,7 @@ main() {
     assertHasResult(SearchResultKind.REFERENCE, '(1)', 0);
   }
 
-  test_extension() async {
+  Future<void> test_extension() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
@@ -238,7 +238,7 @@ class A {
     assertHasResult(SearchResultKind.READ, 'fff); // in m()');
   }
 
-  test_field_ofExtension_explicit_static() async {
+  Future<void> test_field_ofExtension_explicit_static() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
@@ -274,7 +274,7 @@ main() {
     assertHasResult(SearchResultKind.READ, 'fff(); // in main()');
   }
 
-  test_field_ofExtension_implicit_instance() async {
+  Future<void> test_field_ofExtension_implicit_instance() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
@@ -309,7 +309,7 @@ main() {
     }
   }
 
-  test_field_ofExtension_implicit_static() async {
+  Future<void> test_field_ofExtension_implicit_static() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {
@@ -515,7 +515,7 @@ main(A a) {
     assertHasResult(SearchResultKind.REFERENCE, 'mmm); // in main()');
   }
 
-  test_method_ofExtension() async {
+  Future<void> test_method_ofExtension() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension E on int {

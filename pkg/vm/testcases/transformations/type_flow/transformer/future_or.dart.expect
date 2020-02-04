@@ -40,5 +40,5 @@ static method getDynamic() → dynamic
   return [@vm.call-site-attributes.metadata=receiverType:dart.core::Function*] self::unknown.call();
 static method main(core::List<core::String*>* args) → dynamic {
   self::foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] asy::Future::value<self::B*>(new self::B::•()), new self::B::•(), [@vm.inferred-type.metadata=dart.async::_Future<#lib::B*>] asy::Future::value<self::B*>(new self::B::•()), new self::B::•());
-  self::foo2(self::getDynamic() as{TypeError} asy::Future<self::A*>*, self::getDynamic() as{TypeError} self::A*, self::getDynamic() as{TypeError} asy::FutureOr<self::A*>*, self::getDynamic() as{TypeError} asy::FutureOr<self::A*>*);
+  self::foo2(self::getDynamic() as{TypeError,ForDynamic} asy::Future<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} self::A*, self::getDynamic() as{TypeError,ForDynamic} asy::FutureOr<self::A*>*, self::getDynamic() as{TypeError,ForDynamic} asy::FutureOr<self::A*>*);
 }

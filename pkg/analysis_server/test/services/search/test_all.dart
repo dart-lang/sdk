@@ -8,10 +8,7 @@ import 'element_visitors_test.dart' as element_visitors;
 import 'hierarchy_test.dart' as hierarchy_test;
 import 'search_engine_test.dart' as search_engine_test;
 
-/**
- * Utility for manually running all tests.
- */
-main() {
+void main() {
   defineReflectiveSuite(() {
     element_visitors.main();
     hierarchy_test.main();

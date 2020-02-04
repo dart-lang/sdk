@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterWrapContainerTest);
   });
@@ -19,7 +19,7 @@ class FlutterWrapContainerTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.FLUTTER_WRAP_CONTAINER;
 
-  test_aroundContainer() async {
+  Future<void> test_aroundContainer() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';
@@ -30,7 +30,7 @@ main() {
     await assertNoAssist();
   }
 
-  test_aroundText() async {
+  Future<void> test_aroundText() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/widgets.dart';

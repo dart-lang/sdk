@@ -74,7 +74,7 @@ class InheritedReferenceContributor extends DartCompletionContributor
     return const <CompletionSuggestion>[];
   }
 
-  _addSuggestionsForType(InterfaceType type, DartCompletionRequest request,
+  void _addSuggestionsForType(InterfaceType type, DartCompletionRequest request,
       {bool isFunctionalArgument = false}) {
     OpType opType = request.opType;
     if (!isFunctionalArgument) {

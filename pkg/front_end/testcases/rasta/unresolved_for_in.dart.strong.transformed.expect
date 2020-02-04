@@ -93,7 +93,7 @@ class Fisk extends core::Object {
     ;
   method it1(dynamic x) → dynamic {
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t1 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -111,7 +111,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -123,7 +123,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t3 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -137,7 +137,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
       }
     }
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -153,7 +153,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
     for (1 in x) {
          ^";
       {
-        core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+        core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(x as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
           final dynamic #t5 = :sync-for-iterator.{core::Iterator::current};
           {
@@ -175,7 +175,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 static method main(dynamic arguments) → dynamic {
   new self::Fisk::•();
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t6 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -189,7 +189,7 @@ static method main(dynamic arguments) → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t7 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -201,7 +201,7 @@ static method main(dynamic arguments) → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t8 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -215,7 +215,7 @@ static method main(dynamic arguments) → dynamic {
     }
   }
   {
-    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+    core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
       final dynamic #t9 = :sync-for-iterator.{core::Iterator::current};
       {
@@ -231,7 +231,7 @@ static method main(dynamic arguments) → dynamic {
   for (1 in arguments) {
        ^";
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(arguments as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current};
         {

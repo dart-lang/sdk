@@ -139,6 +139,10 @@ import 'for_in_of_invalid_element_type_test.dart'
 import 'for_in_of_invalid_type_test.dart' as for_in_of_invalid_type;
 import 'for_in_with_const_variable_test.dart' as for_in_with_const_variable;
 import 'generic_struct_subclass_test.dart' as generic_struct_subclass;
+import 'getter_not_assignable_setter_types_test.dart'
+    as getter_not_assignable_setter_types;
+import 'getter_not_subtype_setter_types_test.dart'
+    as getter_not_subtype_setter_types;
 import 'if_element_condition_from_deferred_library_test.dart'
     as if_element_condition_from_deferred_library;
 import 'illegal_async_return_type_test.dart' as illegal_async_return_type;
@@ -239,8 +243,6 @@ import 'map_value_type_not_assignable_test.dart'
 import 'member_with_class_name_test.dart' as member_with_class_name;
 import 'mismatched_annotation_on_struct_field_test.dart'
     as mismatched_annotation_on_struct_field;
-import 'mismatched_getter_and_setter_types_test.dart'
-    as mismatched_getter_and_setter_types;
 import 'missing_annotation_on_struct_field_test.dart'
     as missing_annotation_on_struct_field;
 import 'missing_default_value_for_parameter_test.dart'
@@ -435,6 +437,7 @@ import 'undefined_constructor_in_initializer_default_test.dart'
     as undefined_constructor_in_initializer_default;
 import 'undefined_constructor_in_initializer_test.dart'
     as undefined_constructor_in_initializer;
+import 'undefined_enum_constant_test.dart' as undefined_enum_constant;
 import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
 import 'undefined_extension_method_test.dart' as undefined_extension_method;
 import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
@@ -576,6 +579,8 @@ main() {
     for_in_of_invalid_type.main();
     for_in_with_const_variable.main();
     generic_struct_subclass.main();
+    getter_not_assignable_setter_types.main();
+    getter_not_subtype_setter_types.main();
     if_element_condition_from_deferred_library.main();
     illegal_async_return_type.main();
     implements_disallowed_class.main();
@@ -643,7 +648,6 @@ main() {
     map_value_type_not_assignable.main();
     member_with_class_name.main();
     mismatched_annotation_on_struct_field.main();
-    mismatched_getter_and_setter_types.main();
     missing_annotation_on_struct_field.main();
     missing_default_value_for_parameter.main();
     missing_enum_value_in_switch.main();
@@ -775,6 +779,7 @@ main() {
     undefined_class.main();
     undefined_constructor_in_initializer_default.main();
     undefined_constructor_in_initializer.main();
+    undefined_enum_constant.main();
     undefined_extension_getter.main();
     undefined_extension_method.main();
     undefined_extension_operator.main();

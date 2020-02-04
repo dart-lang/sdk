@@ -130,10 +130,10 @@ abstract class RuntimeTypesSubstitutions {
 
   Set<ClassEntity> getClassesUsedInSubstitutions(TypeChecks checks);
 
-  static bool hasTypeArguments(DartType type) {
+  static bool hasTypeArguments(DartTypes dartTypes, DartType type) {
     if (type is InterfaceType) {
       InterfaceType interfaceType = type;
-      return !interfaceType.treatAsRaw;
+      return !dartTypes.treatAsRawType(interfaceType);
     }
     return false;
   }

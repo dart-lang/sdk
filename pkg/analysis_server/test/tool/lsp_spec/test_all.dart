@@ -9,7 +9,7 @@ import 'json_test.dart' as json_test;
 import 'markdown_test.dart' as markdown_test;
 import 'typescript_test.dart' as typescript_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     dart_test.main();
     json_test.main();

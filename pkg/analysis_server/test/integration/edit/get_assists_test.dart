@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetAssistsTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class GetAssistsTest extends AbstractAnalysisServerIntegrationTest {
-  test_has_assists() async {
+  Future<void> test_has_assists() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 import 'dart:async';

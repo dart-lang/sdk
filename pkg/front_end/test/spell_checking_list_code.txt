@@ -64,6 +64,7 @@ atom
 atoms
 attributes
 automagically
+auxiliary
 awaiting
 b
 b0i
@@ -357,6 +358,7 @@ fcon
 fcov
 fe
 feff
+fetched
 ff
 fff
 ffff
@@ -422,6 +424,7 @@ gzip
 gzipped
 h
 hadn't
+hang
 harness
 hashes
 hashing
@@ -606,6 +609,7 @@ mk
 mm
 mn
 mockito
+momentarily
 monomorphic
 morebottom
 moretop
@@ -634,10 +638,14 @@ nk
 nnbd
 node's
 nonimplementation
+normalization
+notifier
+notifying
 notion
 nr
 ns
 nsm
+nt
 nth
 nullabilities
 nullability
@@ -796,6 +804,7 @@ recreate
 recursion
 red
 redeclared
+redefine
 redirectee
 redirector
 reexports
@@ -966,11 +975,13 @@ sw
 swapped
 sweep
 synchronously
+syncs
 synth
 t
 tagged
 tagger
 tags
+tailor
 taking
 talks
 tb

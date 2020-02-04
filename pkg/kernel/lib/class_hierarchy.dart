@@ -36,6 +36,8 @@ abstract class ClassHierarchy {
       .._initialize(component.libraries);
   }
 
+  void set coreTypes(CoreTypes coreTypes);
+
   void set onAmbiguousSupertypes(
       HandleAmbiguousSupertypes onAmbiguousSupertypes);
 
@@ -427,7 +429,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy implements ClassHierarchy {
-  final CoreTypes coreTypes;
+  CoreTypes coreTypes;
   HandleAmbiguousSupertypes _onAmbiguousSupertypes;
   HandleAmbiguousSupertypes _onAmbiguousSupertypesNotWrapped;
   MixinInferrer mixinInferrer;
@@ -450,6 +452,14 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
   /// The insert order is important.
   final Map<Class, _ClassInfo> _infoMap =
       new LinkedHashMap<Class, _ClassInfo>();
+
+  List<ForTestingClassInfo> getTestingClassInfo() {
+    List<ForTestingClassInfo> result = new List<ForTestingClassInfo>();
+    for (_ClassInfo info in _infoMap.values) {
+      result.add(new ForTestingClassInfo._(info));
+    }
+    return result;
+  }
 
   _ClassInfo infoFor(Class c) {
     _ClassInfo info = _infoMap[c];
@@ -797,8 +807,13 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
         if (class_.mixedInType != null) {
           _infoMap[class_.mixedInType.classNode]?.directMixers?.remove(info);
         }
-        for (var supertype in class_.implementedTypes) {
+        for (Supertype supertype in class_.implementedTypes) {
           _infoMap[supertype.classNode]?.directImplementers?.remove(info);
+          // Remove from directMixers too as the mixin transformation will
+          // "move" the type here.
+          if (class_.isAnonymousMixin || class_.isEliminatedMixin) {
+            _infoMap[supertype.classNode]?.directMixers?.remove(info);
+          }
         }
 
         _infoMap.remove(class_);
@@ -912,6 +927,24 @@ class ClosedWorldClassHierarchy implements ClassHierarchy {
     for (Class c in _infoMap.keys) {
       if (!knownLibraries.contains(c.enclosingLibrary)) {
         throw new StateError("Didn't know library of $c (from ${c.fileUri})");
+      }
+    }
+
+    for (_ClassInfo info in _infoMap.values) {
+      for (_ClassInfo subInfo in info.directExtenders) {
+        if (!_infoMap.containsKey(subInfo.classNode))
+          throw new StateError(
+              "Found $subInfo (${subInfo.classNode}) in directExtenders");
+      }
+      for (_ClassInfo subInfo in info.directMixers) {
+        if (!_infoMap.containsKey(subInfo.classNode))
+          throw new StateError(
+              "Found $subInfo (${subInfo.classNode}) in directMixers");
+      }
+      for (_ClassInfo subInfo in info.directImplementers) {
+        if (!_infoMap.containsKey(subInfo.classNode))
+          throw new StateError(
+              "Found $subInfo (${subInfo.classNode}) in directImplementers");
       }
     }
     return true;
@@ -1442,6 +1475,25 @@ int _intervalListSize(Uint32List intervalList) {
     size += intervalList[i + 1] - intervalList[i];
   }
   return size;
+}
+
+class ForTestingClassInfo {
+  final Class classNode;
+  final List<Member> lazyDeclaredGettersAndCalls;
+  final List<Member> lazyDeclaredSetters;
+  final List<Member> lazyImplementedGettersAndCalls;
+  final List<Member> lazyImplementedSetters;
+  final List<Member> lazyInterfaceGettersAndCalls;
+  final List<Member> lazyInterfaceSetters;
+
+  ForTestingClassInfo._(_ClassInfo c)
+      : classNode = c.classNode,
+        lazyDeclaredGettersAndCalls = c.lazyDeclaredGettersAndCalls,
+        lazyDeclaredSetters = c.lazyDeclaredSetters,
+        lazyImplementedGettersAndCalls = c.lazyImplementedGettersAndCalls,
+        lazyImplementedSetters = c.lazyImplementedSetters,
+        lazyInterfaceGettersAndCalls = c.lazyInterfaceGettersAndCalls,
+        lazyInterfaceSetters = c.lazyInterfaceSetters;
 }
 
 class _ClassInfo {

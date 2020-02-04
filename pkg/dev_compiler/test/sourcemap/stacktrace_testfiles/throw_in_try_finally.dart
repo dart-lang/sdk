@@ -6,7 +6,7 @@ void main() {
   /*1:main*/ test();
 }
 
-test() {
+void test() {
   try {
     /*2:test*/ throw '>ExceptionMarker<';
   } finally {}

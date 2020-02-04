@@ -40,6 +40,16 @@ f(T e1) { e1.m = 0; }
     ]);
   }
 
+  test_instance_undefined_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  f() { this.m = 0; }
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_SETTER, 23, 1),
+    ]);
+  }
+
   test_inSubtype() async {
     await assertErrorsInCode(r'''
 class A {}

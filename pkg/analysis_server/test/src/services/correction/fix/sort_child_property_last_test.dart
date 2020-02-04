@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortChildPropertiesLastTest);
   });
@@ -24,7 +24,7 @@ class SortChildPropertiesLastTest extends FixProcessorLintTest {
   String get lintCode => LintNames.sort_child_properties_last;
 
   /// More coverage in the `sort_child_properties_last_test.dart` assist test.
-  test_sort() async {
+  Future<void> test_sort() async {
     addFlutterPackage();
     await resolveTestUnit('''
 import 'package:flutter/material.dart';

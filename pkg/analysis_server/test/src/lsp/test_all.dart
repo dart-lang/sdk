@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'lsp_packet_transformer_test.dart' as lsp_packet_transformer;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     lsp_packet_transformer.main();
   }, name: 'lsp');

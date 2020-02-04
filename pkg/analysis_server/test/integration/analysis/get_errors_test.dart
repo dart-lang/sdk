@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetErrorsTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class GetErrorsTest extends AbstractAnalysisServerIntegrationTest {
-  test_getErrors() async {
+  Future<void> test_getErrors() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 main() {

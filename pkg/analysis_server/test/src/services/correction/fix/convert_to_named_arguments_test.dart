@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToNamedArgumentsTest);
   });
@@ -19,7 +19,7 @@ class ConvertToNamedArgumentsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CONVERT_TO_NAMED_ARGUMENTS;
 
-  test_ambiguous() async {
+  Future<void> test_ambiguous() async {
     await resolveTestUnit('''
 class A {
   A({int a, int b});
@@ -32,7 +32,7 @@ main() {
     await assertNoFix();
   }
 
-  test_functionExpressionInvocation_getter() async {
+  Future<void> test_functionExpressionInvocation_getter() async {
     await resolveTestUnit('''
 class A {
   void Function({int aaa}) get g => null;
@@ -53,7 +53,7 @@ main(A a) {
 ''');
   }
 
-  test_functionExpressionInvocation_variable() async {
+  Future<void> test_functionExpressionInvocation_variable() async {
     await resolveTestUnit('''
 typedef F = void Function({int aaa});
 
@@ -70,7 +70,7 @@ main(F f) {
 ''');
   }
 
-  test_instanceCreation() async {
+  Future<void> test_instanceCreation() async {
     await resolveTestUnit('''
 class A {
   A({int a, double b});
@@ -91,7 +91,7 @@ main() {
 ''');
   }
 
-  test_instanceCreation_hasPositional() async {
+  Future<void> test_instanceCreation_hasPositional() async {
     await resolveTestUnit('''
 class A {
   A(int a, {int b});
@@ -112,7 +112,7 @@ main() {
 ''');
   }
 
-  test_methodInvocation() async {
+  Future<void> test_methodInvocation() async {
     await resolveTestUnit('''
 class C {
   void foo({int a}) {}
@@ -133,7 +133,7 @@ main(C c) {
 ''');
   }
 
-  test_noCompatibleParameter() async {
+  Future<void> test_noCompatibleParameter() async {
     await resolveTestUnit('''
 class A {
   A({String a});

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameToCamelCaseTest);
   });
@@ -23,7 +23,7 @@ class RenameToCamelCaseTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.non_constant_identifier_names;
 
-  test_localVariable() async {
+  Future<void> test_localVariable() async {
     await resolveTestUnit('''
 main() {
   int /*LINT*/my_integer_variable = 42;
@@ -42,7 +42,7 @@ main() {
 ''');
   }
 
-  test_parameter_closure() async {
+  Future<void> test_parameter_closure() async {
     await resolveTestUnit('''
 main() {
   [0, 1, 2].forEach((/*LINT*/my_integer_variable) {
@@ -59,7 +59,7 @@ main() {
 ''');
   }
 
-  test_parameter_function() async {
+  Future<void> test_parameter_function() async {
     await resolveTestUnit('''
 main(int /*LINT*/my_integer_variable) {
   print(my_integer_variable);
@@ -72,7 +72,7 @@ main(int myIntegerVariable) {
 ''');
   }
 
-  test_parameter_method() async {
+  Future<void> test_parameter_method() async {
     await resolveTestUnit('''
 class A {
   main(int /*LINT*/my_integer_variable) {
@@ -89,7 +89,7 @@ class A {
 ''');
   }
 
-  test_parameter_optionalNamed() async {
+  Future<void> test_parameter_optionalNamed() async {
     await resolveTestUnit('''
 foo({int /*LINT*/my_integer_variable}) {
   print(my_integer_variable);
@@ -98,7 +98,7 @@ foo({int /*LINT*/my_integer_variable}) {
     await assertNoFix();
   }
 
-  test_parameter_optionalPositional() async {
+  Future<void> test_parameter_optionalPositional() async {
     await resolveTestUnit('''
 main([int /*LINT*/my_integer_variable]) {
   print(my_integer_variable);

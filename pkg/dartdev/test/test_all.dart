@@ -4,12 +4,14 @@
 
 import 'package:test/test.dart';
 
+import 'commands/create_test.dart' as create;
 import 'commands/flag_test.dart' as flag;
 import 'commands/format_test.dart' as format;
 import 'utils_test.dart' as utils;
 
 main() {
   group('dartdev', () {
+    create.main();
     flag.main();
     format.main();
     utils.main();

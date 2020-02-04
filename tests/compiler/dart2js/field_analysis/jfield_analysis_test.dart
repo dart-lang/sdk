@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/js_backend/field_analysis.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:kernel/ast.dart' as ir;
@@ -40,6 +41,7 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       Map<Id, ActualData<Features>> actualMap,
       {bool verbose: false}) {
     if (member.isField) {
+      DartTypes dartTypes = compiler.frontendStrategy.commonElements.dartTypes;
       JsClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
       JFieldAnalysis fieldAnalysis = closedWorld.fieldAnalysis;
       ir.Member node = closedWorld.elementMap.getMemberDefinition(member).node;
@@ -53,9 +55,10 @@ class JAllocatorAnalysisDataComputer extends DataComputer<Features> {
       }
       if (fieldData.isEffectivelyConstant) {
         features[Tags.constantValue] =
-            fieldData.constantValue.toStructuredText();
+            fieldData.constantValue.toStructuredText(dartTypes);
       } else if (fieldData.initialValue != null) {
-        features[Tags.initialValue] = fieldData.initialValue.toStructuredText();
+        features[Tags.initialValue] =
+            fieldData.initialValue.toStructuredText(dartTypes);
       } else if (fieldData.isEager) {
         if (fieldData.eagerCreationIndex != null) {
           features[Tags.eagerCreationIndex] =

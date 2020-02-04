@@ -88,6 +88,50 @@ class EmitterTestCase(unittest.TestCase):
         b.EmitRaw('$D$C')
         self.check(e, '[$A12$C$D][21$B$D$C]12$E  $A$B$C$D')
 
+    def testNestedTemplates(self):
+        e = emitter.Emitter()
+        e.Emit('-$#A(-)-', A=True)
+        self.check(e, '---')
+
+    def testNestedTemplates2(self):
+        e = emitter.Emitter()
+        e.Emit('-$#A( $#B(-$C-) )-', A=True, B=True, C='1')
+        self.check(e, '- -1- -')
+
+    def testNestedTemplatesWithFalse(self):
+        e = emitter.Emitter()
+        e.Emit('-$#A( $B )-', A=False, B='1')
+        self.check(e, '--')
+
+    def testNestedTemplatesWithFalse2(self):
+        e = emitter.Emitter()
+        e.Emit('-$#A( $#B(-$C-) )-', A=False, B=True, C='1')
+        self.check(e, '--')
+
+    def testNestedTemplatesWithFalse3(self):
+        e = emitter.Emitter()
+        e.Emit('-$#A( $#B(-$C-) )-', A=True, B=False, C='1')
+        self.check(e, '-  -')
+
+    def testNestedTemplateMissingBindings(self):
+        e = emitter.Emitter()
+        e.Emit('-$#A(-$#B(-$C-)-)-', C='1')
+        self.check(e, '-$#A(-$#B(-1-)-)-')
+
+    def testNestedTemplateWithNoRightParen(self):
+        e = emitter.Emitter()
+        e.Emit('-$#A(-$B-', A=True, B='1')
+        self.check(e, '-$#A(-1-')
+
+    def testNestedTemplateWithWrongBinding(self):
+        try:
+            e = emitter.Emitter()
+            e.Emit('$#A(-)', A='Invalid')
+            e.Fragments()
+        except RuntimeError, ex:
+            return
+        raise AssertionError('Expected error')
+
     def testFormat(self):
         self.assertEquals(emitter.Format('$A$B', A=1, B=2), '12')
 

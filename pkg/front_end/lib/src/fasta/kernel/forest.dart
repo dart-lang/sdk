@@ -201,9 +201,13 @@ class Forest {
   }
 
   Expression createAsExpression(
-      int fileOffset, Expression expression, DartType type) {
+      int fileOffset, Expression expression, DartType type,
+      {bool forNonNullableByDefault}) {
+    assert(forNonNullableByDefault != null);
     assert(fileOffset != null);
-    return new AsExpression(expression, type)..fileOffset = fileOffset;
+    return new AsExpression(expression, type)
+      ..fileOffset = fileOffset
+      ..isForNonNullableByDefault = forNonNullableByDefault;
   }
 
   Expression createSpreadElement(int fileOffset, Expression expression,
@@ -406,10 +410,12 @@ class Forest {
   /// is non-null the test is negated the that file offset.
   Expression createIsExpression(
       int fileOffset, Expression operand, DartType type,
-      {int notFileOffset}) {
+      {bool forNonNullableByDefault, int notFileOffset}) {
+    assert(forNonNullableByDefault != null);
     assert(fileOffset != null);
     Expression result = new IsExpression(operand, type)
-      ..fileOffset = fileOffset;
+      ..fileOffset = fileOffset
+      ..isForNonNullableByDefault = forNonNullableByDefault;
     if (notFileOffset != null) {
       result = createNot(notFileOffset, result);
     }

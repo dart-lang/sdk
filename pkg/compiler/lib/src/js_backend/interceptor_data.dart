@@ -277,7 +277,7 @@ class InterceptorDataImpl implements InterceptorData {
     // We can use an instanceof check for raw types that have no subclass that
     // is mixed-in or in an implements clause.
 
-    if (!type.treatAsRaw) return false;
+    if (!closedWorld.dartTypes.treatAsRawType(type)) return false;
     if (type is FutureOrType) return false;
     InterfaceType interfaceType = type;
     ClassEntity classElement = interfaceType.element;

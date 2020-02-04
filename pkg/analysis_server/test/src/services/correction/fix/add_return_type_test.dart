@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddReturnTypeLintTest);
   });
@@ -23,7 +23,7 @@ class AddReturnTypeLintTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.always_declare_return_types;
 
-  test_localFunction_block() async {
+  Future<void> test_localFunction_block() async {
     await resolveTestUnit('''
 class A {
   void m() {
@@ -44,7 +44,7 @@ class A {
 ''');
   }
 
-  test_localFunction_expression() async {
+  Future<void> test_localFunction_expression() async {
     await resolveTestUnit('''
 class A {
   void m() {
@@ -61,7 +61,7 @@ class A {
 ''');
   }
 
-  test_method_block_noReturn() async {
+  Future<void> test_method_block_noReturn() async {
     await resolveTestUnit('''
 class A {
   /*LINT*/m() {
@@ -71,7 +71,7 @@ class A {
     await assertNoFix();
   }
 
-  test_method_block_returnDynamic() async {
+  Future<void> test_method_block_returnDynamic() async {
     await resolveTestUnit('''
 class A {
   /*LINT*/m(p) {
@@ -82,7 +82,7 @@ class A {
     await assertNoFix();
   }
 
-  test_method_block_returnNoValue() async {
+  Future<void> test_method_block_returnNoValue() async {
     await resolveTestUnit('''
 class A {
   /*LINT*/m() {
@@ -99,7 +99,7 @@ class A {
 ''');
   }
 
-  test_method_block_singleReturn() async {
+  Future<void> test_method_block_singleReturn() async {
     await resolveTestUnit('''
 class A {
   /*LINT*/m() {
@@ -116,7 +116,7 @@ class A {
 ''');
   }
 
-  test_method_expression() async {
+  Future<void> test_method_expression() async {
     await resolveTestUnit('''
 class A {
   /*LINT*/m() => '';
@@ -129,7 +129,7 @@ class A {
 ''');
   }
 
-  test_topLevelFunction_block() async {
+  Future<void> test_topLevelFunction_block() async {
     await resolveTestUnit('''
 /*LINT*/f() {
   return '';
@@ -142,7 +142,7 @@ String f() {
 ''');
   }
 
-  test_topLevelFunction_expression() async {
+  Future<void> test_topLevelFunction_expression() async {
     await resolveTestUnit('''
 /*LINT*/f() => '';
 ''');

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetFixesTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class GetFixesTest extends AbstractAnalysisServerIntegrationTest {
-  test_has_fixes() async {
+  Future<void> test_has_fixes() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 FutureOr f;
@@ -44,7 +44,7 @@ FutureOr f;
     expect(change.edits.first.edits, hasLength(1));
   }
 
-  test_no_fixes() async {
+  Future<void> test_no_fixes() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 import 'dart:async';

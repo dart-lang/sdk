@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnnecessaryNewTest);
   });
@@ -23,7 +23,7 @@ class RemoveUnnecessaryNewTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_new;
 
-  test_constructor() async {
+  Future<void> test_constructor() async {
     await resolveTestUnit('''
 class A { A(); }
 m(){

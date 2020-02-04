@@ -9,7 +9,7 @@ import 'package:test/test.dart';
 
 import 'completion_test_support.dart';
 
-main() {
+void main() {
   CompletionTestBuilder builder = CompletionTestBuilder();
   builder.buildAll();
 }

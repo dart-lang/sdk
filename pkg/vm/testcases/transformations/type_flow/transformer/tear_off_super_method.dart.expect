@@ -23,7 +23,7 @@ abstract class Base extends core::Object {
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasNonThisUses:false]  method foo() → core::int*
     return _in::unsafeCast<core::int*>([@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] 3.{core::num::+}(_in::unsafeCast<core::num*>([@vm.direct-call.metadata=#lib::B::foo] [@vm.inferred-type.metadata=int? (receiver not int)] [@vm.inferred-type.metadata=#lib::B] self::knownResult().foo())));
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasNonThisUses:false,hasTearOffUses:false]  method doCall(dynamic x) → core::int*
-    return [@vm.call-site-attributes.metadata=receiverType:dynamic] x.call() as{TypeError} core::int*;
+    return [@vm.call-site-attributes.metadata=receiverType:dynamic] x.call() as{TypeError,ForDynamic} core::int*;
 }
 class TearOffSuperMethod extends self::Base {
   synthetic constructor •() → self::TearOffSuperMethod*

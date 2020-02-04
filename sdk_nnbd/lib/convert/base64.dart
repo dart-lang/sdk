@@ -615,9 +615,7 @@ class _Base64Decoder {
     }
     if (start == end) return Uint8List(0);
     var buffer = _allocateBuffer(input, start, end, _state);
-    if (buffer.length > 0) {
-      _state = decodeChunk(input, start, end, buffer, 0, _state);
-    }
+    _state = decodeChunk(input, start, end, buffer, 0, _state);
     return buffer;
   }
 

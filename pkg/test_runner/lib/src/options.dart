@@ -26,7 +26,7 @@ const _defaultTestSelectors = [
   'service',
   'kernel',
   'observatory_ui',
-  'ffi'
+  'ffi_2'
 ];
 
 /// Specifies a single command line option.
@@ -751,8 +751,7 @@ compiler.''',
           reproducingArguments:
               _reproducingCommand(data, namedConfiguration != null),
           fastTestsOnly: data["fast_tests"] as bool,
-          printPassingStdout: data["print_passing_stdout"] as bool,
-          useQemu: data["use_qemu"] as bool);
+          printPassingStdout: data["print_passing_stdout"] as bool);
 
       if (configuration.validate()) {
         result.add(configuration);
@@ -829,7 +828,8 @@ compiler.''',
                   dart2jsOptions: dart2jsOptions,
                   experiments: experiments,
                   babel: data['babel'] as String,
-                  builderTag: data["builder_tag"] as String);
+                  builderTag: data["builder_tag"] as String,
+                  useQemu: data["use_qemu"] as bool);
               addConfiguration(configuration);
             }
           }

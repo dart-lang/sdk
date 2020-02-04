@@ -3474,6 +3474,27 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
   if (!ShouldInlineSimd()) {
     return false;
   }
+  bool is_dynamic_call = false;
+  if (auto instance_call = call->AsInstanceCallBase()) {
+    is_dynamic_call = Function::IsDynamicInvocationForwarderName(
+        instance_call->function_name());
+  } else if (auto static_call = call->AsStaticCall()) {
+    is_dynamic_call = static_call->function().IsDynamicInvocationForwarder();
+  }
+  if (is_dynamic_call && call->ArgumentCount() > 1) {
+    // Issue(dartbug.com/37737): Dynamic invocation forwarders have the
+    // same recognized kind as the method they are forwarding to.
+    // That causes us to inline the recognized method and not the
+    // dyn: forwarder itself.
+    // This is only safe if all arguments are checked in the flow graph we
+    // build.
+    // For double/int arguments speculative unboxing instructions should ensure
+    // to bailout in AOT (or deoptimize in JIT) if the incoming values are not
+    // correct. Though for user-implementable types, like
+    // operator+(Float32x4 other), this is not safe and we therefore bailout.
+    return false;
+  }
+
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
@@ -3572,6 +3593,13 @@ static bool InlineMathCFunction(FlowGraph* flow_graph,
   if (!CanUnboxDouble()) {
     return false;
   }
+
+  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+    if (call->ArgumentAt(i)->Type()->ToCid() != kDoubleCid) {
+      return false;
+    }
+  }
+
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);

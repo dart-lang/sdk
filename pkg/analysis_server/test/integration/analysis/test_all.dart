@@ -33,10 +33,7 @@ import 'update_content_list_test.dart' as update_content_list_test;
 import 'update_content_test.dart' as update_content_test;
 import 'update_options_test.dart' as update_options_test;
 
-/**
- * Utility for manually running all integration tests.
- */
-main() {
+void main() {
   defineReflectiveSuite(() {
     analysis_options_test.main();
     error_test.main();

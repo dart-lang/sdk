@@ -8,7 +8,7 @@ import 'available_suggestion_sets_test.dart' as available_suggestion_sets;
 import 'get_suggestion_details_test.dart' as get_suggestion_details;
 import 'get_suggestions_available_test.dart' as get_suggestions_available;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     available_suggestion_sets.main();
     get_suggestion_details.main();

@@ -278,6 +278,10 @@ class FastaErrorReporter {
             offset,
             length);
         return;
+      case "TYPE_PARAMETER_ON_OPERATOR":
+        errorReporter?.reportErrorForOffset(
+            ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR, offset, length);
+        return;
       case "UNDEFINED_CLASS":
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.UNDEFINED_CLASS, offset, length);

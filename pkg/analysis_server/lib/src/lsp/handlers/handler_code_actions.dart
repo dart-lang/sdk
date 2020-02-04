@@ -247,7 +247,7 @@ class CodeActionHandler extends MessageHandler<CodeActionParams,
 
     /// Helper to create refactors that execute commands provided with
     /// the current file, location and document version.
-    createRefactor(
+    Either2<Command, CodeAction> createRefactor(
       CodeActionKind actionKind,
       String name,
       RefactoringKind refactorKind, [

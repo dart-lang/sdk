@@ -9,6 +9,7 @@ import '../common.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/entity_utils.dart';
+import '../elements/types.dart';
 import '../ir/scope_visitor.dart';
 import '../js_model/elements.dart' show JField;
 import '../js_model/js_world_builder.dart';
@@ -170,7 +171,7 @@ class AllocatorData {
 
   @override
   String toString() =>
-      'AllocatorData(initialValue=${initialValue?.toStructuredText()},'
+      'AllocatorData(initialValue=${initialValue?.toStructuredText(null)},'
       'initializers=$initializers)';
 }
 
@@ -206,14 +207,14 @@ class Initializer {
         name = null,
         value = null;
 
-  String get shortText {
+  String shortText(DartTypes dartTypes) {
     switch (kind) {
       case InitializerKind.direct:
-        return value.toStructuredText();
+        return value.toStructuredText(dartTypes);
       case InitializerKind.positional:
-        return '$index:${value.toStructuredText()}';
+        return '$index:${value.toStructuredText(dartTypes)}';
       case InitializerKind.named:
-        return '$name:${value.toStructuredText()}';
+        return '$name:${value.toStructuredText(dartTypes)}';
       case InitializerKind.complex:
         return '?';
     }
@@ -221,7 +222,7 @@ class Initializer {
   }
 
   @override
-  String toString() => shortText;
+  String toString() => shortText(null);
 }
 
 class JFieldAnalysis {
@@ -631,7 +632,7 @@ class FieldAnalysisData {
 
   @override
   String toString() =>
-      'FieldAnalysisData(initialValue=${initialValue?.toStructuredText()},'
+      'FieldAnalysisData(initialValue=${initialValue?.toStructuredText(null)},'
       'isInitializedInAllocator=$isInitializedInAllocator,'
       'isEffectivelyFinal=$isEffectivelyFinal,isElided=$isElided,'
       'isEager=$isEager,eagerCreationIndex=$eagerCreationIndex,'

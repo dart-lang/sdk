@@ -27,8 +27,9 @@ class ExceptionPage extends PreviewPage {
 <h1>500 Exception in preview</h1>
 <p>
 We're sorry, but you've encountered a bug in the preview tool. Please visit
-<a href='https://github.com/dart-lang/sdk/issues/new'></a> to report the issue
-and include the stack trace below.
+<a href='https://github.com/dart-lang/sdk/issues/new'>
+github.com/dart-lang/sdk/issues/new</a> to report the issue and include the
+stack trace below.
 </p>
 <h2>$message</h2>
 <p style="white-space: pre">

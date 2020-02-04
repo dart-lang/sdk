@@ -19,7 +19,7 @@ class _Vector extends core::Object {
   }
 [@vm.procedure-attributes.metadata=hasDynamicUses:false,hasThisUses:false,hasTearOffUses:false]  operator *([@vm.inferred-type.metadata=#lib::_Vector?] self::_Vector* a) → core::double* {
     core::double* result = 0.0;
-    for (core::int* i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}([@vm.direct-call.metadata=#lib::_Vector::_length] [@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] this.{self::_Vector::_length}); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1))
+    for (core::int* i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}([@vm.direct-call.metadata=#lib::_Vector::_length] [@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] this.{self::_Vector::_length}); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1))
       result = [@vm.direct-call.metadata=dart.core::_Double::+??] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] result.{core::double::+}([@vm.direct-call.metadata=dart.core::_Double::*] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] [@vm.direct-call.metadata=#lib::_Vector::[]] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] this.{self::_Vector::[]}(i).{core::double::*}([@vm.direct-call.metadata=#lib::_Vector::[]??] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] a.{self::_Vector::[]}(i)));
     return result;
   }
@@ -28,7 +28,7 @@ class _Vector extends core::Object {
 [@vm.inferred-type.metadata=dart.core::_Double?]static field core::double* x = 0.0;
 static method main(core::List<core::String*>* args) → dynamic {
   core::Stopwatch* timer = let final core::Stopwatch* #t4 = new core::Stopwatch::•() in let final void #t5 = [@vm.direct-call.metadata=dart.core::Stopwatch::start] [@vm.inferred-type.metadata=!? (skip check)] #t4.{core::Stopwatch::start}() in #t4;
-  for (core::int* i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100000000); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+??] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
+  for (core::int* i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation::<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(100000000); i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation::+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1)) {
     self::x = [@vm.direct-call.metadata=dart.core::_Double::+??] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] [@vm.inferred-type.metadata=dart.core::_Double?] self::x.{core::double::+}([@vm.direct-call.metadata=#lib::_Vector::*??] [@vm.inferred-type.metadata=dart.core::_Double (skip check)] [@vm.inferred-type.metadata=#lib::_Vector?] self::v.{self::_Vector::*}([@vm.inferred-type.metadata=#lib::_Vector?] self::v));
   }
   [@vm.direct-call.metadata=dart.core::Stopwatch::stop] [@vm.inferred-type.metadata=!? (skip check)] timer.{core::Stopwatch::stop}();

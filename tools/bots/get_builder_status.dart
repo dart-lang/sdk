@@ -155,9 +155,7 @@ void printResultsFeedLink() async {
     final groups = <String>{
       for (Map document in documents)
         if (document.containsKey('document'))
-          document['document']['fields']['builder']['stringValue']
-              .split('-')
-              .first
+          document['document']['name'].split('/').last.split('-').first
     };
     String fragment = [
       'showLatestFailures=true',

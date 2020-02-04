@@ -820,6 +820,15 @@ class ParserErrorCode extends ErrorCode {
       _TYPE_PARAMETER_ON_CONSTRUCTOR;
 
   /**
+   * 7.1.1 Operators: Type parameters are not syntactically supported on an
+   * operator.
+   */
+  static const ParserErrorCode TYPE_PARAMETER_ON_OPERATOR = ParserErrorCode(
+      'TYPE_PARAMETERS_ON_OPERATOR',
+      "Types parameters aren't allowed when defining an operator.",
+      correction: "Try removing the type parameters.");
+
+  /**
    * Parameters:
    * 0: the starting character that was missing
    */

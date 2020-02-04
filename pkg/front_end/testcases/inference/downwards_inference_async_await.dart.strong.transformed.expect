@@ -20,9 +20,9 @@ static method main() → asy::Future<dynamic>* /* originally async */ {
       #L1:
       {
         dynamic d;
-        [yield] let dynamic #t1 = asy::_awaitHelper(<core::int*>[d as{TypeError} core::int*], :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t1 = asy::_awaitHelper(<core::int*>[d as{TypeError,ForDynamic} core::int*], :async_op_then, :async_op_error, :async_op) in null;
         core::List<core::int*>* l0 = _in::unsafeCast<core::List<core::int*>*>(:result);
-        [yield] let dynamic #t2 = asy::_awaitHelper(asy::Future::value<core::List<core::int*>*>(<core::int*>[d as{TypeError} core::int*]), :async_op_then, :async_op_error, :async_op) in null;
+        [yield] let dynamic #t2 = asy::_awaitHelper(asy::Future::value<core::List<core::int*>*>(<core::int*>[d as{TypeError,ForDynamic} core::int*]), :async_op_then, :async_op_error, :async_op) in null;
         core::List<core::int*>* l1 = _in::unsafeCast<core::List<core::int*>*>(:result);
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);

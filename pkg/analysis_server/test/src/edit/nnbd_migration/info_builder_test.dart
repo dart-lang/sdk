@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../../../analysis_abstract.dart';
 import 'nnbd_migration_test_base.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BuildEnclosingMemberDescriptionTest);
     defineReflectiveTests(InfoBuilderTest);
@@ -31,7 +31,7 @@ class BuildEnclosingMemberDescriptionTest extends AbstractAnalysisTest {
         .getResolvedUnit(testFile);
   }
 
-  test_classConstructor_named() async {
+  Future<void> test_classConstructor_named() async {
     addTestFile(r'''
 class C {
   C.aaa();
@@ -44,7 +44,7 @@ class C {
         equals("the constructor 'C.aaa'"));
   }
 
-  test_classConstructor_unnamed() async {
+  Future<void> test_classConstructor_unnamed() async {
     addTestFile(r'''
 class C {
   C();
@@ -57,7 +57,7 @@ class C {
         equals("the default constructor of 'C'"));
   }
 
-  test_classGetter() async {
+  Future<void> test_classGetter() async {
     addTestFile(r'''
 class C {
   int get aaa => 7;
@@ -70,7 +70,7 @@ class C {
         equals("the getter 'C.aaa'"));
   }
 
-  test_classMethod() async {
+  Future<void> test_classMethod() async {
     addTestFile(r'''
 class C {
   int aaa() => 7;
@@ -83,7 +83,7 @@ class C {
         equals("the method 'C.aaa'"));
   }
 
-  test_classOperator() async {
+  Future<void> test_classOperator() async {
     addTestFile(r'''
 class C {
   bool operator ==(Object other) => false;
@@ -96,7 +96,7 @@ class C {
         equals("the operator 'C.=='"));
   }
 
-  test_classSetter() async {
+  Future<void> test_classSetter() async {
     addTestFile(r'''
 class C {
   void set aaa(value) {}
@@ -109,7 +109,7 @@ class C {
         equals("the setter 'C.aaa='"));
   }
 
-  test_extensionMethod() async {
+  Future<void> test_extensionMethod() async {
     addTestFile(r'''
 extension E on List {
   int aaa() => 7;
@@ -122,7 +122,7 @@ extension E on List {
         equals("the method 'E.aaa'"));
   }
 
-  test_extensionMethod_unnamed() async {
+  Future<void> test_extensionMethod_unnamed() async {
     addTestFile(r'''
 extension on List {
   int aaa() => 7;
@@ -135,7 +135,7 @@ extension on List {
         equals("the method 'aaa' in unnamed extension on List<dynamic>"));
   }
 
-  test_mixinMethod() async {
+  Future<void> test_mixinMethod() async {
     addTestFile(r'''
 mixin C {
   int aaa() => 7;
@@ -148,7 +148,7 @@ mixin C {
         equals("the method 'C.aaa'"));
   }
 
-  test_topLevelFunction() async {
+  Future<void> test_topLevelFunction() async {
     addTestFile(r'''
 void aaa(value) {}
 ''');
@@ -158,7 +158,7 @@ void aaa(value) {}
         equals("the function 'aaa'"));
   }
 
-  test_topLevelGetter() async {
+  Future<void> test_topLevelGetter() async {
     addTestFile(r'''
 int get aaa => 7;
 ''');
@@ -168,7 +168,7 @@ int get aaa => 7;
         equals("the getter 'aaa'"));
   }
 
-  test_topLevelSetter() async {
+  Future<void> test_topLevelSetter() async {
     addTestFile(r'''
 void set aaa(value) {}
 ''');
@@ -237,7 +237,7 @@ class InfoBuilderTest extends NnbdMigrationTestBase {
     }
   }
 
-  test_asExpression() async {
+  Future<void> test_asExpression() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f([num a]) {
   int b = a as int;
@@ -260,7 +260,7 @@ void f([num? a]) {
         details: ['The value of the expression is nullable']);
   }
 
-  test_asExpression_insideReturn() async {
+  Future<void> test_asExpression_insideReturn() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 int f([num a]) {
   return a as int;
@@ -280,7 +280,7 @@ int? f([num? a]) {
         details: ['The value of the expression is nullable']);
   }
 
-  test_discardCondition() async {
+  Future<void> test_discardCondition() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void g(int i) {
   print(i.isEven);
@@ -298,7 +298,7 @@ void g(int i) {
     assertRegion(region: regions[1], offset: 55, length: 3);
   }
 
-  test_discardElse() async {
+  Future<void> test_discardElse() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void g(int i) {
   print(i.isEven);
@@ -320,7 +320,7 @@ void g(int i) {
     assertRegion(region: regions[3], offset: 101, length: 3);
   }
 
-  test_dynamicValueIsUsed() async {
+  Future<void> test_dynamicValueIsUsed() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 bool f(int i) {
   if (i == null) return true;
@@ -352,7 +352,7 @@ void g() {
     assertEdit(edit: edits[1], offset: 10, replacement: '/*?*/');
   }
 
-  test_exactNullable() async {
+  Future<void> test_exactNullable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(List<int> list) {
   list[0] = null;
@@ -382,7 +382,7 @@ void g() {
         details: ['This is later required to accept null.']);
   }
 
-  test_exactNullable_exactNullable() async {
+  Future<void> test_exactNullable_exactNullable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void g(List<int> list1, List<int> list2) {
   list1[0] = null;
@@ -409,7 +409,7 @@ void g(List<int?> list1, List<int?> list2) {
         details: ["A nullable value is assigned in the function 'g'"]);
   }
 
-  test_expressionFunctionReturnTarget() async {
+  Future<void> test_expressionFunctionReturnTarget() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 String g() => 1 == 2 ? "Hello" : null;
 ''', migratedContent: '''
@@ -426,7 +426,7 @@ String? g() => 1 == 2 ? "Hello" : null;
     assertDetail(detail: regions[0].details[0], offset: 11, length: 2);
   }
 
-  test_field_fieldFormalInitializer_optional() async {
+  Future<void> test_field_fieldFormalInitializer_optional() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f;
@@ -446,7 +446,7 @@ class A {
     ]);
   }
 
-  test_field_fieldFormalInitializer_optional_defaultNull() async {
+  Future<void> test_field_fieldFormalInitializer_optional_defaultNull() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f;
@@ -466,7 +466,7 @@ class A {
     ]);
   }
 
-  test_field_fieldFormalInitializer_required() async {
+  Future<void> test_field_fieldFormalInitializer_required() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f;
@@ -494,7 +494,7 @@ void g() {
     ]);
   }
 
-  test_field_initializer() async {
+  Future<void> test_field_initializer() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f = null;
@@ -518,7 +518,7 @@ class A {
         details: ['This field is initialized to a nullable value']);
   }
 
-  test_fieldLaterAssignedNullable() async {
+  Future<void> test_fieldLaterAssignedNullable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class Foo {
   int value = 7;
@@ -544,7 +544,179 @@ class Foo {
     assertDetail(detail: region.details[0], offset: 56, length: 4);
   }
 
-  test_insertedRequired_fieldFormal() async {
+  Future<void> test_functionType_nullable_asArgument() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  f(void Function(int) cb1) {}
+  g(void Function(int) cb2) {
+    f(cb2);
+  }
+  h() => f(null);
+}
+''', migratedContent: '''
+class C {
+  f(void Function(int)? cb1) {}
+  g(void Function(int) cb2) {
+    f(cb2);
+  }
+  h() => f(null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    assertRegion(
+        region: regions[0],
+        offset: 32,
+        details: ["An explicit 'null' is passed as an argument"]);
+    assertDetail(detail: regions[0].details[0], offset: 98, length: 4);
+  }
+
+  Future<void> test_functionType_nullableParameter_asArgument() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  f(void Function(int) cb1) {
+    cb1(null);
+  }
+  g(void Function(int) cb2) {
+    f(cb2);
+  }
+}
+''', migratedContent: '''
+class C {
+  f(void Function(int?) cb1) {
+    cb1(null);
+  }
+  g(void Function(int?) cb2) {
+    f(cb2);
+  }
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 31,
+        details: ["An explicit 'null' is passed as an argument"]);
+    assertRegion(region: regions[1], offset: 81, details: [
+      'The function-typed element in which this parameter is declared is '
+          'assigned to a function whose matching parameter is nullable'
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 95, length: 3);
+  }
+
+  Future<void> test_functionType_nullableParameter_assignment() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  void Function(int) _cb = (x) {};
+  f(void Function(int) cb) {
+    _cb = cb;
+  }
+  g() => _cb(null);
+}
+''', migratedContent: '''
+class C {
+  void Function(int?) _cb = (x) {};
+  f(void Function(int?) cb) {
+    _cb = cb;
+  }
+  g() => _cb(null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    // regions[0] is `void Function(int?) _cb`.
+    assertRegion(region: regions[1], offset: 67, details: [
+      'The function-typed element in which this parameter is declared is '
+          'assigned to a function whose matching parameter is nullable'
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 84, length: 2);
+  }
+
+  Future<void> test_functionType_nullableParameter_fieldInitializer() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  void Function(int) _cb;
+  C(void Function(int) cb): _cb = cb;
+  f() => _cb(null);
+}
+''', migratedContent: '''
+class C {
+  void Function(int?) _cb;
+  C(void Function(int?) cb): _cb = cb;
+  f() => _cb(null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(
+        region: regions[0],
+        offset: 29,
+        details: ["An explicit 'null' is passed as an argument"]);
+    assertRegion(region: regions[1], offset: 58, details: [
+      'The function-typed element in which this parameter is declared is '
+          'assigned to a function whose matching parameter is nullable'
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 70, length: 2);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40034')
+  Future<void> test_functionType_nullableParameter_typedef() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+typedef Cb = void Function(int);
+class C {
+  Cb _cb;
+  C(void Function(int) cb): _cb = cb;
+  f() => _cb(null);
+}
+''', migratedContent: '''
+typedef Cb = void Function(int?);
+class C {
+  Cb _cb;
+  C(void Function(int?) cb): _cb = cb;
+  f() => _cb(null);
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    // regions[0] is `typedef Cb = void Function(int?);`.
+    assertRegion(region: regions[1], offset: 75, details: [
+      'The function-typed element in which this parameter is declared is '
+          'assigned to a function whose matching parameter is nullable'
+    ]);
+    assertDetail(detail: regions[1].details[0], offset: 70, length: 2);
+  }
+
+  Future<void> test_functionType_nullableReturn() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+class C {
+  int Function() _cb = () => 7;
+  f(int Function() cb) {
+    _cb = cb;
+  }
+  g() {
+    f(() => null);
+  }
+}
+''', migratedContent: '''
+class C {
+  int? Function() _cb = () => 7;
+  f(int? Function() cb) {
+    _cb = cb;
+  }
+  g() {
+    f(() => null);
+  }
+}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(2));
+    assertRegion(region: regions[0], offset: 15, details: [
+      'A function-typed value with a nullable return type is assigned'
+    ]);
+    assertDetail(detail: regions[0].details[0], offset: 77, length: 2);
+  }
+
+  Future<void> test_insertedRequired_fieldFormal() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
   int level;
@@ -570,7 +742,7 @@ class C {
         edit: edits[0], offset: 42, length: 0, replacement: '@required ');
   }
 
-  test_insertedRequired_parameter() async {
+  Future<void> test_insertedRequired_parameter() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
   int level;
@@ -596,7 +768,7 @@ class C {
     // regions[2] is the `level!` fix.
   }
 
-  test_insertParens() async {
+  Future<void> test_insertParens() async {
     var originalContent = '''
 class C {
   C operator+(C c) => null;
@@ -625,7 +797,7 @@ C/*!*/ _f(C c) => (c + c)!;
         details: ['This value must be null-checked before use here.']);
   }
 
-  test_listAndSetLiteralTypeArgument() async {
+  Future<void> test_listAndSetLiteralTypeArgument() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
@@ -654,7 +826,7 @@ void f() {
     assertDetail(detail: regions[2].details[0], offset: 90, length: 1);
   }
 
-  test_listConstructor_length() async {
+  Future<void> test_listConstructor_length() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   List<int> list = List<int>(10);
@@ -668,13 +840,13 @@ void f() {
     expect(regions, hasLength(2));
     // regions[0] is `num? a`.
     assertRegion(region: regions[1], offset: 39, details: [
-      'List value type must be nullable because a length is specified,'
-          ' and the list items are initialized as null.'
+      'A length is specified in the "List()" constructor and the list items '
+          'are initialized to null'
     ]);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40064')
-  test_listConstructor_length_implicitType() async {
+  Future<void> test_listConstructor_length_implicitType() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   List<int> list = List(10);
@@ -693,7 +865,7 @@ void f() {
     ]);
   }
 
-  test_listLiteralTypeArgument_collectionIf() async {
+  Future<void> test_listLiteralTypeArgument_collectionIf() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
@@ -721,7 +893,7 @@ void f() {
     assertDetail(detail: regions[1].details[0], offset: 79, length: 1);
   }
 
-  test_localVariable() async {
+  Future<void> test_localVariable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   int v1 = null;
@@ -745,7 +917,7 @@ void f() {
         details: ['This variable is initialized to a nullable value']);
   }
 
-  test_mapLiteralTypeArgument() async {
+  Future<void> test_mapLiteralTypeArgument() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
@@ -774,7 +946,7 @@ void f() {
     assertDetail(detail: regions[2].details[0], offset: 128, length: 1);
   }
 
-  test_namedParameterWithDefault_fromOverridden_explicit() async {
+  Future<void> test_namedParameterWithDefault_fromOverridden_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m({int p = 0}) {}
@@ -805,7 +977,7 @@ void f(A a) {
     assertDetail(detail: regions[1].details[0], offset: 20, length: 3);
   }
 
-  test_nonNullableType_assert() async {
+  Future<void> test_nonNullableType_assert() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {
   assert(s != null);
@@ -824,7 +996,7 @@ void f(String s) {
         details: ['This value is asserted to be non-null']);
   }
 
-  test_nonNullableType_exclamationComment() async {
+  Future<void> test_nonNullableType_exclamationComment() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String /*!*/ s) {}
 ''', migratedContent: '''
@@ -837,7 +1009,7 @@ void f(String /*!*/ s) {}
     ]);
   }
 
-  test_nonNullableType_unconditionalFieldAccess() async {
+  Future<void> test_nonNullableType_unconditionalFieldAccess() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {
   print(s.length);
@@ -854,7 +1026,7 @@ void f(String s) {
     ]);
   }
 
-  test_nullCheck_onMemberAccess() async {
+  Future<void> test_nullCheck_onMemberAccess() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
   int value;
@@ -883,7 +1055,7 @@ class C {
     assertEdit(edit: edits[0], offset: 64, length: 0, replacement: '/*!*/');
   }
 
-  test_nullCheck_onMethodCall() async {
+  Future<void> test_nullCheck_onMethodCall() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
   int value;
@@ -909,7 +1081,7 @@ class C {
     ]);
   }
 
-  test_parameter_fromInvocation_explicit() async {
+  Future<void> test_parameter_fromInvocation_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {}
 void g() {
@@ -929,7 +1101,7 @@ void g() {
         details: ["An explicit 'null' is passed as an argument"]);
   }
 
-  test_parameter_fromInvocation_implicit() async {
+  Future<void> test_parameter_fromInvocation_implicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f(String s) {}
 void g(p) {
@@ -950,7 +1122,7 @@ void h() => g(null);
     ]);
   }
 
-  test_parameter_fromMultipleOverridden_explicit() async {
+  Future<void> test_parameter_fromMultipleOverridden_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(int p) {}
@@ -991,7 +1163,7 @@ void f(A a) {
     assertDetail(detail: regions[2].details[0], offset: 60, length: 3);
   }
 
-  test_parameter_fromMultipleOverridden_implicit() async {
+  Future<void> test_parameter_fromMultipleOverridden_implicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(int p) {}
@@ -1028,7 +1200,7 @@ void f(A a) {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/39378')
-  test_parameter_fromOverridden_implicit() async {
+  Future<void> test_parameter_fromOverridden_implicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   void m(p) {}
@@ -1054,7 +1226,7 @@ class B extends A {
         details: ['A nullable value is assigned']);
   }
 
-  test_parameter_fromOverriddenField_explicit() async {
+  Future<void> test_parameter_fromOverriddenField_explicit() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int m;
@@ -1087,7 +1259,7 @@ void f(A a) => a.m = null;
     assertDetail(detail: regions[1].details[0], offset: 12, length: 3);
   }
 
-  test_parameter_named_omittedInCall() async {
+  Future<void> test_parameter_named_omittedInCall() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() { g(); }
 
@@ -1100,13 +1272,35 @@ void g({int? i}) {}
     List<RegionInfo> regions = unit.fixRegions;
     expect(regions, hasLength(1));
     assertRegion(region: regions[0], offset: 30, details: [
-      'This named parameter was omitted in a call to this function',
+      'This named parameter is omitted in a call to this function',
       "This parameter has an implicit default value of 'null'",
     ]);
     assertDetail(detail: regions[0].details[0], offset: 11, length: 3);
   }
 
-  test_parameter_optional_explicitDefault_null() async {
+  Future<void> test_parameter_named_omittedInCall_inArgumentList() async {
+    UnitInfo unit = await buildInfoForSingleTestFile('''
+int f({int compare}) => 7
+void g() {
+  h(f());
+}
+void h(int x) {}
+''', migratedContent: '''
+int f({int? compare}) => 7
+void g() {
+  h(f());
+}
+void h(int x) {}
+''');
+    List<RegionInfo> regions = unit.fixRegions;
+    expect(regions, hasLength(1));
+    assertRegion(region: regions[0], offset: 10, details: [
+      "This parameter has an implicit default value of 'null'",
+      'This named parameter is omitted in a call to this function'
+    ]);
+  }
+
+  Future<void> test_parameter_optional_explicitDefault_null() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f({String s = null}) {}
 ''', migratedContent: '''
@@ -1120,7 +1314,7 @@ void f({String? s = null}) {}
         details: ["This parameter has an explicit default value of 'null'"]);
   }
 
-  test_parameter_optional_explicitDefault_nullable() async {
+  Future<void> test_parameter_optional_explicitDefault_nullable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 String sd = null;
 void f({String s = sd}) {}
@@ -1136,7 +1330,7 @@ void f({String? s = sd}) {}
         details: ['This parameter has a nullable default value']);
   }
 
-  test_parameter_optional_implicitDefault_named() async {
+  Future<void> test_parameter_optional_implicitDefault_named() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f({String s}) {}
 ''', migratedContent: '''
@@ -1150,7 +1344,7 @@ void f({String? s}) {}
         details: ["This parameter has an implicit default value of 'null'"]);
   }
 
-  test_parameter_optional_implicitDefault_positional() async {
+  Future<void> test_parameter_optional_implicitDefault_positional() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f([String s]) {}
 ''', migratedContent: '''
@@ -1164,7 +1358,7 @@ void f([String? s]) {}
         details: ["This parameter has an implicit default value of 'null'"]);
   }
 
-  test_removal_handles_offsets_correctly() async {
+  Future<void> test_removal_handles_offsets_correctly() async {
     var originalContent = '''
 void f(num n, int/*?*/ i) {
   if (n is! int) return;
@@ -1184,9 +1378,8 @@ void f(num n, int?/*?*/ i) {
     UnitInfo unit = await buildInfoForSingleTestFile(originalContent,
         migratedContent: migratedContent, removeViaComments: false);
     List<RegionInfo> regions = unit.regions;
-    expect(regions, hasLength(4));
+    expect(regions, hasLength(3));
     // regions[0] is the addition of `?` to the type of `i`.
-    // TODO(paulberry): why does the discarded downcast appear twice?
     assertRegion(
         region: regions[1],
         offset: migratedContent.indexOf(' as int'),
@@ -1194,16 +1387,11 @@ void f(num n, int?/*?*/ i) {
         details: []);
     assertRegion(
         region: regions[2],
-        offset: migratedContent.indexOf(' as int'),
-        length: 0,
-        details: []);
-    assertRegion(
-        region: regions[3],
         offset: migratedContent.indexOf('! + 1'),
         details: ['node with no info (never)']);
   }
 
-  test_return_fromOverriden() async {
+  Future<void> test_return_fromOverriden() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 abstract class A {
   String m();
@@ -1228,7 +1416,7 @@ class B implements A {
     assertDetail(detail: regions[0].details[0], offset: 60, length: 6);
   }
 
-  test_return_multipleReturns() async {
+  Future<void> test_return_multipleReturns() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 String g() {
   int x = 1;
@@ -1251,7 +1439,7 @@ String? g() {
     assertInTargets(targets: unit.targets, offset: 40, length: 6); // "return"
   }
 
-  test_returnDetailTarget() async {
+  Future<void> test_returnDetailTarget() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 String g() {
   return 1 == 2 ? "Hello" : null;
@@ -1272,7 +1460,7 @@ String? g() {
     assertDetail(detail: regions[0].details[0], offset: 15, length: 6);
   }
 
-  test_returnType_function_expression() async {
+  Future<void> test_returnType_function_expression() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 int _f = null;
 int f() => _f;
@@ -1292,7 +1480,7 @@ int? f() => _f;
         details: ['This function returns a nullable value on line 2']);
   }
 
-  test_returnType_getter_block() async {
+  Future<void> test_returnType_getter_block() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f = null;
@@ -1320,7 +1508,7 @@ class A {
         details: ['This getter returns a nullable value on line 4']);
   }
 
-  test_returnType_getter_expression() async {
+  Future<void> test_returnType_getter_expression() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class A {
   int _f = null;
@@ -1344,7 +1532,7 @@ class A {
         details: ['This getter returns a nullable value on line 3']);
   }
 
-  test_setLiteralTypeArgument_nestedList() async {
+  Future<void> test_setLiteralTypeArgument_nestedList() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   String s = null;
@@ -1374,7 +1562,7 @@ void f() {
     assertDetail(detail: regions[1].details[0], offset: 87, length: 3);
   }
 
-  test_topLevelVariable() async {
+  Future<void> test_topLevelVariable() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 int _f = null;
 int _f2 = _f;
@@ -1394,7 +1582,7 @@ int? _f2 = _f;
         details: ['This variable is initialized to a nullable value']);
   }
 
-  test_uninitializedField() async {
+  Future<void> test_uninitializedField() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 class C {
   int value;
@@ -1431,7 +1619,7 @@ class C {
     assertDetail(detail: region.details[2], offset: 70, length: 3);
   }
 
-  test_uninitializedVariable_notLate_uninitializedUse() async {
+  Future<void> test_uninitializedVariable_notLate_uninitializedUse() async {
     UnitInfo unit = await buildInfoForSingleTestFile('''
 void f() {
   int v1;

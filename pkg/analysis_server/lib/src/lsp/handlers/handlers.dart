@@ -159,7 +159,7 @@ abstract class ServerStateMessageHandler {
         : error(ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
   }
 
-  registerHandler(MessageHandler handler) {
+  void registerHandler(MessageHandler handler) {
     assert(
         handler.handlesMessage != null,
         'Unable to register handler ${handler.runtimeType} because it does '
@@ -168,7 +168,7 @@ abstract class ServerStateMessageHandler {
     _messageHandlers[handler.handlesMessage] = handler;
   }
 
-  reject(Method method, ErrorCodes code, String message) {
+  void reject(Method method, ErrorCodes code, String message) {
     registerHandler(RejectMessageHandler(server, method, code, message));
   }
 

@@ -52,11 +52,11 @@ class MigrationInfo {
   MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot)
       : migrationDate = DateTime.now().toString();
 
-  /// The path to the highlight.js script, relative to [unitInfo].
-  String get highlightJsPath => PreviewSite.highlightJSPagePath;
+  /// The path to the highlight.pack.js script, relative to [unitInfo].
+  String get highlightJsPath => PreviewSite.highlightJsPath;
 
-  /// The path to the highlight.js stylesheet, relative to [unitInfo].
-  String get highlightStylePath => PreviewSite.highlightCssPagePath;
+  /// The path to the highlight.pack.js stylesheet, relative to [unitInfo].
+  String get highlightStylePath => PreviewSite.highlightCssPath;
 
   /// Return the path to [unit] from [includedRoot], to be used as a display
   /// name for a library.
@@ -68,8 +68,8 @@ class MigrationInfo {
     List<UnitLink> links = [];
     for (UnitInfo unit in units) {
       int count = unit.fixRegions.length;
-      links.add(
-          UnitLink(_pathTo(target: unit), computeName(unit).split('/'), count));
+      links.add(UnitLink(
+          _pathTo(target: unit), path.split(computeName(unit)), count));
     }
     return links;
   }
@@ -174,14 +174,15 @@ class RegionInfo {
 
 /// Different types of regions that are called out.
 enum RegionType {
-  // TODO(brianwilkerson) 'fix' indicates whether the code was modified, while
-  //  'nonNullableType' indicates why the code wasn't modified. It would be good
-  //  to be consistent between the "whether" and "why" descriptions.
-  /// This is a region of code that was fixed (changed) in migration.
-  fix,
+  /// This is a region of code that was added in migration.
+  add,
 
-  /// This is a type that was declared non-nullable in migration.
-  nonNullableType,
+  /// This is a region of code that was removed in migration.
+  remove,
+
+  /// This is a region of code that was unchanged in migration; likely a type
+  /// that was declared non-nullable in migration.
+  unchanged,
 }
 
 /// The migration information associated with a single compilation unit.
@@ -212,13 +213,13 @@ class UnitInfo {
   UnitInfo(this.path);
 
   /// Returns the [regions] that represent a fixed (changed) region of code.
-  List<RegionInfo> get fixRegions =>
-      List.of(regions.where((region) => region.regionType == RegionType.fix));
+  List<RegionInfo> get fixRegions => List.of(
+      regions.where((region) => region.regionType != RegionType.unchanged));
 
   /// Returns the [regions] that represent an unchanged type which was
   /// determined to be non-null.
-  List<RegionInfo> get nonNullableTypeRegions => List.of(regions
-      .where((region) => region.regionType == RegionType.nonNullableType));
+  List<RegionInfo> get nonNullableTypeRegions => List.of(
+      regions.where((region) => region.regionType == RegionType.unchanged));
 
   /// Returns the [RegionInfo] at offset [offset].
   // TODO(srawlins): This is O(n), used each time the user clicks on a region.

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetKytheEntriesTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class GetKytheEntriesTest extends AbstractAnalysisServerIntegrationTest {
-  test_getKytheEntries() async {
+  Future<void> test_getKytheEntries() async {
     writeFile(sourcePath('WORKSPACE'), '');
     String pathname = sourcePath('pkg/test.dart');
     String text = r'''

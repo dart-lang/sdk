@@ -19,6 +19,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
@@ -61,15 +62,16 @@ ReplacedMembers transformLibraries(
     ClassHierarchy hierarchy,
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
-    ReferenceFromIndex referenceFromIndex) {
+    ReferenceFromIndex referenceFromIndex,
+    ChangedStructureNotifier changedStructureNotifier) {
   final LibraryIndex index =
       LibraryIndex(component, const ["dart:ffi", "dart:core"]);
   if (!index.containsLibrary("dart:ffi")) {
     // If dart:ffi is not loaded, do not do the transformation.
     return ReplacedMembers({}, {});
   }
-  final transformer = new _FfiDefinitionTransformer(
-      index, coreTypes, hierarchy, diagnosticReporter, referenceFromIndex);
+  final transformer = new _FfiDefinitionTransformer(index, coreTypes, hierarchy,
+      diagnosticReporter, referenceFromIndex, changedStructureNotifier);
   libraries.forEach(transformer.visitLibrary);
   return ReplacedMembers(
       transformer.replacedGetters, transformer.replacedSetters);
@@ -82,6 +84,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   Map<Field, Procedure> replacedGetters = {};
   Map<Field, Procedure> replacedSetters = {};
 
+  ChangedStructureNotifier changedStructureNotifier;
+
   IndexedLibrary currentLibraryIndex;
 
   _FfiDefinitionTransformer(
@@ -89,7 +93,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       CoreTypes coreTypes,
       ClassHierarchy hierarchy,
       DiagnosticReporter diagnosticReporter,
-      ReferenceFromIndex referenceFromIndex)
+      ReferenceFromIndex referenceFromIndex,
+      this.changedStructureNotifier)
       : super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex) {}
 
@@ -123,6 +128,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     if (fieldsValid) {
       final structSize = _replaceFields(node, indexedClass);
       _replaceSizeOfMethod(node, structSize, indexedClass);
+      changedStructureNotifier?.forClass(node);
     }
 
     return node;

@@ -175,7 +175,7 @@ class OutputUnitIrComputer extends IrDataExtractor<String> {
   visitConstantExpression(ir.ConstantExpression node) {
     ConstantValue constant = _elementMap.getConstantValue(null, node);
     if (!constant.isPrimitive) {
-      _constants.add('${constant.toStructuredText()}='
+      _constants.add('${constant.toStructuredText(_elementMap.types)}='
           '${outputUnitString(_data.outputUnitForConstant(constant))}');
     }
     return super.visitConstantExpression(node);

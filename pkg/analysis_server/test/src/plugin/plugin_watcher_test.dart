@@ -22,7 +22,7 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PluginWatcherTest);
   });
@@ -38,7 +38,7 @@ class PluginWatcherTest with ResourceProviderMixin {
     watcher = PluginWatcher(resourceProvider, manager);
   }
 
-  test_addedDriver() async {
+  Future<void> test_addedDriver() async {
     String pkg1Path = newFolder('/pkg1').path;
     newFile('/pkg1/lib/test1.dart');
     newFile('/pkg2/lib/pkg2.dart');
@@ -72,7 +72,7 @@ class PluginWatcherTest with ResourceProviderMixin {
     expect(manager.addedContextRoots, hasLength(1));
   }
 
-  test_addedDriver_missingPackage() async {
+  Future<void> test_addedDriver_missingPackage() async {
     String pkg1Path = newFolder('/pkg1').path;
     newFile('/pkg1/lib/test1.dart');
 
@@ -96,7 +96,7 @@ class PluginWatcherTest with ResourceProviderMixin {
     expect(watcher.manager, manager);
   }
 
-  test_removedDriver() {
+  void test_removedDriver() {
     String pkg1Path = newFolder('/pkg1').path;
     ContextRoot contextRoot =
         ContextRoot(pkg1Path, [], pathContext: resourceProvider.pathContext);
@@ -141,7 +141,7 @@ class TestDriver implements AnalysisDriver {
   Stream<ResolvedUnitResult> get results => _resultController.stream;
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class TestPluginManager implements PluginManager {
@@ -157,7 +157,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
   void recordPluginFailure(String hostPackageName, String message) {}

@@ -23,11 +23,6 @@ class InstrumentationInformation {
   /// A map associating [NodeInformation] with [NullabilityNodeInfo] objects.
   Map<NullabilityNodeInfo, NodeInformation> nodeInformation = {};
 
-  /// A list of the steps in the propagation of nullability information through
-  /// the nullability graph, to report details of the step that was performed
-  /// and why it was performed.
-  final List<PropagationInfo> propagationSteps = [];
-
   /// The instrumentation information that is specific to a single source.
   final Map<Source, SourceInformation> sourceInformation = {};
 

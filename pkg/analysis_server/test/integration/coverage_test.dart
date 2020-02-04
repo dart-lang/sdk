@@ -12,7 +12,7 @@ import '../../tool/spec/api.dart';
 import '../../tool/spec/from_html.dart';
 
 /// Define tests to fail if there's no mention in the coverage file.
-main() {
+void main() {
   Api api;
   File coverageFile;
   String pathPrefix;

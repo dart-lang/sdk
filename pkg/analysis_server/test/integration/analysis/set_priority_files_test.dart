@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetPriorityFilesTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class SetPriorityFilesTest extends AbstractAnalysisServerIntegrationTest {
-  test_options() async {
+  Future<void> test_options() async {
     String pathname = sourcePath('foo.dart');
     writeFile(pathname, 'class Foo { void baz() {} }');
     writeFile(sourcePath('bar.dart'), 'class Bar { void baz() {} }');

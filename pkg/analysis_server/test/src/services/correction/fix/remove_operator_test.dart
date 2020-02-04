@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveOperatorTest);
   });
@@ -23,7 +23,7 @@ class RemoveOperatorTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_adjacent_string_concatenation;
 
-  test_plus() async {
+  Future<void> test_plus() async {
     await resolveTestUnit('''
 var s = 'a' /*LINT*/+ 'b';
 ''');

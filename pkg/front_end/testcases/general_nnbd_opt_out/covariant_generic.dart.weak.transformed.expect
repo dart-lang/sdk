@@ -33,7 +33,7 @@ static method main() → dynamic {
   fooNum.{self::Foo::withCallback}((core::num* x) → core::Null? {});
   fooNum.{self::Foo::mutableField} = 3;
   fooNum.{self::Foo::mutableField} = 2.5;
-  (fooNum.{self::Foo::mutableCallbackField} as{TypeError} (core::num*) →* void).call(3);
-  (fooNum.{self::Foo::mutableCallbackField} as{TypeError} (core::num*) →* void).call(2.5);
+  (fooNum.{self::Foo::mutableCallbackField} as{TypeError,CovarianceCheck} (core::num*) →* void).call(3);
+  (fooNum.{self::Foo::mutableCallbackField} as{TypeError,CovarianceCheck} (core::num*) →* void).call(2.5);
   fooNum.{self::Foo::mutableCallbackField} = (core::num* x) → core::Null? {};
 }

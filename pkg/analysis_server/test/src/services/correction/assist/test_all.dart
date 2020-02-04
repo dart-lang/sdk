@@ -85,7 +85,7 @@ import 'surround_with_try_finally_test.dart' as surround_with_try_finally;
 import 'surround_with_while_test.dart' as surround_with_while;
 import 'use_curly_braces_test.dart' as use_curly_braces;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     add_diagnostic_property.main();
     add_not_null_assert.main();

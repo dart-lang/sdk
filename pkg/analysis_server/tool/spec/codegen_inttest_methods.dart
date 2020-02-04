@@ -97,7 +97,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   }
 
   @override
-  visitApi() {
+  void visitApi() {
     outputHeader(year: '2017');
     writeln();
     writeln('/// Convenience methods for running integration tests.');
@@ -157,7 +157,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   }
 
   @override
-  visitNotification(Notification notification) {
+  void visitNotification(Notification notification) {
     String streamName =
         camelJoin(['on', notification.domainName, notification.event]);
     String className = camelJoin(
@@ -197,7 +197,7 @@ class CodegenInttestMethodsVisitor extends DartCodegenVisitor
   }
 
   @override
-  visitRequest(Request request) {
+  void visitRequest(Request request) {
     String methodName = camelJoin(['send', request.domainName, request.method]);
     List<String> args = <String>[];
     List<String> optionalArgs = <String>[];

@@ -14,7 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonNullableFixTest);
   });
@@ -29,6 +29,13 @@ class NonNullableFixTest extends AbstractAnalysisTest {
   DartFixListener listener;
 
   String get nextRequestId => (++requestId).toString();
+
+  /// On Windows, canonicalization results in changing a drive letter to be
+  /// lowercase. When a path is canonicalized in [NonNullableFix], and asserted
+  /// on in a test below, the expected path below also needs to be
+  /// canonicalized.
+  String canonicalizeAndConvertPath(String p) =>
+      convertPath(context.canonicalize(p));
 
   Future<EditDartfixResult> performFix({List<String> included}) async {
     final id = nextRequestId;
@@ -71,59 +78,75 @@ class NonNullableFixTest extends AbstractAnalysisTest {
     listener = DartFixListener(server);
   }
 
-  test_included_multipleRelativeDirectories() async {
+  Future<void> test_included_multipleRelativeDirectories() async {
     NonNullableFix fix = NonNullableFix(listener, included: ['lib', 'test']);
-    expect(fix.includedRoot, equals(convertPath('/project')));
+    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
   }
 
-  test_included_multipleRelativeDirectories_nonCanonical() async {
-    NonNullableFix fix = NonNullableFix(listener,
-        included: ['../project2/lib', '../project2/lib/src']);
-    expect(fix.includedRoot, equals(convertPath('/project2/lib')));
+  Future<void> test_included_multipleRelativeDirectories_nonCanonical() async {
+    NonNullableFix fix = NonNullableFix(listener, included: [
+      convertPath('../project2/lib'),
+      convertPath('../project2/lib/src')
+    ]);
+    expect(
+        fix.includedRoot, equals(canonicalizeAndConvertPath('/project2/lib')));
   }
 
-  test_included_multipleRelativeDirectories_nonCanonical_atFilesystemRoot() async {
-    NonNullableFix fix = NonNullableFix(listener,
-        included: ['../project2/lib', '../project/lib']);
-    expect(fix.includedRoot, equals(convertPath('/')));
+  Future<void>
+      test_included_multipleRelativeDirectories_nonCanonical_atRoot() async {
+    NonNullableFix fix = NonNullableFix(listener, included: [
+      convertPath('../project2/lib'),
+      convertPath('../project/lib')
+    ]);
+    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/')));
   }
 
-  test_included_multipleRelativeDirectories_subAndSuperDirectories() async {
+  Future<void>
+      test_included_multipleRelativeDirectories_subAndSuperDirectories() async {
     NonNullableFix fix = NonNullableFix(listener, included: ['lib', '.']);
-    expect(fix.includedRoot, equals(convertPath('/project')));
+    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
   }
 
-  test_included_multipleRelativeFiles() async {
-    NonNullableFix fix =
-        NonNullableFix(listener, included: ['lib/lib1.dart', 'test/test.dart']);
-    expect(fix.includedRoot, equals(convertPath('/project')));
+  Future<void> test_included_multipleRelativeFiles() async {
+    NonNullableFix fix = NonNullableFix(listener, included: [
+      convertPath('lib/lib1.dart'),
+      convertPath('test/test.dart')
+    ]);
+    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
   }
 
-  test_included_multipleRelativeFiles_sameDirectory() async {
-    NonNullableFix fix =
-        NonNullableFix(listener, included: ['lib/lib1.dart', 'lib/lib2.dart']);
-    expect(fix.includedRoot, equals(convertPath('/project/lib')));
-  }
-
-  test_included_multipleRelativeFilesAndDirectories() async {
+  Future<void> test_included_multipleRelativeFiles_sameDirectory() async {
     NonNullableFix fix = NonNullableFix(listener,
-        included: ['lib/lib1.dart', 'lib/src', '../project/lib/src/lib3.dart']);
-    expect(fix.includedRoot, equals(convertPath('/project/lib')));
+        included: [convertPath('lib/lib1.dart'), convertPath('lib/lib2.dart')]);
+    expect(
+        fix.includedRoot, equals(canonicalizeAndConvertPath('/project/lib')));
   }
 
-  test_included_singleAbsoluteDirectory() async {
-    NonNullableFix fix = NonNullableFix(listener, included: ['/project']);
-    expect(fix.includedRoot, equals(convertPath('/project')));
+  Future<void> test_included_multipleRelativeFilesAndDirectories() async {
+    NonNullableFix fix = NonNullableFix(listener, included: [
+      convertPath('lib/lib1.dart'),
+      convertPath('lib/src'),
+      convertPath('../project/lib/src/lib3.dart')
+    ]);
+    expect(
+        fix.includedRoot, equals(canonicalizeAndConvertPath('/project/lib')));
   }
 
-  test_included_singleAbsoluteFile() async {
+  Future<void> test_included_singleAbsoluteDirectory() async {
     NonNullableFix fix =
-        NonNullableFix(listener, included: ['/project/bin/bin.dart']);
-    expect(fix.includedRoot, equals(convertPath('/project/bin')));
+        NonNullableFix(listener, included: [convertPath('/project')]);
+    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
   }
 
-  test_included_singleRelativeDirectory() async {
+  Future<void> test_included_singleAbsoluteFile() async {
+    NonNullableFix fix = NonNullableFix(listener,
+        included: [convertPath('/project/bin/bin.dart')]);
+    expect(
+        fix.includedRoot, equals(canonicalizeAndConvertPath('/project/bin')));
+  }
+
+  Future<void> test_included_singleRelativeDirectory() async {
     NonNullableFix fix = NonNullableFix(listener, included: ['.']);
-    expect(fix.includedRoot, equals(convertPath('/project')));
+    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
   }
 }

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FileModificationTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class FileModificationTest extends AbstractLspAnalysisServerTest {
-  test_change_badPosition() async {
+  Future<void> test_change_badPosition() async {
     final contents = '';
     await initialize();
     await openFile(mainFileUri, contents);
@@ -37,7 +37,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     expect(error.message, contains('Invalid line'));
   }
 
-  test_change_fullContents() async {
+  Future<void> test_change_fullContents() async {
     final initialContent = 'int a = 1;';
     final updatedContent = 'int a = 2;';
 
@@ -50,7 +50,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     expect(documentVersion.version, equals(222));
   }
 
-  test_change_incremental() async {
+  Future<void> test_change_incremental() async {
     final initialContent = '0123456789\n0123456789';
     final expectedUpdatedContent = '0123456789\n01234   89';
 
@@ -70,7 +70,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     expect(documentVersion.version, equals(222));
   }
 
-  test_change_unopenedFile() async {
+  Future<void> test_change_unopenedFile() async {
     // It's not valid for a client to send a request to modify a file that it
     // has not opened, but Visual Studio has done it in the past so we should
     // ensure it generates an obvious error that the user can understand.
@@ -93,7 +93,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_close() async {
+  Future<void> test_close() async {
     final initialContent = 'int a = 1;';
     final updatedContent = 'int a = 2;';
 
@@ -109,7 +109,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     expect(documentVersion.version, isNull);
   }
 
-  test_open() async {
+  Future<void> test_open() async {
     const testContent = 'CONTENT';
 
     await initialize();
@@ -123,7 +123,7 @@ class FileModificationTest extends AbstractLspAnalysisServerTest {
     expect(documentVersion.version, 2);
   }
 
-  test_open_invalidPath() async {
+  Future<void> test_open_invalidPath() async {
     await initialize();
 
     final notificationParams = await expectErrorNotification<ShowMessageParams>(

@@ -222,7 +222,7 @@ static method test() → dynamic /* originally async */ {
               if(_in::unsafeCast<core::bool*>(:result)) {
                 dynamic x = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  core::String* y = x as{TypeError} core::String*;
+                  core::String* y = x as{TypeError,ForDynamic} core::String*;
                 }
               }
               else
@@ -277,7 +277,7 @@ Try changing the type of the variable.
                 final self::Foo* #t23 = :for-iterator.{asy::_StreamIterator::current};
                 {
                   z = #t23;
-                  core::String* y = z as{TypeError} core::String*;
+                  core::String* y = z as{TypeError,ForDynamic} core::String*;
                 }
               }
               else
@@ -302,7 +302,7 @@ Try changing the type of the variable.
               if(_in::unsafeCast<core::bool*>(:result)) {
                 final dynamic #t27 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  self::Foo* x = #t27 as{TypeError} self::Foo*;
+                  self::Foo* x = #t27 as{TypeError,ForDynamic} self::Foo*;
                   self::Foo* y = x;
                 }
               }
@@ -317,7 +317,7 @@ Try changing the type of the variable.
         }
         dynamic stream2 = myStream;
         {
-          dynamic :stream = stream2 as{TypeError} asy::Stream<dynamic>*;
+          dynamic :stream = stream2 as{TypeError,ForDynamic} asy::Stream<dynamic>*;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
@@ -328,7 +328,7 @@ Try changing the type of the variable.
               if(_in::unsafeCast<core::bool*>(:result)) {
                 final dynamic #t31 = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  self::Foo* x = #t31 as{TypeError} self::Foo*;
+                  self::Foo* x = #t31 as{TypeError,ForDynamic} self::Foo*;
                   self::Foo* y = x;
                 }
               }
@@ -359,7 +359,7 @@ Try changing the type of the variable.
               if(_in::unsafeCast<core::bool*>(:result)) {
                 dynamic x = :for-iterator.{asy::_StreamIterator::current};
                 {
-                  core::String* y = x as{TypeError} core::String*;
+                  core::String* y = x as{TypeError,ForDynamic} core::String*;
                 }
               }
               else

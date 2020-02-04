@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveEmptyCatchTest);
   });
@@ -23,23 +23,29 @@ class RemoveEmptyCatchTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.empty_catches;
 
-  test_newLine() async {
+  Future<void> test_singleCatch_finally_newLine() async {
     await resolveTestUnit('''
 void foo() {
-  try {}
-  catch (e) {/*LINT*/}
-  finally {}
+  try {
+    1;
+  } catch (e) {/*LINT*/
+  } finally {
+    2;
+  }
 }
 ''');
     await assertHasFix('''
 void foo() {
-  try {}
-  finally {}
+  try {
+    1;
+  } finally {
+    2;
+  }
 }
 ''');
   }
 
-  test_sameLine() async {
+  Future<void> test_singleCatch_finally_sameLine() async {
     await resolveTestUnit('''
 void foo() {
   try {} catch (e) {/*LINT*/} finally {}
@@ -50,5 +56,17 @@ void foo() {
   try {} finally {}
 }
 ''');
+  }
+
+  Future<void> test_singleCatch_noFinally() async {
+    // The catch can't be removed unless we also remove the try, which is more
+    // than this fix does at the moment.
+    await resolveTestUnit('''
+void foo() {
+  try {
+  } catch (e) {/*LINT*/}
+}
+''');
+    await assertNoFix();
   }
 }

@@ -36,7 +36,7 @@ class AlreadyMigratedCodeDecorator {
       _graph.makeNullable(node, AlreadyMigratedTypeOrigin.forElement(element));
     } else {
       node = NullabilityNode.forAlreadyMigrated();
-      _graph.makeNonNullable(
+      _graph.makeNonNullableUnion(
           node, AlreadyMigratedTypeOrigin.forElement(element));
     }
     if (type is FunctionType) {

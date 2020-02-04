@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnusedElementTest);
   });
@@ -21,7 +21,7 @@ class RemoveUnusedElementTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_UNUSED_ELEMENT;
 
-  test_class_notUsed_inClassMember() async {
+  Future<void> test_class_notUsed_inClassMember() async {
     await resolveTestUnit(r'''
 class _A {
   staticMethod() {
@@ -34,7 +34,7 @@ class _A {
     await assertNoFix();
   }
 
-  test_class_notUsed_isExpression() async {
+  Future<void> test_class_notUsed_isExpression() async {
     await resolveTestUnit(r'''
 class _A {}
 main(p) {
@@ -46,7 +46,7 @@ main(p) {
     await assertNoFix();
   }
 
-  test_class_notUsed_noReference() async {
+  Future<void> test_class_notUsed_noReference() async {
     await resolveTestUnit(r'''
 class _A {
 }
@@ -55,7 +55,7 @@ class _A {
 ''');
   }
 
-  test_enum_notUsed_noReference() async {
+  Future<void> test_enum_notUsed_noReference() async {
     await resolveTestUnit(r'''
 enum _MyEnum {A, B, C}
 ''');
@@ -65,7 +65,7 @@ enum _MyEnum {A, B, C}
     });
   }
 
-  test_functionLocal_notUsed_noReference() async {
+  Future<void> test_functionLocal_notUsed_noReference() async {
     await resolveTestUnit(r'''
 main() {
   f() {}
@@ -77,7 +77,7 @@ main() {
 ''');
   }
 
-  test_functionTop_notUsed_noReference() async {
+  Future<void> test_functionTop_notUsed_noReference() async {
     await resolveTestUnit(r'''
 _f() {}
 main() {
@@ -89,7 +89,7 @@ main() {
 ''');
   }
 
-  test_functionTypeAlias_notUsed_noReference() async {
+  Future<void> test_functionTypeAlias_notUsed_noReference() async {
     await resolveTestUnit(r'''
 typedef _F(a, b);
 main() {
@@ -101,7 +101,7 @@ main() {
 ''');
   }
 
-  test_getter_notUsed_noReference() async {
+  Future<void> test_getter_notUsed_noReference() async {
     await resolveTestUnit(r'''
 class A {
   get _g => null;
@@ -113,7 +113,7 @@ class A {
 ''');
   }
 
-  test_method_notUsed_noReference() async {
+  Future<void> test_method_notUsed_noReference() async {
     await resolveTestUnit(r'''
 class A {
   static _m() {}
@@ -125,7 +125,7 @@ class A {
 ''');
   }
 
-  test_setter_notUsed_noReference() async {
+  Future<void> test_setter_notUsed_noReference() async {
     await resolveTestUnit(r'''
 class A {
   set _s(x) {}
@@ -137,7 +137,7 @@ class A {
 ''');
   }
 
-  test_staticMethod_extension_notUsed_noReference() async {
+  Future<void> test_staticMethod_extension_notUsed_noReference() async {
     await resolveTestUnit(r'''
 extension _E on String {
   static int m1() => 3;
@@ -153,7 +153,7 @@ void f() => print(_E("hello").m2());
 ''');
   }
 
-  test_staticMethod_mixim_notUsed_noReference() async {
+  Future<void> test_staticMethod_mixim_notUsed_noReference() async {
     await resolveTestUnit(r'''
 mixin _M {
   static int m1() => 3;
@@ -169,7 +169,7 @@ void f(C c) {}
 ''');
   }
 
-  test_staticMethod_notUsed_noReference() async {
+  Future<void> test_staticMethod_notUsed_noReference() async {
     await resolveTestUnit(r'''
 class _A {
   static int m() => 7;
@@ -183,7 +183,7 @@ void f(_A a) {}
 ''');
   }
 
-  test_topLevelVariable_notUsed() async {
+  Future<void> test_topLevelVariable_notUsed() async {
     await resolveTestUnit(r'''
 int _a = 1;
 main() {
@@ -194,7 +194,7 @@ main() {
     await assertNoFix();
   }
 
-  test_topLevelVariable_notUsed_noReference() async {
+  Future<void> test_topLevelVariable_notUsed_noReference() async {
     await resolveTestUnit(r'''
 int _a = 1;
 main() {

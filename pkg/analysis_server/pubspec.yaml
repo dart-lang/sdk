@@ -2,7 +2,7 @@ name: analysis_server
 publish_to: none
 
 environment:
-  sdk: '>=2.2.2 <3.0.0'
+  sdk: '>=2.6.0 <3.0.0'
 
 dependencies:
   analyzer: any

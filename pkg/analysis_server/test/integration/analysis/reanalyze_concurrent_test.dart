@@ -15,7 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
   });
@@ -24,7 +24,7 @@ main() {
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
   @TestTimeout(Timeout.factor(2))
-  test_reanalyze_concurrent() {
+  Future<void> test_reanalyze_concurrent() {
     String pathname = sourcePath('test.dart');
     String text = '''
 // Do a bunch of imports so that analysis has some work to do.

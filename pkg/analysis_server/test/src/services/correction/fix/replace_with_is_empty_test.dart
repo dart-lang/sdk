@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithIsEmptyTest);
   });
@@ -23,7 +23,7 @@ class ReplaceWithIsEmptyTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_is_empty;
 
-  test_constantOnLeft_equal() async {
+  Future<void> test_constantOnLeft_equal() async {
     await resolveTestUnit('''
 f(List c) {
   if (/*LINT*/0 == c.length) {}
@@ -36,7 +36,7 @@ f(List c) {
 ''');
   }
 
-  test_constantOnLeft_greaterThan() async {
+  Future<void> test_constantOnLeft_greaterThan() async {
     await resolveTestUnit('''
 f(List c) {
   if (/*LINT*/1 > c.length) {}
@@ -49,7 +49,7 @@ f(List c) {
 ''');
   }
 
-  test_constantOnLeft_greaterThanOrEqual() async {
+  Future<void> test_constantOnLeft_greaterThanOrEqual() async {
     await resolveTestUnit('''
 f(List c) {
   if (/*LINT*/0 >= c.length) {}
@@ -62,7 +62,7 @@ f(List c) {
 ''');
   }
 
-  test_constantOnRight_equal() async {
+  Future<void> test_constantOnRight_equal() async {
     await resolveTestUnit('''
 f(List c) {
   if (/*LINT*/c.length == 0) {}
@@ -75,7 +75,7 @@ f(List c) {
 ''');
   }
 
-  test_constantOnRight_lessThan() async {
+  Future<void> test_constantOnRight_lessThan() async {
     await resolveTestUnit('''
 f(List c) {
   if (/*LINT*/c.length < 1) {}
@@ -88,7 +88,7 @@ f(List c) {
 ''');
   }
 
-  test_constantOnRight_lessThanOrEqual() async {
+  Future<void> test_constantOnRight_lessThanOrEqual() async {
     await resolveTestUnit('''
 f(List c) {
   if (/*LINT*/c.length <= 0) {}

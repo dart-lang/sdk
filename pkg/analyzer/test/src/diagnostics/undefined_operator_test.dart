@@ -45,6 +45,15 @@ f(var a) {
     ]);
   }
 
+  test_binaryExpression_enum() async {
+    await assertErrorsInCode(r'''
+enum E { A }
+f(E e) => e + 1;
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 1),
+    ]);
+  }
+
   test_binaryExpression_inSubtype() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -58,6 +67,15 @@ f(var a) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 87, 1),
+    ]);
+  }
+
+  test_binaryExpression_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) => m + 1;
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 1),
     ]);
   }
 
@@ -87,6 +105,17 @@ f(A a) {
 ''');
   }
 
+  test_index_enum() async {
+    await assertErrorsInCode(r'''
+enum E { A }
+f(E e) {
+  e[0];
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 25, 3),
+    ]);
+  }
+
   test_index_getter() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -96,6 +125,17 @@ f(A a) {
 }
 ''', [
       error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 24, 3),
+    ]);
+  }
+
+  test_index_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) {
+  m[0];
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 3),
     ]);
   }
 
@@ -249,6 +289,17 @@ f(var a) {
 ''');
   }
 
+  test_postfixExpression_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) {
+  m++;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 23, 2),
+    ]);
+  }
+
   test_postfixExpression_undefined() async {
     await assertErrorsInCode(r'''
 class A {}
@@ -307,6 +358,17 @@ f(var a) {
   }
 }
 ''');
+  }
+
+  test_prefixExpression_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {}
+f(M m) {
+  -m;
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_OPERATOR, 22, 1),
+    ]);
   }
 
   test_prefixExpression_undefined() async {

@@ -74,11 +74,13 @@ class File : public ReferenceCounted<File> {
   enum Identical { kIdentical = 0, kDifferent = 1, kError = 2 };
 
   enum StdioHandleType {
+    // These match the constants in stdio.dart.
     kTerminal = 0,
     kPipe = 1,
     kFile = 2,
     kSocket = 3,
-    kOther = 4
+    kOther = 4,
+    kTypeError = 5
   };
 
   enum FileStat {

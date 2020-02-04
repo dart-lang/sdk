@@ -40,12 +40,14 @@ import 'package:front_end/src/fasta/incremental_compiler.dart'
 
 import 'package:front_end/src/fasta/incremental_serializer.dart'
     show IncrementalSerializer;
+import 'package:front_end/src/fasta/kernel/kernel_api.dart';
 
 import 'package:front_end/src/fasta/kernel/utils.dart' show ByteSink;
 
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
+import 'package:kernel/class_hierarchy.dart';
 
 import 'package:kernel/kernel.dart'
     show
@@ -55,6 +57,7 @@ import 'package:kernel/kernel.dart'
         Field,
         Library,
         LibraryDependency,
+        Member,
         Name,
         Procedure;
 
@@ -608,25 +611,8 @@ Future<Null> newWorldTest(
       }
     }
 
-    Uri uri = data.loadedFrom
-        .resolve(data.loadedFrom.pathSegments.last + ".world.$worldNum.expect");
-    String expected;
-    File file = new File.fromUri(uri);
-    if (context.updateExpectations) {
-      file.writeAsStringSync(actualSerialized);
-    }
-    if (file.existsSync()) {
-      expected = file.readAsStringSync();
-    }
-    if (context.updateExpectations) {
-      file.writeAsStringSync(actualSerialized);
-    } else if (expected != actualSerialized) {
-      String extra = "";
-      if (expected == null) extra = "Expect file did not exist.\n";
-      throw "${extra}Unexpected serialized representation. "
-          "Fix or update $uri to contain the below:\n\n"
-          "$actualSerialized";
-    }
+    checkExpectFile(data, worldNum, context, actualSerialized);
+    checkClassHierarchy(compiler, component, data, worldNum, context);
 
     int nonSyntheticLibraries = countNonSyntheticLibraries(component);
     int nonSyntheticPlatformLibraries =
@@ -750,9 +736,31 @@ Future<Null> newWorldTest(
     }
 
     if (world["expressionCompilation"] != null) {
-      Uri uri = base.resolve(world["expressionCompilation"]["uri"]);
-      String expression = world["expressionCompilation"]["expression"];
-      await compiler.compileExpression(expression, {}, [], "debugExpr", uri);
+      List compilations;
+      if (world["expressionCompilation"] is List) {
+        compilations = world["expressionCompilation"];
+      } else {
+        compilations = [world["expressionCompilation"]];
+      }
+      for (Map compilation in compilations) {
+        clearPrevErrorsEtc();
+        bool expectErrors = compilation["errors"] ?? false;
+        bool expectWarnings = compilation["warnings"] ?? false;
+        Uri uri = base.resolve(compilation["uri"]);
+        String expression = compilation["expression"];
+        await compiler.compileExpression(expression, {}, [], "debugExpr", uri);
+        if (gotError && !expectErrors) {
+          throw "Got error(s) on expression compilation: ${formattedErrors}.";
+        } else if (!gotError && expectErrors) {
+          throw "Didn't get any errors.";
+        }
+        if (gotWarning && !expectWarnings) {
+          throw "Got warning(s) on expression compilation: "
+              "${formattedWarnings}.";
+        } else if (!gotWarning && expectWarnings) {
+          throw "Didn't get any warnings.";
+        }
+      }
     }
 
     if (!noFullComponent && incrementalSerialization == true) {
@@ -826,6 +834,166 @@ Future<Null> newWorldTest(
   }
 }
 
+void checkExpectFile(
+    TestData data, int worldNum, Context context, String actualSerialized) {
+  Uri uri = data.loadedFrom
+      .resolve(data.loadedFrom.pathSegments.last + ".world.$worldNum.expect");
+  String expected;
+  File file = new File.fromUri(uri);
+  if (file.existsSync()) {
+    expected = file.readAsStringSync();
+  }
+  if (expected != actualSerialized) {
+    if (context.updateExpectations) {
+      file.writeAsStringSync(actualSerialized);
+    } else {
+      String extra = "";
+      if (expected == null) extra = "Expect file did not exist.\n";
+      throw "${extra}Unexpected serialized representation. "
+          "Fix or update $uri to contain the below:\n\n"
+          "$actualSerialized";
+    }
+  }
+}
+
+/// Check that the class hierarchy is up-to-date with reality.
+///
+/// This has the option to do expect files, but it's disabled by default
+/// while we're trying to figure out if it's useful or not.
+void checkClassHierarchy(TestIncrementalCompiler compiler, Component component,
+    TestData data, int worldNum, Context context,
+    {bool checkExpectFile: false}) {
+  ClassHierarchy classHierarchy = compiler.getClassHierarchy();
+  if (classHierarchy is! ClosedWorldClassHierarchy) {
+    throw "Expected the class hierarchy to be ClosedWorldClassHierarchy "
+        "but it wasn't. It was ${classHierarchy.runtimeType}";
+  }
+  List<ForTestingClassInfo> classHierarchyData =
+      (classHierarchy as ClosedWorldClassHierarchy).getTestingClassInfo();
+  Map<Class, ForTestingClassInfo> classHierarchyMap =
+      new Map<Class, ForTestingClassInfo>();
+  for (ForTestingClassInfo info in classHierarchyData) {
+    if (classHierarchyMap[info.classNode] != null) {
+      throw "Two entries for ${info.classNode}";
+    }
+    classHierarchyMap[info.classNode] = info;
+  }
+
+  StringBuffer sb = new StringBuffer();
+  for (Library library in component.libraries) {
+    if (library.importUri.scheme == "dart") continue;
+    sb.writeln("Library ${library.importUri}");
+    for (Class c in library.classes) {
+      sb.writeln("  - Class ${c.name}");
+      ForTestingClassInfo info = classHierarchyMap[c];
+      if (info == null) {
+        throw "Didn't find any class hierarchy info for $c";
+      }
+      if (info.lazyDeclaredGettersAndCalls != null) {
+        sb.writeln("    - lazyDeclaredGettersAndCalls:");
+        for (Member member in info.lazyDeclaredGettersAndCalls) {
+          sb.writeln("      - ${member.name.name}");
+        }
+
+        // Expect these to be the same as in the class.
+        Set<Member> members = info.lazyDeclaredGettersAndCalls.toSet();
+        for (Field f in c.fields) {
+          if (f.isStatic) continue;
+          if (!f.hasImplicitGetter) continue;
+          if (!members.remove(f)) {
+            throw "Didn't find ${f.name.name} in lazyDeclaredGettersAndCalls "
+                "for ${c.name} in ${library.importUri}";
+          }
+        }
+        for (Procedure p in c.procedures) {
+          if (p.isStatic) continue;
+          if (p.isSetter) continue;
+          if (!members.remove(p)) {
+            throw "Didn't find ${p.name.name} in lazyDeclaredGettersAndCalls "
+                "for ${c.name} in ${library.importUri}";
+          }
+        }
+        if (members.isNotEmpty) {
+          throw "Still have ${members.map((m) => m.name.name)} left "
+              "for ${c.name} in ${library.importUri}";
+        }
+      }
+      if (info.lazyDeclaredSetters != null) {
+        sb.writeln("    - lazyDeclaredSetters:");
+        for (Member member in info.lazyDeclaredSetters) {
+          sb.writeln("      - ${member.name.name}");
+        }
+
+        // Expect these to be the same as in the class.
+        Set<Member> members = info.lazyDeclaredSetters.toSet();
+        for (Field f in c.fields) {
+          if (f.isStatic) continue;
+          if (!f.hasImplicitSetter) continue;
+          if (!members.remove(f)) {
+            throw "Didn't find $f in lazyDeclaredSetters for $c";
+          }
+        }
+        for (Procedure p in c.procedures) {
+          if (p.isStatic) continue;
+          if (!p.isSetter) continue;
+          if (!members.remove(p)) {
+            throw "Didn't find $p in lazyDeclaredSetters for $c";
+          }
+        }
+        if (members.isNotEmpty) {
+          throw "Still have ${members.map((m) => m.name.name)} left "
+              "for ${c.name} in ${library.importUri}";
+        }
+      }
+      if (info.lazyImplementedGettersAndCalls != null) {
+        sb.writeln("    - lazyImplementedGettersAndCalls:");
+        for (Member member in info.lazyImplementedGettersAndCalls) {
+          sb.writeln("      - ${member.name.name}");
+        }
+      }
+      if (info.lazyImplementedSetters != null) {
+        sb.writeln("    - lazyImplementedSetters:");
+        for (Member member in info.lazyImplementedSetters) {
+          sb.writeln("      - ${member.name.name}");
+        }
+      }
+      if (info.lazyInterfaceGettersAndCalls != null) {
+        sb.writeln("    - lazyInterfaceGettersAndCalls:");
+        for (Member member in info.lazyInterfaceGettersAndCalls) {
+          sb.writeln("      - ${member.name.name}");
+        }
+      }
+      if (info.lazyInterfaceSetters != null) {
+        sb.writeln("    - lazyInterfaceSetters:");
+        for (Member member in info.lazyInterfaceSetters) {
+          sb.writeln("      - ${member.name.name}");
+        }
+      }
+    }
+  }
+  if (checkExpectFile) {
+    String actualClassHierarchy = sb.toString();
+    Uri uri = data.loadedFrom.resolve(data.loadedFrom.pathSegments.last +
+        ".world.$worldNum.class_hierarchy.expect");
+    String expected;
+    File file = new File.fromUri(uri);
+    if (file.existsSync()) {
+      expected = file.readAsStringSync();
+    }
+    if (expected != actualClassHierarchy) {
+      if (context.updateExpectations) {
+        file.writeAsStringSync(actualClassHierarchy);
+      } else {
+        String extra = "";
+        if (expected == null) extra = "Expect file did not exist.\n";
+        throw "${extra}Unexpected serialized representation. "
+            "Fix or update $uri to contain the below:\n\n"
+            "$actualClassHierarchy";
+      }
+    }
+  }
+}
+
 void checkErrorsAndWarnings(
     Set<String> prevFormattedErrors,
     Set<String> formattedErrors,
@@ -877,14 +1045,14 @@ List<int> checkIncrementalSerialization(
       throw "Incremental serialization didn't remove any libraries!";
     }
     if (librariesAfter < librariesBefore && sink.builder.isEmpty) {
-      throw "Incremental serialization din't output any bytes, "
+      throw "Incremental serialization didn't output any bytes, "
           "but did remove libraries";
     } else if (librariesAfter == librariesBefore && !sink.builder.isEmpty) {
       throw "Incremental serialization did output bytes, "
           "but didn't remove libraries";
     }
     if (librariesAfter < librariesBefore) {
-      // If we actually did incremenally serialize anything, check the output!
+      // If we actually did incrementally serialize anything, check the output!
       BinaryPrinter printer = new BinaryPrinter(sink);
       printer.writeComponentFile(c);
       List<int> bytes = sink.builder.takeBytes();
@@ -1367,10 +1535,10 @@ class TestIncrementalCompiler extends IncrementalCompiler {
 void doSimulateTransformer(Component c) {
   for (Library lib in c.libraries) {
     if (lib.fields
-        .where((f) => f.name.name == "lalala_SimulateTransformer")
+        .where((f) => f.name.name == "unique_SimulateTransformer")
         .toList()
         .isNotEmpty) continue;
-    Name fieldName = new Name("lalala_SimulateTransformer");
+    Name fieldName = new Name("unique_SimulateTransformer");
     Field field = new Field(fieldName,
         isFinal: true,
         reference: lib.reference.canonicalName
@@ -1379,10 +1547,10 @@ void doSimulateTransformer(Component c) {
     lib.addMember(field);
     for (Class c in lib.classes) {
       if (c.fields
-          .where((f) => f.name.name == "lalala_SimulateTransformer")
+          .where((f) => f.name.name == "unique_SimulateTransformer")
           .toList()
           .isNotEmpty) continue;
-      fieldName = new Name("lalala_SimulateTransformer");
+      fieldName = new Name("unique_SimulateTransformer");
       field = new Field(fieldName,
           isFinal: true,
           reference: c.reference.canonicalName

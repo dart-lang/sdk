@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(Highlights2ComputerTest);
   });
@@ -25,12 +25,12 @@ class Highlights2ComputerTest extends AbstractContextTest {
   List<HighlightRegion> highlights;
 
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');
   }
 
-  test_extension() async {
+  Future<void> test_extension() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _computeHighlights('''
 extension E on String {}
@@ -39,7 +39,7 @@ extension E on String {}
     _check(HighlightRegionType.BUILT_IN, 'on');
   }
 
-  test_methodInvocation_ofExtensionOverride_unresolved() async {
+  Future<void> test_methodInvocation_ofExtensionOverride_unresolved() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     await _computeHighlights('''
 extension E on int {}
@@ -51,12 +51,12 @@ main() {
     _check(HighlightRegionType.IDENTIFIER_DEFAULT, 'foo');
   }
 
-  test_nullLiteral() async {
+  Future<void> test_nullLiteral() async {
     await _computeHighlights('var x = null;');
     _check(HighlightRegionType.KEYWORD, 'null');
   }
 
-  test_throwExpression() async {
+  Future<void> test_throwExpression() async {
     await _computeHighlights('''
 void main() {
   throw 'foo';

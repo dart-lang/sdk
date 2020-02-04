@@ -606,6 +606,18 @@ class EnsureFinalizedError : public ClassReasonForCancelling {
   RawString* ToString() { return String::New(error_.ToErrorCString()); }
 };
 
+class ConstToNonConstClass : public ClassReasonForCancelling {
+ public:
+  ConstToNonConstClass(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) {}
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted("Const class cannot become non-const: %s",
+                                from_.ToCString());
+  }
+};
+
 class NativeFieldsConflict : public ClassReasonForCancelling {
  public:
   NativeFieldsConflict(Zone* zone, const Class& from, const Class& to)
@@ -663,8 +675,8 @@ class InstanceSizeConflict : public ClassReasonForCancelling {
     return String::NewFormatted("Instance size mismatch between '%s' (%" Pd
                                 ") and replacement "
                                 "'%s' ( %" Pd ")",
-                                from_.ToCString(), from_.instance_size(),
-                                to_.ToCString(), to_.instance_size());
+                                from_.ToCString(), from_.host_instance_size(),
+                                to_.ToCString(), to_.host_instance_size());
   }
 };
 
@@ -712,6 +724,14 @@ void Class::CheckReload(const Class& replacement,
     TIR_Print("Finalized replacement class for %s\n", ToCString());
   }
 
+  if (is_finalized() && is_const() && !replacement.is_const()) {
+    if (constants() != Array::null() && Array::LengthOf(constants()) > 0) {
+      context->group_reload_context()->AddReasonForCancelling(
+          new (context->zone())
+              ConstToNonConstClass(context->zone(), *this, replacement));
+    }
+  }
+
   // Native field count cannot change.
   if (num_native_fields() != replacement.num_native_fields()) {
     context->group_reload_context()->AddReasonForCancelling(
@@ -748,7 +768,9 @@ bool Class::RequiresInstanceMorphing(const Class& replacement) const {
   // Check that we have the same next field offset. This check is not
   // redundant with the one above because the instance OffsetToFieldMap
   // array length is based on the instance size (which may be aligned up).
-  if (next_field_offset() != replacement.next_field_offset()) return true;
+  if (host_next_field_offset() != replacement.host_next_field_offset()) {
+    return true;
+  }
 
   // Verify that field names / offsets match across the entire hierarchy.
   Field& field = Field::Handle();
@@ -805,7 +827,7 @@ bool Class::CanReloadPreFinalized(const Class& replacement,
     return false;
   }
   // Check the instance sizes are equal.
-  if (instance_size() != replacement.instance_size()) {
+  if (host_instance_size() != replacement.host_instance_size()) {
     context->group_reload_context()->AddReasonForCancelling(
         new (context->zone())
             InstanceSizeConflict(context->zone(), *this, replacement));

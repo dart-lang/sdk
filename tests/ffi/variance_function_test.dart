@@ -165,7 +165,7 @@ void naTyPointerParamOp(Pointer<NativeType> p) {
 }
 
 // Pointer to return to C when C calls back into Dart and asks for a Pointer.
-Pointer<Int64> data;
+Pointer<Int64> data = nullptr;
 
 Pointer<Int64> int64PointerReturnOp() {
   return data;
@@ -194,7 +194,7 @@ void callbackParamImplictDowncast1() {
       CallbackNaTyPointerParamOpDart>(callbackParamOpName);
   final fp = Pointer.fromFunction<Int64PointerParamOp>(int64PointerParamOp);
   Expect.throws(() {
-    callback(fp);
+    callback(fp as Pointer<NativeFunction<NaTyPointerParamOp>>);
   });
 }
 

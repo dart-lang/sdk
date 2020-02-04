@@ -16,6 +16,7 @@ import 'package:analyzer/src/summary2/linking_node_scope.dart';
 class DefaultValueResolver {
   final Linker _linker;
   final LibraryElementImpl _libraryElement;
+  final TypeSystemImpl _typeSystem;
 
   ClassElement _classElement;
   CompilationUnitElement _unitElement;
@@ -24,7 +25,8 @@ class DefaultValueResolver {
 
   AstResolver _astResolver;
 
-  DefaultValueResolver(this._linker, this._libraryElement);
+  DefaultValueResolver(this._linker, this._libraryElement)
+      : _typeSystem = _libraryElement.typeSystem;
 
   void resolve() {
     for (CompilationUnitElementImpl unit in _libraryElement.units) {
@@ -100,8 +102,7 @@ class DefaultValueResolver {
     var node = _defaultParameter(parameter);
     if (node == null) return;
 
-    var contextType = TypeVariableEliminator(_libraryElement.typeProvider)
-        .substituteType(parameter.type);
+    var contextType = _typeSystem.eliminateTypeVariables(parameter.type);
 
     _astResolver ??= AstResolver(_linker, _unitElement, _scope);
     _astResolver.resolve(

@@ -77,7 +77,7 @@ cc/GenKernelKernelLoadKernel: Skip # Issue 34542.
 cc/GenKernelKernelMaxRSS: Skip # Issue 34393.
 cc/GenKernelKernelReadAllBytecode: Skip # Issue 34393.
 dart/appjit_bytecode_simple_test: Skip # Issue 34393.
-dart/disassemble_determinism_test: Slow # Times out on slower bots.
+dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
 [ $arch == ia32 && $mode == debug && $system == windows ]
 dart/transferable_test: Skip # This is performance test and somehow debug win ia32 bot's performance is unpredictable

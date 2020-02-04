@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(QualifyReferenceTest);
     defineReflectiveTests(QualifyReferenceWithExtensionMethodsTest);
@@ -21,7 +21,7 @@ class QualifyReferenceTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.QUALIFY_REFERENCE;
 
-  test_class_direct() async {
+  Future<void> test_class_direct() async {
     await resolveTestUnit('''
 class C {
   static void m() {}
@@ -44,7 +44,7 @@ class D extends C {
 ''');
   }
 
-  test_class_imported() async {
+  Future<void> test_class_imported() async {
     newFile('/home/test/lib/a.dart', content: '''
 class A {
   static void m() {}
@@ -61,7 +61,7 @@ class B extends A {
     await assertNoFix();
   }
 
-  test_class_importedWithPrefix() async {
+  Future<void> test_class_importedWithPrefix() async {
     newFile('/home/test/lib/a.dart', content: '''
 class A {
   static void m() {}
@@ -78,7 +78,7 @@ class B extends a.A {
     await assertNoFix();
   }
 
-  test_class_indirect() async {
+  Future<void> test_class_indirect() async {
     await resolveTestUnit('''
 class A {
   static void m() {}
@@ -105,7 +105,7 @@ class D extends C {
 ''');
   }
 
-  test_class_notImported() async {
+  Future<void> test_class_notImported() async {
     newFile('/home/test/lib/a.dart', content: '''
 class A {
   static void m() {}
@@ -135,7 +135,7 @@ class QualifyReferenceWithExtensionMethodsTest extends QualifyReferenceTest {
     createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
   }
 
-  test_extension_direct() async {
+  Future<void> test_extension_direct() async {
     await resolveTestUnit('''
 class C {
   static void m() {}
@@ -158,7 +158,7 @@ extension E on C {
 ''');
   }
 
-  test_extension_imported() async {
+  Future<void> test_extension_imported() async {
     newFile('/home/test/lib/a.dart', content: '''
 class A {
   static void m() {}
@@ -175,7 +175,7 @@ extension E on A {
     await assertNoFix();
   }
 
-  test_extension_importedWithPrefix() async {
+  Future<void> test_extension_importedWithPrefix() async {
     newFile('/home/test/lib/a.dart', content: '''
 class A {
   static void m() {}
@@ -192,7 +192,7 @@ extension E on a.A {
     await assertNoFix();
   }
 
-  test_extension_indirect() async {
+  Future<void> test_extension_indirect() async {
     await resolveTestUnit('''
 class A {
   static void m() {}
@@ -219,7 +219,7 @@ extension E on C {
 ''');
   }
 
-  test_extension_notImported() async {
+  Future<void> test_extension_notImported() async {
     newFile('/home/test/lib/a.dart', content: '''
 class A {
   static void m() {}

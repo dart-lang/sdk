@@ -18,7 +18,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FixesTest);
   });
@@ -32,7 +32,7 @@ class FixesTest extends AbstractAnalysisTest {
     handler = EditDomainHandler(server);
   }
 
-  test_fixUndefinedClass() async {
+  Future<void> test_fixUndefinedClass() async {
     createProject();
     addTestFile('''
 main() {
@@ -52,7 +52,7 @@ main() {
     expect(fixes[2].message, matches('Create mixin'));
   }
 
-  test_fromPlugins() async {
+  Future<void> test_fromPlugins() async {
     PluginInfo info = DiscoveredPluginInfo('a', 'b', 'c', null, null);
     plugin.AnalysisErrorFixes fixes = plugin.AnalysisErrorFixes(AnalysisError(
         AnalysisErrorSeverity.ERROR,
@@ -73,7 +73,7 @@ main() {
     expect(errorFixes, hasLength(1));
   }
 
-  test_hasFixes() async {
+  Future<void> test_hasFixes() async {
     createProject();
     addTestFile('''
 foo() {
@@ -99,7 +99,7 @@ bar() {
     }
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditGetFixesParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -108,7 +108,7 @@ bar() {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditGetFixesParams(convertPath('/foo/../bar/test.dart'), 0)
         .toRequest('0');
     var response = await waitResponse(request);
@@ -118,7 +118,7 @@ bar() {
     );
   }
 
-  test_overlayOnlyFile() async {
+  Future<void> test_overlayOnlyFile() async {
     createProject();
     testCode = '''
 main() {
@@ -133,7 +133,7 @@ print(1)
     _isSyntacticErrorWithSingleFix(errorFixes[0]);
   }
 
-  test_suggestImportFromDifferentAnalysisRoot() async {
+  Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
     newFolder('/aaa');
     newFile('/aaa/.packages', content: '''
 aaa:${toUri('/aaa/lib')}

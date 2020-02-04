@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'lsp_spec/test_all.dart' as lsp_spec;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     lsp_spec.main();
   }, name: 'tool');

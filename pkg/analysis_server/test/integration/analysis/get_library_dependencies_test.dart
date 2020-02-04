@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetLibraryDependenciesTest);
   });
@@ -17,7 +17,7 @@ main() {
 @reflectiveTest
 class GetLibraryDependenciesTest extends AbstractAnalysisServerIntegrationTest {
   @failingTest
-  test_libraryDeps() async {
+  Future<void> test_libraryDeps() async {
     // This fails with the new analysis driver ('Bad state: Should not be used
     // with the new analysis driver') - #29310.
     String pathname = sourcePath('test.dart');

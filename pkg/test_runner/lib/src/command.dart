@@ -615,6 +615,7 @@ class AdbDartkCommand extends Command implements AdbCommand {
   AdbDartkCommand indexedCopy(int index) => AdbDartkCommand(
       buildPath, processTestFilename, kernelFile, arguments, extraLibraries,
       index: index);
+
   _buildHashCode(HashCodeBuilder builder) {
     super._buildHashCode(builder);
     builder.add(buildPath);
@@ -629,6 +630,11 @@ class AdbDartkCommand extends Command implements AdbCommand {
       arguments == other.arguments &&
       extraLibraries == other.extraLibraries &&
       kernelFile == other.kernelFile;
+
+  VMCommandOutput createOutput(int exitCode, bool timedOut, List<int> stdout,
+          List<int> stderr, Duration time, bool compilationSkipped,
+          [int pid = 0]) =>
+      VMCommandOutput(this, exitCode, timedOut, stdout, stderr, time, pid);
 
   String toString() => 'Steps to push Dart VM and Dill file '
       'to an attached device. Uses (and requires) adb.';

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
-  test_updateContent() async {
+  Future<void> test_updateContent() async {
     String path = sourcePath('test.dart');
     String goodText = r'''
 main() {
@@ -58,7 +58,7 @@ main() {
     expect(currentAnalysisErrors[path], isNotEmpty);
   }
 
-  test_updateContent_multipleAdds() async {
+  Future<void> test_updateContent_multipleAdds() async {
     String pathname = sourcePath('test.dart');
     writeFile(pathname, r'''
 class Person {

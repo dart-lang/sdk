@@ -133,6 +133,22 @@ Future listenAsyncStarThrowAsync() async {
   await ss.asFuture();
 }
 
+// ----
+// Scenario: All async functions yielded and we run in a custom zone with a
+// custom error handler.
+// ----
+
+Future<void> customErrorZone() async {
+  final completer = Completer<void>();
+  runZoned(() async {
+    await allYield();
+    completer.complete(null);
+  }, onError: (e, s) {
+    completer.completeError(e, s);
+  });
+  return completer.future;
+}
+
 // Helpers:
 
 void assertStack(List<String> expects, StackTrace stackTrace) {
@@ -149,8 +165,8 @@ void assertStack(List<String> expects, StackTrace stackTrace) {
       // On failed expect, print full stack for reference.
       print('Actual stack:');
       print(stackTrace.toString());
-      print('Expected line ${i + 1} to match:');
-      print(expects[i]);
+      print('Expected line ${i + 1} to be `${expects[i]}` '
+          'but was `${frames[i]}`');
       rethrow;
     }
   }
@@ -522,10 +538,61 @@ Future<void> doTestsCausal() async {
             r'^#7      _RawReceivePortImpl._handleMessage \(.+\)$',
             r'^$',
           ]);
+  final customErrorZoneExpected = const <String>[
+    r'#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
+    r'<asynchronous suspension>$',
+    r'#2      allYield2 \(.*/utils.dart:34(:9)?\)$',
+    r'<asynchronous suspension>$',
+    r'#3      allYield \(.*/utils.dart:29(:9)?\)$',
+    r'<asynchronous suspension>$',
+    r'#4      customErrorZone.<anonymous closure> \(.*/utils.dart:144(:11)?\)$',
+    r'#5      _rootRun ',
+    r'#6      _CustomZone.run ',
+    r'#7      _runZoned ',
+    r'#8      runZoned ',
+    r'#9      customErrorZone \(.*/utils.dart:143(:3)?\)$',
+  ];
+  await doTestAwait(
+      customErrorZone,
+      customErrorZoneExpected +
+          const <String>[
+            r'#10     doTestAwait ',
+            r'#11     doTestsCausal ',
+            r'<asynchronous suspension>$',
+            r'#12     main \(.+\)$',
+            r'#13     _startIsolate.<anonymous closure> ',
+            r'#14     _RawReceivePortImpl._handleMessage ',
+            r'$',
+          ]);
+  await doTestAwaitThen(
+      customErrorZone,
+      customErrorZoneExpected +
+          const <String>[
+            r'#10     doTestAwaitThen ',
+            r'#11     doTestsCausal ',
+            r'<asynchronous suspension>$',
+            r'#12     main \(.+\)$',
+            r'#13     _startIsolate.<anonymous closure> ',
+            r'#14     _RawReceivePortImpl._handleMessage ',
+            r'$'
+          ]);
+  await doTestAwaitCatchError(
+      customErrorZone,
+      customErrorZoneExpected +
+          const <String>[
+            r'#10     doTestAwaitCatchError ',
+            r'#11     doTestsCausal ',
+            r'<asynchronous suspension>$',
+            r'#12     main \(.+\)$',
+            r'#13     _startIsolate.<anonymous closure> ',
+            r'#14     _RawReceivePortImpl._handleMessage ',
+            r'$'
+          ]);
 }
 
-// For: --no-causal-async-stacks
-Future<void> doTestsNoCausal() async {
+// For: --no-causal-async-stacks --no-lazy-async-stacks
+Future<void> doTestsNoCausalNoLazy() async {
   final allYieldExpected = const <String>[
     r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
     r'^#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
@@ -564,7 +631,7 @@ Future<void> doTestsNoCausal() async {
             r'^#10     doTestAwait ',
             r'^#11     _AsyncAwaitCompleter.start ',
             r'^#12     doTestAwait ',
-            r'^#13     doTestsNoCausal ',
+            r'^#13     doTestsNoCausalNoLazy ',
             r'^#14     _RootZone.runUnary ',
             r'^#15     _FutureListener.handleValue ',
             r'^#16     Future._propagateToListeners.handleValueCallback ',
@@ -615,7 +682,7 @@ Future<void> doTestsNoCausal() async {
             r'^#10     doTestAwaitThen ',
             r'^#11     _AsyncAwaitCompleter.start ',
             r'^#12     doTestAwaitThen ',
-            r'^#13     doTestsNoCausal ',
+            r'^#13     doTestsNoCausalNoLazy ',
             r'^#14     _RootZone.runUnary ',
             r'^#15     _FutureListener.handleValue ',
             r'^#16     Future._propagateToListeners.handleValueCallback ',
@@ -661,7 +728,7 @@ Future<void> doTestsNoCausal() async {
             r'^#10     doTestAwaitCatchError ',
             r'^#11     _AsyncAwaitCompleter.start ',
             r'^#12     doTestAwaitCatchError ',
-            r'^#13     doTestsNoCausal ',
+            r'^#13     doTestsNoCausalNoLazy ',
             r'^#14     _RootZone.runUnary ',
             r'^#15     _FutureListener.handleValue ',
             r'^#16     Future._propagateToListeners.handleValueCallback ',
@@ -814,6 +881,29 @@ Future<void> doTestsNoCausal() async {
   await doTestAwaitThen(listenAsyncStarThrowAsync, listenAsyncStartExpected);
   await doTestAwaitCatchError(
       listenAsyncStarThrowAsync, listenAsyncStartExpected);
+
+  final customErrorZoneExpected = const <String>[
+    r'#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
+    r'#2      _rootRunUnary ',
+    r'#3      _CustomZone.runUnary ',
+    r'#4      _FutureListener.handleValue ',
+    r'#5      Future._propagateToListeners.handleValueCallback ',
+    r'#6      Future._propagateToListeners ',
+    r'#7      Future.(_addListener|_prependListeners).<anonymous closure> ',
+    r'#8      _rootRun ',
+    r'#9      _CustomZone.run ',
+    r'#10     _CustomZone.runGuarded ',
+    r'#11     _CustomZone.bindCallbackGuarded.<anonymous closure> ',
+    r'#12     _microtaskLoop ',
+    r'#13     _startMicrotaskLoop ',
+    r'#14     _runPendingImmediateCallback ',
+    r'#15     _RawReceivePortImpl._handleMessage ',
+    r'$',
+  ];
+  await doTestAwait(customErrorZone, customErrorZoneExpected);
+  await doTestAwaitThen(customErrorZone, customErrorZoneExpected);
+  await doTestAwaitCatchError(customErrorZone, customErrorZoneExpected);
 }
 
 // For: --lazy-async-stacks
@@ -1094,4 +1184,20 @@ Future<void> doTestsLazy() async {
   await doTestAwaitThen(listenAsyncStarThrowAsync, listenAsyncStartExpected);
   await doTestAwaitCatchError(
       listenAsyncStarThrowAsync, listenAsyncStartExpected);
+
+  final customErrorZoneExpected = const <String>[
+    r'#0      throwSync \(.*/utils.dart:16(:3)?\)$',
+    r'#1      allYield3 \(.*/utils.dart:39(:3)?\)$',
+    r'<asynchronous suspension>$',
+    r'#2      allYield2 \(.*/utils.dart:34(:3)?\)$',
+    r'<asynchronous suspension>$',
+    r'#3      allYield \(.*/utils.dart:29(:3)?\)$',
+    r'<asynchronous suspension>$',
+    r'#4      customErrorZone.<anonymous closure> \(.*/utils.dart:144(:5)?\)$',
+    r'<asynchronous suspension>$',
+    r'^$',
+  ];
+  await doTestAwait(customErrorZone, customErrorZoneExpected);
+  await doTestAwaitThen(customErrorZone, customErrorZoneExpected);
+  await doTestAwaitCatchError(customErrorZone, customErrorZoneExpected);
 }

@@ -2000,6 +2000,7 @@ class ResolverVisitor extends ScopedVisitor {
       // TODO(jmesserly): should we store this earlier in resolution?
       // Or look it up, instead of jumping backwards through the Member?
       var rawElement = originalElement.declaration;
+      rawElement = toLegacyElement(rawElement);
 
       FunctionType constructorType =
           typeAnalyzer.constructorToGenericFunctionType(rawElement);
@@ -2019,15 +2020,20 @@ class ResolverVisitor extends ScopedVisitor {
 
         // Update the static element as well. This is used in some cases, such
         // as computing constant values. It is stored in two places.
-        constructor.staticElement =
-            ConstructorMember.from(rawElement, inferred.returnType);
+        var constructorElement = ConstructorMember.from(
+          rawElement,
+          inferred.returnType,
+        );
+        constructorElement = toLegacyElement(constructorElement);
+        constructor.staticElement = constructorElement;
         node.staticElement = constructor.staticElement;
       }
     }
 
     if (inferred == null) {
-      InferenceContext.setType(node.argumentList,
-          _elementTypeProvider.safeExecutableType(originalElement));
+      var type = _elementTypeProvider.safeExecutableType(originalElement);
+      type = toLegacyTypeIfOptOut(type);
+      InferenceContext.setType(node.argumentList, type);
     }
   }
 

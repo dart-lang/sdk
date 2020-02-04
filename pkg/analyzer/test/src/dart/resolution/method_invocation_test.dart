@@ -1699,6 +1699,32 @@ class MethodInvocationResolutionWithNnbdTest extends DriverResolutionTest {
   AnalysisOptionsImpl get analysisOptions =>
       AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
 
+  test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart' deferred as a;
+
+main() {
+  a.loadLibrary();
+}
+''');
+
+    var import = findElement.importFind('package:test/a.dart');
+
+    var invocation = findNode.methodInvocation('loadLibrary()');
+    assertImportPrefix(invocation.target, import.prefix);
+
+    assertMethodInvocation(
+      invocation,
+      import.importedLibrary.loadLibraryFunction,
+      'Future<dynamic> Function()',
+    );
+  }
+
   test_hasReceiver_interfaceTypeQ_defined() async {
     await assertErrorsInCode(r'''
 class A {

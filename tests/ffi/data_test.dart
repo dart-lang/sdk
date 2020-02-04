@@ -103,7 +103,7 @@ void testPointerAllocateZero() {
   //
   // Null pointer throws a Dart exception.
   bool returnedNullPointer = false;
-  Pointer<Int8> p;
+  Pointer<Int8> p = nullptr;
   try {
     p = allocate<Int8>(count: 0);
   } on Exception {

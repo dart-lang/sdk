@@ -4,7 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/src/edit/nnbd_migration/highlight_js.dart';
+import 'package:analysis_server/src/edit/nnbd_migration/resources/resources.g.dart'
+    as resources;
 import 'package:analysis_server/src/edit/preview/preview_page.dart';
 import 'package:analysis_server/src/edit/preview/preview_site.dart';
 
@@ -17,7 +18,7 @@ class HighlightJSPage extends PreviewPage {
 
   /// Initialize a newly created JS page within the given [site].
   HighlightJSPage(PreviewSite site)
-      : super(site, PreviewSite.highlightJSPagePath.substring(1));
+      : super(site, PreviewSite.highlightJsPath.substring(1));
 
   @override
   void generateBody(Map<String, String> params) {
@@ -29,9 +30,8 @@ class HighlightJSPage extends PreviewPage {
     buf.write(pageContent());
   }
 
-  /// Return the content of the page, decoding it if it hasn't been decoded
-  /// before.
+  /// Return the content of the page.
   String pageContent() {
-    return _pageContent ??= decodeHighlightJs();
+    return _pageContent ??= resources.highlight_pack_js;
   }
 }

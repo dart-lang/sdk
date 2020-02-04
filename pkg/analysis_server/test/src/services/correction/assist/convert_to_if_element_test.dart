@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToIfElementTest);
   });
@@ -28,7 +28,7 @@ class ConvertToIfElementTest extends AssistProcessorTest {
     super.setUp();
   }
 
-  test_conditional_list() async {
+  Future<void> test_conditional_list() async {
     await resolveTestUnit('''
 f(bool b) {
   return ['a', b /*caret*/? 'c' : 'd', 'e'];
@@ -41,7 +41,7 @@ f(bool b) {
 ''');
   }
 
-  test_conditional_list_caret_at_start_of_expression() async {
+  Future<void> test_conditional_list_caret_at_start_of_expression() async {
     await resolveTestUnit('''
 f(bool b) {
   return ['a', /*caret*/b ? 'c' : 'd', 'e'];
@@ -54,7 +54,7 @@ f(bool b) {
 ''');
   }
 
-  test_conditional_list_noAssistWithLint() async {
+  Future<void> test_conditional_list_noAssistWithLint() async {
     createAnalysisOptionsFile(
         lints: [LintNames.prefer_if_elements_to_conditional_expressions]);
     verifyNoTestUnitErrors = false;
@@ -66,7 +66,7 @@ f(bool b) {
     await assertNoAssist();
   }
 
-  test_conditional_list_withParentheses() async {
+  Future<void> test_conditional_list_withParentheses() async {
     await resolveTestUnit('''
 f(bool b) {
   return ['a', (b /*caret*/? 'c' : 'd'), 'e'];
@@ -79,7 +79,7 @@ f(bool b) {
 ''');
   }
 
-  test_conditional_map() async {
+  Future<void> test_conditional_map() async {
     await resolveTestUnit('''
 f(bool b) {
   return {'a' : 1, b /*caret*/? 'c' : 'd' : 2, 'e' : 3};
@@ -88,7 +88,7 @@ f(bool b) {
     await assertNoAssist();
   }
 
-  test_conditional_notConditional() async {
+  Future<void> test_conditional_notConditional() async {
     await resolveTestUnit('''
 f(bool b) {
   return {'/*caret*/a', b ? 'c' : 'd', 'e'};
@@ -97,7 +97,7 @@ f(bool b) {
     await assertNoAssist();
   }
 
-  test_conditional_notInLiteral() async {
+  Future<void> test_conditional_notInLiteral() async {
     await resolveTestUnit('''
 f(bool b) {
   return b /*caret*/? 'c' : 'd';
@@ -106,7 +106,7 @@ f(bool b) {
     await assertNoAssist();
   }
 
-  test_conditional_set() async {
+  Future<void> test_conditional_set() async {
     await resolveTestUnit('''
 f(bool b) {
   return {'a', b /*caret*/? 'c' : 'd', 'e'};
@@ -119,7 +119,7 @@ f(bool b) {
 ''');
   }
 
-  test_conditional_set_withParentheses() async {
+  Future<void> test_conditional_set_withParentheses() async {
     await resolveTestUnit('''
 f(bool b) {
   return {'a', ((b /*caret*/? 'c' : 'd')), 'e'};

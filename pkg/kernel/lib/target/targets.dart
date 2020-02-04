@@ -7,6 +7,7 @@ import '../ast.dart';
 import '../class_hierarchy.dart';
 import '../core_types.dart';
 import '../reference_from_index.dart';
+import 'changed_structure_notifier.dart';
 
 final List<String> targetNames = targets.keys.toList();
 
@@ -159,7 +160,8 @@ abstract class Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {}
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {}
 
   /// Perform target-specific modular transformations on the given libraries.
   void performModularTransformationsOnLibraries(
@@ -172,7 +174,8 @@ abstract class Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg)});
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier});
 
   /// Perform target-specific modular transformations on the given program.
   ///
@@ -304,7 +307,8 @@ class NoneTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg)}) {}
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {}
 
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,

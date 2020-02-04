@@ -207,6 +207,8 @@ general/interface_covariantImpl_from_class: TextSerializationFailure
 general/interface_covariantInterface_from_class: TextSerializationFailure
 general/invalid_assignment: TextSerializationFailure # Was: Pass
 general/invalid_cast: TextSerializationFailure # Was: Pass
+general/invalid_operator: TypeCheckError
+general/invalid_operator2: TextSerializationFailure
 general/invalid_type: TypeCheckError
 general/invocations: TextSerializationFailure # Was: RuntimeError
 general/issue129167943: TextSerializationFailure
@@ -281,6 +283,7 @@ general/part_not_part_of_same_named_library: TextSerializationFailure
 general/part_part_of_different_unnamed_library: TextSerializationFailure
 general/part_part_of_differently_named_library: TextSerializationFailure
 general/platform: TextSerializationFailure
+general/platform_invalid_uris/main: TextSerializationFailure
 general/prefer_baseclass: TextSerializationFailure # Was: Pass
 general/private_method_tearoff: TextSerializationFailure # Was: Pass
 general/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
@@ -336,7 +339,8 @@ general/unused_methods: TextSerializationFailure # Was: Pass
 general/var_as_type_name: TextSerializationFailure # Was: Pass
 general/void_methods: TextSerializationFailure
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
-general/with_dependencies/variance_from_dill/variance_from_dill: Crash
+general/with_dependencies/extension_from_dill/extension_from_dill: TextSerializationFailure
+general/with_dependencies/variance_from_dill/variance_from_dill: TextSerializationFailure
 general_nnbd_opt_out/DeltaBlue: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/abstract_overrides_concrete_with_no_such_method: TextSerializationFailure
@@ -1199,6 +1203,7 @@ late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
 late_lowering/override: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
+nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
 nnbd/call: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
@@ -1241,6 +1246,7 @@ nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/nullable_receiver: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
+nnbd/platform_optional_parameters/main: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure
 nnbd/regress_null_aware: TextSerializationFailure
 nnbd/required: TextSerializationFailure
@@ -1251,6 +1257,7 @@ nnbd/simple_never: TextSerializationFailure
 nnbd/sink_hierarchy: TextSerializationFailure
 nnbd/strictly_non_nullable_warnings: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure
+nnbd/tearoff_from_nullable_receiver: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSerializationFailure # Was: Pass
@@ -1515,6 +1522,7 @@ runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerial
 runtime_checks_new/stub_from_interface_covariant_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFailure # Was: Pass
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
+triple_shift/invalid_operator: TextSerializationFailure
 top_level_variance_test: TextSerializationFailure
 unified_collections/mixed_entries: TextSerializationFailure
 unified_collections/string_concatenation: TextSerializationFailure

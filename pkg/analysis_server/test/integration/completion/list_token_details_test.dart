@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ListTokenDetailsTest);
   });
@@ -35,7 +35,7 @@ class ListTokenDetailsTest extends AbstractAnalysisServerIntegrationTest {
     return Future.wait(futures);
   }
 
-  test_getSuggestions() async {
+  Future<void> test_getSuggestions() async {
     String aPath = path.join(sourceDirectory.path, 'a');
     String aLibPath = path.join(aPath, 'lib');
     writeFile(path.join(aLibPath, 'a.dart'), '''

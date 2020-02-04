@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddCurlyBracesTest);
   });
@@ -24,7 +24,7 @@ class AddCurlyBracesTest extends FixProcessorLintTest {
   String get lintCode => LintNames.curly_braces_in_flow_control_structures;
 
   // More coverage in the `use_curly_braces_test.dart` assist test.
-  test_do_block() async {
+  Future<void> test_do_block() async {
     await resolveTestUnit('''
 main() {
   do /*LINT*/print(0); while (true);

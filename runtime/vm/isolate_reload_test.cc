@@ -2973,6 +2973,92 @@ TEST_CASE(IsolateReload_ShapeChangeRetainsHash_Const) {
   EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_ShapeChangeConstReferencedByInstructions) {
+  // On IA32, instructions can contain direct pointers to const objects. We need
+  // to be careful that if the const objects are reallocated because of a shape
+  // change, they are allocated old. Because instructions normally contain
+  // pointers only to old objects, the scavenger does not bother to ensure code
+  // pages are writable when visiting the remembered set. Visiting the
+  // remembered involes writing to update the pointer for any target that gets
+  // promoted.
+  const char* kScript = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x;
+      const A(this.x);
+    }
+    var a;
+    main() {
+      a = const A(1);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  // Flip the size back and forth a few times.
+  for (intptr_t i = 0; i < 3; i++) {
+    const char* kReloadScript = R"(
+      import 'file:///test:isolate_reload_helper';
+      class A {
+        final x, y, z;
+        const A(this.x, this.y, this.z);
+      }
+      var a;
+      main() {
+        a = const A(1, null, null);
+        collectNewSpace();
+        return 'okay';
+      }
+    )";
+
+    lib = TestCase::ReloadTestScript(kReloadScript);
+    EXPECT_VALID(lib);
+    EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+    lib = TestCase::ReloadTestScript(kScript);
+    EXPECT_VALID(lib);
+    EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+  }
+}
+
+TEST_CASE(IsolateReload_ConstToNonConstClass) {
+  const char* kScript = R"(
+    class A {
+      final dynamic x;
+      const A(this.x);
+    }
+    dynamic a;
+    main() {
+      a = const A(1);
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    class A {
+      dynamic x;
+      A(this.x);
+    }
+    dynamic a;
+    main() {
+      a.x = 10;
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib,
+               "Const class cannot become non-const: "
+               "Library:'file:///test-lib' Class: A");
+}
+
 TEST_CASE(IsolateReload_StaticTearOffRetainsHash) {
   const char* kScript =
       "foo() {}\n"

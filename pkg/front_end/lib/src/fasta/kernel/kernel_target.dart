@@ -45,6 +45,8 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart' show IndexedClass;
 
 import 'package:kernel/type_algebra.dart' show substitute;
+import 'package:kernel/target/changed_structure_notifier.dart'
+    show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show verifyGetStaticType;
@@ -890,8 +892,11 @@ class KernelTarget extends TargetImplementation {
         environmentDefines,
         new KernelDiagnosticReporter(loader),
         loader.referenceFromIndex,
-        logger: (String msg) => ticker.logMs(msg));
+        logger: (String msg) => ticker.logMs(msg),
+        changedStructureNotifier: changedStructureNotifier);
   }
+
+  ChangedStructureNotifier get changedStructureNotifier => null;
 
   void runProcedureTransformations(Procedure procedure) {
     backendTarget.performTransformationsOnProcedure(

@@ -187,14 +187,11 @@
     "Dynamic access of 'universe.side_effects::_flags'.": 1
   },
   "pkg/compiler/lib/src/ssa/builder_kernel.dart": {
-    "Dynamic update to 'instantiatedTypes'.": 1,
-    "Dynamic update to 'sideEffects'.": 1,
     "Dynamic access of 'name'.": 1,
     "Dynamic access of 'id'.": 1,
     "Dynamic invocation of 'addSuccessor'.": 1
   },
   "pkg/compiler/lib/src/ssa/types.dart": {
-    "Dynamic access of 'isTop'.": 1,
     "Dynamic access of 'element'.": 1
   },
   "pkg/compiler/lib/src/js_emitter/program_builder/program_builder.dart": {

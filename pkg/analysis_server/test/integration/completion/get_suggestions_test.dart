@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetSuggestionsTest);
   });
@@ -32,7 +32,7 @@ class GetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
         content.substring(completionOffset + 1);
   }
 
-  test_getSuggestions() async {
+  Future<void> test_getSuggestions() async {
     setTestSource('test.dart', r'''
 String test = '';
 main() {
@@ -54,7 +54,7 @@ main() {
         (CompletionSuggestion suggestion) => suggestion.completion == 'length');
   }
 
-  test_getSuggestions_onlyOverlay() async {
+  Future<void> test_getSuggestions_onlyOverlay() async {
     setTestSource('test.dart', r'''
 String test = '';
 main() {
@@ -78,7 +78,7 @@ main() {
         (CompletionSuggestion suggestion) => suggestion.completion == 'length');
   }
 
-  test_getSuggestions_onlyOverlay_noWait() async {
+  Future<void> test_getSuggestions_onlyOverlay_noWait() async {
     setTestSource('test.dart', r'''
 String test = '';
 main() {
@@ -99,7 +99,7 @@ main() {
         (CompletionSuggestion suggestion) => suggestion.completion == 'length');
   }
 
-  test_getSuggestions_sourceMissing_noWait() {
+  Future<void> test_getSuggestions_sourceMissing_noWait() {
     path = sourcePath('does_not_exist.dart');
     // Do not write the file to "disk"
     //   writeFile(pathname, text);

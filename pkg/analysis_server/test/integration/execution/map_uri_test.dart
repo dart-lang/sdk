@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MapUriTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class MapUriTest extends AbstractAnalysisServerIntegrationTest {
-  test_mapUri() async {
+  Future<void> test_mapUri() async {
     String pathname = sourcePath('lib/main.dart');
     writeFile(pathname, '// dummy');
     writeFile(sourcePath('.packages'), 'foo:lib/');

@@ -11,18 +11,14 @@
 #include <fcntl.h>
 #include <stdint.h>
 
-#include <fuchsia/intl/cpp/fidl.h>
+#include <fuchsia/deprecatedtimezone/cpp/fidl.h>
 #include <lib/sys/cpp/service_directory.h>
 #include <zircon/process.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
 #include <zircon/types.h>
 
-#include "third_party/icu/source/common/unicode/errorcode.h"
-#include "third_party/icu/source/i18n/unicode/timezone.h"
-
 #include "platform/assert.h"
-#include "platform/syslog.h"
 #include "vm/zone.h"
 
 namespace dart {
@@ -65,72 +61,33 @@ intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(getpid());
 }
 
-// This is the default timezone returned if it could not be obtained.  For
-// Fuchsia, the default device timezone is always UTC.
-static const char kDefaultTimezone[] = "UTC";
-
 // TODO(FL-98): Change this to talk to fuchsia.dart to get timezone service to
 // directly get timezone.
 //
 // Putting this hack right now due to CP-120 as I need to remove
 // component:ConnectToEnvironmentServices and this is the only thing that is
 // blocking it and FL-98 will take time.
-static fuchsia::intl::PropertyProviderSyncPtr property_provider;
-
-// 1000 milliseconds do one second make.
-static const int32_t kMSPerSec = 1000;
+static fuchsia::deprecatedtimezone::TimezoneSyncPtr tz;
 
 static zx_status_t GetLocalAndDstOffsetInSeconds(int64_t seconds_since_epoch,
                                                  int32_t* local_offset,
                                                  int32_t* dst_offset) {
-  const char* timezone_id = OS::GetTimeZoneName(seconds_since_epoch);
-  std::unique_ptr<icu::TimeZone> timezone(
-      icu::TimeZone::createTimeZone(timezone_id));
-  UErrorCode error = U_ZERO_ERROR;
-  const auto ms_since_epoch =
-      static_cast<UDate>(kMSPerSec * seconds_since_epoch);
-  // The units of time that local_offset and dst_offset are returned from this
-  // function is, usefully, not documented, but it seems that the units are
-  // milliseconds.  Add these variables here for clarity.
-  int32_t local_offset_ms = 0;
-  int32_t dst_offset_ms = 0;
-  timezone->getOffset(ms_since_epoch, /*local_time=*/false, local_offset_ms,
-                      dst_offset_ms, error);
-  if (error != U_ZERO_ERROR) {
-    icu::ErrorCode icu_error;
-    icu_error.set(error);
-    // Sadly there is no way to report the actual error.  Next best thing is to
-    // log.  On the upside, a direct call to timezone->getOffset should fail
-    // rarely, so this should not amount to log spam.
-    Syslog::PrintErr("could not get DST offset: %s\n", icu_error.errorName());
-    return ZX_ERR_INTERNAL;
+  zx_status_t status = tz->GetTimezoneOffsetMinutes(seconds_since_epoch * 1000,
+                                                    local_offset, dst_offset);
+  if (status != ZX_OK) {
+    return status;
   }
-  // We must return offset in seconds, so convert.
-  *local_offset = local_offset_ms / kMSPerSec;
-  *dst_offset = dst_offset_ms / kMSPerSec;
+  *local_offset *= 60;
+  *dst_offset *= 60;
   return ZX_OK;
 }
 
 const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // TODO(abarth): Handle time zone changes.
-  static const std::string* tz_name = new std::string([]() -> std::string {
-    fuchsia::intl::Profile profile;
-    zx_status_t status = property_provider->GetProfile(&profile);
-    if (status != ZX_OK) {
-      // Shrug.  Let's continue with UTC.  Printing the error here as there is
-      // no way to report it from this API.
-      Syslog::PrintErr("no intl profile available\n");
-      return kDefaultTimezone;
-    }
-    const std::vector<fuchsia::intl::TimeZoneId>& timezones =
-        profile.time_zones();
-    if (timezones.empty()) {
-      // Empty timezone array is not up to fuchsia::intl spec.  The serving
-      // endpoint is broken and should be fixed.
-      Syslog::PrintErr("got empty timezone value\n");
-      return kDefaultTimezone;
-    }
-    return timezones[0].id;
+  static const auto* tz_name = new std::string([] {
+    std::string result;
+    tz->GetTimezoneId(&result);
+    return result;
   }());
   return tz_name->c_str();
 }
@@ -308,7 +265,7 @@ void OS::PrintErr(const char* format, ...) {
 void OS::Init() {
   InitializeTZData();
   auto services = sys::ServiceDirectory::CreateFromNamespace();
-  services->Connect(property_provider.NewRequest());
+  services->Connect(tz.NewRequest());
 }
 
 void OS::Cleanup() {}

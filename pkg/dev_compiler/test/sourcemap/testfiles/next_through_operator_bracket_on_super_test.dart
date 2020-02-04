@@ -5,9 +5,9 @@
 /*Debugger:stepOver*/
 
 class Class2 {
-  operator [](index) => index;
+  dynamic operator [](index) => index;
 
-  code() {
+  dynamic code() {
     this[42];
     return this[42];
   }
@@ -15,7 +15,7 @@ class Class2 {
 
 class Class3 extends Class2 {
   @override
-  code() {
+  dynamic code() {
     /*bl*/ /*sl:1*/ super[42];
     /*sl:2*/ return super[42];
   }

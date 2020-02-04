@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FormatTest);
   });
@@ -46,7 +46,7 @@ class Class1 {
     return pathname;
   }
 
-  test_format() async {
+  Future<void> test_format() async {
     String pathname = formatTestSetup();
 
     EditFormatResult result = await sendEditFormat(pathname, 0, 0);
@@ -55,7 +55,7 @@ class Class1 {
     expect(result.selectionLength, 0);
   }
 
-  test_format_preserve_selection() async {
+  Future<void> test_format_preserve_selection() async {
     String pathname = formatTestSetup();
 
     // format with 'bar' selected
@@ -67,7 +67,7 @@ class Class1 {
     expect(result.selectionLength, 'bar'.length);
   }
 
-  test_format_with_errors() async {
+  Future<void> test_format_with_errors() async {
     String pathname = formatTestSetup(withErrors: true);
 
     try {

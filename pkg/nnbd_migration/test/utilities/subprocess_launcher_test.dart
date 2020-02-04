@@ -31,11 +31,21 @@ class SubprocessLauncherTest {
     await tempDir.delete(recursive: true);
   }
 
+  Future<void> test_subprocessWorksViaParallelSubprocessLimit() async {
+    SubprocessLauncher launcher =
+        SubprocessLauncher('test_subprocessWorksViaParallelSubprocessLimit');
+
+    await launcher.runStreamed(Platform.resolvedExecutable, ['--version'],
+        perLine: outputCallback);
+    expect(output, anyElement(contains('Dart')));
+  }
+
   Future<void> test_subprocessRunsValidExecutable() async {
     SubprocessLauncher launcher =
         SubprocessLauncher('test_subprocessRunsValidExecutable');
 
-    await launcher.runStreamed(Platform.resolvedExecutable, ['--version'],
+    await launcher.runStreamedImmediate(
+        Platform.resolvedExecutable, ['--version'],
         perLine: outputCallback);
     expect(output, anyElement(contains('Dart')));
   }
@@ -52,7 +62,7 @@ class SubprocessLauncherTest {
         print('args: $args');
       }''');
 
-    await launcher.runStreamed(
+    await launcher.runStreamedImmediate(
         Platform.resolvedExecutable, [testScript.path, 'testArgument'],
         perLine: outputCallback);
     expect(output, anyElement(contains('args: [testArgument]')));
@@ -70,7 +80,8 @@ class SubprocessLauncherTest {
         print('environment: ${Platform.environment}');
       }''');
 
-    await launcher.runStreamed(Platform.resolvedExecutable, [testScript.path],
+    await launcher.runStreamedImmediate(
+        Platform.resolvedExecutable, [testScript.path],
         environment: {'__SUBPROCESS_PASSES_ENVIRONMENT_TEST': 'yes'},
         perLine: outputCallback);
     expect(
@@ -91,7 +102,8 @@ class SubprocessLauncherTest {
         print('working directory: ${Directory.current.path}');
       }''');
 
-    await launcher.runStreamed(Platform.resolvedExecutable, [testScript.path],
+    await launcher.runStreamedImmediate(
+        Platform.resolvedExecutable, [testScript.path],
         workingDirectory: tempDir.path, perLine: outputCallback);
     expect(
         output,
@@ -111,7 +123,7 @@ class SubprocessLauncherTest {
         exit(1);
       }''');
     await expectLater(
-        () async => await launcher.runStreamed(
+        () async => await launcher.runStreamedImmediate(
             Platform.resolvedExecutable, [testScript.path],
             perLine: outputCallback),
         throwsA(TypeMatcher<ProcessException>()));

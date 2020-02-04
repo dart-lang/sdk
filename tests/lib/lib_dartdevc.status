@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $compiler == dartdevc ]
-html/xhr_test: Slow
+html/xhr_test: Slow, Pass
 
 [ $runtime == chrome && ($compiler == dartdevc || $compiler == dartdevk) ]
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
@@ -18,10 +18,10 @@ html/interactive_media_test: Skip # Requires interactive camera, microphone perm
 html/xhr_test: Skip # Times out. Issue 21527
 
 [ $compiler == dartdevc || $compiler == dartdevk ]
-convert/chunked_conversion_utf88_test: Slow
-convert/json_utf8_chunk_test: Slow
-convert/streamed_conversion_utf8_decode_test: Slow # Issue 29922
-convert/utf85_test: Slow
+convert/chunked_conversion_utf88_test: Slow, Pass
+convert/json_utf8_chunk_test: Slow, Pass
+convert/streamed_conversion_utf8_decode_test: Slow, Pass # Issue 29922
+convert/utf85_test: Slow, Pass
 developer/metrics_num_test: Skip # Because of an int / double type test.
 html/callback_list_test: Skip # Test requires user interaction to accept permissions.
 html/custom/attribute_changed_callback_test: Skip # Issue 31577

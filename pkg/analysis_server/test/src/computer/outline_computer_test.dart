@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterOutlineComputerTest);
     defineReflectiveTests(OutlineComputerTest);
@@ -49,7 +49,7 @@ class FlutterOutlineComputerTest extends AbstractOutlineComputerTest {
     addFlutterPackage();
   }
 
-  test_columnWithChildren() async {
+  Future<void> test_columnWithChildren() async {
     Outline unitOutline = await _computeOutline('''
 import 'package:flutter/widgets.dart';
 
@@ -139,7 +139,7 @@ MyWidget
 
 @reflectiveTest
 class OutlineComputerTest extends AbstractOutlineComputerTest {
-  test_class() async {
+  Future<void> test_class() async {
     Outline unitOutline = await _computeOutline('''
 abstract class A<K, V> {
   int fa, fb;
@@ -384,7 +384,7 @@ R fb<R, P>(P p) {}
     }
   }
 
-  test_enum() async {
+  Future<void> test_enum() async {
     Outline unitOutline = await _computeOutline('''
 enum MyEnum {
   A, B, C
@@ -414,7 +414,7 @@ enum MyEnum {
     }
   }
 
-  test_extension_named() async {
+  Future<void> test_extension_named() async {
     createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
     Outline unitOutline = await _computeOutline('''
 extension MyExt on String {
@@ -445,7 +445,7 @@ extension MyExt on String {
     }
   }
 
-  test_extension_unnamed() async {
+  Future<void> test_extension_unnamed() async {
     createAnalysisOptionsFile(experiments: [EnableString.extension_methods]);
     Outline unitOutline = await _computeOutline('''
 extension on String {
@@ -476,7 +476,7 @@ extension on String {
     }
   }
 
-  test_genericTypeAlias_incomplete() async {
+  Future<void> test_genericTypeAlias_incomplete() async {
     Outline unitOutline = await _computeOutline('''
 typedef F = Object;
 ''');
@@ -496,7 +496,7 @@ typedef F = Object;
     expect(element_F.returnType, '');
   }
 
-  test_genericTypeAlias_minimal() async {
+  Future<void> test_genericTypeAlias_minimal() async {
     Outline unitOutline = await _computeOutline('''
 typedef F = void Function();
 ''');
@@ -516,7 +516,7 @@ typedef F = void Function();
     expect(element_F.returnType, 'void');
   }
 
-  test_genericTypeAlias_noReturnType() async {
+  Future<void> test_genericTypeAlias_noReturnType() async {
     Outline unitOutline = await _computeOutline('''
 typedef F = Function();
 ''');
@@ -536,7 +536,7 @@ typedef F = Function();
     expect(element_F.returnType, '');
   }
 
-  test_groupAndTest() async {
+  Future<void> test_groupAndTest() async {
     Outline outline = await _computeOutline('''
 void group(name, closure) {}
 void test(name) {}
@@ -652,7 +652,7 @@ void main() {
    *
    * https://code.google.com/p/dart/issues/detail?id=21373
    */
-  test_invalidGetterInConstructor() async {
+  Future<void> test_invalidGetterInConstructor() async {
     Outline outline = await _computeOutline('''
 class A {
   A() {
@@ -670,7 +670,7 @@ class A {
    *
    * https://github.com/dart-lang/sdk/issues/33228
    */
-  test_invocation_ofParameter() async {
+  Future<void> test_invocation_ofParameter() async {
     Outline outline = await _computeOutline('''
 main(p()) {
   p();
@@ -679,7 +679,7 @@ main(p()) {
     expect(outline, isNotNull);
   }
 
-  test_isTest_isTestGroup() async {
+  Future<void> test_isTest_isTestGroup() async {
     addMetaPackage();
     Outline outline = await _computeOutline('''
 import 'package:meta/meta.dart';
@@ -797,7 +797,7 @@ void main() {
         offset: testCode.indexOf("myTest('test2_2'"));
   }
 
-  test_localFunctions() async {
+  Future<void> test_localFunctions() async {
     Outline unitOutline = await _computeOutline('''
 class A {
   A() {
@@ -952,7 +952,7 @@ f() {
     }
   }
 
-  test_mixin() async {
+  Future<void> test_mixin() async {
     Outline unitOutline = await _computeOutline('''
 mixin M<N> {
   c(int d) {}
@@ -1023,7 +1023,7 @@ mixin M<N> {
     }
   }
 
-  test_sourceRanges_fields() async {
+  Future<void> test_sourceRanges_fields() async {
     Outline unitOutline = await _computeOutline('''
 class A {
   int fieldA, fieldB = 2;
@@ -1094,7 +1094,7 @@ class A {
     }
   }
 
-  test_sourceRanges_inUnit() async {
+  Future<void> test_sourceRanges_inUnit() async {
     Outline unitOutline = await _computeOutline('''
 /// My first class.
 class A {}
@@ -1133,7 +1133,7 @@ class B {}
     }
   }
 
-  test_sourceRanges_method() async {
+  Future<void> test_sourceRanges_method() async {
     Outline unitOutline = await _computeOutline('''
 class A {
   int methodA() {}
@@ -1175,7 +1175,7 @@ class A {
     }
   }
 
-  test_topLevel() async {
+  Future<void> test_topLevel() async {
     Outline unitOutline = await _computeOutline('''
 typedef String FTA<K, V>(int i, String s);
 typedef FTB(int p);

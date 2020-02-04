@@ -265,7 +265,7 @@ abstract class ContextManager {
   /**
    * Set the callback interface used to create, destroy, and update contexts.
    */
-  void set callbacks(ContextManagerCallbacks value);
+  set callbacks(ContextManagerCallbacks value);
 
   /**
    * A table mapping [Folder]s to the [AnalysisDriver]s associated with them.

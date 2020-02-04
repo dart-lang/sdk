@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationClosingLabelsTest);
   });
@@ -64,7 +64,7 @@ Widget build(BuildContext context) {
     addAnalysisSubscription(AnalysisService.CLOSING_LABELS, testFile);
   }
 
-  test_afterAnalysis() async {
+  Future<void> test_afterAnalysis() async {
     addTestFile(sampleCode);
     await waitForTasksFinished();
     expect(lastLabels, isNull);
@@ -74,7 +74,7 @@ Widget build(BuildContext context) {
     expect(lastLabels, expectedResults);
   }
 
-  test_afterUpdate() async {
+  Future<void> test_afterUpdate() async {
     addTestFile('');
     // Currently required to get notifications on updates
     setPriorityFiles([testFile]);

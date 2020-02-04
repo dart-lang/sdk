@@ -729,7 +729,8 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
       }
       return null;
     }
-    return constant.accept(new _ConstantConverter(toBackendEntity), null);
+    return constant.accept(
+        new _ConstantConverter(_backend.types, toBackendEntity), null);
   }
 }
 
@@ -853,10 +854,11 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
 }
 
 class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
+  final DartTypes _dartTypes;
   final Entity Function(Entity) toBackendEntity;
   final _TypeConverter typeConverter;
 
-  _ConstantConverter(this.toBackendEntity)
+  _ConstantConverter(this._dartTypes, this.toBackendEntity)
       : typeConverter = new _TypeConverter();
 
   @override
@@ -952,14 +954,14 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   ConstantValue visitInterceptor(InterceptorConstantValue constant, _) {
     // Interceptor constants are only created in the SSA graph builder.
     throw new UnsupportedError(
-        "Unexpected visitInterceptor ${constant.toStructuredText()}");
+        "Unexpected visitInterceptor ${constant.toStructuredText(_dartTypes)}");
   }
 
   @override
   ConstantValue visitDeferredGlobal(DeferredGlobalConstantValue constant, _) {
     // Deferred global constants are only created in the SSA graph builder.
     throw new UnsupportedError(
-        "Unexpected DeferredGlobalConstantValue ${constant.toStructuredText()}");
+        "Unexpected DeferredGlobalConstantValue ${constant.toStructuredText(_dartTypes)}");
   }
 
   @override

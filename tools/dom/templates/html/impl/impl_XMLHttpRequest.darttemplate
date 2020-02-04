@@ -73,7 +73,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * * [request]
    */
   static Future<String> getString(String url,
-      {bool withCredentials, void onProgress(ProgressEvent e)}) {
+      {bool$NULLABLE withCredentials, void onProgress(ProgressEvent e)$NULLABLE}) {
     return request(url, withCredentials: withCredentials,
         onProgress: onProgress).then((HttpRequest xhr) => xhr.responseText);
   }
@@ -132,7 +132,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    *
    * By default `request` will perform an HTTP GET request, but a different
    * method (`POST`, `PUT`, `DELETE`, etc) can be used by specifying the
-   * [method] parameter. (See also [HttpRequest.postFormData] for `POST` 
+   * [method] parameter. (See also [HttpRequest.postFormData] for `POST`
    * requests only.
    *
    * The Future is completed when the response is available.
@@ -141,8 +141,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * [Blob], [Document], [String], or [FormData] along with the HttpRequest.
    *
    * If specified, [responseType] sets the desired response format for the
-   * request. By default it is [String], but can also be 'arraybuffer', 'blob', 
-   * 'document', 'json', or 'text'. See also [HttpRequest.responseType] 
+   * request. By default it is [String], but can also be 'arraybuffer', 'blob',
+   * 'document', 'json', or 'text'. See also [HttpRequest.responseType]
    * for more information.
    *
    * The [withCredentials] parameter specified that credentials such as a cookie
@@ -225,7 +225,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       // redirect case will be handled by the browser before it gets to us,
       // so if we see it we should pass it through to the user.
       var unknownRedirect = xhr.status > 307 && xhr.status < 400;
-      
+
       if (accepted || fileUri || notModified || unknownRedirect) {
         completer.complete(xhr);
       } else {

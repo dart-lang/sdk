@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'non_nullable_fix_test.dart' as non_nullable_fix;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     non_nullable_fix.main();
   }, name: 'fix');

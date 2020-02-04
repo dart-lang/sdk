@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeleteContextTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class DeleteContextTest extends AbstractAnalysisServerIntegrationTest {
-  test_delete() async {
+  Future<void> test_delete() async {
     String pathname = sourcePath('lib/main.dart');
     writeFile(pathname, '// dummy');
     writeFile(sourcePath('.packages'), 'foo:lib/');

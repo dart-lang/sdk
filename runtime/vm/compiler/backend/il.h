@@ -511,6 +511,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 #define DEFINE_INSTRUCTION_TYPE_CHECK(type)                                    \
+  virtual type##Instr* As##type() { return this; }                             \
   virtual const type##Instr* As##type() const { return this; }                 \
   virtual const char* DebugName() const { return #type; }
 
@@ -5497,7 +5498,7 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   static bool WillAllocateNewOrRemembered(const Class& cls) {
-    return Heap::IsAllocatableInNewSpace(cls.instance_size());
+    return Heap::IsAllocatableInNewSpace(cls.target_instance_size());
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -6237,6 +6238,8 @@ class BoxIntegerInstr : public BoxInstr {
   virtual bool ValueFitsSmi() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
+
+  virtual SpeculativeMode speculative_mode() const { return kNotSpeculative; }
 
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();

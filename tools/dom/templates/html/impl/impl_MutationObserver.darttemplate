@@ -32,7 +32,7 @@ $!MEMBERS
                 bool subtree,
                 bool attributeOldValue,
                 bool characterDataOldValue,
-                List<String> attributeFilter}) {
+                List<String>$NULLABLE attributeFilter}) {
 
     // Parse options into map of known type.
     var parsedOptions = _createDict();

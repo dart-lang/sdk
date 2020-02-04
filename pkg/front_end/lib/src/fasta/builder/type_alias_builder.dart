@@ -41,7 +41,7 @@ import 'type_variable_builder.dart';
 class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   final TypeBuilder type;
 
-  final List<TypeVariableBuilder> typeVariables;
+  final List<TypeVariableBuilder> _typeVariables;
 
   /// The [Typedef] built by this builder.
   final Typedef typedef;
@@ -49,12 +49,12 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   DartType thisType;
 
   TypeAliasBuilder(List<MetadataBuilder> metadata, String name,
-      this.typeVariables, this.type, LibraryBuilder parent, int charOffset,
+      this._typeVariables, this.type, LibraryBuilder parent, int charOffset,
       {Typedef typedef, Typedef referenceFrom})
       : typedef = typedef ??
             (new Typedef(name, null,
                 typeParameters: TypeVariableBuilder.typeParametersFromBuilders(
-                    typeVariables),
+                    _typeVariables),
                 fileUri: parent.library.fileUri,
                 reference: referenceFrom?.reference)
               ..fileOffset = charOffset),
@@ -63,6 +63,11 @@ class TypeAliasBuilder extends TypeDeclarationBuilderImpl {
   String get debugName => "TypeAliasBuilder";
 
   LibraryBuilder get parent => super.parent;
+
+  // TODO(CFE TEAM): Some of this is a temporary workaround.
+  List<TypeVariableBuilder> get typeVariables => _typeVariables;
+  int varianceAt(int index) => typeVariables[index].parameter.variance;
+  bool get fromDill => false;
 
   Typedef build(SourceLibraryBuilder libraryBuilder) {
     typedef..type ??= buildThisType(libraryBuilder);

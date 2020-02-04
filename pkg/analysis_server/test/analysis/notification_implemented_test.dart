@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationImplementedTest);
   });
@@ -122,7 +122,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
     addAnalysisSubscription(AnalysisService.IMPLEMENTED, testFile);
   }
 
-  test_afterAnalysis() async {
+  Future<void> test_afterAnalysis() async {
     addTestFile('''
 class A {}
 class B extends A {}
@@ -132,7 +132,7 @@ class B extends A {}
     assertHasImplementedClass('A {');
   }
 
-  test_afterIncrementalResolution() async {
+  Future<void> test_afterIncrementalResolution() async {
     subscribeForImplemented();
     addTestFile('''
 class A {}
@@ -151,7 +151,7 @@ class B extends A {}
     assertHasImplementedClass('A  {');
   }
 
-  test_class_extended() async {
+  Future<void> test_class_extended() async {
     addTestFile('''
 class A {}
 class B extends A {}
@@ -160,7 +160,7 @@ class B extends A {}
     assertHasImplementedClass('A {');
   }
 
-  test_class_implemented() async {
+  Future<void> test_class_implemented() async {
     addTestFile('''
 class A {}
 class B implements A {}
@@ -169,7 +169,7 @@ class B implements A {}
     assertHasImplementedClass('A {');
   }
 
-  test_class_inMixin() async {
+  Future<void> test_class_inMixin() async {
     addTestFile('''
 class A {} // ref
 class B {} // ref
@@ -184,7 +184,7 @@ mixin M on A, B implements C, D {}
     assertHasImplementedClass('D {} // ref');
   }
 
-  test_class_mixed() async {
+  Future<void> test_class_mixed() async {
     addTestFile('''
 class A {}
 class B = Object with A;
@@ -193,7 +193,7 @@ class B = Object with A;
     assertHasImplementedClass('A {');
   }
 
-  test_field_withField() async {
+  Future<void> test_field_withField() async {
     addTestFile('''
 class A {
   int f; // A
@@ -206,7 +206,7 @@ class B extends A {
     assertHasImplementedMember('f; // A');
   }
 
-  test_field_withGetter() async {
+  Future<void> test_field_withGetter() async {
     addTestFile('''
 class A {
   int f; // A
@@ -219,7 +219,7 @@ class B extends A {
     assertHasImplementedMember('f; // A');
   }
 
-  test_field_withSetter() async {
+  Future<void> test_field_withSetter() async {
     addTestFile('''
 class A {
   int f; // A
@@ -232,7 +232,7 @@ class B extends A {
     assertHasImplementedMember('f; // A');
   }
 
-  test_getter_withField() async {
+  Future<void> test_getter_withField() async {
     addTestFile('''
 class A {
   get f => null; // A
@@ -245,7 +245,7 @@ class B extends A {
     assertHasImplementedMember('f => null; // A');
   }
 
-  test_getter_withGetter() async {
+  Future<void> test_getter_withGetter() async {
     addTestFile('''
 class A {
   get f => null; // A
@@ -258,7 +258,7 @@ class B extends A {
     assertHasImplementedMember('f => null; // A');
   }
 
-  test_method_withMethod() async {
+  Future<void> test_method_withMethod() async {
     addTestFile('''
 class A {
   m() {} // A
@@ -272,7 +272,7 @@ class B extends A {
     assertNoImplementedMember('m() {} // B');
   }
 
-  test_method_withMethod_indirectSubclass() async {
+  Future<void> test_method_withMethod_indirectSubclass() async {
     addTestFile('''
 class A {
   m() {} // A
@@ -287,7 +287,7 @@ class C extends A {
     assertHasImplementedMember('m() {} // A');
   }
 
-  test_method_withMethod_private_differentLib() async {
+  Future<void> test_method_withMethod_private_differentLib() async {
     newFile(join(testFolder, 'lib.dart'), content: r'''
 import 'test.dart';
 class B extends A {
@@ -303,7 +303,7 @@ class A {
     assertNoImplementedMember('_m() {} // A');
   }
 
-  test_method_withMethod_private_sameLibrary() async {
+  Future<void> test_method_withMethod_private_sameLibrary() async {
     addTestFile('''
 class A {
   _m() {} // A
@@ -317,7 +317,7 @@ class B extends A {
     assertNoImplementedMember('_m() {} // B');
   }
 
-  test_method_withMethod_wasAbstract() async {
+  Future<void> test_method_withMethod_wasAbstract() async {
     addTestFile('''
 abstract class A {
   m(); // A
@@ -330,7 +330,7 @@ class B extends A {
     assertHasImplementedMember('m(); // A');
   }
 
-  test_mixin_implemented() async {
+  Future<void> test_mixin_implemented() async {
     addTestFile('''
 mixin M { // ref
   void foo() {} // ref
@@ -347,7 +347,7 @@ class A implements M {
     assertNoImplementedMember('bar() {} // ref');
   }
 
-  test_mixin_mixed() async {
+  Future<void> test_mixin_mixed() async {
     addTestFile('''
 mixin M { // ref
   void foo() {} // ref
@@ -364,7 +364,7 @@ class A extends Object with M {
     assertNoImplementedMember('bar() {} // ref');
   }
 
-  test_setter_withField() async {
+  Future<void> test_setter_withField() async {
     addTestFile('''
 class A {
   set f(_) {} // A
@@ -377,7 +377,7 @@ class B extends A {
     assertHasImplementedMember('f(_) {} // A');
   }
 
-  test_setter_withSetter() async {
+  Future<void> test_setter_withSetter() async {
     addTestFile('''
 class A {
   set f(_) {} // A
@@ -390,7 +390,7 @@ class B extends A {
     assertHasImplementedMember('f(_) {} // A');
   }
 
-  test_static_field_instanceStatic() async {
+  Future<void> test_static_field_instanceStatic() async {
     addTestFile('''
 class A {
   int F = 0;
@@ -403,7 +403,7 @@ class B extends A {
     assertNoImplementedMember('F = 0');
   }
 
-  test_static_field_staticInstance() async {
+  Future<void> test_static_field_staticInstance() async {
     addTestFile('''
 class A {
   static int F = 0;
@@ -416,7 +416,7 @@ class B extends A {
     assertNoImplementedMember('F = 0');
   }
 
-  test_static_field_staticStatic() async {
+  Future<void> test_static_field_staticStatic() async {
     addTestFile('''
 class A {
   static int F = 0;
@@ -429,7 +429,7 @@ class B extends A {
     assertNoImplementedMember('F = 0');
   }
 
-  test_static_method_instanceStatic() async {
+  Future<void> test_static_method_instanceStatic() async {
     addTestFile('''
 class A {
   int m() => 0;
@@ -442,7 +442,7 @@ class B extends A {
     assertNoImplementedMember('m() => 0');
   }
 
-  test_static_method_staticInstance() async {
+  Future<void> test_static_method_staticInstance() async {
     addTestFile('''
 class A {
   static int m() => 0;
@@ -455,7 +455,7 @@ class B extends A {
     assertNoImplementedMember('m() => 0');
   }
 
-  test_static_method_staticStatic() async {
+  Future<void> test_static_method_staticStatic() async {
     addTestFile('''
 class A {
   static int m() => 0;

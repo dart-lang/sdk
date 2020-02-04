@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UpdateContentTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisServerIntegrationTest {
-  test_updateContent_list() {
+  Future<void> test_updateContent_list() {
     String pathname = sourcePath('test.dart');
     String goodText = r'''
 main() {

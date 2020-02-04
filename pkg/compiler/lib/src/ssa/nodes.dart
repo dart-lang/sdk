@@ -45,6 +45,7 @@ abstract class HVisitor<R> {
   R visitExitTry(HExitTry node);
   R visitFieldGet(HFieldGet node);
   R visitFieldSet(HFieldSet node);
+  R visitInvokeExternal(HInvokeExternal node);
   R visitForeignCode(HForeignCode node);
   R visitGetLength(HGetLength node);
   R visitGoto(HGoto node);
@@ -469,6 +470,8 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitFieldGet(HFieldGet node) => visitFieldAccess(node);
   @override
   visitFieldSet(HFieldSet node) => visitFieldAccess(node);
+  @override
+  visitInvokeExternal(HInvokeExternal node) => visitInstruction(node);
   @override
   visitForeignCode(HForeignCode node) => visitInstruction(node);
   @override
@@ -1042,11 +1045,11 @@ abstract class HInstruction implements Spannable {
   Entity sourceElement;
   SourceInformation sourceInformation;
 
-  final int id;
+  final int id = idCounter++;
   static int idCounter;
 
   final List<HInstruction> inputs;
-  final List<HInstruction> usedBy;
+  final List<HInstruction> usedBy = [];
 
   HBasicBlock block;
   HInstruction previous = null;
@@ -1095,27 +1098,26 @@ abstract class HInstruction implements Spannable {
   static const int TYPE_INFO_READ_VARIABLE_TYPECODE = 39;
   static const int TYPE_INFO_EXPRESSION_TYPECODE = 40;
 
-  static const int FOREIGN_CODE_TYPECODE = 41;
-  static const int REMAINDER_TYPECODE = 42;
-  static const int GET_LENGTH_TYPECODE = 43;
-  static const int ABS_TYPECODE = 44;
-  static const int BOOL_CONVERSION_TYPECODE = 45;
-  static const int NULL_CHECK_TYPECODE = 46;
-  static const int PRIMITIVE_CHECK_TYPECODE = 47;
+  static const int INVOKE_EXTERNAL_TYPECODE = 41;
+  static const int FOREIGN_CODE_TYPECODE = 42;
+  static const int REMAINDER_TYPECODE = 43;
+  static const int GET_LENGTH_TYPECODE = 44;
+  static const int ABS_TYPECODE = 45;
+  static const int BOOL_CONVERSION_TYPECODE = 46;
+  static const int NULL_CHECK_TYPECODE = 47;
+  static const int PRIMITIVE_CHECK_TYPECODE = 48;
 
-  static const int IS_TEST_TYPECODE = 48;
-  static const int IS_TEST_SIMPLE_TYPECODE = 49;
-  static const int AS_CHECK_TYPECODE = 50;
-  static const int AS_CHECK_SIMPLE_TYPECODE = 51;
-  static const int SUBTYPE_CHECK_TYPECODE = 52;
-  static const int LOAD_TYPE_TYPECODE = 53;
-  static const int INSTANCE_ENVIRONMENT_TYPECODE = 54;
-  static const int TYPE_EVAL_TYPECODE = 55;
-  static const int TYPE_BIND_TYPECODE = 56;
+  static const int IS_TEST_TYPECODE = 49;
+  static const int IS_TEST_SIMPLE_TYPECODE = 50;
+  static const int AS_CHECK_TYPECODE = 51;
+  static const int AS_CHECK_SIMPLE_TYPECODE = 52;
+  static const int SUBTYPE_CHECK_TYPECODE = 53;
+  static const int LOAD_TYPE_TYPECODE = 54;
+  static const int INSTANCE_ENVIRONMENT_TYPECODE = 55;
+  static const int TYPE_EVAL_TYPECODE = 56;
+  static const int TYPE_BIND_TYPECODE = 57;
 
-  HInstruction(this.inputs, this.instructionType)
-      : id = idCounter++,
-        usedBy = <HInstruction>[] {
+  HInstruction(this.inputs, this.instructionType) {
     assert(inputs.every((e) => e != null), "inputs: $inputs");
   }
 
@@ -1408,7 +1410,7 @@ abstract class HInstruction implements Spannable {
     // instructions with generics. It has the generic type context
     // available.
     assert(type is! TypeVariableType);
-    assert(type.treatAsRaw || type is FunctionType);
+    assert(closedWorld.dartTypes.treatAsRawType(type) || type is FunctionType);
     if (type is DynamicType) return this;
     if (type is VoidType) return this;
     if (type == closedWorld.commonElements.objectType) return this;
@@ -1417,7 +1419,8 @@ abstract class HInstruction implements Spannable {
           closedWorld.abstractValueDomain.dynamicType, this, sourceInformation);
     }
     assert(type is InterfaceType);
-    if (kind == HTypeConversion.TYPE_CHECK && !type.treatAsRaw) {
+    if (kind == HTypeConversion.TYPE_CHECK &&
+        !closedWorld.dartTypes.treatAsRawType(type)) {
       throw 'creating compound check to $type (this = ${this})';
     } else {
       InterfaceType interfaceType = type;
@@ -1829,6 +1832,8 @@ abstract class HInvokeDynamic extends HInvoke {
     // Use the name and the kind instead of [Selector.operator==]
     // because we don't need to check the arity (already checked in
     // [gvnEquals]), and the receiver types may not be in sync.
+    // TODO(sra): If we GVN calls with named (optional) arguments then the
+    // selector needs a deeper check for the same subset of named arguments.
     return selector.name == other.selector.name &&
         selector.kind == other.selector.kind;
   }
@@ -2295,6 +2300,100 @@ class HLocalSet extends HLocalAccess {
   HInstruction get value => inputs[1];
   @override
   bool isJsStatement() => true;
+}
+
+/// Invocation of a native or JS-interop method.
+///
+/// Includes various invocations where the JavaScript form is similar to the
+/// Dart form:
+///
+///     receiver.property          // An instance getter
+///     receiver.property = value  // An instance setter
+///     receiver.method(arg)       // An instance method
+///
+///     Class.property             // A static getter
+///     Class.property = value     // A static setter
+///     Class.method(arg)          // A static method
+///     new Class(arg)             // A constructor
+///
+/// HInvokeDynamicMethod can be lowered to HInvokeExternal with the same
+/// [element]. The difference is a HInvokeDynamicMethod is a call to a
+/// Dart-calling-convention stub identifed by [element] that contains a call to
+/// the external method, whereas a HInvokeExternal instruction is a direct
+/// JavaScript call to the external method identified by [element].
+class HInvokeExternal extends HInvoke {
+  final FunctionEntity element;
+
+  // The following fields are functions of [element] that are extracted for
+  // convenience.
+  final NativeBehavior nativeBehavior;
+  final NativeThrowBehavior throwBehavior;
+
+  HInvokeExternal(this.element, List<HInstruction> inputs, AbstractValue type,
+      this.nativeBehavior,
+      {SourceInformation sourceInformation})
+      : throwBehavior =
+            nativeBehavior?.throwBehavior ?? NativeThrowBehavior.MAY,
+        super(inputs, type) {
+    if (nativeBehavior == null) {
+      sideEffects.setAllSideEffects();
+      sideEffects.setDependsOnSomething();
+    } else {
+      sideEffects.add(nativeBehavior.sideEffects);
+    }
+    if (nativeBehavior != null && nativeBehavior.useGvn) {
+      setUseGvn();
+    }
+    this.sourceInformation = sourceInformation;
+  }
+
+  @override
+  accept(HVisitor visitor) => visitor.visitInvokeExternal(this);
+
+  @override
+  bool isJsStatement() => false;
+
+  @override
+  bool canThrow(AbstractValueDomain domain) {
+    if (element.isInstanceMember) {
+      if (inputs.length > 0) {
+        return inputs.first.isNull(domain).isPotentiallyTrue
+            ? throwBehavior.canThrow
+            : throwBehavior.onNonNull.canThrow;
+      }
+    }
+    return throwBehavior.canThrow;
+  }
+
+  @override
+  bool onlyThrowsNSM() => throwBehavior.isOnlyNullNSMGuard;
+
+  @override
+  bool isAllocation(AbstractValueDomain domain) =>
+      nativeBehavior != null &&
+      nativeBehavior.isAllocation &&
+      this.isNull(domain).isDefinitelyFalse;
+
+  /// Returns `true` if the call will throw an NoSuchMethod error if [receiver]
+  /// is `null` before having any other side-effects.
+  bool isNullGuardFor(HInstruction receiver) {
+    if (!element.isInstanceMember) return false;
+    if (inputs.length < 1) return false;
+    if (inputs.first.nonCheck() != receiver.nonCheck()) return false;
+    return true;
+  }
+
+  @override
+  int typeCode() => HInstruction.INVOKE_EXTERNAL_TYPECODE;
+  @override
+  bool typeEquals(other) => other is HInvokeExternal;
+  @override
+  bool dataEquals(HInvokeExternal other) {
+    return element == other.element;
+  }
+
+  @override
+  String toString() => 'HInvokeExternal($element)';
 }
 
 abstract class HForeign extends HInstruction {
@@ -2842,7 +2941,7 @@ class HConstant extends HInstruction {
       : super(<HInstruction>[], constantType);
 
   @override
-  toString() => 'literal: ${constant.toStructuredText()}';
+  toString() => 'literal: ${constant.toStructuredText(null)}';
   @override
   accept(HVisitor visitor) => visitor.visitConstant(this);
 
@@ -3093,10 +3192,11 @@ class HLessEqual extends HRelational {
   bool dataEquals(HInstruction other) => true;
 }
 
+/// Return statement, either with or without a value.
 class HReturn extends HControlFlow {
-  HReturn(AbstractValueDomain domain, HInstruction value,
+  HReturn(AbstractValueDomain domain, HInstruction /*?*/ value,
       SourceInformation sourceInformation)
-      : super(domain, <HInstruction>[value]) {
+      : super(domain, [if (value != null) value]) {
     this.sourceInformation = sourceInformation;
   }
   @override
@@ -3659,7 +3759,7 @@ class HTypeConversion extends HCheck {
         // TODO(johnniwinther): Optimize FutureOr type conversions.
         return false;
       }
-      if (!type.treatAsRaw) {
+      if (!closedWorld.dartTypes.treatAsRawType(type)) {
         // `null` always passes type conversion.
         if (checkedInput.isNull(abstractValueDomain).isDefinitelyTrue) {
           return true;
@@ -4513,7 +4613,7 @@ AbstractBool _isTestResult(HInstruction expression, DartType dartType,
   // Currently, the abstract value domain cannot (soundly) state that an is-test
   // is definitely false, so we reuse some of the case-by-case logic from the
   // old [HIs] optimization.
-  if (dartType.isTop) return AbstractBool.True;
+  if (closedWorld.dartTypes.isTopType(dartType)) return AbstractBool.True;
   if (dartType is! InterfaceType) return AbstractBool.Maybe;
   InterfaceType type = dartType;
   ClassEntity element = type.element;
@@ -4562,7 +4662,7 @@ AbstractBool _isTestResult(HInstruction expression, DartType dartType,
   // We need the raw check because we don't have the notion of generics in the
   // backend. For example, `this` in a class `A<T>` is currently always
   // considered to have the raw type.
-  if (type.treatAsRaw) {
+  if (closedWorld.dartTypes.treatAsRawType(type)) {
     return abstractValueDomain.isInstanceOf(subsetType, element);
   }
   return AbstractBool.Maybe;

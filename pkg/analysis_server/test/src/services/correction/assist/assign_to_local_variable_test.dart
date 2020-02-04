@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssignToLocalVariableTest);
   });
@@ -20,7 +20,7 @@ class AssignToLocalVariableTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
 
-  test_alreadyAssignment() async {
+  Future<void> test_alreadyAssignment() async {
     await resolveTestUnit('''
 main() {
   var vvv;
@@ -30,7 +30,7 @@ main() {
     await assertNoAssistAt('vvv =');
   }
 
-  test_inClosure() async {
+  Future<void> test_inClosure() async {
     await resolveTestUnit(r'''
 main() {
   print(() {
@@ -47,7 +47,7 @@ main() {
 ''');
   }
 
-  test_invocation() async {
+  Future<void> test_invocation() async {
     await resolveTestUnit('''
 main() {
   List<int> bytes;
@@ -69,7 +69,7 @@ List<int> readBytes() => <int>[];
             ['list', 'bytes2', 'readBytes']));
   }
 
-  test_invocationArgument() async {
+  Future<void> test_invocationArgument() async {
     await resolveTestUnit(r'''
 main() {
   f(12345);
@@ -79,7 +79,7 @@ void f(p) {}
     await assertNoAssistAt('345');
   }
 
-  test_throw() async {
+  Future<void> test_throw() async {
     await resolveTestUnit('''
 main() {
   throw 42;
@@ -88,7 +88,7 @@ main() {
     await assertNoAssistAt('throw ');
   }
 
-  test_void() async {
+  Future<void> test_void() async {
     await resolveTestUnit('''
 main() {
   f();

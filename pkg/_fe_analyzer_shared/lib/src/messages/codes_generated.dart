@@ -5230,6 +5230,17 @@ Message _withArgumentsInvokeNonFunction(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropIndexNotSupported =
+    messageJsInteropIndexNotSupported;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropIndexNotSupported = const MessageCode(
+    "JsInteropIndexNotSupported",
+    message:
+        r"""JS interop classes do not support [] and []= operator methods.""",
+    tip: r"""Try replacing with a normal method.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
         Message Function(String name)>(
@@ -6408,6 +6419,53 @@ Message _withArgumentsNullableSuperclassWarning(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNullableTearoffError =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Can't tear off method '#name' from a potentially null value.""",
+        withArguments: _withArgumentsNullableTearoffError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableTearoffError =
+    const Code<Message Function(String name)>(
+  "NullableTearoffError",
+  templateNullableTearoffError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableTearoffError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableTearoffError,
+      message:
+          """Can't tear off method '${name}' from a potentially null value.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)> templateNullableTearoffWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Tearing off method '#name' from a potentially null value.""",
+        withArguments: _withArgumentsNullableTearoffWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNullableTearoffWarning =
+    const Code<Message Function(String name)>(
+        "NullableTearoffWarning", templateNullableTearoffWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNullableTearoffWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNullableTearoffWarning,
+      message:
+          """Tearing off method '${name}' from a potentially null value.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeObjectExtends = messageObjectExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -6546,6 +6604,17 @@ const Code<Null> codeOperatorWithOptionalFormals =
 const MessageCode messageOperatorWithOptionalFormals = const MessageCode(
     "OperatorWithOptionalFormals",
     message: r"""An operator can't have optional parameters.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeOperatorWithTypeParameters =
+    messageOperatorWithTypeParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageOperatorWithTypeParameters = const MessageCode(
+    "OperatorWithTypeParameters",
+    analyzerCodes: <String>["TYPE_PARAMETER_ON_OPERATOR"],
+    message: r"""Types parameters aren't allowed when defining an operator.""",
+    tip: r"""Try removing the type parameters.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateOverriddenMethodCause =

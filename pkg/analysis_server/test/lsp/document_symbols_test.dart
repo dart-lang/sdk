@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DocumentSymbolsTest);
   });
@@ -16,51 +16,7 @@ main() {
 
 @reflectiveTest
 class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
-  test_hierarchical() async {
-    const content = '''
-    String topLevel = '';
-    class MyClass {
-      int myField;
-      MyClass(this.myField);
-      myMethod() {}
-    }
-    ''';
-    newFile(mainFilePath, content: content);
-    await initialize(
-        textDocumentCapabilities: withHierarchicalDocumentSymbolSupport(
-            emptyTextDocumentClientCapabilities));
-
-    final result = await getDocumentSymbols(mainFileUri.toString());
-    final symbols = result.map(
-      (docsymbols) => docsymbols,
-      (symbolInfos) => throw 'Expected DocumentSymbols, got SymbolInformations',
-    );
-
-    expect(symbols, hasLength(2));
-
-    final topLevel = symbols[0];
-    expect(topLevel.name, equals('topLevel'));
-    expect(topLevel.kind, equals(SymbolKind.Variable));
-
-    final myClass = symbols[1];
-    expect(myClass.name, equals('MyClass'));
-    expect(myClass.kind, equals(SymbolKind.Class));
-    expect(myClass.children, hasLength(3));
-
-    final field = myClass.children[0];
-    expect(field.name, equals('myField'));
-    expect(field.kind, equals(SymbolKind.Field));
-
-    final constructor = myClass.children[1];
-    expect(constructor.name, equals('MyClass'));
-    expect(constructor.kind, equals(SymbolKind.Constructor));
-
-    final method = myClass.children[2];
-    expect(method.name, equals('myMethod'));
-    expect(method.kind, equals(SymbolKind.Method));
-  }
-
-  test_flat() async {
+  Future<void> test_flat() async {
     const content = '''
     String topLevel = '';
     class MyClass {
@@ -105,7 +61,51 @@ class DocumentSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(method.containerName, equals(myClass.name));
   }
 
-  test_nonDartFile() async {
+  Future<void> test_hierarchical() async {
+    const content = '''
+    String topLevel = '';
+    class MyClass {
+      int myField;
+      MyClass(this.myField);
+      myMethod() {}
+    }
+    ''';
+    newFile(mainFilePath, content: content);
+    await initialize(
+        textDocumentCapabilities: withHierarchicalDocumentSymbolSupport(
+            emptyTextDocumentClientCapabilities));
+
+    final result = await getDocumentSymbols(mainFileUri.toString());
+    final symbols = result.map(
+      (docsymbols) => docsymbols,
+      (symbolInfos) => throw 'Expected DocumentSymbols, got SymbolInformations',
+    );
+
+    expect(symbols, hasLength(2));
+
+    final topLevel = symbols[0];
+    expect(topLevel.name, equals('topLevel'));
+    expect(topLevel.kind, equals(SymbolKind.Variable));
+
+    final myClass = symbols[1];
+    expect(myClass.name, equals('MyClass'));
+    expect(myClass.kind, equals(SymbolKind.Class));
+    expect(myClass.children, hasLength(3));
+
+    final field = myClass.children[0];
+    expect(field.name, equals('myField'));
+    expect(field.kind, equals(SymbolKind.Field));
+
+    final constructor = myClass.children[1];
+    expect(constructor.name, equals('MyClass'));
+    expect(constructor.kind, equals(SymbolKind.Constructor));
+
+    final method = myClass.children[2];
+    expect(method.name, equals('myMethod'));
+    expect(method.kind, equals(SymbolKind.Method));
+  }
+
+  Future<void> test_nonDartFile() async {
     newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize();
 

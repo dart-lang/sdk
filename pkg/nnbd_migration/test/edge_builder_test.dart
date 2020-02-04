@@ -133,7 +133,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.namedParameters['x'].node, t1.namedParameters['x'].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_function_type_named_to_no_parameter() {
@@ -149,7 +149,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_function_type_positional_to_no_parameter() {
@@ -165,7 +165,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2, hard: true);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_function_type_required_parameter() {
@@ -174,7 +174,7 @@ class AssignmentCheckerTest extends Object
     assign(t1, t2);
     // Note: t1 and t2 are swapped due to contravariance.
     assertEdge(t2.positionalParameters[0].node, t1.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   void test_function_type_return_type() {
@@ -195,6 +195,47 @@ class AssignmentCheckerTest extends Object
 
   void test_future_int_to_future_or_int() {
     var t1 = future(int_());
+    var t2 = futureOr(int_());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+  }
+
+  void test_future_or_int_to_future_int() {
+    var t1 = futureOr(int_());
+    var t2 = future(int_());
+    assign(t1, t2, hard: true);
+    // FutureOr<int>? is nullable, so Future<int>? should be.
+    assertEdge(t1.node, t2.node, hard: true);
+    // FutureOr<int?> is nullable, so Future<int>? should be.
+    assertEdge(t1.typeArguments[0].node, t2.node, hard: true);
+    // FutureOr<int?> may hold a Future<int?>, so carry that forward.
+    assertEdge(t1.typeArguments[0].node, t2.typeArguments[0].node, hard: false);
+    // FutureOr<int>? does not accept a Future<int?>, so don't draw this.
+    assertNoEdge(t1.node, t2.typeArguments[0].node);
+  }
+
+  void test_future_or_int_to_int() {
+    var t1 = futureOr(int_());
+    var t2 = int_();
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.node, hard: false);
+  }
+
+  void test_future_or_list_object_to_list_int() {
+    var t1 = futureOr(list(object()));
+    var t2 = list(int_());
+    assign(t1, t2, hard: true);
+    assertEdge(t1.node, t2.node, hard: true);
+    assertEdge(t1.typeArguments[0].node, t2.node, hard: false);
+    assertEdge(
+        t1.typeArguments[0].typeArguments[0].node, t2.typeArguments[0].node,
+        hard: false);
+  }
+
+  void test_future_or_object_to_future_or_int() {
+    var t1 = futureOr(object());
     var t2 = futureOr(int_());
     assign(t1, t2, hard: true);
     assertEdge(t1.node, t2.node, hard: true);
@@ -855,6 +896,16 @@ void main() {
         hard: true);
   }
 
+  Future<void> test_assign_to_bound_in_return_type() async {
+    await analyze('''
+class C<T extends Object> {}
+C<int> f() => null;
+''');
+    assertEdge(decoratedTypeAnnotation('int').node,
+        decoratedTypeAnnotation('Object').node,
+        hard: true);
+  }
+
   Future<void> test_assign_to_bound_in_type_argument() async {
     await analyze('''
 class C<T extends Object> {}
@@ -863,16 +914,6 @@ C<C<int>> f() => null;
     assertEdge(decoratedTypeAnnotation('C<int>').node,
         decoratedTypeAnnotation('Object').node,
         hard: true);
-    assertEdge(decoratedTypeAnnotation('int').node,
-        decoratedTypeAnnotation('Object').node,
-        hard: true);
-  }
-
-  Future<void> test_assign_to_bound_in_return_type() async {
-    await analyze('''
-class C<T extends Object> {}
-C<int> f() => null;
-''');
     assertEdge(decoratedTypeAnnotation('int').node,
         decoratedTypeAnnotation('Object').node,
         hard: true);
@@ -1262,8 +1303,9 @@ void Function(int) f(void Function(int) x, void Function(int) y) => x ??= y;
     var yParamNullable = decoratedTypeAnnotation('int) y').node;
     var returnParamNullable = decoratedTypeAnnotation('int) f').node;
     assertEdge(xParamNullable, yParamNullable,
-        hard: false, guards: [xNullable]);
-    assertEdge(returnParamNullable, xParamNullable, hard: false);
+        hard: false, checkable: false, guards: [xNullable]);
+    assertEdge(returnParamNullable, xParamNullable,
+        hard: false, checkable: false);
   }
 
   Future<void> test_assignmentExpression_nullAware_complex_covariant() async {
@@ -1475,7 +1517,10 @@ void g(int j) {}
 ''');
     var iNode = decoratedTypeAnnotation('int i').node;
     var jNode = decoratedTypeAnnotation('int j').node;
-    assertEdge(iNode, jNode, hard: false, guards: [alwaysPlus.toList()[1]]);
+    assertEdge(iNode, jNode,
+        hard: false,
+        guards: TypeMatcher<Iterable<NullabilityNode>>()
+            .having((g) => g.single, 'single value', isIn(alwaysPlus)));
   }
 
   Future<void> test_binaryExpression_equal_null_yoda_condition() async {
@@ -2119,6 +2164,21 @@ List<num> f<T extends List<num>>(bool b, List<num> x, T y) {
         bBound.typeArguments[0].node);
   }
 
+  Future<void> test_conditionalExpression_left_never() async {
+    await analyze('''
+List<int> f(bool b, List<int> i) {
+  return (b ? (throw i) : i);
+}
+''');
+
+    var nullable_i = decoratedTypeAnnotation('List<int> i').node;
+    var nullable_conditional =
+        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+    var nullable_throw = nullable_conditional.left;
+    assertNoUpstreamNullability(nullable_throw);
+    assertLUB(nullable_conditional, nullable_throw, nullable_i);
+  }
+
   Future<void> test_conditionalExpression_left_non_null() async {
     await analyze('''
 int f(bool b, int i) {
@@ -2211,6 +2271,21 @@ T g<T>(bool b, T x, T y) {
     var nullable_y = decoratedTypeAnnotation('T y').node;
     var nullable_conditional = decoratedExpressionType('(b ?').node;
     assertLUB(nullable_conditional, nullable_x, nullable_y);
+  }
+
+  Future<void> test_conditionalExpression_right_never() async {
+    await analyze('''
+List<int> f(bool b, List<int> i) {
+  return (b ? i : (throw i));
+}
+''');
+
+    var nullable_i = decoratedTypeAnnotation('List<int> i').node;
+    var nullable_conditional =
+        decoratedExpressionType('(b ?').node as NullabilityNodeForLUB;
+    var nullable_throw = nullable_conditional.right;
+    assertNoUpstreamNullability(nullable_throw);
+    assertLUB(nullable_conditional, nullable_i, nullable_throw);
   }
 
   Future<void> test_conditionalExpression_right_non_null() async {
@@ -2610,10 +2685,10 @@ class C {
         hard: false);
     assertEdge(fieldType.positionalParameters[0].node,
         ctorParamType.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
     assertEdge(fieldType.namedParameters['j'].node,
         ctorParamType.namedParameters['j'].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_fieldFormalParameter_typed() async {
@@ -4323,7 +4398,7 @@ void f(List<int> x, int i) {
         .decoratedElementType(addMethod.declaration)
         .positionalParameters[0]
         .node;
-    assertEdge(nullable_t, never, hard: true);
+    assertEdge(nullable_t, never, hard: true, checkable: false);
     var check_i = checkExpression('i/*check*/');
     var nullable_list_t_or_nullable_t = check_i
         .checks.edges.single.destinationNode as NullabilityNodeForSubstitution;
@@ -4683,7 +4758,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_named_over_none() async {
@@ -4709,7 +4784,7 @@ class Derived extends Base {
 ''');
     var base1 = decoratedTypeAnnotation('Base/*1*/');
     var base2 = decoratedTypeAnnotation('Base/*2*/');
-    assertEdge(base1.node, base2.node, hard: true);
+    assertEdge(base1.node, base2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_optional() async {
@@ -4723,7 +4798,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_optional_over_none() async {
@@ -4749,7 +4824,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_required() async {
@@ -4763,7 +4838,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_parameter_type_setter() async {
@@ -4777,7 +4852,7 @@ class Derived extends Base {
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int1.node, int2.node, hard: true);
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
   }
 
   Future<void> test_override_return_type_getter() async {
@@ -5694,7 +5769,7 @@ int Function(int) g(C c) => c.f;
     assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_prefixExpression_bang() async {
@@ -6398,7 +6473,7 @@ int Function(int) g() => f;
     assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_simpleIdentifier_tearoff_method() async {
@@ -6414,7 +6489,7 @@ abstract class C {
     assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_skipDirectives() async {

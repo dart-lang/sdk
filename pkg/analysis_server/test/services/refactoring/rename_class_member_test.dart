@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_rename.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameClassMemberTest);
   });
@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class RenameClassMemberTest extends RenameRefactoringTest {
-  test_checkFinalConditions_classNameConflict_sameClass() async {
+  Future<void> test_checkFinalConditions_classNameConflict_sameClass() async {
     await indexTestUnit('''
 class NewName {
   void test() {}
@@ -34,7 +34,7 @@ class NewName {
         expectedContextSearch: 'test() {}');
   }
 
-  test_checkFinalConditions_classNameConflict_subClass() async {
+  Future<void> test_checkFinalConditions_classNameConflict_subClass() async {
     await indexTestUnit('''
 class A {
   void test() {} // 1
@@ -53,7 +53,7 @@ class NewName extends A {
         expectedContextSearch: 'test() {} // 2');
   }
 
-  test_checkFinalConditions_classNameConflict_superClass() async {
+  Future<void> test_checkFinalConditions_classNameConflict_superClass() async {
     await indexTestUnit('''
 class NewName {
   void test() {} // 1
@@ -72,7 +72,7 @@ class B extends NewName {
         expectedContextSearch: 'test() {} // 1');
   }
 
-  test_checkFinalConditions_hasMember_MethodElement() async {
+  Future<void> test_checkFinalConditions_hasMember_MethodElement() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -89,7 +89,7 @@ class A {
         expectedContextSearch: 'newName() {} // existing');
   }
 
-  test_checkFinalConditions_OK_dropSuffix() async {
+  Future<void> test_checkFinalConditions_OK_dropSuffix() async {
     await indexTestUnit(r'''
 abstract class A {
   void testOld();
@@ -105,7 +105,7 @@ class B implements A {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_OK_noShadow() async {
+  Future<void> test_checkFinalConditions_OK_noShadow() async {
     await indexTestUnit('''
 class A {
   int newName;
@@ -126,7 +126,7 @@ class C extends A {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_OK_noShadow_nullVisibleRange() async {
+  Future<void> test_checkFinalConditions_OK_noShadow_nullVisibleRange() async {
     await indexTestUnit('''
 class A {
   int foo;
@@ -151,7 +151,8 @@ class B {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
+  Future<void>
+      test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -173,7 +174,8 @@ main(A a) {
         expectedMessage: "Renamed method will be invisible in 'my.lib'.");
   }
 
-  test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -193,7 +195,8 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -213,7 +216,8 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -235,7 +239,8 @@ class B extends A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  test_checkFinalConditions_shadowed_byLocalVariable_OK_qualifiedReference() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byLocalVariable_OK_qualifiedReference() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -252,7 +257,8 @@ class A {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowed_byLocalVariable_OK_renamedNotUsed() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byLocalVariable_OK_renamedNotUsed() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -268,7 +274,8 @@ class A {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowed_byParameter_inSameClass() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byParameter_inSameClass() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -287,7 +294,7 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  test_checkFinalConditions_shadowedBySub_MethodElement() async {
+  Future<void> test_checkFinalConditions_shadowedBySub_MethodElement() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -309,7 +316,7 @@ class B extends A {
         expectedContextSearch: 'newName() {} // marker');
   }
 
-  test_checkFinalConditions_shadowsSuper_FieldElement() async {
+  Future<void> test_checkFinalConditions_shadowsSuper_FieldElement() async {
     await indexTestUnit('''
 class A {
   int newName; // marker
@@ -332,7 +339,7 @@ class C extends B {
         expectedContextSearch: 'newName; // marker');
   }
 
-  test_checkFinalConditions_shadowsSuper_MethodElement() async {
+  Future<void> test_checkFinalConditions_shadowsSuper_MethodElement() async {
     await indexTestUnit('''
 class A {
   newName() {} // marker
@@ -350,7 +357,8 @@ class B extends A {
         expectedContextSearch: 'newName() {} // marker');
   }
 
-  test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
+  Future<void>
+      test_checkFinalConditions_shadowsSuper_MethodElement_otherLib() async {
     var libCode = r'''
 class A {
   newName() {} // marker
@@ -373,7 +381,7 @@ class B extends A {
             libCode.indexOf('newName() {} // marker'), 'newName'.length));
   }
 
-  test_checkInitialConditions_inSDK() async {
+  Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 main() {
   'abc'.toUpperCase();
@@ -388,7 +396,7 @@ main() {
             "The method 'String.toUpperCase' is defined in the SDK, so cannot be renamed.");
   }
 
-  test_checkInitialConditions_operator() async {
+  Future<void> test_checkInitialConditions_operator() async {
     await indexTestUnit('''
 class A {
   operator -(other) => this;
@@ -401,7 +409,7 @@ class A {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
-  test_checkNewName_FieldElement() async {
+  Future<void> test_checkNewName_FieldElement() async {
     await indexTestUnit('''
 class A {
   int test;
@@ -418,7 +426,7 @@ class A {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_MethodElement() async {
+  Future<void> test_checkNewName_MethodElement() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -446,7 +454,7 @@ class A {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange_FieldElement() async {
+  Future<void> test_createChange_FieldElement() async {
     await indexTestUnit('''
 class A {
   int test; // marker
@@ -512,7 +520,8 @@ main() {
 ''');
   }
 
-  test_createChange_FieldElement_constructorFieldInitializer() async {
+  Future<void>
+      test_createChange_FieldElement_constructorFieldInitializer() async {
     await indexTestUnit('''
 class A {
   final test;
@@ -533,7 +542,7 @@ class A {
 ''');
   }
 
-  test_createChange_FieldElement_fieldFormalParameter() async {
+  Future<void> test_createChange_FieldElement_fieldFormalParameter() async {
     await indexTestUnit('''
 class A {
   final test;
@@ -554,7 +563,8 @@ class A {
 ''');
   }
 
-  test_createChange_FieldElement_fieldFormalParameter_named() async {
+  Future<void>
+      test_createChange_FieldElement_fieldFormalParameter_named() async {
     await indexTestUnit('''
 class A {
   final test;
@@ -581,7 +591,7 @@ main() {
 ''');
   }
 
-  test_createChange_FieldElement_invocation() async {
+  Future<void> test_createChange_FieldElement_invocation() async {
     await indexTestUnit('''
 typedef F(a);
 class A {
@@ -616,7 +626,7 @@ main() {
 ''');
   }
 
-  test_createChange_MethodElement() async {
+  Future<void> test_createChange_MethodElement() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -684,7 +694,7 @@ main() {
 ''');
   }
 
-  test_createChange_MethodElement_potential() async {
+  Future<void> test_createChange_MethodElement_potential() async {
     await indexTestUnit('''
 class A {
   test() {}
@@ -714,7 +724,7 @@ main(var a) {
     assertPotentialEdits(['test(); // 1', 'test(); // 2']);
   }
 
-  test_createChange_MethodElement_potential_inPubCache() async {
+  Future<void> test_createChange_MethodElement_potential_inPubCache() async {
     var externalPath = addPackageFile('aaa', 'lib.dart', r'''
 processObj(p) {
   p.test();
@@ -752,7 +762,8 @@ main(var a) {
     expect(fileEdit, isNull);
   }
 
-  test_createChange_MethodElement_potential_private_otherLibrary() async {
+  Future<void>
+      test_createChange_MethodElement_potential_private_otherLibrary() async {
     await indexUnit('/lib.dart', '''
 library lib;
 main(p) {
@@ -786,7 +797,7 @@ main(var a) {
     assertNoFileChange('/lib.dart');
   }
 
-  test_createChange_outsideOfProject_declarationInPackage() async {
+  Future<void> test_createChange_outsideOfProject_declarationInPackage() async {
     addPackageFile('aaa', 'aaa.dart', r'''
 class A {
   void test() {}
@@ -828,7 +839,7 @@ main(A a, B b) {
     expect(refactoringChange.edits[0].file, testFile);
   }
 
-  test_createChange_outsideOfProject_referenceInPart() async {
+  Future<void> test_createChange_outsideOfProject_referenceInPart() async {
     newFile('/home/part.dart', content: r'''
 part of test;
 
@@ -874,7 +885,7 @@ main(A a) {
     expect(refactoringChange.edits[0].file, testFile);
   }
 
-  test_createChange_PropertyAccessorElement_getter() async {
+  Future<void> test_createChange_PropertyAccessorElement_getter() async {
     await indexTestUnit('''
 class A {
   get test {} // marker
@@ -929,7 +940,7 @@ main() {
 ''');
   }
 
-  test_createChange_PropertyAccessorElement_setter() async {
+  Future<void> test_createChange_PropertyAccessorElement_setter() async {
     await indexTestUnit('''
 class A {
   get test {}
@@ -984,7 +995,7 @@ main() {
 ''');
   }
 
-  test_createChange_TypeParameterElement() async {
+  Future<void> test_createChange_TypeParameterElement() async {
     await indexTestUnit('''
 class A<Test> {
   Test field;

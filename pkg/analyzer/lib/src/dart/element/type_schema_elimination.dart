@@ -5,57 +5,25 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/generated/type_system.dart';
-
-/// Returns the greatest closure of the given type [schema] with respect to `?`.
-///
-/// The greatest closure of a type schema `P` with respect to `?` is defined as
-/// `P` with every covariant occurrence of `?` replaced with `Null`, and every
-/// contravariant occurrence of `?` replaced with `Object`.
-///
-/// If the schema contains no instances of `?`, the original schema object is
-/// returned to avoid unnecessary allocation.
-///
-/// Note that the closure of a type schema is a proper type.
-///
-/// Note that the greatest closure of a type schema is always a supertype of any
-/// type which matches the schema.
-DartType greatestClosure(TypeProviderImpl typeProvider, DartType schema) {
-  return _TypeSchemaEliminationVisitor.run(typeProvider, false, schema);
-}
-
-/// Returns the least closure of the given type [schema] with respect to `?`.
-///
-/// The least closure of a type schema `P` with respect to `?` is defined as
-/// `P` with every covariant occurrence of `?` replaced with `Object`, and every
-/// contravariant occurrence of `?` replaced with `Null`.
-///
-/// If the schema contains no instances of `?`, the original schema object is
-/// returned to avoid unnecessary allocation.
-///
-/// Note that the closure of a type schema is a proper type.
-///
-/// Note that the least closure of a type schema is always a subtype of any type
-/// which matches the schema.
-DartType leastClosure(TypeProviderImpl typeProvider, DartType schema) {
-  return _TypeSchemaEliminationVisitor.run(typeProvider, true, schema);
-}
+import 'package:meta/meta.dart';
 
 /// Visitor that computes least and greatest closures of a type schema.
 ///
 /// Each visitor method returns `null` if there are no `?`s contained in the
-/// type, otherwise it returns the result of substituting `?` with `Null` or
-/// `Object`, as appropriate.
+/// type, otherwise it returns the result of substituting `?` with [_bottomType]
+/// or [_topType], as appropriate.
 ///
 /// TODO(scheglov) Rewrite using `ReplacementVisitor`, once we have it.
-class _TypeSchemaEliminationVisitor extends InternalTypeSubstitutor {
-  final TypeProviderImpl _typeProvider;
+class TypeSchemaEliminationVisitor extends InternalTypeSubstitutor {
+  final DartType _topType;
+  final DartType _bottomType;
 
   bool _isLeastClosure;
 
-  _TypeSchemaEliminationVisitor(
-    this._typeProvider,
+  TypeSchemaEliminationVisitor._(
+    this._topType,
+    this._bottomType,
     this._isLeastClosure,
   ) : super(null);
 
@@ -79,18 +47,23 @@ class _TypeSchemaEliminationVisitor extends InternalTypeSubstitutor {
   @override
   DartType visitUnknownInferredType(UnknownInferredType type) {
     useCounter++;
-    return _isLeastClosure ? _typeProvider.nullType : _typeProvider.dynamicType;
+    return _isLeastClosure ? _bottomType : _topType;
   }
 
   /// Runs an instance of the visitor on the given [schema] and returns the
   /// resulting type.  If the schema contains no instances of `?`, the original
   /// schema object is returned to avoid unnecessary allocation.
-  static DartType run(
-    TypeProviderImpl typeProvider,
-    bool isLeastClosure,
-    DartType schema,
-  ) {
-    var visitor = _TypeSchemaEliminationVisitor(typeProvider, isLeastClosure);
+  static DartType run({
+    @required DartType topType,
+    @required DartType bottomType,
+    @required bool isLeastClosure,
+    @required DartType schema,
+  }) {
+    var visitor = TypeSchemaEliminationVisitor._(
+      topType,
+      bottomType,
+      isLeastClosure,
+    );
     var result = visitor.visit(schema);
     assert(visitor._isLeastClosure == isLeastClosure);
     return result ?? schema;

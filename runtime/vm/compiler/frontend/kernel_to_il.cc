@@ -453,8 +453,9 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
     instructions += LoadLocal(instance);
     instructions += LoadField(field);
   }
-  LocalVariable* temp = MakeTemporary();
-  instructions += LoadLocal(temp);
+
+  LocalVariable* temp = parsed_function_->expression_temp_var();
+  instructions += StoreLocal(position, temp);
   instructions += Constant(Object::sentinel());
   instructions += BranchIfStrictEqual(&is_uninitialized, &is_initialized);
 
@@ -496,7 +497,9 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
   }
 
   // Now that the field has been initialized, load it.
-  return Fragment(instructions.entry, join);
+  instructions = Fragment(instructions.entry, join);
+  instructions += LoadLocal(temp);
+  return instructions;
 }
 
 Fragment FlowGraphBuilder::ThrowLateInitializationError(TokenPosition position,

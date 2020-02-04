@@ -703,6 +703,8 @@ class TypeInferrerImpl implements TypeInferrer {
         // Insert an implicit downcast.
         result = new AsExpression(expression, initialContextType)
           ..isTypeError = true
+          ..isForNonNullableByDefault = isNonNullableByDefault
+          ..isForDynamic = expressionType is DynamicType
           ..fileOffset = fileOffset;
         break;
       case AssignabilityKind.assignableTearoff:
@@ -713,6 +715,7 @@ class TypeInferrerImpl implements TypeInferrer {
             _tearOffCall(expression, expressionType, fileOffset).tearoff,
             initialContextType)
           ..isTypeError = true
+          ..isForNonNullableByDefault = isNonNullableByDefault
           ..fileOffset = fileOffset;
         break;
       case AssignabilityKind.unassignable:
@@ -739,6 +742,16 @@ class TypeInferrerImpl implements TypeInferrer {
             _tearOffCall(expression, expressionType, fileOffset);
         result = _wrapUnassignableExpression(typedTearoff.tearoff,
             typedTearoff.tearoffType, contextType, errorTemplate);
+        break;
+      case AssignabilityKind.unassignableCantTearoff:
+        // The first call to _computeAssignabilityKind is done for the purpose
+        // of code generation, and the inability to tear off from a
+        // potentially nullable receiver shouldn't arise as an issue in any
+        // mode other than the strong mode.
+        assert(isNonNullableByDefault && performNnbdChecks && nnbdStrongMode);
+
+        result = _wrapTearoffErrorExpression(
+            expression, contextType, templateNullableTearoffError);
         break;
       default:
         return unhandled("${kind}", "ensureAssignable", fileOffset, helper.uri);
@@ -787,6 +800,11 @@ class TypeInferrerImpl implements TypeInferrer {
         case AssignabilityKind.unassignableTearoff:
           // Don't report the same problem twice.
           if (kind == AssignabilityKind.unassignableTearoff) break;
+
+          // The first handling of the error should have happened in the strong
+          // mode.
+          assert(!nnbdStrongMode);
+
           if (contextType is! InvalidType && expressionType is! InvalidType) {
             TypedTearoff typedTearoff =
                 _tearOffCall(expression, expressionType, fileOffset);
@@ -798,6 +816,19 @@ class TypeInferrerImpl implements TypeInferrer {
                 noLength);
           }
           break;
+        case AssignabilityKind.unassignableCantTearoff:
+          // Don't report the same problem twice.
+          if (kind == AssignabilityKind.unassignableCantTearoff) break;
+
+          // The first handling of the error should have happened in the strong
+          // mode.
+          assert(!nnbdStrongMode);
+
+          if (isNonNullableByDefault && performNnbdChecks) {
+            result = _wrapTearoffErrorExpression(
+                expression, contextType, templateNullableTearoffWarning);
+          }
+          break;
         default:
           return unhandled(
               "${kind}", "ensureAssignable:weak", fileOffset, helper.uri);
@@ -805,6 +836,25 @@ class TypeInferrerImpl implements TypeInferrer {
     }
 
     return result;
+  }
+
+  Expression _wrapTearoffErrorExpression(Expression expression,
+      DartType contextType, Template<Message Function(String)> template) {
+    assert(template != null);
+    Expression errorNode = new AsExpression(
+        expression,
+        // TODO(ahe): The outline phase doesn't correctly remove invalid
+        // uses of type variables, for example, on static members. Once
+        // that has been fixed, we should always be able to use
+        // [contextType] directly here.
+        hasAnyTypeVariables(contextType) ? const BottomType() : contextType)
+      ..isTypeError = true
+      ..fileOffset = expression.fileOffset;
+    if (contextType is! InvalidType) {
+      errorNode = helper.wrapInProblem(
+          errorNode, template.withArguments(callName.name), noLength);
+    }
+    return errorNode;
   }
 
   Expression _wrapUnassignableExpression(
@@ -817,9 +867,10 @@ class TypeInferrerImpl implements TypeInferrer {
         // TODO(ahe): The outline phase doesn't correctly remove invalid
         // uses of type variables, for example, on static members. Once
         // that has been fixed, we should always be able to use
-        // [expectedType] directly here.
+        // [contextType] directly here.
         hasAnyTypeVariables(contextType) ? const BottomType() : contextType)
       ..isTypeError = true
+      ..isForNonNullableByDefault = isNonNullableByDefault
       ..fileOffset = expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
       errorNode = helper.wrapInProblem(
@@ -880,6 +931,9 @@ class TypeInferrerImpl implements TypeInferrer {
       if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
         if (_shouldTearOffCall(contextType, expressionType)) {
           needsTearoff = true;
+          if (isStrongNullabilityMode && expressionType.isPotentiallyNullable) {
+            return AssignabilityKind.unassignableCantTearoff;
+          }
           expressionType =
               getGetterTypeForMemberTarget(callMember, expressionType)
                   .withNullability(expressionType.nullability);
@@ -1747,6 +1801,8 @@ class TypeInferrerImpl implements TypeInferrer {
       case MethodContravarianceCheckKind.checkMethodReturn:
         AsExpression replacement = new AsExpression(expression, inferredType)
           ..isTypeError = true
+          ..isCovarianceCheck = true
+          ..isForNonNullableByDefault = isNonNullableByDefault
           ..fileOffset = fileOffset;
         if (instrumentation != null) {
           int offset = arguments.fileOffset == -1
@@ -1761,6 +1817,8 @@ class TypeInferrerImpl implements TypeInferrer {
             desugaredInvocation.name, desugaredInvocation.interfaceTarget);
         AsExpression asExpression = new AsExpression(propertyGet, functionType)
           ..isTypeError = true
+          ..isCovarianceCheck = true
+          ..isForNonNullableByDefault = isNonNullableByDefault
           ..fileOffset = fileOffset;
         MethodInvocation replacement = new MethodInvocation(
             asExpression, callName, desugaredInvocation.arguments);
@@ -1792,7 +1850,7 @@ class TypeInferrerImpl implements TypeInferrer {
       // not spec'ed anywhere.
       return const DynamicType();
     }
-    return initializerType;
+    return demoteType(initializerType);
   }
 
   void inferSyntheticVariable(VariableDeclarationImpl variable) {
@@ -2732,6 +2790,8 @@ class TypeInferrerImpl implements TypeInferrer {
             ..fileOffset = fileOffset,
           result.inferredType)
         ..isTypeError = true
+        ..isCovarianceCheck = true
+        ..isForNonNullableByDefault = isNonNullableByDefault
         ..fileOffset = fileOffset;
       if (instrumentation != null) {
         int offset =
@@ -2826,6 +2886,8 @@ class TypeInferrerImpl implements TypeInferrer {
       PropertyGet propertyGet = new PropertyGet(receiver, getter.name, getter);
       AsExpression asExpression = new AsExpression(propertyGet, functionType)
         ..isTypeError = true
+        ..isCovarianceCheck = true
+        ..isForNonNullableByDefault = isNonNullableByDefault
         ..fileOffset = fileOffset;
       replacement = new MethodInvocation(asExpression, callName, arguments);
       if (instrumentation != null) {
@@ -2901,6 +2963,8 @@ class TypeInferrerImpl implements TypeInferrer {
       PropertyGet propertyGet = new PropertyGet(receiver, field.name, field);
       AsExpression asExpression = new AsExpression(propertyGet, functionType)
         ..isTypeError = true
+        ..isCovarianceCheck = true
+        ..isForNonNullableByDefault = isNonNullableByDefault
         ..fileOffset = fileOffset;
       replacement = new MethodInvocation(asExpression, callName, arguments);
       if (instrumentation != null) {
@@ -3324,16 +3388,16 @@ class TypeInferrerImpl implements TypeInferrer {
     return null;
   }
 
-  bool _shouldTearOffCall(DartType expectedType, DartType actualType) {
-    if (expectedType is InterfaceType &&
-        expectedType.classNode == typeSchemaEnvironment.futureOrClass) {
-      expectedType = (expectedType as InterfaceType).typeArguments[0];
+  bool _shouldTearOffCall(DartType contextType, DartType expressionType) {
+    if (contextType is InterfaceType &&
+        contextType.classNode == typeSchemaEnvironment.futureOrClass) {
+      contextType = (contextType as InterfaceType).typeArguments[0];
     }
-    if (expectedType is FunctionType) return true;
-    if (expectedType is InterfaceType &&
-        expectedType.classNode == typeSchemaEnvironment.functionClass) {
-      if (!typeSchemaEnvironment.isSubtypeOf(
-          actualType, expectedType, SubtypeCheckMode.ignoringNullabilities)) {
+    if (contextType is FunctionType) return true;
+    if (contextType is InterfaceType &&
+        contextType.classNode == typeSchemaEnvironment.functionClass) {
+      if (!typeSchemaEnvironment.isSubtypeOf(expressionType, contextType,
+          SubtypeCheckMode.ignoringNullabilities)) {
         return true;
       }
     }
@@ -4054,6 +4118,9 @@ enum AssignabilityKind {
 
   /// Unassignable, but needs a tearoff of "call" for better error reporting.
   unassignableTearoff,
+
+  /// Unassignable because the tear-off can't be done on the nullable receiver.
+  unassignableCantTearoff,
 }
 
 /// Convenient way to return both a tear-off expression and its type.

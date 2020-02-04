@@ -534,7 +534,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   _TestRecursiveVisitor(this.librariesFromDill);
 
   @override
-  visitComponent(Component node) {
+  void visitComponent(Component node) {
     var coreTypes = CoreTypes(node);
     var hierarchy = ClassHierarchy(node, coreTypes);
     var jsTypeRep = JSTypeRep(
@@ -553,7 +553,7 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   }
 
   @override
-  visitLibrary(Library node) {
+  void visitLibrary(Library node) {
     _staticTypeContext.enterLibrary(node);
     if (librariesFromDill.contains(node) ||
         node.importUri.scheme == 'package' &&
@@ -565,28 +565,28 @@ class _TestRecursiveVisitor extends RecursiveVisitor<void> {
   }
 
   @override
-  visitField(Field node) {
+  void visitField(Field node) {
     _staticTypeContext.enterMember(node);
     super.visitField(node);
     _staticTypeContext.leaveMember(node);
   }
 
   @override
-  visitConstructor(Constructor node) {
+  void visitConstructor(Constructor node) {
     _staticTypeContext.enterMember(node);
     super.visitConstructor(node);
     _staticTypeContext.leaveMember(node);
   }
 
   @override
-  visitProcedure(Procedure node) {
+  void visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
     super.visitProcedure(node);
     _staticTypeContext.leaveMember(node);
   }
 
   @override
-  visitFunctionNode(FunctionNode node) {
+  void visitFunctionNode(FunctionNode node) {
     _functionNesting++;
     if (_functionNesting == 1) {
       inference.enterFunction(node);
@@ -603,7 +603,7 @@ class NotNullCollector extends _TestRecursiveVisitor {
   NotNullCollector(Set<Library> librariesFromDill) : super(librariesFromDill);
 
   @override
-  defaultExpression(Expression node) {
+  void defaultExpression(Expression node) {
     if (!inference.isNullable(node)) {
       notNullExpressions.add(node);
     }
@@ -615,7 +615,7 @@ class ExpectAllNotNull extends _TestRecursiveVisitor {
   ExpectAllNotNull(Set<Library> librariesFromDill) : super(librariesFromDill);
 
   @override
-  defaultExpression(Expression node) {
+  void defaultExpression(Expression node) {
     expect(inference.isNullable(node), false,
         reason: 'expression `$node` should be inferred as not-null');
     super.defaultExpression(node);

@@ -56,7 +56,7 @@ abstract class ApiVisitor<T> {
   /**
    * Dispatch the given [type] to the visitor.
    */
-  T visitTypeDecl(TypeDecl type) => type.accept(this) as T;
+  T visitTypeDecl(TypeDecl type) => type.accept(this);
   T visitTypeEnum(TypeEnum typeEnum);
   T visitTypeList(TypeList typeList);
   T visitTypeMap(TypeMap typeMap);
@@ -347,7 +347,7 @@ abstract class TypeDecl extends ApiNode {
   TypeDecl(dom.Element html, bool experimental, bool deprecated)
       : super(html, experimental, deprecated);
 
-  accept(ApiVisitor visitor);
+  T accept<T>(ApiVisitor<T> visitor);
 }
 
 /**
@@ -375,7 +375,7 @@ class TypeEnum extends TypeDecl {
       : super(html, experimental, deprecated);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeEnum(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeEnum(this);
 }
 
 /**
@@ -399,7 +399,7 @@ class TypeList extends TypeDecl {
       : super(html, experimental, false);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeList(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeList(this);
 }
 
 /**
@@ -422,7 +422,7 @@ class TypeMap extends TypeDecl {
       : super(html, experimental, false);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeMap(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeMap(this);
 }
 
 /**
@@ -436,7 +436,7 @@ class TypeObject extends TypeDecl {
       : super(html, experimental, deprecated);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeObject(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeObject(this);
 
   /**
    * Return the field with the given [name], or null if there is no such field.
@@ -484,7 +484,7 @@ class TypeReference extends TypeDecl {
   }
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeReference(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeReference(this);
 }
 
 /**
@@ -523,5 +523,5 @@ class TypeUnion extends TypeDecl {
       : super(html, experimental, false);
 
   @override
-  accept(ApiVisitor visitor) => visitor.visitTypeUnion(this);
+  T accept<T>(ApiVisitor<T> visitor) => visitor.visitTypeUnion(this);
 }

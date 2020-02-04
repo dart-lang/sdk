@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -12,12 +14,13 @@ import 'driver_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConstantDriverTest);
+    defineReflectiveTests(ConstantResolutionTest);
+    defineReflectiveTests(ConstantResolutionWithNnbdTest);
   });
 }
 
 @reflectiveTest
-class ConstantDriverTest extends DriverResolutionTest {
+class ConstantResolutionTest extends DriverResolutionTest {
   test_constantValue_defaultParameter_noDefaultValue() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
@@ -77,6 +80,27 @@ class C extends B {
 ''', [
       error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1),
     ]);
+  }
+
+  test_context_eliminateTypeVariables() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A({List<T> a = const []});
+}
+''');
+    assertType(findNode.listLiteral('const []'), 'List<Null>');
+  }
+
+  test_context_eliminateTypeVariables_functionType() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  const A({List<T Function(U)> a = const []});
+}
+''');
+    assertType(
+      findNode.listLiteral('const []'),
+      'List<Null Function(Object)>',
+    );
   }
 
   test_functionType_element_typeArguments() async {
@@ -175,5 +199,37 @@ extension E on int {
 ''');
     var a = findElement.topVar('a') as ConstVariableElement;
     expect(a.computeConstantValue().toIntValue(), 42);
+  }
+}
+
+@reflectiveTest
+class ConstantResolutionWithNnbdTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.non_nullable]
+    ..implicitCasts = false;
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_context_eliminateTypeVariables() async {
+    await assertNoErrorsInCode(r'''
+class A<T> {
+  const A({List<T> a = const []});
+}
+''');
+    assertType(findNode.listLiteral('const []'), 'List<Never>');
+  }
+
+  test_context_eliminateTypeVariables_functionType() async {
+    await assertNoErrorsInCode(r'''
+class A<T, U> {
+  const A({List<T Function(U)> a = const []});
+}
+''');
+    assertType(
+      findNode.listLiteral('const []'),
+      'List<Never Function(Object?)>',
+    );
   }
 }

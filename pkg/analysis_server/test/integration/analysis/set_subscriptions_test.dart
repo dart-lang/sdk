@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetSubscriptionsTest);
   });
@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class SetSubscriptionsTest extends AbstractAnalysisServerIntegrationTest {
-  test_subscriptions() async {
+  Future<void> test_subscriptions() async {
     String pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 class Foo {

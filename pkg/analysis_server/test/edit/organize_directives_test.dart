@@ -14,7 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OrganizeDirectivesTest);
   });
@@ -63,7 +63,7 @@ main() {}
         response, isResponseFailure('0', RequestErrorCode.FILE_NOT_ANALYZED));
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditOrganizeDirectivesParams('test.dart').toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -72,7 +72,7 @@ main() {}
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
         EditOrganizeDirectivesParams(convertPath('/foo/../bar/test.dart'))
             .toRequest('0');

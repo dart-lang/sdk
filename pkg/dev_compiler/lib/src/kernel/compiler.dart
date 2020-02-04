@@ -68,7 +68,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final _constTable = _emitTemporaryId('CT');
 
   // Constant getters used to populate the constant table.
-  final _constLazyAccessors = List<js_ast.Method>();
+  final _constLazyAccessors = <js_ast.Method>[];
 
   /// Tracks the index in [moduleItems] where the const table must be inserted.
   /// Required for SDK builds due to internal circular dependencies.
@@ -131,7 +131,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   bool _superAllowed = true;
 
-  final _superHelpers = Map<String, js_ast.Method>();
+  final _superHelpers = <String, js_ast.Method>{};
 
   // Compilation of Kernel's [BreakStatement].
   //
@@ -232,8 +232,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     coreTypes ??= CoreTypes(component);
     var types = TypeEnvironment(coreTypes, hierarchy);
     var constants = DevCompilerConstants();
-    var nativeTypes = NativeTypeSet(coreTypes, constants,
-        enableNullSafety: options.enableNullSafety);
+    var nativeTypes = NativeTypeSet(coreTypes, constants);
     var jsTypeRep = JSTypeRep(types, hierarchy);
     var staticTypeContext = StatefulStaticTypeContext.stacked(types);
     return ProgramCompiler._(
@@ -753,7 +752,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     bool shouldDefer(InterfaceType t) {
-      var visited = Set<DartType>();
+      var visited = <DartType>{};
       bool defer(DartType t) {
         if (t is InterfaceType) {
           var tc = t.classNode;
@@ -1670,8 +1669,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
-    var getters = Map<String, Procedure>();
-    var setters = Map<String, Procedure>();
+    var getters = <String, Procedure>{};
+    var setters = <String, Procedure>{};
     for (var m in c.procedures) {
       if (m.isAbstract) continue;
       if (m.isGetter) {
@@ -2299,7 +2298,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _extensionTypes.isNativeInterface(c);
   }
 
-  var _forwardingCache = HashMap<Class, Map<String, Member>>();
+  final _forwardingCache = HashMap<Class, Map<String, Member>>();
 
   Member _lookupForwardedMember(Class c, String name) {
     // We only care about public methods.
@@ -2820,8 +2819,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // TODO(jmesserly): should we disable source info for annotations?
       var savedUri = _currentUri;
       _currentUri = member.enclosingClass.fileUri;
-      result = js_ast.ArrayInitializer(
-          [result]..addAll(annotations.map(_instantiateAnnotation)));
+      result = js_ast.ArrayInitializer([
+        result,
+        for (var annotation in annotations) _instantiateAnnotation(annotation)
+      ]);
       _currentUri = savedUri;
     }
     return result;
@@ -2854,7 +2855,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var savedUri = _currentUri;
       _currentUri = member.enclosingClass.fileUri;
       result = js_ast.ArrayInitializer(
-          [result]..addAll(metadata.map(_instantiateAnnotation)));
+          [result, for (var value in metadata) _instantiateAnnotation(value)]);
       _currentUri = savedUri;
     }
     return result;
@@ -4838,12 +4839,16 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         else
           _visitExpression(arg),
       if (node.named.isNotEmpty)
-        js_ast.ObjectInitializer(node.named.map(_emitNamedExpression).toList()),
+        js_ast.ObjectInitializer([
+          for (var arg in node.named) _emitNamedExpression(arg, isJsInterop)
+        ]),
     ];
   }
 
-  js_ast.Property _emitNamedExpression(NamedExpression arg) {
-    return js_ast.Property(propertyName(arg.name), _visitExpression(arg.value));
+  js_ast.Property _emitNamedExpression(NamedExpression arg,
+      [bool isJsInterop = false]) {
+    var value = isJsInterop ? _assertInterop(arg.value) : arg.value;
+    return js_ast.Property(propertyName(arg.name), _visitExpression(value));
   }
 
   /// Emits code for the `JS(...)` macro.
@@ -4958,9 +4963,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass;
     var args = node.arguments;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args);
+    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
     var result = js_ast.New(_emitConstructorName(node.constructedType, ctor),
-        _emitArgumentList(args, types: false));
+        _emitArgumentList(args, types: false, target: ctor));
 
     return node.isConst ? canonicalizeConstObject(result) : result;
   }
@@ -5025,10 +5030,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitJSInteropNew(Member ctor, Arguments args) {
     var ctorClass = ctor.enclosingClass;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args);
+    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
     return js_ast.New(
         _emitConstructorName(_coreTypes.legacyRawType(ctorClass), ctor),
-        _emitArgumentList(args, types: false));
+        _emitArgumentList(args, types: false, target: ctor));
   }
 
   js_ast.Expression _emitMapImplType(InterfaceType type, {bool identity}) {
@@ -5053,8 +5058,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         emitNullability: false);
   }
 
-  js_ast.Expression _emitObjectLiteral(Arguments node) {
-    var args = _emitArgumentList(node, types: false);
+  js_ast.Expression _emitObjectLiteral(Arguments node, Member ctor) {
+    var args = _emitArgumentList(node, types: false, target: ctor);
     if (args.isEmpty) return js.call('{}');
     assert(args.single is js_ast.ObjectInitializer);
     return args.single;
@@ -5536,7 +5541,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         js.call('# || #.#', [constAliasId, _constTable, constAliasProperty]);
     constAliasCache[node] = constAccessor;
     var constJs = super.visitConstant(node);
-    moduleItems.add(js.statement('let #;', [constAliasId]));
+    // TODO(vsm): Change back to `let`.
+    // See https://github.com/dart-lang/sdk/issues/40380.
+    moduleItems.add(js.statement('var #;', [constAliasId]));
 
     var func = js_ast.Fun(
         [],

@@ -114,6 +114,7 @@ class HtmlDartGenerator(object):
         for id in sorted(operationsByName.keys()):
             operations = operationsByName[id]
             info = AnalyzeOperation(interface, operations)
+            info.nnbd = self._nnbd
             self.AddOperation(info, declare_only, dart_js_interop)
             if ('%s.%s' % (interface.id,
                            info.declared_name) in convert_to_future_members):
@@ -898,7 +899,8 @@ class HtmlDartGenerator(object):
     def SecureOutputType(self,
                          type_name,
                          is_dart_type=False,
-                         can_narrow_type=False):
+                         can_narrow_type=False,
+                         nullable=False):
         """ Converts the type name to the secure type name for return types.
     Arguments:
       can_narrow_type - True if the output type can be narrowed further than
@@ -918,6 +920,8 @@ class HtmlDartGenerator(object):
         assert (dart_name != 'HistoryBase' and dart_name != 'LocationBase')
         if dart_name == 'Window':
             return _secure_base_types[dart_name]
+        if self._nnbd and nullable:
+            dart_name = dart_name + '?'
         return dart_name
 
     def SecureBaseName(self, type_name):
@@ -1002,9 +1006,9 @@ class HtmlDartGenerator(object):
                                 'Object'
                         ]:
                             param_type = 'dynamic'
-
             target_parameters.append(
-                '%s%s' % (TypeOrNothing(param_type), param_name))
+                '%s%s' % (TypeOrNothing(param_type, nullable=arg.type.nullable),
+                          param_name))
             calling_parameters.append(',%s ' % param_name)
 
         return target_parameters, converted_arguments, calling_parameters

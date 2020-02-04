@@ -13,6 +13,7 @@ import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/constants/values.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/elements/indexed.dart';
+import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/visitors.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
@@ -576,6 +577,7 @@ Future testData(TestData data) async {
     Compiler compiler = result.compiler;
     KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
     KernelToElementMapImpl elementMap = frontEndStrategy.elementMap;
+    DartTypes dartTypes = elementMap.types;
     ir.TypeEnvironment typeEnvironment = elementMap.typeEnvironment;
     KElementEnvironment elementEnvironment =
         compiler.frontendStrategy.elementEnvironment;
@@ -619,7 +621,7 @@ Future testData(TestData data) async {
               "Expected non-null value from evaluation of "
               "`${data.code}`.");
 
-          String valueText = value.toStructuredText();
+          String valueText = value.toStructuredText(dartTypes);
           Expect.equals(
               expectedText,
               valueText,

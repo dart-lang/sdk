@@ -96,7 +96,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   @override
-  visitApi() {
+  void visitApi() {
     outputHeader(year: '2017');
     writeln();
     writeln('/// Matchers for data types defined in the analysis server API.');
@@ -113,7 +113,7 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   @override
-  visitTypeEnum(TypeEnum typeEnum) {
+  void visitTypeEnum(TypeEnum typeEnum) {
     writeln("MatchesEnum('$context', [");
     indent(() {
       bool commaNeeded = false;
@@ -130,14 +130,14 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   }
 
   @override
-  visitTypeList(TypeList typeList) {
+  void visitTypeList(TypeList typeList) {
     write('isListOf(');
     visitTypeDecl(typeList.itemType);
     write(')');
   }
 
   @override
-  visitTypeMap(TypeMap typeMap) {
+  void visitTypeMap(TypeMap typeMap) {
     write('isMapOf(');
     visitTypeDecl(typeMap.keyType);
     write(', ');

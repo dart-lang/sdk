@@ -36,17 +36,29 @@ additional details see the [announcement].
   `package:js` interop specification must now be wrapped with a call to
   `allowInterop`. This behavior was always enforced by `dart2js`, but was not
   enforced consistently in `ddc`. It will now be enforced in both.
+* JS interop classes with an index operator are now static errors.
 
  [announcement]: https://github.com/dart-lang/sdk/issues/38994
 
+#### Dart2JS
+
+* JS interop classes with an index operator are now static errors instead of
+  causing invalid code in dart2js.
+* **Breaking Change**: The subtyping rule for generic functions is now more
+  forgiving. Corresponding type parameter bounds now only need to be mutual
+  subtypes rather than structurally equal up to renaming of bound type variables
+  and equating all top types.
+
 #### Linter
 
-The Linter was updated to `0.1.109`, which includes:
+The Linter was updated to `0.1.110`, which includes:
 
-* an improved `prefer_single_quotes` lint message
-* `unnecessary_finals` fixed to not flag fields
-* `unnecessary_lambdas` fixed to work with type arguments
-* (internal) migration to use analyzer `LinterContext.resolveNameInScope()` API
+* fixed flutter web plugin detection in `avoid_web_libraries_in_flutter`
+* new lint: `unnecessary_string_interpolations`
+* new lint: `missing_whitespace_between_adjacent_strings`
+* `avoid_unused_constructor_parameters` updated to ignore deprecated parameters
+* new lint: `no_runtimeType_toString`
+* miscellaneous doc fixes
 
 #### Pub
 

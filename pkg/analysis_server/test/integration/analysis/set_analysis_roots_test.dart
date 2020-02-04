@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetAnalysisRootsTest);
   });
@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
-  test_options() async {
+  Future<void> test_options() async {
     String pathname = sourcePath('test.dart');
     writeFile(pathname, '''
 class Foo {

@@ -58,7 +58,8 @@ class KernelImpactBuilder extends ImpactBuilderBase
       VariableScopeModel variableScopeModel,
       this._annotations,
       this._constantValuefier)
-      : this.impactBuilder = new ResolutionWorldImpactBuilder(currentMember),
+      : this.impactBuilder = new ResolutionWorldImpactBuilder(
+            elementMap.commonElements.dartTypes, currentMember),
         super(staticTypeContext, elementMap.classHierarchy, variableScopeModel);
 
   @override
@@ -95,7 +96,8 @@ class KernelImpactConverter extends KernelImpactRegistryMixin {
 
   KernelImpactConverter(this.elementMap, this.currentMember, this.reporter,
       this._options, this._constantValuefier, this.staticTypeContext)
-      : this.impactBuilder = new ResolutionWorldImpactBuilder(currentMember);
+      : this.impactBuilder = new ResolutionWorldImpactBuilder(
+            elementMap.commonElements.dartTypes, currentMember);
 
   @override
   ir.TypeEnvironment get typeEnvironment => elementMap.typeEnvironment;
@@ -124,6 +126,7 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
   ResolutionWorldImpactBuilder get impactBuilder;
   ir.TypeEnvironment get typeEnvironment;
   CommonElements get commonElements;
+  DartTypes get dartTypes => commonElements.dartTypes;
   NativeBasicData get _nativeBasicData;
   ConstantValuefier get _constantValuefier;
   ir.StaticTypeContext get staticTypeContext;
@@ -171,9 +174,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<ConstantValue> metadata =
           elementMap.elementEnvironment.getMemberMetadata(member);
       Iterable<String> createsAnnotations =
-          getCreatesAnnotations(reporter, commonElements, metadata);
+          getCreatesAnnotations(dartTypes, reporter, commonElements, metadata);
       Iterable<String> returnsAnnotations =
-          getReturnsAnnotations(reporter, commonElements, metadata);
+          getReturnsAnnotations(dartTypes, reporter, commonElements, metadata);
       impactBuilder.registerNativeData(elementMap.getNativeBehaviorForFieldLoad(
           field, createsAnnotations, returnsAnnotations,
           isJsInterop: isJsInterop));
@@ -192,9 +195,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<ConstantValue> metadata =
           elementMap.elementEnvironment.getMemberMetadata(member);
       Iterable<String> createsAnnotations =
-          getCreatesAnnotations(reporter, commonElements, metadata);
+          getCreatesAnnotations(dartTypes, reporter, commonElements, metadata);
       Iterable<String> returnsAnnotations =
-          getReturnsAnnotations(reporter, commonElements, metadata);
+          getReturnsAnnotations(dartTypes, reporter, commonElements, metadata);
       impactBuilder.registerNativeData(elementMap.getNativeBehaviorForMethod(
           constructor, createsAnnotations, returnsAnnotations,
           isJsInterop: isJsInterop));
@@ -238,9 +241,9 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
       List<ConstantValue> metadata =
           elementMap.elementEnvironment.getMemberMetadata(member);
       Iterable<String> createsAnnotations =
-          getCreatesAnnotations(reporter, commonElements, metadata);
+          getCreatesAnnotations(dartTypes, reporter, commonElements, metadata);
       Iterable<String> returnsAnnotations =
-          getReturnsAnnotations(reporter, commonElements, metadata);
+          getReturnsAnnotations(dartTypes, reporter, commonElements, metadata);
       impactBuilder.registerNativeData(elementMap.getNativeBehaviorForMethod(
           procedure, createsAnnotations, returnsAnnotations,
           isJsInterop: isJsInterop));

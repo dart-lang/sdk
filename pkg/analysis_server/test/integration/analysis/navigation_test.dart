@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNavigationTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class AnalysisNavigationTest extends AbstractAnalysisServerIntegrationTest {
-  test_navigation() async {
+  Future<void> test_navigation() async {
     String pathname1 = sourcePath('test1.dart');
     String text1 = r'''
 library foo;

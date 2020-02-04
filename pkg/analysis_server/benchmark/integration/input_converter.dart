@@ -244,7 +244,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    * the temporary source used during performance measurement rather than
    * the original source when the instrumentation or log file was generated.
    */
-  translateSrcPaths(json) {
+  dynamic translateSrcPaths(json) {
     if (json is String) {
       return srcPathMap.translate(json);
     }

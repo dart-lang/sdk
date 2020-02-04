@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OverridesTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class OverridesTest extends AbstractAnalysisServerIntegrationTest {
-  test_overrides() {
+  Future<void> test_overrides() {
     String pathname = sourcePath('test.dart');
     String text = r'''
 abstract class Interface1 {

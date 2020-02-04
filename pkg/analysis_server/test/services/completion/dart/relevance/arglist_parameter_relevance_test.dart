@@ -7,7 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArglistParameterRelevanceTest);
   });
@@ -15,7 +15,7 @@ main() {
 
 @reflectiveTest
 class ArglistParameterRelevanceTest extends DartCompletionManagerTest {
-  test_closureParam() async {
+  Future<void> test_closureParam() async {
     addTestSource(r'''
 void f({void Function(int a, {int b, int c}) closure}) {}
 

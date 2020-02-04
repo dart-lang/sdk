@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryPrefixTest);
     defineReflectiveTests(ImportLibraryPrefixWithExtensionMethodsTest);
@@ -20,7 +20,7 @@ class ImportLibraryPrefixTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_PREFIX;
 
-  test_withClass() async {
+  Future<void> test_withClass() async {
     await resolveTestUnit('''
 import 'dart:collection' as pref;
 main() {
@@ -39,7 +39,7 @@ main() {
 ''');
   }
 
-  test_withTopLevelVariable() async {
+  Future<void> test_withTopLevelVariable() async {
     await resolveTestUnit('''
 import 'dart:math' as pref;
 main() {
@@ -68,7 +68,7 @@ class ImportLibraryPrefixWithExtensionMethodsTest extends FixProcessorTest {
     super.setUp();
   }
 
-  test_withExtension() async {
+  Future<void> test_withExtension() async {
     addSource('/home/test/lib/lib.dart', '''
 class C {}
 extension E on int {

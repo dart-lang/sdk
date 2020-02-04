@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveThisExpressionTest);
   });
@@ -23,7 +23,7 @@ class RemoveThisExpressionTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_this;
 
-  test_constructorInitializer() async {
+  Future<void> test_constructorInitializer() async {
     await resolveTestUnit('''
 class A {
   int x;
@@ -38,7 +38,7 @@ class A {
 ''');
   }
 
-  test_methodInvocation_oneCharacterOperator() async {
+  Future<void> test_methodInvocation_oneCharacterOperator() async {
     await resolveTestUnit('''
 class A {
   void foo() {
@@ -55,7 +55,7 @@ class A {
 ''');
   }
 
-  test_methodInvocation_twoCharactersOperator() async {
+  Future<void> test_methodInvocation_twoCharactersOperator() async {
     await resolveTestUnit('''
 class A {
   void foo() {
@@ -72,7 +72,7 @@ class A {
 ''');
   }
 
-  test_notAThisExpression() async {
+  Future<void> test_notAThisExpression() async {
     await resolveTestUnit('''
 void foo() {
   final /*LINT*/this.id;
@@ -81,7 +81,7 @@ void foo() {
     await assertNoFix();
   }
 
-  test_propertyAccess_oneCharacterOperator() async {
+  Future<void> test_propertyAccess_oneCharacterOperator() async {
     await resolveTestUnit('''
 class A {
   int x;
@@ -100,7 +100,7 @@ class A {
 ''');
   }
 
-  test_propertyAccess_twoCharactersOperator() async {
+  Future<void> test_propertyAccess_twoCharactersOperator() async {
     await resolveTestUnit('''
 class A {
   int x;

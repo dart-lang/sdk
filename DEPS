@@ -39,7 +39,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "6d84d8db719f2076e0c2bbc41db9297e803ab445",
+  "co19_rev": "5a3388d1f79cc3c61f9cdc1b3eaaa405bd62c882",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -102,7 +102,7 @@ vars = {
   "intl_tag": "0.15.7",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "2.0.9",
-  "linter_tag": "0.1.109",
+  "linter_tag": "0.1.110",
   "logging_tag": "0.11.3+2",
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "markdown_tag": "2.1.1",
@@ -134,6 +134,7 @@ vars = {
   "source_maps_tag": "8af7cc1a1c3a193c1fba5993ce22a546a319c40e",
   "source_span_tag": "1.5.5",
   "stack_trace_tag": "1.9.3",
+  "stagehand_tag": "v3.3.6",
   "stream_channel_tag": "2.0.0",
   "string_scanner_tag": "1.0.3",
   "test_descriptor_tag": "1.1.1",
@@ -380,6 +381,8 @@ deps = {
       "@" + Var("source_map_stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
       Var("dart_git") + "stack_trace.git" + "@" + Var("stack_trace_tag"),
+  Var("dart_root") + "/third_party/pkg/stagehand":
+      Var("dart_git") + "stagehand.git" + "@" + Var("stagehand_tag"),
   Var("dart_root") + "/third_party/pkg/stream_channel":
       Var("dart_git") + "stream_channel.git" +
       "@" + Var("stream_channel_tag"),
@@ -476,7 +479,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:29_37",
+        "version": "binary_version:38",
       }
     ],
     "dep_type": "cipd",

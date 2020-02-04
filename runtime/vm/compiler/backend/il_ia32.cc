@@ -2753,7 +2753,7 @@ void InitInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   compiler::Label no_call;
 
-  __ movl(temp, compiler::FieldAddress(instance, field().Offset()));
+  __ movl(temp, compiler::FieldAddress(instance, field().TargetOffset()));
   __ CompareObject(temp, Object::sentinel());
   __ j(NOT_EQUAL, &no_call, compiler::Assembler::kNearJump);
 

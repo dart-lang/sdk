@@ -12,7 +12,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ByteStreamClientChannelTest);
     defineReflectiveTests(ByteStreamServerChannelTest);
@@ -50,7 +50,7 @@ class ByteStreamClientChannelTest {
     channel = ByteStreamClientChannel(inputStream.stream, outputSink);
   }
 
-  test_close() {
+  Future<void> test_close() {
     bool doneCalled = false;
     bool closeCalled = false;
     // add listener so that outputSink will trigger done/close futures
@@ -67,7 +67,7 @@ class ByteStreamClientChannelTest {
     });
   }
 
-  test_listen_notification() {
+  Future<void> test_listen_notification() {
     List<Notification> notifications = [];
     channel.notificationStream.forEach((n) => notifications.add(n));
     inputSink.writeln('{"event":"server.connected"}');
@@ -77,7 +77,7 @@ class ByteStreamClientChannelTest {
     });
   }
 
-  test_listen_response() {
+  Future<void> test_listen_response() {
     List<Response> responses = [];
     channel.responseStream.forEach((n) => responses.add(n));
     inputSink.writeln('{"id":"72"}');
@@ -87,7 +87,7 @@ class ByteStreamClientChannelTest {
     });
   }
 
-  test_sendRequest() {
+  Future<void> test_sendRequest() {
     int assertCount = 0;
     Request request = Request('72', 'foo.bar');
     outputLineStream.first.then((line) => json.decode(line)).then((json) {
@@ -161,13 +161,13 @@ class ByteStreamServerChannelTest {
     });
   }
 
-  test_closed() {
+  Future<void> test_closed() {
     return inputSink
         .close()
         .then((_) => channel.closed.timeout(Duration(seconds: 1)));
   }
 
-  test_listen_invalidJson() {
+  Future<void> test_listen_invalidJson() {
     inputSink.writeln('{"id":');
     return inputSink
         .flush()
@@ -180,7 +180,7 @@ class ByteStreamServerChannelTest {
     });
   }
 
-  test_listen_invalidRequest() {
+  Future<void> test_listen_invalidRequest() {
     inputSink.writeln('{"id":"0"}');
     return inputSink
         .flush()
@@ -193,13 +193,13 @@ class ByteStreamServerChannelTest {
     });
   }
 
-  test_listen_streamDone() {
+  Future<void> test_listen_streamDone() {
     return inputSink
         .close()
         .then((_) => doneFuture.timeout(Duration(seconds: 1)));
   }
 
-  test_listen_streamError() {
+  Future<void> test_listen_streamError() {
     var error = Error();
     inputSink.addError(error);
     return inputSink
@@ -210,7 +210,7 @@ class ByteStreamServerChannelTest {
     });
   }
 
-  test_listen_wellFormedRequest() {
+  Future<void> test_listen_wellFormedRequest() {
     inputSink.writeln('{"id":"0","method":"server.version"}');
     return inputSink
         .flush()
@@ -221,7 +221,7 @@ class ByteStreamServerChannelTest {
     });
   }
 
-  test_sendNotification() {
+  Future<void> test_sendNotification() {
     channel.sendNotification(Notification('foo'));
     return outputLineStream.first
         .timeout(Duration(seconds: 1))
@@ -233,7 +233,7 @@ class ByteStreamServerChannelTest {
     });
   }
 
-  test_sendNotification_exceptionInSink() async {
+  Future<void> test_sendNotification_exceptionInSink() async {
     // This IOSink asynchronously throws an exception on any writeln().
     var outputSink = _IOSinkMock();
 
@@ -247,7 +247,7 @@ class ByteStreamServerChannelTest {
     await channel.closed;
   }
 
-  test_sendResponse() {
+  Future<void> test_sendResponse() {
     channel.sendResponse(Response('foo'));
     return outputLineStream.first
         .timeout(Duration(seconds: 1))

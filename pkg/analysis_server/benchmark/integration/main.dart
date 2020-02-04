@@ -17,7 +17,7 @@ import 'operation.dart';
 /**
  * Launch and interact with the analysis server.
  */
-main(List<String> rawArgs) {
+void main(List<String> rawArgs) {
   Logger logger = Logger('Performance Measurement Client');
   logger.onRecord.listen((LogRecord rec) {
     print(rec.message);

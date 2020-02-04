@@ -263,7 +263,8 @@ class Configuration {
         useElf: boolOption("use-elf"),
         useHotReload: boolOption("hot-reload"),
         useHotReloadRollback: boolOption("hot-reload-rollback"),
-        useSdk: boolOption("use-sdk"));
+        useSdk: boolOption("use-sdk"),
+        useQemu: boolOption("use-qemu"));
 
     // Should have consumed the whole map.
     if (optionsCopy.isNotEmpty) {
@@ -338,6 +339,8 @@ class Configuration {
 
   final bool useSdk;
 
+  final bool useQemu;
+
   Configuration(this.name, this.architecture, this.compiler, this.mode,
       this.runtime, this.system,
       {NnbdMode nnbdMode,
@@ -360,7 +363,8 @@ class Configuration {
       bool useElf,
       bool useHotReload,
       bool useHotReloadRollback,
-      bool useSdk})
+      bool useSdk,
+      bool useQemu})
       : nnbdMode = nnbdMode ?? NnbdMode.legacy,
         sanitizer = sanitizer ?? Sanitizer.none,
         babel = babel ?? "",
@@ -381,7 +385,8 @@ class Configuration {
         useElf = useElf ?? false,
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
-        useSdk = useSdk ?? false;
+        useSdk = useSdk ?? false,
+        useQemu = useQemu ?? false;
 
   /// Returns `true` if this configuration's options all have the same values
   /// as [other].
@@ -411,7 +416,8 @@ class Configuration {
       useElf == other.useElf &&
       useHotReload == other.useHotReload &&
       useHotReloadRollback == other.useHotReloadRollback &&
-      useSdk == other.useSdk;
+      useSdk == other.useSdk &&
+      useQemu == other.useQemu;
 
   /// Whether [a] and [b] contain the same strings, regardless of order.
   bool _listsEqual(List<String> a, List<String> b) {
@@ -460,7 +466,8 @@ class Configuration {
         useElf,
         useHotReload,
         useHotReloadRollback,
-        useSdk
+        useSdk,
+        useQemu
       ]);
 
   String toString() {
@@ -500,6 +507,7 @@ class Configuration {
     if (useHotReload) fields.add("hot-reload");
     if (useHotReloadRollback) fields.add("hot-reload-rollback");
     if (useSdk) fields.add("use-sdk");
+    if (useQemu) fields.add("use-qemu");
 
     buffer.write(fields.join(", "));
     buffer.write(")");
@@ -559,6 +567,7 @@ class Configuration {
     boolField("hot-reload-rollback", useHotReloadRollback,
         other.useHotReloadRollback);
     boolField("use-sdk", useSdk, other.useSdk);
+    boolField("use-qemu", useQemu, other.useQemu);
 
     buffer.write(fields.join("\n   "));
     buffer.write("\n");

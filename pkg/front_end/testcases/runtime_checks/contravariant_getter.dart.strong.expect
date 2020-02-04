@@ -13,6 +13,6 @@ class C<T extends core::Object* = dynamic> extends core::Object {
   }
 }
 static method g(self::C<core::num*>* c) → void {
-  (c.{self::C::y} as{TypeError} (core::num*) →* void).call(1.5);
+  (c.{self::C::y} as{TypeError,CovarianceCheck} (core::num*) →* void).call(1.5);
 }
 static method main() → void {}

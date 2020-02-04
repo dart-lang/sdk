@@ -5,6 +5,7 @@ environment:
 dependencies:
   _fe_analyzer_shared: 1.0.0
   analyzer: ^0.37.0
+  path: ^1.6.2
 dev_dependencies:
   args: ^1.5.2
-  path: ^1.6.2
+  mockito: any

@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_search_domain.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelDeclarationsTest);
   });
@@ -56,7 +56,7 @@ class TopLevelDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
-  test_extensionDeclaration() async {
+  Future<void> test_extensionDeclaration() async {
     createAnalysisOptionsFile(experiments: ['extension-methods']);
     addTestFile('''
 extension MyExtension on int {}
@@ -65,12 +65,12 @@ extension MyExtension on int {}
     assertHasDeclaration(ElementKind.EXTENSION, 'MyExtension');
   }
 
-  test_invalidRegex() async {
+  Future<void> test_invalidRegex() async {
     var result = await findTopLevelDeclarations('[A');
     expect(result, const TypeMatcher<RequestError>());
   }
 
-  test_startEndPattern() async {
+  Future<void> test_startEndPattern() async {
     addTestFile('''
 class A {} // A
 class B = Object with A;

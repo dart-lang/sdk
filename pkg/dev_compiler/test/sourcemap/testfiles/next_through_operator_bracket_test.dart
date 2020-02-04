@@ -5,9 +5,9 @@
 /*Debugger:stepOver*/
 
 class Class2 {
-  operator [](index) => index;
+  dynamic operator [](index) => index;
 
-  code() {
+  dynamic code() {
     this[42];
     return this[42];
   }

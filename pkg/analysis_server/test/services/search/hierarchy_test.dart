@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(HierarchyTest);
   });
@@ -28,7 +28,7 @@ class HierarchyTest extends AbstractSingleUnitTest {
     searchEngine = SearchEngineImpl([driver]);
   }
 
-  test_getClassMembers() async {
+  Future<void> test_getClassMembers() async {
     await _indexTestUnit('''
 class A {
   A() {}
@@ -54,7 +54,7 @@ class B extends A {
     }
   }
 
-  test_getHierarchyMembers_constructors() async {
+  Future<void> test_getHierarchyMembers_constructors() async {
     await _indexTestUnit('''
 class A {
   A() {}
@@ -76,7 +76,7 @@ class B extends A {
     return Future.wait([futureA, futureB]);
   }
 
-  test_getHierarchyMembers_fields() async {
+  Future<void> test_getHierarchyMembers_fields() async {
     await _indexTestUnit('''
 class A {
   int foo;
@@ -114,7 +114,7 @@ class D {
     return Future.wait([futureA, futureB, futureC, futureD]);
   }
 
-  test_getHierarchyMembers_fields_static() async {
+  Future<void> test_getHierarchyMembers_fields_static() async {
     await _indexTestUnit('''
 class A {
   static int foo;
@@ -149,7 +149,7 @@ class C extends B {
     }
   }
 
-  test_getHierarchyMembers_methods() async {
+  Future<void> test_getHierarchyMembers_methods() async {
     await _indexTestUnit('''
 class A {
   foo() {}
@@ -195,7 +195,7 @@ class E extends D {
     return Future.wait([futureA, futureB, futureC, futureD, futureE]);
   }
 
-  test_getHierarchyMembers_methods_static() async {
+  Future<void> test_getHierarchyMembers_methods_static() async {
     await _indexTestUnit('''
 class A {
   static foo() {}
@@ -220,7 +220,7 @@ class B extends A {
     }
   }
 
-  test_getHierarchyMembers_withInterfaces() async {
+  Future<void> test_getHierarchyMembers_withInterfaces() async {
     await _indexTestUnit('''
 class A {
   foo() {}
@@ -255,7 +255,7 @@ class E {
     return Future.wait([futureA, futureB, futureD]);
   }
 
-  test_getHierarchyNamedParameters() async {
+  Future<void> test_getHierarchyNamedParameters() async {
     await _indexTestUnit('''
 class A {
   foo({p}) {}
@@ -310,7 +310,7 @@ class E extends D {
     }
   }
 
-  test_getHierarchyNamedParameters_invalid_missing() async {
+  Future<void> test_getHierarchyNamedParameters_invalid_missing() async {
     verifyNoTestUnitErrors = false;
     await _indexTestUnit('''
 class A {
@@ -327,7 +327,7 @@ class B extends A {
     expect(result, unorderedEquals([parameterA]));
   }
 
-  test_getHierarchyNamedParameters_invalid_notNamed() async {
+  Future<void> test_getHierarchyNamedParameters_invalid_notNamed() async {
     verifyNoTestUnitErrors = false;
     await _indexTestUnit('''
 class A {
@@ -344,7 +344,7 @@ class B extends A {
     expect(result, unorderedEquals([parameterA]));
   }
 
-  test_getMembers() async {
+  Future<void> test_getMembers() async {
     await _indexTestUnit('''
 class A {
   A() {}
@@ -392,7 +392,7 @@ class B extends A {
     }
   }
 
-  test_getSuperClasses() async {
+  Future<void> test_getSuperClasses() async {
     await _indexTestUnit('''
 class A {}
 class B extends A {}
@@ -446,7 +446,7 @@ class F implements A {}
     }
   }
 
-  test_getSuperClasses_superclassConstraints() async {
+  Future<void> test_getSuperClasses_superclassConstraints() async {
     await _indexTestUnit('''
 class A {}
 class B extends A {}

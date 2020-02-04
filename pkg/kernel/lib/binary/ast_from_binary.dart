@@ -1726,8 +1726,10 @@ class BinaryBuilder {
           ..fileOffset = offset;
       case Tag.IsExpression:
         int offset = readOffset();
+        int flags = readByte();
         return new IsExpression(readExpression(), readDartType())
-          ..fileOffset = offset;
+          ..fileOffset = offset
+          ..flags = flags;
       case Tag.AsExpression:
         int offset = readOffset();
         int flags = readByte();

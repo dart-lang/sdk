@@ -300,9 +300,14 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
       throw "dart_precompiled cannot run files of type '$type'.";
     }
 
-    return [
-      VMCommand(dartPrecompiledBinaryFileName, arguments, environmentOverrides)
-    ];
+    var executable = dartPrecompiledBinaryFileName;
+
+    if (_configuration.useQemu) {
+      arguments.insertAll(0, ['-L', '/usr/arm-linux-gnueabihf/', executable]);
+      executable = 'qemu-arm';
+    }
+
+    return [VMCommand(executable, arguments, environmentOverrides)];
   }
 }
 

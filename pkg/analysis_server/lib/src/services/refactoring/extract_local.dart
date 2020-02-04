@@ -587,13 +587,13 @@ class _OccurrencesVisitor extends GeneralizingAstVisitor<void> {
   }
 }
 
-class _TokenLocalElementVisitor extends RecursiveAstVisitor {
+class _TokenLocalElementVisitor extends RecursiveAstVisitor<void> {
   final Map<Token, Element> map;
 
   _TokenLocalElementVisitor(this.map);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.staticElement;
     if (element is LocalVariableElement) {
       map[node.token] = element;

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithBracketsTest);
   });
@@ -23,7 +23,7 @@ class ReplaceWithBracketsTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.empty_statements;
 
-  test_outOfBlock_otherLine() async {
+  Future<void> test_outOfBlock_otherLine() async {
     await resolveTestUnit('''
 void foo() {
   while(true)
@@ -39,7 +39,7 @@ void foo() {
 ''');
   }
 
-  test_outOfBlock_sameLine() async {
+  Future<void> test_outOfBlock_sameLine() async {
     await resolveTestUnit('''
 void foo() {
   while(true)/*LINT*/;

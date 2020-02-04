@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "common_patch.dart";
 
 class _FilterImpl extends NativeFieldWrapperClass1 implements RawZLibFilter {
@@ -14,20 +12,20 @@ class _FilterImpl extends NativeFieldWrapperClass1 implements RawZLibFilter {
 }
 
 class _ZLibInflateFilter extends _FilterImpl {
-  _ZLibInflateFilter(int windowBits, List<int> dictionary, bool raw) {
+  _ZLibInflateFilter(int windowBits, List<int>? dictionary, bool raw) {
     _init(windowBits, dictionary, raw);
   }
-  void _init(int windowBits, List<int> dictionary, bool raw)
+  void _init(int windowBits, List<int>? dictionary, bool raw)
       native "Filter_CreateZLibInflate";
 }
 
 class _ZLibDeflateFilter extends _FilterImpl {
   _ZLibDeflateFilter(bool gzip, int level, int windowBits, int memLevel,
-      int strategy, List<int> dictionary, bool raw) {
+      int strategy, List<int>? dictionary, bool raw) {
     _init(gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   }
   void _init(bool gzip, int level, int windowBits, int memLevel, int strategy,
-      List<int> dictionary, bool raw) native "Filter_CreateZLibDeflate";
+      List<int>? dictionary, bool raw) native "Filter_CreateZLibDeflate";
 }
 
 @patch
@@ -39,12 +37,12 @@ class RawZLibFilter {
           int windowBits,
           int memLevel,
           int strategy,
-          List<int> dictionary,
+          List<int>? dictionary,
           bool raw) =>
       new _ZLibDeflateFilter(
           gzip, level, windowBits, memLevel, strategy, dictionary, raw);
   @patch
   static RawZLibFilter _makeZLibInflateFilter(
-          int windowBits, List<int> dictionary, bool raw) =>
+          int windowBits, List<int>? dictionary, bool raw) =>
       new _ZLibInflateFilter(windowBits, dictionary, raw);
 }

@@ -6,12 +6,13 @@ final _prenumberedPlaceholders = RegExp(r'#\d+');
 MiniJsParser _parser(String src) =>
     MiniJsParser(src.replaceAll(_prenumberedPlaceholders, '#'));
 
-_check(Node node, String expected) =>
+void _check(Node node, String expected) =>
     expect(node.toString(), 'js_ast `$expected`');
 
-_checkStatement(String src) => _check(_parser(src).parseStatement(), src);
+void _checkStatement(String src) => _check(_parser(src).parseStatement(), src);
 
-_checkExpression(String src) => _check(_parser(src).parseExpression(), src);
+void _checkExpression(String src) =>
+    _check(_parser(src).parseExpression(), src);
 
 void main() {
   group('MiniJsParser', () {

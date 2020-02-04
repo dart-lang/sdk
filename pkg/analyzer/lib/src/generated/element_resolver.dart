@@ -483,6 +483,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _methodInvocationResolver.resolve(node);
+    _resolver.nullShortingTermination(node);
   }
 
   @override
@@ -505,7 +506,9 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (identifier.name == FunctionElement.LOAD_LIBRARY_NAME &&
         _isDeferredPrefix(prefix)) {
       LibraryElement importedLibrary = _getImportedLibrary(prefix);
-      identifier.staticElement = importedLibrary?.loadLibraryFunction;
+      var element = importedLibrary?.loadLibraryFunction;
+      element = _resolver.toLegacyElement(element);
+      identifier.staticElement = element;
       return;
     }
     //
@@ -1367,8 +1370,11 @@ class ElementResolver extends SimpleAstVisitor<void> {
           propertyName.staticElement = element;
           _checkForStaticAccessToInstanceMember(propertyName, element);
         } else {
+          var code = typeReference.isEnum
+              ? StaticTypeWarningCode.UNDEFINED_ENUM_CONSTANT
+              : StaticTypeWarningCode.UNDEFINED_GETTER;
           _errorReporter.reportErrorForNode(
-            StaticTypeWarningCode.UNDEFINED_GETTER,
+            code,
             propertyName,
             [propertyName.name, typeReference.name],
           );

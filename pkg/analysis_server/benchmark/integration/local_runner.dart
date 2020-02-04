@@ -10,7 +10,7 @@ import 'main.dart' as performance;
 
 // Local driver for performance measurement
 
-main(List<String> args) {
+void main(List<String> args) {
   /*
    * Parse arguments
    */

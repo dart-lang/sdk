@@ -549,11 +549,12 @@ class MethodInvocationResolver {
       var imports = _definingLibrary.getImportsWithPrefix(prefix);
       if (imports.length == 1 && imports[0].isDeferred) {
         var importedLibrary = imports[0].importedLibrary;
-        var loadLibraryFunction = importedLibrary?.loadLibraryFunction;
-        if (loadLibraryFunction is ExecutableElement) {
-          nameNode.staticElement = loadLibraryFunction;
-          return _setResolution(node,
-              _elementTypeProvider.getExecutableType(loadLibraryFunction));
+        var element = importedLibrary?.loadLibraryFunction;
+        element = _resolver.toLegacyElement(element);
+        if (element is ExecutableElement) {
+          nameNode.staticElement = element;
+          return _setResolution(
+              node, _elementTypeProvider.getExecutableType(element));
         }
       }
     }

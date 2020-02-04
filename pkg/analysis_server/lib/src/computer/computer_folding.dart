@@ -62,7 +62,7 @@ class DartUnitFoldingComputer {
       final hasBlankLine =
           _hasBlankLineBetween(lastComment, lastComment.next ?? firstToken);
 
-      // Also considerd non-single-line-comments as the end
+      // Also considered non-single-line-comments as the end
       final nextCommentIsDifferentType = lastComment.next != null &&
           lastComment.next.type != TokenType.SINGLE_LINE_COMMENT;
 
@@ -73,7 +73,7 @@ class DartUnitFoldingComputer {
     }
   }
 
-  _addRegion(int startOffset, int endOffset, FoldingKind kind) {
+  void _addRegion(int startOffset, int endOffset, FoldingKind kind) {
     final CharacterLocation start = _lineInfo.getLocation(startOffset);
     final CharacterLocation end = _lineInfo.getLocation(endOffset);
 
@@ -83,7 +83,7 @@ class DartUnitFoldingComputer {
     }
   }
 
-  _addRegionForAnnotations(List<Annotation> annotations) {
+  void _addRegionForAnnotations(List<Annotation> annotations) {
     if (annotations.isNotEmpty) {
       _addRegion(annotations.first.name.end, annotations.last.end,
           FoldingKind.ANNOTATIONS);
@@ -96,7 +96,7 @@ class DartUnitFoldingComputer {
     return secondLoc.lineNumber - firstLoc.lineNumber > 1;
   }
 
-  _recordDirective(Directive node) {
+  void _recordDirective(Directive node) {
     _firstDirective ??= node;
     _lastDirective = node;
   }

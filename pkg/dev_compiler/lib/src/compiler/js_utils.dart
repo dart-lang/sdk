@@ -34,7 +34,7 @@ Set<String> findMutatedVariables(Node scope) {
 class MutationVisitor extends BaseVisitor<void> {
   /// Using Identifier names instead of a more precise key may result in
   /// mutations being imprecisely reported when variables shadow each other.
-  final mutated = Set<String>();
+  final mutated = <String>{};
   @override
   void visitAssignment(node) {
     var id = node.leftHandSide;

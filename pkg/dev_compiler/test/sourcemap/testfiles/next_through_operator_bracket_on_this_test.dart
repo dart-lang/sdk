@@ -5,9 +5,9 @@
 /*Debugger:stepOver*/
 
 class Class2 {
-  operator [](index) => index;
+  dynamic operator [](index) => index;
 
-  code() {
+  dynamic code() {
     /*bl*/ /*sl:1*/ this[42]; // DDK fails to hover on `this`
     return /*sl:2*/ this[42];
   }

@@ -262,7 +262,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       var idName = name.endsWith('=') ? name.replaceAll('=', '_') : name;
       idName = idName.replaceAll(js_ast.invalidCharInIdentifier, '_');
       id ??= js_ast.TemporaryId(idName);
-      moduleItems.add(js.statement('const # = #.privateName(#, #)',
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      moduleItems.add(js.statement('var # = #.privateName(#, #)',
           [id, runtimeModule, emitLibraryName(library), js.string(name)]));
       return id;
     }
@@ -417,8 +419,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       var alias = jsLibraryAlias(library);
       var aliasId = alias == null ? null : js_ast.TemporaryId(alias);
 
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
       items.add(js.statement(
-          'const # = Object.create(#.library)', [libraryId, runtimeModule]));
+          'var # = Object.create(#.library)', [libraryId, runtimeModule]));
       exports.add(js_ast.NameSpecifier(libraryId, asName: aliasId));
     }
 
@@ -426,8 +430,10 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
     // TODO(jmesserly): find a cleaner design for this.
     if (isBuildingSdk) {
       var id = extensionSymbolsModule;
-      items.add(js.statement(
-          'const # = Object.create(#.library)', [id, runtimeModule]));
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      items.add(js
+          .statement('var # = Object.create(#.library)', [id, runtimeModule]));
       exports.add(js_ast.NameSpecifier(id));
     }
 
@@ -468,7 +474,7 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
   /// Emits imports and extension methods into [items].
   @protected
   void emitImportsAndExtensionSymbols(List<js_ast.ModuleItem> items) {
-    var modules = Map<String, List<Library>>();
+    var modules = <String, List<Library>>{};
 
     for (var import in _imports.keys) {
       modules.putIfAbsent(libraryToModule(import), () => []).add(import);
@@ -512,7 +518,9 @@ abstract class SharedCompiler<Library, Class, InterfaceType, FunctionNode> {
       if (isBuildingSdk) {
         value = js.call('# = Symbol(#)', [value, js.string('dartx.$name')]);
       }
-      items.add(js.statement('const # = #;', [id, value]));
+      // TODO(vsm): Change back to `const`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      items.add(js.statement('var # = #;', [id, value]));
     });
   }
 

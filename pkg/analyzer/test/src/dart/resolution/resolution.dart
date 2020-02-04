@@ -502,6 +502,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertType(node, type);
   }
 
+  void assertPrefixedIdentifier(
+    PrefixedIdentifier node, {
+    @required Object element,
+    @required String type,
+  }) {
+    assertElement(node.staticElement, element);
+    assertType(node, type);
+  }
+
   void assertPrefixExpression(
     PrefixExpression node, {
     @required Object element,

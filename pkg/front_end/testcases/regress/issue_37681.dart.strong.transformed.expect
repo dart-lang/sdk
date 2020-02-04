@@ -100,7 +100,7 @@ static method main() → dynamic /* originally async */ {
           return :controller_stream;
         }
         {
-          dynamic :stream = (f_async_star.call() as dynamic) as{TypeError} asy::Stream<dynamic>*;
+          dynamic :stream = (f_async_star.call() as dynamic) as{TypeError,ForDynamic} asy::Stream<dynamic>*;
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<dynamic>* :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
           try
@@ -138,7 +138,7 @@ static method main() → dynamic /* originally async */ {
           return new core::_SyncIterable::•<dynamic>(:sync_op);
         }
         {
-          core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>((f_sync_star.call() as dynamic) as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+          core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>((f_sync_star.call() as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
           for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
             dynamic x = :sync-for-iterator.{core::Iterator::current};
             {

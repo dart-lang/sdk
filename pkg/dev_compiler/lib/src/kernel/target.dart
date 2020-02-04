@@ -5,73 +5,23 @@
 import 'dart:collection';
 import 'dart:core' hide MapEntry;
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show Message, LocatedMessage;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/transformations/track_widget_constructor_locations.dart';
+import 'package:_js_interop_checks/js_interop_checks.dart';
 
 import 'constants.dart' show DevCompilerConstantsBackend;
 import 'kernel_helpers.dart';
 
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
 class DevCompilerTarget extends Target {
-  // TODO(39698) Turn these back into const lists returned from the getters
-  // once we don't have to exclude libraries from the forked NNBD sdk.
-  List<String> _extraRequiredLibraries;
-  List<String> _extraIndexedLibraries;
-
-  DevCompilerTarget(this.flags)
-      : _extraRequiredLibraries = [
-          'dart:_runtime',
-          'dart:_debugger',
-          'dart:_foreign_helper',
-          'dart:_interceptors',
-          'dart:_internal',
-          'dart:_isolate_helper',
-          'dart:_js_helper',
-          'dart:_js_mirrors',
-          'dart:_js_primitives',
-          'dart:_metadata',
-          'dart:_native_typed_data',
-          'dart:async',
-          'dart:collection',
-          'dart:convert',
-          'dart:developer',
-          if (!flags.enableNullSafety) 'dart:io',
-          'dart:isolate',
-          'dart:js',
-          'dart:js_util',
-          'dart:math',
-          'dart:mirrors',
-          'dart:typed_data',
-          if (!flags.enableNullSafety) ...[
-            'dart:indexed_db',
-            'dart:html',
-            'dart:html_common',
-            'dart:svg',
-            'dart:web_audio',
-            'dart:web_gl',
-            'dart:web_sql'
-          ]
-        ],
-        _extraIndexedLibraries = [
-          'dart:async',
-          'dart:collection',
-          if (!flags.enableNullSafety) ...['dart:html', 'dart:indexed_db'],
-          'dart:math',
-          if (!flags.enableNullSafety) ...[
-            'dart:svg',
-            'dart:web_audio',
-            'dart:web_gl',
-            'dart:web_sql'
-          ],
-          'dart:_interceptors',
-          'dart:_js_helper',
-          'dart:_native_typed_data',
-          'dart:_runtime',
-        ];
+  DevCompilerTarget(this.flags);
 
   final TargetFlags flags;
 
@@ -87,11 +37,55 @@ class DevCompilerTarget extends Target {
   String get name => 'dartdevc';
 
   @override
-  List<String> get extraRequiredLibraries => _extraRequiredLibraries;
+  List<String> get extraRequiredLibraries => const [
+        'dart:_runtime',
+        'dart:_debugger',
+        'dart:_foreign_helper',
+        'dart:_interceptors',
+        'dart:_internal',
+        'dart:_isolate_helper',
+        'dart:_js_helper',
+        'dart:_js_mirrors',
+        'dart:_js_primitives',
+        'dart:_metadata',
+        'dart:_native_typed_data',
+        'dart:async',
+        'dart:collection',
+        'dart:convert',
+        'dart:developer',
+        'dart:io',
+        'dart:isolate',
+        'dart:js',
+        'dart:js_util',
+        'dart:math',
+        'dart:mirrors',
+        'dart:typed_data',
+        'dart:indexed_db',
+        'dart:html',
+        'dart:html_common',
+        'dart:svg',
+        'dart:web_audio',
+        'dart:web_gl',
+        'dart:web_sql'
+      ];
 
   // The libraries required to be indexed via CoreTypes.
   @override
-  List<String> get extraIndexedLibraries => _extraIndexedLibraries;
+  List<String> get extraIndexedLibraries => const [
+        'dart:async',
+        'dart:collection',
+        'dart:html',
+        'dart:indexed_db',
+        'dart:math',
+        'dart:svg',
+        'dart:web_audio',
+        'dart:web_gl',
+        'dart:web_sql',
+        'dart:_interceptors',
+        'dart:_js_helper',
+        'dart:_native_typed_data',
+        'dart:_runtime',
+      ];
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
@@ -141,9 +135,13 @@ class DevCompilerTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg)}) {
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
+      JsInteropChecks(
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+          .visitLibrary(library);
     }
   }
 
@@ -153,7 +151,8 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg)}) {
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
     if (flags.trackWidgetCreation) {
       _widgetTracker ??= WidgetCreatorTracker();
       _widgetTracker.transform(component, libraries);
@@ -244,13 +243,13 @@ class _CovarianceTransformer extends RecursiveVisitor<void> {
   ///
   /// [transform] uses this list to eliminate covariance flags for members that
   /// aren't in [_checkedMembers].
-  final _privateProcedures = List<Procedure>();
+  final _privateProcedures = <Procedure>[];
 
   /// List of private instance fields.
   ///
   /// [transform] uses this list to eliminate covariance flags for members that
   /// aren't in [_checkedMembers].
-  final _privateFields = List<Field>();
+  final _privateFields = <Field>[];
 
   final Library _library;
 

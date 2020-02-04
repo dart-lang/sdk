@@ -474,7 +474,7 @@ static method testExplicitNullAwareIntProperties(self::IntClass* v) → dynamic 
   self::expect(n0, let final self::IntClass* #t372 = v in #t372.{core::Object::==}(null) ?{core::int*} null : self::IntClassExtension|get#property(#t372), v.{core::Object::==}(null));
 }
 static method expect(dynamic expected, dynamic actual, [dynamic expectNull = #C1]) → dynamic {
-  if(expectNull as{TypeError} core::bool*) {
+  if(expectNull as{TypeError,ForDynamic} core::bool*) {
     expected = null;
   }
   if(!expected.{core::Object::==}(actual)) {

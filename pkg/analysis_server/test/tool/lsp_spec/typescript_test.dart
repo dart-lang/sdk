@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 import '../../../tool/lsp_spec/typescript_parser.dart';
 import 'matchers.dart';
 
-main() {
+void main() {
   group('typescript parser', () {
     test('parses an interface', () {
       final String input = '''

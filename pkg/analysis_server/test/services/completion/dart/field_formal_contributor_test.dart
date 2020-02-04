@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldFormalContributorTest);
   });
@@ -23,7 +23,7 @@ class FieldFormalContributorTest extends DartCompletionContributorTest {
   }
 
   /// https://github.com/dart-lang/sdk/issues/39028
-  test_mixin_constructor() async {
+  Future<void> test_mixin_constructor() async {
     addTestSource('''
 mixin M {
   M(this.^);
@@ -33,7 +33,7 @@ mixin M {
     expect(suggestions, isEmpty);
   }
 
-  test_ThisExpression_constructor_param() async {
+  Future<void> test_ThisExpression_constructor_param() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -69,7 +69,7 @@ mixin M {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param2() async {
+  Future<void> test_ThisExpression_constructor_param2() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -104,7 +104,7 @@ mixin M {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param3() async {
+  Future<void> test_ThisExpression_constructor_param3() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -139,7 +139,7 @@ mixin M {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param4() async {
+  Future<void> test_ThisExpression_constructor_param4() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -174,7 +174,7 @@ mixin M {
     assertNotSuggested('==');
   }
 
-  test_ThisExpression_constructor_param_optional() async {
+  Future<void> test_ThisExpression_constructor_param_optional() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }
@@ -190,7 +190,7 @@ mixin M {
     assertNotSuggested('x');
   }
 
-  test_ThisExpression_constructor_param_positional() async {
+  Future<void> test_ThisExpression_constructor_param_positional() async {
     // SimpleIdentifier  FieldFormalParameter  FormalParameterList
     addTestSource('''
         main() { }

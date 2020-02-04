@@ -123,7 +123,7 @@ class _FunctionScope {
 
   /// Nested scopes, these are visited after everything else so the names
   /// they might need are in scope.
-  final childScopes = Map<Node, _FunctionScope>();
+  final childScopes = <Node, _FunctionScope>{};
 
   /// New names assigned for temps and identifiers.
   final renames = HashMap<Object, String>();
@@ -133,7 +133,7 @@ class _FunctionScope {
 
 /// Collects all names used in the visited tree.
 class _RenameVisitor extends VariableDeclarationVisitor {
-  final pendingRenames = Map<Object, Set<_FunctionScope>>();
+  final pendingRenames = <Object, Set<_FunctionScope>>{};
 
   final _FunctionScope globalScope = _FunctionScope(null);
   final _FunctionScope rootScope = _FunctionScope(null);
@@ -343,7 +343,7 @@ bool isFunctionPrototypeGetter(String name) {
 ///
 /// http://www.ecma-international.org/ecma-262/6.0/#sec-properties-of-the-object-prototype-object
 /// http://www.ecma-international.org/ecma-262/6.0/#sec-additional-properties-of-the-object.prototype-object
-final objectProperties = <String>[
+final objectProperties = <String>{
   'constructor',
   'toString',
   'toLocaleString',
@@ -356,7 +356,7 @@ final objectProperties = <String>[
   '__defineSetter__',
   '__lookupSetter__',
   '__proto__'
-].toSet();
+};
 
 /// Returns the JS member name for a public Dart instance member, before it
 /// is symbolized; generally you should use [_emitMemberName] or

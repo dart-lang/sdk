@@ -13,10 +13,10 @@ bool foo() {
   return false;
 }
 
-bar() {
+String bar() {
   return 'bar';
 }
 
-baz() {
+String baz() {
   return 'baz';
 }

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetDiagnosticsTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class GetDiagnosticsTest extends AbstractAnalysisServerIntegrationTest {
-  test_getDiagnostics() async {
+  Future<void> test_getDiagnostics() async {
     standardAnalysisSetup();
 
     DiagnosticGetDiagnosticsResult result =

@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_search_domain.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MemberDeclarationsTest);
   });
@@ -47,7 +47,7 @@ class MemberDeclarationsTest extends AbstractSearchDomainTest {
     return null;
   }
 
-  test_localVariable() async {
+  Future<void> test_localVariable() async {
     addTestFile('''
 class A {
   main() {
@@ -59,7 +59,7 @@ class A {
     expect(results, isEmpty);
   }
 
-  test_localVariable_forIn() async {
+  Future<void> test_localVariable_forIn() async {
     addTestFile('''
 class A {
   main() {
@@ -72,7 +72,7 @@ class A {
     expect(results, isEmpty);
   }
 
-  test_methodField() async {
+  Future<void> test_methodField() async {
     addTestFile('''
 class A {
   foo() {}
@@ -88,7 +88,7 @@ class B {
     assertHasDeclaration(ElementKind.FIELD, 'B');
   }
 
-  test_methodGetter() async {
+  Future<void> test_methodGetter() async {
     addTestFile('''
 class A {
   foo() {}
@@ -104,7 +104,7 @@ class B {
     assertHasDeclaration(ElementKind.GETTER, 'B');
   }
 
-  test_methodGetterSetter() async {
+  Future<void> test_methodGetterSetter() async {
     addTestFile('''
 class A {
   foo() {}
@@ -122,7 +122,7 @@ class B {
     assertHasDeclaration(ElementKind.SETTER, 'B');
   }
 
-  test_methodMethod() async {
+  Future<void> test_methodMethod() async {
     addTestFile('''
 class A {
   foo() {}
@@ -138,7 +138,7 @@ class B {
     assertHasDeclaration(ElementKind.METHOD, 'B');
   }
 
-  test_methodSetter() async {
+  Future<void> test_methodSetter() async {
     addTestFile('''
 class A {
   foo() {}

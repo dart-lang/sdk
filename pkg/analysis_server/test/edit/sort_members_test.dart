@@ -14,7 +14,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortMembersTest);
   });
@@ -32,7 +32,7 @@ class SortMembersTest extends AbstractAnalysisTest {
   }
 
   @failingTest
-  test_BAD_doesNotExist() async {
+  Future<void> test_BAD_doesNotExist() async {
     // The analysis driver fails to return an error
     Request request =
         EditSortMembersParams(convertPath('/no/such/file.dart')).toRequest('0');
@@ -41,7 +41,7 @@ class SortMembersTest extends AbstractAnalysisTest {
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
 
-  test_BAD_hasParseError() async {
+  Future<void> test_BAD_hasParseError() async {
     addTestFile('''
 main() {
   print()
@@ -53,7 +53,7 @@ main() {
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_PARSE_ERRORS));
   }
 
-  test_BAD_notDartFile() async {
+  Future<void> test_BAD_notDartFile() async {
     Request request = EditSortMembersParams(
       convertPath('/not-a-Dart-file.txt'),
     ).toRequest('0');
@@ -62,7 +62,7 @@ main() {
         isResponseFailure('0', RequestErrorCode.SORT_MEMBERS_INVALID_FILE));
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = EditSortMembersParams('test.dart').toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -71,7 +71,7 @@ main() {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request = EditSortMembersParams(convertPath('/foo/../bar/test.dart'))
         .toRequest('0');
     var response = await waitResponse(request);
@@ -81,7 +81,7 @@ main() {
     );
   }
 
-  test_OK_afterWaitForAnalysis() async {
+  Future<void> test_OK_afterWaitForAnalysis() async {
     addTestFile('''
 class C {}
 class A {}
@@ -95,7 +95,7 @@ class C {}
 ''');
   }
 
-  test_OK_classMembers_method() async {
+  Future<void> test_OK_classMembers_method() async {
     addTestFile('''
 class A {
   c() {}
@@ -112,7 +112,7 @@ class A {
 ''');
   }
 
-  test_OK_directives() async {
+  Future<void> test_OK_directives() async {
     addTestFile('''
 library lib;
 
@@ -163,7 +163,7 @@ main() {
 ''');
   }
 
-  test_OK_directives_withAnnotation() async {
+  Future<void> test_OK_directives_withAnnotation() async {
     addTestFile('''
 library lib;
 
@@ -197,7 +197,7 @@ class MyAnnotation {
 ''');
   }
 
-  test_OK_genericFunctionType() async {
+  Future<void> test_OK_genericFunctionType() async {
     newFile('$projectPath/analysis_options.yaml', content: '''
 analyzer:
   strong-mode: true
@@ -248,7 +248,7 @@ class Super {}
 ''');
   }
 
-  test_OK_unitMembers_class() async {
+  Future<void> test_OK_unitMembers_class() async {
     addTestFile('''
 class C {}
 class A {}

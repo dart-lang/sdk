@@ -2131,6 +2131,13 @@ ExternalTypedef:
 OperatorWithOptionalFormals:
   template: "An operator can't have optional parameters."
 
+OperatorWithTypeParameters:
+  template: "Types parameters aren't allowed when defining an operator."
+  tip: "Try removing the type parameters."
+  analyzerCode: TYPE_PARAMETER_ON_OPERATOR
+  script:
+    - "class C { operator []<T>(T t) => null; }"
+
 PlatformPrivateLibraryAccess:
   template: "Can't access platform private library."
   analyzerCode: IMPORT_INTERNAL_LIBRARY
@@ -3791,6 +3798,13 @@ NullableOperatorCallWarning:
   template: "Operator '#name' is called on '#type' which is potentially null."
   severity: WARNING
 
+NullableTearoffError:
+  template: "Can't tear off method '#name' from a potentially null value."
+
+NullableTearoffWarning:
+  template: "Tearing off method '#name' from a potentially null value."
+  severity: WARNING
+
 ThrowingNotAssignableToObjectError:
   template: "Can't throw a value of '#type' since it is neither dynamic nor non-nullable."
 
@@ -3850,3 +3864,7 @@ NullableMixinError:
 NullableMixinWarning:
   template: "Mixing in '#name' marked with '?'."
   severity: WARNING
+
+JsInteropIndexNotSupported:
+  template: "JS interop classes do not support [] and []= operator methods."
+  tip: "Try replacing with a normal method."

@@ -12,13 +12,11 @@ import 'package:analysis_server/src/edit/preview/http_preview_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
-import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -228,8 +226,8 @@ analyzer:
   /// Get the "root" of all [included] paths. See [includedRoot] for its
   /// definition.
   static String _getIncludedRoot(
-      List<String> included, OverlayResourceProvider provider) {
-    path.Context context = provider.pathContext;
+      List<String> included, ResourceProvider provider) {
+    var context = provider.pathContext;
     // This step looks like it may be expensive (`getResource`, splitting up
     // all of the paths, comparing parts, joining one path back together). In
     // practice, this should be cheap because typically only one path is given

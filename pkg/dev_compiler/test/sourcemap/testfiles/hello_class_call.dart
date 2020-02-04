@@ -10,17 +10,17 @@ void main() {
 }
 
 class Foo {
-  foo() {
+  int foo() {
     return /*bc:1*/ bar() + /*bc:2*/ baz /*nbc*/ ();
     /*nbb:0:1*/
   }
 
-  bar() {
+  int bar() {
     return 42;
     /*nbb:0:1*/
   }
 
-  baz() {
+  int baz() {
     return 42;
     /*nbb:0:1*/
   }

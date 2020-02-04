@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveTypeArgumentsTest);
   });
@@ -19,7 +19,7 @@ class RemoveTypeArgumentsTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_TYPE_ARGUMENTS;
 
-  test_explicitConst() async {
+  Future<void> test_explicitConst() async {
     await resolveTestUnit('''
 main() {
   const C.named<int>();
@@ -38,7 +38,7 @@ class C<E> {
 ''');
   }
 
-  test_explicitNew() async {
+  Future<void> test_explicitNew() async {
     await resolveTestUnit('''
 main() {
   new C.named<int>();
@@ -57,7 +57,7 @@ class C<E> {
 ''');
   }
 
-  test_implicitConst() async {
+  Future<void> test_implicitConst() async {
     await resolveTestUnit('''
 main() {
   const C c = C.named<int>();
@@ -78,7 +78,7 @@ class C<E> {
 ''');
   }
 
-  test_implicitNew() async {
+  Future<void> test_implicitNew() async {
     await resolveTestUnit('''
 main() {
   C.named<int>();

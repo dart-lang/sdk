@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ImportLibraryShowTest);
     defineReflectiveTests(ImportLibraryShowWithExtensionMethodsTest);
@@ -20,7 +20,7 @@ class ImportLibraryShowTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.IMPORT_LIBRARY_SHOW;
 
-  test_package() async {
+  Future<void> test_package() async {
     addSource('/home/test/lib/lib.dart', '''
 class A {}
 class B {}
@@ -43,7 +43,7 @@ main() {
 ''');
   }
 
-  test_sdk() async {
+  Future<void> test_sdk() async {
     await resolveTestUnit(r'''
 import 'dart:collection' show HashMap;
 main() {
@@ -74,7 +74,7 @@ class ImportLibraryShowWithExtensionMethodsTest extends FixProcessorTest {
     super.setUp();
   }
 
-  test_override_samePackage() async {
+  Future<void> test_override_samePackage() async {
     addSource('/home/test/lib/lib.dart', '''
 class A {}
 extension E on int {
@@ -95,7 +95,7 @@ void f(A a) {
 ''');
   }
 
-  test_static_samePackage() async {
+  Future<void> test_static_samePackage() async {
     addSource('/home/test/lib/lib.dart', '''
 class A {}
 extension E on int {

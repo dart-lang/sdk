@@ -411,7 +411,7 @@ class DartUnitOutlineComputer {
 /**
  * A visitor for building local function outlines.
  */
-class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
+class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   final DartUnitOutlineComputer outlineComputer;
   final List<Outline> contents;
 
@@ -444,12 +444,12 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitFunctionDeclaration(FunctionDeclaration node) {
     contents.add(outlineComputer._newFunctionOutline(node, false));
   }
 
   @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (outlineComputer.withBasicFlutter &&
         outlineComputer.flutter.isWidgetCreation(node)) {
       List<Outline> children = <Outline>[];
@@ -469,7 +469,7 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitMethodInvocation(MethodInvocation node) {
+  void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier nameNode = node.methodName;
 
     engine.Element nameElement = nameNode.staticElement;

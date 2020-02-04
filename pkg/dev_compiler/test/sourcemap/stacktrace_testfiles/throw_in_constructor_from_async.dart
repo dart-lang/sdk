@@ -7,7 +7,7 @@ void main() {
   /*1:main*/ test();
 }
 
-test /*ddk.2:test*/ () /*ddc.2:test*/ async {
+void test /*ddk.2:test*/ () /*ddc.2:test*/ async {
   // ignore: UNUSED_LOCAL_VARIABLE
   var c = /*3:test*/ Class();
 }

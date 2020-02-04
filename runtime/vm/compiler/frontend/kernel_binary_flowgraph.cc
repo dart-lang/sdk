@@ -200,6 +200,10 @@ Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
     }
     return Fragment();
   }
+  // Late fields are initialized to Object::sentinel, which is a flavor of null.
+  // So we need to record that store so that the field guard doesn't prematurely
+  // optimise out the late field's sentinel checking logic.
+  field.RecordStore(Object::null_object());
 
   Fragment instructions;
   instructions += LoadLocal(parsed_function()->receiver_var());
@@ -3568,6 +3572,11 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
+  if (translation_helper_.info().kernel_binary_version() >= 38) {
+    // TODO(alexmarkov): Handle flags.
+    ReadFlags();  // read flags.
+  }
+
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
@@ -3619,6 +3628,7 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
+  // TODO(alexmarkov): Handle new flags.
   const uint8_t flags = ReadFlags();  // read flags.
   const bool is_type_error = (flags & (1 << 0)) != 0;
 

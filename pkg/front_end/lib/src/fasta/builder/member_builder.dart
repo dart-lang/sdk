@@ -143,6 +143,16 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   String get fullNameForErrors => name;
 
   @override
+  StringBuffer printOn(StringBuffer buffer) {
+    if (isClassMember) {
+      buffer.write(classBuilder.name);
+      buffer.write('.');
+    }
+    buffer.write(name);
+    return buffer;
+  }
+
+  @override
   ClassBuilder get classBuilder => parent is ClassBuilder ? parent : null;
 }
 

@@ -192,7 +192,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
   RefactoringWorkspace get refactoringWorkspace => _refactoringWorkspace ??=
       RefactoringWorkspace(driverMap.values, searchEngine);
 
-  addPriorityFile(String path) {
+  void addPriorityFile(String path) {
     final didAdd = priorityFiles.add(path);
     assert(didAdd);
     if (didAdd) {
@@ -381,7 +381,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     sendNotification(message);
   }
 
-  removePriorityFile(String path) {
+  void removePriorityFile(String path) {
     final didRemove = priorityFiles.remove(path);
     assert(didRemove);
     if (didRemove) {
@@ -569,7 +569,7 @@ class LspAnalysisServer extends AbstractAnalysisServer {
     notifyDeclarationsTracker(path);
   }
 
-  _updateDriversPriorityFiles() {
+  void _updateDriversPriorityFiles() {
     driverMap.values.forEach((driver) {
       driver.priorityFiles = priorityFiles.toList();
     });
@@ -754,5 +754,5 @@ class LspServerContextManagerCallbacks extends ContextManagerCallbacks {
 
 class NullNotificationManager implements NotificationManager {
   @override
-  noSuchMethod(Invocation invocation) {}
+  dynamic noSuchMethod(Invocation invocation) {}
 }

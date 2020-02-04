@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithNullAwareTest);
   });
@@ -19,7 +19,7 @@ class ReplaceWithNullAwareTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
 
-  test_chain() async {
+  Future<void> test_chain() async {
     await resolveTestUnit('''
 main(x) {
   x?.a.b.c;
@@ -32,7 +32,7 @@ main(x) {
 ''');
   }
 
-  test_methodInvocation() async {
+  Future<void> test_methodInvocation() async {
     await resolveTestUnit('''
 main(x) {
   x?.a.b();
@@ -45,7 +45,7 @@ main(x) {
 ''');
   }
 
-  test_propertyAccess() async {
+  Future<void> test_propertyAccess() async {
     await resolveTestUnit('''
 main(x) {
   x?.a().b;

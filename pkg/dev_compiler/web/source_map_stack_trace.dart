@@ -29,7 +29,7 @@ StackTrace mapStackTrace(Mapping sourceMap, StackTrace stackTrace,
     if (frame.line == null) return null;
 
     // If there's no column, try using the first column of the line.
-    var column = frame.column == null ? 0 : frame.column;
+    var column = frame.column ?? 0;
 
     // Subtract 1 because stack traces use 1-indexed lines and columns and
     // source maps uses 0-indexed.

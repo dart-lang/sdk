@@ -6,6 +6,7 @@ general/abstract_members: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug30695: TypeCheckError
 general/ignore_function: TypeCheckError
+general/invalid_operator: TypeCheckError
 general/mixin_application_override: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError
 general/override_check_accessor_basic: TypeCheckError
@@ -14,7 +15,6 @@ general/override_check_after_inference: TypeCheckError
 general/override_check_basic: TypeCheckError
 general/override_check_with_covariant_modifier: TypeCheckError
 general/override_setter_with_field: TypeCheckError
-general/with_dependencies/variance_from_dill/variance_from_dill: Crash
 
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/bug30695: TypeCheckError

@@ -40,7 +40,7 @@ import 'package:watcher/watcher.dart';
 
 import 'src/plugin/plugin_manager_test.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractContextManagerTest);
     defineReflectiveTests(ContextManagerWithNewOptionsTest);
@@ -87,7 +87,7 @@ class AbstractContextManagerTest extends ContextManagerTest {
   }
 
   @failingTest
-  test_embedder_added() async {
+  Future<void> test_embedder_added() async {
     // NoSuchMethodError: The getter 'apiSignature' was called on null.
     // Receiver: null
     // Tried calling: apiSignature
@@ -144,7 +144,7 @@ test_pack:lib/''');
     expect(sourceFactory.forUri('dart:typed_data'), isNotNull);
   }
 
-  test_embedder_packagespec() async {
+  Future<void> test_embedder_packagespec() async {
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/main.dart');
@@ -220,7 +220,7 @@ sky_engine:lib/''');
     expect(manager.isInAnalysisRoot('/test.dart'), isFalse);
   }
 
-  test_packagesFolder_areAnalyzed() {
+  Future<void> test_packagesFolder_areAnalyzed() {
     // create a context with a pubspec.yaml file
     String pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
@@ -237,7 +237,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_path_filter() async {
+  Future<void> test_path_filter() async {
     // Setup context.
     Folder root = resourceProvider.newFolder(projPath);
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
@@ -263,7 +263,7 @@ sky_engine:lib/''');
     expect(filePaths, contains(convertPath('/my/proj/lib/main.dart')));
   }
 
-  test_refresh_folder_with_packagespec() {
+  Future<void> test_refresh_folder_with_packagespec() {
     // create a context with a .packages file
     String packagespecFile = join(projPath, '.packages');
     resourceProvider.newFile(packagespecFile, '');
@@ -282,7 +282,7 @@ sky_engine:lib/''');
   // TODO(paulberry): This test only tests PackagesFileDisposition.
   // Once http://dartbug.com/23909 is fixed, add a test for sdk extensions
   // and PackageMapDisposition.
-  test_refresh_folder_with_packagespec_subfolders() {
+  Future<void> test_refresh_folder_with_packagespec_subfolders() {
     // Create a folder with no .packages file, containing two subfolders with
     // .packages files.
     String subdir1Path = join(projPath, 'subdir1');
@@ -307,7 +307,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_refresh_folder_with_pubspec() {
+  Future<void> test_refresh_folder_with_pubspec() {
     // create a context with a pubspec.yaml file
     String pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec');
@@ -323,7 +323,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_refresh_folder_with_pubspec_subfolders() {
+  Future<void> test_refresh_folder_with_pubspec_subfolders() {
     // Create a folder with no pubspec.yaml, containing two subfolders with
     // pubspec.yaml files.
     String subdir1Path = join(projPath, 'subdir1');
@@ -348,7 +348,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_refresh_oneContext() {
+  Future<void> test_refresh_oneContext() {
     // create two contexts with pubspec.yaml files
     String pubspecPath = join(projPath, 'pubspec.yaml');
     resourceProvider.newFile(pubspecPath, 'pubspec1');
@@ -1085,7 +1085,7 @@ sky_engine:lib/''');
     callbacks.assertContextFiles(project, [fileA]);
   }
 
-  test_watch_addDummyLink() {
+  Future<void> test_watch_addDummyLink() {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // empty folder initially
     expect(callbacks.currentFilePaths, isEmpty);
@@ -1098,7 +1098,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addFile() {
+  Future<void> test_watch_addFile() {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // empty folder initially
     expect(callbacks.currentFilePaths, hasLength(0));
@@ -1113,7 +1113,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addFile_excluded() {
+  Future<void> test_watch_addFile_excluded() {
     // prepare paths
     String project = convertPath('/project');
     String folderA = convertPath('$project/aaa');
@@ -1134,7 +1134,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addFile_inDocFolder_inner() {
+  Future<void> test_watch_addFile_inDocFolder_inner() {
     // prepare paths
     String project = convertPath('/project');
     String fileA = convertPath('$project/a.dart');
@@ -1153,7 +1153,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addFile_inDocFolder_topLevel() {
+  Future<void> test_watch_addFile_inDocFolder_topLevel() {
     // prepare paths
     String project = convertPath('/project');
     String fileA = convertPath('$project/a.dart');
@@ -1172,7 +1172,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addFile_pathContainsDotFile() async {
+  Future<void> test_watch_addFile_pathContainsDotFile() async {
     // If a file is added and the path to it (relative to the context root)
     // contains a folder whose name begins with '.', then the file is ignored.
     String project = convertPath('/project');
@@ -1188,7 +1188,7 @@ sky_engine:lib/''');
     callbacks.assertContextFiles(project, [fileA]);
   }
 
-  test_watch_addFile_rootPathContainsDotFile() async {
+  Future<void> test_watch_addFile_rootPathContainsDotFile() async {
     // If a file is added and the path to the context contains a folder whose
     // name begins with '.', then the file is not ignored.
     String project = convertPath('/.pub/project');
@@ -1204,7 +1204,7 @@ sky_engine:lib/''');
     callbacks.assertContextFiles(project, [fileA, fileB]);
   }
 
-  test_watch_addFileInSubfolder() {
+  Future<void> test_watch_addFileInSubfolder() {
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     // empty folder initially
     expect(callbacks.currentFilePaths, hasLength(0));
@@ -1219,7 +1219,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addPackagespec_toRoot() {
+  Future<void> test_watch_addPackagespec_toRoot() {
     // prepare paths
     String root = convertPath('/root');
     String rootFile = convertPath('$root/root.dart');
@@ -1241,7 +1241,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addPackagespec_toSubFolder() {
+  Future<void> test_watch_addPackagespec_toSubFolder() {
     // prepare paths
     String root = convertPath('/root');
     String rootFile = convertPath('$root/root.dart');
@@ -1265,7 +1265,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addPackagespec_toSubFolder_ofSubFolder() {
+  Future<void> test_watch_addPackagespec_toSubFolder_ofSubFolder() {
     // prepare paths
     String root = convertPath('/root');
     String rootFile = convertPath('$root/root.dart');
@@ -1291,7 +1291,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addPackagespec_toSubFolder_withPubspec() {
+  Future<void> test_watch_addPackagespec_toSubFolder_withPubspec() {
     // prepare paths
     String root = convertPath('/root');
     String rootFile = convertPath('$root/root.dart');
@@ -1320,7 +1320,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addPubspec_toRoot() {
+  Future<void> test_watch_addPubspec_toRoot() {
     // prepare paths
     String root = convertPath('/root');
     String rootFile = convertPath('$root/root.dart');
@@ -1340,7 +1340,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addPubspec_toSubFolder() {
+  Future<void> test_watch_addPubspec_toSubFolder() {
     // prepare paths
     String root = convertPath('/root');
     String rootFile = convertPath('$root/root.dart');
@@ -1364,7 +1364,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_addPubspec_toSubFolder_ofSubFolder() {
+  Future<void> test_watch_addPubspec_toSubFolder_ofSubFolder() {
     // prepare paths
     String root = convertPath('/root');
     String rootFile = convertPath('$root/root.dart');
@@ -1390,7 +1390,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_deleteFile() {
+  Future<void> test_watch_deleteFile() {
     String filePath = join(projPath, 'foo.dart');
     // add root with a file
     File file = resourceProvider.newFile(filePath, 'contents');
@@ -1411,7 +1411,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_deleteFolder() {
+  Future<void> test_watch_deleteFolder() {
     String filePath = join(projPath, 'foo.dart');
     // add root with a file
     File file = resourceProvider.newFile(filePath, 'contents');
@@ -1432,7 +1432,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_deletePackagespec_fromRoot() {
+  Future<void> test_watch_deletePackagespec_fromRoot() {
     // prepare paths
     String root = convertPath('/root');
     String rootPubspec = convertPath('$root/.packages');
@@ -1452,7 +1452,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_deletePackagespec_fromSubFolder() {
+  Future<void> test_watch_deletePackagespec_fromSubFolder() {
     // prepare paths
     String root = convertPath('/root');
     String rootFile = convertPath('$root/root.dart');
@@ -1477,7 +1477,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_deletePackagespec_fromSubFolder_withPubspec() {
+  Future<void> test_watch_deletePackagespec_fromSubFolder_withPubspec() {
     // prepare paths:
     //
     // root
@@ -1515,7 +1515,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_deletePubspec_fromRoot() {
+  Future<void> test_watch_deletePubspec_fromRoot() {
     // prepare paths
     String root = convertPath('/root');
     String rootPubspec = convertPath('$root/pubspec.yaml');
@@ -1535,7 +1535,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_deletePubspec_fromSubFolder() {
+  Future<void> test_watch_deletePubspec_fromSubFolder() {
     // prepare paths
     String root = convertPath('/root');
     String rootFile = convertPath('$root/root.dart');
@@ -1560,7 +1560,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_modifyFile() {
+  Future<void> test_watch_modifyFile() {
     String filePath = join(projPath, 'foo.dart');
     // add root with a file
     resourceProvider.newFile(filePath, 'contents');
@@ -1578,7 +1578,7 @@ sky_engine:lib/''');
     });
   }
 
-  test_watch_modifyPackagespec() {
+  Future<void> test_watch_modifyPackagespec() {
     String packagesPath = convertPath('$projPath/.packages');
     String filePath = convertPath('$projPath/bin/main.dart');
 
@@ -1732,7 +1732,7 @@ class ContextManagerWithNewOptionsTest extends ContextManagerWithOptionsTest {
 
   @override
   @failingTest
-  test_analysis_options_parse_failure() async {
+  Future<void> test_analysis_options_parse_failure() async {
     // We have lost the ability to detect errors of this form.
     return super.test_analysis_options_parse_failure();
   }
@@ -1751,7 +1751,7 @@ abstract class ContextManagerWithOptionsTest extends ContextManagerTest {
     deleteFile('$projPath/$optionsFileName');
   }
 
-  test_analysis_options_file_delete() async {
+  Future<void> test_analysis_options_file_delete() async {
     // Setup analysis options
     newFile('$projPath/$optionsFileName', content: r'''
 embedded_libs:
@@ -1782,7 +1782,7 @@ linter:
   }
 
   @failingTest
-  test_analysis_options_file_delete_with_embedder() async {
+  Future<void> test_analysis_options_file_delete_with_embedder() async {
     // This fails because the ContextBuilder doesn't pick up the strongMode
     // flag from the embedder.yaml file.
     // Setup _embedder.yaml.
@@ -1831,7 +1831,7 @@ linter:
     expect(getProcessor(missing_return).severity, isNull);
   }
 
-  test_analysis_options_include() async {
+  Future<void> test_analysis_options_include() async {
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/main.dart');
@@ -1860,7 +1860,7 @@ linter:
     expect(lints[0].name, 'camel_case_types');
   }
 
-  test_analysis_options_include_package() async {
+  Future<void> test_analysis_options_include_package() async {
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/main.dart');
@@ -1893,7 +1893,7 @@ include: package:boo/other_options.yaml
     expect(lints[0].name, 'camel_case_types');
   }
 
-  test_analysis_options_parse_failure() async {
+  Future<void> test_analysis_options_parse_failure() async {
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/main.dart');
@@ -1915,7 +1915,7 @@ include: package:boo/other_options.yaml
     expect(errors[errors.keys.first][optionsFilePath], hasLength(1));
   }
 
-  test_deleteRoot_hasAnalysisOptions() async {
+  Future<void> test_deleteRoot_hasAnalysisOptions() async {
     newFile('$projPath/$optionsFileName');
 
     // Add the root.
@@ -1929,7 +1929,7 @@ include: package:boo/other_options.yaml
   }
 
   @failingTest
-  test_embedder_options() async {
+  Future<void> test_embedder_options() async {
     // This fails because the ContextBuilder doesn't pick up the strongMode
     // flag from the embedder.yaml file.
     // Create files.
@@ -2015,7 +2015,7 @@ linter:
     expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
   }
 
-  test_error_filter_analysis_option() async {
+  Future<void> test_error_filter_analysis_option() async {
     // Create files.
     newFile('$projPath/$optionsFileName', content: r'''
 analyzer:
@@ -2030,7 +2030,7 @@ analyzer:
     expect(getProcessor(unused_local_variable).severity, isNull);
   }
 
-  test_error_filter_analysis_option_multiple_filters() async {
+  Future<void> test_error_filter_analysis_option_multiple_filters() async {
     // Create files.
     newFile('$projPath/$optionsFileName', content: r'''
 analyzer:
@@ -2048,7 +2048,7 @@ analyzer:
     expect(getProcessor(unused_local_variable).severity, ErrorSeverity.ERROR);
   }
 
-  test_error_filter_analysis_option_synonyms() async {
+  Future<void> test_error_filter_analysis_option_synonyms() async {
     // Create files.
     newFile('$projPath/$optionsFileName', content: r'''
 analyzer:
@@ -2064,7 +2064,7 @@ analyzer:
     expect(errorProcessors, hasLength(2));
   }
 
-  test_error_filter_analysis_option_unpsecified() async {
+  Future<void> test_error_filter_analysis_option_unpsecified() async {
     // Create files.
     newFile('$projPath/$optionsFileName', content: r'''
 analyzer:
@@ -2078,7 +2078,7 @@ analyzer:
     expect(errorProcessors, isEmpty);
   }
 
-  test_non_analyzable_files_not_considered() async {
+  Future<void> test_non_analyzable_files_not_considered() async {
     // Set up project and get a reference to the driver.
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     Folder projectFolder = resourceProvider.newFolder(projPath);
@@ -2100,7 +2100,7 @@ analyzer:
   }
 
   @failingTest
-  test_optionsFile_update_strongMode() async {
+  Future<void> test_optionsFile_update_strongMode() async {
     // It appears that this fails because we are not correctly updating the
     // analysis options in the driver when the file is modified.
     //return super.test_optionsFile_update_strongMode();
@@ -2154,7 +2154,7 @@ analyzer:
   }
 
   @failingTest
-  test_path_filter_analysis_option() async {
+  Future<void> test_path_filter_analysis_option() async {
     // This fails because we're not analyzing the analysis options file.
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
@@ -2185,7 +2185,7 @@ analyzer:
             ['/my/proj/lib/main.dart', '/my/proj/$optionsFileName']));
   }
 
-  test_path_filter_child_contexts_option() async {
+  Future<void> test_path_filter_child_contexts_option() async {
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/main.dart');
@@ -2215,7 +2215,8 @@ analyzer:
     expect(drivers[1].name, equals(convertPath('/my/proj/lib')));
   }
 
-  test_path_filter_recursive_wildcard_child_contexts_option() async {
+  Future<void>
+      test_path_filter_recursive_wildcard_child_contexts_option() async {
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/main.dart');
@@ -2246,7 +2247,7 @@ analyzer:
     expect(drivers[1].name, equals(convertPath('/my/proj/lib')));
   }
 
-  test_path_filter_wildcard_child_contexts_option() async {
+  Future<void> test_path_filter_wildcard_child_contexts_option() async {
     // Create files.
     String libPath = '$projPath/${ContextManagerTest.LIB_NAME}';
     newFile('$libPath/main.dart');
@@ -2342,7 +2343,7 @@ analyzer:
     expect(callbacks.currentContextRoots, unorderedEquals([a, c]));
   }
 
-  test_watchEvents() async {
+  Future<void> test_watchEvents() async {
     String libPath = newFolder('$projPath/${ContextManagerTest.LIB_NAME}').path;
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     newFile('$libPath/main.dart');

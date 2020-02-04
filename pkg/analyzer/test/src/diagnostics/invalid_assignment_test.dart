@@ -23,20 +23,6 @@ class InvalidAssignmentNnbdTest extends InvalidAssignmentTest {
     ..contextFeatures = FeatureSet.forTesting(
         sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38200')
-  test_defaultValue_list_inferredTypeVariable() async {
-    // We have a test somewhere that verifies that we infer `<Null>` type
-    // arguments in constant contexts, probably somewhere in
-    // `ResynthesizeTestCases`. We need a similar test nearby for NNBD enabled.
-    await assertNoErrorsInCode('''
-class Vector<T> {
-  bool contains([List<T> elements = const []]) {
-    return true;
-  }
-}
-''');
-  }
-
   @override
   test_ifNullAssignment_sameType() async {
     // This test is overridden solely to make [j] nullable.

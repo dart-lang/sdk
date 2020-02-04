@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: slash_for_doc_comments, unnecessary_const
-// ignore_for_file: prefer_single_quotes
+// ignore_for_file: always_declare_return_types, prefer_single_quotes
+// ignore_for_file: prefer_collection_literals, prefer_final_fields
 
 part of js_ast;
 

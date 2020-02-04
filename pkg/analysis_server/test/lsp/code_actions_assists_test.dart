@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'code_actions_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AssistsCodeActionsTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class AssistsCodeActionsTest extends AbstractCodeActionsTest {
-  test_appliesCorrectEdits_withDocumentChangesSupport() async {
+  Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     // This code should get an assist to add a show combinator.
     const content = '''
     import '[[dart:async]]';
@@ -55,7 +55,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
-  test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
+  Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
     // This code should get an assist to add a show combinator.
     const content = '''
     import '[[dart:async]]';
@@ -92,7 +92,7 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
     expect(contents[mainFilePath], equals(expectedContent));
   }
 
-  test_nonDartFile() async {
+  Future<void> test_nonDartFile() async {
     await newFile(pubspecFilePath, content: simplePubspecContent);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(

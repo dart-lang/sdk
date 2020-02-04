@@ -8,11 +8,10 @@ import 'dart:io';
 import 'package:args/command_runner.dart';
 import 'package:cli_util/cli_logging.dart';
 
-Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
 Logger log;
 bool isVerbose = false;
 
-abstract class DartdevCommand extends Command {
+abstract class DartdevCommand<int> extends Command {
   final String _name;
   final String _description;
 

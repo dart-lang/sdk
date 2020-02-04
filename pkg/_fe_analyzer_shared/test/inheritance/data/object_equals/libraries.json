@@ -1,0 +1,18 @@
+{
+  "none": {
+    "libraries": {
+      "async": {
+        "uri": "async.dart"
+      },
+      "core": {
+        "uri": "core.dart"
+      },
+      "collection": {
+        "uri": "collection.dart"
+      },
+      "_internal": {
+        "uri": "_internal.dart"
+      }
+    }
+  }
+}

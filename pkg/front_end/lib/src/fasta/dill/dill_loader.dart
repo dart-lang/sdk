@@ -58,6 +58,24 @@ class DillLoader extends Loader {
     return result;
   }
 
+  /// Append single compiled library.
+  ///
+  /// Note that as this only takes a library, no new sources is added to the
+  /// uriToSource map.
+  DillLibraryBuilder appendLibrary(Library library) {
+    // Add to list of libraries in the loader, used for e.g. linking.
+    libraries.add(library);
+
+    // Weird interaction begins.
+    DillTarget target = this.target;
+    // Create dill library builder (adds it to a map where it's fetched
+    // again momentarily).
+    target.addLibrary(library);
+    // Set up the dill library builder (fetch it from the map again, add it to
+    // another map and setup some auxiliary things).
+    return read(library.importUri, -1, fileUri: library.fileUri);
+  }
+
   Future<Null> buildOutline(DillLibraryBuilder builder) async {
     if (builder.library == null) {
       unhandled("null", "builder.library", 0, builder.fileUri);
@@ -69,10 +87,11 @@ class DillLoader extends Loader {
     return buildOutline(builder);
   }
 
-  void finalizeExports() {
+  void finalizeExports({bool suppressFinalizationErrors: false}) {
     builders.forEach((Uri uri, LibraryBuilder builder) {
       DillLibraryBuilder library = builder;
-      library.markAsReadyToFinalizeExports();
+      library.markAsReadyToFinalizeExports(
+          suppressFinalizationErrors: suppressFinalizationErrors);
     });
   }
 

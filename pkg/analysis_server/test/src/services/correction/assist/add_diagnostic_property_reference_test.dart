@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddDiagnosticPropertyReferenceTest);
   });
@@ -20,7 +20,7 @@ class AddDiagnosticPropertyReferenceTest extends AssistProcessorTest {
   AssistKind get kind => DartAssistKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
 
   /// Full coverage in fix/add_diagnostic_property_reference_test.dart
-  test_boolField_debugFillProperties() async {
+  Future<void> test_boolField_debugFillProperties() async {
     verifyNoTestUnitErrors = false;
     await resolveTestUnit('''
 class W extends Widget {

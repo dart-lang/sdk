@@ -8,7 +8,7 @@ void main() {
 }
 
 class Class {
-  test() {
+  void test() {
     /*2:Class.new.test*/ throw '>ExceptionMarker<';
   }
 }

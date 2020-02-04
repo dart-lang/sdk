@@ -736,17 +736,36 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  HInstruction skipGenerateAtUseCheckInputs(HCheck check) {
+    HInstruction input = check.checkedInput;
+    if (input is HCheck && isGenerateAtUseSite(input)) {
+      return skipGenerateAtUseCheckInputs(input);
+    }
+    return input;
+  }
+
   void use(HInstruction argument) {
     if (isGenerateAtUseSite(argument)) {
       visitExpression(argument);
     } else if (argument is HCheck && !variableNames.hasName(argument)) {
+      // We have a check that is not generate-at-use and has no name, yet is a
+      // subexpression (we are in 'use'). This happens when we have a chain of
+      // checks on an available unnamed value (e.g. a constant). The checks are
+      // generated as a statement, so we need to skip the generate-at-use check
+      // tree to find the underlying value.
+
+      // TODO(sra): We should ensure that this invariant holds: "every
+      // instruction has a name or is generate-at-use". This would require
+      // naming the input or output of the chain-of-checks.
+
       HCheck check = argument;
-      // This can only happen if the checked node does not have a name.
+      // This can only happen if the checked node also does not have a name.
       assert(!variableNames.hasName(check.checkedInput));
-      use(check.checkedInput);
+
+      use(skipGenerateAtUseCheckInputs(check));
     } else {
       assert(variableNames.hasName(argument));
-      push(new js.VariableUse(variableNames.getName(argument)));
+      push(js.VariableUse(variableNames.getName(argument)));
     }
   }
 
@@ -1861,13 +1880,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         _registry
             // ignore:deprecated_member_use_from_same_package
             .registerInstantiatedClass(_commonElements.listClass);
-      } else if (_nativeData.isNativeMember(target) &&
-          target.isFunction &&
-          !node.isInterceptedCall) {
-        // A direct (i.e. non-interceptor) native call is the result of
-        // optimization.  The optimization ensures any type checks or
-        // conversions have been satisfied.
-        methodName = _nativeData.getFixedBackendName(target);
       }
     }
 
@@ -2284,6 +2296,88 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         variableNames.getName(node.receiver), pop(), node.sourceInformation);
   }
 
+  @override
+  visitInvokeExternal(HInvokeExternal node) {
+    FunctionEntity target = node.element;
+    List<HInstruction> inputs = node.inputs;
+
+    assert(_nativeData.isNativeMember(target), 'non-native target: $node');
+
+    String targetName = _nativeData.hasFixedBackendName(target)
+        ? _nativeData.getFixedBackendName(target)
+        : target.name;
+
+    void invokeWithJavaScriptReceiver(js.Expression receiverExpression) {
+      // JS-interop target names can be paths ("a.b"), so we parse them to
+      // re-associate the property accesses ("#.a.b" is `dot(dot(#,'a'),'b')`).
+      //
+      // Native target names are simple identifiers, so re-parsing is not
+      // necessary, but it is simpler to use the same code.
+      String template;
+      List templateInputs;
+      if (target.isGetter) {
+        template = '#.$targetName';
+        templateInputs = [receiverExpression];
+      } else if (target.isSetter) {
+        assert(inputs.length == (target.isInstanceMember ? 2 : 1));
+        use(inputs.last);
+        template = '#.$targetName = #';
+        templateInputs = [receiverExpression, pop()];
+      } else {
+        var arguments =
+            visitArguments(inputs, start: target.isInstanceMember ? 1 : 0);
+        template =
+            target.isConstructor ? 'new #.$targetName(#)' : '#.$targetName(#)';
+        templateInputs = [receiverExpression, arguments];
+      }
+      js.Expression expression = js.js
+          .uncachedExpressionTemplate(template)
+          .instantiate(templateInputs);
+      push(expression.withSourceInformation(node.sourceInformation));
+      _registry.registerNativeMethod(target);
+    }
+
+    if (_nativeData.isJsInteropMember(target)) {
+      if (target.isStatic || target.isTopLevel || target.isConstructor) {
+        String path = _nativeData.getFixedBackendMethodPath(target);
+        js.Expression pathExpression =
+            js.js.uncachedExpressionTemplate(path).instantiate([]);
+        invokeWithJavaScriptReceiver(pathExpression);
+        return;
+      }
+    }
+
+    if (_nativeData.isNativeMember(target)) {
+      _registry.registerNativeBehavior(node.nativeBehavior);
+      if (target.isInstanceMember) {
+        HInstruction receiver = inputs.first;
+        use(receiver);
+        invokeWithJavaScriptReceiver(pop());
+        return;
+      }
+      if (target.isStatic || target.isTopLevel) {
+        var arguments = visitArguments(inputs, start: 0);
+        js.Expression targeExpression =
+            js.js.uncachedExpressionTemplate(targetName).instantiate([]);
+        js.Expression expression;
+        if (target.isGetter) {
+          expression = targeExpression;
+        } else if (target.isSetter) {
+          expression = js.js('# = #', [targeExpression, inputs.single]);
+        } else {
+          assert(target.isFunction);
+          expression = js.js('#(#)', [targeExpression, arguments]);
+        }
+        push(expression.withSourceInformation(node.sourceInformation));
+        _registry.registerNativeMethod(target);
+        return;
+      }
+
+      failedAt(node, 'codegen not implemented (non-instance-member): $node');
+    }
+    failedAt(node, 'unexpected target: $node');
+  }
+
   void registerForeignTypes(HForeign node) {
     NativeBehavior nativeBehavior = node.nativeBehavior;
     if (nativeBehavior == null) return;
@@ -2499,15 +2593,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   @override
   visitReturn(HReturn node) {
-    assert(node.inputs.length == 1);
-    HInstruction input = node.inputs[0];
-    if (input.isConstantNull()) {
-      pushStatement(
-          new js.Return().withSourceInformation(node.sourceInformation));
+    if (node.inputs.isEmpty) {
+      pushStatement(js.Return().withSourceInformation(node.sourceInformation));
     } else {
-      use(node.inputs[0]);
+      use(node.inputs.single);
       pushStatement(
-          new js.Return(pop()).withSourceInformation(node.sourceInformation));
+          js.Return(pop()).withSourceInformation(node.sourceInformation));
     }
   }
 

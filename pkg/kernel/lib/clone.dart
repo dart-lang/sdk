@@ -248,7 +248,8 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   }
 
   visitIsExpression(IsExpression node) {
-    return new IsExpression(clone(node.operand), visitType(node.type));
+    return new IsExpression(clone(node.operand), visitType(node.type))
+      ..flags = node.flags;
   }
 
   visitAsExpression(AsExpression node) {

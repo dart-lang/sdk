@@ -23,6 +23,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SearchTest);
     defineReflectiveTests(SearchWithExtensionMethodsTest);
+    defineReflectiveTests(SearchWithNnbdTest);
   });
 }
 
@@ -1787,6 +1788,75 @@ main() {
       _expectIdQ(bar, SearchResultKind.REFERENCE, 'foo = 2;'),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 3;'),
       _expectIdQ(main, SearchResultKind.REFERENCE, 'foo = 4;'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+}
+
+@reflectiveTest
+class SearchWithNnbdTest extends SearchTest {
+  @override
+  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
+
+  test_searchReferences_ImportElement_noPrefix_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class N1 {}
+void N2() {}
+int get N3 => 0;
+set N4(int _) {}
+''');
+
+    await _resolveTestUnit('''
+// @dart = 2.7
+import 'a.dart';
+
+main() {
+  N1;
+  N2();
+  N3;
+}
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = _findElement('main');
+    var kind = SearchResultKind.REFERENCE;
+    var expected = [
+      _expectId(mainElement, kind, 'N1;', length: 0),
+      _expectId(mainElement, kind, 'N2();', length: 0),
+      _expectId(mainElement, kind, 'N3;', length: 0),
+//      _expectId(mainElement, kind, 'N4 =', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_withPrefix_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class N1 {}
+void N2() {}
+int get N3 => 0;
+set N4(int _) {}
+''');
+
+    await _resolveTestUnit('''
+// @dart = 2.7
+import 'a.dart' as a;
+
+main() {
+  a.N1;
+  a.N2();
+  a.N3;
+}
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = _findElement('main');
+    var kind = SearchResultKind.REFERENCE;
+    var length = 'a.'.length;
+    var expected = [
+      _expectId(mainElement, kind, 'a.N1;', length: length),
+      _expectId(mainElement, kind, 'a.N2()', length: length),
+      _expectId(mainElement, kind, 'a.N3', length: length),
+//      _expectId(mainElement, kind, 'a.N4', length: length),
     ];
     await _verifyReferences(element, expected);
   }

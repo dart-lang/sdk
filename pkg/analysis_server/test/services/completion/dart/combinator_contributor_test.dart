@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CombinatorContributorTest);
   });
@@ -22,7 +22,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     return CombinatorContributor();
   }
 
-  test_Block_inherited_local() async {
+  Future<void> test_Block_inherited_local() async {
     // Block  BlockFunctionBody  MethodDeclaration  ClassDeclaration
     addTestSource('''
       class F { var f1; f2() { } }
@@ -34,7 +34,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNoSuggestions();
   }
 
-  test_Combinator_hide() async {
+  Future<void> test_Combinator_hide() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/home/test/lib/ab.dart', '''
       library libAB;
@@ -74,7 +74,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('Object');
   }
 
-  test_Combinator_show() async {
+  Future<void> test_Combinator_show() async {
     // SimpleIdentifier  HideCombinator  ImportDirective
     addSource('/home/test/lib/ab.dart', '''
       library libAB;
@@ -123,7 +123,7 @@ class CombinatorContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('Object');
   }
 
-  test_Combinator_show_export_withShow() async {
+  Future<void> test_Combinator_show_export_withShow() async {
     addSource('/home/test/lib/a.dart', r'''
 class A {}
 class B {}
@@ -141,14 +141,14 @@ import 'b.dart' show ^;
     assertNotSuggested('B');
   }
 
-  test_Combinator_show_PI() async {
+  Future<void> test_Combinator_show_PI() async {
     addTestSource('import "dart:math" show ^;');
     await computeSuggestions();
     assertSuggestTopLevelVar('PI', 'double',
         kind: CompletionSuggestionKind.IDENTIFIER);
   }
 
-  test_Combinator_show_recursive() async {
+  Future<void> test_Combinator_show_recursive() async {
     addSource('/home/test/lib/a.dart', '''
 class A {}
 ''');

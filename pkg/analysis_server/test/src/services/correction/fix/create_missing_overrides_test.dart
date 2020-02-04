@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateMissingOverridesTest);
   });
@@ -21,7 +21,7 @@ class CreateMissingOverridesTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_MISSING_OVERRIDES;
 
-  test_field_untyped() async {
+  Future<void> test_field_untyped() async {
     await resolveTestUnit('''
 class A {
   var f;
@@ -42,7 +42,7 @@ class B implements A {
 ''');
   }
 
-  test_functionTypeAlias() async {
+  Future<void> test_functionTypeAlias() async {
     await resolveTestUnit('''
 typedef int Binary(int left, int right);
 
@@ -69,7 +69,7 @@ class MyEmulator extends Emulator {
 ''');
   }
 
-  test_functionTypedParameter() async {
+  Future<void> test_functionTypedParameter() async {
     await resolveTestUnit('''
 abstract class A {
   void forEach(int f(double p1, String p2));
@@ -92,7 +92,7 @@ class B extends A {
 ''');
   }
 
-  test_generics_typeArguments() async {
+  Future<void> test_generics_typeArguments() async {
     await resolveTestUnit('''
 class Iterator<T> {
 }
@@ -120,7 +120,7 @@ class Test extends IterableMixin<int> {
 ''');
   }
 
-  test_generics_typeParameters() async {
+  Future<void> test_generics_typeParameters() async {
     await resolveTestUnit('''
 abstract class ItemProvider<T> {
   List<T> getItems();
@@ -144,7 +144,7 @@ class Test<V> extends ItemProvider<V> {
 ''');
   }
 
-  test_getter() async {
+  Future<void> test_getter() async {
     await resolveTestUnit('''
 abstract class A {
   get g1;
@@ -172,7 +172,7 @@ class B extends A {
 ''');
   }
 
-  test_importPrefix() async {
+  Future<void> test_importPrefix() async {
     await resolveTestUnit('''
 import 'dart:async' as aaa;
 abstract class A {
@@ -198,7 +198,7 @@ class B extends A {
 ''');
   }
 
-  test_mergeToField_getterSetter() async {
+  Future<void> test_mergeToField_getterSetter() async {
     await resolveTestUnit('''
 class A {
   int ma;
@@ -231,7 +231,7 @@ class B implements A {
 ''');
   }
 
-  test_method() async {
+  Future<void> test_method() async {
     await resolveTestUnit('''
 abstract class A {
   void m1();
@@ -309,7 +309,7 @@ class B extends A {
     }
   }
 
-  test_method_emptyClassBody() async {
+  Future<void> test_method_emptyClassBody() async {
     await resolveTestUnit('''
 abstract class A {
   void foo();
@@ -331,7 +331,7 @@ class B extends A {
 ''');
   }
 
-  test_method_generic() async {
+  Future<void> test_method_generic() async {
     await resolveTestUnit('''
 class C<T> {}
 class V<E> {}
@@ -361,7 +361,7 @@ class B implements A {
 ''');
   }
 
-  test_method_generic_withBounds() async {
+  Future<void> test_method_generic_withBounds() async {
     // https://github.com/dart-lang/sdk/issues/31199
     await resolveTestUnit('''
 abstract class A<K, V> {
@@ -386,7 +386,7 @@ class B<K, V> implements A<K, V> {
 ''');
   }
 
-  test_method_genericClass2() async {
+  Future<void> test_method_genericClass2() async {
     await resolveTestUnit('''
 class A<R> {
   R foo(int a) => null;
@@ -424,7 +424,7 @@ class X implements B<bool> {
 ''');
   }
 
-  test_method_notEmptyClassBody() async {
+  Future<void> test_method_notEmptyClassBody() async {
     await resolveTestUnit('''
 abstract class A {
   void foo();
@@ -450,7 +450,7 @@ class B extends A {
 ''');
   }
 
-  test_operator() async {
+  Future<void> test_operator() async {
     await resolveTestUnit('''
 abstract class A {
   int operator [](int index);
@@ -481,7 +481,7 @@ class B extends A {
 ''');
   }
 
-  test_setter() async {
+  Future<void> test_setter() async {
     await resolveTestUnit('''
 abstract class A {
   set s1(x);

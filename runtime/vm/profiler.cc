@@ -1144,6 +1144,17 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   OS::PrintErr(
       "version=%s\nthread=%" Pd ", isolate=%s(%p)\n", Version::String(),
       OSThread::ThreadIdToIntPtr(os_thread->trace_id()), name, isolate);
+  const IsolateGroupSource* source =
+      isolate == nullptr ? nullptr : isolate->source();
+  const IsolateGroupSource* vm_source =
+      Dart::vm_isolate() == nullptr ? nullptr : Dart::vm_isolate()->source();
+  OS::PrintErr("isolate_instructions=%" Px ", vm_instructions=%" Px "\n",
+               source == nullptr
+                   ? 0
+                   : reinterpret_cast<uword>(source->snapshot_instructions),
+               vm_source == nullptr
+                   ? 0
+                   : reinterpret_cast<uword>(vm_source->snapshot_instructions));
 
   if (!InitialRegisterCheck(pc, fp, sp)) {
     OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");

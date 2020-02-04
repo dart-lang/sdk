@@ -2703,10 +2703,12 @@ class AssistProcessor extends BaseProcessor {
     var changeBuilder = _newDartChangeBuilder();
     await changeBuilder.addFileEdit(file, (builder) {
       if (variableList.type == null) {
-        builder.addReplacement(range.token(variableList.keyword), (builder) {
-          var type = variable.declaredElement.type;
-          builder.writeType(type);
-        });
+        final type = variable.declaredElement.type;
+        if (!type.isDynamic) {
+          builder.addReplacement(range.token(variableList.keyword), (builder) {
+            builder.writeType(type);
+          });
+        }
       }
 
       var indent = utils.getNodePrefix(statement);
@@ -3000,7 +3002,7 @@ class AssistProcessor extends BaseProcessor {
     int listLoc = childArg.offset;
     String childArgSrc = getNodeText(childArg);
     if (!childArgSrc.contains(eol)) {
-      builder.addSimpleInsertion(listLoc, '<Widget>[');
+      builder.addSimpleInsertion(listLoc, '[');
       builder.addSimpleInsertion(listLoc + childArg.length, ']');
     } else {
       int newlineLoc = childArgSrc.lastIndexOf(eol);
@@ -3014,13 +3016,12 @@ class AssistProcessor extends BaseProcessor {
           getText(namedExp.offset, childArg.offset - namedExp.offset);
       String prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
-        builder.addSimpleInsertion(
-            namedExp.offset + 'child:'.length, ' <Widget>[');
+        builder.addSimpleInsertion(namedExp.offset + 'child:'.length, ' [');
         int argOffset = childArg.offset;
         builder
             .addDeletion(range.startOffsetEndOffset(argOffset - 2, argOffset));
       } else {
-        builder.addSimpleInsertion(listLoc, '<Widget>[');
+        builder.addSimpleInsertion(listLoc, '[');
       }
       String newChildArgSrc =
           _replaceSourceIndent(childArgSrc, indentOld, indentNew);
@@ -3160,13 +3161,13 @@ class AssistProcessor extends BaseProcessor {
   }
 }
 
-class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor {
+class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor<void> {
   final _SimpleIdentifierVisitor visitor;
 
   _SimpleIdentifierRecursiveAstVisitor(this.visitor);
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     visitor(node);
   }
 }
@@ -3175,13 +3176,13 @@ class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor {
  * A visitor used to find all of the classes that define members referenced via
  * `super`.
  */
-class _SuperclassReferenceFinder extends RecursiveAstVisitor {
+class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
   final List<ClassElement> referencedClasses = <ClassElement>[];
 
   _SuperclassReferenceFinder();
 
   @override
-  visitSuperExpression(SuperExpression node) {
+  void visitSuperExpression(SuperExpression node) {
     AstNode parent = node.parent;
     if (parent is BinaryExpression) {
       _addElement(parent.staticElement);

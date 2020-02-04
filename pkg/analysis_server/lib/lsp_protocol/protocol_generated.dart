@@ -713,7 +713,7 @@ class CodeActionKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is CodeActionKind && o._value == _value;
 }
@@ -2561,7 +2561,7 @@ class CompletionItemKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is CompletionItemKind && o._value == _value;
 }
@@ -3074,7 +3074,7 @@ class CompletionTriggerKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) =>
       o is CompletionTriggerKind && o._value == _value;
@@ -3941,7 +3941,7 @@ class DiagnosticSeverity {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is DiagnosticSeverity && o._value == _value;
 }
@@ -4910,7 +4910,7 @@ class DocumentHighlightKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) =>
       o is DocumentHighlightKind && o._value == _value;
@@ -6090,7 +6090,7 @@ class ErrorCodes {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is ErrorCodes && o._value == _value;
 }
@@ -6378,7 +6378,7 @@ class FailureHandlingKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is FailureHandlingKind && o._value == _value;
 }
@@ -6409,7 +6409,7 @@ class FileChangeType {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is FileChangeType && o._value == _value;
 }
@@ -6796,7 +6796,7 @@ class FoldingRangeKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is FoldingRangeKind && o._value == _value;
 }
@@ -7463,7 +7463,7 @@ class InsertTextFormat {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is InsertTextFormat && o._value == _value;
 }
@@ -7965,7 +7965,7 @@ class MarkupKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is MarkupKind && o._value == _value;
 }
@@ -8142,7 +8142,7 @@ class MessageType {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is MessageType && o._value == _value;
 }
@@ -8320,7 +8320,7 @@ class Method {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is Method && o._value == _value;
 }
@@ -10006,7 +10006,7 @@ class ResourceOperationKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) =>
       o is ResourceOperationKind && o._value == _value;
@@ -12010,7 +12010,7 @@ class SymbolKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is SymbolKind && o._value == _value;
 }
@@ -15752,7 +15752,7 @@ class TextDocumentSaveReason {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) =>
       o is TextDocumentSaveReason && o._value == _value;
@@ -15876,7 +15876,7 @@ class TextDocumentSyncKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is TextDocumentSyncKind && o._value == _value;
 }
@@ -16415,7 +16415,7 @@ class WatchKind {
   String toString() => _value.toString();
 
   @override
-  get hashCode => _value.hashCode;
+  int get hashCode => _value.hashCode;
 
   bool operator ==(Object o) => o is WatchKind && o._value == _value;
 }

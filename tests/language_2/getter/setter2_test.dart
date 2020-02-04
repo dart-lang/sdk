@@ -37,7 +37,7 @@ class T2 {
   C setterField;
   A get field {
   //    ^^^^^
-  // [analyzer] STATIC_WARNING.MISMATCHED_GETTER_AND_SETTER_TYPES
+  // [analyzer] STATIC_WARNING.GETTER_NOT_ASSIGNABLE_SETTER_TYPES
     return getterField;
   }
 

@@ -106,9 +106,7 @@ _BufferAndStart _ensureFastAndSerializableByteData(
   var newBuffer = new Uint8List(length);
   int j = start;
   for (int i = 0; i < length; i++) {
-    int value = buffer[j];
-    if (value == null) throw ArgumentError("List element is null at index $j");
-    newBuffer[i] = value;
+    newBuffer[i] = buffer[j];
     j++;
   }
   return new _BufferAndStart(newBuffer, 0);

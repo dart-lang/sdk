@@ -12,8 +12,7 @@ import 'sort_members_test.dart' as sort_members_test;
 import 'status_test.dart' as status_test;
 import 'util_test.dart' as util_test;
 
-/// Utility for manually running all tests.
-main() {
+void main() {
   defineReflectiveSuite(() {
     change_test.main();
     levenshtein_test.main();

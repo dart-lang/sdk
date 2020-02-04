@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveMethodDeclarationTest);
   });
@@ -23,7 +23,7 @@ class RemoveMethodDeclarationTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_overrides;
 
-  test_getter() async {
+  Future<void> test_getter() async {
     await resolveTestUnit('''
 class A {
   int x;
@@ -42,7 +42,7 @@ class B extends A {
 ''');
   }
 
-  test_method() async {
+  Future<void> test_method() async {
     await resolveTestUnit('''
 class A {
   @override
@@ -55,7 +55,7 @@ class A {
 ''');
   }
 
-  test_setter() async {
+  Future<void> test_setter() async {
     await resolveTestUnit('''
 class A {
   int x;

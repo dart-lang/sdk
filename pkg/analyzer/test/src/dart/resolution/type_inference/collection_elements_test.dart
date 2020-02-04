@@ -35,7 +35,7 @@ void f() async {
 T a<T>() => throw '';
 ''');
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Stream<Object?> Function()');
   }
 
   test_list_awaitForIn_int_downward() async {
@@ -69,7 +69,7 @@ void f() {
 T a<T>() => throw '';
 ''');
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Iterable<Object?> Function()');
   }
 
   test_list_forIn_int_downward() async {
@@ -93,7 +93,7 @@ void f() async {
 T a<T>() => throw '';
 ''');
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Stream<Object?> Function()');
   }
 
   test_map_awaitForIn_int_downward() async {
@@ -127,7 +127,7 @@ void f() {
 T a<T>() => throw '';
 ''');
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Iterable<Object?> Function()');
   }
 
   test_map_forIn_int_downward() async {
@@ -151,7 +151,7 @@ void f() async {
 T a<T>() => throw '';
 ''');
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Stream<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Stream<Object?> Function()');
   }
 
   test_set_awaitForIn_int_downward() async {
@@ -185,7 +185,7 @@ void f() {
 T a<T>() => throw '';
 ''');
     assertInvokeType(
-        findNode.methodInvocation('a('), 'Iterable<dynamic> Function()');
+        findNode.methodInvocation('a('), 'Iterable<Object?> Function()');
   }
 
   test_set_forIn_int_downward() async {

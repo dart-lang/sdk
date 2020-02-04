@@ -15,7 +15,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('SocketServer', () {
     test('createAnalysisServer_successful',
         SocketServerTest.createAnalysisServer_successful);

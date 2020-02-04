@@ -58,6 +58,8 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       this._classHierarchyBuilder,
       this._annotationsData);
 
+  DartTypes get _dartTypes => _commonElements.dartTypes;
+
   @override
   WorldImpact transformResolutionImpact(ResolutionImpact worldImpact) {
     TransformedWorldImpact transformed =
@@ -330,7 +332,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     type = _elementEnvironment.getUnaliasedType(type);
     registerImpact(_impacts.typeCheck);
 
-    if (!type.treatAsRaw ||
+    if (!_dartTypes.treatAsRawType(type) ||
         type.containsTypeVariables ||
         type is FunctionType) {
       registerImpact(_impacts.genericTypeCheck);
@@ -382,7 +384,8 @@ class CodegenImpactTransformer {
     type = type.unaliased;
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);
 
-    if (!type.treatAsRaw || type.containsTypeVariables) {
+    if (!_closedWorld.dartTypes.treatAsRawType(type) ||
+        type.containsTypeVariables) {
       _impacts.genericIsCheck.registerImpact(transformed, _elementEnvironment);
     }
     if (type is InterfaceType && _nativeData.isNativeClass(type.element)) {

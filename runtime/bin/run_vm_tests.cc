@@ -148,7 +148,8 @@ static Dart_Isolate CreateAndSetupServiceIsolate(const char* script_uri,
   if (!bin::VmService::Setup("127.0.0.1", 0,
                              /*dev_mode=*/false, /*auth_disabled=*/true,
                              /*write_service_info_filename*/ "",
-                             /*trace_loading=*/false, /*deterministic=*/true)) {
+                             /*trace_loading=*/false, /*deterministic=*/true,
+                             /*enable_service_port_fallback=*/false)) {
     *error = strdup(bin::VmService::GetErrorMessage());
     return nullptr;
   }

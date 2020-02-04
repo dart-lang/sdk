@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedMemberRelevanceTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class DeprecatedMemberRelevanceTest extends DartCompletionManagerTest {
-  test_deprecated() async {
+  Future<void> test_deprecated() async {
     addTestSource('''
 class A {
   void a1() { }

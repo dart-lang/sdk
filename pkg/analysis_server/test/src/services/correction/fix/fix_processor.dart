@@ -104,7 +104,7 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
     expect(resultCode, expected);
   }
 
-  assertHasFixAllFix(ErrorCode errorCode, String expected,
+  void assertHasFixAllFix(ErrorCode errorCode, String expected,
       {String target}) async {
     AnalysisError error = await _findErrorToFixOfType(errorCode);
     Fix fix = await _assertHasFixAllFix(error);

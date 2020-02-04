@@ -199,8 +199,8 @@ void testUint64Store() {
   free(ptr);
 }
 
-double maxFloat = (2 - pow(2, -23)) * pow(2, 127);
-double maxDouble = (2 - pow(2, -52)) * pow(2, pow(2, 10) - 1);
+double maxFloat = (2 - pow(2, -23)) * pow(2, 127) as double;
+double maxDouble = (2 - pow(2, -52)) * pow(2, pow(2, 10) - 1) as double;
 
 void testFloatLoad() {
   // Load

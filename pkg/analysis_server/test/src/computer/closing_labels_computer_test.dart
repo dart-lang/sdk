@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_context.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ClosingLabelsComputerTest);
   });
@@ -23,12 +23,12 @@ class ClosingLabelsComputerTest extends AbstractContextTest {
   String sourcePath;
 
   @override
-  setUp() {
+  void setUp() {
     super.setUp();
     sourcePath = convertPath('/home/test/lib/test.dart');
   }
 
-  test_adjacentLinesExcluded() async {
+  Future<void> test_adjacentLinesExcluded() async {
     String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
@@ -45,7 +45,7 @@ void myMethod() {
   /// When constructors span many like this, the node's start position is on the first line
   /// of the expression and not where the opening paren is, so this test ensures we
   /// don't end up with lots of unwanted labels on each line here.
-  test_chainedConstructorOverManyLines() async {
+  Future<void> test_chainedConstructorOverManyLines() async {
     String content = '''
 main() {
   return new thing
@@ -61,7 +61,7 @@ main() {
   /// When chaining methods like this, the node's start position is on the first line
   /// of the expression and not where the opening paren is, so this test ensures we
   /// don't end up with lots of unwanted labels on each line here.
-  test_chainedMethodsOverManyLines() async {
+  Future<void> test_chainedMethodsOverManyLines() async {
     String content = '''
 List<ClosingLabel> compute() {
   _unit.accept(new _DartUnitClosingLabelsComputerVisitor(this));
@@ -77,7 +77,7 @@ List<ClosingLabel> compute() {
     _compareLabels(labels, content, expectedLabelCount: 0);
   }
 
-  test_constConstructor() async {
+  Future<void> test_constConstructor() async {
     String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
@@ -93,7 +93,7 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_constNamedConstructor() async {
+  Future<void> test_constNamedConstructor() async {
     String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
@@ -109,7 +109,7 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_knownBadCode1() async {
+  Future<void> test_knownBadCode1() async {
     // This code crashed during testing when I accidentally inserted a test snippet.
     String content = """
 @override
@@ -138,7 +138,7 @@ Widget build(BuildContext context) {
     await _computeElements(content);
   }
 
-  test_labelsShownForMultipleElements() async {
+  Future<void> test_labelsShownForMultipleElements() async {
     String content = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
@@ -151,7 +151,7 @@ Widget build(BuildContext context) {
     _compareLabels(labels, content, expectedLabelCount: 1);
   }
 
-  test_labelsShownForMultipleElements_2() async {
+  Future<void> test_labelsShownForMultipleElements_2() async {
     String content = '''
 Widget build(BuildContext context) {
   return /*1*/new Row(
@@ -166,7 +166,7 @@ Widget build(BuildContext context) {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_listLiterals() async {
+  Future<void> test_listLiterals() async {
     String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
@@ -185,7 +185,7 @@ void myMethod() {
   /// When a line contains the end of a label, we need to ensure we also include any
   /// other labels that end on the same line, even if they are 1-2 lines, otherwise
   /// it isn't obvious which closing bracket goes with the label.
-  test_mixedLineSpanning() async {
+  Future<void> test_mixedLineSpanning() async {
     String content = '''
 main() {
     /*1*/new Foo((m) {
@@ -202,7 +202,7 @@ main() {
     _compareLabels(labels, content, expectedLabelCount: 3);
   }
 
-  test_multipleNested() async {
+  Future<void> test_multipleNested() async {
     String content = """
 Widget build(BuildContext context) {
   return /*1*/new Row(
@@ -226,7 +226,7 @@ Widget build(BuildContext context) {
     _compareLabels(labels, content, expectedLabelCount: 4);
   }
 
-  test_newConstructor() async {
+  Future<void> test_newConstructor() async {
     String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
@@ -242,7 +242,7 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_newNamedConstructor() async {
+  Future<void> test_newNamedConstructor() async {
     String content = '''
 void myMethod() {
   return /*1*/new Wrapper(
@@ -258,7 +258,7 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_noLabelsForOneElement() async {
+  Future<void> test_noLabelsForOneElement() async {
     String content = '''
 Widget build(BuildContext context) {
   return new Row(
@@ -270,7 +270,7 @@ Widget build(BuildContext context) {
     _compareLabels(labels, content, expectedLabelCount: 0);
   }
 
-  test_NoLabelsFromInterpolatedStrings() async {
+  Future<void> test_NoLabelsFromInterpolatedStrings() async {
     String content = """
 void main(HighlightRegionType type, int offset, int length) {
   /*1*/new Wrapper(
@@ -285,7 +285,7 @@ void main(HighlightRegionType type, int offset, int length) {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_prefixedConstConstructor() async {
+  Future<void> test_prefixedConstConstructor() async {
     String content = """
 import 'dart:async' as a;
 void myMethod() {
@@ -302,7 +302,7 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_prefixedConstNamedConstructor() async {
+  Future<void> test_prefixedConstNamedConstructor() async {
     String content = """
 import 'dart:async' as a;
 void myMethod() {
@@ -319,7 +319,7 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_prefixedNewConstructor() async {
+  Future<void> test_prefixedNewConstructor() async {
     String content = """
 import 'dart:async' as a;
 void myMethod() {
@@ -336,7 +336,7 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_prefixedNewNamedConstructor() async {
+  Future<void> test_prefixedNewNamedConstructor() async {
     String content = """
 import 'dart:async' as a;
 void myMethod() {
@@ -353,7 +353,7 @@ void myMethod() {
     _compareLabels(labels, content, expectedLabelCount: 2);
   }
 
-  test_sameLineExcluded() async {
+  Future<void> test_sameLineExcluded() async {
     String content = '''
 void myMethod() {
   return new Thing();

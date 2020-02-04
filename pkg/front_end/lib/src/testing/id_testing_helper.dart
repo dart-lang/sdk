@@ -42,9 +42,14 @@ class TestConfig {
   final String name;
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final Uri librariesSpecificationUri;
+  // TODO(johnniwinther): Tailor support to redefine selected platform
+  // classes/members only.
+  final bool compileSdk;
 
   const TestConfig(this.marker, this.name,
-      {this.experimentalFlags = const {}, this.librariesSpecificationUri});
+      {this.experimentalFlags = const {},
+      this.librariesSpecificationUri,
+      this.compileSdk: false});
 
   void customizeCompilerOptions(CompilerOptions options) {}
 }
@@ -273,6 +278,7 @@ Future<TestResult<T>> runTestForConfig<T>(
         testData.memorySourceFiles.keys.map(createUriForFileName).toSet();
     if (testFiles.contains(config.librariesSpecificationUri)) {
       options.librariesSpecificationUri = config.librariesSpecificationUri;
+      options.compileSdk = config.compileSdk;
     }
   }
   config.customizeCompilerOptions(options);

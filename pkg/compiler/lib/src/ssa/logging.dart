@@ -3,11 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../elements/entities.dart';
+import '../elements/types.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'nodes.dart';
 
 /// Log used for unit testing optimizations.
 class OptimizationTestLog {
+  final DartTypes _dartTypes;
+
+  OptimizationTestLog(this._dartTypes);
+
   List<OptimizationLogEntry> entries = [];
 
   Map<String, Set<HInstruction>> _unconverted;
@@ -76,7 +81,7 @@ class OptimizationTestLog {
       HInvokeDynamicGetter original, FieldEntity field, HConstant converted) {
     Features features = new Features();
     features['name'] = '${field.enclosingClass.name}.${field.name}';
-    features['value'] = converted.constant.toStructuredText();
+    features['value'] = converted.constant.toStructuredText(_dartTypes);
     entries.add(new OptimizationLogEntry('ConstantFieldGet', features));
   }
 
@@ -84,7 +89,7 @@ class OptimizationTestLog {
       HInvokeDynamicMethod original, FieldEntity field, HConstant converted) {
     Features features = new Features();
     features['name'] = '${field.enclosingClass.name}.${field.name}';
-    features['value'] = converted.constant.toStructuredText();
+    features['value'] = converted.constant.toStructuredText(_dartTypes);
     entries.add(new OptimizationLogEntry('ConstantFieldCall', features));
   }
 
@@ -202,7 +207,7 @@ class OptimizationTestLog {
   void registerCompareTo(HInvokeDynamic original, [HConstant converted]) {
     Features features = new Features();
     if (converted != null) {
-      features['constant'] = converted.constant.toDartText();
+      features['constant'] = converted.constant.toDartText(_dartTypes);
     }
     entries.add(new OptimizationLogEntry('CompareTo', features));
   }

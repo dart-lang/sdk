@@ -116,7 +116,7 @@ class Flutter {
     int listLoc = childArg.offset;
     String childArgSrc = getNodeText(childArg);
     if (!childArgSrc.contains(eol)) {
-      _addInsertEdit(listLoc, '<Widget>[');
+      _addInsertEdit(listLoc, '[');
       _addInsertEdit(listLoc + childArg.length, ']');
     } else {
       int newlineLoc = childArgSrc.lastIndexOf(eol);
@@ -130,10 +130,10 @@ class Flutter {
           getText(namedExp.offset, childArg.offset - namedExp.offset);
       String prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
-        _addInsertEdit(namedExp.offset + 'child:'.length, ' <Widget>[');
+        _addInsertEdit(namedExp.offset + 'child:'.length, ' [');
         _addRemoveEdit(SourceRange(childArg.offset - 2, 2));
       } else {
-        _addInsertEdit(listLoc, '<Widget>[');
+        _addInsertEdit(listLoc, '[');
       }
       String newChildArgSrc = childArgSrc.replaceAll(
           RegExp('^$indentOld', multiLine: true), '$indentNew');
@@ -157,7 +157,7 @@ class Flutter {
     int listLoc = childArg.offset;
     String childArgSrc = getNodeText(childArg);
     if (!childArgSrc.contains(eol)) {
-      builder.addSimpleInsertion(listLoc, '<Widget>[');
+      builder.addSimpleInsertion(listLoc, '[');
       builder.addSimpleInsertion(listLoc + childArg.length, ']');
     } else {
       int newlineLoc = childArgSrc.lastIndexOf(eol);
@@ -171,11 +171,10 @@ class Flutter {
           getText(namedExp.offset, childArg.offset - namedExp.offset);
       String prefix = separator.contains(eol) ? '' : '$eol$indentNew';
       if (prefix.isEmpty) {
-        builder.addSimpleInsertion(
-            namedExp.offset + 'child:'.length, ' <Widget>[');
+        builder.addSimpleInsertion(namedExp.offset + 'child:'.length, ' [');
         builder.addDeletion(SourceRange(childArg.offset - 2, 2));
       } else {
-        builder.addSimpleInsertion(listLoc, '<Widget>[');
+        builder.addSimpleInsertion(listLoc, '[');
       }
       String newChildArgSrc = childArgSrc.replaceAll(
           RegExp('^$indentOld', multiLine: true), '$indentNew');

@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToMapLiteralTest);
   });
@@ -19,7 +19,7 @@ class ConvertToMapLiteralTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_MAP_LITERAL;
 
-  test_default_declaredType() async {
+  Future<void> test_default_declaredType() async {
     await resolveTestUnit('''
 Map m = Ma/*caret*/p();
 ''');
@@ -28,7 +28,7 @@ Map m = {};
 ''');
   }
 
-  test_default_linkedHashMap() async {
+  Future<void> test_default_linkedHashMap() async {
     await resolveTestUnit('''
 import 'dart:collection';
 var m = LinkedHashMa/*caret*/p();
@@ -39,7 +39,7 @@ var m = {};
 ''');
   }
 
-  test_default_minimal() async {
+  Future<void> test_default_minimal() async {
     await resolveTestUnit('''
 var m = Ma/*caret*/p();
 ''');
@@ -48,7 +48,7 @@ var m = {};
 ''');
   }
 
-  test_default_newKeyword() async {
+  Future<void> test_default_newKeyword() async {
     await resolveTestUnit('''
 var m = new Ma/*caret*/p();
 ''');
@@ -57,7 +57,7 @@ var m = {};
 ''');
   }
 
-  test_default_typeArg() async {
+  Future<void> test_default_typeArg() async {
     await resolveTestUnit('''
 var m = Ma/*caret*/p<String, int>();
 ''');

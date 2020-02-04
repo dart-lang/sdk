@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LintIntegrationTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class LintIntegrationTest extends AbstractAnalysisServerIntegrationTest {
-  test_no_lints_when_not_specified() async {
+  Future<void> test_no_lints_when_not_specified() async {
     String source = sourcePath('test.dart');
     writeFile(source, '''
 class abc { // lint: not CamelCase (should get ignored though)
@@ -31,7 +31,7 @@ class abc { // lint: not CamelCase (should get ignored though)
     expect(errors, hasLength(0));
   }
 
-  test_simple_lint_newOptionsFile() async {
+  Future<void> test_simple_lint_newOptionsFile() async {
     writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE), '''
 linter:
   rules:
@@ -56,7 +56,7 @@ class a { // lint: not CamelCase
     expect(error.type, AnalysisErrorType.LINT);
   }
 
-  test_simple_lint_oldOptionsFile() async {
+  Future<void> test_simple_lint_oldOptionsFile() async {
     writeFile(sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_FILE), '''
 linter:
   rules:

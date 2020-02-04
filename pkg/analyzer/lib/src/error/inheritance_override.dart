@@ -14,6 +14,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/correct_override.dart';
+import 'package:analyzer/src/error/getter_setter_types_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/type_system.dart';
 
@@ -184,7 +186,10 @@ class _ClassVerifier {
       _reportInconsistentInheritance(classNameNode, conflict);
     }
 
-    _checkForMismatchedAccessorTypes(interface);
+    GetterSetterTypesVerifier(
+      typeSystem: typeSystem,
+      errorReporter: reporter,
+    ).checkInterface(classElement, interface);
 
     if (!classElement.isAbstract) {
       List<ExecutableElement> inheritedAbstract;
@@ -226,20 +231,14 @@ class _ClassVerifier {
         //  diagnostic should be reported on the name of the mixin defining the
         //  method. In other cases, it should be reported on the name of the
         //  overriding method. The classNameNode is always wrong.
-        if (!typeSystem.isOverrideSubtypeOf(
-            concreteElement.type, interfaceElement.type)) {
-          reporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_OVERRIDE,
-            classNameNode,
-            [
-              name.name,
-              interfaceElement.enclosingElement.name,
-              interfaceElement.type,
-              concreteElement.enclosingElement.name,
-              concreteElement.type,
-            ],
-          );
-        }
+        CorrectOverrideHelper(
+          typeSystem: typeSystem,
+          errorReporter: reporter,
+          thisMember: concreteElement,
+        ).verify(
+          superMember: interfaceElement,
+          errorNode: classNameNode,
+        );
       }
 
       _reportInheritedAbstractMembers(inheritedAbstract);
@@ -271,35 +270,35 @@ class _ClassVerifier {
     if (member.isStatic) return;
 
     var name = Name(libraryUri, member.name);
+    var correctOverrideHelper = CorrectOverrideHelper(
+      typeSystem: typeSystem,
+      errorReporter: reporter,
+      thisMember: member,
+    );
+
     for (var superInterface in allSuperinterfaces) {
       var superMember = superInterface.declared[name];
-      if (superMember != null) {
-        // The case when members have different kinds is reported in verifier.
-        // TODO(scheglov) Do it here?
-        if (member.kind != superMember.kind) {
-          continue;
-        }
+      if (superMember == null) {
+        continue;
+      }
 
-        if (!typeSystem.isOverrideSubtypeOf(member.type, superMember.type)) {
-          reporter.reportErrorForNode(
-            CompileTimeErrorCode.INVALID_OVERRIDE,
-            node,
-            [
-              name.name,
-              member.enclosingElement.name,
-              member.type,
-              superMember.enclosingElement.name,
-              superMember.type,
-            ],
-          );
-        }
-        if (methodParameterNodes != null) {
-          _checkForOptionalParametersDifferentDefaultValues(
-            superMember,
-            member,
-            methodParameterNodes,
-          );
-        }
+      // The case when members have different kinds is reported in verifier.
+      // TODO(scheglov) Do it here?
+      if (member.kind != superMember.kind) {
+        continue;
+      }
+
+      correctOverrideHelper.verify(
+        superMember: superMember,
+        errorNode: node,
+      );
+
+      if (methodParameterNodes != null) {
+        _checkForOptionalParametersDifferentDefaultValues(
+          superMember,
+          member,
+          methodParameterNodes,
+        );
       }
     }
   }
@@ -383,49 +382,6 @@ class _ClassVerifier {
       }
     }
     return hasError;
-  }
-
-  void _checkForMismatchedAccessorTypes(Interface interface) {
-    for (var name in interface.map.keys) {
-      if (!name.isAccessibleFor(libraryUri)) continue;
-
-      var getter = interface.map[name];
-      if (getter.kind == ElementKind.GETTER) {
-        // TODO(scheglov) We should separate getters and setters.
-        var setter = interface.map[Name(libraryUri, '${name.name}=')];
-        if (setter != null && setter.parameters.length == 1) {
-          var getterType = getter.returnType;
-          var setterType = setter.parameters[0].type;
-          if (!typeSystem.isAssignableTo(getterType, setterType)) {
-            Element errorElement;
-            if (getter.enclosingElement == classElement) {
-              errorElement = getter;
-            } else if (setter.enclosingElement == classElement) {
-              errorElement = setter;
-            } else {
-              errorElement = classElement;
-            }
-
-            String getterName = getter.displayName;
-            if (getter.enclosingElement != classElement) {
-              var getterClassName = getter.enclosingElement.displayName;
-              getterName = '$getterClassName.$getterName';
-            }
-
-            String setterName = setter.displayName;
-            if (setter.enclosingElement != classElement) {
-              var setterClassName = setter.enclosingElement.displayName;
-              setterName = '$setterClassName.$setterName';
-            }
-
-            reporter.reportErrorForElement(
-                StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
-                errorElement,
-                [getterName, getterType, setterType, setterName]);
-          }
-        }
-      }
-    }
   }
 
   void _checkForOptionalParametersDifferentDefaultValues(

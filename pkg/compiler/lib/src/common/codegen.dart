@@ -958,7 +958,7 @@ class ModularExpression extends js.DeferredExpression
     StringBuffer sb = new StringBuffer();
     sb.write('ModularExpression(kind=$kind,data=');
     if (data is ConstantValue) {
-      sb.write((data as ConstantValue).toStructuredText());
+      sb.write((data as ConstantValue).toStructuredText(null));
     } else {
       sb.write(data);
     }

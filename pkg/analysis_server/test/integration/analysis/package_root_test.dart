@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SetAnalysisRootsTest);
   });
@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class SetAnalysisRootsTest extends AbstractAnalysisServerIntegrationTest {
-  xtest_package_root() async {
+  Future<void> xtest_package_root() async {
     // TODO(devoncarew): This test fails intermittently on the bots; #33879.
     String projPath = sourcePath('project');
     String mainPath = path.join(projPath, 'main.dart');

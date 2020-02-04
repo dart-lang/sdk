@@ -20,6 +20,8 @@ import 'universe/selector.dart' show Selector;
 
 /// The common elements and types in Dart.
 abstract class CommonElements {
+  DartTypes get dartTypes;
+
   /// The `Object` class defined in 'dart:core'.
   ClassEntity get objectClass;
 
@@ -658,10 +660,12 @@ abstract class JCommonElements implements CommonElements {
 
 class CommonElementsImpl
     implements CommonElements, KCommonElements, JCommonElements {
+  @override
+  final DartTypes dartTypes;
   final ElementEnvironment _env;
   final CompilerOptions _options;
 
-  CommonElementsImpl(this._env, this._options);
+  CommonElementsImpl(this.dartTypes, this._env, this._options);
 
   ClassEntity _objectClass;
   @override
@@ -1025,7 +1029,7 @@ class CommonElementsImpl
 
   @override
   InterfaceType getConstantListTypeFor(InterfaceType sourceType) =>
-      sourceType.treatAsRaw
+      dartTypes.treatAsRawType(sourceType)
           ? _env.getRawType(jsArrayClass)
           : _env.createInterfaceType(jsArrayClass, sourceType.typeArguments);
 
@@ -1036,7 +1040,7 @@ class CommonElementsImpl
         ? (hasProtoKey ? constantProtoMapClass : constantStringMapClass)
         : generalConstantMapClass;
     List<DartType> typeArgument = sourceType.typeArguments;
-    if (sourceType.treatAsRaw) {
+    if (dartTypes.treatAsRawType(sourceType)) {
       return _env.getRawType(classElement);
     } else {
       return _env.createInterfaceType(classElement, typeArgument);
@@ -1045,7 +1049,7 @@ class CommonElementsImpl
 
   @override
   InterfaceType getConstantSetTypeFor(InterfaceType sourceType) =>
-      sourceType.treatAsRaw
+      dartTypes.treatAsRawType(sourceType)
           ? _env.getRawType(constSetLiteralClass)
           : _env.createInterfaceType(
               constSetLiteralClass, sourceType.typeArguments);

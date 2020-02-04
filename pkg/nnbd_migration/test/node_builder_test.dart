@@ -39,7 +39,7 @@ void f() {
     expect(exceptionType.node, TypeMatcher<NullabilityNodeMutable>());
     var stackTraceType =
         variables.decoratedElementType(findNode.simple('st').staticElement);
-    assertEdge(stackTraceType.node, never, hard: true);
+    assertEdge(stackTraceType.node, never, hard: true, checkable: false);
   }
 
   Future<void> test_catch_clause_with_stacktrace_without_on() async {
@@ -53,7 +53,7 @@ void f() {
     expect(exceptionType.node.isImmutable, false);
     var stackTraceType =
         variables.decoratedElementType(findNode.simple('st').staticElement);
-    assertEdge(stackTraceType.node, never, hard: true);
+    assertEdge(stackTraceType.node, never, hard: true, checkable: false);
   }
 
   Future<void> test_catch_clause_without_catch() async {
@@ -313,7 +313,7 @@ class C<T, U> {}
     var types = decoratedDirectSupertypes('C');
     var decorated = types[typeProvider.objectType.element];
     expect(decorated.type.toString(), 'Object');
-    assertEdge(decorated.node, never, hard: true);
+    assertEdge(decorated.node, never, hard: true, checkable: false);
     expect(decorated.typeArguments, isEmpty);
   }
 
@@ -419,7 +419,7 @@ mixin C<T, U> {}
     var types = decoratedDirectSupertypes('C');
     var decorated = types[typeProvider.objectType.element];
     expect(decorated.type.toString(), 'Object');
-    assertEdge(decorated.node, never, hard: true);
+    assertEdge(decorated.node, never, hard: true, checkable: false);
     expect(decorated.typeArguments, isEmpty);
   }
 
@@ -1513,7 +1513,8 @@ var x = f();
     await analyze('''
 void f(int/*!*/ i) {}
 ''');
-    assertEdge(decoratedTypeAnnotation('int').node, never, hard: true);
+    assertEdge(decoratedTypeAnnotation('int').node, never,
+        hard: true, checkable: false);
   }
 
   Future<void> test_type_comment_question() async {

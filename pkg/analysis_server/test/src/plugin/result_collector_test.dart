@@ -6,7 +6,7 @@ import 'package:analysis_server/src/plugin/result_collector.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ResultCollectorTest);
   });

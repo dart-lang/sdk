@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_rename.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameExtensionMemberTest);
   });
@@ -23,7 +23,7 @@ class RenameExtensionMemberTest extends RenameRefactoringTest {
     super.setUp();
   }
 
-  test_checkFinalConditions_hasMember_MethodElement() async {
+  Future<void> test_checkFinalConditions_hasMember_MethodElement() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -40,7 +40,7 @@ extension E on int {
         expectedContextSearch: 'newName() {} // existing');
   }
 
-  test_checkFinalConditions_OK_dropSuffix() async {
+  Future<void> test_checkFinalConditions_OK_dropSuffix() async {
     await indexTestUnit(r'''
 extension E on int {
   void testOld() {}
@@ -53,7 +53,8 @@ extension E on int {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowed_byLocalFunction_inExtension() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byLocalFunction_inExtension() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -76,7 +77,8 @@ extension E on int {
     );
   }
 
-  test_checkFinalConditions_shadowed_byLocalVariable_inExtension() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byLocalVariable_inExtension() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -99,7 +101,8 @@ extension E on int {
     );
   }
 
-  test_checkFinalConditions_shadowed_byParameter_inExtension() async {
+  Future<void>
+      test_checkFinalConditions_shadowed_byParameter_inExtension() async {
     await indexTestUnit('''
 extension E on int {
   test() {}
@@ -121,7 +124,7 @@ extension E on int {
     );
   }
 
-  test_checkInitialConditions_operator() async {
+  Future<void> test_checkInitialConditions_operator() async {
     await indexTestUnit('''
 extension E on int {
   operator -(other) => null;
@@ -134,7 +137,7 @@ extension E on int {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
-  test_checkNewName_FieldElement() async {
+  Future<void> test_checkNewName_FieldElement() async {
     await indexTestUnit('''
 extension E on int {
   int get test => 0;
@@ -154,7 +157,7 @@ extension E on int {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_MethodElement() async {
+  Future<void> test_checkNewName_MethodElement() async {
     await indexTestUnit('''
 extension E on int {
   void test() {}
@@ -191,7 +194,7 @@ extension E on int {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_createChange_MethodElement_instance() async {
+  Future<void> test_createChange_MethodElement_instance() async {
     await indexTestUnit('''
 class A {}
 
@@ -227,7 +230,7 @@ main() {
 ''');
   }
 
-  test_createChange_PropertyAccessorElement_getter() async {
+  Future<void> test_createChange_PropertyAccessorElement_getter() async {
     await indexTestUnit('''
 extension E on int {
   get test {} // marker
@@ -270,7 +273,7 @@ main() {
 ''');
   }
 
-  test_createChange_PropertyAccessorElement_setter() async {
+  Future<void> test_createChange_PropertyAccessorElement_setter() async {
     await indexTestUnit('''
 extension E on int {
   get test {}
@@ -313,7 +316,7 @@ main() {
 ''');
   }
 
-  test_createChange_TypeParameterElement() async {
+  Future<void> test_createChange_TypeParameterElement() async {
     await indexTestUnit('''
 extension E<Test> on int {
   Test get g1 => null;

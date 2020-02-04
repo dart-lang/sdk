@@ -8,7 +8,7 @@ import 'flutter_test.dart' as flutter_test;
 import 'profiling_test.dart' as profiling_test;
 import 'strings_test.dart' as strings_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     flutter_test.main();
     profiling_test.main();

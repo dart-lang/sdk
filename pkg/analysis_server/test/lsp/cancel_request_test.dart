@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../tool/lsp_spec/matchers.dart';
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CancelRequestTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class CancelRequestTest extends AbstractLspAnalysisServerTest {
-  test_cancel() async {
+  Future<void> test_cancel() async {
     final content = '''
 main() {
   InOtherF^

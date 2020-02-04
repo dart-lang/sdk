@@ -48,6 +48,12 @@ class Emitter(object):
     named hole in the template.  The holes are filled by emitting to the
     corresponding emitter.
 
+    Subtemplates can be created by using $#NAME(...), where text can be placed
+    inside of the parentheses and will conditionally expand depdending on if
+    NAME is set to True or False. The text inside the parentheses may use
+    further $#NAME and $NAME substitutions, but is not permitted to create
+    holes.
+
     Emit returns either a single Emitter if the template contains one hole or a
     tuple of emitters for several holes, in the order that the holes occur in
     the template.
@@ -60,7 +66,6 @@ class Emitter(object):
     def _Emit(self, template_source, parameters):
         """Implementation of Emit, with map in place of named parameters."""
         template = self._ParseTemplate(template_source)
-
         parameter_bindings = self._bindings.Extend(parameters)
 
         hole_names = template._holes
@@ -76,7 +81,7 @@ class Emitter(object):
         else:
             full_bindings = parameter_bindings
 
-        self._ApplyTemplate(template, full_bindings)
+        self._ApplyTemplate(template, full_bindings, self._items)
 
         # Return None, a singleton or tuple of the hole names.
         if not hole_names:
@@ -96,9 +101,28 @@ class Emitter(object):
             elif isinstance(item, Emitter.DeferredLookup):
                 value = item._environment.Lookup(item._lookup._name,
                                                  item._lookup._value_if_missing)
-                _FlattenTo(value, output)
+                if item._lookup._subtemplate:
+                    _FlattenSubtemplate(item, value, output)
+                else:
+                    _FlattenTo(value, output)
             else:
                 output.append(str(item))
+
+        def _FlattenSubtemplate(item, value, output):
+            """Handles subtemplates created by $#NAME(...)"""
+            if value is True:
+                # Expand items in subtemplate
+                _FlattenTo(item._lookup._subitems, output)
+            elif value is not False:
+                if value != item._lookup._value_if_missing:
+                    raise RuntimeError(
+                        'Value for NAME in $#NAME(...) syntax must be a boolean'
+                    )
+                # Expand it into the string literal composed of $#NAME(,
+                # the values inside the parentheses, and ).
+                _FlattenTo(value, output)
+                _FlattenTo(item._lookup._subitems, output)
+                _FlattenTo(')', output)
 
         output = []
         _FlattenTo(self._items, output)
@@ -111,7 +135,7 @@ class Emitter(object):
             raise RuntimeError('Cannot have holes in Emitter.Bind')
         bindings = self._bindings.Extend(parameters)
         value = Emitter(bindings)
-        value._ApplyTemplate(template, bindings)
+        value._ApplyTemplate(template, bindings, self._items)
         self._bindings = self._bindings.Extend({var: value._items})
         return value
 
@@ -150,6 +174,35 @@ class Emitter(object):
                 items.append(item)
                 holes.append(name)
                 continue
+            name = match.group(7)                    # $#NAME(...)
+            if name:
+                # Since it's possible for this to nest, find the matching right
+                # paren for this left paren.
+                paren_count = 1
+                curr_pos = pos
+                while curr_pos < len(source):
+                    if source[curr_pos] == ')':
+                        paren_count -= 1
+                        if paren_count == 0:
+                            break
+                    elif source[curr_pos] == '(':
+                        # Account for nested parentheses
+                        paren_count += 1
+                    curr_pos += 1
+                if curr_pos == len(source):
+                    # No matching right paren, so not a lookup. Ignore and
+                    # continue.
+                    items.append(term)
+                    continue
+                matched_template = self._ParseTemplate(source[pos:curr_pos])
+                if len(matched_template._holes) > 0:
+                    raise RuntimeError(
+                        '$#NAME syntax cannot contains holes in its arguments')
+                item = Emitter.Lookup(name, term, term, matched_template)
+                items.append(item)
+                # Continue after the right paren
+                pos = curr_pos + 1
+                continue
             raise RuntimeError('Unexpected group')
 
         if len(holes) != len(set(holes)):
@@ -157,10 +210,11 @@ class Emitter(object):
         return Emitter.Template(items, holes)
 
     _SUBST_RE = re.compile(
-        #  $FOO    $(FOO)      $!FOO    $(!FOO)      $?FOO     $(?FOO)
-        r'\$(\w+)|\$\((\w+)\)|\$!(\w+)|\$\(!(\w+)\)|\$\?(\w+)|\$\(\?(\w+)\)')
+        #  $FOO    $(FOO)      $!FOO    $(!FOO)      $?FOO     $(?FOO)       $#FOO(
+        r'\$(\w+)|\$\((\w+)\)|\$!(\w+)|\$\(!(\w+)\)|\$\?(\w+)|\$\(\?(\w+)\)|\$#(\w+)\('
+    )
 
-    def _ApplyTemplate(self, template, bindings):
+    def _ApplyTemplate(self, template, bindings, items_list):
         """Emits the items from the parsed template."""
         result = []
         for item in template._items:
@@ -171,19 +225,26 @@ class Emitter(object):
                 # Bind lookup to the current environment (bindings)
                 # TODO(sra): More space efficient to do direct lookup.
                 result.append(Emitter.DeferredLookup(item, bindings))
+                # If the item has a subtemplate, apply the subtemplate and save
+                # the result in the item's subitems
+                if item._subtemplate:
+                    self._ApplyTemplate(item._subtemplate, bindings,
+                                        item._subitems)
             else:
                 raise RuntimeError('Unexpected template element')
         # Collected fragments are in a sublist, so self._items contains one element
         # (sublist) per template application.
-        self._items.append(result)
+        items_list.append(result)
 
     class Lookup(object):
         """An element of a parsed template."""
 
-        def __init__(self, name, original, default):
+        def __init__(self, name, original, default, subtemplate=None):
             self._name = name
             self._original = original
             self._value_if_missing = default
+            self._subtemplate = subtemplate
+            self._subitems = []
 
     class DeferredLookup(object):
         """A lookup operation that is deferred until final string generation."""

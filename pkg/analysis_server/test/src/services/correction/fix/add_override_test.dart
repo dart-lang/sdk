@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddOverrideTest);
   });
@@ -23,7 +23,7 @@ class AddOverrideTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.annotate_overrides;
 
-  test_field() async {
+  Future<void> test_field() async {
     await resolveTestUnit('''
 class abstract Test {
   int get t;
@@ -43,7 +43,7 @@ class Sub extends Test {
 ''');
   }
 
-  test_getter() async {
+  Future<void> test_getter() async {
     await resolveTestUnit('''
 class Test {
   int get t => null;
@@ -63,7 +63,7 @@ class Sub extends Test {
 ''');
   }
 
-  test_method() async {
+  Future<void> test_method() async {
     await resolveTestUnit('''
 class Test {
   void t() { }
@@ -83,7 +83,7 @@ class Sub extends Test {
 ''');
   }
 
-  test_method_with_doc_comment() async {
+  Future<void> test_method_with_doc_comment() async {
     await resolveTestUnit('''
 class Test {
   void t() { }
@@ -105,7 +105,7 @@ class Sub extends Test {
 ''');
   }
 
-  test_method_with_doc_comment_2() async {
+  Future<void> test_method_with_doc_comment_2() async {
     await resolveTestUnit('''
 class Test {
   void t() { }
@@ -131,7 +131,7 @@ class Sub extends Test {
 ''');
   }
 
-  test_method_with_doc_comment_and_metadata() async {
+  Future<void> test_method_with_doc_comment_and_metadata() async {
     await resolveTestUnit('''
 class Test {
   void t() { }
@@ -155,7 +155,7 @@ class Sub extends Test {
 ''');
   }
 
-  test_method_with_non_doc_comment() async {
+  Future<void> test_method_with_non_doc_comment() async {
     await resolveTestUnit('''
 class Test {
   void t() { }

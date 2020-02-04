@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_rename.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameConstructorTest);
   });
@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class RenameConstructorTest extends RenameRefactoringTest {
-  test_checkInitialConditions_inSDK() async {
+  Future<void> test_checkInitialConditions_inSDK() async {
     await indexTestUnit('''
 main() {
   new String.fromCharCodes([]);
@@ -35,7 +35,7 @@ main() {
             "The constructor 'String.fromCharCodes' is defined in the SDK, so cannot be renamed.");
   }
 
-  test_checkNewName() async {
+  Future<void> test_checkNewName() async {
     await indexTestUnit('''
 class A {
   A.test() {}
@@ -62,7 +62,7 @@ class A {
     assertRefactoringStatusOK(refactoring.checkNewName());
   }
 
-  test_checkNewName_hasMember_constructor() async {
+  Future<void> test_checkNewName_hasMember_constructor() async {
     await indexTestUnit('''
 class A {
   A.test() {}
@@ -79,7 +79,7 @@ class A {
         expectedContextSearch: 'newName() {} // existing');
   }
 
-  test_checkNewName_hasMember_method() async {
+  Future<void> test_checkNewName_hasMember_method() async {
     await indexTestUnit('''
 class A {
   A.test() {}
@@ -96,7 +96,7 @@ class A {
         expectedContextSearch: 'newName() {} // existing');
   }
 
-  test_createChange_add() async {
+  Future<void> test_createChange_add() async {
     await indexTestUnit('''
 class A {
   A() {} // marker
@@ -130,7 +130,7 @@ main() {
 ''');
   }
 
-  test_createChange_add_toSynthetic() async {
+  Future<void> test_createChange_add_toSynthetic() async {
     await indexTestUnit('''
 class A {
 }
@@ -161,7 +161,7 @@ main() {
 ''');
   }
 
-  test_createChange_change() async {
+  Future<void> test_createChange_change() async {
     await indexTestUnit('''
 class A {
   A.test() {} // marker
@@ -195,7 +195,7 @@ main() {
 ''');
   }
 
-  test_createChange_remove() async {
+  Future<void> test_createChange_remove() async {
     await indexTestUnit('''
 class A {
   A.test() {} // marker
@@ -229,7 +229,7 @@ main() {
 ''');
   }
 
-  test_newInstance_nullElement() async {
+  Future<void> test_newInstance_nullElement() async {
     await indexTestUnit('');
     var workspace = RefactoringWorkspace([driver], searchEngine);
     var refactoring = RenameRefactoring(workspace, testAnalysisResult, null);

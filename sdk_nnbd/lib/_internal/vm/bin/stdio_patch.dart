@@ -2,43 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // part of "common_patch.dart";
 
 @patch
 class _StdIOUtils {
   @patch
   static Stdin _getStdioInputStream(int fd) {
-    switch (_getStdioHandleType(fd)) {
+    final type = _getStdioHandleType(fd);
+    if (type is OSError) {
+      throw FileSystemException(
+          "Failed to get type of stdio handle (fd $fd)", "", type);
+    }
+    switch (type) {
       case _stdioHandleTypeTerminal:
       case _stdioHandleTypePipe:
       case _stdioHandleTypeSocket:
+      case _stdioHandleTypeOther:
         return new Stdin._(new _Socket._readPipe(fd), fd);
       case _stdioHandleTypeFile:
         return new Stdin._(new _FileStream.forStdin(), fd);
-      default:
-        throw new FileSystemException(
-            "Couldn't determine file type of stdin (fd $fd)");
     }
   }
 
   @patch
   static _getStdioOutputStream(int fd) {
-    switch (_getStdioHandleType(fd)) {
-      case _stdioHandleTypeTerminal:
-      case _stdioHandleTypePipe:
-      case _stdioHandleTypeSocket:
-      case _stdioHandleTypeFile:
-        return new Stdout._(new IOSink(new _StdConsumer(fd)), fd);
-      default:
-        throw new FileSystemException(
-            "Couldn't determine file type of stdio handle (fd $fd)");
+    final type = _getStdioHandleType(fd);
+    if (type is OSError) {
+      throw FileSystemException(
+          "Failed to get type of stdio handle (fd $fd)", "", type);
     }
+    return new Stdout._(new IOSink(new _StdConsumer(fd)), fd);
   }
 
   @patch
-  static int _socketType(Socket socket) {
+  static int? _socketType(Socket socket) {
     if (socket is _Socket) return _nativeSocketType(socket._nativeSocket);
     return null;
   }

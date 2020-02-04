@@ -2586,17 +2586,17 @@ class Base {
 }
 
 class T1 extends Base {
-  B get /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
+  B get /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f => null;
 }
 
 class T2 extends Base {
-  set /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(
+  set /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f(
       B b) => null;
 }
 
 class T3 extends Base {
   final B
-      /*error:FINAL_NOT_INITIALIZED, error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f;
+      /*error:FINAL_NOT_INITIALIZED, error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f;
 }
 class T4 extends Base {
   // two: one for the getter one for the setter.
@@ -2604,15 +2604,15 @@ class T4 extends Base {
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER*/T5 implements Base {
-  /**/B get /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f => null;
+  /**/B get /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER*/T6 implements Base {
-  set /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f(B b) => null;
+  set /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f(B b) => null;
 }
 
 class /*error:NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER*/T7 implements Base {
-  final B /*error:INVALID_OVERRIDE, error:MISMATCHED_GETTER_AND_SETTER_TYPES*/f = null;
+  final B /*error:INVALID_OVERRIDE, error:GETTER_NOT_ASSIGNABLE_SETTER_TYPES*/f = null;
 }
 class T8 implements Base {
   // two: one for the getter one for the setter.

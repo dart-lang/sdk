@@ -11,8 +11,10 @@ import 'element_map.dart';
 /// Support for subtype checks of kernel based [DartType]s.
 class KernelDartTypes extends DartTypes {
   final IrToElementMap elementMap;
+  @override
+  final bool useLegacySubtyping;
 
-  KernelDartTypes(this.elementMap);
+  KernelDartTypes(this.elementMap, this.useLegacySubtyping);
 
   @override
   InterfaceType getThisType(ClassEntity cls) {

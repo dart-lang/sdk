@@ -6,11 +6,16 @@
 // on the dart2js internals.
 library compiler.src.kernel.dart2js_target;
 
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show Message, LocatedMessage;
+import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/core_types.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/core_types.dart';
 import 'package:kernel/reference_from_index.dart';
+import 'package:kernel/target/changed_structure_notifier.dart';
 import 'package:kernel/target/targets.dart';
+
 import 'invocation_mirror_constants.dart';
 
 const Iterable<String> _allowedDartSchemePaths = const <String>[
@@ -88,7 +93,14 @@ class Dart2jsTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg)}) {}
+      {void logger(String msg),
+      ChangedStructureNotifier changedStructureNotifier}) {
+    for (var library in libraries) {
+      JsInteropChecks(
+              diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>)
+          .visitLibrary(library);
+    }
+  }
 
   @override
   ir.Expression instantiateInvocation(

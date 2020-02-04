@@ -2584,7 +2584,13 @@ const c = a.codeUnitAt(b);
     var invocation = findNode.methodInvocation('codeUnitAt');
     assertType(invocation, 'int');
     assertInvokeType(invocation, 'int Function(int)');
-    assertElement(invocation.methodName, stringElement.getMethod('codeUnitAt'));
+    assertElement(
+      invocation.methodName,
+      elementMatcher(
+        stringElement.getMethod('codeUnitAt'),
+        isLegacy: isNullSafetySdkAndLegacyLibrary,
+      ),
+    );
 
     var aRef = invocation.target;
     assertElement(aRef, findElement.topGet('a'));
@@ -8373,7 +8379,7 @@ main() {
     expect(result.errors, isNotEmpty);
 
     PropertyAccessorElement objectHashCode =
-        typeProvider.objectType.getGetter('hashCode');
+        objectElement.getGetter('hashCode');
     TopLevelVariableElement foo = _getTopLevelVariable(result, 'foo');
 
     List<Statement> statements = _getMainStatements(result);
@@ -8384,16 +8390,28 @@ main() {
 
     {
       PrefixedIdentifier prefixed = propertyAccess.target;
-      expect(prefixed.staticElement, same(objectHashCode));
-      expect(prefixed.staticType, typeProvider.intType);
+      assertPrefixedIdentifier(
+        prefixed,
+        element: elementMatcher(
+          objectHashCode,
+          isLegacy: isNullSafetySdkAndLegacyLibrary,
+        ),
+        type: 'int',
+      );
 
       SimpleIdentifier prefix = prefixed.prefix;
       expect(prefix.staticElement, same(foo.getter));
       expect(prefix.staticType, typeProvider.objectType);
 
       SimpleIdentifier identifier = prefixed.identifier;
-      expect(identifier.staticElement, same(objectHashCode));
-      expect(identifier.staticType, typeProvider.intType);
+      assertSimpleIdentifier(
+        identifier,
+        element: elementMatcher(
+          objectHashCode,
+          isLegacy: isNullSafetySdkAndLegacyLibrary,
+        ),
+        type: 'int',
+      );
     }
 
     SimpleIdentifier property = propertyAccess.propertyName;

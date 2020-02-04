@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveIfNullOperatorTest);
   });
@@ -23,7 +23,7 @@ class RemoveIfNullOperatorTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_null_in_if_null_operators;
 
-  test_left() async {
+  Future<void> test_left() async {
     await resolveTestUnit('''
 var a = '';
 var b = /*LINT*/null ?? a;
@@ -34,7 +34,7 @@ var b = a;
 ''');
   }
 
-  test_right() async {
+  Future<void> test_right() async {
     await resolveTestUnit('''
 var a = '';
 var b = /*LINT*/a ?? null;

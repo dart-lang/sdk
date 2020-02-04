@@ -3952,11 +3952,28 @@ class FileUriExpression extends Expression implements FileUriNode {
 
 /// Expression of form `x is T`.
 class IsExpression extends Expression {
+  int flags = 0;
   Expression operand;
   DartType type;
 
   IsExpression(this.operand, this.type) {
     operand?.parent = this;
+  }
+
+  // Must match serialized bit positions.
+  static const int FlagForNonNullableByDefault = 1 << 0;
+
+  /// If `true`, this test take the nullability of [type] into account.
+  ///
+  /// This is the case for is-tests written in libraries that are opted in to
+  /// the non nullable by default feature.
+  bool get isForNonNullableByDefault =>
+      flags & FlagForNonNullableByDefault != 0;
+
+  void set isForNonNullableByDefault(bool value) {
+    flags = value
+        ? (flags | FlagForNonNullableByDefault)
+        : (flags & ~FlagForNonNullableByDefault);
   }
 
   DartType getStaticType(StaticTypeContext context) =>
@@ -3992,15 +4009,64 @@ class AsExpression extends Expression {
 
   // Must match serialized bit positions.
   static const int FlagTypeError = 1 << 0;
+  static const int FlagCovarianceCheck = 1 << 1;
+  static const int FlagForDynamic = 1 << 2;
+  static const int FlagForNonNullableByDefault = 1 << 3;
 
-  /// Indicates the type of error that should be thrown if the check fails.
+  /// If `true`, this test is an implicit down cast.
   ///
-  /// `true` means that a TypeError should be thrown.  `false` means that a
-  /// CastError should be thrown.
+  /// If `true` a TypeError should be thrown. If `false` a CastError should be
+  /// thrown.
   bool get isTypeError => flags & FlagTypeError != 0;
 
   void set isTypeError(bool value) {
     flags = value ? (flags | FlagTypeError) : (flags & ~FlagTypeError);
+  }
+
+  /// If `true`, this test is needed to ensure soundness of covariant type
+  /// variables using in contravariant positions.
+  ///
+  /// For instance
+  ///
+  ///    class Class<T> {
+  ///      void Function(T) field;
+  ///      Class(this.field);
+  ///    }
+  ///    main() {
+  ///      Class<num> c = new Class<int>((int i) {});
+  ///      void Function<num> field = c.field; // Check needed on `c.field`
+  ///      field(0.5);
+  ///    }
+  ///
+  /// Here a covariant check `c.field as void Function(num)` is needed because
+  /// the field could be (and indeed is) not a subtype of the static type of
+  /// the expression.
+  bool get isCovarianceCheck => flags & FlagCovarianceCheck != 0;
+
+  void set isCovarianceCheck(bool value) {
+    flags =
+        value ? (flags | FlagCovarianceCheck) : (flags & ~FlagCovarianceCheck);
+  }
+
+  /// If `true`, this is an implicit down cast from an expression of type
+  /// `dynamic`.
+  bool get isForDynamic => flags & FlagForDynamic != 0;
+
+  void set isForDynamic(bool value) {
+    flags = value ? (flags | FlagForDynamic) : (flags & ~FlagForDynamic);
+  }
+
+  /// If `true`, this test take the nullability of [type] into account.
+  ///
+  /// This is the case for is-tests written in libraries that are opted in to
+  /// the non nullable by default feature.
+  bool get isForNonNullableByDefault =>
+      flags & FlagForNonNullableByDefault != 0;
+
+  void set isForNonNullableByDefault(bool value) {
+    flags = value
+        ? (flags | FlagForNonNullableByDefault)
+        : (flags & ~FlagForNonNullableByDefault);
   }
 
   DartType getStaticType(StaticTypeContext context) => type;

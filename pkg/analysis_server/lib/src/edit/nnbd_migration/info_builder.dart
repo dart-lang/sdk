@@ -116,6 +116,9 @@ class InfoBuilder {
 
   /// Return detail text for a fix built from an edge with origin info [origin]
   /// and [fixKind].
+  ///
+  /// Text is meant to be used as the beginning of a sentence. It is written in
+  /// present tense, beginning with a capital letter, not ending in a period.
   String _baseDescriptionForOrigin(
       EdgeOriginInfo origin, NullabilityFixKind fixKind) {
     AstNode node = origin.node;
@@ -162,8 +165,8 @@ class InfoBuilder {
     }
 
     if (origin.kind == EdgeOriginKind.listLengthConstructor) {
-      return 'List value type must be nullable because a length is specified,'
-          ' and the list items are initialized as null.';
+      return 'A length is specified in the "List()" constructor and the list '
+          'items are initialized to null';
     }
 
     CompilationUnit unit = node.thisOrAncestorOfType<CompilationUnit>();
@@ -171,10 +174,6 @@ class InfoBuilder {
 
     if (origin.kind == EdgeOriginKind.uninitializedRead) {
       return 'Used on line $lineNumber, when it is possibly uninitialized';
-    }
-
-    if (parent is ArgumentList) {
-      return capitalize('$nullableValue is passed as an argument');
     }
 
     /// If the [node] is inside the return expression for a function body,
@@ -226,7 +225,9 @@ class InfoBuilder {
       }
     } else if (node is InvocationExpression &&
         origin.kind == EdgeOriginKind.namedParameterNotSupplied) {
-      return 'This named parameter was omitted in a call to this function';
+      return 'This named parameter is omitted in a call to this function';
+    } else if (parent is ArgumentList) {
+      return capitalize('$nullableValue is passed as an argument');
     } else if (parent is VariableDeclaration) {
       AstNode grandparent = parent.parent?.parent;
       if (grandparent is FieldDeclaration) {
@@ -271,6 +272,28 @@ class InfoBuilder {
       EdgeOriginInfo origin, EdgeInfo edge, NullabilityFixKind fixKind) {
     AstNode node = origin.node;
     NavigationTarget target;
+    TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
+    AstNode typeParent = type?.parent;
+
+    if (typeParent is GenericFunctionType && type == typeParent.returnType) {
+      var description =
+          'A function-typed value with a nullable return type is assigned';
+      target = _proximateTargetForNode(origin.source.fullName, node);
+      return RegionDetail(description, target);
+    }
+    if (typeParent is FormalParameter) {
+      FormalParameterList parameterList =
+          typeParent.parent is DefaultFormalParameter
+              ? typeParent.parent.parent
+              : typeParent.parent;
+      if (parameterList.parent is GenericFunctionType) {
+        var description =
+            'The function-typed element in which this parameter is declared is '
+            'assigned to a function whose matching parameter is nullable';
+        target = _proximateTargetForNode(origin.source.fullName, node);
+        return RegionDetail(description, target);
+      }
+    }
 
     // Some nodes don't need a target; default formal parameters
     // without explicit default values, for example.
@@ -283,7 +306,6 @@ class InfoBuilder {
         // link to the either the corresponding parameter in the declaration in
         // the superclass, or the return type in the declaration in that
         // subclass.
-        TypeAnnotation type = info.typeAnnotationForNode(edge.sourceNode);
         if (type != null) {
           CompilationUnit unit = type.thisOrAncestorOfType<CompilationUnit>();
           target = _proximateTargetForNode(
@@ -518,7 +540,7 @@ class InfoBuilder {
         if (details.isNotEmpty) {
           TypeAnnotation node = nonNullableType.key;
           regions.add(RegionInfo(
-              RegionType.nonNullableType,
+              RegionType.unchanged,
               mapper.map(node.offset),
               node.length,
               lineInfo.getLocation(node.offset).lineNumber,
@@ -566,17 +588,16 @@ class InfoBuilder {
             info != null ? _computeEdits(info, sourceOffset) : [];
         List<RegionDetail> details = _computeDetails(edit);
         var lineNumber = lineInfo.getLocation(sourceOffset).lineNumber;
-        if (length > 0) {
-          if (explanation != null) {
-            regions.add(RegionInfo(RegionType.fix, offset, length, lineNumber,
-                explanation, details,
+        if (explanation != null) {
+          if (length > 0) {
+            regions.add(RegionInfo(RegionType.remove, offset, length,
+                lineNumber, explanation, details,
+                edits: edits));
+          } else {
+            regions.add(RegionInfo(RegionType.add, offset, replacement.length,
+                lineNumber, explanation, details,
                 edits: edits));
           }
-        }
-        if (explanation != null) {
-          regions.add(RegionInfo(RegionType.fix, offset, replacement.length,
-              lineNumber, explanation, details,
-              edits: edits));
         }
         offset += replacement.length;
       }

@@ -8,7 +8,7 @@ import 'completion/test_all.dart' as completion;
 import 'execution/test_all.dart' as execution;
 import 'flutter/test_all.dart' as flutter;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     completion.main();
     execution.main();

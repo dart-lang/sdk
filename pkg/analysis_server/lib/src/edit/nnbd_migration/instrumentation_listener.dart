@@ -81,12 +81,6 @@ class InstrumentationListener implements NullabilityMigrationInstrumentation {
     for (var source in data.sourceInformation.keys) {
       _sourceInfo(source).changes = null;
     }
-    data.propagationSteps.clear();
-  }
-
-  @override
-  void propagationStep(PropagationInfo info) {
-    data.propagationSteps.add(info);
   }
 
   String _filePathForSource(Source source) {

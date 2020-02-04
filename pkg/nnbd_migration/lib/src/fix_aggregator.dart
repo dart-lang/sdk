@@ -5,101 +5,13 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
-
-/// Implementation of [NodeChange] representing the addition of the keyword
-/// `required` to a named parameter.
-class AddRequiredKeyword extends NestableChange {
-  /// Information about why the change should be made.
-  final AtomicEditInfo info;
-
-  const AddRequiredKeyword(this.info,
-      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super._(inner);
-
-  @override
-  EditPlan apply(AstNode node, FixAggregator aggregator) {
-    var innerPlan = inner.apply(node, aggregator);
-    return aggregator.planner.surround(innerPlan,
-        prefix: [AtomicEdit.insert('required ', info: info)]);
-  }
-}
-
-/// Implementation of [NodeChange] representing the removal of a dead branch
-/// because the conditional expression in an if statement, if element, or
-/// conditional expression has been determined to always evaluate to either
-/// `true` or `false`.
-class EliminateDeadIf extends NodeChange {
-  /// The value that the conditional expression has been determined to always
-  /// evaluate to
-  final bool conditionValue;
-
-  /// Reasons for the change.
-  final List<FixReasonInfo> reasons;
-
-  const EliminateDeadIf(this.conditionValue, {this.reasons = const []});
-
-  @override
-  EditPlan apply(AstNode node, FixAggregator aggregator) {
-    // TODO(paulberry): do we need to detect whether the condition has side
-    // effects?  For now, assuming no.
-    AstNode thenNode;
-    AstNode elseNode;
-    if (node is IfStatement) {
-      thenNode = node.thenStatement;
-      elseNode = node.elseStatement;
-    } else if (node is ConditionalExpression) {
-      thenNode = node.thenExpression;
-      elseNode = node.elseExpression;
-    } else if (node is IfElement) {
-      thenNode = node.thenElement;
-      elseNode = node.elseElement;
-    } else {
-      throw StateError(
-          "EliminateDeadIf applied to an AST node that's not an if");
-    }
-    AstNode nodeToKeep;
-    NullabilityFixDescription descriptionBefore, descriptionAfter;
-    if (conditionValue) {
-      nodeToKeep = thenNode;
-      descriptionBefore = NullabilityFixDescription.discardCondition;
-      if (elseNode == null) {
-        descriptionAfter = descriptionBefore;
-      } else {
-        descriptionAfter = NullabilityFixDescription.discardElse;
-      }
-    } else {
-      nodeToKeep = elseNode;
-      descriptionBefore =
-          descriptionAfter = NullabilityFixDescription.discardThen;
-    }
-    if (nodeToKeep == null ||
-        nodeToKeep is Block && nodeToKeep.statements.isEmpty) {
-      var info = AtomicEditInfo(NullabilityFixDescription.discardIf, reasons);
-      return aggregator.planner.removeNode(node, info: info);
-    }
-    var infoBefore = AtomicEditInfo(descriptionBefore, reasons);
-    var infoAfter = AtomicEditInfo(descriptionAfter, reasons);
-    if (nodeToKeep is Block && nodeToKeep.statements.length == 1) {
-      var singleStatement = (nodeToKeep as Block).statements[0];
-      if (singleStatement is VariableDeclarationStatement) {
-        // It's not safe to eliminate the {} because it increases the scope of
-        // the variable declarations
-      } else {
-        nodeToKeep = singleStatement;
-      }
-    }
-    return aggregator.planner.extract(
-        node, aggregator.innerPlanForNode(nodeToKeep),
-        infoBefore: infoBefore, infoAfter: infoAfter);
-  }
-
-  @override
-  String toString() => 'EliminateDeadIf($conditionValue)';
-}
+import 'package:nnbd_migration/src/fix_builder.dart';
 
 /// Visitor that combines together the changes produced by [FixBuilder] into a
 /// concrete set of source code edits using the infrastructure of [EditPlan].
@@ -117,8 +29,10 @@ class FixAggregator extends UnifyingAstVisitor<void> {
 
   /// Gathers all the changes to nodes descended from [node] into a single
   /// [EditPlan].
-  NodeProducingEditPlan innerPlanForNode(AstNode node) =>
-      planner.passThrough(node, innerPlans: innerPlansForNode(node));
+  NodeProducingEditPlan innerPlanForNode(AstNode node) {
+    var innerPlans = innerPlansForNode(node);
+    return planner.passThrough(node, innerPlans: innerPlans);
+  }
 
   /// Gathers all the changes to nodes descended from [node] into a list of
   /// [EditPlan]s, one for each change.
@@ -133,11 +47,22 @@ class FixAggregator extends UnifyingAstVisitor<void> {
     }
   }
 
+  /// Gathers all the changes to [node] and its descendants into a single
+  /// [EditPlan].
+  EditPlan planForNode(AstNode node) {
+    var change = _changes[node];
+    if (change != null) {
+      return change._apply(node, this);
+    } else {
+      return planner.passThrough(node, innerPlans: innerPlansForNode(node));
+    }
+  }
+
   @override
   void visitNode(AstNode node) {
     var change = _changes[node];
     if (change != null) {
-      var innerPlan = change.apply(node, this);
+      var innerPlan = change._apply(node, this);
       if (innerPlan != null) {
         _plans.add(innerPlan);
       }
@@ -165,71 +90,10 @@ class FixAggregator extends UnifyingAstVisitor<void> {
   }
 }
 
-/// Implementation of [NodeChange] representing introduction of an explicit
-/// downcast.
-class IntroduceAs extends NestableChange {
-  /// TODO(paulberry): shouldn't be a String
-  final String type;
-
-  /// Information about why the change should be made.
-  final AtomicEditInfo info;
-
-  const IntroduceAs(this.type, this.info,
-      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super._(inner);
-
-  @override
-  EditPlan apply(AstNode node, FixAggregator aggregator) {
-    var innerPlan = inner.apply(node, aggregator);
-    return aggregator.planner.addBinaryPostfix(innerPlan, TokenType.AS, type);
-  }
-}
-
-/// Implementation of [NodeChange] representing the addition of a trailing `?`
-/// to a type.
-class MakeNullable extends NestableChange {
-  /// The decorated type to which a question mark is being added.
-  final DecoratedType decoratedType;
-
-  const MakeNullable(this.decoratedType,
-      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super._(inner);
-
-  @override
-  EditPlan apply(AstNode node, FixAggregator aggregator) {
-    var innerPlan = inner.apply(node, aggregator);
-    return aggregator.planner.makeNullable(innerPlan,
-        info: AtomicEditInfo(
-            NullabilityFixDescription.makeTypeNullable(
-                decoratedType.type.toString()),
-            [decoratedType.node]));
-  }
-}
-
-/// Shared base class for [NodeChange]s that are based on an [inner] change.
-abstract class NestableChange extends NodeChange {
-  /// The change that should be applied first, before applying this change.
-  final NodeChange<NodeProducingEditPlan> inner;
-
-  const NestableChange._(this.inner);
-}
-
-/// Implementation of [NodeChange] representing no change at all.  This class
-/// is intended to be used as a base class for changes that wrap around other
-/// changes.
-class NoChange extends NodeChange<NodeProducingEditPlan> {
-  const NoChange();
-
-  @override
-  NodeProducingEditPlan apply(AstNode node, FixAggregator aggregator) {
-    return aggregator.innerPlanForNode(node);
-  }
-}
-
-/// Base class representing a kind of change that [FixAggregator] might make to a
-/// particular AST node.
-abstract class NodeChange<P extends EditPlan> {
-  const NodeChange();
+/// Base class representing a kind of change that [FixAggregator] might make to
+/// a particular AST node.
+abstract class NodeChange<N extends AstNode> {
+  NodeChange._();
 
   /// Applies this change to the given [node], producing an [EditPlan].  The
   /// [aggregator] may be used to gather up any edits to the node's descendants
@@ -240,102 +104,34 @@ abstract class NodeChange<P extends EditPlan> {
   /// below them (e.g. dropping an unnecessary cast), so those changes need to
   /// be able to call the appropriate [aggregator] methods just on the nodes
   /// they need.
-  P apply(AstNode node, FixAggregator aggregator);
+  ///
+  /// May return `null` if no changes need to be made.
+  EditPlan _apply(N node, FixAggregator aggregator);
+
+  /// Creates the appropriate specialized kind of [NodeChange] appropriate for
+  /// the given [node].
+  static NodeChange<AstNode> create(AstNode node) =>
+      node.accept(_NodeChangeVisitor._instance);
 }
 
-/// Implementation of [NodeChange] representing the addition of a null check to
-/// an expression.
-class NullCheck extends NestableChange {
-  /// Information about why the change should be made.
-  final AtomicEditInfo info;
+/// Implementation of [NodeChange] specialized for operating on [Annotation]
+/// nodes.
+class NodeChangeForAnnotation extends NodeChange<Annotation> {
+  /// Indicates whether the node should be changed into a `required` keyword.
+  bool changeToRequiredKeyword = false;
 
-  const NullCheck(this.info,
-      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super._(inner);
+  /// If [changeToRequiredKeyword] is `true`, the information that should be
+  /// contained in the edit.
+  AtomicEditInfo changeToRequiredKeywordInfo;
 
-  @override
-  EditPlan apply(AstNode node, FixAggregator aggregator) {
-    var innerPlan = inner.apply(node, aggregator);
-    return aggregator.planner
-        .addUnaryPostfix(innerPlan, TokenType.BANG, info: info);
-  }
-}
-
-/// Implementation of [NodeChange] representing the removal of an unnecessary
-/// cast.
-class RemoveAs extends NestableChange {
-  const RemoveAs([NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super._(inner);
+  NodeChangeForAnnotation() : super._();
 
   @override
-  EditPlan apply(AstNode node, FixAggregator aggregator) {
-    return aggregator.planner.extract(
-        node, inner.apply((node as AsExpression).expression, aggregator),
-        infoAfter:
-            AtomicEditInfo(NullabilityFixDescription.removeAs, const []));
-  }
-}
-
-/// Implementation of [NodeChange] representing the removal of `?` from a `?.`
-/// in a method invocation because the target is non-nullable, or because of
-/// null shorting.
-class RemoveNullAwarenessFromMethodInvocation
-    extends NodeChange<NodeProducingEditPlan> {
-  const RemoveNullAwarenessFromMethodInvocation();
-
-  @override
-  NodeProducingEditPlan apply(AstNode node, FixAggregator aggregator) {
-    var methodInvocation = node as MethodInvocation;
-    var typeArguments = methodInvocation.typeArguments;
-    return aggregator.planner.removeNullAwarenessFromMethodInvocation(
-        methodInvocation,
-        targetPlan: aggregator.innerPlanForNode(methodInvocation.target),
-        methodNamePlan:
-            aggregator.innerPlanForNode(methodInvocation.methodName),
-        typeArgumentsPlan: typeArguments == null
-            ? null
-            : aggregator.innerPlanForNode(typeArguments),
-        argumentListPlan:
-            aggregator.innerPlanForNode(methodInvocation.argumentList),
-        info:
-            AtomicEditInfo(NullabilityFixDescription.removeNullAwareness, []));
-  }
-}
-
-/// Implementation of [NodeChange] representing the removal of `?` from a `?.`
-/// in a property access because the target is non-nullable, or because of null
-/// shorting.
-class RemoveNullAwarenessFromPropertyAccess
-    extends NodeChange<NodeProducingEditPlan> {
-  const RemoveNullAwarenessFromPropertyAccess();
-
-  @override
-  NodeProducingEditPlan apply(AstNode node, FixAggregator aggregator) {
-    var propertyAccess = node as PropertyAccess;
-    return aggregator.planner.removeNullAwarenessFromPropertyAccess(
-        propertyAccess,
-        targetPlan: aggregator.innerPlanForNode(propertyAccess.target),
-        propertyNamePlan:
-            aggregator.innerPlanForNode(propertyAccess.propertyName),
-        info:
-            AtomicEditInfo(NullabilityFixDescription.removeNullAwareness, []));
-  }
-}
-
-/// Implementation of [NodeChange] that changes an `@required` annotation into
-/// a `required` keyword.
-class RequiredAnnotationToRequiredKeyword extends NestableChange {
-  /// Information about why the change should be made.
-  final AtomicEditInfo info;
-
-  const RequiredAnnotationToRequiredKeyword(this.info,
-      [NodeChange<NodeProducingEditPlan> inner = const NoChange()])
-      : super._(inner);
-
-  @override
-  EditPlan apply(AstNode node, FixAggregator aggregator) {
-    var annotation = node as Annotation;
-    var name = annotation.name;
+  EditPlan _apply(Annotation node, FixAggregator aggregator) {
+    if (!changeToRequiredKeyword) {
+      return aggregator.innerPlanForNode(node);
+    }
+    var name = node.name;
     if (name is PrefixedIdentifier) {
       name = (name as PrefixedIdentifier).identifier;
     }
@@ -344,11 +140,363 @@ class RequiredAnnotationToRequiredKeyword extends NestableChange {
             'required') {
       // The text `required` already exists in the annotation; we can just
       // extract it.
-      return aggregator.planner
-          .extract(node, inner.apply(name, aggregator), infoBefore: info);
+      return aggregator.planner.extract(
+          node, aggregator.planForNode(name) as NodeProducingEditPlan,
+          infoBefore: changeToRequiredKeywordInfo);
     } else {
-      return aggregator.planner
-          .replace(node, [AtomicEdit.insert('required', info: info)]);
+      return aggregator.planner.replace(node,
+          [AtomicEdit.insert('required', info: changeToRequiredKeywordInfo)]);
     }
   }
+}
+
+/// Implementation of [NodeChange] specialized for operating on [AsExpression]
+/// nodes.
+class NodeChangeForAsExpression extends NodeChangeForExpression<AsExpression> {
+  /// Indicates whether the cast should be removed.
+  bool removeAs = false;
+
+  @override
+  EditPlan _apply(AsExpression node, FixAggregator aggregator) {
+    if (removeAs) {
+      return aggregator.planner.extract(node,
+          aggregator.planForNode(node.expression) as NodeProducingEditPlan,
+          infoAfter:
+              AtomicEditInfo(NullabilityFixDescription.removeAs, const []));
+    } else {
+      return super._apply(node, aggregator);
+    }
+  }
+}
+
+/// Common infrastructure used by [NodeChange] objects that operate on AST nodes
+/// with conditional behavior (if statements, if elements, and conditional
+/// expressions).
+mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
+  /// If not `null`, indicates that the condition expression is known to
+  /// evaluate to either `true` or `false`, so the other branch of the
+  /// conditional is dead code and should be eliminated.
+  bool conditionValue;
+
+  /// If [conditionValue] is not `null`, the reasons that should be included in
+  /// the [AtomicEditInfo] for the edit that removes the dead code.
+  List<FixReasonInfo> conditionReasons;
+
+  /// If dead code removal is warranted for [node], returns an [EditPlan] that
+  /// removes the dead code (and performs appropriate updates within any
+  /// descendant AST nodes that remain).  Otherwise returns `null`.
+  EditPlan _applyConditional(
+      N node, FixAggregator aggregator, AstNode thenNode, AstNode elseNode) {
+    if (conditionValue == null) return null;
+    AstNode nodeToKeep;
+    NullabilityFixDescription descriptionBefore, descriptionAfter;
+    if (conditionValue) {
+      nodeToKeep = thenNode;
+      descriptionBefore = NullabilityFixDescription.discardCondition;
+      if (elseNode == null) {
+        descriptionAfter = descriptionBefore;
+      } else {
+        descriptionAfter = NullabilityFixDescription.discardElse;
+      }
+    } else {
+      nodeToKeep = elseNode;
+      descriptionBefore =
+          descriptionAfter = NullabilityFixDescription.discardThen;
+    }
+    if (nodeToKeep == null ||
+        nodeToKeep is Block && nodeToKeep.statements.isEmpty) {
+      var info =
+          AtomicEditInfo(NullabilityFixDescription.discardIf, conditionReasons);
+      return aggregator.planner.removeNode(node, info: info);
+    }
+    var infoBefore = AtomicEditInfo(descriptionBefore, conditionReasons);
+    var infoAfter = AtomicEditInfo(descriptionAfter, conditionReasons);
+    if (nodeToKeep is Block && nodeToKeep.statements.length == 1) {
+      var singleStatement = (nodeToKeep as Block).statements[0];
+      if (singleStatement is VariableDeclarationStatement) {
+        // It's not safe to eliminate the {} because it increases the scope of
+        // the variable declarations
+      } else {
+        nodeToKeep = singleStatement;
+      }
+    }
+    return aggregator.planner.extract(
+        node, aggregator.planForNode(nodeToKeep) as NodeProducingEditPlan,
+        infoBefore: infoBefore, infoAfter: infoAfter);
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on
+/// [ConditionalExpression] nodes.
+class NodeChangeForConditionalExpression
+    extends NodeChangeForExpression<ConditionalExpression>
+    with NodeChangeForConditional {
+  @override
+  EditPlan _apply(ConditionalExpression node, FixAggregator aggregator) {
+    return _applyConditional(
+            node, aggregator, node.thenExpression, node.elseExpression) ??
+        super._apply(node, aggregator);
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on
+/// [DefaultFormalParameter] nodes.
+class NodeChangeForDefaultFormalParameter
+    extends NodeChange<DefaultFormalParameter> {
+  /// Indicates whether a `required` keyword should be added to this node.
+  bool addRequiredKeyword = false;
+
+  /// If [addRequiredKeyword] is `true`, the information that should be
+  /// contained in the edit.
+  AtomicEditInfo addRequiredKeywordInfo;
+
+  NodeChangeForDefaultFormalParameter() : super._();
+
+  @override
+  EditPlan _apply(DefaultFormalParameter node, FixAggregator aggregator) {
+    var innerPlan = aggregator.innerPlanForNode(node);
+    if (!addRequiredKeyword) return innerPlan;
+    return aggregator.planner.surround(innerPlan,
+        prefix: [AtomicEdit.insert('required ', info: addRequiredKeywordInfo)]);
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on [Expression]
+/// nodes.
+class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
+  /// Indicates whether the expression should be null checked.
+  bool addNullCheck = false;
+
+  /// If [addNullCheck] is `true`, the information that should be contained in
+  /// the edit that adds the null check.
+  AtomicEditInfo addNullCheckInfo;
+
+  /// Indicates whether the expression should be cast to a different type using
+  /// `as`.
+  String introduceAsType;
+
+  /// If [introduceAsType] is not `null`, the information that should be
+  /// contained in the edit that introduces the cast.
+  AtomicEditInfo introduceAsInfo;
+
+  NodeChangeForExpression() : super._();
+
+  @override
+  EditPlan _apply(N node, FixAggregator aggregator) {
+    var innerPlan = aggregator.innerPlanForNode(node);
+    return _applyExpression(aggregator, innerPlan);
+  }
+
+  /// If the expression needs to be wrapped in another expression (e.g. a null
+  /// check), wraps the given [innerPlan] to produce appropriate result.
+  /// Otherwise returns [innerPlan] unchanged.
+  NodeProducingEditPlan _applyExpression(
+      FixAggregator aggregator, NodeProducingEditPlan innerPlan) {
+    assert((introduceAsType == null) == (introduceAsInfo == null));
+    if (addNullCheck) {
+      assert(introduceAsInfo == null);
+      return aggregator.planner
+          .addUnaryPostfix(innerPlan, TokenType.BANG, info: addNullCheckInfo);
+    } else if (introduceAsInfo != null) {
+      return aggregator.planner
+          .addBinaryPostfix(innerPlan, TokenType.AS, introduceAsType);
+    } else {
+      return innerPlan;
+    }
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on [IfElement]
+/// nodes.
+class NodeChangeForIfElement extends NodeChange<IfElement>
+    with NodeChangeForConditional {
+  NodeChangeForIfElement() : super._();
+
+  @override
+  EditPlan _apply(IfElement node, FixAggregator aggregator) {
+    return _applyConditional(
+            node, aggregator, node.thenElement, node.elseElement) ??
+        aggregator.innerPlanForNode(node);
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on [IfStatement]
+/// nodes.
+class NodeChangeForIfStatement extends NodeChange<IfStatement>
+    with NodeChangeForConditional {
+  NodeChangeForIfStatement() : super._();
+
+  @override
+  EditPlan _apply(IfStatement node, FixAggregator aggregator) {
+    return _applyConditional(
+            node, aggregator, node.thenStatement, node.elseStatement) ??
+        aggregator.innerPlanForNode(node);
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on
+/// [MethodInvocation] nodes.
+class NodeChangeForMethodInvocation
+    extends NodeChangeForExpression<MethodInvocation>
+    with NodeChangeForNullAware {
+  @override
+  NodeProducingEditPlan _apply(
+      MethodInvocation node, FixAggregator aggregator) {
+    var target = node.target;
+    var targetPlan = target == null ? null : aggregator.planForNode(target);
+    var nullAwarePlan = _applyNullAware(node, aggregator);
+    var methodNamePlan = aggregator.planForNode(node.methodName);
+    var typeArguments = node.typeArguments;
+    var typeArgumentsPlan =
+        typeArguments == null ? null : aggregator.planForNode(typeArguments);
+    var argumentListPlan = aggregator.planForNode(node.argumentList);
+    var innerPlans = [
+      if (targetPlan != null) targetPlan,
+      if (nullAwarePlan != null) nullAwarePlan,
+      if (methodNamePlan != null) methodNamePlan,
+      if (typeArgumentsPlan != null) typeArgumentsPlan,
+      if (argumentListPlan != null) argumentListPlan
+    ];
+    return _applyExpression(aggregator,
+        aggregator.planner.passThrough(node, innerPlans: innerPlans));
+  }
+}
+
+/// Common infrastructure used by [NodeChange] objects that operate on AST nodes
+/// with that can be null-aware (method invocations and propety accesses).
+mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
+  /// Indicates whether null-awareness should be removed.
+  bool removeNullAwareness = false;
+
+  /// Returns an [EditPlan] that removes null awareness, if appropriate.
+  /// Otherwise returns `null`.
+  EditPlan _applyNullAware(N node, FixAggregator aggregator) {
+    if (!removeNullAwareness) return null;
+    return aggregator.planner.removeNullAwareness(node,
+        info:
+            AtomicEditInfo(NullabilityFixDescription.removeNullAwareness, []));
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on [PropertyAccess]
+/// nodes.
+class NodeChangeForPropertyAccess
+    extends NodeChangeForExpression<PropertyAccess>
+    with NodeChangeForNullAware {
+  @override
+  NodeProducingEditPlan _apply(PropertyAccess node, FixAggregator aggregator) {
+    var targetPlan = aggregator.planForNode(node.target);
+    var nullAwarePlan = _applyNullAware(node, aggregator);
+    var propertyNamePlan = aggregator.planForNode(node.propertyName);
+    var innerPlans = [
+      if (targetPlan != null) targetPlan,
+      if (nullAwarePlan != null) nullAwarePlan,
+      if (propertyNamePlan != null) propertyNamePlan
+    ];
+    return _applyExpression(aggregator,
+        aggregator.planner.passThrough(node, innerPlans: innerPlans));
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on [TypeAnnotation]
+/// nodes.
+class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
+  /// Indicates whether the type should be made nullable by adding a `?`.
+  bool makeNullable = false;
+
+  /// If [makeNullable] is `true`, the decorated type that results.
+  DecoratedType makeNullableType;
+
+  NodeChangeForTypeAnnotation() : super._();
+
+  @override
+  EditPlan _apply(TypeAnnotation node, FixAggregator aggregator) {
+    var innerPlan = aggregator.innerPlanForNode(node);
+    if (!makeNullable) return innerPlan;
+    return aggregator.planner.makeNullable(innerPlan,
+        info: AtomicEditInfo(
+            NullabilityFixDescription.makeTypeNullable(
+                makeNullableType.type.toString()),
+            [makeNullableType.node]));
+  }
+}
+
+/// Implementation of [NodeChange] specialized for operating on
+/// [VariableDeclarationList] nodes.
+class NodeChangeForVariableDeclarationList
+    extends NodeChange<VariableDeclarationList> {
+  /// If an explicit type should be added to this variable declaration, the type
+  /// that should be added.  Otherwise `null`.
+  DartType addExplicitType;
+
+  NodeChangeForVariableDeclarationList() : super._();
+
+  @override
+  EditPlan _apply(VariableDeclarationList node, FixAggregator aggregator) {
+    List<EditPlan> innerPlans = [];
+    if (addExplicitType != null) {
+      var typeText =
+          (addExplicitType as TypeImpl).toString(withNullability: true);
+      if (node.keyword?.keyword == Keyword.VAR) {
+        innerPlans.add(aggregator.planner
+            .replaceToken(node, node.keyword, [AtomicEdit.insert(typeText)]));
+      } else {
+        innerPlans.add(aggregator.planner.insertText(
+            node,
+            node.variables.first.offset,
+            [AtomicEdit.insert(typeText), AtomicEdit.insert(' ')]));
+      }
+    }
+    innerPlans.addAll(aggregator.innerPlansForNode(node));
+    return aggregator.planner.passThrough(node, innerPlans: innerPlans);
+  }
+}
+
+/// Visitor that creates an appropriate [NodeChange] object for the node being
+/// visited.
+class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
+  static final _instance = _NodeChangeVisitor();
+
+  @override
+  NodeChange visitAnnotation(Annotation node) => NodeChangeForAnnotation();
+
+  @override
+  NodeChange visitAsExpression(AsExpression node) =>
+      NodeChangeForAsExpression();
+
+  @override
+  NodeChange visitDefaultFormalParameter(DefaultFormalParameter node) =>
+      NodeChangeForDefaultFormalParameter();
+
+  @override
+  NodeChange visitExpression(Expression node) => NodeChangeForExpression();
+
+  @override
+  NodeChange visitGenericFunctionType(GenericFunctionType node) =>
+      NodeChangeForTypeAnnotation();
+
+  @override
+  NodeChange visitIfElement(IfElement node) => NodeChangeForIfElement();
+
+  @override
+  NodeChange visitIfStatement(IfStatement node) => NodeChangeForIfStatement();
+
+  @override
+  NodeChange visitMethodInvocation(MethodInvocation node) =>
+      NodeChangeForMethodInvocation();
+
+  @override
+  NodeChange visitNode(AstNode node) =>
+      throw StateError('Unexpected node type: ${node.runtimeType}');
+
+  @override
+  NodeChange visitPropertyAccess(PropertyAccess node) =>
+      NodeChangeForPropertyAccess();
+
+  @override
+  NodeChange visitTypeName(TypeName node) => NodeChangeForTypeAnnotation();
+
+  @override
+  NodeChange visitVariableDeclarationList(VariableDeclarationList node) =>
+      NodeChangeForVariableDeclarationList();
 }

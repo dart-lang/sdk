@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddNeNullTest);
   });
@@ -20,7 +20,7 @@ class AddNeNullTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_NE_NULL;
 
-  test_nonBoolCondition() async {
+  Future<void> test_nonBoolCondition() async {
     await resolveTestUnit('''
 main(String p) {
   if (p) {
@@ -37,7 +37,7 @@ main(String p) {
 ''');
   }
 
-  test_nonBoolCondition_all() async {
+  Future<void> test_nonBoolCondition_all() async {
     await resolveTestUnit('''
 main(String p, String q) {
   if (p) {

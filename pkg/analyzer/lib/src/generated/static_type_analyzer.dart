@@ -13,7 +13,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart' show ConstructorMember;
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/type_schema_elimination.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
@@ -165,7 +164,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         if (p.hasImplicitType &&
             (_elementTypeProvider.getVariableType(p) == null ||
                 _elementTypeProvider.getVariableType(p).isDynamic)) {
-          inferredType = greatestClosure(_typeProvider, inferredType);
+          inferredType = _typeSystem.greatestClosure(inferredType);
           if (inferredType.isDartCoreNull) {
             inferredType = _typeProvider.objectType;
           }
@@ -233,18 +232,9 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    */
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    // Await the Future. This results in whatever type is (ultimately) returned.
-    DartType awaitType(DartType awaitedType) {
-      if (awaitedType == null) {
-        return null;
-      }
-      if (awaitedType.isDartAsyncFutureOr) {
-        return awaitType((awaitedType as InterfaceType).typeArguments[0]);
-      }
-      return _typeSystem.flatten(awaitedType);
-    }
-
-    _recordStaticType(node, awaitType(_getStaticType(node.expression)));
+    DartType resultType = _getStaticType(node.expression);
+    if (resultType != null) resultType = _typeSystem.flatten(resultType);
+    _recordStaticType(node, resultType);
   }
 
   /**
@@ -935,6 +925,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     // TODO(jmesserly): should we store this earlier in resolution?
     // Or look it up, instead of jumping backwards through the Member?
     var rawElement = originalElement.declaration;
+    rawElement = _resolver.toLegacyElement(rawElement);
 
     FunctionType constructorType = constructorToGenericFunctionType(rawElement);
 
@@ -957,8 +948,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       constructor.type.type = inferred.returnType;
       // Update the static element as well. This is used in some cases, such as
       // computing constant values. It is stored in two places.
-      constructor.staticElement =
-          ConstructorMember.from(rawElement, inferred.returnType);
+      var constructorElement = ConstructorMember.from(
+        rawElement,
+        inferred.returnType,
+      );
+      constructorElement = _resolver.toLegacyElement(constructorElement);
+      constructor.staticElement = constructorElement;
       node.staticElement = constructor.staticElement;
     }
   }
@@ -1032,6 +1027,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     if (inferredElement == null || inferredElement.isStatic) {
       return false;
     }
+    inferredElement = _resolver.toLegacyElement(inferredElement);
     DartType inferredType =
         _elementTypeProvider.getExecutableReturnType(inferredElement);
     if (nodeType != null &&

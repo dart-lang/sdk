@@ -87,7 +87,7 @@ abstract class ExtractLocalRefactoring implements Refactoring {
    * variable. The expression used to initiate the refactoring will always be
    * replaced.
    */
-  void set extractAll(bool extractAll);
+  set extractAll(bool extractAll);
 
   /**
    * The lengths of the expressions that would be replaced by a reference to the
@@ -100,7 +100,7 @@ abstract class ExtractLocalRefactoring implements Refactoring {
   /**
    * The name that the local variable should be given.
    */
-  void set name(String name);
+  set name(String name);
 
   /**
    * The proposed names for the local variable.
@@ -157,14 +157,14 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /**
    * True if a getter should be created rather than a method.
    */
-  void set createGetter(bool createGetter);
+  set createGetter(bool createGetter);
 
   /**
    * True if all occurrences of the expression or statements should be replaced
    * by an invocation of the method. The expression or statements used to
    * initiate the refactoring will always be replaced.
    */
-  void set extractAll(bool extractAll);
+  set extractAll(bool extractAll);
 
   /**
    * The lengths of the expressions or statements that would be replaced by an
@@ -178,7 +178,7 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /**
    * The name that the method should be given.
    */
-  void set name(String name);
+  set name(String name);
 
   /**
    * The proposed names for the method.
@@ -201,7 +201,7 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /**
    * The parameters that should be defined for the method.
    */
-  void set parameters(List<RefactoringMethodParameter> parameters);
+  set parameters(List<RefactoringMethodParameter> parameters);
 
   /**
    * The proposed return type for the method.
@@ -211,7 +211,7 @@ abstract class ExtractMethodRefactoring implements Refactoring {
   /**
    * The return type that should be defined for the method.
    */
-  void set returnType(String returnType);
+  set returnType(String returnType);
 
   /**
    * Validates that the [name] is a valid identifier and is appropriate for a
@@ -248,7 +248,7 @@ abstract class ExtractWidgetRefactoring implements Refactoring {
   /**
    * The name that the class should be given.
    */
-  void set name(String name);
+  set name(String name);
 
   /**
    * Validates that the [name] is a valid identifier and is appropriate for a
@@ -313,13 +313,13 @@ abstract class InlineMethodRefactoring implements Refactoring {
    * True if the method being inlined should be removed.
    * It is an error if this field is `true` and [inlineAll] is `false`.
    */
-  void set deleteSource(bool deleteSource);
+  set deleteSource(bool deleteSource);
 
   /**
    * True if all invocations of the method should be inlined, or false if only
    * the invocation site used to create this refactoring should be inlined.
    */
-  void set inlineAll(bool inlineAll);
+  set inlineAll(bool inlineAll);
 
   /**
    * True if the declaration of the method is selected.
@@ -352,7 +352,7 @@ abstract class MoveFileRefactoring implements Refactoring {
   /**
    * The new file path to which the given file is being moved.
    */
-  void set newFile(String newName);
+  set newFile(String newName);
 }
 
 /**
@@ -436,14 +436,6 @@ class RefactoringWorkspace {
   }
 }
 
-class RenameRefactoringElement {
-  final Element element;
-  final int offset;
-  final int length;
-
-  RenameRefactoringElement(this.element, this.offset, this.length);
-}
-
 /**
  * Abstract [Refactoring] for renaming some [Element].
  */
@@ -489,6 +481,33 @@ abstract class RenameRefactoring implements Refactoring {
     return null;
   }
 
+  /**
+   * Returns the human-readable description of the kind of element being renamed
+   * (such as “class” or “function type alias”).
+   */
+  String get elementKindName;
+
+  /**
+   * Sets the new name for the [Element].
+   */
+  set newName(String newName);
+
+  /**
+   * Returns the old name of the [Element] being renamed.
+   */
+  String get oldName;
+
+  /**
+   * Validates that the [newName] is a valid identifier and is appropriate for
+   * the type of the [Element] being renamed.
+   *
+   * It does not perform all the checks (such as checking for conflicts with any
+   * existing names in any of the scopes containing the current name), as many
+   * of these checks require search engine. Use [checkFinalConditions] for this
+   * level of checking.
+   */
+  RefactoringStatus checkNewName();
+
   /// Given a node/element, finds the best element to rename (for example
   /// the class when on the `new` keyword).
   static RenameRefactoringElement getElementToRename(
@@ -523,31 +542,12 @@ abstract class RenameRefactoring implements Refactoring {
 
     return RenameRefactoringElement(element, offset, length);
   }
+}
 
-  /**
-   * Returns the human-readable description of the kind of element being renamed
-   * (such as “class” or “function type alias”).
-   */
-  String get elementKindName;
+class RenameRefactoringElement {
+  final Element element;
+  final int offset;
+  final int length;
 
-  /**
-   * Sets the new name for the [Element].
-   */
-  void set newName(String newName);
-
-  /**
-   * Returns the old name of the [Element] being renamed.
-   */
-  String get oldName;
-
-  /**
-   * Validates that the [newName] is a valid identifier and is appropriate for
-   * the type of the [Element] being renamed.
-   *
-   * It does not perform all the checks (such as checking for conflicts with any
-   * existing names in any of the scopes containing the current name), as many
-   * of these checks require search engine. Use [checkFinalConditions] for this
-   * level of checking.
-   */
-  RefactoringStatus checkNewName();
+  RenameRefactoringElement(this.element, this.offset, this.length);
 }

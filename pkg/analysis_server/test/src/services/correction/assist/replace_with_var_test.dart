@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithVarTest);
   });
@@ -19,7 +19,7 @@ class ReplaceWithVarTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.REPLACE_WITH_VAR;
 
-  test_for() async {
+  Future<void> test_for() async {
     await resolveTestUnit('''
 void f(List<int> list) {
   for (/*caret*/int i = 0; i < list.length; i++) {
@@ -36,7 +36,7 @@ void f(List<int> list) {
 ''');
   }
 
-  test_forEach() async {
+  Future<void> test_forEach() async {
     await resolveTestUnit('''
 void f(List<int> list) {
   for (/*caret*/int i in list) {
@@ -53,7 +53,7 @@ void f(List<int> list) {
 ''');
   }
 
-  test_generic_instanceCreation_withArguments() async {
+  Future<void> test_generic_instanceCreation_withArguments() async {
     await resolveTestUnit('''
 C<int> f() {
   /*caret*/C<int> c = C<int>();
@@ -70,7 +70,7 @@ class C<T> {}
 ''');
   }
 
-  test_generic_instanceCreation_withoutArguments() async {
+  Future<void> test_generic_instanceCreation_withoutArguments() async {
     await resolveTestUnit('''
 C<int> f() {
   /*caret*/C<int> c = C();
@@ -87,7 +87,7 @@ class C<T> {}
 ''');
   }
 
-  test_generic_listLiteral() async {
+  Future<void> test_generic_listLiteral() async {
     await resolveTestUnit('''
 List f() {
   /*caret*/List<int> l = [];
@@ -102,7 +102,7 @@ List f() {
 ''');
   }
 
-  test_generic_mapLiteral() async {
+  Future<void> test_generic_mapLiteral() async {
     await resolveTestUnit('''
 Map f() {
   /*caret*/Map<String, int> m = {};
@@ -117,7 +117,7 @@ Map f() {
 ''');
   }
 
-  test_generic_setLiteral() async {
+  Future<void> test_generic_setLiteral() async {
     await resolveTestUnit('''
 Set f() {
   /*caret*/Set<int> s = {};
@@ -132,7 +132,7 @@ Set f() {
 ''');
   }
 
-  test_generic_setLiteral_ambiguous() async {
+  Future<void> test_generic_setLiteral_ambiguous() async {
     await resolveTestUnit('''
 Set f() {
   /*caret*/Set s = {};
@@ -142,7 +142,7 @@ Set f() {
     await assertNoAssist();
   }
 
-  test_moreGeneral() async {
+  Future<void> test_moreGeneral() async {
     await resolveTestUnit('''
 num f() {
   /*caret*/num n = 0;
@@ -152,7 +152,7 @@ num f() {
     await assertNoAssist();
   }
 
-  test_noInitializer() async {
+  Future<void> test_noInitializer() async {
     await resolveTestUnit('''
 String f() {
   /*caret*/String s;
@@ -163,7 +163,7 @@ String f() {
     await assertNoAssist();
   }
 
-  test_noType() async {
+  Future<void> test_noType() async {
     await resolveTestUnit('''
 String f() {
   /*caret*/var s = '';
@@ -173,7 +173,7 @@ String f() {
     await assertNoAssist();
   }
 
-  test_simple() async {
+  Future<void> test_simple() async {
     await resolveTestUnit('''
 String f() {
   /*caret*/String s = '';

@@ -489,9 +489,12 @@ abstract class Stream<T> {
    * The returned stream is a broadcast stream if this stream is.
    */
   Stream<E> asyncMap<E>(FutureOr<E> convert(T event)) {
-    _StreamControllerBase<E> controller = isBroadcast
-        ? _SyncBroadcastStreamController<E>(null, null)
-        : _SyncStreamController<E>(null, null, null, null);
+    _StreamControllerBase<E> controller;
+    if (isBroadcast) {
+      controller = _SyncBroadcastStreamController<E>(null, null);
+    } else {
+      controller = _SyncStreamController<E>(null, null, null, null);
+    }
 
     controller.onListen = () {
       StreamSubscription<T> subscription = this.listen(null,
@@ -500,6 +503,7 @@ abstract class Stream<T> {
       FutureOr<Null> add(E value) {
         controller.add(value);
       }
+
       final addError = controller._addError;
       subscription.onData((T event) {
         FutureOr<E> newValue;
@@ -515,7 +519,9 @@ abstract class Stream<T> {
               .then(add, onError: addError)
               .whenComplete(subscription.resume);
         } else {
-          if (newValue is! E) throw "unreachable"; // TODO(lrn): Remove when type promotion works.
+          if (newValue is! E) {
+            throw "unreachable"; // TODO(lrn): Remove when type promotion works.
+          }
           controller.add(newValue);
         }
       });
@@ -548,9 +554,12 @@ abstract class Stream<T> {
    * The returned stream is a broadcast stream if this stream is.
    */
   Stream<E> asyncExpand<E>(Stream<E> convert(T event)) {
-    _StreamControllerBase<E> controller = isBroadcast
-        ? _SyncBroadcastStreamController<E>(null, null)
-        : _SyncStreamController<E>(null, null, null, null);
+    _StreamControllerBase<E> controller;
+    if (isBroadcast) {
+      controller = _SyncBroadcastStreamController<E>(null, null);
+    } else {
+      controller = _SyncStreamController<E>(null, null, null, null);
+    }
 
     controller.onListen = () {
       StreamSubscription<T> subscription = this.listen(null,
@@ -1498,9 +1507,12 @@ abstract class Stream<T> {
    * and the subscriptions' timers can be paused individually.
    */
   Stream<T> timeout(Duration timeLimit, {void onTimeout(EventSink<T> sink)?}) {
-    _StreamControllerBase<T> controller = isBroadcast
-        ? new _SyncBroadcastStreamController<T>(null, null)
-        : new _SyncStreamController<T>(null, null, null, null);
+    _StreamControllerBase<T> controller;
+    if (isBroadcast) {
+      controller = new _SyncBroadcastStreamController<T>(null, null);
+    } else {
+      controller = new _SyncStreamController<T>(null, null, null, null);
+    }
 
     Zone zone = Zone.current;
     // Register callback immediately.

@@ -20,7 +20,7 @@ import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-main() {
+void main() {
   // Set prefix for local or bot execution.
   final pathPrefix =
       FileSystemEntity.isDirectorySync(path.join('test', 'integration'))

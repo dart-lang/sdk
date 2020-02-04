@@ -15,7 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RefactoringLocationTest);
     defineReflectiveTests(RefactoringStatusTest);
@@ -24,7 +24,7 @@ main() {
 
 @reflectiveTest
 class RefactoringLocationTest extends AbstractSingleUnitTest {
-  test_createLocation_forElement() async {
+  Future<void> test_createLocation_forElement() async {
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     // check
@@ -36,7 +36,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     expect(location.startColumn, 7);
   }
 
-  test_createLocation_forMatch() async {
+  Future<void> test_createLocation_forMatch() async {
     await resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     SourceRange sourceRange = range.elementName(element);
@@ -57,7 +57,7 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     expect(location.length, sourceRange.length);
   }
 
-  test_createLocation_forNode() async {
+  Future<void> test_createLocation_forNode() async {
     await resolveTestUnit('''
 main() {
 }
@@ -70,7 +70,7 @@ main() {
     expect(location.length, node.length);
   }
 
-  test_createLocation_forUnit() async {
+  Future<void> test_createLocation_forUnit() async {
     await resolveTestUnit('');
     SourceRange sourceRange = SourceRange(10, 20);
     // check

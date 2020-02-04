@@ -217,7 +217,7 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   ClassFinalizer::FinalizeTypesInClass(empty_class);
   empty_class.Finalize();
 
-  EXPECT_EQ(kObjectAlignment, empty_class.instance_size());
+  EXPECT_EQ(kObjectAlignment, empty_class.host_instance_size());
   Instance& instance = Instance::Handle(Instance::New(empty_class));
   EXPECT_EQ(empty_class.raw(), instance.clazz());
 
@@ -242,8 +242,8 @@ ISOLATE_UNIT_TEST_CASE(InstanceClass) {
   one_field_class.Finalize();
   intptr_t header_size = sizeof(RawObject);
   EXPECT_EQ(Utils::RoundUp((header_size + (1 * kWordSize)), kObjectAlignment),
-            one_field_class.instance_size());
-  EXPECT_EQ(header_size, field.Offset());
+            one_field_class.host_instance_size());
+  EXPECT_EQ(header_size, field.HostOffset());
   EXPECT(!one_field_class.is_implemented());
   one_field_class.set_is_implemented();
   EXPECT(one_field_class.is_implemented());

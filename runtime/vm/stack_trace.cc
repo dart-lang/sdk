@@ -73,6 +73,9 @@ intptr_t FindPcOffset(const Bytecode& bytecode, intptr_t yield_index) {
   if (yield_index == RawPcDescriptors::kInvalidYieldIndex) {
     return 0;
   }
+  if (!bytecode.HasSourcePositions()) {
+    return 0;
+  }
   intptr_t last_yield_point = 0;
   kernel::BytecodeSourcePositionsIterator iter(Thread::Current()->zone(),
                                                bytecode);
@@ -373,10 +376,9 @@ void StackTraceUtils::CollectFramesLazy(
   CallerClosureFinder caller_closure_finder(zone);
   auto& pc_descs = PcDescriptors::Handle();
 
-  while (frame != nullptr) {
+  for (; frame != nullptr; frame = frames.NextFrame()) {
     if (skip_frames > 0) {
       skip_frames--;
-      frame = frames.NextFrame();
       continue;
     }
 
@@ -385,7 +387,6 @@ void StackTraceUtils::CollectFramesLazy(
       ASSERT(!bytecode.IsNull());
       function = bytecode.function();
       if (function.IsNull()) {
-        frame = frames.NextFrame();
         continue;
       }
       RELEASE_ASSERT(function.raw() == frame->LookupDartFunction());
@@ -419,15 +420,14 @@ void StackTraceUtils::CollectFramesLazy(
 
       // Next, look up caller's closure on the stack and walk backwards through
       // the yields.
-      frame = frames.NextFrame();
-      RawObject** last_caller_obj = reinterpret_cast<RawObject**>(frame->sp());
+      RawObject** last_caller_obj = reinterpret_cast<RawObject**>(
+          frame->GetCallerSp());
       closure = FindClosureInFrame(last_caller_obj, function,
                                    frame->is_interpreted());
 
       // If this async function hasn't yielded yet, we're still dealing with a
       // normal stack. Continue to next frame as usual.
       if (!caller_closure_finder.IsRunningAsync(closure)) {
-        // Don't advance frame since we already did so just above.
         continue;
       }
 
@@ -474,8 +474,6 @@ void StackTraceUtils::CollectFramesLazy(
       // Ignore the rest of the stack; already unwound all async calls.
       return;
     }
-
-    frame = frames.NextFrame();
   }
 
   return;

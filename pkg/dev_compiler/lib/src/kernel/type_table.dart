@@ -9,7 +9,7 @@ import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
 
 Set<TypeParameter> freeTypeParameters(DartType t) {
-  var result = Set<TypeParameter>();
+  var result = <TypeParameter>{};
   void find(DartType t) {
     if (t is TypeParameterType) {
       result.add(t.parameter);
@@ -122,7 +122,9 @@ class _GeneratorTable extends _CacheTable {
     if (name != null) {
       js_ast.Expression init = _defs.remove(t);
       assert(init != null);
-      return js.statement('let # = () => ((# = #.constFn(#))());',
+      // TODO(vsm): Change back to `let`.
+      // See https://github.com/dart-lang/sdk/issues/40380.
+      return js.statement('var # = () => ((# = #.constFn(#))());',
           [name, name, _runtimeModule, init]);
     }
     return null;

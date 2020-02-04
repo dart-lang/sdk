@@ -15,7 +15,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AbstractRequestHandlerTest);
   });
@@ -23,7 +23,7 @@ main() {
 
 @reflectiveTest
 class AbstractRequestHandlerTest extends AbstractAnalysisTest {
-  test_waitForResponses_empty_noTimeout() async {
+  Future<void> test_waitForResponses_empty_noTimeout() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     Map<PluginInfo, Future<plugin.Response>> futures =
         <PluginInfo, Future<plugin.Response>>{};
@@ -31,7 +31,7 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
     expect(responses, isEmpty);
   }
 
-  test_waitForResponses_empty_timeout() async {
+  Future<void> test_waitForResponses_empty_timeout() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     Map<PluginInfo, Future<plugin.Response>> futures =
         <PluginInfo, Future<plugin.Response>>{};
@@ -40,7 +40,7 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
     expect(responses, isEmpty);
   }
 
-  test_waitForResponses_nonEmpty_noTimeout_immediate() async {
+  Future<void> test_waitForResponses_nonEmpty_noTimeout_immediate() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     PluginInfo plugin1 = DiscoveredPluginInfo('p1', '', '', null, null);
     PluginInfo plugin2 = DiscoveredPluginInfo('p2', '', '', null, null);
@@ -55,7 +55,7 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
     expect(responses, unorderedEquals([response1, response2]));
   }
 
-  test_waitForResponses_nonEmpty_noTimeout_withError() async {
+  Future<void> test_waitForResponses_nonEmpty_noTimeout_withError() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     PluginInfo plugin1 = DiscoveredPluginInfo('p1', '', '', null, null);
     PluginInfo plugin2 = DiscoveredPluginInfo('p2', '', '', null, null);
@@ -72,7 +72,7 @@ class AbstractRequestHandlerTest extends AbstractAnalysisTest {
     expect(responses, unorderedEquals([response1]));
   }
 
-  test_waitForResponses_nonEmpty_timeout_someDelayed() async {
+  Future<void> test_waitForResponses_nonEmpty_timeout_someDelayed() async {
     AbstractRequestHandler handler = TestAbstractRequestHandler(server);
     PluginInfo plugin1 = DiscoveredPluginInfo('p1', '', '', null, null);
     PluginInfo plugin2 = DiscoveredPluginInfo('p2', '', '', null, null);

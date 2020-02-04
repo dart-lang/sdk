@@ -19,7 +19,7 @@ mixin_declaration/*: Skip # See https://github.com/dart-lang/language/issues/7
 void/*: Skip # https://github.com/dart-lang/sdk/issues/34015
 
 [ $mode == debug ]
-class/large_class_declaration_test: Slow
+class/large_class_declaration_test: Slow, Pass
 
 [ $mode == product ]
 assert/assert_test: SkipByDesign # Requires checked mode.
@@ -43,4 +43,4 @@ identifier/built_in_type_annotation_test/set: Crash # Not supported by legacy VM
 
 [ $hot_reload || $hot_reload_rollback ]
 regress/regress22780_test/01: Crash # Issue 29094
-vm/optimized_stacktrace_test: Slow
+vm/optimized_stacktrace_test: Slow, Pass

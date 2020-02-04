@@ -52,7 +52,7 @@ vm/regress_28325_test: SkipByDesign # Looks for filename in stack trace
 unsorted/inference_enum_list_test: Skip # Issue 35885
 
 [ $compiler == dartkp && $mode == debug && $runtime == dart_precompiled ]
-vm/precompiled_static_initializer_test: Slow
+vm/precompiled_static_initializer_test: Slow, Pass
 
 # ==== dartkp + dart_precompiled status lines ====
 [ $compiler == dartkp && $runtime == dart_precompiled ]
@@ -108,7 +108,7 @@ assert/initializer_const_error2_test/cc10: Crash
 assert/initializer_const_error2_test/cc11: Crash
 
 [ $compiler == dartkp && $system == windows ]
-unsorted/disassemble_test: Slow
+unsorted/disassemble_test: Slow, Pass
 
 [ $mode == debug && $runtime == vm && ($compiler == app_jitk || $compiler == dartk || $compiler == dartkb) ]
 optimize/deopt_inlined_function_lazy_test: Skip
@@ -135,7 +135,7 @@ vm/regress_29145_test: Skip # Issue 29145
 web_int_literals_test/*: SkipByDesign # Test applies only to JavaScript targets
 
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
-symbol/conflict_test: Slow
+symbol/conflict_test: Slow, Pass
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]
 type_constants_test/none: Skip # Deferred libraries and hot reload.

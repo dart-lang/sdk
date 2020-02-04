@@ -84,7 +84,7 @@ void store2() {
 
   // Successful implicit downcast of argument at runtime.
   // Should succeed now, should statically be rejected when NNBD lands.
-  a.value = b;
+  a.value = b as Pointer<Int8>;
 
   free(a);
   free(b);
@@ -97,7 +97,7 @@ void store3() {
   // Failing implicit downcast of argument at runtime.
   // Should fail now at runtime, should statically be rejected when NNBD lands.
   Expect.throws(() {
-    a.value = b;
+    a.value = b as Pointer<Int8>;
   });
 
   free(a);
@@ -199,7 +199,7 @@ void load3() {
   // Reified as Pointer<Pointer<Int8>> at runtime.
   final Pointer<Pointer<NativeType>> a = allocate<Pointer<Int8>>();
 
-  Pointer<Int8> b = a.value;
+  Pointer<Int8> b = a.value as Pointer<Int8>;
   Expect.type<Pointer<Int8>>(b);
 
   free(a);
@@ -222,7 +222,7 @@ void load5() {
   // Failing implicit downcast of return value at runtime.
   // Should fail now at runtime, should statically be rejected when NNBD lands.
   Expect.throws(() {
-    Pointer<Int8> b = a.value;
+    Pointer<Int8> b = a.value as Pointer<Int8>;
   });
 
   free(a);

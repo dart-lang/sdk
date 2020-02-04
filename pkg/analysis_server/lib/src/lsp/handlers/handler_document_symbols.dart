@@ -147,7 +147,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
 
       // Adds a symbol and it's children recursively, supplying the parent
       // name as required by SymbolInformation.
-      addSymbol(Outline outline, {String parentName}) {
+      void addSymbol(Outline outline, {String parentName}) {
         allSymbols.add(_asSymbolInformation(
           parentName,
           clientSupportedSymbolKinds,

@@ -652,20 +652,6 @@ void main() {
     );
   }
 
-  test_getterAndSetterWithDifferentTypes() async {
-    await assertErrorsInCode(r'''
-class A {
-  int get f => 0;
-  void set f(String s) {}
-}
-g (A a) {
-  a.f = a.f.toString();
-}''', [
-      error(StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES, 20, 1),
-    ]);
-    verifyTestResolved();
-  }
-
   test_hasReferenceToSuper() async {
     await assertNoErrorsInCode(r'''
 class A {}

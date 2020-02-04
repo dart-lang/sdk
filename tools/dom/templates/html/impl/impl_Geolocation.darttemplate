@@ -6,8 +6,8 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
-      Duration timeout, Duration maximumAge}) {
+  Future<Geoposition> getCurrentPosition({bool$NULLABLE enableHighAccuracy,
+      Duration$NULLABLE timeout, Duration$NULLABLE maximumAge}) {
     var options = {};
     if (enableHighAccuracy != null) {
       options['enableHighAccuracy'] = enableHighAccuracy;
@@ -34,8 +34,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return completer.future;
   }
 
-  Stream<Geoposition> watchPosition({bool enableHighAccuracy,
-      Duration timeout, Duration maximumAge}) {
+  Stream<Geoposition> watchPosition({bool$NULLABLE enableHighAccuracy,
+      Duration$NULLABLE timeout, Duration$NULLABLE maximumAge}) {
 
     var options = {};
     if (enableHighAccuracy != null) {

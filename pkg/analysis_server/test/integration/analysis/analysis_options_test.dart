@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(OptionsIntegrationTest);
   });
@@ -23,7 +23,7 @@ class OptionsIntegrationTest extends AbstractAnalysisServerIntegrationTest {
     standardAnalysisSetup();
   }
 
-  test_option_warning_newOptionFile() async {
+  Future<void> test_option_warning_newOptionFile() async {
     String options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_YAML_FILE);
     writeFile(options, '''
 linter:
@@ -48,7 +48,7 @@ linter:
     expect(error.location.startColumn, 7);
   }
 
-  test_option_warning_oldOptionFile() async {
+  Future<void> test_option_warning_oldOptionFile() async {
     String options = sourcePath(AnalysisEngine.ANALYSIS_OPTIONS_FILE);
     writeFile(options, '''
 linter:

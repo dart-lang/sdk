@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UtilTest);
   });
@@ -40,7 +40,7 @@ main() {
     expect(result, expected);
   }
 
-  test_addLibraryImports_dart_hasImports_between() async {
+  Future<void> test_addLibraryImports_dart_hasImports_between() async {
     await resolveTestUnit('''
 import 'dart:async';
 import 'dart:math';
@@ -53,7 +53,7 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_first() async {
+  Future<void> test_addLibraryImports_dart_hasImports_first() async {
     await resolveTestUnit('''
 import 'dart:collection';
 import 'dart:math';
@@ -66,7 +66,7 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_last() async {
+  Future<void> test_addLibraryImports_dart_hasImports_last() async {
     await resolveTestUnit('''
 import 'dart:async';
 import 'dart:collection';
@@ -79,7 +79,7 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple() async {
+  Future<void> test_addLibraryImports_dart_hasImports_multiple() async {
     await resolveTestUnit('''
 import 'dart:collection';
 import 'dart:math';
@@ -94,7 +94,7 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple_first() async {
+  Future<void> test_addLibraryImports_dart_hasImports_multiple_first() async {
     await resolveTestUnit('''
 import 'dart:html';
 import 'dart:math';
@@ -109,7 +109,7 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasImports_multiple_last() async {
+  Future<void> test_addLibraryImports_dart_hasImports_multiple_last() async {
     await resolveTestUnit('''
 import 'dart:async';
 import 'dart:collection';
@@ -124,7 +124,7 @@ import 'dart:math';
 ''');
   }
 
-  test_addLibraryImports_dart_hasLibraryDirective() async {
+  Future<void> test_addLibraryImports_dart_hasLibraryDirective() async {
     await resolveTestUnit('''
 library test;
 
@@ -142,7 +142,7 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_hasComment() async {
+  Future<void> test_addLibraryImports_dart_noDirectives_hasComment() async {
     await resolveTestUnit('''
 /// Comment.
 
@@ -160,7 +160,7 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_hasShebang() async {
+  Future<void> test_addLibraryImports_dart_noDirectives_hasShebang() async {
     await resolveTestUnit('''
 #!/bin/dart
 
@@ -178,7 +178,7 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_dart_noDirectives_noShebang() async {
+  Future<void> test_addLibraryImports_dart_noDirectives_noShebang() async {
     await resolveTestUnit('''
 class A {}
 ''');
@@ -192,7 +192,8 @@ class A {}
 ''');
   }
 
-  test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
+  Future<void>
+      test_addLibraryImports_package_hasDart_hasPackages_insertAfter() async {
     addPackageFile('aaa', 'aaa.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
@@ -208,7 +209,8 @@ import 'package:bbb/bbb.dart';
 ''');
   }
 
-  test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
+  Future<void>
+      test_addLibraryImports_package_hasDart_hasPackages_insertBefore() async {
     addPackageFile('bbb', 'bbb.dart', '');
     await resolveTestUnit('''
 import 'dart:async';
@@ -224,7 +226,7 @@ import 'package:bbb/bbb.dart';
 ''');
   }
 
-  test_addLibraryImports_package_hasImports_between() async {
+  Future<void> test_addLibraryImports_package_hasImports_between() async {
     addPackageFile('aaa', 'aaa.dart', '');
     addPackageFile('ddd', 'ddd.dart', '');
     await resolveTestUnit('''
@@ -241,7 +243,7 @@ import 'package:ddd/ddd.dart';
 ''');
   }
 
-  test_invertCondition_binary_compare() async {
+  Future<void> test_invertCondition_binary_compare() async {
     await assert_invertCondition('0 < 1', '0 >= 1');
     await assert_invertCondition('0 > 1', '0 <= 1');
     await assert_invertCondition('0 <= 1', '0 > 1');
@@ -250,36 +252,36 @@ import 'package:ddd/ddd.dart';
     await assert_invertCondition('0 != 1', '0 == 1');
   }
 
-  test_invertCondition_binary_compare_boolean() async {
+  Future<void> test_invertCondition_binary_compare_boolean() async {
     await assert_invertCondition('b1 == null', 'b1 != null');
     await assert_invertCondition('b1 != null', 'b1 == null');
   }
 
-  test_invertCondition_binary_logical() async {
+  Future<void> test_invertCondition_binary_logical() async {
     await assert_invertCondition('b1 && b2', '!b1 || !b2');
     await assert_invertCondition('!b1 && !b2', 'b1 || b2');
     await assert_invertCondition('b1 || b2', '!b1 && !b2');
     await assert_invertCondition('!b1 || !b2', 'b1 && b2');
   }
 
-  test_invertCondition_complex() async {
+  Future<void> test_invertCondition_complex() async {
     await assert_invertCondition('b1 && b2 || b3', '(!b1 || !b2) && !b3');
     await assert_invertCondition('b1 || b2 && b3', '!b1 && (!b2 || !b3)');
     await assert_invertCondition('(!b1 || !b2) && !b3', 'b1 && b2 || b3');
     await assert_invertCondition('!b1 && (!b2 || !b3)', 'b1 || b2 && b3');
   }
 
-  test_invertCondition_is() async {
+  Future<void> test_invertCondition_is() async {
     await assert_invertCondition('v1 is int', 'v1 is! int');
     await assert_invertCondition('v1 is! int', 'v1 is int');
   }
 
-  test_invertCondition_literal() async {
+  Future<void> test_invertCondition_literal() async {
     await assert_invertCondition('true', 'false');
     await assert_invertCondition('false', 'true');
   }
 
-  test_invertCondition_not() async {
+  Future<void> test_invertCondition_not() async {
     await assert_invertCondition('b1', '!b1');
     await assert_invertCondition('!b1', 'b1');
     await assert_invertCondition('!((b1))', 'b1');
@@ -317,5 +319,5 @@ class _SourceMock implements Source {
   _SourceMock(this.fullName, this.uri);
 
   @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

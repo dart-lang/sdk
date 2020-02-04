@@ -22,7 +22,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'analysis_abstract.dart';
 import 'mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDomainTest);
     defineReflectiveTests(AnalysisDomainHandlerTest);
@@ -32,7 +32,7 @@ main() {
 
 @reflectiveTest
 class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
-  Future outOfRangeTest(SourceEdit edit) async {
+  Future<void> outOfRangeTest(SourceEdit edit) async {
     AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     await helper.onAnalysisComplete;
@@ -47,7 +47,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
         isResponseFailure('0', RequestErrorCode.INVALID_OVERLAY_CHANGE));
   }
 
-  test_setAnalysisRoots_excludedFolder() async {
+  Future<void> test_setAnalysisRoots_excludedFolder() async {
     newFile('/project/aaa/a.dart', content: '// a');
     newFile('/project/bbb/b.dart', content: '// b');
     var excludedPath = join(projectPath, 'bbb');
@@ -55,7 +55,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(response, isResponseSuccess('0'));
   }
 
-  test_setAnalysisRoots_included_newFolder() async {
+  Future<void> test_setAnalysisRoots_included_newFolder() async {
     newFile('/project/pubspec.yaml', content: 'name: project');
     String file = newFile('/project/bin/test.dart', content: 'main() {}').path;
     var response = testSetAnalysisRoots([projectPath], []);
@@ -67,7 +67,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(resolvedUnit, isNotNull);
   }
 
-  test_setAnalysisRoots_included_nonexistentFolder() async {
+  Future<void> test_setAnalysisRoots_included_nonexistentFolder() async {
     String projectA = convertPath('/project_a');
     String projectB = convertPath('/project_b');
     String fileB = newFile('/project_b/b.dart', content: '// b').path;
@@ -81,31 +81,31 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(resolvedUnit, isNotNull);
   }
 
-  test_setAnalysisRoots_included_notAbsolute() async {
+  Future<void> test_setAnalysisRoots_included_notAbsolute() async {
     var response = testSetAnalysisRoots(['foo/bar'], []);
     expect(response,
         isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
   }
 
-  test_setAnalysisRoots_included_notNormalized() async {
+  Future<void> test_setAnalysisRoots_included_notNormalized() async {
     var response = testSetAnalysisRoots(['/foo/../bar'], []);
     expect(response,
         isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
   }
 
-  test_setAnalysisRoots_notAbsolute() async {
+  Future<void> test_setAnalysisRoots_notAbsolute() async {
     var response = testSetAnalysisRoots([], ['foo/bar']);
     expect(response,
         isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
   }
 
-  test_setAnalysisRoots_notNormalized() async {
+  Future<void> test_setAnalysisRoots_notNormalized() async {
     var response = testSetAnalysisRoots([], ['/foo/../bar']);
     expect(response,
         isResponseFailure('0', RequestErrorCode.INVALID_FILE_PATH_FORMAT));
   }
 
-  test_setPriorityFiles_invalid() {
+  void test_setPriorityFiles_invalid() {
     var request = AnalysisSetPriorityFilesParams(
       [convertPath('/project/lib.dart')],
     ).toRequest('0');
@@ -113,7 +113,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(response, isResponseSuccess('0'));
   }
 
-  test_setPriorityFiles_valid() {
+  void test_setPriorityFiles_valid() {
     var p1 = convertPath('/p1');
     var p2 = convertPath('/p2');
     var aPath = convertPath('/p1/a.dart');
@@ -142,7 +142,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     setPriorityFiles([]);
   }
 
-  test_updateContent_badType() async {
+  Future<void> test_updateContent_badType() async {
     AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
     await helper.onAnalysisComplete;
@@ -157,7 +157,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(response, isResponseFailure('0'));
   }
 
-  test_updateContent_changeOnDisk_duringOverride() async {
+  Future<void> test_updateContent_changeOnDisk_duringOverride() async {
     AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     await helper.onAnalysisComplete;
@@ -179,7 +179,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(helper.getTestErrors(), hasLength(1));
   }
 
-  test_updateContent_changeOnDisk_normal() async {
+  Future<void> test_updateContent_changeOnDisk_normal() async {
     AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('library A;');
     await helper.onAnalysisComplete;
@@ -193,7 +193,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(helper.getTestErrors(), hasLength(1));
   }
 
-  test_updateContent_fullContent() async {
+  Future<void> test_updateContent_fullContent() async {
     AnalysisTestHelper helper = AnalysisTestHelper();
     helper.createSingleFileProject('// empty');
     await helper.onAnalysisComplete;
@@ -208,7 +208,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(errors, hasLength(1));
   }
 
-  test_updateContent_incremental() async {
+  Future<void> test_updateContent_incremental() async {
     AnalysisTestHelper helper = AnalysisTestHelper();
     String initialContent = 'library A;';
     helper.createSingleFileProject(initialContent);
@@ -227,19 +227,19 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(errors, hasLength(1));
   }
 
-  test_updateContent_outOfRange_beyondEnd() {
+  Future<void> test_updateContent_outOfRange_beyondEnd() {
     return outOfRangeTest(SourceEdit(6, 6, 'foo'));
   }
 
-  test_updateContent_outOfRange_negativeLength() {
+  Future<void> test_updateContent_outOfRange_negativeLength() {
     return outOfRangeTest(SourceEdit(3, -1, 'foo'));
   }
 
-  test_updateContent_outOfRange_negativeOffset() {
+  Future<void> test_updateContent_outOfRange_negativeOffset() {
     return outOfRangeTest(SourceEdit(-1, 3, 'foo'));
   }
 
-  test_updateOptions_invalid() {
+  void test_updateOptions_invalid() {
     var request = Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS, {
       ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: {'not-an-option': true}
     });
@@ -248,7 +248,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     expect(response, isResponseSuccess('0'));
   }
 
-  test_updateOptions_null() {
+  void test_updateOptions_null() {
     // null is allowed as a synonym for {}.
     var request = Request('0', ANALYSIS_REQUEST_UPDATE_OPTIONS,
         {ANALYSIS_REQUEST_UPDATE_OPTIONS_OPTIONS: null});
@@ -262,7 +262,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
     return handler.handleRequest(request);
   }
 
-  xtest_getReachableSources_invalidSource() async {
+  Future<void> xtest_getReachableSources_invalidSource() async {
     // TODO(brianwilkerson) Re-enable this test if we re-enable the
     // analysis.getReachableSources request.
     newFile('/project/a.dart', content: 'import "b.dart";');
@@ -278,7 +278,7 @@ class AnalysisDomainHandlerTest extends AbstractAnalysisTest {
         RequestErrorCode.GET_REACHABLE_SOURCES_INVALID_FILE);
   }
 
-  xtest_getReachableSources_validSources() async {
+  Future<void> xtest_getReachableSources_validSources() async {
     // TODO(brianwilkerson) Re-enable this test if we re-enable the
     // analysis.getReachableSources request.
     String fileA = newFile('/project/a.dart', content: 'import "b.dart";').path;
@@ -313,7 +313,7 @@ class AnalysisDomainTest extends AbstractAnalysisTest {
     }
   }
 
-  test_setRoots_packages() {
+  Future<void> test_setRoots_packages() {
     // prepare package
     String pkgFile = newFile('/packages/pkgA/libA.dart', content: '''
 library lib_a;
@@ -556,7 +556,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     }
   }
 
-  test_afterAnalysis() async {
+  Future<void> test_afterAnalysis() async {
     addTestFile('int V = 42;');
     createProject();
     // wait for analysis, no results initially
@@ -583,7 +583,7 @@ class SetSubscriptionsTest extends AbstractAnalysisTest {
     expect(filesHighlights[file], isEmpty);
   }
 
-  test_afterAnalysis_packageFile_external() async {
+  Future<void> test_afterAnalysis_packageFile_external() async {
     String pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
@@ -607,7 +607,7 @@ main() {
     expect(filesHighlights[pkgFile], isNotEmpty);
   }
 
-  test_afterAnalysis_packageFile_inRoot() async {
+  Future<void> test_afterAnalysis_packageFile_inRoot() async {
     String pkgA = convertPath('/pkgA');
     String pkgB = convertPath('/pkgA');
     String pkgFileA = newFile('$pkgA/lib/libA.dart', content: '''
@@ -634,7 +634,7 @@ main() {
     expect(filesHighlights[pkgFileA], isNotEmpty);
   }
 
-  test_afterAnalysis_packageFile_notUsed() async {
+  Future<void> test_afterAnalysis_packageFile_notUsed() async {
     String pkgFile = newFile('/packages/pkgA/lib/libA.dart', content: '''
 library lib_a;
 class A {}
@@ -655,7 +655,7 @@ class A {}
     expect(filesHighlights[pkgFile], isNotEmpty);
   }
 
-  test_afterAnalysis_sdkFile() async {
+  Future<void> test_afterAnalysis_sdkFile() async {
     String file = convertPath('/sdk/lib/core/core.dart');
     addTestFile('// no matter');
     createProject();
@@ -669,7 +669,7 @@ class A {}
     expect(filesHighlights[file], isNotEmpty);
   }
 
-  test_beforeAnalysis() async {
+  Future<void> test_beforeAnalysis() async {
     addTestFile('int V = 42;');
     createProject();
     // subscribe
@@ -679,7 +679,7 @@ class A {}
     expect(filesHighlights[testFile], isNotEmpty);
   }
 
-  test_sentToPlugins() async {
+  Future<void> test_sentToPlugins() async {
     addTestFile('int V = 42;');
     createProject();
     // subscribe

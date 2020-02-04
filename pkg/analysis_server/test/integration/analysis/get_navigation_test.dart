@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetNavigationTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class GetNavigationTest extends AbstractAnalysisServerIntegrationTest {
-  test_navigation() async {
+  Future<void> test_navigation() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 class Foo {}
@@ -43,7 +43,7 @@ class Bar {
   }
 
   @failingTest
-  test_navigation_no_result() async {
+  Future<void> test_navigation_no_result() async {
     // This fails - it returns navigation results for a whitespace area (#28799).
     String pathname = sourcePath('test.dart');
     String text = r'''

@@ -108,6 +108,9 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
 
   NullabilityNode newNode() => NullabilityNode.forTypeAnnotation(_offset++);
 
+  DecoratedType num_({NullabilityNode node}) =>
+      DecoratedType(typeProvider.numType, node ?? newNode());
+
   DecoratedType object({NullabilityNode node}) =>
       DecoratedType(typeProvider.objectType, node ?? newNode());
 
@@ -198,7 +201,7 @@ mixin EdgeTester {
   /// aren't already.  In practice this means that the caller can pass in either
   //  /// a [NodeMatcher] or a [NullabilityNode].
   NullabilityEdge assertEdge(Object source, Object destination,
-      {@required bool hard, List<NullabilityNode> guards = const []}) {
+      {@required bool hard, bool checkable = true, Object guards = isEmpty}) {
     var edges = getEdges(source, destination);
     if (edges.length == 0) {
       fail('Expected edge $source -> $destination, found none');
@@ -207,7 +210,8 @@ mixin EdgeTester {
     } else {
       var edge = edges[0];
       expect(edge.isHard, hard);
-      expect(edge.guards, unorderedEquals(guards));
+      expect(edge.isCheckable, checkable);
+      expect(edge.guards, guards);
       return edge;
     }
   }
@@ -394,6 +398,12 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
         testSource, findNode.typeAnnotation(text));
   }
 
+  /// Gets the [ConditionalDiscard] information associated with the collection
+  /// element whose text is [text].
+  ConditionalDiscard elementDiscard(String text) {
+    return variables.conditionalDiscard(findNode.collectionElement(text));
+  }
+
   NullabilityNode possiblyOptionalParameter(String text) {
     return variables.possiblyOptionalParameter(findNode.defaultParameter(text));
   }
@@ -402,12 +412,6 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
   /// whose text is [text].
   ConditionalDiscard statementDiscard(String text) {
     return variables.conditionalDiscard(findNode.statement(text));
-  }
-
-  /// Gets the [ConditionalDiscard] information associated with the collection
-  /// element whose text is [text].
-  ConditionalDiscard elementDiscard(String text) {
-    return variables.conditionalDiscard(findNode.collectionElement(text));
   }
 }
 

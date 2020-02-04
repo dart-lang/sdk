@@ -45,6 +45,7 @@ final testSuiteDirectories = [
   Path('tests/standalone'),
   Path('tests/standalone_2'),
   Path('tests/ffi'),
+  Path('tests/ffi_2'),
   Path('utils/tests/peg'),
 ];
 

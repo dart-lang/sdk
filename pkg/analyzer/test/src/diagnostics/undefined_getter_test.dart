@@ -142,6 +142,16 @@ f(T e) { return e.m; }
     ]);
   }
 
+  test_instance_undefined_mixin() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  f() { return this.m; }
+}
+''', [
+      error(StaticTypeWarningCode.UNDEFINED_GETTER, 30, 1),
+    ]);
+  }
+
   test_nullMember_undefined() async {
     await assertErrorsInCode(r'''
 m() {

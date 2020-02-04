@@ -22,12 +22,12 @@ abstract class ServerStarter {
    * An optional manager to handle file systems which may not always be
    * available.
    */
-  void set detachableFileSystemManager(DetachableFileSystemManager manager);
+  set detachableFileSystemManager(DetachableFileSystemManager manager);
 
   /**
    * Set the instrumentation [service] that is to be used by the analysis server.
    */
-  void set instrumentationService(InstrumentationService service);
+  set instrumentationService(InstrumentationService service);
 
   /**
    * Use the given command-line [arguments] to start this server.

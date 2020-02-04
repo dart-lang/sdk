@@ -12,7 +12,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'abstract_search_domain.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeclarationsTest);
   });
@@ -40,7 +40,7 @@ class DeclarationsTest extends AbstractSearchDomainTest {
             d.name == name))));
   }
 
-  test_class() async {
+  Future<void> test_class() async {
     addTestFile(r'''
 class C {
   int f;
@@ -71,7 +71,7 @@ class C {
     }
   }
 
-  test_enum() async {
+  Future<void> test_enum() async {
     addTestFile(r'''
 enum E {
   a, b, c
@@ -85,7 +85,7 @@ enum E {
     assertHas('c', ElementKind.ENUM_CONSTANT);
   }
 
-  test_maxResults() async {
+  Future<void> test_maxResults() async {
     newFile(join(testFolder, 'a.dart'), content: r'''
 class A {}
 class B {}
@@ -108,7 +108,7 @@ class D {}
     expect(declarationsResult.declarations, hasLength(4));
   }
 
-  test_mixin() async {
+  Future<void> test_mixin() async {
     addTestFile(r'''
 mixin M {
   int f;
@@ -126,7 +126,7 @@ mixin M {
     assertHas('m', ElementKind.METHOD, mixinName: 'M');
   }
 
-  test_multipleFiles() async {
+  Future<void> test_multipleFiles() async {
     var a = newFile(join(testFolder, 'a.dart'), content: 'class A {}').path;
     var b = newFile(join(testFolder, 'b.dart'), content: 'class B {}').path;
 
@@ -155,7 +155,7 @@ mixin M {
     }
   }
 
-  test_onlyForFile() async {
+  Future<void> test_onlyForFile() async {
     var a = newFile(join(testFolder, 'a.dart'), content: 'class A {}').path;
     newFile(join(testFolder, 'b.dart'), content: 'class B {}').path;
 
@@ -170,7 +170,7 @@ mixin M {
     expect(declarationsResult.files[declaration.fileIndex], a);
   }
 
-  test_parameters() async {
+  Future<void> test_parameters() async {
     addTestFile(r'''
 void f(bool a, String b) {}
 ''');
@@ -180,7 +180,7 @@ void f(bool a, String b) {}
     expect(declaration.parameters, '(bool a, String b)');
   }
 
-  test_regExp() async {
+  Future<void> test_regExp() async {
     addTestFile(r'''
 class A {}
 class B {}
@@ -195,7 +195,7 @@ class D {}
     assertNo('D');
   }
 
-  test_top() async {
+  Future<void> test_top() async {
     addTestFile(r'''
 int get g => 0;
 void set s(_) {}

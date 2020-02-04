@@ -290,7 +290,7 @@ class IdentifierCollector extends RecursiveAstVisitor<void> {
   final List<SimpleIdentifier> identifiers = <SimpleIdentifier>[];
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     identifiers.add(node);
   }
 }

@@ -762,7 +762,7 @@ var tests = <IsolateTest>[
     expect(result['name'], equals('_DummyClass'));
     expect(result['_vmName'], startsWith('_DummyClass@'));
     expect(result['abstract'], equals(false));
-    expect(result['const'], equals(false));
+    expect(result['const'], equals(true));
     expect(result['_finalized'], equals(true));
     expect(result['_implemented'], equals(false));
     expect(result['_patch'], equals(false));

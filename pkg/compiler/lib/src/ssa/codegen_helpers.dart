@@ -120,6 +120,9 @@ class SsaInstructionSelection extends HBaseVisitor with CodegenPhase {
         }
       }
 
+      if (current is HInvokeExternal) {
+        if (current.isNullGuardFor(nullCheck)) return current;
+      }
       if (current is HForeignCode) {
         if (current.isNullGuardFor(nullCheck)) return current;
       }
@@ -602,7 +605,7 @@ class SsaAssignmentChaining extends HBaseVisitor with CodegenPhase {
           continue;
         }
       } else if (current is HReturn) {
-        if (current.inputs.single == value) {
+        if (current.inputs.isNotEmpty && current.inputs.single == value) {
           current.changeUse(value, chain);
           return current.next;
         }
@@ -1312,10 +1315,8 @@ class SsaShareRegionConstants extends HBaseVisitor with CodegenPhase {
 
       if (instruction is HInvoke) return true;
       if (instruction is HCreate) return true;
+      if (instruction is HReturn) return true;
       if (instruction is HPhi) return true;
-
-      // We return `null` by removing the return expression or statement.
-      if (instruction is HReturn) return false;
 
       // JavaScript `x == null` is more efficient than `x == _null`.
       if (instruction is HIdentity) return false;

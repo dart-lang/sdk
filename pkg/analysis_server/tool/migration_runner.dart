@@ -34,7 +34,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   if (args.length != 2) {
     throw StateError(
         'Exactly two arguments are required: the path to a JSON configuration '

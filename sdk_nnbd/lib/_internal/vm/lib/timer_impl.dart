@@ -467,6 +467,7 @@ class _Timer implements Timer {
     _sendPort = null;
     _scheduledWakeupTime = 0;
     _receivePort!.close();
+    _receivePort = null;
   }
 
   // The Timer factory registered with the dart:async library by the embedder.

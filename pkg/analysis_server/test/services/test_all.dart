@@ -10,7 +10,7 @@ import 'linter/test_all.dart' as linter_all;
 import 'refactoring/test_all.dart' as refactoring_all;
 import 'search/test_all.dart' as search_all;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     completion_all.main();
     correction_all.main();

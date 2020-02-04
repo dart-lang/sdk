@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:nnbd_migration/nullability_state.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 
 /// Information exposed to the migration client about the set of nullability
@@ -237,11 +236,6 @@ abstract class NullabilityMigrationInstrumentation {
   /// Clear any data from the propagation step in preparation for that step
   /// being re-run.
   void prepareForUpdate();
-
-  /// Called whenever the migration engine performs a step in the propagation of
-  /// nullability information through the nullability graph, to report details
-  /// of the step that was performed and why.
-  void propagationStep(PropagationInfo info);
 }
 
 /// Information exposed to the migration client about a single node in the
@@ -269,65 +263,6 @@ abstract class NullabilityNodeInfo implements FixReasonInfo {
 
   /// The edges that caused this node to have the nullability that it has.
   Iterable<EdgeInfo> get upstreamEdges;
-}
-
-/// Information exposed to the migration client about a single step in the
-/// nullability propagation algorithm, in which the nullability state of a
-/// single node was changed.
-abstract class PropagationInfo {
-  /// The edge that caused the nullability state of [node] to be set to
-  /// [newState], or `null` if the nullability state was changed for reasons
-  /// not associated with an edge.  Will be `null` when [reason] is
-  /// [StateChangeReason.substituteInner] or
-  /// [StateChangeReason.substituteOuter], non-null otherwise.
-  EdgeInfo get edge;
-
-  /// The new state that [node] was placed into.
-  NullabilityState get newState;
-
-  /// The nullability node whose state was changed.
-  NullabilityNodeInfo get node;
-
-  /// The reason the nullability node's state was changed.
-  StateChangeReason get reason;
-
-  /// The substitution node that caused the nullability state of [node] to be
-  /// set to [newState], or `null` if the nullability state was changed for
-  /// reasons not associated with a substitution node.  Will be non-null when
-  /// [reason] is [StateChangeReason.substituteInner] or
-  /// [StateChangeReason.substituteOuter], `null` otherwise.
-  SubstitutionNodeInfo get substitutionNode;
-}
-
-/// Enum representing the various reasons why a nullability node might change
-/// state during nullability propagation.
-enum StateChangeReason {
-  /// A union edge exists between this node and a node that is known a priori to
-  /// be nullable, so this node is being made nullable as well.
-  union,
-
-  /// A hard or union edge exists whose source is this node, and whose
-  /// destination is non-nullable, so this node is being made non-nullable as
-  /// well.
-  upstream,
-
-  /// An edge exists whose destination is this node, and whose source is
-  /// nullable, so this node is being made nullable as well.
-  downstream,
-
-  /// An edge exists whose source is this node, and whose destination is exact
-  /// nullable, so this node is being made exact nullable as well.
-  exactUpstream,
-
-  /// A substitution node exists whose inner node points to this node, and the
-  /// substitution node is nullable, so this node is being made nullable as
-  /// well.
-  substituteInner,
-
-  /// A substitution node exists whose outer node points to this node, and the
-  /// substitution node is nullable, so this node is being made nullable as
-  /// well.
-  substituteOuter,
 }
 
 /// Information exposed to the migration client about a node in the nullability

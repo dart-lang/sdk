@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(SortMembersTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class SortMembersTest extends AbstractAnalysisServerIntegrationTest {
-  test_sort() async {
+  Future<void> test_sort() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 int foo;
@@ -32,7 +32,7 @@ int bar;
     expect(edit.edits.first.replacement, 'bar;\nint foo');
   }
 
-  test_sort_no_changes() async {
+  Future<void> test_sort_no_changes() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 int bar;
@@ -46,7 +46,7 @@ int foo;
     expect(edit.edits, isEmpty);
   }
 
-  test_sort_with_errors() async {
+  Future<void> test_sort_with_errors() async {
     String pathname = sourcePath('test.dart');
     String text = r'''
 int foo

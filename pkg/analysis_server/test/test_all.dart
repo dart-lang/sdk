@@ -29,7 +29,7 @@ import 'src/test_all.dart' as src;
 import 'tool/test_all.dart' as tool;
 import 'verify_tests_test.dart' as verify_tests;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     analysis.main();
     analysis_server.main();
@@ -62,7 +62,7 @@ main() {
 
 @reflectiveTest
 class SpecTest {
-  test_specHasBeenGenerated() {
+  void test_specHasBeenGenerated() {
     check_spec.main();
   }
 }

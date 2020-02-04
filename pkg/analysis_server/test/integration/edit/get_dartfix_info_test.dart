@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(GetDartfixInfoTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class GetDartfixInfoTest extends AbstractAnalysisServerIntegrationTest {
-  test_getDartfixInfo() async {
+  Future<void> test_getDartfixInfo() async {
     standardAnalysisSetup();
     EditGetDartfixInfoResult info = await sendEditGetDartfixInfo();
     expect(info.fixes.length, greaterThanOrEqualTo(3));

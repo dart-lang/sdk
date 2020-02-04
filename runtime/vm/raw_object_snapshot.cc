@@ -121,6 +121,13 @@ void RawType::WriteTo(SnapshotWriter* writer,
                       bool as_reference) {
   ASSERT(writer != NULL);
 
+  if (ptr()->signature_ != Function::null()) {
+    writer->SetWriteException(Exceptions::kArgument,
+                              "Illegal argument in isolate message"
+                              " : (function types are not supported yet)");
+    UNREACHABLE();
+  }
+
   // Only resolved and finalized types should be written to a snapshot.
   ASSERT((ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
          (ptr()->type_state_ == RawType::kFinalizedUninstantiated));

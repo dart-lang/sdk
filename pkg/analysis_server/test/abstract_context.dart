@@ -217,11 +217,12 @@ test:${toUriStr('/home/test/lib')}
  * Wraps the given [_ElementVisitorFunction] into an instance of
  * [engine.GeneralizingElementVisitor].
  */
-class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
+class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor<void> {
   final _ElementVisitorFunction function;
   _ElementVisitorFunctionWrapper(this.function);
+
   @override
-  visitElement(Element element) {
+  void visitElement(Element element) {
     function(element);
     super.visitElement(element);
   }

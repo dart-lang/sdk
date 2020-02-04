@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceWithTearOffTest);
   });
@@ -23,7 +23,7 @@ class ReplaceWithTearOffTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_lambdas;
 
-  test_function_oneParameter() async {
+  Future<void> test_function_oneParameter() async {
     await resolveTestUnit('''
 final x = /*LINT*/(name) {
   print(name);
@@ -34,7 +34,7 @@ final x = print;
 ''');
   }
 
-  test_function_zeroParameters() async {
+  Future<void> test_function_zeroParameters() async {
     await resolveTestUnit('''
 void foo(){}
 Function finalVar() {
@@ -51,7 +51,7 @@ Function finalVar() {
 ''');
   }
 
-  test_lambda_asArgument() async {
+  Future<void> test_lambda_asArgument() async {
     await resolveTestUnit('''
 void foo() {
   bool isPair(int a) => a % 2 == 0;
@@ -69,7 +69,7 @@ void foo() {
 ''');
   }
 
-  test_method_oneParameter() async {
+  Future<void> test_method_oneParameter() async {
     await resolveTestUnit('''
 var a = /*LINT*/(x) => finalList.remove(x);
 ''');
@@ -78,7 +78,7 @@ var a = finalList.remove;
 ''');
   }
 
-  test_method_zeroParameter() async {
+  Future<void> test_method_zeroParameter() async {
     await resolveTestUnit('''
 final Object a;
 Function finalVar() {

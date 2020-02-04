@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_contributor_util.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionMemberContributorTest);
   });
@@ -27,7 +27,7 @@ class ExtensionMemberContributorTest extends DartCompletionContributorTest {
     super.setUp();
   }
 
-  test_extension() async {
+  Future<void> test_extension() async {
     addTestSource('''
 extension E on int {}
 void f() {
@@ -38,7 +38,7 @@ void f() {
     assertNoSuggestions();
   }
 
-  test_extensionOverride_doesNotMatch() async {
+  Future<void> test_extensionOverride_doesNotMatch() async {
     addTestSource('''
 extension E on int {
   bool a(int b, int c) {}
@@ -55,7 +55,7 @@ void f() {
     assertSuggestSetter('c');
   }
 
-  test_extensionOverride_matches() async {
+  Future<void> test_extensionOverride_matches() async {
     addTestSource('''
 extension E on int {
   bool a(int b, int c) {}
@@ -72,7 +72,7 @@ void f() {
     assertSuggestSetter('c');
   }
 
-  test_function_doesNotMatch() async {
+  Future<void> test_function_doesNotMatch() async {
     addTestSource('''
 extension E<T extends num> on List<T> {
   bool a(int b, int c) {}
@@ -90,7 +90,7 @@ void f(String s) {
     assertNotSuggested('c');
   }
 
-  test_function_matches() async {
+  Future<void> test_function_matches() async {
     addTestSource('''
 extension E on int {
   bool a(int b, int c) {}
@@ -108,7 +108,7 @@ int g() => 3;
     assertSuggestSetter('c');
   }
 
-  test_identifier_doesNotMatch() async {
+  Future<void> test_identifier_doesNotMatch() async {
     addTestSource('''
 extension E<T extends num> on List<T> {
   bool a(int b, int c) {}
@@ -125,7 +125,7 @@ void f(List<String> l) {
     assertNotSuggested('c');
   }
 
-  test_identifier_matches() async {
+  Future<void> test_identifier_matches() async {
     addTestSource('''
 extension E<T extends num> on List<T> {
   bool a(int b, int c) {}
@@ -142,7 +142,7 @@ void f(List<int> l) {
     assertSuggestSetter('c');
   }
 
-  test_literal_doesNotMatch() async {
+  Future<void> test_literal_doesNotMatch() async {
     addTestSource('''
 extension E on String {
   bool a(int b, int c) {}
@@ -160,7 +160,7 @@ void f() {
     assertNotSuggested('c');
   }
 
-  test_literal_doesNotMatch_generic() async {
+  Future<void> test_literal_doesNotMatch_generic() async {
     addTestSource('''
 extension E<T extends num> on List<T> {
   bool a(int b, int c) {}
@@ -177,7 +177,7 @@ void f() {
     assertNotSuggested('c');
   }
 
-  test_literal_matches() async {
+  Future<void> test_literal_matches() async {
     addTestSource('''
 extension E on int {
   bool a(int b, int c) {}
@@ -194,7 +194,7 @@ void f() {
     assertSuggestSetter('c');
   }
 
-  test_members_inExtendedClassMethod_getter() async {
+  Future<void> test_members_inExtendedClassMethod_getter() async {
     addTestSource('''
 class Person {
   void doSomething() {
@@ -211,7 +211,7 @@ extension E on Person {
     assertSuggestGetter('name', 'String');
   }
 
-  test_members_inExtendedClassMethod_method() async {
+  Future<void> test_members_inExtendedClassMethod_method() async {
     addTestSource('''
 class Person {
   void doSomething() {
@@ -228,7 +228,7 @@ extension E on Person {
     assertSuggestMethod('work', null, 'void');
   }
 
-  test_members_inExtendedClassMethod_multipleExtensions() async {
+  Future<void> test_members_inExtendedClassMethod_multipleExtensions() async {
     addTestSource('''
 class Person {
   void doSomething() {
@@ -249,7 +249,7 @@ extension E2 on Person {
     assertSuggestMethod('work', null, 'void');
   }
 
-  test_members_inExtendedClassMethod_setter() async {
+  Future<void> test_members_inExtendedClassMethod_setter() async {
     addTestSource('''
 class Person {
   void doSomething() {
@@ -266,7 +266,7 @@ extension E on Person {
     assertSuggestSetter('id');
   }
 
-  test_members_inMixinMethod_method() async {
+  Future<void> test_members_inMixinMethod_method() async {
     addTestSource('''
 class Person { }
 extension E on Person {
@@ -283,7 +283,7 @@ mixin M on Person {
     assertSuggestMethod('work', null, 'void');
   }
 
-  test_members_with_this_inExtendedClass() async {
+  Future<void> test_members_with_this_inExtendedClass() async {
     addTestSource('''
 class Person {
   void doSomething() {

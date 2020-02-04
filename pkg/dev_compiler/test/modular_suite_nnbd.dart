@@ -16,7 +16,8 @@ Uri sdkRoot = Platform.script.resolve('../../../');
 Options _options;
 String _dartdevcScript;
 String _kernelWorkerScript;
-main(List<String> args) async {
+
+void main(List<String> args) async {
   _options = Options.parse(args);
   await _resolveScripts();
   await runSuite(

@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidAnnotatingWithDynamicTest);
     defineReflectiveTests(AvoidReturnTypesOnSettersTest);
@@ -23,7 +23,7 @@ class AvoidAnnotatingWithDynamicTest extends RemoveTypeAnnotationTest {
   @override
   String get lintCode => LintNames.avoid_annotating_with_dynamic;
 
-  test_insideFunctionTypedFormalParameter() async {
+  Future<void> test_insideFunctionTypedFormalParameter() async {
     await resolveTestUnit('''
 bad(void foo(/*LINT*/dynamic x)) {
   return null;
@@ -36,7 +36,7 @@ bad(void foo(x)) {
 ''');
   }
 
-  test_namedParameter() async {
+  Future<void> test_namedParameter() async {
     await resolveTestUnit('''
 bad({/*LINT*/dynamic defaultValue}) {
   return null;
@@ -49,7 +49,7 @@ bad({defaultValue}) {
 ''');
   }
 
-  test_normalParameter() async {
+  Future<void> test_normalParameter() async {
     await resolveTestUnit('''
 bad(/*LINT*/dynamic defaultValue) {
   return null;
@@ -62,7 +62,7 @@ bad(defaultValue) {
 ''');
   }
 
-  test_optionalParameter() async {
+  Future<void> test_optionalParameter() async {
     await resolveTestUnit('''
 bad([/*LINT*/dynamic defaultValue]) {
   return null;
@@ -81,7 +81,7 @@ class AvoidReturnTypesOnSettersTest extends RemoveTypeAnnotationTest {
   @override
   String get lintCode => LintNames.avoid_return_types_on_setters;
 
-  test_void() async {
+  Future<void> test_void() async {
     await resolveTestUnit('''
 /*LINT*/void set speed2(int ms) {}
 ''');
@@ -96,7 +96,7 @@ class AvoidTypesOnClosureParametersTest extends RemoveTypeAnnotationTest {
   @override
   String get lintCode => LintNames.avoid_types_on_closure_parameters;
 
-  test_namedParameter() async {
+  Future<void> test_namedParameter() async {
     await resolveTestUnit('''
 var x = ({/*LINT*/Future<int> defaultValue}) {
   return null;
@@ -109,7 +109,7 @@ var x = ({defaultValue}) {
 ''');
   }
 
-  test_normalParameter() async {
+  Future<void> test_normalParameter() async {
     await resolveTestUnit('''
 var x = (/*LINT*/Future<int> defaultValue) {
   return null;
@@ -122,7 +122,7 @@ var x = (defaultValue) {
 ''');
   }
 
-  test_optionalParameter() async {
+  Future<void> test_optionalParameter() async {
     await resolveTestUnit('''
 var x = ([/*LINT*/Future<int> defaultValue]) {
   return null;
@@ -147,7 +147,7 @@ class TypeInitFormalsTest extends RemoveTypeAnnotationTest {
   @override
   String get lintCode => LintNames.type_init_formals;
 
-  test_void() async {
+  Future<void> test_void() async {
     await resolveTestUnit('''
 class C {
   int f;

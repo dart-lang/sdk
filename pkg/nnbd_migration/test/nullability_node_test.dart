@@ -43,9 +43,9 @@ class NullabilityNodeTest {
       NullabilityNode.forTypeAnnotation(offset);
 
   void propagate() {
-    graph.propagate();
-    unsatisfiedEdges = graph.unsatisfiedEdges.toList();
-    unsatisfiedSubstitutions = graph.unsatisfiedSubstitutions.toList();
+    var propagationResult = graph.propagate();
+    unsatisfiedEdges = propagationResult.unsatisfiedEdges;
+    unsatisfiedSubstitutions = propagationResult.unsatisfiedSubstitutions;
   }
 
   NullabilityNode subst(NullabilityNode inner, NullabilityNode outer) {

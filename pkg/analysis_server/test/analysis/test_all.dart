@@ -25,7 +25,7 @@ import 'reanalyze_test.dart' as reanalyze;
 import 'set_priority_files_test.dart' as set_priority_files;
 import 'update_content_test.dart' as update_content;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     get_errors.main();
     get_hover.main();

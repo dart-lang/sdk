@@ -10,7 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CreateLocalVariableTest);
   });
@@ -21,7 +21,7 @@ class CreateLocalVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_LOCAL_VARIABLE;
 
-  test_functionType_named() async {
+  Future<void> test_functionType_named() async {
     await resolveTestUnit('''
 typedef MY_FUNCTION(int p);
 foo(MY_FUNCTION f) {}
@@ -39,7 +39,7 @@ main() {
 ''');
   }
 
-  test_functionType_named_generic() async {
+  Future<void> test_functionType_named_generic() async {
     await resolveTestUnit('''
 typedef MY_FUNCTION<T>(T p);
 foo(MY_FUNCTION<int> f) {}
@@ -57,7 +57,7 @@ main() {
 ''');
   }
 
-  test_functionType_synthetic() async {
+  Future<void> test_functionType_synthetic() async {
     await resolveTestUnit('''
 foo(f(int p)) {}
 main() {
@@ -73,7 +73,7 @@ main() {
 ''');
   }
 
-  test_read_typeAssignment() async {
+  Future<void> test_read_typeAssignment() async {
     await resolveTestUnit('''
 main() {
   int a = test;
@@ -89,7 +89,7 @@ main() {
 ''');
   }
 
-  test_read_typeCondition() async {
+  Future<void> test_read_typeCondition() async {
     await resolveTestUnit('''
 main() {
   if (!test) {
@@ -107,7 +107,7 @@ main() {
 ''');
   }
 
-  test_read_typeInvocationArgument() async {
+  Future<void> test_read_typeInvocationArgument() async {
     await resolveTestUnit('''
 main() {
   f(test);
@@ -125,7 +125,7 @@ f(String p) {}
     assertLinkedGroup(change.linkedEditGroups[1], ['test;', 'test);']);
   }
 
-  test_read_typeInvocationTarget() async {
+  Future<void> test_read_typeInvocationTarget() async {
     await resolveTestUnit('''
 main() {
   test.add('hello');
@@ -140,7 +140,7 @@ main() {
     assertLinkedGroup(change.linkedEditGroups[0], ['test;', 'test.add(']);
   }
 
-  test_withImport() async {
+  Future<void> test_withImport() async {
     addPackageFile('pkg', 'a/a.dart', '''
 class A {}
 ''');
@@ -189,7 +189,7 @@ main() {
     expect(groupPositions[1].offset, 128);
   }
 
-  test_write_assignment() async {
+  Future<void> test_write_assignment() async {
     await resolveTestUnit('''
 main() {
   test = 42;
@@ -202,7 +202,7 @@ main() {
 ''');
   }
 
-  test_write_assignment_compound() async {
+  Future<void> test_write_assignment_compound() async {
     await resolveTestUnit('''
 main() {
   test += 42;

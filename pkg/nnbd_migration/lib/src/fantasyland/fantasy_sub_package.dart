@@ -2,26 +2,108 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
-import 'package:path/path.dart' as path;
+import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
+
+final Map<String, FantasySubPackageSettings> _subPackageTable = {
+  '_fe_analyzer_shared': FantasySubPackageSettings('_fe_analyzer_shared',
+      FantasyRepoSettings.fromName('sdk'), 'pkg/_fe_analyzer_shared'),
+  'analysis_tool': FantasySubPackageSettings('analysis_tool',
+      FantasyRepoSettings.fromName('sdk'), 'pkg/analysis_tool'),
+  'analyzer': FantasySubPackageSettings(
+      'analyzer', FantasyRepoSettings.fromName('sdk'), 'pkg/analyzer'),
+  'build': FantasySubPackageSettings(
+      'build', FantasyRepoSettings.fromName('build'), 'build'),
+  'build_config': FantasySubPackageSettings(
+      'build_config', FantasyRepoSettings.fromName('build'), 'build_config'),
+  'build_daemon': FantasySubPackageSettings(
+      'build_daemon', FantasyRepoSettings.fromName('build'), 'build_daemon'),
+  'build_integration': FantasySubPackageSettings('build_integration',
+      FantasyRepoSettings.fromName('sdk'), 'pkg/build_integration'),
+  'build_modules': FantasySubPackageSettings(
+      'build_modules', FantasyRepoSettings.fromName('build'), 'build_modules'),
+  'build_node_compilers': FantasySubPackageSettings('build_node_compilers',
+      FantasyRepoSettings.fromName('node-interop'), 'build_node_compilers'),
+  'build_resolvers': FantasySubPackageSettings('build_resolvers',
+      FantasyRepoSettings.fromName('build'), 'build_resolvers'),
+  'build_runner': FantasySubPackageSettings(
+      'build_runner', FantasyRepoSettings.fromName('build'), 'build_runner'),
+  'build_runner_core': FantasySubPackageSettings('build_runner_core',
+      FantasyRepoSettings.fromName('build'), 'build_runner_core'),
+  'build_test': FantasySubPackageSettings(
+      'build_test', FantasyRepoSettings.fromName('build'), 'build_test'),
+  'build_vm_compilers': FantasySubPackageSettings('build_vm_compilers',
+      FantasyRepoSettings.fromName('build'), 'build_vm_compilers'),
+  'build_web_compilers': FantasySubPackageSettings('build_web_compilers',
+      FantasyRepoSettings.fromName('build'), 'build_web_compilers'),
+  'built_collection': FantasySubPackageSettings('built_collection',
+      FantasyRepoSettings.fromName('built_collection.dart'), '.'),
+  'built_value': FantasySubPackageSettings('built_value',
+      FantasyRepoSettings.fromName('built_value.dart'), 'built_value'),
+  'built_value_generator': FantasySubPackageSettings(
+      'built_value_generator',
+      FantasyRepoSettings.fromName('built_value.dart'),
+      'built_value_generator'),
+  'checked_yaml': FantasySubPackageSettings('checked_yaml',
+      FantasyRepoSettings.fromName('json_serializable'), 'checked_yaml'),
+  'expect': FantasySubPackageSettings(
+      'expect', FantasyRepoSettings.fromName('sdk'), 'pkg/expect'),
+  'front_end': FantasySubPackageSettings(
+      'front_end', FantasyRepoSettings.fromName('sdk'), 'pkg/front_end'),
+  'grinder': FantasySubPackageSettings(
+      'grinder', FantasyRepoSettings.fromName('grinder.dart'), '.'),
+  'kernel': FantasySubPackageSettings(
+      'kernel', FantasyRepoSettings.fromName('sdk'), 'pkg/kernel'),
+  'meta': FantasySubPackageSettings(
+      'meta', FantasyRepoSettings.fromName('sdk'), 'pkg/meta'),
+  'node_interop': FantasySubPackageSettings('node_interop',
+      FantasyRepoSettings.fromName('node-interop'), 'node_interop'),
+  'node_io': FantasySubPackageSettings(
+      'node_io', FantasyRepoSettings.fromName('node-interop'), 'node_io'),
+  'js': FantasySubPackageSettings(
+      'js', FantasyRepoSettings.fromName('sdk'), 'pkg/js'),
+  'json_annotation': FantasySubPackageSettings('json_annotation',
+      FantasyRepoSettings.fromName('json_serializable'), 'json_annotation'),
+  'json_serializable': FantasySubPackageSettings('json_serializable',
+      FantasyRepoSettings.fromName('json_serializable'), 'json_serializable'),
+  'package_config': FantasySubPackageSettings(
+      'package_config', FantasyRepoSettings.fromName('package_config'), '.'),
+  'protobuf': FantasySubPackageSettings(
+      'protobuf', FantasyRepoSettings.fromName('protobuf'), 'protobuf'),
+  'scratch_space': FantasySubPackageSettings(
+      'scratch_space', FantasyRepoSettings.fromName('build'), 'scratch_space'),
+  'source_gen': FantasySubPackageSettings(
+      'source_gen', FantasyRepoSettings.fromName('source_gen'), 'source_gen'),
+  'source_gen_test': FantasySubPackageSettings(
+      'source_gen_test', FantasyRepoSettings.fromName('source_gen_test'), '.'),
+  'test': FantasySubPackageSettings(
+      'test', FantasyRepoSettings.fromName('test'), 'pkgs/test'),
+  'test_api': FantasySubPackageSettings(
+      'test_api', FantasyRepoSettings.fromName('test'), 'pkgs/test_api'),
+  'test_core': FantasySubPackageSettings(
+      'test_core', FantasyRepoSettings.fromName('test'), 'pkgs/test_core'),
+  'testing': FantasySubPackageSettings(
+      'testing', FantasyRepoSettings.fromName('sdk'), 'pkg/testing'),
+  'vm_service': FantasySubPackageSettings(
+      'vm_service', FantasyRepoSettings.fromName('sdk'), 'pkg/vm_service'),
+  'quiver': FantasySubPackageSettings(
+      'quiver', FantasyRepoSettings.fromName('quiver-dart'), '.'),
+};
 
 /// Data class containing settings for a package within a [FantasyWorkspaceImpl].
 class FantasySubPackageSettings {
   final String name;
-  final String repoName;
+  final FantasyRepoSettings repoSettings;
   final String subDir;
 
-  FantasySubPackageSettings(this.name, this.repoName, this.subDir);
+  FantasySubPackageSettings(this.name, this.repoSettings, [this.subDir = '.']);
 
+  /// Build settings just from a name in a mostly-hardcoded table.
   factory FantasySubPackageSettings.fromName(String name) {
-    switch (name) {
-
-      /// TODO(jcollins-g): Port table over from add_package_to_workspace.
-      default:
-        return FantasySubPackageSettings(name, name, '.');
+    if (_subPackageTable.containsKey(name)) {
+      return _subPackageTable[name];
     }
+    return FantasySubPackageSettings(name, FantasyRepoSettings.fromName(name));
   }
 
   @override
@@ -31,13 +113,13 @@ class FantasySubPackageSettings {
   bool operator ==(other) {
     return other is FantasySubPackageSettings &&
         (other.name == name &&
-            other.repoName == repoName &&
-            other.subDir == other.subDir);
+            other.repoSettings == repoSettings &&
+            other.subDir == subDir);
   }
 
   @override
   String toString() =>
-      'FantasySubPackageSettings("$name", "$repoName", "$subDir")';
+      'FantasySubPackageSettings("$name", ${repoSettings.toString()}, "$subDir")';
 }
 
 /// Represents one package within a [FantasyWorkspaceImpl].
@@ -45,28 +127,12 @@ class FantasySubPackageSettings {
 /// A `FantasySubPackage` differs from a normal package in that Dart code within
 /// it depends on a global .packages file to resolve symbols.
 class FantasySubPackage {
-  final String name;
   final FantasyRepo containingRepo;
+  final FantasyWorkspace containingWorkspace;
+  final String name;
   final FantasySubPackageSettings packageSettings;
 
-  /// The symlink in the workspace directory whose [Link.target] is the root of
-  /// the package.
-  final Link packageSymlink;
-
-  FantasySubPackage._(this.name, this.containingRepo, this.packageSettings,
-      this.packageSymlink);
-
-  static Future<FantasySubPackage> buildFrom(String packageName,
-      FantasyRepo containingRepo, Directory workspaceRoot) async {
-    FantasySubPackageSettings packageSettings =
-        FantasySubPackageSettings.fromName(packageName);
-    Link packageSymlink = Link(path.join(workspaceRoot.path, packageName));
-    if (!await packageSymlink.exists()) {
-      await packageSymlink.create(path.canonicalize(
-          path.join(containingRepo.repoRoot.path, packageSettings.subDir)));
-    }
-    // TODO(jcollins-g): implement .packages file handling here
-    return FantasySubPackage._(
-        packageName, containingRepo, packageSettings, packageSymlink);
-  }
+  FantasySubPackage(
+      this.packageSettings, this.containingRepo, this.containingWorkspace)
+      : name = packageSettings.name;
 }

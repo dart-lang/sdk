@@ -9,7 +9,7 @@ import 'diagnostic_test.dart' as diagnostic_test;
 import 'initialization_test.dart' as initialization_test;
 import 'server_test.dart' as server_test;
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     analyzer_status.main();
     diagnostic_test.main();

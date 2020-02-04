@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertToWhereTypeTest);
   });
@@ -23,7 +23,7 @@ class ConvertToWhereTypeTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_iterable_whereType;
 
-  test_default_declaredType() async {
+  Future<void> test_default_declaredType() async {
     await resolveTestUnit('''
 Iterable<C> f(List<Object> list) {
   return list./*LINT*/where((e) => e is C);

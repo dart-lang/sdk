@@ -9,7 +9,7 @@ import 'package:dartdev/dartdev.dart';
 
 /// The entry point for dartdev.
 main(List<String> args) async {
-  final runner = DartdevRunner();
+  final runner = DartdevRunner(args);
   try {
     dynamic result = await runner.run(args);
     exit(result is int ? result : 0);

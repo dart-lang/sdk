@@ -15,7 +15,7 @@ closure/minify_closure_variable_collision_test: SkipByDesign # Regression test f
 control_flow_collections/for_non_bool_condition_test: Crash # Issue 36442
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
-override_field_test/02: Slow # TODO(kasperl): Please triage.
+override_field_test/02: Slow, Pass # TODO(kasperl): Please triage.
 
 [ $compiler == dart2js && $runtime == d8 ]
 import/conditional_string_test: SkipByDesign # No XHR in d8

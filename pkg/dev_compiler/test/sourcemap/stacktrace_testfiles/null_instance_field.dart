@@ -6,7 +6,7 @@ void main() {
   /*1:main*/ test(Class());
 }
 
-test(c) {
+void test(c) {
   /*ddc.2:test*/ c.field. /*ddk.2:test*/ method();
 }
 

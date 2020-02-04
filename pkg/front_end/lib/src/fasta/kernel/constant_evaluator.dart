@@ -1791,8 +1791,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Constant visitAsExpression(AsExpression node) {
     final Constant constant = _evaluateSubexpression(node.operand);
     if (shouldBeUnevaluated) {
-      return unevaluated(node,
-          new AsExpression(extract(constant), env.substituteType(node.type)));
+      return unevaluated(
+          node,
+          new AsExpression(extract(constant), env.substituteType(node.type))
+            ..isForNonNullableByDefault =
+                _staticTypeContext.isNonNullableByDefault);
     }
     return ensureIsSubtype(constant, evaluateDartType(node, node.type), node);
   }
@@ -1801,7 +1804,11 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   Constant visitIsExpression(IsExpression node) {
     final Constant constant = node.operand.accept(this);
     if (shouldBeUnevaluated) {
-      return unevaluated(node, new IsExpression(extract(constant), node.type));
+      return unevaluated(
+          node,
+          new IsExpression(extract(constant), node.type)
+            ..fileOffset = node.fileOffset
+            ..flags = node.flags);
     }
     if (constant is NullConstant) {
       DartType nodeType = node.type;

@@ -9,11 +9,6 @@ analyzer:
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
-    # Ignoring "style" lint rules from pedantic for now. There are pre-existing
-    # violations that need to be cleaned up. Each one can be cleaned up and
-    # enabled according to the value provided.
-    avoid_return_types_on_setters: ignore
-    empty_catches: ignore
     prefer_contains: ignore
     # TODO(srawlins): At the time of writing, 2400 violations in lib/. The fix
     # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
@@ -30,7 +25,7 @@ linter:
     #
     # Delta from pedantic 1.8.0 to 1.9.0
     #
-    #- always_declare_return_types # 5645
+    - always_declare_return_types
     - always_require_non_null_named_parameters
     - annotate_overrides
     - avoid_null_checks_in_equality_operators

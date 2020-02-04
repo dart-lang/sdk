@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisGetImportElementsIntegrationTest);
   });
@@ -31,7 +31,8 @@ class AnalysisGetImportElementsIntegrationTest
    * Check that an edit.importElements request with the given list of [elements]
    * produces the [expected] list of edits.
    */
-  checkEdits(List<ImportedElements> elements, List<SourceEdit> expected,
+  Future<void> checkEdits(
+      List<ImportedElements> elements, List<SourceEdit> expected,
       {String expectedFile}) async {
     bool equals(SourceEdit actualEdit, SourceEdit expectedEdit) {
       return actualEdit.offset == expectedEdit.offset &&
@@ -87,7 +88,7 @@ class AnalysisGetImportElementsIntegrationTest
     pathname = sourcePath('test.dart');
   }
 
-  test_importElements_definingUnit() async {
+  Future<void> test_importElements_definingUnit() async {
     writeFile(pathname, 'main() {}');
     standardAnalysisSetup();
     await analysisFinished;
@@ -103,7 +104,7 @@ class AnalysisGetImportElementsIntegrationTest
     ]);
   }
 
-  test_importElements_noEdits() async {
+  Future<void> test_importElements_noEdits() async {
     writeFile(pathname, '');
     standardAnalysisSetup();
     await analysisFinished;
@@ -111,7 +112,7 @@ class AnalysisGetImportElementsIntegrationTest
     await checkNoEdits(<ImportedElements>[]);
   }
 
-  test_importElements_part() async {
+  Future<void> test_importElements_part() async {
     String libName = sourcePath('lib.dart');
     writeFile(libName, '''
 part 'test.dart';

@@ -642,6 +642,7 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE,
   ParserErrorCode.TYPE_BEFORE_FACTORY,
   ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR,
+  ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR,
   ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP,
   ParserErrorCode.UNEXPECTED_TOKEN,
   ParserErrorCode.VAR_AND_TYPE,
@@ -731,6 +732,8 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
   StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+  StaticWarningCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES,
+  StaticWarningCode.GETTER_NOT_SUBTYPE_SETTER_TYPES,
   StaticWarningCode.IMPORT_DUPLICATED_LIBRARY_NAMED,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.IMPORT_OF_NON_LIBRARY,
@@ -741,7 +744,6 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE,
   StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE,
-  StaticWarningCode.MISMATCHED_GETTER_AND_SETTER_TYPES,
   StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
   // ignore: deprecated_member_use_from_same_package
   StaticWarningCode.MIXED_RETURN_TYPES,

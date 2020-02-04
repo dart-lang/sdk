@@ -266,6 +266,15 @@ class ZoneTextBuffer;
 #define MINT_OBJECT_IMPLEMENTATION(object, rettype, super)                     \
   FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)
 
+// In precompiled runtime, there is no access to runtime_api.cc since host
+// and target are the same. In those cases, the namespace dart is used to refer
+// to the target namespace
+#if defined(DART_PRECOMPILED_RUNTIME)
+namespace RTN = dart;
+#else
+namespace RTN = dart::compiler::target;
+#endif  //  defined(DART_PRECOMPILED_RUNTIME)
+
 class Object {
  public:
   using RawObjectType = RawObject;
@@ -885,36 +894,88 @@ class Class : public Object {
     kInvocationDispatcherEntrySize,
   };
 
-  intptr_t instance_size() const {
+  intptr_t host_instance_size() const {
     ASSERT(is_finalized() || is_prefinalized());
-    return (raw_ptr()->instance_size_in_words_ * kWordSize);
+    return (raw_ptr()->host_instance_size_in_words_ * kWordSize);
   }
-  static intptr_t instance_size(RawClass* clazz) {
-    return (clazz->ptr()->instance_size_in_words_ * kWordSize);
+  intptr_t target_instance_size() const {
+    ASSERT(is_finalized() || is_prefinalized());
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return (raw_ptr()->target_instance_size_in_words_ *
+            compiler::target::kWordSize);
+#else
+    return host_instance_size();
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   }
-  void set_instance_size(intptr_t value_in_bytes) const {
+  static intptr_t host_instance_size(RawClass* clazz) {
+    return (clazz->ptr()->host_instance_size_in_words_ * kWordSize);
+  }
+  static intptr_t target_instance_size(RawClass* clazz) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return (clazz->ptr()->target_instance_size_in_words_ *
+            compiler::target::kWordSize);
+#else
+    return host_instance_size(clazz);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  }
+  void set_instance_size(intptr_t host_value_in_bytes,
+                         intptr_t target_value_in_bytes) const {
     ASSERT(kWordSize != 0);
-    set_instance_size_in_words(value_in_bytes / kWordSize);
+    set_instance_size_in_words(
+        host_value_in_bytes / kWordSize,
+        target_value_in_bytes / compiler::target::kWordSize);
   }
-  void set_instance_size_in_words(intptr_t value) const {
-    ASSERT(Utils::IsAligned((value * kWordSize), kObjectAlignment));
-    StoreNonPointer(&raw_ptr()->instance_size_in_words_, value);
+  void set_instance_size_in_words(intptr_t host_value,
+                                  intptr_t target_value) const {
+    ASSERT(Utils::IsAligned((host_value * kWordSize), kObjectAlignment));
+    StoreNonPointer(&raw_ptr()->host_instance_size_in_words_, host_value);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(Utils::IsAligned((target_value * compiler::target::kWordSize),
+                            compiler::target::kObjectAlignment));
+    StoreNonPointer(&raw_ptr()->target_instance_size_in_words_, target_value);
+#else
+    ASSERT(host_value == target_value);
+#endif  // #!defined(DART_PRECOMPILED_RUNTIME)
   }
 
-  intptr_t next_field_offset() const {
-    return raw_ptr()->next_field_offset_in_words_ * kWordSize;
+  intptr_t host_next_field_offset() const {
+    return raw_ptr()->host_next_field_offset_in_words_ * kWordSize;
   }
-  void set_next_field_offset(intptr_t value_in_bytes) const {
-    ASSERT(kWordSize != 0);
-    set_next_field_offset_in_words(value_in_bytes / kWordSize);
+  intptr_t target_next_field_offset() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return raw_ptr()->target_next_field_offset_in_words_ *
+           compiler::target::kWordSize;
+#else
+    return host_next_field_offset();
+#endif  // #!defined(DART_PRECOMPILED_RUNTIME)
   }
-  void set_next_field_offset_in_words(intptr_t value) const {
-    ASSERT((value == -1) ||
-           (Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
-            (value == raw_ptr()->instance_size_in_words_)) ||
-           (!Utils::IsAligned((value * kWordSize), kObjectAlignment) &&
-            ((value + 1) == raw_ptr()->instance_size_in_words_)));
-    StoreNonPointer(&raw_ptr()->next_field_offset_in_words_, value);
+  void set_next_field_offset(intptr_t host_value_in_bytes,
+                             intptr_t target_value_in_bytes) const {
+    set_next_field_offset_in_words(
+        host_value_in_bytes / kWordSize,
+        target_value_in_bytes / compiler::target::kWordSize);
+  }
+  void set_next_field_offset_in_words(intptr_t host_value,
+                                      intptr_t target_value) const {
+    ASSERT((host_value == -1) ||
+           (Utils::IsAligned((host_value * kWordSize), kObjectAlignment) &&
+            (host_value == raw_ptr()->host_instance_size_in_words_)) ||
+           (!Utils::IsAligned((host_value * kWordSize), kObjectAlignment) &&
+            ((host_value + 1) == raw_ptr()->host_instance_size_in_words_)));
+    StoreNonPointer(&raw_ptr()->host_next_field_offset_in_words_, host_value);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT((target_value == -1) ||
+           (Utils::IsAligned((target_value * compiler::target::kWordSize),
+                             compiler::target::kObjectAlignment) &&
+            (target_value == raw_ptr()->target_instance_size_in_words_)) ||
+           (!Utils::IsAligned((target_value * compiler::target::kWordSize),
+                              compiler::target::kObjectAlignment) &&
+            ((target_value + 1) == raw_ptr()->target_instance_size_in_words_)));
+    StoreNonPointer(&raw_ptr()->target_next_field_offset_in_words_,
+                    target_value);
+#else
+    ASSERT(host_value == target_value);
+#endif  // #!defined(DART_PRECOMPILED_RUNTIME)
   }
 
   static bool is_valid_id(intptr_t value) {
@@ -1013,28 +1074,64 @@ class Class : public Object {
 
   // If this class is parameterized, each instance has a type_arguments field.
   static const intptr_t kNoTypeArguments = -1;
-  intptr_t type_arguments_field_offset() const {
+  intptr_t host_type_arguments_field_offset() const {
     ASSERT(is_type_finalized() || is_prefinalized());
-    if (raw_ptr()->type_arguments_field_offset_in_words_ == kNoTypeArguments) {
+    if (raw_ptr()->host_type_arguments_field_offset_in_words_ ==
+        kNoTypeArguments) {
       return kNoTypeArguments;
     }
-    return raw_ptr()->type_arguments_field_offset_in_words_ * kWordSize;
+    return raw_ptr()->host_type_arguments_field_offset_in_words_ * kWordSize;
   }
-  void set_type_arguments_field_offset(intptr_t value_in_bytes) const {
-    intptr_t value;
-    if (value_in_bytes == kNoTypeArguments) {
-      value = kNoTypeArguments;
-    } else {
-      ASSERT(kWordSize != 0);
-      value = value_in_bytes / kWordSize;
+  intptr_t target_type_arguments_field_offset() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    ASSERT(is_type_finalized() || is_prefinalized());
+    if (raw_ptr()->target_type_arguments_field_offset_in_words_ ==
+        compiler::target::Class::kNoTypeArguments) {
+      return compiler::target::Class::kNoTypeArguments;
     }
-    set_type_arguments_field_offset_in_words(value);
+    return raw_ptr()->target_type_arguments_field_offset_in_words_ *
+           compiler::target::kWordSize;
+#else
+    return host_type_arguments_field_offset();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
-  void set_type_arguments_field_offset_in_words(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->type_arguments_field_offset_in_words_, value);
+  void set_type_arguments_field_offset(intptr_t host_value_in_bytes,
+                                       intptr_t target_value_in_bytes) const {
+    intptr_t host_value, target_value;
+    if (host_value_in_bytes == kNoTypeArguments ||
+        target_value_in_bytes == RTN::Class::kNoTypeArguments) {
+      ASSERT(host_value_in_bytes == kNoTypeArguments &&
+             target_value_in_bytes == RTN::Class::kNoTypeArguments);
+      host_value = kNoTypeArguments;
+      target_value = RTN::Class::kNoTypeArguments;
+    } else {
+      ASSERT(kWordSize != 0 && compiler::target::kWordSize);
+      host_value = host_value_in_bytes / kWordSize;
+      target_value = target_value_in_bytes / compiler::target::kWordSize;
+    }
+    set_type_arguments_field_offset_in_words(host_value, target_value);
   }
-  static intptr_t type_arguments_field_offset_in_words_offset() {
-    return OFFSET_OF(RawClass, type_arguments_field_offset_in_words_);
+  void set_type_arguments_field_offset_in_words(intptr_t host_value,
+                                                intptr_t target_value) const {
+    StoreNonPointer(&raw_ptr()->host_type_arguments_field_offset_in_words_,
+                    host_value);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    StoreNonPointer(&raw_ptr()->target_type_arguments_field_offset_in_words_,
+                    target_value);
+#else
+    ASSERT(host_value == target_value);
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+  static intptr_t host_type_arguments_field_offset_in_words_offset() {
+    return OFFSET_OF(RawClass, host_type_arguments_field_offset_in_words_);
+  }
+
+  static intptr_t target_type_arguments_field_offset_in_words_offset() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return OFFSET_OF(RawClass, target_type_arguments_field_offset_in_words_);
+#else
+    return host_type_arguments_field_offset_in_words_offset();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
   // The super type of this class, Object type if not explicitly specified.
@@ -1395,7 +1492,7 @@ class Class : public Object {
   RawError* EnsureIsFinalized(Thread* thread) const;
 
   // Allocate a class used for VM internal objects.
-  template <class FakeObject>
+  template <class FakeObject, class TargetFakeObject>
   static RawClass* New(Isolate* isolate, bool register_class = true);
 
   // Allocate instance classes.
@@ -1460,6 +1557,44 @@ class Class : public Object {
                                const Array& args_desc,
                                const Function& dispatcher) const;
 
+  static int32_t host_instance_size_in_words(const RawClass* cls) {
+    return cls->ptr()->host_instance_size_in_words_;
+  }
+
+  static int32_t target_instance_size_in_words(const RawClass* cls) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return cls->ptr()->target_instance_size_in_words_;
+#else
+    return host_instance_size_in_words(cls);
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  static int32_t host_next_field_offset_in_words(const RawClass* cls) {
+    return cls->ptr()->host_next_field_offset_in_words_;
+  }
+
+  static int32_t target_next_field_offset_in_words(const RawClass* cls) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return cls->ptr()->target_next_field_offset_in_words_;
+#else
+    return host_next_field_offset_in_words(cls);
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  static int32_t host_type_arguments_field_offset_in_words(
+      const RawClass* cls) {
+    return cls->ptr()->host_type_arguments_field_offset_in_words_;
+  }
+
+  static int32_t target_type_arguments_field_offset_in_words(
+      const RawClass* cls) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return cls->ptr()->target_type_arguments_field_offset_in_words_;
+#else
+    return host_type_arguments_field_offset_in_words(cls);
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
  private:
   RawType* declaration_type() const { return raw_ptr()->declaration_type_; }
 
@@ -1474,7 +1609,7 @@ class Class : public Object {
   // Tells whether instances need morphing for reload.
   bool RequiresInstanceMorphing(const Class& replacement) const;
 
-  template <class FakeObject>
+  template <class FakeInstance, class TargetFakeInstance>
   static RawClass* NewCommon(intptr_t index);
 
   enum MemberKind {
@@ -1538,7 +1673,8 @@ class Class : public Object {
                                           const Array& args_desc,
                                           RawFunction::Kind kind) const;
 
-  void CalculateFieldOffsets() const;
+  // Returns the bitmap of unboxed fields
+  UnboxedFieldBitmap CalculateFieldOffsets() const;
 
   // functions_hash_table is in use iff there are at least this many functions.
   static const intptr_t kFunctionLookupHashTreshold = 16;
@@ -1576,7 +1712,7 @@ class Class : public Object {
                                       const String& name) const;
 
   // Allocate an instance class which has a VM implementation.
-  template <class FakeInstance>
+  template <class FakeInstance, class TargetFakeInstance>
   static RawClass* New(intptr_t id,
                        Isolate* isolate,
                        bool register_class = true,
@@ -3643,15 +3779,19 @@ class Field : public Object {
 
   intptr_t KernelDataProgramOffset() const;
 
-  inline intptr_t Offset() const;
   // Called during class finalization.
-  inline void SetOffset(intptr_t offset_in_bytes) const;
+  inline void SetOffset(intptr_t host_offset_in_bytes,
+                        intptr_t target_offset_in_bytes) const;
+
+  inline intptr_t HostOffset() const;
+
+  inline intptr_t TargetOffset() const;
 
   inline RawInstance* StaticValue() const;
   void SetStaticValue(const Instance& value,
                       bool save_initial_value = false) const;
 
-  intptr_t field_id() const { return raw_ptr()->offset_or_field_id_; }
+  intptr_t field_id() const { return raw_ptr()->host_offset_or_field_id_; }
   inline void set_field_id(intptr_t field_id) const;
 
 #ifndef DART_PRECOMPILED_RUNTIME
@@ -3746,6 +3886,14 @@ class Field : public Object {
 
   static intptr_t static_type_exactness_state_offset() {
     return OFFSET_OF(RawField, static_type_exactness_state_);
+  }
+
+  static inline intptr_t TargetOffsetOf(const RawField* field) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    return field->ptr()->target_offset_;
+#else
+    return field->ptr()->host_offset_or_field_id_;
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
   }
 
   // Return class id that any non-null value read from this field is guaranteed
@@ -6554,7 +6702,7 @@ class Instance : public Object {
     const Class& cls = Class::Handle(clazz());
     ASSERT(cls.is_finalized() || cls.is_prefinalized());
 #endif
-    return (clazz()->ptr()->instance_size_in_words_ * kWordSize);
+    return (clazz()->ptr()->host_instance_size_in_words_ * kWordSize);
   }
 
   // Returns Instance::null() if instance cannot be canonicalized.
@@ -6576,7 +6724,7 @@ class Instance : public Object {
   virtual bool CheckIsCanonical(Thread* thread) const;
 #endif  // DEBUG
 
-  RawObject* GetField(const Field& field) const { return *FieldAddr(field); }
+  RawObject* GetField(const Field& field) const;
 
   void SetField(const Field& field, const Object& value) const;
 
@@ -6713,7 +6861,7 @@ class Instance : public Object {
     return reinterpret_cast<RawObject**>(raw_value() - kHeapObjectTag + offset);
   }
   RawObject** FieldAddr(const Field& field) const {
-    return FieldAddrAtOffset(field.Offset());
+    return FieldAddrAtOffset(field.HostOffset());
   }
   RawObject** NativeFieldsAddr() const {
     return FieldAddrAtOffset(sizeof(RawObject));
@@ -6736,7 +6884,8 @@ class Instance : public Object {
   }
 
   static RawInstance* NewFromCidAndSize(SharedClassTable* shared_class_table,
-                                        classid_t cid);
+                                        classid_t cid,
+                                        Heap::Space heap = Heap::kNew);
 
   // TODO(iposva): Determine if this gets in the way of Smi.
   HEAP_OBJECT_IMPLEMENTATION(Instance, Object);
@@ -10313,26 +10462,45 @@ bool Function::HasBytecode(RawFunction* function) {
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-intptr_t Field::Offset() const {
+intptr_t Field::HostOffset() const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
-  return (raw_ptr()->offset_or_field_id_ * kWordSize);
+  return (raw_ptr()->host_offset_or_field_id_ * kWordSize);
 }
 
-void Field::SetOffset(intptr_t offset_in_bytes) const {
+intptr_t Field::TargetOffset() const {
+  ASSERT(is_instance());  // Valid only for dart instance fields.
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  return (raw_ptr()->target_offset_ * compiler::target::kWordSize);
+#else
+  return HostOffset();
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
+}
+
+void Field::SetOffset(intptr_t host_offset_in_bytes,
+                      intptr_t target_offset_in_bytes) const {
   ASSERT(is_instance());  // Valid only for dart instance fields.
   ASSERT(kWordSize != 0);
-  StoreNonPointer(&raw_ptr()->offset_or_field_id_, offset_in_bytes / kWordSize);
+  StoreNonPointer(&raw_ptr()->host_offset_or_field_id_,
+                  host_offset_in_bytes / kWordSize);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  ASSERT(compiler::target::kWordSize != 0);
+  StoreNonPointer(&raw_ptr()->target_offset_,
+                  target_offset_in_bytes / compiler::target::kWordSize);
+#else
+  ASSERT(host_offset_in_bytes == target_offset_in_bytes);
+#endif  //  !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 RawInstance* Field::StaticValue() const {
   ASSERT(is_static());  // Valid only for static dart fields.
-  return Isolate::Current()->field_table()->At(raw_ptr()->offset_or_field_id_);
+  return Isolate::Current()->field_table()->At(
+      raw_ptr()->host_offset_or_field_id_);
 }
 
 void Field::set_field_id(intptr_t field_id) const {
   ASSERT(is_static());
   ASSERT(Thread::Current()->IsMutatorThread());
-  StoreNonPointer(&raw_ptr()->offset_or_field_id_, field_id);
+  StoreNonPointer(&raw_ptr()->host_offset_or_field_id_, field_id);
 }
 
 #ifndef DART_PRECOMPILED_RUNTIME

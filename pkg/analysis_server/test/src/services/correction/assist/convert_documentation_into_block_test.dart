@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertDocumentationIntoBlockTest);
   });
@@ -19,7 +19,7 @@ class ConvertDocumentationIntoBlockTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_DOCUMENTATION_INTO_BLOCK;
 
-  test_alreadyBlock() async {
+  Future<void> test_alreadyBlock() async {
     await resolveTestUnit('''
 /**
  * AAAAAAA
@@ -29,7 +29,7 @@ class A {}
     await assertNoAssistAt('AAA');
   }
 
-  test_noSpaceBeforeText() async {
+  Future<void> test_noSpaceBeforeText() async {
     await resolveTestUnit('''
 class A {
   /// AAAAA
@@ -52,7 +52,7 @@ class A {
 ''');
   }
 
-  test_notDocumentation() async {
+  Future<void> test_notDocumentation() async {
     await resolveTestUnit('''
 // AAAA
 class A {}
@@ -60,7 +60,7 @@ class A {}
     await assertNoAssistAt('AAA');
   }
 
-  test_onReference() async {
+  Future<void> test_onReference() async {
     await resolveTestUnit('''
 /// AAAAAAA [int] AAAAAAA
 class A {}
@@ -73,7 +73,7 @@ class A {}
 ''');
   }
 
-  test_onText() async {
+  Future<void> test_onText() async {
     await resolveTestUnit('''
 class A {
   /// AAAAAAA [int] AAAAAAA

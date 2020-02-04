@@ -4,7 +4,7 @@
 
 # Sections in this file should contain "$compiler == dartdevc" or dartdevk.
 [ $compiler == dartdevc ]
-class/large_class_declaration_test: Slow
+class/large_class_declaration_test: Slow, Pass
 const/double_in_int_op_test/dd6: Skip # Triple shift
 const/double_in_int_op_test/di6: Skip # Triple shift
 const/double_in_int_op_test/id6: Skip # Triple shift

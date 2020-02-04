@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'server_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WorkspaceSymbolsTest);
   });
@@ -17,7 +17,7 @@ main() {
 
 @reflectiveTest
 class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
-  test_fullMatch() async {
+  Future<void> test_fullMatch() async {
     const content = '''
     [[String topLevel = '']];
     class MyClass {
@@ -42,7 +42,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(symbols.any((s) => s.name.contains('myMethod')), isFalse);
   }
 
-  test_fuzzyMatch() async {
+  Future<void> test_fuzzyMatch() async {
     const content = '''
     String topLevel = '';
     class MyClass {
@@ -68,7 +68,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(symbols.any((s) => s.name.contains('myMethod')), isFalse);
   }
 
-  test_invalidParams() async {
+  Future<void> test_invalidParams() async {
     await initialize();
 
     // Create a request that doesn't supply the query param.
@@ -89,7 +89,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  test_partialMatch() async {
+  Future<void> test_partialMatch() async {
     const content = '''
     String topLevel = '';
     class MyClass {

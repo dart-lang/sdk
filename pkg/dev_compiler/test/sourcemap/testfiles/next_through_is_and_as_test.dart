@@ -32,4 +32,4 @@ void main() {
   }
 }
 
-foo() => 42;
+dynamic foo() => 42;

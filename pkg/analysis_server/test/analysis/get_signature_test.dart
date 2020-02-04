@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../analysis_abstract.dart';
 import '../mocks.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisSignatureTest);
   });
@@ -50,7 +50,7 @@ class AnalysisSignatureTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_constructor() async {
+  Future<void> test_constructor() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {
@@ -71,7 +71,7 @@ main() {
         equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_constructor_factory() async {
+  Future<void> test_constructor_factory() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {
@@ -96,7 +96,7 @@ main() {
         equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_constructor_named() async {
+  Future<void> test_constructor_named() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {
@@ -117,7 +117,7 @@ main() {
         equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_does_not_walk_up_over_closure() async {
+  Future<void> test_does_not_walk_up_over_closure() async {
     addTestFile('''
 one(String name, int length) {}
 main() {
@@ -132,7 +132,7 @@ main() {
         equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
 
-  test_error_file_not_analyzed() async {
+  Future<void> test_error_file_not_analyzed() async {
     var result = await prepareRawSignatureAt(0,
         file: convertPath('/not/in/project.dart'));
     expect(result.error, isNotNull);
@@ -140,7 +140,7 @@ main() {
         result.error.code, equals(RequestErrorCode.GET_SIGNATURE_INVALID_FILE));
   }
 
-  test_error_function_unknown() async {
+  Future<void> test_error_function_unknown() async {
     addTestFile('''
 someFunc(/*^*/);
 ''');
@@ -150,7 +150,7 @@ someFunc(/*^*/);
         equals(RequestErrorCode.GET_SIGNATURE_UNKNOWN_FUNCTION));
   }
 
-  test_error_offset_invalid() async {
+  Future<void> test_error_offset_invalid() async {
     addTestFile('''
 a() {}
 ''');
@@ -160,7 +160,7 @@ a() {}
         equals(RequestErrorCode.GET_SIGNATURE_INVALID_OFFSET));
   }
 
-  test_function_expression() async {
+  Future<void> test_function_expression() async {
     addTestFile('''
 /// f doc
 int Function(String) f(String s) => (int i) => int.parse(s) + i;
@@ -176,7 +176,7 @@ main() {
         equals(ParameterInfo(ParameterKind.REQUIRED, 's', 'String')));
   }
 
-  test_function_from_other_file() async {
+  Future<void> test_function_from_other_file() async {
     newFile('/project/bin/other.dart', content: '''
 /// one doc
 one(String name, int length) {}
@@ -200,7 +200,7 @@ main() {
         equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
-  test_function_irrelevant_parens() async {
+  Future<void> test_function_irrelevant_parens() async {
     addTestFile('''
 /// one doc
 one(String name, int length) {}
@@ -218,7 +218,7 @@ main() {
         equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
-  test_function_named() async {
+  Future<void> test_function_named() async {
     addTestFile('''
 /// one doc
 one(String name, {int length}) {}
@@ -236,7 +236,7 @@ main() {
         equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_function_named_with_default_int() async {
+  Future<void> test_function_named_with_default_int() async {
     addTestFile('''
 /// one doc
 one(String name, {int length = 1}) {}
@@ -256,7 +256,7 @@ main() {
             defaultValue: '1')));
   }
 
-  test_function_named_with_default_string() async {
+  Future<void> test_function_named_with_default_string() async {
     addTestFile('''
 /// one doc
 one(String name, {String email = "a@b.c"}) {}
@@ -276,7 +276,7 @@ main() {
             defaultValue: '"a@b.c"')));
   }
 
-  test_function_nested_call_inner() async {
+  Future<void> test_function_nested_call_inner() async {
     // eg. foo(bar(1, 2));
     addTestFile('''
 /// one doc
@@ -295,7 +295,7 @@ main() {
         equals(ParameterInfo(ParameterKind.REQUIRED, 'two', 'String')));
   }
 
-  test_function_nested_call_outer() async {
+  Future<void> test_function_nested_call_outer() async {
     // eg. foo(bar(1, 2));
     addTestFile('''
 /// one doc
@@ -314,7 +314,7 @@ main() {
         equals(ParameterInfo(ParameterKind.REQUIRED, 'one', 'String')));
   }
 
-  test_function_no_dart_doc() async {
+  Future<void> test_function_no_dart_doc() async {
     addTestFile('''
 one(String name, int length) {}
 main() {
@@ -331,7 +331,7 @@ main() {
         equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
-  test_function_optional() async {
+  Future<void> test_function_optional() async {
     addTestFile('''
 /// one doc
 one(String name, [int length]) {}
@@ -349,7 +349,7 @@ main() {
         equals(ParameterInfo(ParameterKind.OPTIONAL, 'length', 'int')));
   }
 
-  test_function_optional_with_default() async {
+  Future<void> test_function_optional_with_default() async {
     addTestFile('''
 /// one doc
 one(String name, [int length = 11]) {}
@@ -369,7 +369,7 @@ main() {
             defaultValue: '11')));
   }
 
-  test_function_required() async {
+  Future<void> test_function_required() async {
     addTestFile('''
 /// one doc
 one(String name, int length) {}
@@ -387,7 +387,7 @@ main() {
         equals(ParameterInfo(ParameterKind.REQUIRED, 'length', 'int')));
   }
 
-  test_function_zero_arguments() async {
+  Future<void> test_function_zero_arguments() async {
     addTestFile('''
 /// one doc
 one() {}
@@ -401,7 +401,7 @@ main() {
     expect(result.parameters, hasLength(0));
   }
 
-  test_invalidFilePathFormat_notAbsolute() async {
+  Future<void> test_invalidFilePathFormat_notAbsolute() async {
     var request = AnalysisGetSignatureParams('test.dart', 0).toRequest('0');
     var response = await waitResponse(request);
     expect(
@@ -410,7 +410,7 @@ main() {
     );
   }
 
-  test_invalidFilePathFormat_notNormalized() async {
+  Future<void> test_invalidFilePathFormat_notNormalized() async {
     var request =
         AnalysisGetSignatureParams(convertPath('/foo/../bar/test.dart'), 0)
             .toRequest('0');
@@ -421,7 +421,7 @@ main() {
     );
   }
 
-  test_method_instance() async {
+  Future<void> test_method_instance() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {
@@ -445,7 +445,7 @@ main() {
         equals(ParameterInfo(ParameterKind.NAMED, 'length', 'int')));
   }
 
-  test_method_static() async {
+  Future<void> test_method_static() async {
     addTestFile('''
 /// MyClass doc
 class MyClass {

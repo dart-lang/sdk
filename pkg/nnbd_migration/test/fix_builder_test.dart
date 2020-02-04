@@ -39,24 +39,25 @@ class AssignmentTargetInfo {
 @reflectiveTest
 class FixBuilderTest extends EdgeBuilderTestBase {
   static final isAddRequiredKeyword =
-      havingInnerMatcher(TypeMatcher<AddRequiredKeyword>(), isNoChange);
+      TypeMatcher<NodeChangeForDefaultFormalParameter>()
+          .having((c) => c.addRequiredKeyword, 'addRequiredKeyword', true);
 
-  static final isMakeNullable =
-      havingInnerMatcher(TypeMatcher<MakeNullable>(), isNoChange);
+  static final isMakeNullable = TypeMatcher<NodeChangeForTypeAnnotation>()
+      .having((c) => c.makeNullable, 'makeNullable', isNotNull);
 
-  static const isNoChange = TypeMatcher<NoChange>();
+  static final isNullCheck = TypeMatcher<NodeChangeForExpression>()
+      .having((c) => c.addNullCheck, 'addNullCheck', true);
 
-  static final isNullCheck =
-      havingInnerMatcher(TypeMatcher<NullCheck>(), isNoChange);
+  static final isRemoveNullAwareness =
+      TypeMatcher<NodeChangeForPropertyAccess>()
+          .having((c) => c.removeNullAwareness, 'removeNullAwareness', true);
 
-  static const isRemoveNullAwarenessFromPropertyAccess =
-      TypeMatcher<RemoveNullAwarenessFromPropertyAccess>();
+  static final isRemoveAs = TypeMatcher<NodeChangeForAsExpression>()
+      .having((c) => c.removeAs, 'removeAs', true);
 
-  static final isRemoveAs =
-      havingInnerMatcher(TypeMatcher<RemoveAs>(), isNoChange);
-
-  static final isRequiredAnnotationToRequiredKeyword = havingInnerMatcher(
-      TypeMatcher<RequiredAnnotationToRequiredKeyword>(), isNoChange);
+  static final isRequiredAnnotationToRequiredKeyword =
+      TypeMatcher<NodeChangeForAnnotation>().having(
+          (c) => c.changeToRequiredKeyword, 'changeToRequiredKeyword', true);
 
   DartType get dynamicType => postMigrationTypeProvider.dynamicType;
 
@@ -847,7 +848,7 @@ _f(bool/*?*/ x) {
 
   Future<void> test_binaryExpression_bar_bar_nullChecked() async {
     await analyze('''
-_f(Object/*?*/ x, Object/*?*/ y) {
+_f(bool/*?*/ x, bool/*?*/ y) {
   return x || y;
 }
 ''');
@@ -2277,7 +2278,7 @@ class C<T extends int/*?*/> {
     await analyze('_f(int/*!*/ i) => i?.isEven;');
     var propertyAccess = findNode.propertyAccess('?.');
     visitSubexpression(propertyAccess, 'bool',
-        changes: {propertyAccess: isRemoveNullAwarenessFromPropertyAccess});
+        changes: {propertyAccess: isRemoveNullAwareness});
   }
 
   Future<void>
@@ -2290,8 +2291,9 @@ int/*!*/ f(C/*!*/ c) => c?.i;
 ''');
     var propertyAccess = findNode.propertyAccess('?.');
     visitSubexpression(propertyAccess, 'int', changes: {
-      propertyAccess: havingInnerMatcher(const TypeMatcher<NullCheck>(),
-          isRemoveNullAwarenessFromPropertyAccess)
+      propertyAccess: TypeMatcher<NodeChangeForPropertyAccess>()
+          .having((c) => c.addNullCheck, 'addNullCheck', true)
+          .having((c) => c.removeNullAwareness, 'removeNullAwareness', true)
     });
   }
 
@@ -2755,12 +2757,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
         null;
   }
 
-  static TypeMatcher<NestableChange> havingInnerMatcher(
-          TypeMatcher<NestableChange> typeMatcher, Matcher innerMatcher) =>
-      typeMatcher.having(
-          (nullCheck) => nullCheck.inner, 'inner change', innerMatcher);
-
   static Matcher isEliminateDeadIf(bool knownValue) =>
-      TypeMatcher<EliminateDeadIf>()
+      TypeMatcher<NodeChangeForConditional>()
           .having((c) => c.conditionValue, 'conditionValue', knownValue);
 }

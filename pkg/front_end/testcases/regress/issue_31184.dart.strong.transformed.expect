@@ -23,9 +23,9 @@ import "dart:core" as core;
 static method bad() → dynamic {
   for (core::int* i = 0, core::int* i = invalid-expression "pkg/front_end/testcases/regress/issue_31184.dart:6:19: Error: 'i' is already declared in this scope.
   for (int i = 0, i > 10; i++) {}
-                  ^" as{TypeError} core::int*; invalid-expression "pkg/front_end/testcases/regress/issue_31184.dart:6:21: Error: This couldn't be parsed.
+                  ^" as{TypeError,ForDynamic} core::int*; invalid-expression "pkg/front_end/testcases/regress/issue_31184.dart:6:21: Error: This couldn't be parsed.
   for (int i = 0, i > 10; i++) {}
-                    ^".>(10) as{TypeError} core::bool*; i = i.{core::num::+}(1)) {
+                    ^".>(10) as{TypeError,ForDynamic} core::bool*; i = i.{core::num::+}(1)) {
   }
 }
 static method main() → dynamic {}

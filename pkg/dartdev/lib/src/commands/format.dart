@@ -2,16 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import '../core.dart';
 import '../sdk.dart';
 
 class FormatCommand extends DartdevCommand {
-  FormatCommand() : super('format', 'Format one or more Dart files.') {
+  FormatCommand({bool verbose = false})
+      : super('format', 'Format one or more Dart files.') {
     // TODO(jwren) add all options and flags
   }
 
   @override
-  run() async {
+  FutureOr<int> run() async {
     // TODO(jwren) implement verbose in dart_style
     // dartfmt doesn't have '-v' or '--verbose', so remove from the argument list
     var args = List.from(argResults.arguments)

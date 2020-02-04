@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 
 import 'utils/package_root.dart' as package_root;
 
-main() {
+void main() {
   PhysicalResourceProvider provider = PhysicalResourceProvider.INSTANCE;
   String packageRoot = provider.pathContext.normalize(package_root.packageRoot);
   String analysisServerPath =

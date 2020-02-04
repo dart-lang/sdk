@@ -277,6 +277,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       ASSERT(helper_.PeekTag() == kField);
       const bool is_setter = function.IsImplicitSetterFunction();
       const bool is_method = !function.IsStaticFunction();
+      const auto& field = Field::Handle(Z, function.accessor_field());
       intptr_t pos = 0;
       if (is_method) {
         Class& klass = Class::Handle(Z, function.Owner());
@@ -288,7 +289,6 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         parsed_function_->set_receiver_var(variable);
       }
       if (is_setter) {
-        const auto& field = Field::Handle(Z, function.accessor_field());
         if (FLAG_precompiled_mode) {
           const intptr_t kernel_offset = field.kernel_offset();
           const InferredTypeMetadata parameter_type =
@@ -316,17 +316,28 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
                 LocalVariable::kTypeCheckedByCaller);
           }
         }
+      } else {
+        if (field.is_late()) {
+          // LoadLateField uses expression_temp_var.
+          needs_expr_temp_ = true;
+        }
       }
       break;
     }
     case RawFunction::kImplicitStaticGetter: {
       ASSERT(helper_.PeekTag() == kField);
       ASSERT(function.IsStaticFunction());
+      const auto& field = Field::Handle(Z, function.accessor_field());
       // In addition to static field initializers, scopes/local variables
       // are needed for implicit getters of static const fields, in order to
       // be able to evaluate their initializers in constant evaluator.
       if (Field::Handle(Z, function.accessor_field()).is_const()) {
         VisitNode();
+      }
+      const bool lib_is_nnbd = function.nnbd_mode() == NNBDMode::kOptedInLib;
+      if (field.is_late() || lib_is_nnbd) {
+        // LoadLateField uses expression_temp_var.
+        needs_expr_temp_ = true;
       }
       break;
     }
@@ -803,6 +814,9 @@ void ScopeBuilder::VisitExpression() {
     }
     case kIsExpression:
       helper_.ReadPosition();  // read position.
+      if (translation_helper_.info().kernel_binary_version() >= 38) {
+        helper_.ReadFlags();  // read flags.
+      }
       VisitExpression();       // read operand.
       VisitDartType();         // read type.
       return;

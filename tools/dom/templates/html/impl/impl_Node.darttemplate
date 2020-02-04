@@ -92,7 +92,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     return result;
   }
 
-  bool remove(Object object) {
+  bool remove(Object$NULLABLE object) {
     if (object is! Node) return false;
     Node node = object;
     if (!identical(_this, node.parentNode)) return false;
@@ -136,11 +136,11 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
 
   // TODO(jacobr): this could be implemented for child node lists.
   // The exception we throw here is misleading.
-  void sort([Comparator<Node> compare]) {
+  void sort([Comparator<Node>$NULLABLE compare]) {
     throw new UnsupportedError("Cannot sort Node list");
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random$NULLABLE random]) {
     throw new UnsupportedError("Cannot shuffle Node list");
   }
 
@@ -150,7 +150,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     throw new UnsupportedError("Cannot setRange on Node list");
   }
 
-  void fillRange(int start, int end, [Node fill]) {
+  void fillRange(int start, int end, [Node$NULLABLE fill]) {
     throw new UnsupportedError("Cannot fillRange on Node list");
   }
 

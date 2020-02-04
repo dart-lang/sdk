@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseIsNotEmptyTest);
   });
@@ -23,7 +23,7 @@ class UseIsNotEmptyTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_is_not_empty;
 
-  test_notIsEmpty() async {
+  Future<void> test_notIsEmpty() async {
     await resolveTestUnit('''
 f(c) {
   if (/*LINT*/!c.isEmpty) {}

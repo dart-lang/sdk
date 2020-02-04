@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../support/integration_tests.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReanalyzeTest);
   });
@@ -16,7 +16,7 @@ main() {
 
 @reflectiveTest
 class ReanalyzeTest extends AbstractAnalysisServerIntegrationTest {
-  test_reanalyze() {
+  Future<void> test_reanalyze() {
     String pathname = sourcePath('test.dart');
     String text = 'main() {}';
     writeFile(pathname, text);

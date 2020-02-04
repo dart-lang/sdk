@@ -40,7 +40,10 @@ import 'package:kernel/kernel.dart'
 
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 
-import '../api_prototype/file_system.dart' show FileSystemEntity;
+import 'package:kernel/target/changed_structure_notifier.dart'
+    show ChangedStructureNotifier;
+
+import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
     show IncrementalKernelGenerator, isLegalIdentifier;
@@ -142,10 +145,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   static final Uri debugExprUri =
       new Uri(scheme: "org-dartlang-debug", path: "synthetic_debug_expression");
 
-  KernelTarget userCode;
+  IncrementalKernelTarget userCode;
+  Set<Library> previousSourceBuilders;
 
   IncrementalCompiler.fromComponent(
-      this.context, Component this.componentToInitializeFrom,
+      this.context, this.componentToInitializeFrom,
       [bool outlineOnly, IncrementalSerializer incrementalSerializer])
       : ticker = context.options.ticker,
         initializeFromDillUri = null,
@@ -231,6 +235,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             await userCode.buildComponent(verify: c.options.verify);
       }
       hierarchy ??= userCode.loader.hierarchy;
+      if (hierarchy != null && userCode.classesChangedStructure != null) {
+        hierarchy.applyMemberChanges(userCode.classesChangedStructure,
+            findDescendants: true);
+      }
       recordNonFullComponentForTesting(componentWithDill);
 
       // Perform actual dill usage tracking.
@@ -269,6 +277,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (componentWithDill == null) {
         userCode.loader.builders.clear();
         userCode = userCodeOld;
+      } else {
+        previousSourceBuilders = await convertSourceLibraryBuildersToDill();
       }
 
       // Output result.
@@ -280,6 +290,35 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ..mainMethod = mainMethod
         ..problemsAsJson = problemsAsJson;
     });
+  }
+
+  /// Convert every SourceLibraryBuilder to a DillLibraryBuilder.
+  /// As we always do this, this will only be the new ones.
+  ///
+  /// Returns the set of Libraries that now has new (dill) builders.
+  Future<Set<Library>> convertSourceLibraryBuildersToDill() async {
+    bool changed = false;
+    Set<Library> newDillLibraryBuilders = new Set<Library>();
+    userBuilders ??= <Uri, LibraryBuilder>{};
+    for (MapEntry<Uri, LibraryBuilder> entry
+        in userCode.loader.builders.entries) {
+      if (entry.value is SourceLibraryBuilder) {
+        SourceLibraryBuilder builder = entry.value;
+        DillLibraryBuilder dillBuilder =
+            dillLoadedData.loader.appendLibrary(builder.library);
+        userCode.loader.builders[entry.key] = dillBuilder;
+        userBuilders[entry.key] = dillBuilder;
+        newDillLibraryBuilders.add(builder.library);
+        changed = true;
+      }
+    }
+    if (changed) {
+      // We suppress finalization errors because they have already been
+      // reported.
+      await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
+    }
+    if (userBuilders.isEmpty) userBuilders = null;
+    return newDillLibraryBuilders;
   }
 
   /// Compute which libraries to output and which (previous) errors/warnings we
@@ -432,7 +471,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           // overwrite correctly, but the library itself should  not be
           // over written as the library for parts are temporary "fake"
           // libraries.
-          Uri partUri = library.uri.resolve(part.partUri);
+          Uri partUri = getPartUri(library.uri, part);
           Uri fileUri =
               getPartFileUri(library.library.fileUri, part, uriTranslator);
           LibraryBuilder newPartBuilder = userCode.loader.read(partUri, -1,
@@ -532,7 +571,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       List<LibraryBuilder> reusedLibraries,
       ExperimentalInvalidation experimentalInvalidation,
       Uri firstEntryPoint) {
-    userCode = new KernelTarget(
+    userCode = new IncrementalKernelTarget(
         new HybridFileSystem(
             new MemoryFileSystem(
                 new Uri(scheme: "org-dartlang-debug", path: "/")),
@@ -690,10 +729,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     if (removedDillBuilders) {
-      dillLoadedData.loader.libraries.clear();
-      for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
-        dillLoadedData.loader.libraries.add(builder.library);
-      }
+      makeDillLoaderLibrariesUpToDateWithBuildersMap();
     }
   }
 
@@ -877,7 +913,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       appendLibraries(data, bytesLength);
 
-      await dillLoadedData.buildOutlines();
+      // We suppress finalization errors because they will reported via
+      // problemsAsJson fields (with better precision).
+      await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
       userBuilders = <Uri, LibraryBuilder>{};
       platformBuilders = <LibraryBuilder>[];
       dillLoadedData.loader.builders.forEach((uri, builder) {
@@ -972,17 +1010,23 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // used class.
       for (Class c in classes) {
         Library library = c.enclosingLibrary;
-        // Only add if loaded from a dill file.
-        if (dillLoadedData.loader.builders.containsKey(library.importUri)) {
+        // Only add if loaded from a dill file (and wasn't a 'dill' that was
+        // converted from source builders to dill builders).
+        if (dillLoadedData.loader.builders.containsKey(library.importUri) &&
+            (previousSourceBuilders == null ||
+                !previousSourceBuilders.contains(library))) {
           neededDillLibraries.add(library);
         }
       }
     } else {
       // Cannot track in other kernel class hierarchies or
-      // if all bets are off: Add everything.
+      // if all bets are off: Add everything (except for the libraries we just
+      // converted from source builders to dill builders).
       neededDillLibraries = new Set<Library>();
       for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
-        if (builder is DillLibraryBuilder) {
+        if (builder is DillLibraryBuilder &&
+            (previousSourceBuilders == null ||
+                !previousSourceBuilders.contains(builder.library))) {
           neededDillLibraries.add(builder.library);
         }
       }
@@ -1026,7 +1070,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
       if (loadedAnything) {
-        await dillLoadedData.buildOutlines();
+        // We suppress finalization errors because they will reported via
+        // problemsAsJson fields (with better precision).
+        await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
         userBuilders = <Uri, LibraryBuilder>{};
         platformBuilders = <LibraryBuilder>[];
         dillLoadedData.loader.builders.forEach((uri, builder) {
@@ -1102,14 +1148,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Internal method.
   Uri getPartFileUri(
       Uri parentFileUri, LibraryPart part, UriTranslator uriTranslator) {
-    Uri fileUri;
-    try {
-      fileUri = parentFileUri.resolve(part.partUri);
-    } on FormatException {
-      return new Uri(
-          scheme: SourceLibraryBuilder.MALFORMED_URI_SCHEME,
-          query: Uri.encodeQueryComponent(part.partUri));
-    }
+    Uri fileUri = getPartUri(parentFileUri, part);
     if (fileUri.scheme == "package") {
       // Part was specified via package URI and the resolve above thus
       // did not go as expected. Translate the package URI to get the
@@ -1184,13 +1223,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     }
 
     List<Library> removedLibraries = new List<Library>();
+    bool removedDillBuilders = false;
     for (Uri uri in potentiallyReferencedLibraries.keys) {
       if (uri.scheme == "package") continue;
       LibraryBuilder builder = userCode.loader.builders.remove(uri);
       if (builder != null) {
         Library lib = builder.library;
         removedLibraries.add(lib);
-        dillLoadedData.loader.builders.remove(uri);
+        if (dillLoadedData.loader.builders.remove(uri) != null) {
+          removedDillBuilders = true;
+        }
         cleanupSourcesForBuilder(builder, uriTranslator,
             CompilerContext.current.uriToSource, uriToSource, partsUsed);
         userBuilders?.remove(uri);
@@ -1202,8 +1244,23 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
     }
     hierarchy?.applyTreeChanges(removedLibraries, const []);
+    if (removedDillBuilders) {
+      makeDillLoaderLibrariesUpToDateWithBuildersMap();
+    }
 
     return result;
+  }
+
+  /// If builders was removed from the [dillLoadedData.loader.builders] map
+  /// the loaders [libraries] list has to be updated too, or those libraries
+  /// will still hang around and be linked into the Component created internally
+  /// in the compilation process.
+  /// This method syncs the [libraries] list with the data in [builders].
+  void makeDillLoaderLibrariesUpToDateWithBuildersMap() {
+    dillLoadedData.loader.libraries.clear();
+    for (LibraryBuilder builder in dillLoadedData.loader.builders.values) {
+      dillLoadedData.loader.libraries.add(builder.library);
+    }
   }
 
   /// Internal method.
@@ -1481,8 +1538,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Internal method.
   ReusageResult computeReusedLibraries(
       Set<Uri> invalidatedUris, UriTranslator uriTranslator) {
+    Set<Uri> seenUris = new Set<Uri>();
     List<LibraryBuilder> reusedLibraries = <LibraryBuilder>[];
-    reusedLibraries.addAll(platformBuilders);
+    for (int i = 0; i < platformBuilders.length; i++) {
+      LibraryBuilder builder = platformBuilders[i];
+      if (!seenUris.add(builder.uri)) continue;
+      reusedLibraries.add(builder);
+    }
     if (userCode == null && userBuilders == null) {
       return new ReusageResult({}, [], false, reusedLibraries);
     }
@@ -1525,7 +1587,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     addBuilderAndInvalidateUris(Uri uri, LibraryBuilder libraryBuilder) {
       if (uri.scheme == "dart" && !libraryBuilder.isSynthetic) {
-        reusedLibraries.add(libraryBuilder);
+        if (seenUris.add(libraryBuilder.uri)) {
+          reusedLibraries.add(libraryBuilder);
+        }
         return;
       }
       builders[uri] = libraryBuilder;
@@ -1541,7 +1605,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       } else if (libraryBuilder is DillLibraryBuilder) {
         for (LibraryPart part in libraryBuilder.library.parts) {
-          Uri partUri = libraryBuilder.uri.resolve(part.partUri);
+          Uri partUri = getPartUri(libraryBuilder.uri, part);
           Uri fileUri = getPartFileUri(
               libraryBuilder.library.fileUri, part, uriTranslator);
 
@@ -1607,7 +1671,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
     // Builders contain mappings from part uri to builder, meaning the same
     // builder can exist multiple times in the values list.
-    Set<Uri> seenUris = new Set<Uri>();
     for (LibraryBuilder builder in builders.values) {
       if (builder.isPart) continue;
       // TODO(jensj/ahe): This line can probably go away once
@@ -1631,6 +1694,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     if (userCode != null) {
       Set<Uri> uris = new Set<Uri>.from(userCode.loader.builders.keys);
       uris.removeAll(dillLoadedData.loader.builders.keys);
+      if (previousSourceBuilders != null) {
+        for (Library library in previousSourceBuilders) {
+          uris.add(library.importUri);
+        }
+      }
       invalidatedUris.addAll(uris);
     }
   }
@@ -1651,6 +1719,18 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
   /// Internal method.
   void recordTemporaryFileForTesting(Uri uri) {}
+}
+
+/// Translate a parts "partUri" to an actual uri with handling of invalid uris.
+Uri getPartUri(Uri parentUri, LibraryPart part) {
+  try {
+    return parentUri.resolve(part.partUri);
+  } on FormatException {
+    // This is also done in [SourceLibraryBuilder.resolve]
+    return new Uri(
+        scheme: SourceLibraryBuilder.MALFORMED_URI_SCHEME,
+        query: Uri.encodeQueryComponent(part.partUri));
+  }
 }
 
 class PackageChangedError {
@@ -1695,4 +1775,20 @@ class ExperimentalInvalidation {
       : assert(rebuildBodies != null),
         assert(originalNotReusedLibraries != null),
         assert(missingSources != null);
+}
+
+class IncrementalKernelTarget extends KernelTarget
+    implements ChangedStructureNotifier {
+  Set<Class> classesChangedStructure;
+  IncrementalKernelTarget(FileSystem fileSystem, bool includeComments,
+      DillTarget dillTarget, UriTranslator uriTranslator)
+      : super(fileSystem, includeComments, dillTarget, uriTranslator);
+
+  ChangedStructureNotifier get changedStructureNotifier => this;
+
+  @override
+  void forClass(Class c) {
+    classesChangedStructure ??= new Set<Class>();
+    classesChangedStructure.add(c);
+  }
 }

@@ -70,7 +70,9 @@ main() {
   RuntimeTypeTags rtiTags = const RuntimeTypeTags();
   TypeRepresentationGenerator typeRepresentation =
       new TypeRepresentationGenerator(
-          rtiTags, compiler.backendClosedWorldForTesting.nativeData);
+          compiler.frontendStrategy.commonElements.dartTypes,
+          rtiTags,
+          compiler.backendClosedWorldForTesting.nativeData);
 
   Expression onVariable(TypeVariableType _variable) {
     TypeVariableType variable = _variable;

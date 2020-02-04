@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DiagnosticDomainTest);
   });
@@ -25,7 +25,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     server.handlers = [handler];
   }
 
-  test_getDiagnostics() async {
+  Future<void> test_getDiagnostics() async {
     newFile('/project/pubspec.yaml', content: 'name: project');
     newFile('/project/bin/test.dart', content: 'main() {}');
 
@@ -48,7 +48,7 @@ class DiagnosticDomainTest extends AbstractAnalysisTest {
     expect(context.workItemQueueLength, isNotNull);
   }
 
-  test_getDiagnostics_noRoot() async {
+  Future<void> test_getDiagnostics_noRoot() async {
     var request = DiagnosticGetDiagnosticsParams().toRequest('0');
     var response = handler.handleRequest(request);
     var result = DiagnosticGetDiagnosticsResult.fromResponse(response);

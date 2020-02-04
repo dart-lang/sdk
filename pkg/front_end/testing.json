@@ -284,8 +284,6 @@
         "test/fasta/super_mixins_test\\.dart$",
         "test/fasta/types/subtypes_benchmark\\.dart$",
         "test/fasta/unlinked_scope_test\\.dart$",
-        "test/incremental_load_from_dill_suite\\.dart$",
-        "test/incremental_load_from_invalid_dill_test\\.dart$",
         "test/memory_file_system_test\\.dart$",
         "test/scanner_fasta_test\\.dart$",
         "test/scanner_test\\.dart$",

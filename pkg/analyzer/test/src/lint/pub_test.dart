@@ -36,6 +36,8 @@ dependencies:
       url: git://github.com/munificent/kittens.git
       ref: some-branch
   foo: any
+  relative_path:
+    path: ../somewhere
 dev_dependencies:
   markdown: '>=0.7.1+2 <0.8.0'
   unittest: '>=0.11.0 <0.12.0'
@@ -88,6 +90,13 @@ dependency_overrides:
       testDepListContains('dependency_overrides', ps.dependencyOverrides, [
         {'foo': '1.2.0'}
       ]);
+
+      group('path', () {
+        PSDependency dep =
+            findDependency(ps.dependencies, name: 'relative_path');
+        PSEntry depPath = dep.path;
+        testValue('path', depPath, equals('../somewhere'));
+      });
 
       group('hosted', () {
         PSDependency dep =

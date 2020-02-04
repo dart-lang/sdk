@@ -13,7 +13,7 @@ packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip # contains no tests.
 
 [ $builder_tag == asan ]
-io/process_detached_test: Slow
+io/process_detached_test: Slow, Pass
 
 [ $builder_tag == no_ipv6 ]
 io/http_ipv6_test: SkipByDesign
@@ -67,8 +67,8 @@ io/*: Skip # Issue 30618
 env_test: Skip # This is testing a vm command line parsing scenario.
 
 [ $runtime == vm && $system == linux ]
-io/http_basic_test: Slow # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
-io/http_launch_test: Slow # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
+io/http_basic_test: Slow, Pass # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
+io/http_launch_test: Slow, Pass # Issue 28046, These tests might be slow on an opt counter threshold bot. They also time out on the bot occasionally => flaky test issue 28046
 
 [ $system == macos && ($runtime == dart_precompiled || $runtime == vm) ]
 io/raw_secure_server_socket_test: Crash

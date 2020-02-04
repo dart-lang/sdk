@@ -90,14 +90,14 @@ class _DartNavigationCollector {
   }
 }
 
-class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
+class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   final ResourceProvider resourceProvider;
   final _DartNavigationCollector computer;
 
   _DartNavigationComputerVisitor(this.resourceProvider, this.computer);
 
   @override
-  visitAnnotation(Annotation node) {
+  void visitAnnotation(Annotation node) {
     Element element = node.element;
     if (element is ConstructorElement && element.isSynthetic) {
       element = element.enclosingElement;
@@ -121,21 +121,21 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
     node.leftHandSide?.accept(this);
     computer._addRegionForToken(node.operator, node.staticElement);
     node.rightHandSide?.accept(this);
   }
 
   @override
-  visitBinaryExpression(BinaryExpression node) {
+  void visitBinaryExpression(BinaryExpression node) {
     node.leftOperand?.accept(this);
     computer._addRegionForToken(node.operator, node.staticElement);
     node.rightOperand?.accept(this);
   }
 
   @override
-  visitCompilationUnit(CompilationUnit unit) {
+  void visitCompilationUnit(CompilationUnit unit) {
     // prepare top-level nodes sorted by their offsets
     List<AstNode> nodes = <AstNode>[];
     nodes.addAll(unit.directives);
@@ -150,7 +150,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
     // associate constructor with "T" or "T.name"
     {
       AstNode firstNode = node.returnType;
@@ -165,7 +165,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitConstructorName(ConstructorName node) {
+  void visitConstructorName(ConstructorName node) {
     AstNode parent = node.parent;
     if (parent is InstanceCreationExpression &&
         parent.constructorName == node) {
@@ -177,7 +177,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitDeclaredIdentifier(DeclaredIdentifier node) {
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
     if (node.type == null) {
       Token token = node.keyword;
       if (token?.keyword == Keyword.VAR) {
@@ -192,7 +192,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitExportDirective(ExportDirective node) {
+  void visitExportDirective(ExportDirective node) {
     ExportElement exportElement = node.element;
     if (exportElement != null) {
       Element libraryElement = exportElement.exportedLibrary;
@@ -202,7 +202,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitImportDirective(ImportDirective node) {
+  void visitImportDirective(ImportDirective node) {
     ImportElement importElement = node.element;
     if (importElement != null) {
       Element libraryElement = importElement.importedLibrary;
@@ -212,7 +212,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitIndexExpression(IndexExpression node) {
+  void visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
     MethodElement element = node.staticElement;
     computer._addRegionForToken(node.leftBracket, element);
@@ -220,36 +220,37 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitLibraryDirective(LibraryDirective node) {
+  void visitLibraryDirective(LibraryDirective node) {
     computer._addRegionForNode(node.name, node.element);
   }
 
   @override
-  visitPartDirective(PartDirective node) {
+  void visitPartDirective(PartDirective node) {
     _addUriDirectiveRegion(node, node.element);
     super.visitPartDirective(node);
   }
 
   @override
-  visitPartOfDirective(PartOfDirective node) {
+  void visitPartOfDirective(PartOfDirective node) {
     computer._addRegionForNode(node.libraryName, node.element);
     super.visitPartOfDirective(node);
   }
 
   @override
-  visitPostfixExpression(PostfixExpression node) {
+  void visitPostfixExpression(PostfixExpression node) {
     super.visitPostfixExpression(node);
     computer._addRegionForToken(node.operator, node.staticElement);
   }
 
   @override
-  visitPrefixExpression(PrefixExpression node) {
+  void visitPrefixExpression(PrefixExpression node) {
     computer._addRegionForToken(node.operator, node.staticElement);
     super.visitPrefixExpression(node);
   }
 
   @override
-  visitRedirectingConstructorInvocation(RedirectingConstructorInvocation node) {
+  void visitRedirectingConstructorInvocation(
+      RedirectingConstructorInvocation node) {
     Element element = node.staticElement;
     if (element != null && element.isSynthetic) {
       element = element.enclosingElement;
@@ -262,7 +263,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.parent is ConstructorDeclaration) {
       return;
     }
@@ -271,7 +272,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     Element element = node.staticElement;
     if (element != null && element.isSynthetic) {
       element = element.enclosingElement;
@@ -284,7 +285,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  visitVariableDeclarationList(VariableDeclarationList node) {
+  void visitVariableDeclarationList(VariableDeclarationList node) {
     /**
      * Return the element for the type inferred for each of the variables in the
      * given list of [variables], or `null` if not all variable have the same

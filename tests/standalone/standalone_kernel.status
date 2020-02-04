@@ -18,7 +18,7 @@ entrypoints_verification_test: Skip # Requires shared objects which the test scr
 io/file_lock_test: SkipSlow # Timeout
 
 [ $arch == simarm64 && ($compiler == dartk || $compiler == dartkb) ]
-io/http_bind_test: Slow
+io/http_bind_test: Slow, Pass
 
 [ $builder_tag == optimization_counter_threshold && ($compiler == dartk || $compiler == dartkb) ]
 map_insert_remove_oom_test: Skip # Heap limit too low.
@@ -58,7 +58,7 @@ map_insert_remove_oom_test: Skip # Heap limit too low.
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 
 [ $mode == debug && $runtime == vm && ($compiler == dartk || $compiler == dartkb) ]
-io/file_lock_test: Slow
+io/file_lock_test: Slow, Pass
 io/raw_socket_test: Crash
 io/socket_exception_test: Crash
 io/socket_finalizer_test: Crash
@@ -73,7 +73,7 @@ io/web_socket_ping_test: Crash
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 
 [ $system == windows && ($compiler == dartk || $compiler == dartkb) ]
-io/dart_std_io_pipe_test: Slow
+io/dart_std_io_pipe_test: Slow, Pass
 io/secure_builtin_roots_test: Skip # Issues 32137 and 32138.
 io/wait_for_event_isolate_test: Skip # Issues 32137 and 32138.
 map_insert_remove_oom_test: Skip # Heap limit too low.
@@ -84,14 +84,14 @@ io/http_outgoing_size_test: Crash
 
 [ $hot_reload_rollback && ($compiler == dartk || $compiler == dartkb) ]
 io/directory_chdir_test: Skip # Timeout
-io/echo_server_stream_test: Slow
+io/echo_server_stream_test: Slow, Pass
 
 # Enabling of dartk for sim{arm,arm64} revealed these test failures, which
 # are to be triaged.  Isolate tests are skipped on purpose due to the usage of
 # batch mode.
 [ ($arch == simarm || $arch == simarm64) && ($compiler == dartk || $compiler == dartkb) ]
 io/file_blocking_lock_test: Crash # Please triage.
-io/file_lock_test: Slow
+io/file_lock_test: Slow, Pass
 map_insert_remove_oom_test: Skip # Heap limit too low.
 
 [ ($compiler == dartk || $compiler == dartkb) && ($hot_reload || $hot_reload_rollback) ]

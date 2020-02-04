@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ChangeTypeAnnotationTest);
   });
@@ -19,7 +19,7 @@ class ChangeTypeAnnotationTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CHANGE_TYPE_ANNOTATION;
 
-  test_generic() async {
+  Future<void> test_generic() async {
     await resolveTestUnit('''
 main() {
   String v = <int>[];
@@ -34,7 +34,7 @@ main() {
 ''');
   }
 
-  test_multipleVariables() async {
+  Future<void> test_multipleVariables() async {
     await resolveTestUnit('''
 main() {
   String a, b = 42;
@@ -44,7 +44,7 @@ main() {
     await assertNoFix();
   }
 
-  test_notVariableDeclaration() async {
+  Future<void> test_notVariableDeclaration() async {
     await resolveTestUnit('''
 main() {
   String v;
@@ -55,7 +55,7 @@ main() {
     await assertNoFix();
   }
 
-  test_simple() async {
+  Future<void> test_simple() async {
     await resolveTestUnit('''
 main() {
   String v = 'abc'.length;

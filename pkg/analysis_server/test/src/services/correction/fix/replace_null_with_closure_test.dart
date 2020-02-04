@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceNullWithClosureTest);
   });
@@ -27,7 +27,7 @@ class ReplaceNullWithClosureTest extends FixProcessorLintTest {
   /// where the fix (and lint) expect a NullLiteral.
   /// todo (pq): re-write FixProcessorLintTest to run the actual lints.
   @failingTest
-  test_null_closure_literal() async {
+  Future<void> test_null_closure_literal() async {
     await resolveTestUnit('''
 void f(dynamic x) { }
 main() {
@@ -42,7 +42,7 @@ main() {
 ''');
   }
 
-  test_null_closure_named_expression() async {
+  Future<void> test_null_closure_named_expression() async {
     await resolveTestUnit('''
 main() {
   [1, 3, 5].firstWhere((e) => e.isOdd, orElse: /*LINT*/null);
@@ -55,7 +55,7 @@ main() {
 ''');
   }
 
-  test_null_closure_named_expression_with_args() async {
+  Future<void> test_null_closure_named_expression_with_args() async {
     await resolveTestUnit('''
 void f({int closure(x, y)}) { }
 main() {
@@ -70,7 +70,7 @@ main() {
 ''');
   }
 
-  test_null_closure_named_expression_with_args_2() async {
+  Future<void> test_null_closure_named_expression_with_args_2() async {
     await resolveTestUnit('''
 void f({int closure(x, y, {z})}) { }
 main() {

@@ -13,7 +13,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_abstract.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisNotificationHighlightsTest);
     defineReflectiveTests(HighlightsWithControlFlowCollectionsTest);
@@ -24,7 +24,7 @@ main() {
 
 @reflectiveTest
 class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
-  test_ANNOTATION_hasArguments() async {
+  Future<void> test_ANNOTATION_hasArguments() async {
     addTestFile('''
 class AAA {
   const AAA(a, b, c);
@@ -36,7 +36,7 @@ class AAA {
     assertHasRegion(HighlightRegionType.ANNOTATION, ') main', ')'.length);
   }
 
-  test_ANNOTATION_noArguments() async {
+  Future<void> test_ANNOTATION_noArguments() async {
     addTestFile('''
 const AAA = 42;
 @AAA main() {}
@@ -45,7 +45,7 @@ const AAA = 42;
     assertHasRegion(HighlightRegionType.ANNOTATION, '@AAA');
   }
 
-  test_BUILT_IN_abstract() async {
+  Future<void> test_BUILT_IN_abstract() async {
     addTestFile('''
 abstract class A {};
 abstract class B = Object with A;
@@ -58,7 +58,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'abstract = 42');
   }
 
-  test_BUILT_IN_as() async {
+  Future<void> test_BUILT_IN_as() async {
     addTestFile('''
 import 'dart:math' as math;
 main() {
@@ -71,7 +71,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'as = 42');
   }
 
-  test_BUILT_IN_async() async {
+  Future<void> test_BUILT_IN_async() async {
     addTestFile('''
 fa() async {}
 fb() async* {}
@@ -85,7 +85,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'async = false');
   }
 
-  test_BUILT_IN_await() async {
+  Future<void> test_BUILT_IN_await() async {
     addTestFile('''
 main() async {
   await 42;
@@ -99,7 +99,7 @@ main() async {
     assertHasRegion(HighlightRegionType.BUILT_IN, 'await for');
   }
 
-  test_BUILT_IN_deferred() async {
+  Future<void> test_BUILT_IN_deferred() async {
     addTestFile('''
 import 'dart:math' deferred as math;
 main() {
@@ -110,7 +110,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'deferred = 42');
   }
 
-  test_BUILT_IN_export() async {
+  Future<void> test_BUILT_IN_export() async {
     addTestFile('''
 export "dart:math";
 main() {
@@ -121,7 +121,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'export = 42');
   }
 
-  test_BUILT_IN_external() async {
+  Future<void> test_BUILT_IN_external() async {
     addTestFile('''
 class A {
   external A();
@@ -137,7 +137,7 @@ external main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'external = 42');
   }
 
-  test_BUILT_IN_factory() async {
+  Future<void> test_BUILT_IN_factory() async {
     addTestFile('''
 class A {
   factory A() => null;
@@ -150,7 +150,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'factory = 42');
   }
 
-  test_BUILT_IN_get() async {
+  Future<void> test_BUILT_IN_get() async {
     addTestFile('''
 get aaa => 1;
 class A {
@@ -176,7 +176,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'hide = 42');
   }
 
-  test_BUILT_IN_implements() async {
+  Future<void> test_BUILT_IN_implements() async {
     addTestFile('''
 class A {}
 class B implements A {}
@@ -199,7 +199,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'import = 42');
   }
 
-  test_BUILT_IN_library() async {
+  Future<void> test_BUILT_IN_library() async {
     addTestFile('''
 library lib;
 main() {
@@ -225,7 +225,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'native = 42');
   }
 
-  test_BUILT_IN_on_inMixin() async {
+  Future<void> test_BUILT_IN_on_inMixin() async {
     addTestFile('''
 mixin M on N {}
 class N {}
@@ -234,7 +234,7 @@ class N {}
     assertHasRegion(HighlightRegionType.BUILT_IN, 'on N');
   }
 
-  test_BUILT_IN_on_inTry() async {
+  Future<void> test_BUILT_IN_on_inTry() async {
     addTestFile('''
 main() {
   try {
@@ -247,7 +247,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'on = 42');
   }
 
-  test_BUILT_IN_operator() async {
+  Future<void> test_BUILT_IN_operator() async {
     addTestFile('''
 class A {
   operator +(x) => null;
@@ -260,7 +260,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'operator = 42');
   }
 
-  test_BUILT_IN_part() async {
+  Future<void> test_BUILT_IN_part() async {
     addTestFile('''
 part "my_part.dart";
 main() {
@@ -272,7 +272,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 42');
   }
 
-  test_BUILT_IN_partOf() async {
+  Future<void> test_BUILT_IN_partOf() async {
     addTestFile('''
 part of lib;
 main() {
@@ -286,7 +286,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'of = 2');
   }
 
-  test_BUILT_IN_set() async {
+  Future<void> test_BUILT_IN_set() async {
     addTestFile('''
 set aaa(x) {}
 class A
@@ -312,7 +312,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'show = 42');
   }
 
-  test_BUILT_IN_static() async {
+  Future<void> test_BUILT_IN_static() async {
     addTestFile('''
 class A {
   static aaa;
@@ -327,7 +327,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'static = 42');
   }
 
-  test_BUILT_IN_sync() async {
+  Future<void> test_BUILT_IN_sync() async {
     addTestFile('''
 fa() sync {}
 fb() sync* {}
@@ -341,7 +341,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'sync = false');
   }
 
-  test_BUILT_IN_typedef() async {
+  Future<void> test_BUILT_IN_typedef() async {
     addTestFile('''
 typedef A();
 main() {
@@ -352,7 +352,7 @@ main() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'typedef = 42');
   }
 
-  test_BUILT_IN_yield() async {
+  Future<void> test_BUILT_IN_yield() async {
     addTestFile('''
 main() async* {
   yield 42;
@@ -362,7 +362,7 @@ main() async* {
     assertHasRegion(HighlightRegionType.BUILT_IN, 'yield 42');
   }
 
-  test_BUILT_IN_yieldStar() async {
+  Future<void> test_BUILT_IN_yieldStar() async {
     addTestFile('''
 main() async* {
   yield* [];
@@ -372,7 +372,7 @@ main() async* {
     assertHasStringRegion(HighlightRegionType.BUILT_IN, 'yield*');
   }
 
-  test_CLASS() async {
+  Future<void> test_CLASS() async {
     addTestFile('''
 class AAA {}
 AAA aaa;
@@ -382,7 +382,7 @@ AAA aaa;
     assertHasRegion(HighlightRegionType.CLASS, 'AAA aaa');
   }
 
-  test_CLASS_notDynamic() async {
+  Future<void> test_CLASS_notDynamic() async {
     addTestFile('''
 dynamic f() {}
 ''');
@@ -390,7 +390,7 @@ dynamic f() {}
     assertNoRegion(HighlightRegionType.CLASS, 'dynamic f()');
   }
 
-  test_CLASS_notVoid() async {
+  Future<void> test_CLASS_notVoid() async {
     addTestFile('''
 void f() {}
 ''');
@@ -398,7 +398,7 @@ void f() {}
     assertNoRegion(HighlightRegionType.CLASS, 'void f()');
   }
 
-  test_COMMENT() async {
+  Future<void> test_COMMENT() async {
     addTestFile('''
 /**
  * documentation comment
@@ -418,7 +418,7 @@ void my_function(String a) {
     assertHasRegion(HighlightRegionType.COMMENT_BLOCK, '/* b', 19);
   }
 
-  test_CONSTRUCTOR_explicitNew() async {
+  Future<void> test_CONSTRUCTOR_explicitNew() async {
     addTestFile('''
 class AAA<T> {
   AAA() {}
@@ -438,7 +438,7 @@ main() {
     assertHasRegion(HighlightRegionType.CONSTRUCTOR, 'name(42)');
   }
 
-  test_CONSTRUCTOR_implicitNew() async {
+  Future<void> test_CONSTRUCTOR_implicitNew() async {
     addTestFile('''
 class AAA<T> {
   AAA() {}
@@ -472,7 +472,7 @@ part 'part.dart';
     assertHasStringRegion(HighlightRegionType.DIRECTIVE, "part 'part.dart';");
   }
 
-  test_DIRECTIVE_partOf() async {
+  Future<void> test_DIRECTIVE_partOf() async {
     addTestFile('''
 part of lib;
 ''');
@@ -481,7 +481,7 @@ part of lib;
     assertHasStringRegion(HighlightRegionType.DIRECTIVE, 'part of lib;');
   }
 
-  test_DYNAMIC_TYPE() async {
+  Future<void> test_DYNAMIC_TYPE() async {
     addTestFile('''
 f() {}
 main(p) {
@@ -498,7 +498,7 @@ main(p) {
     assertNoRegion(HighlightRegionType.DYNAMIC_TYPE, 'v3 =');
   }
 
-  test_ENUM() async {
+  Future<void> test_ENUM() async {
     addTestFile('''
 enum MyEnum {A, B, C}
 MyEnum value;
@@ -508,7 +508,7 @@ MyEnum value;
     assertHasRegion(HighlightRegionType.ENUM, 'MyEnum value;');
   }
 
-  test_ENUM_CONSTANT() async {
+  Future<void> test_ENUM_CONSTANT() async {
     addTestFile('''
 enum MyEnum {AAA, BBB}
 main() {
@@ -523,7 +523,7 @@ main() {
     assertHasRegion(HighlightRegionType.ENUM_CONSTANT, 'BBB);');
   }
 
-  test_FIELD() async {
+  Future<void> test_FIELD() async {
     addTestFile('''
 class A {
   int aaa = 1;
@@ -543,7 +543,7 @@ main(A a) {
     assertHasRegion(HighlightRegionType.FIELD, 'bbb = 5');
   }
 
-  test_FIELD_STATIC() async {
+  Future<void> test_FIELD_STATIC() async {
     addTestFile('''
 class A {
   static aaa = 1;
@@ -563,7 +563,7 @@ main() {
     assertHasRegion(HighlightRegionType.FIELD_STATIC, 'ccc = 3');
   }
 
-  test_FUNCTION() async {
+  Future<void> test_FUNCTION() async {
     addTestFile('''
 fff(p) {}
 main() {
@@ -575,7 +575,7 @@ main() {
     assertHasRegion(HighlightRegionType.FUNCTION, 'fff(42)');
   }
 
-  test_FUNCTION_TYPE_ALIAS() async {
+  Future<void> test_FUNCTION_TYPE_ALIAS() async {
     addTestFile('''
 typedef FFF(p);
 main(FFF fff) {
@@ -586,7 +586,7 @@ main(FFF fff) {
     assertHasRegion(HighlightRegionType.FUNCTION_TYPE_ALIAS, 'FFF fff)');
   }
 
-  test_GETTER_DECLARATION() async {
+  Future<void> test_GETTER_DECLARATION() async {
     addTestFile('''
 get aaa => null;
 class A {
@@ -604,7 +604,7 @@ main(A a) {
     assertHasRegion(HighlightRegionType.FIELD, 'bbb;');
   }
 
-  test_IDENTIFIER_DEFAULT() async {
+  Future<void> test_IDENTIFIER_DEFAULT() async {
     addTestFile('''
 main() {
   aaa = 42;
@@ -618,7 +618,7 @@ main() {
     assertHasRegion(HighlightRegionType.IDENTIFIER_DEFAULT, 'CCC ccc');
   }
 
-  test_IMPORT_PREFIX() async {
+  Future<void> test_IMPORT_PREFIX() async {
     addTestFile('''
 import 'dart:math' as ma;
 main() {
@@ -630,7 +630,7 @@ main() {
     assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma.max');
   }
 
-  test_KEYWORD() async {
+  Future<void> test_KEYWORD() async {
     addTestFile('''
 main() {
   assert(true);
@@ -694,7 +694,7 @@ class C = Object with A;
     assertHasRegion(HighlightRegionType.KEYWORD, 'with A;');
   }
 
-  test_KEYWORD_ifElse_statement() async {
+  Future<void> test_KEYWORD_ifElse_statement() async {
     addTestFile('''
 f(a, b) {
   if (a < b) {} else {}
@@ -705,7 +705,7 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
   }
 
-  test_KEYWORD_mixin() async {
+  Future<void> test_KEYWORD_mixin() async {
     addTestFile('''
 mixin M {}
 ''');
@@ -713,7 +713,7 @@ mixin M {}
     assertHasRegion(HighlightRegionType.BUILT_IN, 'mixin');
   }
 
-  test_KEYWORD_void() async {
+  Future<void> test_KEYWORD_void() async {
     addTestFile('''
 void main() {
 }
@@ -722,7 +722,7 @@ void main() {
     assertHasRegion(HighlightRegionType.KEYWORD, 'void main()');
   }
 
-  test_LABEL() async {
+  Future<void> test_LABEL() async {
     addTestFile('''
 main() {
 myLabel:
@@ -736,45 +736,45 @@ myLabel:
     assertHasRegion(HighlightRegionType.LABEL, 'myLabel;');
   }
 
-  test_LITERAL_BOOLEAN() async {
+  Future<void> test_LITERAL_BOOLEAN() async {
     addTestFile('var V = true;');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.LITERAL_BOOLEAN, 'true;');
   }
 
-  test_LITERAL_DOUBLE() async {
+  Future<void> test_LITERAL_DOUBLE() async {
     addTestFile('var V = 4.2;');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.LITERAL_DOUBLE, '4.2;', '4.2'.length);
   }
 
-  test_LITERAL_INTEGER() async {
+  Future<void> test_LITERAL_INTEGER() async {
     addTestFile('var V = 42;');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.LITERAL_INTEGER, '42;');
   }
 
-  test_LITERAL_LIST() async {
+  Future<void> test_LITERAL_LIST() async {
     addTestFile('var V = <int>[1, 2, 3];');
     await prepareHighlights();
     assertHasStringRegion(HighlightRegionType.LITERAL_LIST, '<int>[1, 2, 3]');
   }
 
-  test_LITERAL_MAP() async {
+  Future<void> test_LITERAL_MAP() async {
     addTestFile("var V = const <int, String>{1: 'a', 2: 'b', 3: 'c'};");
     await prepareHighlights();
     assertHasStringRegion(HighlightRegionType.LITERAL_MAP,
         "const <int, String>{1: 'a', 2: 'b', 3: 'c'}");
   }
 
-  test_LITERAL_STRING() async {
+  Future<void> test_LITERAL_STRING() async {
     addTestFile('var V = "abc";');
     await prepareHighlights();
     assertHasRegion(
         HighlightRegionType.LITERAL_STRING, '"abc";', '"abc"'.length);
   }
 
-  test_LOCAL_VARIABLE() async {
+  Future<void> test_LOCAL_VARIABLE() async {
     addTestFile('''
 main() {
   int vvv = 0;
@@ -788,7 +788,7 @@ main() {
     assertHasRegion(HighlightRegionType.LOCAL_VARIABLE, 'vvv = 1;');
   }
 
-  test_METHOD() async {
+  Future<void> test_METHOD() async {
     addTestFile('''
 class A {
   aaa() {}
@@ -810,7 +810,7 @@ main(A a) {
     assertHasRegion(HighlightRegionType.METHOD_STATIC, 'bbb;');
   }
 
-  test_METHOD_bestType() async {
+  Future<void> test_METHOD_bestType() async {
     addTestFile('''
 main(p) {
   if (p is List) {
@@ -822,7 +822,7 @@ main(p) {
     assertHasRegion(HighlightRegionType.METHOD, 'add(null)');
   }
 
-  test_PARAMETER() async {
+  Future<void> test_PARAMETER() async {
     addTestFile('''
 main(int p) {
   p;
@@ -835,7 +835,7 @@ main(int p) {
     assertHasRegion(HighlightRegionType.PARAMETER, 'p = 42');
   }
 
-  test_SETTER_DECLARATION() async {
+  Future<void> test_SETTER_DECLARATION() async {
     addTestFile('''
 set aaa(x) {}
 class A {
@@ -882,7 +882,7 @@ dynamic main() {
     assertNoRegion(HighlightRegionType.TYPE_NAME_DYNAMIC, 'dynamic = 42');
   }
 
-  test_TYPE_PARAMETER() async {
+  Future<void> test_TYPE_PARAMETER() async {
     addTestFile('''
 class A<T> {
   T fff;
@@ -1014,7 +1014,7 @@ analyzer:
   }
 
   @failingTest
-  test_KEYWORD_awaitForIn_list() async {
+  Future<void> test_KEYWORD_awaitForIn_list() async {
     addTestFile('''
 f(a) async {
   return [await for(var b in a) b];
@@ -1027,7 +1027,7 @@ f(a) async {
   }
 
   @failingTest
-  test_KEYWORD_awaitForIn_map() async {
+  Future<void> test_KEYWORD_awaitForIn_map() async {
     addTestFile('''
 f(a) async {
   return {await for(var b in a) b : 0};
@@ -1040,7 +1040,7 @@ f(a) async {
   }
 
   @failingTest
-  test_KEYWORD_awaitForIn_set() async {
+  Future<void> test_KEYWORD_awaitForIn_set() async {
     addTestFile('''
 f(a) async {
   return {await for(var b in a) b};
@@ -1052,7 +1052,7 @@ f(a) async {
     assertHasRegion(HighlightRegionType.KEYWORD, 'in');
   }
 
-  test_KEYWORD_const_list() async {
+  Future<void> test_KEYWORD_const_list() async {
     addTestFile('''
 var v = const [];
 ''');
@@ -1060,7 +1060,7 @@ var v = const [];
     assertHasRegion(HighlightRegionType.KEYWORD, 'const');
   }
 
-  test_KEYWORD_const_map() async {
+  Future<void> test_KEYWORD_const_map() async {
     addTestFile('''
 var v = const {0 : 1};
 ''');
@@ -1068,7 +1068,7 @@ var v = const {0 : 1};
     assertHasRegion(HighlightRegionType.KEYWORD, 'const');
   }
 
-  test_KEYWORD_const_set() async {
+  Future<void> test_KEYWORD_const_set() async {
     addTestFile('''
 var v = const {0};
 ''');
@@ -1076,7 +1076,7 @@ var v = const {0};
     assertHasRegion(HighlightRegionType.KEYWORD, 'const');
   }
 
-  test_KEYWORD_if_list() async {
+  Future<void> test_KEYWORD_if_list() async {
     addTestFile('''
 f(a, b) {
   return [if (a < b) 'a'];
@@ -1086,7 +1086,7 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'if');
   }
 
-  test_KEYWORD_if_map() async {
+  Future<void> test_KEYWORD_if_map() async {
     addTestFile('''
 f(a, b) {
   return {if (a < b) 'a' : 1};
@@ -1096,7 +1096,7 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'if');
   }
 
-  test_KEYWORD_if_set() async {
+  Future<void> test_KEYWORD_if_set() async {
     addTestFile('''
 f(a, b) {
   return {if (a < b) 'a'};
@@ -1106,7 +1106,7 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'if');
   }
 
-  test_KEYWORD_ifElse_list() async {
+  Future<void> test_KEYWORD_ifElse_list() async {
     addTestFile('''
 f(a, b) {
   return [if (a < b) 'a' else 'b'];
@@ -1117,7 +1117,7 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
   }
 
-  test_KEYWORD_ifElse_map() async {
+  Future<void> test_KEYWORD_ifElse_map() async {
     addTestFile('''
 f(a, b) {
   return {if (a < b) 'a' : 1 else 'b' : 2};
@@ -1128,7 +1128,7 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
   }
 
-  test_KEYWORD_ifElse_set() async {
+  Future<void> test_KEYWORD_ifElse_set() async {
     addTestFile('''
 f(a, b) {
   return {if (a < b) 'a' else 'b'};
@@ -1139,13 +1139,13 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
   }
 
-  test_LITERAL_LIST_withControlFlow() async {
+  Future<void> test_LITERAL_LIST_withControlFlow() async {
     addTestFile('var V = <int>[1, 2, 3];');
     await prepareHighlights();
     assertHasStringRegion(HighlightRegionType.LITERAL_LIST, '<int>[1, 2, 3]');
   }
 
-  test_LITERAL_MAP_withControlFlow() async {
+  Future<void> test_LITERAL_MAP_withControlFlow() async {
     addTestFile("var V = const <int, String>{1: 'a', 2: 'b', 3: 'c'};");
     await prepareHighlights();
     assertHasStringRegion(HighlightRegionType.LITERAL_MAP,
@@ -1165,7 +1165,7 @@ analyzer:
     super.createProject(packageRoots: packageRoots);
   }
 
-  test_KEYWORD_late() async {
+  Future<void> test_KEYWORD_late() async {
     addTestFile('''
 class C {
   late int x;
@@ -1175,7 +1175,7 @@ class C {
     assertHasRegion(HighlightRegionType.KEYWORD, 'late');
   }
 
-  test_KEYWORD_required() async {
+  Future<void> test_KEYWORD_required() async {
     addTestFile('''
 void f({required int x}) {}
 ''');

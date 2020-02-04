@@ -1057,7 +1057,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       checks.forEach((DartType type) {
         if (type is InterfaceType) {
           InterfaceType itf = type;
-          if (!itf.treatAsRaw) {
+          if (!closedWorld.dartTypes.treatAsRawType(itf)) {
             potentiallyNeedTypeArguments(itf.element);
           }
         } else {

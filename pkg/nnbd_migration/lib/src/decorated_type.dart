@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart' as type_algebra;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 
@@ -121,25 +122,29 @@ class DecoratedType implements DecoratedTypeInfo {
   /// nodes can later be unioned with other nodes.
   factory DecoratedType.forImplicitFunction(TypeProvider typeProvider,
       FunctionType type, NullabilityNode node, NullabilityGraph graph,
-      {DecoratedType returnType}) {
+      {DecoratedType returnType, @required int offset}) {
     var positionalParameters = <DecoratedType>[];
     var namedParameters = <String, DecoratedType>{};
     for (var parameter in type.parameters) {
       if (parameter.isPositional) {
-        positionalParameters.add(
-            DecoratedType.forImplicitType(typeProvider, parameter.type, graph));
+        positionalParameters.add(DecoratedType.forImplicitType(
+            typeProvider, parameter.type, graph,
+            offset: offset));
       } else {
-        namedParameters[parameter.name] =
-            DecoratedType.forImplicitType(typeProvider, parameter.type, graph);
+        namedParameters[parameter.name] = DecoratedType.forImplicitType(
+            typeProvider, parameter.type, graph,
+            offset: offset);
       }
     }
     return DecoratedType(type, node,
         typeFormalBounds: type.typeFormals
             .map((e) => DecoratedType.forImplicitType(
-                typeProvider, e.bound ?? typeProvider.objectType, graph))
+                typeProvider, e.bound ?? typeProvider.objectType, graph,
+                offset: offset))
             .toList(),
         returnType: returnType ??
-            DecoratedType.forImplicitType(typeProvider, type.returnType, graph),
+            DecoratedType.forImplicitType(typeProvider, type.returnType, graph,
+                offset: offset),
         namedParameters: namedParameters,
         positionalParameters: positionalParameters);
   }
@@ -149,8 +154,8 @@ class DecoratedType implements DecoratedTypeInfo {
   /// nodes can later be unioned with other nodes.
   factory DecoratedType.forImplicitType(
       TypeProvider typeProvider, DartType type, NullabilityGraph graph,
-      {List<DecoratedType> typeArguments}) {
-    var nullabilityNode = NullabilityNode.forInferredType();
+      {List<DecoratedType> typeArguments, @required int offset}) {
+    var nullabilityNode = NullabilityNode.forInferredType(offset: offset);
     if (type is InterfaceType) {
       assert(() {
         if (typeArguments != null) {
@@ -163,7 +168,8 @@ class DecoratedType implements DecoratedTypeInfo {
       }());
 
       typeArguments ??= type.typeArguments
-          .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph))
+          .map((t) => DecoratedType.forImplicitType(typeProvider, t, graph,
+              offset: offset))
           .toList();
       return DecoratedType(type, nullabilityNode, typeArguments: typeArguments);
     } else if (type is FunctionType) {
@@ -171,7 +177,8 @@ class DecoratedType implements DecoratedTypeInfo {
         throw "Not supported: implicit function type with explicit type arguments";
       }
       return DecoratedType.forImplicitFunction(
-          typeProvider, type, nullabilityNode, graph);
+          typeProvider, type, nullabilityNode, graph,
+          offset: offset);
     } else {
       assert(typeArguments == null);
       return DecoratedType(type, nullabilityNode);
@@ -333,9 +340,14 @@ class DecoratedType implements DecoratedTypeInfo {
             nullabilitySuffix: NullabilitySuffix.none);
       }
       for (int i = 0; i < newTypeFormals.length; i++) {
-        newTypeFormals[i].bound = type_algebra.substitute(
+        var bound = type_algebra.substitute(
             typeFormalBounds[i].toFinalType(typeProvider),
             typeFormalSubstitution);
+        if (!bound.isDynamic &&
+            !(bound.isDartCoreObject &&
+                bound.nullabilitySuffix == NullabilitySuffix.question)) {
+          newTypeFormals[i].bound = bound;
+        }
       }
       var parameters = <ParameterElement>[];
       for (int i = 0; i < type.parameters.length; i++) {

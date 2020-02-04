@@ -8,7 +8,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(UseEffectiveIntegerDivisionTest);
   });
@@ -19,7 +19,7 @@ class UseEffectiveIntegerDivisionTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.USE_EFFECTIVE_INTEGER_DIVISION;
 
-  test_normalDivision() async {
+  Future<void> test_normalDivision() async {
     await resolveTestUnit('''
 main() {
   var a = 5;

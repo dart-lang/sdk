@@ -26,13 +26,13 @@ static method main() → dynamic async {
   function f_async_star() → core::int* async* {
     yield 42;
   }
-  await for (dynamic x in (f_async_star.call() as dynamic) as{TypeError} asy::Stream<dynamic>*) {
+  await for (dynamic x in (f_async_star.call() as dynamic) as{TypeError,ForDynamic} asy::Stream<dynamic>*) {
     core::print(x);
   }
   function f_sync_star() → core::int* sync* {
     yield 42;
   }
-  for (dynamic x in (f_sync_star.call() as dynamic) as{TypeError} core::Iterable<dynamic>*) {
+  for (dynamic x in (f_sync_star.call() as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*) {
     core::print(x);
   }
 }

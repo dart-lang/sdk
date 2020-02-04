@@ -47,7 +47,7 @@ import 'class_hierarchy_builder.dart';
 class ForwardingNode {
   final ClassHierarchyBuilder hierarchy;
 
-  final SourceClassBuilder parent;
+  final SourceClassBuilder classBuilder;
 
   final ClassMember combinedMemberSignatureResult;
 
@@ -57,12 +57,12 @@ class ForwardingNode {
   /// procedures of the class in question.
   final List<ClassMember> _candidates;
 
-  ForwardingNode(this.hierarchy, this.parent,
+  ForwardingNode(this.hierarchy, this.classBuilder,
       this.combinedMemberSignatureResult, this._candidates, this.kind);
 
   Name get name => combinedMemberSignatureResult.member.name;
 
-  Class get enclosingClass => parent.cls;
+  Class get enclosingClass => classBuilder.cls;
 
   /// Finishes handling of this node by propagating covariance and creating
   /// forwarding stubs if necessary.
@@ -169,12 +169,9 @@ class ForwardingNode {
     bool needsCheck(DartType type) => needsCheckVisitor == null
         ? false
         : substitution.substituteType(type).accept(needsCheckVisitor);
-    bool enableNonNullable = hierarchy.loader.target.enableNonNullable;
-    bool isNonNullableByDefault =
-        enableNonNullable && parent.library.isNonNullableByDefault;
+    bool isNonNullableByDefault = classBuilder.library.isNonNullableByDefault;
 
     DartType initialType(DartType a) {
-      if (!enableNonNullable) return null;
       if (!isNonNullableByDefault) {
         a = legacyErasure(hierarchy.coreTypes, a);
       }
@@ -191,8 +188,8 @@ class ForwardingNode {
 
     for (int i = 0; i < interfacePositionalParameters.length; i++) {
       VariableDeclaration parameter = interfacePositionalParameters[i];
-      DartType parameterType = parameter.type;
-      DartType type = initialType(substitution.substituteType(parameterType));
+      DartType parameterType = substitution.substituteType(parameter.type);
+      DartType type = initialType(parameterType);
       bool isGenericCovariantImpl =
           parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       bool isCovariant = parameter.isCovariant;
@@ -232,19 +229,17 @@ class ForwardingNode {
           stub.function.positionalParameters[i].isCovariant = true;
         }
       }
-      if (enableNonNullable) {
-        if (type != null && type != parameterType) {
-          // TODO(johnniwinther): Report an error when [type] is null; this
-          // means that nnbd-top-merge was not defined.
-          createStubIfNeeded(forMemberSignature: true);
-          stub.function.positionalParameters[i].type = type;
-        }
+      if (type != null && type != parameterType) {
+        // TODO(johnniwinther): Report an error when [type] is null; this
+        // means that nnbd-top-merge was not defined.
+        createStubIfNeeded(forMemberSignature: true);
+        stub.function.positionalParameters[i].type = type;
       }
     }
     for (int i = 0; i < interfaceNamedParameters.length; i++) {
       VariableDeclaration parameter = interfaceNamedParameters[i];
-      DartType parameterType = parameter.type;
-      DartType type = initialType(substitution.substituteType(parameterType));
+      DartType parameterType = substitution.substituteType(parameter.type);
+      DartType type = initialType(parameterType);
       bool isGenericCovariantImpl =
           parameter.isGenericCovariantImpl || needsCheck(parameter.type);
       bool isCovariant = parameter.isCovariant;
@@ -284,13 +279,11 @@ class ForwardingNode {
           stub.function.namedParameters[i].isCovariant = true;
         }
       }
-      if (enableNonNullable) {
-        if (type != null && type != parameterType) {
-          // TODO(johnniwinther): Report an error when [type] is null; this
-          // means that nnbd-top-merge was not defined.
-          createStubIfNeeded(forMemberSignature: true);
-          stub.function.namedParameters[i].type = type;
-        }
+      if (type != null && type != parameterType) {
+        // TODO(johnniwinther): Report an error when [type] is null; this
+        // means that nnbd-top-merge was not defined.
+        createStubIfNeeded(forMemberSignature: true);
+        stub.function.namedParameters[i].type = type;
       }
     }
     for (int i = 0; i < interfaceTypeParameters.length; i++) {
@@ -321,21 +314,19 @@ class ForwardingNode {
         }
       }
     }
-    if (enableNonNullable) {
-      DartType returnType =
-          substitution.substituteType(getReturnType(interfaceMember));
-      DartType type = initialType(returnType);
-      for (int j = 0; j < _candidates.length; j++) {
-        Member otherMember = getCandidateAt(j);
-        type = mergeTypes(
-            type, substitutions[j].substituteType(getReturnType(otherMember)));
-      }
-      if (type != null && type != returnType) {
-        // TODO(johnniwinther): Report an error when [type] is null; this
-        // means that nnbd-top-merge was not defined.
-        createStubIfNeeded(forMemberSignature: true);
-        stub.function.returnType = type;
-      }
+    DartType returnType =
+        substitution.substituteType(getReturnType(interfaceMember));
+    DartType type = initialType(returnType);
+    for (int j = 0; j < _candidates.length; j++) {
+      Member otherMember = getCandidateAt(j);
+      type = mergeTypes(
+          type, substitutions[j].substituteType(getReturnType(otherMember)));
+    }
+    if (type != null && type != returnType) {
+      // TODO(johnniwinther): Report an error when [type] is null; this
+      // means that nnbd-top-merge was not defined.
+      createStubIfNeeded(forMemberSignature: true);
+      stub.function.returnType = type;
     }
     return stub;
   }
@@ -447,13 +438,13 @@ class ForwardingNode {
       finalTarget = target;
     }
     Procedure referenceFrom;
-    if (parent.referencesFromIndexed != null) {
+    if (classBuilder.referencesFromIndexed != null) {
       if (kind == ProcedureKind.Setter) {
         referenceFrom =
-            parent.referencesFromIndexed.lookupProcedureSetter(name.name);
+            classBuilder.referencesFromIndexed.lookupProcedureSetter(name.name);
       } else {
-        referenceFrom =
-            parent.referencesFromIndexed.lookupProcedureNotSetter(name.name);
+        referenceFrom = classBuilder.referencesFromIndexed
+            .lookupProcedureNotSetter(name.name);
       }
     }
     return new Procedure(name, kind, function,

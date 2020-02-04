@@ -115,9 +115,6 @@ template("kernel_service_dill") {
           "--no-embed-sources",
           "--output=" + rebase_path(output),
         ]
-    if (use_nnbd) {
-      args += [ "--enable-experiment=non-nullable" ]
-    }
     args += [ scheme + ":///pkg/vm/bin/kernel_service.dart" ]
     if (dart_platform_bytecode) {
       args += [

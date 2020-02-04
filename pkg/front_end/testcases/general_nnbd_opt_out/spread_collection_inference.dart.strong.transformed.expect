@@ -208,7 +208,7 @@ static method foo(dynamic dynVar) → dynamic {
   core::List<dynamic>* lhs21 = block {
     final core::List<dynamic>* #t20 = <dynamic>[];
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>((spread as dynamic) as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>((spread as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t21 = :sync-for-iterator.{core::Iterator::current};
         #t20.{core::List::add}(#t21);
@@ -218,7 +218,7 @@ static method foo(dynamic dynVar) → dynamic {
   core::Set<dynamic>* set21 = block {
     final core::Set<dynamic>* #t22 = col::LinkedHashSet::•<dynamic>();
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>((spread as dynamic) as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>((spread as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t23 = :sync-for-iterator.{core::Iterator::current};
         #t22.{core::Set::add}(#t23);
@@ -229,7 +229,7 @@ static method foo(dynamic dynVar) → dynamic {
   core::Map<dynamic, dynamic>* map21 = block {
     final core::Map<dynamic, dynamic>* #t24 = <dynamic, dynamic>{};
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>(((mapSpread as dynamic) as{TypeError} core::Map<dynamic, dynamic>*).{core::Map::entries}).{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>(((mapSpread as dynamic) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<dynamic, dynamic>* #t25 = :sync-for-iterator.{core::Iterator::current};
         #t24.{core::Map::[]=}(#t25.{core::MapEntry::key}, #t25.{core::MapEntry::value});
@@ -554,7 +554,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::List<core::int*>* list110 = block {
     final core::List<core::int*>* #t95 = <core::int*>[];
     {
-      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(dynVar as{TypeError} core::Iterable<dynamic>*).{core::Iterable::iterator};
+      core::Iterator<dynamic>* :sync-for-iterator = _in::unsafeCast<core::Iterable<dynamic>*>(dynVar as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final dynamic #t96 = :sync-for-iterator.{core::Iterator::current};
         {
@@ -567,7 +567,7 @@ Try providing type arguments for the literal explicitly to disambiguate it.
   core::Map<core::num*, core::int*>* map110 = block {
     final core::Map<core::num*, core::int*>* #t98 = <core::num*, core::int*>{};
     {
-      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>((dynVar as{TypeError} core::Map<dynamic, dynamic>*).{core::Map::entries}).{core::Iterable::iterator};
+      core::Iterator<core::MapEntry<dynamic, dynamic>*>* :sync-for-iterator = _in::unsafeCast<core::Iterable<core::MapEntry<dynamic, dynamic>*>*>((dynVar as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}).{core::Iterable::iterator};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(); ) {
         final core::MapEntry<dynamic, dynamic>* #t99 = :sync-for-iterator.{core::Iterator::current};
         {

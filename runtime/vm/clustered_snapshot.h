@@ -234,6 +234,12 @@ class Serializer : public ThreadStackResource {
     WriteStream::Raw<sizeof(T), T>::Write(&stream_, value);
   }
   void WriteUnsigned(intptr_t value) { stream_.WriteUnsigned(value); }
+  void WriteUnsigned64(uint64_t value) { stream_.WriteUnsigned(value); }
+
+  void WriteWordWith32BitWrites(uword value) {
+    stream_.WriteWordWith32BitWrites(value);
+  }
+
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     stream_.WriteBytes(addr, len);
   }
@@ -496,7 +502,10 @@ class Deserializer : public ThreadStackResource {
     return ReadStream::Raw<sizeof(T), T>::Read(&stream_);
   }
   intptr_t ReadUnsigned() { return stream_.ReadUnsigned(); }
+  uint64_t ReadUnsigned64() { return stream_.ReadUnsigned<uint64_t>(); }
   void ReadBytes(uint8_t* addr, intptr_t len) { stream_.ReadBytes(addr, len); }
+
+  uword ReadWordWith32BitReads() { return stream_.ReadWordWith32BitReads(); }
 
   const uint8_t* CurrentBufferAddress() const {
     return stream_.AddressOfCurrentPosition();

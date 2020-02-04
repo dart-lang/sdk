@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveInterpolationBracesTest);
   });
@@ -23,7 +23,7 @@ class RemoveInterpolationBracesTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_brace_in_string_interps;
 
-  test_withSpace() async {
+  Future<void> test_withSpace() async {
     await resolveTestUnit(r'''
 main() {
   var v = 42;

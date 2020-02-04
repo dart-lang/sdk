@@ -60,8 +60,8 @@ external String _stringify(dynamic json);
 /// The unparsed data for the source maps must still be loaded before
 /// LazyMapping is used.
 class LazyMapping extends Mapping {
-  MappingBundle _bundle = MappingBundle();
-  SourceMapProvider _provider;
+  final MappingBundle _bundle = MappingBundle();
+  final SourceMapProvider _provider;
 
   LazyMapping(this._provider);
 

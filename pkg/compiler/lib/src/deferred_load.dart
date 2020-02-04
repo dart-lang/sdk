@@ -148,6 +148,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       compiler.frontendStrategy.elementEnvironment;
 
   CommonElements get commonElements => compiler.frontendStrategy.commonElements;
+  DartTypes get dartTypes => commonElements.dartTypes;
 
   DiagnosticReporter get reporter => compiler.reporter;
 
@@ -416,8 +417,8 @@ abstract class DeferredLoadTask extends CompilerTask {
           newSet != importSets.mainSet || oldSet != null,
           failedAt(
               NO_LOCATION_SPANNABLE,
-              "Tried to assign ${constant.toDartText()} to the main output "
-              "unit, but it was assigned to $currentSet."));
+              "Tried to assign ${constant.toDartText(closedWorld.dartTypes)} "
+              "to the main output unit, but it was assigned to $currentSet."));
       queue.addConstant(constant, newSet);
     }
   }
@@ -915,7 +916,7 @@ abstract class DeferredLoadTask extends CompilerTask {
       if (value.isPrimitive) return;
       constantMap
           .putIfAbsent(importSet.unit, () => <String>[])
-          .add(value.toStructuredText());
+          .add(value.toStructuredText(dartTypes));
     });
 
     Map<OutputUnit, String> text = {};

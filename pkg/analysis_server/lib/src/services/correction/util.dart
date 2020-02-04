@@ -1503,11 +1503,11 @@ class _InvertedCondition {
 /**
  * Visitor that collects defined [LocalElement]s.
  */
-class _LocalElementsCollector extends RecursiveAstVisitor {
+class _LocalElementsCollector extends RecursiveAstVisitor<void> {
   final elements = <LocalElement>[];
 
   @override
-  visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       Element element = node.staticElement;
       if (element is LocalElement) {
