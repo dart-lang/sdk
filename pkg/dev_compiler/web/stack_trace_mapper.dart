@@ -30,7 +30,7 @@ import 'package:stack_trace/stack_trace.dart';
 
 import 'source_map_stack_trace.dart';
 
-typedef void ReadyCallback();
+typedef ReadyCallback = void Function();
 
 /// Global object DDC uses to see if a stack trace utility has been registered.
 @JS(r'$dartStackTraceUtility')
@@ -39,9 +39,9 @@ external set dartStackTraceUtility(DartStackTraceUtility value);
 @JS(r'$dartLoader.rootDirectories')
 external List get rootDirectories;
 
-typedef String StackTraceMapper(String stackTrace);
-typedef dynamic SourceMapProvider(String modulePath);
-typedef void SetSourceMapProvider(SourceMapProvider provider);
+typedef StackTraceMapper = String Function(String stackTrace);
+typedef SourceMapProvider = dynamic Function(String modulePath);
+typedef SetSourceMapProvider = void Function(SourceMapProvider);
 
 @JS()
 @anonymous

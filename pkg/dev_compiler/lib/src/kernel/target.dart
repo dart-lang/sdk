@@ -135,7 +135,7 @@ class DevCompilerTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg),
+      {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
@@ -151,7 +151,7 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
+      {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
     if (flags.trackWidgetCreation) {
       _widgetTracker ??= WidgetCreatorTracker();

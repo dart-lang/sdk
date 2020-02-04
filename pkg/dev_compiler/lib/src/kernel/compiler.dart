@@ -2142,7 +2142,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     })));
   }
 
-  List<js_ast.Statement> _withLetScope(List<js_ast.Statement> visitBody()) {
+  List<js_ast.Statement> _withLetScope(
+      List<js_ast.Statement> Function() visitBody) {
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
@@ -2154,7 +2155,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return body;
   }
 
-  js_ast.ArrowFun _arrowFunctionWithLetScope(js_ast.Expression visitBody()) {
+  js_ast.ArrowFun _arrowFunctionWithLetScope(
+      js_ast.Expression Function() visitBody) {
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
@@ -2986,7 +2988,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitGeneratorFunctionExpression(
       FunctionNode function, String name) {
     js_ast.Expression emitGeneratorFn(
-        List<js_ast.Parameter> getParameters(js_ast.Block jsBody)) {
+        List<js_ast.Parameter> Function(js_ast.Block jsBody) getParameters) {
       var savedController = _asyncStarController;
       _asyncStarController = function.asyncMarker == AsyncMarker.AsyncStar
           ? _emitTemporaryId('stream')
@@ -3148,7 +3150,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   List<js_ast.Statement> _withCurrentFunction(
-      FunctionNode fn, List<js_ast.Statement> action()) {
+      FunctionNode fn, List<js_ast.Statement> Function() action) {
     var savedFunction = _currentFunction;
     _currentFunction = fn;
     _nullableInference.enterFunction(fn);
@@ -3160,7 +3162,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return result;
   }
 
-  T _superDisallowed<T>(T action()) {
+  T _superDisallowed<T>(T Function() action) {
     var savedSuperAllowed = _superAllowed;
     _superAllowed = false;
     var result = action();
@@ -3578,7 +3580,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return body;
   }
 
-  T _translateLoop<T extends js_ast.Statement>(Statement node, T action()) {
+  T _translateLoop<T extends js_ast.Statement>(
+      Statement node, T Function() action) {
     List<LabeledStatement> savedBreakTargets;
     if (_currentBreakTargets.isNotEmpty &&
         _effectiveTargets[_currentBreakTargets.first] != node) {
@@ -5501,7 +5504,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// string, this returns the string value.
   ///
   /// Calls [findAnnotation] followed by [getNameFromAnnotation].
-  String _annotationName(NamedNode node, bool test(Expression value)) {
+  String _annotationName(NamedNode node, bool Function(Expression) test) {
     return _constants.getFieldValueFromAnnotation(
         findAnnotation(node, test), 'name') as String;
   }
