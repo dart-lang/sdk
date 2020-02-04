@@ -2425,16 +2425,10 @@ class KernelSsaGraphBuilder extends ir.Visitor {
 
     StaticType operandType = _getStaticType(operand);
     DartType type = _elementMap.getDartType(node.type);
-    if (_elementMap.types.isSubtype(operandType.type, type)) {
+    if (!node.isCovarianceCheck &&
+        _elementMap.types.isSubtype(operandType.type, type)) {
       // Skip unneeded casts.
-      if (operand is! ir.PropertyGet) {
-        // TODO(johnniwinther): Support property get. Currently CFE inserts
-        // a seemingly unnecessary cast on tearoffs that contain type variables
-        // in contravariant positions. Since these casts are not marked we
-        // cannot easily detect when we actually need the cast. See test
-        // `language_2/instantiate_tearoff_after_contravariance_check_test`.
-        return;
-      }
+      return;
     }
 
     SourceInformation sourceInformation =
