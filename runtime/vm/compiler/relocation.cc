@@ -157,7 +157,8 @@ void CodeRelocator::FindInstructionAndCallLimits() {
           offset_into_target = call.distance();
         }
 
-        const uword destination_payload = destination_.PayloadStart();
+        const uword destination_payload =
+            Instructions::PayloadStart(destination_.instructions());
         const uword entry_point = call_entry_point == Code::kUncheckedEntry
                                       ? destination_.UncheckedEntryPoint()
                                       : destination_.EntryPoint();
@@ -271,16 +272,17 @@ void CodeRelocator::ScanCallTargets(const Code& code,
       offset_into_target = call.distance();
     }
 
-    const uword destination_payload = destination_.PayloadStart();
+    const uword destination_payload =
+        Instructions::PayloadStart(destination_.instructions());
     const uword entry_point = call_entry_point == Code::kUncheckedEntry
                                   ? destination_.UncheckedEntryPoint()
                                   : destination_.EntryPoint();
 
     offset_into_target += (entry_point - destination_payload);
 
-    const intptr_t text_offset =
-        code_text_offset + AdjustPayloadOffset(call_instruction_offset);
-
+    const intptr_t text_offset = code_text_offset +
+                                 compiler::target::Instructions::HeaderSize() +
+                                 call_instruction_offset;
     UnresolvedCall unresolved_call(code.raw(), call_instruction_offset,
                                    text_offset, destination_.raw(),
                                    offset_into_target);
@@ -366,12 +368,12 @@ void CodeRelocator::ResolveCallToDestination(UnresolvedCall* unresolved_call,
   const intptr_t call_text_offset = unresolved_call->text_offset;
   const intptr_t call_offset = unresolved_call->call_offset;
 
+  auto caller = Code::InstructionsOf(unresolved_call->caller);
   const int32_t distance = destination_text - call_text_offset;
   {
-    auto const caller = unresolved_call->caller;
-    uword addr = Code::PayloadStartOf(caller) + call_offset;
+    uword addr = Instructions::PayloadStart(caller) + call_offset;
     if (FLAG_write_protect_code) {
-      addr -= HeapPage::Of(Code::InstructionsOf(caller))->AliasOffset();
+      addr -= HeapPage::Of(caller)->AliasOffset();
     }
     PcRelativeCallPattern call(addr);
     ASSERT(call.IsValid());
@@ -508,15 +510,9 @@ void CodeRelocator::BuildTrampolinesForAlmostOutOfRangeCalls() {
 intptr_t CodeRelocator::FindDestinationInText(
     const RawInstructions* destination,
     intptr_t offset_into_target) {
-  auto const destination_offset = text_offsets_.LookupValue(destination);
-  return destination_offset + AdjustPayloadOffset(offset_into_target);
-}
-
-intptr_t CodeRelocator::AdjustPayloadOffset(intptr_t payload_offset) {
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    return payload_offset;
-  }
-  return compiler::target::Instructions::HeaderSize() + payload_offset;
+  auto destination_offset = text_offsets_.LookupValue(destination);
+  return destination_offset + compiler::target::Instructions::HeaderSize() +
+         offset_into_target;
 }
 
 #endif  // defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)

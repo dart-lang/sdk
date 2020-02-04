@@ -28,7 +28,6 @@ namespace dart {
   V(Code)                                                                      \
   V(Bytecode)                                                                  \
   V(Instructions)                                                              \
-  V(InstructionsSection)                                                       \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
   V(CodeSourceMap)                                                             \

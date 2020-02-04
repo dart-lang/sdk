@@ -100,13 +100,6 @@ intptr_t RawObject::HeapSizeFromClass() const {
       instance_size = Instructions::InstanceSize(instructions_size);
       break;
     }
-    case kInstructionsSectionCid: {
-      const RawInstructionsSection* raw_section =
-          reinterpret_cast<const RawInstructionsSection*>(this);
-      intptr_t section_size = InstructionsSection::Size(raw_section);
-      instance_size = InstructionsSection::InstanceSize(section_size);
-      break;
-    }
     case kContextCid: {
       const RawContext* raw_context = reinterpret_cast<const RawContext*>(this);
       intptr_t num_variables = raw_context->ptr()->num_variables_;
@@ -556,7 +549,6 @@ NULL_VISITOR(TransferableTypedData)
 REGULAR_VISITOR(Pointer)
 NULL_VISITOR(DynamicLibrary)
 VARIABLE_NULL_VISITOR(Instructions, Instructions::Size(raw_obj))
-VARIABLE_NULL_VISITOR(InstructionsSection, InstructionsSection::Size(raw_obj))
 VARIABLE_NULL_VISITOR(PcDescriptors, raw_obj->ptr()->length_)
 VARIABLE_NULL_VISITOR(CodeSourceMap, raw_obj->ptr()->length_)
 VARIABLE_NULL_VISITOR(CompressedStackMaps, raw_obj->ptr()->payload_size())
@@ -572,12 +564,12 @@ UNREACHABLE_VISITOR(String)
 // Smi has no heap representation.
 UNREACHABLE_VISITOR(Smi)
 
-bool RawCode::ContainsPC(const RawObject* raw_obj, uword pc) {
-  if (!raw_obj->IsCode()) return false;
-  auto const raw_code = static_cast<const RawCode*>(raw_obj);
-  const uword start = Code::PayloadStartOf(raw_code);
-  const uword size = Code::PayloadSizeOf(raw_code);
-  return (pc - start) <= size;  // pc may point just past last instruction.
+bool RawCode::ContainsPC(RawObject* raw_obj, uword pc) {
+  if (raw_obj->IsCode()) {
+    RawCode* raw_code = static_cast<RawCode*>(raw_obj);
+    return RawInstructions::ContainsPC(raw_code->ptr()->instructions_, pc);
+  }
+  return false;
 }
 
 intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
@@ -591,7 +583,8 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
   // instructions. The variable portion of a Code object describes where to
   // find those pointers for tracing.
   if (Code::AliveBit::decode(obj->state_bits_)) {
-    uword entry_point = Code::PayloadStartOf(raw_obj);
+    uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +
+                        Instructions::HeaderSize();
     for (intptr_t i = 0; i < length; i++) {
       int32_t offset = obj->data()[i];
       visitor->VisitPointer(
@@ -633,13 +626,12 @@ intptr_t RawObjectPool::VisitObjectPoolPointers(RawObjectPool* raw_obj,
   return ObjectPool::InstanceSize(length);
 }
 
-bool RawInstructions::ContainsPC(const RawInstructions* raw_instr, uword pc) {
-  const uword start = Instructions::PayloadStart(raw_instr);
-  const uword size = Instructions::Size(raw_instr);
-  // We use <= instead of < here because the saved-pc can be outside the
-  // instruction stream if the last instruction is a call we don't expect to
-  // return (e.g. because it throws an exception).
-  return (pc - start) <= size;
+bool RawInstructions::ContainsPC(RawInstructions* raw_instr, uword pc) {
+  uword start_pc =
+      reinterpret_cast<uword>(raw_instr->ptr()) + Instructions::HeaderSize();
+  uword end_pc = start_pc + Instructions::Size(raw_instr);
+  ASSERT(end_pc > start_pc);
+  return (pc >= start_pc) && (pc < end_pc);
 }
 
 intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,

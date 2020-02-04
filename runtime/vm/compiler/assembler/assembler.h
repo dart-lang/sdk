@@ -303,7 +303,7 @@ class AssemblerBase : public StackResource {
   explicit AssemblerBase(ObjectPoolBuilder* object_pool_builder)
       : StackResource(ThreadState::Current()),
         prologue_offset_(-1),
-        has_monomorphic_entry_(false),
+        has_single_entry_point_(true),
         object_pool_builder_(object_pool_builder) {}
   virtual ~AssemblerBase();
 
@@ -315,7 +315,7 @@ class AssemblerBase : public StackResource {
   ObjectPoolBuilder& object_pool_builder() { return *object_pool_builder_; }
 
   intptr_t prologue_offset() const { return prologue_offset_; }
-  bool has_monomorphic_entry() const { return has_monomorphic_entry_; }
+  bool has_single_entry_point() const { return has_single_entry_point_; }
 
   void Comment(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   static bool EmittingComments();
@@ -370,7 +370,7 @@ class AssemblerBase : public StackResource {
  protected:
   AssemblerBuffer buffer_;  // Contains position independent code.
   int32_t prologue_offset_;
-  bool has_monomorphic_entry_;
+  bool has_single_entry_point_;
 
   intptr_t unchecked_entry_offset_ = 0;
 

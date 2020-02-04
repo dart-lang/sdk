@@ -78,12 +78,6 @@ const intptr_t kDefaultMaxOldGenHeapSize = (kWordSize <= 4) ? 1536 : 30720;
 #define NOT_IN_PRECOMPILED(code) code
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(DART_PRECOMPILED_RUNTIME)
-#define ONLY_IN_PRECOMPILED(code) code
-#else
-#define ONLY_IN_PRECOMPILED(code)
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
-
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64) ||                  \
     defined(TARGET_ARCH_X64)
 #define ONLY_IN_ARM_ARM64_X64(code) code

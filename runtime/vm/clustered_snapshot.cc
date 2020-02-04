@@ -1509,16 +1509,15 @@ class CodeSerializationCluster : public SerializationCluster {
         s->UnexpectedObject(code, "Disabled code");
       }
 
-      s->WriteInstructions(code->ptr()->instructions_,
-                           code->ptr()->unchecked_offset_, code);
+      s->WriteInstructions(code->ptr()->instructions_, code);
+      s->WriteUnsigned(code->ptr()->unchecked_offset_);
       if (kind == Snapshot::kFullJIT) {
         // TODO(rmacnak): Fix references to disabled code before serializing.
         // For now, we may write the FixCallersTarget or equivalent stub. This
         // will cause a fixup if this code is called.
-        const uint32_t active_unchecked_offset =
-            code->ptr()->unchecked_entry_point_ - code->ptr()->entry_point_;
-        s->WriteInstructions(code->ptr()->active_instructions_,
-                             active_unchecked_offset, code);
+        s->WriteInstructions(code->ptr()->active_instructions_, code);
+        s->WriteUnsigned(code->ptr()->unchecked_entry_point_ -
+                         code->ptr()->entry_point_);
       }
 
       WriteField(code, object_pool_);
@@ -1599,10 +1598,24 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      auto const code = reinterpret_cast<RawCode*>(d->Ref(id));
+      RawCode* code = reinterpret_cast<RawCode*>(d->Ref(id));
       Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0));
 
-      d->ReadInstructions(code);
+      RawInstructions* instr = d->ReadInstructions();
+      uint32_t unchecked_offset = d->ReadUnsigned();
+
+      code->ptr()->instructions_ = instr;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      code->ptr()->unchecked_offset_ = unchecked_offset;
+      if (d->kind() == Snapshot::kFullJIT) {
+        instr = d->ReadInstructions();
+        unchecked_offset = d->ReadUnsigned();
+      }
+      code->ptr()->active_instructions_ = instr;
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+      Code::InitializeCachedEntryPointsFrom(code, instr, unchecked_offset);
 
       code->ptr()->object_pool_ =
           reinterpret_cast<RawObjectPool*>(d->ReadRef());
@@ -1638,32 +1651,7 @@ class CodeDeserializationCluster : public DeserializationCluster {
 #endif
 
       code->ptr()->state_bits_ = d->Read<int32_t>();
-#if defined(DART_PRECOMPILED_RUNTIME)
-      if (FLAG_use_bare_instructions && id != start_index_) {
-        // The following assumes that ReadInstructions put the offset of the
-        // entry point from the payload start into instructions_length_. We
-        // use this to calculate the length of the previous payload.
-        RawCode* prev = reinterpret_cast<RawCode*>(d->Ref(id - 1));
-        const uword prev_payload_start =
-            prev->ptr()->entry_point_ - prev->ptr()->instructions_length_;
-        const uword curr_payload_start =
-            code->ptr()->entry_point_ - code->ptr()->instructions_length_;
-        prev->ptr()->instructions_length_ =
-            curr_payload_start - prev_payload_start;
-      }
-#endif
     }
-#if defined(DART_PRECOMPILED_RUNTIME)
-    if (FLAG_use_bare_instructions) {
-      // Since there is no following Code object, we assume that the last Code
-      // object ends at the end of the instructions snapshot.
-      auto const code = reinterpret_cast<RawCode*>(d->Ref(stop_index_ - 1));
-      const uword curr_payload_start =
-          code->ptr()->entry_point_ - code->ptr()->instructions_length_;
-      code->ptr()->instructions_length_ =
-          d->GetBareInstructionsEnd() - curr_payload_start;
-    }
-#endif
   }
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
@@ -4687,9 +4675,7 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void Serializer::WriteInstructions(RawInstructions* instr,
-                                   uint32_t unchecked_offset,
-                                   RawCode* code) {
+void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
   ASSERT(code != Code::null());
 
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
@@ -4698,17 +4684,6 @@ void Serializer::WriteInstructions(RawInstructions* instr,
     UnexpectedObject(code, "Expected instructions to reuse");
   }
   Write<uint32_t>(offset);
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    // When writing only instruction payloads, we also need to serialize
-    // whether there was a single entry. We add this as the low order bit
-    // in the unchecked_offset.
-    ASSERT(unchecked_offset <= kMaxInt32);
-    const uint32_t payload_info =
-        (unchecked_offset << 1) | (Code::HasMonomorphicEntry(code) ? 0x1 : 0x0);
-    WriteUnsigned(payload_info);
-  } else {
-    WriteUnsigned(unchecked_offset);
-  }
 
   // If offset < 0, it's pointing to a shared instruction. We don't profile
   // references to shared text/data (since they don't consume any space). Of
@@ -5448,73 +5423,10 @@ RawApiError* FullSnapshotReader::ConvertToApiError(char* message) {
   return ApiError::New(msg, Heap::kOld);
 }
 
-void Deserializer::ReadInstructions(RawCode* code) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_use_bare_instructions) {
-    const uint32_t bare_offset = Read<uint32_t>();
-    const uword payload_start =
-        image_reader_->GetBareInstructionsAt(bare_offset);
-    const uint32_t payload_info = ReadUnsigned();
-    const uint32_t unchecked_offset = payload_info >> 1;
-    const bool has_monomorphic_entrypoint = (payload_info & 0x1) == 0x1;
-
-    const uword entry_offset = has_monomorphic_entrypoint
-                                   ? Instructions::kPolymorphicEntryOffsetAOT
-                                   : 0;
-    const uword monomorphic_entry_offset =
-        has_monomorphic_entrypoint ? Instructions::kMonomorphicEntryOffsetAOT
-                                   : 0;
-
-    const uword entry_point = payload_start + entry_offset;
-    const uword monomorphic_entry_point =
-        payload_start + monomorphic_entry_offset;
-
-    code->ptr()->instructions_ = Instructions::null();
-    code->ptr()->entry_point_ = entry_point;
-    code->ptr()->unchecked_entry_point_ = entry_point + unchecked_offset;
-    code->ptr()->monomorphic_entry_point_ = monomorphic_entry_point;
-    code->ptr()->monomorphic_unchecked_entry_point_ =
-        monomorphic_entry_point + unchecked_offset;
-    // We don't serialize the length of the instructions payload. Instead, the
-    // deserializer calculates an approximate length (may include padding)
-    // by subtracting the payload offset of the next Code object (if any)
-    // from this one. (For the last Code object, we assume its serialization
-    // extends to the end of the instructions image.)
-    //
-    // Since the Code object doesn't include a field for the payload start,
-    // we store the entry_offset (calculated above) in instructions_length_
-    // for now, and subtract it from entry_point_ later after reading the
-    // next Code object.
-    ASSERT(entry_offset <= kMaxUint32);
-    code->ptr()->instructions_length_ = entry_offset;
-    return;
-  }
-#endif
-
-  const uint32_t offset = Read<uint32_t>();
-  RawInstructions* instr = image_reader_->GetInstructionsAt(offset);
-  uint32_t unchecked_offset = ReadUnsigned();
-
-  code->ptr()->instructions_ = instr;
-#if defined(DART_PRECOMPILED_RUNTIME)
-  code->ptr()->instructions_length_ = Instructions::Size(instr);
-#else
-  code->ptr()->unchecked_offset_ = unchecked_offset;
-  if (kind() == Snapshot::kFullJIT) {
-    const uint32_t active_offset = Read<uint32_t>();
-    instr = image_reader_->GetInstructionsAt(active_offset);
-    unchecked_offset = ReadUnsigned();
-  }
-  code->ptr()->active_instructions_ = instr;
-#endif
-  Code::InitializeCachedEntryPointsFrom(code, instr, unchecked_offset);
+RawInstructions* Deserializer::ReadInstructions() {
+  uint32_t offset = Read<uint32_t>();
+  return image_reader_->GetInstructionsAt(offset);
 }
-
-#if defined(DART_PRECOMPILED_RUNTIME)
-uword Deserializer::GetBareInstructionsEnd() {
-  return image_reader_->GetBareInstructionsEnd();
-}
-#endif
 
 RawObject* Deserializer::GetObjectAt(uint32_t offset) const {
   return image_reader_->GetObjectAt(offset);

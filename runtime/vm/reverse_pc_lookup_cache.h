@@ -66,11 +66,7 @@ class ReversePcLookupCache {
   }
 
   // Looks up the [Code] object from a given [pc].
-  //
-  // If [is_return_address] is true, then the PC may be immediately after the
-  // payload, if the last instruction is a call that is guaranteed not to
-  // return. Otherwise, the PC must be within the payload.
-  inline RawCode* Lookup(uword pc, bool is_return_address = false) {
+  inline RawCode* Lookup(uword pc) {
     NoSafepointScope no_safepoint_scope;
 
     intptr_t left = 0;
@@ -85,14 +81,6 @@ class ReversePcLookupCache {
       uword middle_pc = pc_array_[middle];
       if (middle_pc < pc_offset) {
         left = middle + 1;
-      } else if (!is_return_address && middle_pc == pc_offset) {
-        // This case should only happen if we have bare instruction payloads.
-        // Otherwise, the instruction payloads of two RawInstructions objects
-        // will never be immediately adjacent in memory due to the header of
-        // the second object.
-        ASSERT(FLAG_use_bare_instructions);
-        left = middle + 1;
-        break;
       } else {
         right = middle;
       }
@@ -128,9 +116,7 @@ class ReversePcLookupCache {
 
   inline bool Contains(uword pc) { return false; }
 
-  inline RawCode* Lookup(uword pc, bool is_return_address = false) {
-    UNREACHABLE();
-  }
+  inline RawCode* Lookup(uword pc) { UNREACHABLE(); }
 };
 
 #endif  // defined(DART_PRECOMPILED_RUNTIME

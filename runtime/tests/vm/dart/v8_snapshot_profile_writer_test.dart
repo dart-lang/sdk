@@ -11,12 +11,7 @@ import "package:vm/v8_snapshot_profile.dart";
 
 import 'use_flag_test_helper.dart';
 
-test(
-    {String dillPath,
-    bool useAsm,
-    bool useBare,
-    bool stripFlag,
-    bool stripUtil}) async {
+test({String dillPath, bool useAsm, bool stripFlag, bool stripUtil}) async {
   // The assembler may add extra unnecessary information to the compiled
   // snapshot whether or not we generate DWARF information in the assembly, so
   // we force the use of a utility when generating assembly.
@@ -28,7 +23,6 @@ test(
 
   final tempDirPrefix = 'v8-snapshot-profile' +
       (useAsm ? '-assembly' : '-elf') +
-      (useBare ? '-bare' : '-nonbare') +
       (stripFlag ? '-intstrip' : '') +
       (stripUtil ? '-extstrip' : '');
 
@@ -38,7 +32,6 @@ test(
     final snapshotPath = path.join(tempDir, 'test.snap');
     final commonSnapshotArgs = [
       if (stripFlag) '--strip',
-      useBare ? '--use-bare-instructions' : '--no-use-bare-instructions',
       "--write-v8-snapshot-profile-to=$profilePath",
       dillPath,
     ];
@@ -78,7 +71,7 @@ test(
     // graph (in some cases the shallow size can legitimately be 0, e.g. for
     // "base objects").
     for (final int node in profile.nodes) {
-      Expect.notEquals("Unknown", profile[node].type,
+      Expect.notEquals(profile[node].type, "Unknown",
           "unknown node at ID ${profile[node].id}");
     }
 
@@ -96,7 +89,6 @@ test(
     final actual = await File(strippedPath).length();
     final expected = profile.accountedBytes;
 
-    final bareUsed = useBare ? "bare" : "non-bare";
     final fileType = useAsm ? "assembly" : "ELF";
     String stripPrefix = "";
     if (stripFlag && stripUtil) {
@@ -108,7 +100,7 @@ test(
     }
 
     Expect.approxEquals(expected, actual, 0.03 * actual,
-        "failed on $bareUsed $stripPrefix$fileType snapshot type.");
+        "failed on $stripPrefix$fileType snapshot type.");
   });
 }
 
@@ -222,17 +214,7 @@ main() async {
 
     // Test stripped ELF generation directly.
     await test(
-        dillPath: dillPath,
-        stripFlag: true,
-        stripUtil: false,
-        useAsm: false,
-        useBare: false);
-    await test(
-        dillPath: dillPath,
-        stripFlag: true,
-        stripUtil: false,
-        useAsm: false,
-        useBare: true);
+        dillPath: dillPath, stripFlag: true, stripUtil: false, useAsm: false);
 
     // We neither generate assembly nor have a stripping utility on Windows.
     if (Platform.isWindows) {
@@ -246,17 +228,7 @@ main() async {
     } else {
       // Test unstripped ELF generation that is then stripped externally.
       await test(
-          dillPath: dillPath,
-          stripFlag: false,
-          stripUtil: true,
-          useAsm: false,
-          useBare: false);
-      await test(
-          dillPath: dillPath,
-          stripFlag: false,
-          stripUtil: true,
-          useAsm: false,
-          useBare: true);
+          dillPath: dillPath, stripFlag: false, stripUtil: true, useAsm: false);
     }
 
     // TODO(sstrickl): Currently we can't assemble for SIMARM64 on MacOSX.
@@ -269,29 +241,9 @@ main() async {
 
     // Test stripped assembly generation that is then compiled and stripped.
     await test(
-        dillPath: dillPath,
-        stripFlag: true,
-        stripUtil: true,
-        useAsm: true,
-        useBare: false);
-    await test(
-        dillPath: dillPath,
-        stripFlag: true,
-        stripUtil: true,
-        useAsm: true,
-        useBare: true);
+        dillPath: dillPath, stripFlag: true, stripUtil: true, useAsm: true);
     // Test unstripped assembly generation that is then compiled and stripped.
     await test(
-        dillPath: dillPath,
-        stripFlag: false,
-        stripUtil: true,
-        useAsm: true,
-        useBare: false);
-    await test(
-        dillPath: dillPath,
-        stripFlag: false,
-        stripUtil: true,
-        useAsm: true,
-        useBare: true);
+        dillPath: dillPath, stripFlag: false, stripUtil: true, useAsm: true);
   });
 }

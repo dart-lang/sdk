@@ -69,8 +69,6 @@ class ImageReader : public ZoneAllocated {
 
   RawApiError* VerifyAlignment() const;
 
-  ONLY_IN_PRECOMPILED(uword GetBareInstructionsAt(uint32_t offset) const);
-  ONLY_IN_PRECOMPILED(uword GetBareInstructionsEnd() const);
   RawInstructions* GetInstructionsAt(uint32_t offset) const;
   RawObject* GetObjectAt(uint32_t offset) const;
 
@@ -155,9 +153,6 @@ class ImageWriter : public ValueObject {
   void ResetOffsets() {
     next_data_offset_ = Image::kHeaderSize;
     next_text_offset_ = Image::kHeaderSize;
-    if (FLAG_use_bare_instructions && FLAG_precompiled_mode) {
-      next_text_offset_ += compiler::target::InstructionsSection::HeaderSize();
-    }
     objects_.Clear();
     instructions_.Clear();
   }
@@ -184,7 +179,6 @@ class ImageWriter : public ValueObject {
   void TraceInstructions(const Instructions& instructions);
 
   static intptr_t SizeInSnapshot(RawObject* object);
-  static const intptr_t kBareInstructionsAlignment = 4;
 
  protected:
   void WriteROData(WriteStream* stream);
@@ -335,7 +329,6 @@ class AssemblyImageWriter : public ImageWriter {
   void FrameUnwindPrologue();
   void FrameUnwindEpilogue();
   intptr_t WriteByteSequence(uword start, uword end);
-  intptr_t Align(intptr_t alignment, uword position = 0);
 
 #if defined(TARGET_ARCH_IS_64_BIT)
   const char* kLiteralPrefix = ".quad";

@@ -11,11 +11,13 @@ namespace dart {
 #if defined(DART_PRECOMPILED_RUNTIME)
 
 static uword BeginPcFromCode(const RawCode* code) {
-  return Code::PayloadStartOf(code);
+  auto instr = Code::InstructionsOf(code);
+  return Instructions::PayloadStart(instr);
 }
 
 static uword EndPcFromCode(const RawCode* code) {
-  return Code::PayloadStartOf(code) + Code::PayloadSizeOf(code);
+  auto instr = Code::InstructionsOf(code);
+  return Instructions::PayloadStart(instr) + Instructions::Size(instr);
 }
 
 void ReversePcLookupCache::BuildAndAttachToIsolate(Isolate* isolate) {

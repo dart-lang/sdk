@@ -286,8 +286,6 @@
   SIZEOF(Instance, InstanceSize, RawInstance)                                  \
   SIZEOF(Instructions, InstanceSize, RawInstructions)                          \
   SIZEOF(Instructions, UnalignedHeaderSize, RawInstructions)                   \
-  SIZEOF(InstructionsSection, InstanceSize, RawInstructionsSection)            \
-  SIZEOF(InstructionsSection, UnalignedHeaderSize, RawInstructionsSection)     \
   SIZEOF(Int32x4, InstanceSize, RawInt32x4)                                    \
   SIZEOF(Integer, InstanceSize, RawInteger)                                    \
   SIZEOF(KernelProgramInfo, InstanceSize, RawKernelProgramInfo)                \

@@ -1063,14 +1063,6 @@ class ClassTable : public AllStatic {
   static const word kSizeOfClassPairLog2;
 };
 
-class InstructionsSection : public AllStatic {
- public:
-  static word HeaderSize();
-  static word UnalignedHeaderSize();
-  static word InstanceSize();
-  static word NextFieldOffset();
-};
-
 class Instructions : public AllStatic {
  public:
   static const word kMonomorphicEntryOffsetJIT;
