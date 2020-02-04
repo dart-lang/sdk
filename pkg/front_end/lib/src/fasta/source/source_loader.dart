@@ -20,6 +20,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show
         ErrorToken,
         LanguageVersionToken,
+        Scanner,
         ScannerConfiguration,
         ScannerResult,
         Token,
@@ -248,10 +249,15 @@ class SourceLoader extends Loader {
         configuration: new ScannerConfiguration(
             enableTripleShift: target.enableTripleShift,
             enableExtensionMethods: target.enableExtensionMethods,
-            enableNonNullable: target.enableNonNullable),
-        languageVersionChanged: (_, LanguageVersionToken version) {
+            enableNonNullable: library.isNonNullableByDefault),
+        languageVersionChanged:
+            (Scanner scanner, LanguageVersionToken version) {
       library.setLanguageVersion(version.major, version.minor,
           offset: version.offset, length: version.length, explicit: true);
+      scanner.configuration = new ScannerConfiguration(
+          enableTripleShift: target.enableTripleShift,
+          enableExtensionMethods: target.enableExtensionMethods,
+          enableNonNullable: library.isNonNullableByDefault);
     });
     Token token = result.tokens;
     if (!suppressLexicalErrors) {

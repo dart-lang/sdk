@@ -29,15 +29,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:11:3: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
-//   late int field = 42;
-//   ^^^^
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
-// // @dart=2.5
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:13:25: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:18:25: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // class B extends A<String?> {}
 //                         ^
@@ -45,7 +37,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:15:28: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:20:28: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // typedef F = void Function()?;
 //                            ^
@@ -53,7 +45,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:17:12: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:22:12: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // List<String?> l = [];
 //            ^
@@ -61,7 +53,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:18:7: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:23:7: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // String? s = null;
 //       ^
@@ -69,31 +61,15 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:21:1: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:28:21: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
-// late int field = 42;
-// ^^^^
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
-// // @dart=2.5
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:23:21: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
-// void method(void f()?, {required int a}) {}
+// void method(void f()?, {int a}) {}
 //                     ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:23:25: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
-// void method(void f()?, {required int a}) {}
-//                         ^^^^^^^^
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
-// // @dart=2.5
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:19:10: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:24:10: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // var t = s!;
 //          ^
@@ -106,7 +82,7 @@ import "dart:core" as core;
 
 typedef F = () →? void;
 class A<T extends core::Object* = dynamic> extends core::Object {
-  late field core::int* field;
+  field core::int* field;
   synthetic constructor •() → self2::A<self2::A::T*>*
     ;
 }
@@ -117,8 +93,8 @@ class B extends self2::A<core::String?> {
 static field core::List<core::String?>* l;
 static field core::String? s;
 static field core::String* t;
-late static field core::int* field;
-static method method(() →? void f, {required core::int* a}) → void
+static field core::int* field;
+static method method(() →? void f, {core::int* a}) → void
   ;
 static method errors() → dynamic
   ;

@@ -34,15 +34,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:11:3: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
-//   late int field = 42;
-//   ^^^^
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
-// // @dart=2.5
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:13:25: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:18:25: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // class B extends A<String?> {}
 //                         ^
@@ -50,7 +42,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:15:28: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:20:28: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // typedef F = void Function()?;
 //                            ^
@@ -58,7 +50,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:17:12: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:22:12: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // List<String?> l = [];
 //            ^
@@ -66,7 +58,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:18:7: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:23:7: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // String? s = null;
 //       ^
@@ -74,31 +66,15 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:21:1: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:28:21: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
-// late int field = 42;
-// ^^^^
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
-// // @dart=2.5
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:23:21: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
-// void method(void f()?, {required int a}) {}
+// void method(void f()?, {int a}) {}
 //                     ^
 // pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:23:25: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
-// void method(void f()?, {required int a}) {}
-//                         ^^^^^^^^
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
-// // @dart=2.5
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:19:10: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:24:10: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 // var t = s!;
 //          ^
@@ -106,15 +82,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:26:3: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
-//   late int local = 42;
-//   ^^^^
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
-// // @dart=2.5
-// ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:27:14: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:32:14: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 //   List<String?> l = null;
 //              ^
@@ -122,7 +90,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:28:9: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:33:9: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 //   String? s = null;
 //         ^
@@ -130,7 +98,7 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:29:12: Error: Null safety features are disabled for this library.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:34:12: Error: Null safety features are disabled for this library.
 // Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
 //   var t = s!;
 //            ^
@@ -138,28 +106,24 @@ library;
 // // @dart=2.5
 // ^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:31:4: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:36:6: Error: Expected an identifier, but got '.'.
 //   c?..f;
-//    ^^^
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
-// // @dart=2.5
-// ^^^^^^^^^^^^
+//      ^
 //
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:32:4: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
+//   c?..f;
+//      ^
+//
+// pkg/front_end/testcases/nnbd/opt_out_lib.dart:37:6: Error: Expected an identifier, but got '['.
 //   c?.[0];
-//    ^^^
-// pkg/front_end/testcases/nnbd/opt_out_lib.dart:5:1: Context: This is the annotation that opts out this library from null safety features.
-// // @dart=2.5
-// ^^^^^^^^^^^^
+//      ^
 //
 import self as self2;
 import "dart:core" as core;
 
 typedef F = () →? void;
 class A<T extends core::Object* = dynamic> extends core::Object {
-  late field core::int* field = 42;
+  field core::int* field = 42;
   synthetic constructor •() → self2::A<self2::A::T*>*
     : super core::Object::•()
     ;
@@ -172,16 +136,20 @@ class B extends self2::A<core::String?> {
 static field core::List<core::String?>* l = <core::String?>[];
 static field core::String? s = null;
 static field core::String* t = self2::s!;
-late static field core::int* field = 42;
-static method method(() →? void f, {required core::int* a = #C1}) → void {}
+static field core::int* field = 42;
+static method method(() →? void f, {core::int* a = #C1}) → void {}
 static method errors() → dynamic {
-  late core::int* local = 42;
+  core::int* local = 42;
   core::List<core::String?>* l = null;
   core::String? s = null;
   core::String* t = s!;
   dynamic c;
-  let final dynamic #t4 = c in #t4.{core::Object::==}(null) ?{dynamic} null : let final void #t5 = #t4.f in #t4;
-  let final dynamic #t6 = c in #t6.{core::Object::==}(null) ?{dynamic} null : #t6.[](0);
+  invalid-expression "pkg/front_end/testcases/nnbd/opt_out_lib.dart:36:6: Error: Expected an identifier, but got ''.
+  c?..f;
+     ^".f;
+  invalid-expression "pkg/front_end/testcases/nnbd/opt_out_lib.dart:37:6: Error: Expected an identifier, but got '['.
+  c?.[0];
+     ^";
 }
 
 constants  {
