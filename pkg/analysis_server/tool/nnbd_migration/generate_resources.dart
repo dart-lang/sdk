@@ -12,7 +12,7 @@ import 'dart:math' as math;
 
 import 'package:path/path.dart' as path;
 
-void main(List<String> args) {
+void main(List<String> args) async {
   if (FileSystemEntity.isFileSync(
       path.join('tool', 'nnbd_migration', 'generate_resources.dart'))) {
     // We're running from the project root - cd up two directories.
@@ -22,6 +22,12 @@ void main(List<String> args) {
     fail('Please run this tool from the root of the sdk repo.');
   }
 
+  await compileWebFrontEnd();
+
+  createResourcesGDart();
+}
+
+void createResourcesGDart() {
   Directory resourceDir = Directory(path.join('pkg', 'analysis_server', 'lib',
       'src', 'edit', 'nnbd_migration', 'resources'));
 
@@ -50,6 +56,8 @@ String generateResourceFile(Iterable<File> resources) {
 
 import 'dart:convert' as convert;
 ''');
+
+  // TODO(devoncarew): Also generate file CRCs for files generated from Dart.
 
   for (File resource in resources) {
     String name = path.basename(resource.path).replaceAll('.', '_');
@@ -85,8 +93,7 @@ String _decode(String data) {
 String base64Encode(List<int> bytes) {
   String encoded = base64.encode(bytes);
 
-  // Logic to cut lines into 80-character chunks
-  // – makes for prettier source code
+  // Logic to cut lines into 80-character chunks.
   var lines = <String>[];
   var index = 0;
 
@@ -97,6 +104,27 @@ String base64Encode(List<int> bytes) {
   }
 
   return lines.join('\n');
+}
+
+void compileWebFrontEnd() async {
+  File source = File(path.join('pkg', 'analysis_server', 'lib', 'src', 'edit',
+      'nnbd_migration', 'web', 'migration.dart'));
+  File output = File(path.join('pkg', 'analysis_server', 'lib', 'src', 'edit',
+      'nnbd_migration', 'resources', 'migration.js'));
+
+  String sdkBinDir = path.dirname(Platform.resolvedExecutable);
+  String dart2jsPath = path.join(sdkBinDir, 'dart2js');
+
+  // dart2js -m -o output source
+  Process process =
+      await Process.start(dart2jsPath, ['-m', '-o', output.path, source.path]);
+  process.stdout.listen((List<int> data) => stdout.add(data));
+  process.stderr.listen((List<int> data) => stderr.add(data));
+  int exitCode = await process.exitCode;
+
+  if (exitCode != 0) {
+    fail('Failed compiling ${source.path}.');
+  }
 }
 
 void fail(String message) {
