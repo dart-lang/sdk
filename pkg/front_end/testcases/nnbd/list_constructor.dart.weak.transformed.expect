@@ -1,9 +1,28 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/list_constructor.dart:9:7: Warning: Using the default List constructor.
+// Try using List.filled instead.
+//   new List<T>(42);
+//       ^
+//
+// pkg/front_end/testcases/nnbd/list_constructor.dart:10:7: Warning: Using the default List constructor.
+// Try using List.filled instead.
+//   new List<int?>(42);
+//       ^
+//
+// pkg/front_end/testcases/nnbd/list_constructor.dart:11:7: Warning: Using the default List constructor.
+// Try using List.filled instead.
+//   new List<int>(42);
+//       ^
+//
 import self as self;
 import "dart:core" as core;
 
 static method foo<T extends core::Object? = core::Object?>() → dynamic {
   core::_List::•<self::foo::T%>(42);
   core::_List::•<core::int?>(42);
+  core::_List::•<core::int>(42);
 }
 static method main() → dynamic {}

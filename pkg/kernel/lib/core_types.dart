@@ -59,6 +59,7 @@ class CoreTypes {
   Class _invocationMirrorClass;
   Constructor _invocationMirrorWithTypeConstructor;
   Constructor _noSuchMethodErrorDefaultConstructor;
+  Procedure _listDefaultConstructor;
   Procedure _listFromConstructor;
   Procedure _listUnmodifiableConstructor;
   Procedure _identicalProcedure;
@@ -347,6 +348,10 @@ class CoreTypes {
 
   Class get listClass {
     return _listClass ??= index.getClass('dart:core', 'List');
+  }
+
+  Procedure get listDefaultConstructor {
+    return _listDefaultConstructor ??= index.getMember('dart:core', 'List', '');
   }
 
   Procedure get listFromConstructor {

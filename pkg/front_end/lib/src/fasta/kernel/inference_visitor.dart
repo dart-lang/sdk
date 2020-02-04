@@ -718,6 +718,7 @@ class InferenceVisitor
             computeConstructorReturnType(node.target, inferrer.coreTypes),
         isConst: node.isConst);
     node.hasBeenInferred = true;
+    Expression resultNode = node;
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (!hadExplicitTypeArguments) {
@@ -726,8 +727,19 @@ class InferenceVisitor
             inferred: true);
       }
     }
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (node.target == inferrer.coreTypes.listDefaultConstructor) {
+        if (inferrer.nnbdStrongMode) {
+          resultNode = inferrer.helper.wrapInProblem(
+              node, messageDefaultListConstructorError, noLength);
+        } else {
+          inferrer.library.addProblem(messageDefaultListConstructorWarning,
+              node.fileOffset, noLength, inferrer.library.fileUri);
+        }
+      }
+    }
     return new ExpressionInferenceResult(
-        result.inferredType, result.applyResult(node));
+        result.inferredType, result.applyResult(resultNode));
   }
 
   @override

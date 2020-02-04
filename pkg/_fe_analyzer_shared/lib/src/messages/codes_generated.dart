@@ -1686,6 +1686,27 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
         message: r"""This is the inherited member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDefaultListConstructorError =
+    messageDefaultListConstructorError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDefaultListConstructorError = const MessageCode(
+    "DefaultListConstructorError",
+    message: r"""Can't use the default List constructor.""",
+    tip: r"""Try using List.filled instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDefaultListConstructorWarning =
+    messageDefaultListConstructorWarning;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDefaultListConstructorWarning = const MessageCode(
+    "DefaultListConstructorWarning",
+    severity: Severity.warning,
+    message: r"""Using the default List constructor.""",
+    tip: r"""Try using List.filled instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateDefaultValueInRedirectingFactoryConstructor =
     const Template<Message Function(String name)>(

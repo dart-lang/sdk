@@ -8,6 +8,7 @@
 foo<T extends Object?>() {
   new List<T>(42);
   new List<int?>(42);
+  new List<int>(42);
 }
 
 main() {}

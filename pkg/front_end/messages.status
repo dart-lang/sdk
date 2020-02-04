@@ -139,6 +139,10 @@ CyclicClassHierarchy/part_wrapped_script2: Fail
 CyclicClassHierarchy/script1: Fail # We report an error for each class involved in the cycle.
 CyclicClassHierarchy/script2: Fail # We report an error for each class involved in the cycle.
 CyclicTypedef/example: Fail
+DefaultListConstructorError/analyzerCode: Fail
+DefaultListConstructorError/example: Fail
+DefaultListConstructorWarning/analyzerCode: Fail
+DefaultListConstructorWarning/example: Fail
 DeferredAfterPrefix/example: Fail
 DeferredExtensionImport/analyzerCode: Fail
 DeferredExtensionImport/part_wrapped_script: Fail

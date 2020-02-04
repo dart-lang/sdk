@@ -3893,3 +3893,12 @@ NullableMixinWarning:
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
+
+DefaultListConstructorError:
+  template: "Can't use the default List constructor."
+  tip: "Try using List.filled instead."
+
+DefaultListConstructorWarning:
+  template: "Using the default List constructor."
+  tip: "Try using List.filled instead."
+  severity: WARNING
