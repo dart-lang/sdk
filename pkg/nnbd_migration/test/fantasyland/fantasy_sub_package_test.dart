@@ -143,6 +143,7 @@ class FantasySubPackageTest extends FilesystemTestBase {
     expect(dependencies.first.subDir, equals('.'));
   }
 
+  @assertFailingTest
   test_assertOnPathOutsidePackage() async {
     when(pubspecYaml.exists()).thenAnswer((_) => Future.value(true));
     when(pubspecYaml.readAsString()).thenAnswer((_) => Future.value('''
@@ -152,7 +153,6 @@ class FantasySubPackageTest extends FilesystemTestBase {
         package2:
           path: ../incorrectly/enclosed
     '''));
-    expect(fantasySubPackage.getPackageAllDependencies,
-        throwsA(predicate((e) => e is AssertionError)));
+    await fantasySubPackage.getPackageAllDependencies();
   }
 }
