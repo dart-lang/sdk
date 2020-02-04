@@ -738,6 +738,10 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
   if (field.needs_load_guard()) {
     return false;
   }
+  if (field.is_late()) {
+    // TODO(http://dartbug.com/40447): Inline implicit getters for late fields.
+    return false;
+  }
   if (should_clone_fields_) {
     field = field.CloneFromOriginal();
   }

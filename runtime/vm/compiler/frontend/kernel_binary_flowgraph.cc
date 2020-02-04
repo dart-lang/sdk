@@ -200,10 +200,6 @@ Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
     }
     return Fragment();
   }
-  // Late fields are initialized to Object::sentinel, which is a flavor of null.
-  // So we need to record that store so that the field guard doesn't prematurely
-  // optimise out the late field's sentinel checking logic.
-  field.RecordStore(Object::null_object());
 
   Fragment instructions;
   instructions += LoadLocal(parsed_function()->receiver_var());

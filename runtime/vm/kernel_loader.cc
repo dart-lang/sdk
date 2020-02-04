@@ -2121,6 +2121,13 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
   }
   ASSERT(field.NeedsGetter());
 
+  if (field.is_late() && field.has_nontrivial_initializer()) {
+    // Late fields are initialized to Object::sentinel, which is a flavor of
+    // null. So we need to record that store so that the field guard doesn't
+    // prematurely optimise out the late field's sentinel checking logic.
+    field.RecordStore(Object::null_object());
+  }
+
   const String& getter_name = H.DartGetterName(field_helper->canonical_name_);
   const Object& script_class =
       ClassForScriptAt(klass, field_helper->source_uri_index_);
