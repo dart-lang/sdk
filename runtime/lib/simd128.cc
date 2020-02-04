@@ -747,10 +747,10 @@ DEFINE_NATIVE_ENTRY(Float64x2_clamp, 0, 3) {
   _x = lo.x() < _x ? _x : lo.x();
   _y = lo.y() < _y ? _y : lo.y();
 #else
-  _x = fminf(self.x(), hi.x());
-  _y = fminf(self.y(), hi.y());
-  _x = fmaxf(_x, lo.x());
-  _y = fmaxf(_y, lo.y());
+  _x = fmin(self.x(), hi.x());
+  _y = fmin(self.y(), hi.y());
+  _x = fmax(_x, lo.x());
+  _y = fmax(_y, lo.y());
 #endif
   return Float64x2::New(_x, _y);
 }
