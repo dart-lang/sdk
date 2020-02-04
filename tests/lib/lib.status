@@ -123,3 +123,4 @@ mirrors/library_import_deferred_loading_test: Crash # Deferred loading
 mirrors/library_imports_deferred_test: Crash # Deferred loading
 mirrors/load_library_test: Crash # Deferred loading
 mirrors/typedef_deferred_library_test: Crash # Deferred loading
+typed_data/zeroed_allocation_test: SkipSlow
