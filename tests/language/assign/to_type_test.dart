@@ -7,7 +7,7 @@
 
 class C<T> {
   f() {
-    T = null;
+    T = Null;
 //  ^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
 // [cfe] Setter not found: 'T'.
@@ -22,15 +22,15 @@ typedef void F();
 
 main() {
   new C<D>().f();
-  D = null;
+  D = Null;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
 // [cfe] Setter not found: 'D'.
-  E = null;
+  E = Null;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
 // [cfe] Setter not found: 'E'.
-  F = null;
+  F = Null;
 //^
 // [analyzer] STATIC_WARNING.ASSIGNMENT_TO_TYPE
 // [cfe] Setter not found: 'F'.
