@@ -179,8 +179,7 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Enable strong non-nullable type checking mode.")                          \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
   P(use_table_dispatch, bool, false, "Enable dispatch table based calls.")     \
-  P(enable_isolate_groups, bool, kDartPrecompiledRuntime,                      \
-    "Enable isolate group support.")                                           \
+  P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
   R(show_invisible_isolates, false, bool, false,                               \
