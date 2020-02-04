@@ -391,6 +391,10 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 #endif
 
 #if defined(IS_SIMARM_X64)
+    static_assert(
+        kObjectAlignment ==
+            compiler::target::ObjectAlignment::kObjectAlignment * 2,
+        "host object alignment is not double target object alignment");
     if (obj.IsCompressedStackMaps()) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
 
@@ -617,12 +621,20 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 
   if (bare_instruction_payloads) {
-    const intptr_t image_payload_length = image_size - Image::kHeaderSize;
+    const intptr_t section_size = image_size - Image::kHeaderSize;
     // Add the RawInstructionsSection header.
     uword marked_tags = 0;
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
-    marked_tags = RawObject::SizeTag::update(image_payload_length, marked_tags);
+#if defined(IS_SIMARM_X64)
+    static_assert(
+        kObjectAlignment ==
+            compiler::target::ObjectAlignment::kObjectAlignment * 2,
+        "host object alignment is not double target object alignment");
+    marked_tags = RawObject::SizeTag::update(2 * section_size, marked_tags);
+#else
+    marked_tags = RawObject::SizeTag::update(section_size, marked_tags);
+#endif
     marked_tags =
         RawObject::ClassIdTag::update(kInstructionsSectionCid, marked_tags);
 
@@ -834,16 +846,12 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 
   // Should be a no-op unless writing bare instruction payloads, in which case
-  // we need to add post-payload padding to the object alignment.
+  // we need to add post-payload padding to the object alignment. The alignment
+  // needs to match the one we used for image_size above.
   text_offset +=
       Align(compiler::target::ObjectAlignment::kObjectAlignment, text_offset);
 
-  ASSERT(Image::kHeaderSize +
-             (bare_instruction_payloads
-                  ? compiler::target::InstructionsSection::HeaderSize()
-                  : 0) +
-             text_offset ==
-         image_size);
+  ASSERT_EQUAL(section_headers_size + text_offset, image_size);
 
   FrameUnwindEpilogue();
 
@@ -1066,12 +1074,20 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 
   if (bare_instruction_payloads) {
-    const intptr_t image_payload_length = image_size - Image::kHeaderSize;
+    const intptr_t section_size = image_size - Image::kHeaderSize;
     // Add the RawInstructionsSection header.
     uword marked_tags = 0;
     marked_tags = RawObject::OldBit::update(true, marked_tags);
     marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
-    marked_tags = RawObject::SizeTag::update(image_payload_length, marked_tags);
+#if defined(IS_SIMARM_X64)
+    static_assert(
+        kObjectAlignment ==
+            compiler::target::ObjectAlignment::kObjectAlignment * 2,
+        "host object alignment is not double target object alignment");
+    marked_tags = RawObject::SizeTag::update(2 * section_size, marked_tags);
+#else
+    marked_tags = RawObject::SizeTag::update(section_size, marked_tags);
+#endif
     marked_tags =
         RawObject::ClassIdTag::update(kInstructionsSectionCid, marked_tags);
 
@@ -1148,10 +1164,12 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #if defined(IS_SIMARM_X64)
     const intptr_t start_offset = instructions_blob_stream_.bytes_written();
-    const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.raw());
-    marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
 
     if (!bare_instruction_payloads) {
+      const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.raw());
+      ASSERT_EQUAL(kObjectAlignment,
+                   compiler::target::ObjectAlignment::kObjectAlignment * 2);
+      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
       instructions_blob_stream_.WriteTargetWord(marked_tags);
       instructions_blob_stream_.WriteFixed<uint32_t>(
           insns.raw_ptr()->size_and_flags_);
@@ -1251,11 +1269,12 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   }
 
   // Should be a no-op unless writing bare instruction payloads, in which case
-  // we need to add post-payload padding to the object alignment.
+  // we need to add post-payload padding to the object alignment. The alignment
+  // should match the alignment used in image_size above.
   instructions_blob_stream_.Align(
       compiler::target::ObjectAlignment::kObjectAlignment);
 
-  ASSERT(instructions_blob_stream_.bytes_written() == image_size);
+  ASSERT_EQUAL(instructions_blob_stream_.bytes_written(), image_size);
 
 #ifdef DART_PRECOMPILER
   const char* instructions_symbol =

@@ -1611,7 +1611,7 @@ class RawInstructionsSection : public RawObject {
   VISIT_NOTHING();
 
   // Instructions section payload length in bytes.
-  uint32_t payload_length_;
+  uword payload_length_;
 
   // Variable length data follows here.
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
