@@ -224,8 +224,6 @@ ERROR|STATIC_TYPE_WARNING|RETURN_OF_INVALID_TYPE|lib/html/dart2js/html_dart2js.d
 ERROR|STATIC_TYPE_WARNING|RETURN_OF_INVALID_TYPE|lib/html/dart2js/html_dart2js.dart|35143|12|4|A value of type 'Null' can't be returned from method 'intersection' because it has a return type of 'Rectangle<num>'.
 ERROR|STATIC_TYPE_WARNING|RETURN_OF_INVALID_TYPE|lib/svg/dart2js/svg_dart2js.dart|3107|7|59|A value of type 'Element' can't be returned from function 'tag' because it has a return type of 'SvgElement'.
 ERROR|STATIC_TYPE_WARNING|RETURN_OF_INVALID_TYPE|lib/web_audio/dart2js/web_audio_dart2js.dart|249|14|59|A value of type 'Future<dynamic>' can't be returned from method 'decodeAudioData' because it has a return type of 'Future<AudioBuffer>'.
-ERROR|STATIC_WARNING|ARGUMENT_TYPE_NOT_ASSIGNABLE|lib/_internal/js_dev_runtime/private/interceptors.dart|689|52|1|The argument type 'Object?' can't be assigned to the parameter type 'Comparable<dynamic>'.
-ERROR|STATIC_WARNING|ARGUMENT_TYPE_NOT_ASSIGNABLE|lib/_internal/js_dev_runtime/private/interceptors.dart|689|55|1|The argument type 'Object?' can't be assigned to the parameter type 'Comparable<dynamic>'.
 ERROR|STATIC_WARNING|ARGUMENT_TYPE_NOT_ASSIGNABLE|lib/html/dart2js/html_dart2js.dart|13066|60|4|The argument type 'Null' can't be assigned to the parameter type 'String'.
 ERROR|STATIC_WARNING|ARGUMENT_TYPE_NOT_ASSIGNABLE|lib/html/dart2js/html_dart2js.dart|13498|40|24|The argument type 'Element?' can't be assigned to the parameter type 'Element'.
 ERROR|STATIC_WARNING|ARGUMENT_TYPE_NOT_ASSIGNABLE|lib/html/dart2js/html_dart2js.dart|16933|48|13|The argument type 'void Function(PositionError)?' can't be assigned to the parameter type 'void Function(PositionError)'.
