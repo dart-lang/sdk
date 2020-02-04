@@ -3882,6 +3882,16 @@ class Field : public Object {
     return has_initializer() && !has_nontrivial_initializer();
   }
 
+  bool is_non_nullable_integer() const {
+    return IsNonNullableIntBit::decode(raw_ptr()->kind_bits_);
+  }
+
+  void set_is_non_nullable_integer(bool is_non_nullable_integer) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    set_kind_bits(IsNonNullableIntBit::update(is_non_nullable_integer,
+                                              raw_ptr()->kind_bits_));
+  }
+
   StaticTypeExactnessState static_type_exactness_state() const {
     return StaticTypeExactnessState::Decode(
         raw_ptr()->static_type_exactness_state_);
@@ -4110,6 +4120,7 @@ class Field : public Object {
     kIsExtensionMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
+    kIsNonNullableIntBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
@@ -4137,6 +4148,8 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit
       : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
+  class IsNonNullableIntBit
+      : public BitField<uint16_t, bool, kIsNonNullableIntBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.

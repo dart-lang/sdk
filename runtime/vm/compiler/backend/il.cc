@@ -887,7 +887,8 @@ bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
 
 Representation LoadFieldInstr::representation() const {
   if (IsUnboxedLoad()) {
-    const intptr_t cid = slot().field().UnboxedFieldCid();
+    const Field& field = slot().field();
+    const intptr_t cid = field.UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         return kUnboxedDouble;
@@ -896,7 +897,11 @@ Representation LoadFieldInstr::representation() const {
       case kFloat64x2Cid:
         return kUnboxedFloat64x2;
       default:
-        UNREACHABLE();
+        if (field.is_non_nullable_integer()) {
+          return kUnboxedInt64;
+        } else {
+          UNREACHABLE();
+        }
     }
   }
   return kTagged;
@@ -926,7 +931,8 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     intptr_t index) const {
   ASSERT((index == 0) || (index == 1));
   if ((index == 1) && IsUnboxedStore()) {
-    const intptr_t cid = slot().field().UnboxedFieldCid();
+    const Field& field = slot().field();
+    const intptr_t cid = field.UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         return kUnboxedDouble;
@@ -935,7 +941,11 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
       case kFloat64x2Cid:
         return kUnboxedFloat64x2;
       default:
-        UNREACHABLE();
+        if (field.is_non_nullable_integer()) {
+          return kUnboxedInt64;
+        } else {
+          UNREACHABLE();
+        }
     }
   }
   return kTagged;

@@ -172,10 +172,19 @@ FlowGraphCompiler::FlowGraphCompiler(
 }
 
 bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
-  bool valid_class =
-      (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
-      (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
-      (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid));
+  bool valid_class;
+  if (FLAG_precompiled_mode) {
+    valid_class =
+        (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
+        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
+        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid)) ||
+        field.is_non_nullable_integer();
+  } else {
+    valid_class =
+        (SupportsUnboxedDoubles() && (field.guarded_cid() == kDoubleCid)) ||
+        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat32x4Cid)) ||
+        (SupportsUnboxedSimd128() && (field.guarded_cid() == kFloat64x2Cid));
+  }
   return field.is_unboxing_candidate() && !field.is_nullable() && valid_class;
 }
 

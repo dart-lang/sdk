@@ -2549,14 +2549,21 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
                                  : (IsPotentialUnboxedStore() ? 3 : 0));
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
-                      ((IsUnboxedStore() && opt && is_initialization()) ||
-                       IsPotentialUnboxedStore())
+                      (!FLAG_precompiled_mode &&
+                       ((IsUnboxedStore() && opt && is_initialization()) ||
+                        IsPotentialUnboxedStore()))
                           ? LocationSummary::kCallOnSlowPath
                           : LocationSummary::kNoCall);
 
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {
-    summary->set_in(1, Location::RequiresFpuRegister());
+    if (slot().field().is_non_nullable_integer()) {
+      ASSERT(FLAG_precompiled_mode);
+      summary->set_in(1, Location::Pair(Location::RequiresRegister(),
+                                        Location::RequiresRegister()));
+    } else {
+      summary->set_in(1, Location::RequiresFpuRegister());
+    }
     if (!FLAG_precompiled_mode) {
       summary->set_temp(0, Location::RequiresRegister());
       summary->set_temp(1, Location::RequiresRegister());
@@ -2606,6 +2613,19 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
 
   if (IsUnboxedStore() && compiler->is_optimizing()) {
+    if (slot().field().is_non_nullable_integer()) {
+      const PairLocation* value_pair = locs()->in(1).AsPairLocation();
+      const Register value_lo = value_pair->At(0).reg();
+      const Register value_hi = value_pair->At(1).reg();
+      __ Comment("UnboxedIntegerStoreInstanceFieldInstr");
+      __ StoreToOffset(kWord, value_lo, instance_reg,
+                       offset_in_bytes - kHeapObjectTag);
+      __ StoreToOffset(
+          kWord, value_hi, instance_reg,
+          offset_in_bytes - kHeapObjectTag + compiler::target::kWordSize);
+      return;
+    }
+
     const intptr_t cid = slot().field().UnboxedFieldCid();
     const DRegister value = EvenDRegisterOf(locs()->in(1).fpu_reg());
 
@@ -2992,13 +3012,22 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
     if (!FLAG_precompiled_mode) {
       locs->set_temp(0, Location::RequiresRegister());
     }
+    if (slot().field().is_non_nullable_integer()) {
+      ASSERT(FLAG_precompiled_mode);
+      locs->set_out(0, Location::Pair(Location::RequiresRegister(),
+                                      Location::RequiresRegister()));
+    } else {
+      locs->set_out(0, Location::RequiresFpuRegister());
+    }
   } else if (IsPotentialUnboxedLoad()) {
     locs->set_temp(0, opt ? Location::RequiresFpuRegister()
                           : Location::FpuRegisterLocation(Q1));
     locs->set_temp(1, Location::RequiresRegister());
     locs->set_temp(2, Location::RequiresRegister());
+    locs->set_out(0, Location::RequiresRegister());
+  } else {
+    locs->set_out(0, Location::RequiresRegister());
   }
-  locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
 
@@ -3007,6 +3036,19 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
+    if (slot().field().is_non_nullable_integer()) {
+      const PairLocation* out_pair = locs()->out(0).AsPairLocation();
+      const Register out_lo = out_pair->At(0).reg();
+      const Register out_hi = out_pair->At(1).reg();
+      __ Comment("UnboxedIntegerLoadFieldInstr");
+      __ LoadFromOffset(kWord, out_lo, instance_reg,
+                        OffsetInBytes() - kHeapObjectTag);
+      __ LoadFromOffset(
+          kWord, out_hi, instance_reg,
+          OffsetInBytes() - kHeapObjectTag + compiler::target::kWordSize);
+      return;
+    }
+
     const intptr_t cid = slot().field().UnboxedFieldCid();
     const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
 

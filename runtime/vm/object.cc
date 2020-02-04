@@ -3254,8 +3254,12 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
             field_size = sizeof(RawFloat64x2::value_);
             break;
           default:
-            UNREACHABLE();
-            field_size = 0;
+            if (field.is_non_nullable_integer()) {
+              field_size = sizeof(RawMint::value_);
+            } else {
+              UNREACHABLE();
+              field_size = 0;
+            }
             break;
         }
 
@@ -17298,8 +17302,13 @@ RawObject* Instance::GetField(const Field& field) const {
         return Float64x2::New(
             *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
       default:
-        UNREACHABLE();
-        return nullptr;
+        if (field.is_non_nullable_integer()) {
+          return Integer::New(
+              LoadNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field))));
+        } else {
+          UNREACHABLE();
+          return nullptr;
+        }
     }
   } else {
     return *FieldAddr(field);
@@ -17322,7 +17331,12 @@ void Instance::SetField(const Field& field, const Object& value) const {
                         Float64x2::Cast(value).value());
         break;
       default:
-        UNREACHABLE();
+        if (field.is_non_nullable_integer()) {
+          StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
+                          Integer::Cast(value).AsInt64Value());
+        } else {
+          UNREACHABLE();
+        }
         break;
     }
   } else {

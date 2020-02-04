@@ -2321,6 +2321,7 @@ class RawMint : public RawInteger {
   ALIGN8 int64_t value_;
 
   friend class Api;
+  friend class Class;
   friend class Integer;
   friend class SnapshotReader;
 };

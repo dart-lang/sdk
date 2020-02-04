@@ -2146,14 +2146,20 @@ LocationSummary* StoreInstanceFieldInstr::MakeLocationSummary(Zone* zone,
                                  : (IsPotentialUnboxedStore() ? 2 : 0);
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps,
-                      ((IsUnboxedStore() && opt && is_initialization()) ||
-                       IsPotentialUnboxedStore())
+                      (!FLAG_precompiled_mode &&
+                       ((IsUnboxedStore() && opt && is_initialization()) ||
+                        IsPotentialUnboxedStore()))
                           ? LocationSummary::kCallOnSlowPath
                           : LocationSummary::kNoCall);
 
   summary->set_in(0, Location::RequiresRegister());
   if (IsUnboxedStore() && opt) {
-    summary->set_in(1, Location::RequiresFpuRegister());
+    if (slot().field().is_non_nullable_integer()) {
+      ASSERT(FLAG_precompiled_mode);
+      summary->set_in(1, Location::RequiresRegister());
+    } else {
+      summary->set_in(1, Location::RequiresFpuRegister());
+    }
     if (!FLAG_precompiled_mode) {
       summary->set_temp(0, Location::RequiresRegister());
       summary->set_temp(1, Location::RequiresRegister());
@@ -2180,6 +2186,13 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(offset_in_bytes > 0);  // Field is finalized and points after header.
 
   if (IsUnboxedStore() && compiler->is_optimizing()) {
+    if (slot().field().is_non_nullable_integer()) {
+      const Register value = locs()->in(1).reg();
+      __ Comment("UnboxedIntegerStoreInstanceFieldInstr");
+      __ StoreFieldToOffset(value, instance_reg, offset_in_bytes);
+      return;
+    }
+
     const VRegister value = locs()->in(1).fpu_reg();
     const intptr_t cid = slot().field().UnboxedFieldCid();
 
@@ -2554,10 +2567,18 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
     if (!FLAG_precompiled_mode) {
       locs->set_temp(0, Location::RequiresRegister());
     }
+    if (slot().field().is_non_nullable_integer()) {
+      ASSERT(FLAG_precompiled_mode);
+      locs->set_out(0, Location::RequiresRegister());
+    } else {
+      locs->set_out(0, Location::RequiresFpuRegister());
+    }
   } else if (IsPotentialUnboxedLoad()) {
     locs->set_temp(0, Location::RequiresRegister());
+    locs->set_out(0, Location::RequiresRegister());
+  } else {
+    locs->set_out(0, Location::RequiresRegister());
   }
-  locs->set_out(0, Location::RequiresRegister());
   return locs;
 }
 
@@ -2565,6 +2586,13 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(sizeof(classid_t) == kInt16Size);
   const Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
+    if (slot().field().is_non_nullable_integer()) {
+      const Register result = locs()->out(0).reg();
+      __ Comment("UnboxedIntegerLoadFieldInstr");
+      __ LoadFieldFromOffset(result, instance_reg, OffsetInBytes());
+      return;
+    }
+
     const VRegister result = locs()->out(0).fpu_reg();
     const intptr_t cid = slot().field().UnboxedFieldCid();
 

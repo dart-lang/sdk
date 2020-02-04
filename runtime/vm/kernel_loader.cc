@@ -957,8 +957,10 @@ void KernelLoader::ReadInferredType(const Field& field,
          (field.guarded_cid() == kFloat32x4Cid &&
           FlowGraphCompiler::SupportsUnboxedSimd128()) ||
          (field.guarded_cid() == kFloat64x2Cid &&
-          FlowGraphCompiler::SupportsUnboxedSimd128())) &&
+          FlowGraphCompiler::SupportsUnboxedSimd128()) ||
+         type.IsInt()) &&
         !field.is_nullable());
+    field.set_is_non_nullable_integer(!field.is_nullable() && type.IsInt());
   }
 }
 
