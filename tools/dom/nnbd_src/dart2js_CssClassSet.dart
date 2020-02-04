@@ -136,7 +136,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _removeWhere(_element, test, false);
   }
 
-  static bool _contains(Element _element, Object value) {
+  static bool _contains(Element _element, Object? value) {
     return value is String && _classListContains(_classListOf(_element), value);
   }
 
@@ -193,10 +193,10 @@ class _ElementCssClassSet extends CssClassSetImpl {
     }
   }
 
-  static void _removeAll(Element _element, Iterable<Object> iterable) {
+  static void _removeAll(Element _element, Iterable<Object?> iterable) {
     DomTokenList list = _classListOf(_element);
-    for (String value in iterable) {
-      _classListRemove(list, value);
+    for (Object? value in iterable) {
+      _classListRemove(list, value as String);
     }
   }
 
@@ -205,7 +205,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     DomTokenList list = _classListOf(_element);
     int i = 0;
     while (i < _classListLength(list)) {
-      String item = list.item(i);
+      String item = list.item(i)!;
       if (doRemove == test(item)) {
         _classListRemove(list, item);
       } else {
