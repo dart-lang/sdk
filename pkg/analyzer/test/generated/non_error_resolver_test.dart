@@ -736,69 +736,6 @@ f(int p) {
 ''');
   }
 
-  test_caseExpressionTypeImplementsEquals() async {
-    await assertNoErrorsInCode(r'''
-print(p) {}
-
-abstract class B {
-  final id;
-  const B(this.id);
-  String toString() => 'C($id)';
-  /** Equality is identity equality, the id isn't used. */
-  bool operator==(Object other);
-  }
-
-class C extends B {
-  const C(id) : super(id);
-}
-
-void doSwitch(c) {
-  switch (c) {
-  case const C(0): print('Switch: 0'); break;
-  case const C(1): print('Switch: 1'); break;
-  }
-}
-''');
-  }
-
-  test_caseExpressionTypeImplementsEquals_int() async {
-    await assertNoErrorsInCode(r'''
-f(int i) {
-  switch(i) {
-    case(1) : return 1;
-    default: return 0;
-  }
-}
-''');
-  }
-
-  test_caseExpressionTypeImplementsEquals_Object() async {
-    await assertNoErrorsInCode(r'''
-class IntWrapper {
-  final int value;
-  const IntWrapper(this.value);
-}
-
-f(IntWrapper intWrapper) {
-  switch(intWrapper) {
-    case(const IntWrapper(1)) : return 1;
-    default: return 0;
-  }
-}
-''');
-  }
-
-  test_caseExpressionTypeImplementsEquals_String() async {
-    await assertNoErrorsInCode(r'''
-f(String s) {
-  switch(s) {
-    case('1') : return 1;
-    default: return 0;
-  }
-}
-''');
-  }
-
   test_class_type_alias_documentationComment() async {
     await assertNoErrorsInCode('''
 /**
