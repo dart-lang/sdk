@@ -72,6 +72,10 @@ ConstAndFinal/declaration4: Fail
 ConstAndFinal/part_wrapped_declaration3: Fail
 ConstAndFinal/part_wrapped_declaration4: Fail
 ConstConstructorInSubclassOfMixinApplication/example: Fail
+ConstConstructorLateFinalFieldError/analyzerCode: Fail
+ConstConstructorLateFinalFieldError/example: Fail
+ConstConstructorLateFinalFieldWarning/analyzerCode: Fail
+ConstConstructorLateFinalFieldWarning/example: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't report this error.
 ConstEvalCircularity/example: Fail

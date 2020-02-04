@@ -2727,6 +2727,17 @@ ConstConstructorNonFinalFieldCause:
   template: "Field isn't final, but constructor is 'const'."
   severity: CONTEXT
 
+ConstConstructorLateFinalFieldError:
+  template: "Constructor is marked 'const' so fields can't be late."
+
+ConstConstructorLateFinalFieldWarning:
+  template: "Constructor is marked 'const' and some fields are late."
+  severity: WARNING
+
+ConstConstructorLateFinalFieldCause:
+  template: "Field is late, but constructor is 'const'."
+  severity: CONTEXT
+
 ConstConstructorRedirectionToNonConst:
   template: "A constant constructor can't call a non-constant constructor."
   script:

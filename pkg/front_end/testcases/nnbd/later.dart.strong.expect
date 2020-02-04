@@ -55,6 +55,13 @@ library;
 //   late String s2 = '${fisk}${await hest()}${fisk}';
 //                              ^^^^^
 //
+// pkg/front_end/testcases/nnbd/later.dart:46:9: Error: Constructor is marked 'const' so fields can't be late.
+//   const B();
+//         ^
+// pkg/front_end/testcases/nnbd/later.dart:44:18: Context: Field is late, but constructor is 'const'.
+//   late final int x = 42;
+//                  ^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;

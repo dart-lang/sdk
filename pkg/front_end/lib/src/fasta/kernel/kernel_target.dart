@@ -85,6 +85,9 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show
         FormattedMessage,
+        messageConstConstructorLateFinalFieldCause,
+        messageConstConstructorLateFinalFieldError,
+        messageConstConstructorLateFinalFieldWarning,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
@@ -706,15 +709,25 @@ class KernelTarget extends TargetImplementation {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
     List<Field> uninitializedFields = <Field>[];
-    List<Field> nonFinalFields = <Field>[];
     for (Field field in cls.fields) {
-      if (field.isInstanceMember && !field.isFinal) {
-        nonFinalFields.add(field);
-      }
       if (field.initializer == null) {
         uninitializedFields.add(field);
       }
     }
+    List<FieldBuilder> nonFinalFields = <FieldBuilder>[];
+    List<FieldBuilder> lateFinalFields = <FieldBuilder>[];
+    builder.forEach((String name, Builder fieldBuilder) {
+      if (fieldBuilder is FieldBuilder) {
+        if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {
+          nonFinalFields.add(fieldBuilder);
+        }
+        if (fieldBuilder.isDeclarationInstanceMember &&
+            fieldBuilder.isLate &&
+            fieldBuilder.isFinal) {
+          lateFinalFields.add(fieldBuilder);
+        }
+      }
+    });
     Map<Constructor, Set<Field>> constructorInitializedFields =
         <Constructor, Set<Field>>{};
     Constructor superTarget;
@@ -791,9 +804,34 @@ class KernelTarget extends TargetImplementation {
               constructor.fileOffset, noLength,
               context: nonFinalFields
                   .map((field) => messageConstConstructorNonFinalFieldCause
-                      .withLocation(field.fileUri, field.fileOffset, noLength))
+                      .withLocation(field.fileUri, field.charOffset, noLength))
                   .toList());
           nonFinalFields.clear();
+        }
+        SourceLibraryBuilder library = builder.library;
+        if (library.isNonNullableByDefault &&
+            library.loader.performNnbdChecks) {
+          if (constructor.isConst && lateFinalFields.isNotEmpty) {
+            if (library.loader.nnbdStrongMode) {
+              builder.addProblem(messageConstConstructorLateFinalFieldError,
+                  constructor.fileOffset, noLength,
+                  context: lateFinalFields
+                      .map((field) => messageConstConstructorLateFinalFieldCause
+                          .withLocation(
+                              field.fileUri, field.charOffset, noLength))
+                      .toList());
+              lateFinalFields.clear();
+            } else {
+              builder.addProblem(messageConstConstructorLateFinalFieldWarning,
+                  constructor.fileOffset, noLength,
+                  context: lateFinalFields
+                      .map((field) => messageConstConstructorLateFinalFieldCause
+                          .withLocation(
+                              field.fileUri, field.charOffset, noLength))
+                      .toList());
+              lateFinalFields.clear();
+            }
+          }
         }
       }
     }

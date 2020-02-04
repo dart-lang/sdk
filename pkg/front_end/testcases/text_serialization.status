@@ -1205,6 +1205,7 @@ late_lowering/late_nullable_field_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_field_without_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
+late_lowering/later: TextSerializationFailure
 late_lowering/override: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
@@ -1217,9 +1218,9 @@ nnbd/forbidden_supers: TextSerializationFailure
 nnbd/forin: TextSerializationFailure
 nnbd/function_types: TextSerializationFailure
 nnbd/generic_override: TextSerializationFailure
-nnbd/infer_if_null: TextSerializationFailure
 nnbd/infer_from_opt_in: TextSerializationFailure
 nnbd/infer_from_opt_out: TextSerializationFailure
+nnbd/infer_if_null: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/inheritance_from_opt_out: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure

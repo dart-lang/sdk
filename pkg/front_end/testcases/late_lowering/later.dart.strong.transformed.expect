@@ -2,63 +2,63 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/later.dart:12:7: Error: Can't have modifier 'late' here.
+// pkg/front_end/testcases/late_lowering/later.dart:14:7: Error: Can't have modifier 'late' here.
 // Try removing 'late'.
-//   foo(late int x) {}
+//   foo(late int x) {} // Error.
 //       ^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:15:5: Error: Can't have modifier 'late' here.
+// pkg/front_end/testcases/late_lowering/later.dart:17:5: Error: Can't have modifier 'late' here.
 // Try removing 'late'.
-// bar(late int x) {}
+// bar(late int x) {} // Error.
 //     ^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:20:28: Error: 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// pkg/front_end/testcases/late_lowering/later.dart:22:28: Error: 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
 // No types are needed, the first is given by 'on', the second is always 'StackTrace'.
-//   } on dynamic catch (late e, late t) {}
+//   } on dynamic catch (late e, late t) {} // Error.
 //                            ^
 //
-// pkg/front_end/testcases/nnbd/later.dart:20:31: Error: Can't have modifier 'late' here.
+// pkg/front_end/testcases/late_lowering/later.dart:22:31: Error: Can't have modifier 'late' here.
 // Try removing 'late'.
-//   } on dynamic catch (late e, late t) {}
+//   } on dynamic catch (late e, late t) {} // Error.
 //                               ^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:20:36: Error: 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+// pkg/front_end/testcases/late_lowering/later.dart:22:36: Error: 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
 // No types are needed, the first is given by 'on', the second is always 'StackTrace'.
-//   } on dynamic catch (late e, late t) {}
+//   } on dynamic catch (late e, late t) {} // Error.
 //                                    ^
 //
-// pkg/front_end/testcases/nnbd/later.dart:21:8: Error: Can't have modifier 'late' here.
+// pkg/front_end/testcases/late_lowering/later.dart:23:8: Error: Can't have modifier 'late' here.
 // Try removing 'late'.
-//   for (late int i = 0; i < 10; ++i) {
+//   for (late int i = 0; i < 10; ++i) { // Error.
 //        ^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:24:8: Error: Can't have modifier 'late' here.
+// pkg/front_end/testcases/late_lowering/later.dart:26:8: Error: Can't have modifier 'late' here.
 // Try removing 'late'.
-//   for (late String s in ["baz"]) {
+//   for (late String s in ["baz"]) { // Error.
 //        ^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:27:9: Error: Can't have modifier 'late' here.
+// pkg/front_end/testcases/late_lowering/later.dart:29:9: Error: Can't have modifier 'late' here.
 // Try removing 'late'.
-//   [for (late int i = 0; i < 10; ++i) i];
+//   [for (late int i = 0; i < 10; ++i) i]; // Error.
 //         ^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:31:14: Error: Can't have modifier 'late' here.
+// pkg/front_end/testcases/late_lowering/later.dart:33:14: Error: Can't have modifier 'late' here.
 // Try removing 'late'.
-//   await for (late String s in new Stream.fromIterable(["hest"])) {
+//   await for (late String s in new Stream.fromIterable(["hest"])) { // Error.
 //              ^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:38:20: Error: `await` expressions are not supported in late local initializers.
-//   late String s1 = await hest();
+// pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
+//   late String s1 = await hest(); // Error.
 //                    ^^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:39:30: Error: `await` expressions are not supported in late local initializers.
-//   late String s2 = '${fisk}${await hest()}${fisk}';
+// pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
+//   late String s2 = '${fisk}${await hest()}${fisk}'; // Error.
 //                              ^^^^^
 //
-// pkg/front_end/testcases/nnbd/later.dart:46:9: Error: Constructor is marked 'const' so fields can't be late.
-//   const B();
+// pkg/front_end/testcases/late_lowering/later.dart:48:9: Error: Constructor is marked 'const' so fields can't be late.
+//   const B(); // Error: B has late final fields.
 //         ^
-// pkg/front_end/testcases/nnbd/later.dart:44:18: Context: Field is late, but constructor is 'const'.
+// pkg/front_end/testcases/late_lowering/later.dart:46:18: Context: Field is late, but constructor is 'const'.
 //   late final int x = 42;
 //                  ^
 //
@@ -69,23 +69,36 @@ import "dart:async" as asy;
 
 class A extends core::Object {
   field core::int a = 42;
-  late field core::int b = this.{self::A::a}.{core::num::*}(2).{core::int::>>}(1);
+  field core::int? _#A#b = null;
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
+  get b() → core::int
+    return let final core::int? #t1 = this.{self::A::_#A#b} in #t1.==(null) ?{core::int} this.{self::A::_#A#b} = this.{self::A::a}.{core::num::*}(2).{core::int::>>}(1) : #t1{core::int};
+  set b(core::int #t2) → void
+    this.{self::A::_#A#b} = #t2;
   method foo(core::int x) → dynamic {}
 }
 class B extends core::Object {
-  late final field core::int x = 42;
+  field core::int? _#B#x = null;
   const constructor •() → self::B
     : super core::Object::•()
     ;
+  get x() → core::int
+    return let final core::int? #t3 = this.{self::B::_#B#x} in #t3.==(null) ?{core::int} let final core::int #t4 = 42 in this.{self::B::_#B#x}.==(null) ?{core::int} this.{self::B::_#B#x} = #t4 : throw new _in::LateInitializationErrorImpl::•("Field 'x' has been assigned during initialization.") : #t3{core::int};
 }
 class C extends core::Object {
-  late final field core::int x;
+  field core::int? _#C#x = null;
   synthetic constructor •() → self::C
     : super core::Object::•()
     ;
+  get x() → core::int
+    return let final core::int? #t5 = this.{self::C::_#C#x} in #t5.==(null) ?{core::int} throw new _in::LateInitializationErrorImpl::•("Field 'x' has not been initialized.") : #t5{core::int};
+  set x(core::int #t6) → void
+    if(this.{self::C::_#C#x}.==(null))
+      this.{self::C::_#C#x} = #t6;
+    else
+      throw new _in::LateInitializationErrorImpl::•("Field 'x' has already been initialized.");
   method initVars() → dynamic {
     this.{self::C::x} = 42;
   }
@@ -94,9 +107,9 @@ static method bar(core::int x) → dynamic {}
 static method baz() → dynamic {
   {
     {
-      invalid-expression "pkg/front_end/testcases/nnbd/later.dart:20:36: Error: 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
+      invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:22:36: Error: 'catch' must be followed by '(identifier)' or '(identifier, identifier)'.
 No types are needed, the first is given by 'on', the second is always 'StackTrace'.
-  } on dynamic catch (late e, late t) {}
+  } on dynamic catch (late e, late t) {} // Error.
                                    ^";
     }
     try {
@@ -118,10 +131,10 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
     }
   }
   block {
-    final core::List<core::int> #t1 = <core::int>[];
+    final core::List<core::int> #t7 = <core::int>[];
     for (core::int i = 0; i.{core::num::<}(10); i = i.{core::num::+}(1))
-      #t1.{core::List::add}(i);
-  } =>#t1;
+      #t7.{core::List::add}(i);
+  } =>#t7;
 }
 static method hest() → dynamic /* originally async */ {
   final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
@@ -146,8 +159,8 @@ static method hest() → dynamic /* originally async */ {
           try
             #L2:
             while (true) {
-              dynamic #t2 = asy::_asyncStarMoveNextHelper(:stream);
-              [yield] let dynamic #t3 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
+              dynamic #t8 = asy::_asyncStarMoveNextHelper(:stream);
+              [yield] let dynamic #t9 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::moveNext}(), :async_op_then, :async_op_error, :async_op) in null;
               if(_in::unsafeCast<core::bool*>(:result)) {
                 core::String s = :for-iterator.{asy::_StreamIterator::current};
                 {
@@ -159,7 +172,7 @@ static method hest() → dynamic /* originally async */ {
             }
           finally
             if(!:for-iterator.{asy::_StreamIterator::_subscription}.{core::Object::==}(null)) {
-              [yield] let dynamic #t4 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
+              [yield] let dynamic #t10 = asy::_awaitHelper(:for-iterator.{asy::_StreamIterator::cancel}(), :async_op_then, :async_op_error, :async_op) in null;
               :result;
             }
         }
@@ -190,18 +203,23 @@ static method fisk() → dynamic /* originally async */ {
     try {
       #L3:
       {
-        function #s1#initializer() → core::String
-          return invalid-expression "pkg/front_end/testcases/nnbd/later.dart:38:20: Error: `await` expressions are not supported in late local initializers.
-  late String s1 = await hest();
-                   ^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
-        late core::String s1 = #s1#initializer.call();
-        function #s2#initializer() → core::String
-          return "${#C1}${invalid-expression "pkg/front_end/testcases/nnbd/later.dart:39:30: Error: `await` expressions are not supported in late local initializers.
-  late String s2 = '\${fisk}\${await hest()}\${fisk}';
-                             ^^^^^"}${#C1}";
-        late core::String s2 = #s2#initializer.call();
-        function #f#initializer() → core::Function
-          return () → asy::Future<dynamic> /* originally async */ {
+        core::String? s1;
+        function #s1#get() → core::String
+          return let final core::String? #t11 = s1 in #t11.==(null) ?{core::String} s1 = invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:40:20: Error: `await` expressions are not supported in late local initializers.
+  late String s1 = await hest(); // Error.
+                   ^^^^^" as{TypeError,ForDynamic,ForNonNullableByDefault} core::String : #t11{core::String};
+        function #s1#set(core::String #t12) → dynamic
+          return s1 = #t12;
+        core::String? s2;
+        function #s2#get() → core::String
+          return let final core::String? #t13 = s2 in #t13.==(null) ?{core::String} s2 = "${#C1}${invalid-expression "pkg/front_end/testcases/late_lowering/later.dart:41:30: Error: `await` expressions are not supported in late local initializers.
+  late String s2 = '\${fisk}\${await hest()}\${fisk}'; // Error.
+                             ^^^^^"}${#C1}" : #t13{core::String};
+        function #s2#set(core::String #t14) → dynamic
+          return s2 = #t14;
+        core::Function? f;
+        function #f#get() → core::Function
+          return let final core::Function? #t15 = f in #t15.==(null) ?{core::Function} f = () → asy::Future<dynamic> /* originally async */ {
             final asy::_AsyncAwaitCompleter<dynamic> :async_completer = new asy::_AsyncAwaitCompleter::•<dynamic>();
             asy::FutureOr<dynamic>? :return_value;
             dynamic :async_stack_trace;
@@ -214,7 +232,7 @@ static method fisk() → dynamic /* originally async */ {
               try {
                 #L4:
                 {
-                  [yield] let dynamic #t5 = asy::_awaitHelper(self::hest(), :async_op_then, :async_op_error, :async_op) in null;
+                  [yield] let dynamic #t16 = asy::_awaitHelper(self::hest(), :async_op_then, :async_op_error, :async_op) in null;
                   :return_value = :result;
                   break #L4;
                 }
@@ -229,8 +247,9 @@ static method fisk() → dynamic /* originally async */ {
             :async_op_error = asy::_asyncErrorWrapperHelper(:async_op);
             :async_completer.start(:async_op);
             return :async_completer.{asy::Completer::future};
-          };
-        late core::Function f = #f#initializer.call();
+          } : #t15{core::Function};
+        function #f#set(core::Function #t17) → dynamic
+          return f = #t17;
       }
       asy::_completeOnAsyncReturn(:async_completer, :return_value);
       return;
