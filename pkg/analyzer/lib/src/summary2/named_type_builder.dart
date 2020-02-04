@@ -114,7 +114,7 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   @override
-  String toString({bool withNullability = false}) {
+  String toString() {
     var buffer = StringBuffer();
     buffer.write(element.displayName);
     if (arguments.isNotEmpty) {

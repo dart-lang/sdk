@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
@@ -435,8 +434,7 @@ class NodeChangeForVariableDeclarationList
   EditPlan _apply(VariableDeclarationList node, FixAggregator aggregator) {
     List<EditPlan> innerPlans = [];
     if (addExplicitType != null) {
-      var typeText =
-          (addExplicitType as TypeImpl).toString(withNullability: true);
+      var typeText = addExplicitType.getDisplayString(withNullability: true);
       if (node.keyword?.keyword == Keyword.VAR) {
         innerPlans.add(aggregator.planner
             .replaceToken(node, node.keyword, [AtomicEdit.insert(typeText)]));

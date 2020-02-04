@@ -1956,8 +1956,8 @@ abstract class TypeImpl implements DartType {
       List<DartType> argumentTypes, List<DartType> parameterTypes);
 
   @override
-  String toString({bool withNullability = false}) {
-    return getDisplayString(withNullability: withNullability);
+  String toString() {
+    return getDisplayString(withNullability: false);
   }
 
   /**

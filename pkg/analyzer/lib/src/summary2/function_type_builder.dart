@@ -91,7 +91,7 @@ class FunctionTypeBuilder extends TypeBuilder {
   }
 
   @override
-  String toString({bool withNullability = false}) {
+  String toString() {
     var buffer = StringBuffer();
 
     if (typeFormals.isNotEmpty) {
