@@ -32,6 +32,11 @@ the given C++ symbol.
     ```console
     $ pip3 install coloredlogs jinja2 markdown aiohttp watchdog pymdown-extensions pygments
     ```
-2. Install SASS compiler (make sure that SASS binary is in your path).
-3. Generate `xref.json` file following instructions in
+2. Install the custom pygments lexer we use for shell session examples:
+    ```
+    $ cd runtime/tools/wiki/CustomShellSessionPygmentsLexer
+    $ python3 setup.py develop
+    ```
+3. Install SASS compiler (make sure that SASS binary is in your path).
+4. Generate `xref.json` file following instructions in
 `xref_extractor/README.md`.
