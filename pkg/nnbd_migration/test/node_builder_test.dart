@@ -653,9 +653,7 @@ class C {
     await analyze('''
 T f<T extends Object>(T t) => t;
 ''');
-    var decoratedType = decoratedFunctionType('f');
     var bound = decoratedTypeParameterBound('T extends');
-    expect(decoratedType.typeFormalBounds[0], same(bound));
     expect(decoratedTypeAnnotation('Object'), same(bound));
     expect(bound.node, isNot(always));
     expect(bound.type, typeProvider.objectType);
@@ -665,9 +663,7 @@ T f<T extends Object>(T t) => t;
     await analyze('''
 T f<T>(T t) => t;
 ''');
-    var decoratedType = decoratedFunctionType('f');
     var bound = decoratedTypeParameterBound('T>');
-    expect(decoratedType.typeFormalBounds[0], same(bound));
     assertEdge(always, bound.node, hard: false);
     expect(bound.type, same(typeProvider.objectType));
   }
@@ -860,14 +856,6 @@ abstract class C {
     var decoratedFReturnReturnType = decoratedFReturnType.returnType;
     _assertType(decoratedFReturnReturnType.type, 'dynamic');
     expect(decoratedFReturnReturnType.node.isImmutable, false);
-  }
-
-  Future<void> test_genericFunctionType_formal_bounds() async {
-    await analyze('''
-void f(T Function<T extends num>() x) {}
-''');
-    var decoratedType = decoratedGenericFunctionTypeAnnotation('T Function');
-    _assertType(decoratedType.typeFormalBounds[0].type, 'num');
   }
 
   Future<void> test_genericFunctionType_formals() async {
@@ -1197,9 +1185,7 @@ class C {
   T f<T extends Object>(T t) => t;
 }
 ''');
-    var decoratedType = decoratedMethodType('f');
     var bound = decoratedTypeParameterBound('T extends');
-    expect(decoratedType.typeFormalBounds[0], same(bound));
     expect(decoratedTypeAnnotation('Object'), same(bound));
     expect(bound.node, isNot(always));
     expect(bound.type, typeProvider.objectType);
@@ -1211,9 +1197,7 @@ class C {
   T f<T>(T t) => t;
 }
 ''');
-    var decoratedType = decoratedMethodType('f');
     var bound = decoratedTypeParameterBound('T>');
-    expect(decoratedType.typeFormalBounds[0], same(bound));
     assertEdge(always, bound.node, hard: false);
     expect(bound.type, same(typeProvider.objectType));
   }
@@ -1305,10 +1289,13 @@ class C extends B {
     var decoratedBaseType =
         decoratedMethodType('f/*B*/').positionalParameters[0];
     var decoratedType = decoratedMethodType('f/*C*/').positionalParameters[0];
-    expect(decoratedType.typeFormalBounds, hasLength(1));
-    _assertType(decoratedType.typeFormalBounds[0].type, 'Object');
-    expect(decoratedType.typeFormalBounds[0].node,
-        isNot(same(decoratedBaseType.typeFormalBounds[0].node)));
+    var decoratedTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedType.type as FunctionType).typeFormals[0]);
+    _assertType(decoratedTypeFormalBound.type, 'Object');
+    var decoratedBaseTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedBaseType.type as FunctionType).typeFormals[0]);
+    expect(decoratedTypeFormalBound.node,
+        isNot(same(decoratedBaseTypeFormalBound.node)));
   }
 
   Future<void>
@@ -1324,10 +1311,13 @@ class C extends B {
     var decoratedBaseType =
         decoratedMethodType('f/*B*/').positionalParameters[0];
     var decoratedType = decoratedMethodType('f/*C*/').positionalParameters[0];
-    expect(decoratedType.typeFormalBounds, hasLength(1));
-    _assertType(decoratedType.typeFormalBounds[0].type, 'num');
-    expect(decoratedType.typeFormalBounds[0].node,
-        isNot(same(decoratedBaseType.typeFormalBounds[0].node)));
+    var decoratedTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedType.type as FunctionType).typeFormals[0]);
+    _assertType(decoratedTypeFormalBound.type, 'num');
+    var decoratedBaseTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedBaseType.type as FunctionType).typeFormals[0]);
+    expect(decoratedTypeFormalBound.node,
+        isNot(same(decoratedBaseTypeFormalBound.node)));
   }
 
   Future<void> test_method_parameterType_inferred_named() async {
@@ -1564,7 +1554,6 @@ F<int> f;
         decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.returnType.node,
         isNot(same(typedefDecoratedType.returnType.node)));
-    expect(decoratedType.typeFormalBounds, isEmpty);
   }
 
   Future<void> test_typedef_reference_generic_uninstantiated() async {
@@ -1586,10 +1575,13 @@ F f;
         decoratedType.returnType.node, TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.returnType.node,
         isNot(same(typedefDecoratedType.returnType.node)));
-    expect(decoratedType.typeFormalBounds, hasLength(1));
-    _assertType(decoratedType.typeFormalBounds[0].type, 'num');
-    expect(decoratedType.typeFormalBounds[0].node,
-        isNot(same(typedefDecoratedType.typeFormalBounds[0].node)));
+    var decoratedTypeFormalBound = decoratedTypeParameterBounds
+        .get((decoratedType.type as FunctionType).typeFormals[0]);
+    _assertType(decoratedTypeFormalBound.type, 'num');
+    var decoratedTypedefTypeFormalBound = decoratedTypeParameterBounds
+        .get((typedefDecoratedType.type as FunctionType).typeFormals[0]);
+    expect(decoratedTypeFormalBound.node,
+        isNot(same(decoratedTypedefTypeFormalBound.node)));
   }
 
   Future<void> test_typedef_reference_simple() async {
@@ -1616,7 +1608,6 @@ F f;
         TypeMatcher<NullabilityNodeMutable>());
     expect(decoratedType.positionalParameters[0].node,
         isNot(same(typedefDecoratedType.positionalParameters[0].node)));
-    expect(decoratedType.typeFormalBounds, isEmpty);
   }
 
   Future<void> test_variableDeclaration_type_simple() async {

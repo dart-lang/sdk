@@ -44,6 +44,9 @@ class AssignmentCheckerTest extends Object
   @override
   final NullabilityGraphForTesting graph;
 
+  @override
+  final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
+
   final AssignmentCheckerForTesting checker;
 
   factory AssignmentCheckerTest() {

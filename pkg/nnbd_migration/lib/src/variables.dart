@@ -46,8 +46,6 @@ class Variables implements VariableRecorder, VariableRepository {
 
   final _decoratedElementTypes = <Element, DecoratedType>{};
 
-  final _decoratedTypeParameterBounds = <Element, DecoratedType>{};
-
   final _decoratedDirectSupertypes =
       <ClassElement, Map<ClassElement, DecoratedType>>{};
 
@@ -113,43 +111,29 @@ class Variables implements VariableRecorder, VariableRepository {
   DecoratedType decoratedTypeParameterBound(TypeParameterElement typeParameter,
       {bool allowNullUnparentedBounds = false}) {
     var enclosingElement = typeParameter.enclosingElement;
+    var decoratedType = DecoratedTypeParameterBounds.current.get(typeParameter);
     if (enclosingElement == null) {
-      var decoratedType =
-          DecoratedType.decoratedTypeParameterBound(typeParameter);
       if (decoratedType == null && !allowNullUnparentedBounds) {
         throw StateError(
             'A decorated type for the bound of $typeParameter should '
             'have been stored by the NodeBuilder via recordTypeParameterBound');
       }
-      return decoratedType;
     } else {
-      var decoratedType = _decoratedTypeParameterBounds[typeParameter];
       if (decoratedType == null) {
-        if (enclosingElement is GenericFunctionTypeElement) {
-          // Each time code containing a typedef is re-analyzed, fresh elements
-          // are created for type parameters.  So it's possible that we may not
-          // be able to find the decorated type for the type parameter, but we
-          // can find the decorated type for the enclosing generic function type
-          // and use its decorated type parameter bounds.
-          int i = enclosingElement.typeParameters.indexOf(typeParameter);
-          decoratedType =
-              decoratedElementType(enclosingElement).typeFormalBounds[i];
-        } else {
-          if (_graph.isBeingMigrated(typeParameter.library.source)) {
-            throw StateError(
-                'A decorated type for the bound of $typeParameter should '
-                'have been stored by the NodeBuilder via '
-                'recordTypeParameterBound');
-          }
-          decoratedType = _alreadyMigratedCodeDecorator.decorate(
-              typeParameter.bound ?? DynamicTypeImpl.instance, typeParameter);
+        if (_graph.isBeingMigrated(typeParameter.library.source)) {
+          throw StateError(
+              'A decorated type for the bound of $typeParameter should '
+              'have been stored by the NodeBuilder via '
+              'recordTypeParameterBound');
         }
+        decoratedType = _alreadyMigratedCodeDecorator.decorate(
+            typeParameter.bound ?? DynamicTypeImpl.instance, typeParameter);
         instrumentation?.externalDecoratedTypeParameterBound(
             typeParameter, decoratedType);
-        _decoratedTypeParameterBounds[typeParameter] = decoratedType;
+        DecoratedTypeParameterBounds.current.put(typeParameter, decoratedType);
       }
-      return decoratedType;
     }
+    return decoratedType;
   }
 
   /// Retrieves the [ExpressionChecks] object corresponding to the given
@@ -207,16 +191,6 @@ class Variables implements VariableRecorder, VariableRepository {
   }
 
   @override
-  void recordDecoratedTypeParameterBound(
-      TypeParameterElement typeParameter, DecoratedType bound) {
-    if (typeParameter.enclosingElement == null) {
-      DecoratedType.recordTypeParameterBound(typeParameter, bound);
-    } else {
-      _decoratedTypeParameterBounds[typeParameter] = bound;
-    }
-  }
-
-  @override
   void recordExpressionChecks(
       Source source, Expression expression, ExpressionChecksOrigin origin) {
     _addPotentialModification(source, origin.checks);
@@ -271,7 +245,8 @@ class Variables implements VariableRecorder, VariableRepository {
       }
       for (int i = 0; i < newTypeFormals.length; i++) {
         var bound = type_algebra.substitute(
-            toFinalType(decoratedType.typeFormalBounds[i]),
+            toFinalType(
+                DecoratedTypeParameterBounds.current.get(type.typeFormals[i])),
             typeFormalSubstitution);
         if (!bound.isDynamic &&
             !(bound.isDartCoreObject &&

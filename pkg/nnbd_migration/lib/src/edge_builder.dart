@@ -1789,7 +1789,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             isLUB, "shouldn't be possible to get a function from GLB(null, S)");
         return DecoratedType(type, node,
             returnType: right.returnType,
-            typeFormalBounds: right.typeFormalBounds,
             positionalParameters: right.positionalParameters,
             namedParameters: right.namedParameters);
       } else if (rightType.isDartCoreNull) {
@@ -1797,7 +1796,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             isLUB, "shouldn't be possible to get a function from GLB(S, null)");
         return DecoratedType(type, node,
             returnType: left.returnType,
-            typeFormalBounds: left.typeFormalBounds,
             positionalParameters: left.positionalParameters,
             namedParameters: left.namedParameters);
       }
@@ -2231,7 +2229,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var i = 0; i < argumentTypes.length; ++i) {
       _checkAssignment(null,
           source: argumentTypes[i],
-          destination: type.typeFormalBounds[i],
+          destination: DecoratedTypeParameterBounds.current
+              .get((type.type as FunctionType).typeFormals[i]),
           hard: true);
     }
 

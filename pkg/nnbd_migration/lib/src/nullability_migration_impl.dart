@@ -9,6 +9,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
+import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_builder.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
@@ -38,6 +39,8 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   /// code that is removed.
   final bool removeViaComments;
 
+  final _decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
+
   /// Prepares to perform nullability migration.
   ///
   /// If [permissive] is `true`, exception handling logic will try to proceed
@@ -60,11 +63,6 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   }
 
   @override
-  void update() {
-    _graph.update();
-  }
-
-  @override
   void finalizeInput(ResolvedUnitResult result) {
     if (!_propagated) {
       _propagated = true;
@@ -83,7 +81,12 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         library,
         listener,
         unit);
-    fixBuilder.visitAll();
+    try {
+      DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
+      fixBuilder.visitAll();
+    } finally {
+      DecoratedTypeParameterBounds.current = null;
+    }
     var changes = FixAggregator.run(unit, result.content, fixBuilder.changes,
         removeViaComments: removeViaComments);
     _instrumentation?.changes(source, changes);
@@ -114,22 +117,37 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       _decoratedClassHierarchy = DecoratedClassHierarchy(_variables, _graph);
     }
     var unit = result.unit;
-    unit.accept(NodeBuilder(_variables, unit.declaredElement.source,
-        _permissive ? listener : null, _graph, result.typeProvider,
-        instrumentation: _instrumentation));
+    try {
+      DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
+      unit.accept(NodeBuilder(_variables, unit.declaredElement.source,
+          _permissive ? listener : null, _graph, result.typeProvider,
+          instrumentation: _instrumentation));
+    } finally {
+      DecoratedTypeParameterBounds.current = null;
+    }
   }
 
   void processInput(ResolvedUnitResult result) {
     var unit = result.unit;
-    unit.accept(EdgeBuilder(
-        result.typeProvider,
-        result.typeSystem,
-        _variables,
-        _graph,
-        unit.declaredElement.source,
-        _permissive ? listener : null,
-        _decoratedClassHierarchy,
-        instrumentation: _instrumentation));
+    try {
+      DecoratedTypeParameterBounds.current = _decoratedTypeParameterBounds;
+      unit.accept(EdgeBuilder(
+          result.typeProvider,
+          result.typeSystem,
+          _variables,
+          _graph,
+          unit.declaredElement.source,
+          _permissive ? listener : null,
+          _decoratedClassHierarchy,
+          instrumentation: _instrumentation));
+    } finally {
+      DecoratedTypeParameterBounds.current = null;
+    }
+  }
+
+  @override
+  void update() {
+    _graph.update();
   }
 
   static Location _computeLocation(

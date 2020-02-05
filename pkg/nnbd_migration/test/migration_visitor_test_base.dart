@@ -36,9 +36,6 @@ class AnyNodeMatcher extends _RecordingNodeMatcher {
 mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   int _offset = 0;
 
-  Map<TypeParameterElement, DecoratedType> _decoratedTypeParameterBounds =
-      Map.identity();
-
   NullabilityNode get always => graph.always;
 
   DecoratedType get bottom => DecoratedType(typeProvider.bottomType, never);
@@ -74,9 +71,6 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
           nullabilitySuffix: NullabilitySuffix.star,
         ),
         node ?? newNode(),
-        typeFormalBounds: typeFormals
-            .map((formal) => _decoratedTypeParameterBounds[formal])
-            .toList(),
         returnType: returnType,
         positionalParameters: required.toList()..addAll(positional),
         namedParameters: named);
@@ -117,7 +111,7 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
   TypeParameterElement typeParameter(String name, DecoratedType bound) {
     var element = TypeParameterElementImpl.synthetic(name);
     element.bound = bound.type;
-    _decoratedTypeParameterBounds[element] = bound;
+    decoratedTypeParameterBounds.put(element, bound);
     return element;
   }
 
@@ -135,6 +129,8 @@ mixin DecoratedTypeTester implements DecoratedTypeTesterBase {
 /// Base functionality that must be implemented by classes mixing in
 /// [DecoratedTypeTester].
 abstract class DecoratedTypeTesterBase {
+  DecoratedTypeParameterBounds get decoratedTypeParameterBounds;
+
   NullabilityGraph get graph;
 
   TypeProvider get typeProvider;
@@ -349,6 +345,8 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
 
   final NullabilityGraphForTesting graph;
 
+  final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
+
   MigrationVisitorTestBase() : this._(NullabilityGraphForTesting());
 
   MigrationVisitorTestBase._(this.graph);
@@ -408,10 +406,20 @@ class MigrationVisitorTestBase extends AbstractSingleUnitTest with EdgeTester {
     return variables.possiblyOptionalParameter(findNode.defaultParameter(text));
   }
 
+  void setUp() {
+    DecoratedTypeParameterBounds.current = decoratedTypeParameterBounds;
+    super.setUp();
+  }
+
   /// Gets the [ConditionalDiscard] information associated with the statement
   /// whose text is [text].
   ConditionalDiscard statementDiscard(String text) {
     return variables.conditionalDiscard(findNode.statement(text));
+  }
+
+  void tearDown() {
+    DecoratedTypeParameterBounds.current = null;
+    super.tearDown();
   }
 }
 

@@ -31,6 +31,9 @@ class DecoratedTypeTest extends Object
 
   final Variables _variables;
 
+  @override
+  final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
+
   factory DecoratedTypeTest() {
     var typeProvider = TestTypeProvider();
     var graph = NullabilityGraph();
@@ -52,7 +55,12 @@ class DecoratedTypeTest extends Object
   }
 
   void setUp() {
+    DecoratedTypeParameterBounds.current = decoratedTypeParameterBounds;
     NullabilityNode.clearDebugNames();
+  }
+
+  void tearDown() {
+    DecoratedTypeParameterBounds.current = null;
   }
 
   void test_equal_dynamic_and_void() {
