@@ -18697,6 +18697,8 @@ RawType* Type::ToNullability(Nullability value, Heap::Space space) const {
   type ^= Object::Clone(*this, space);
   type.set_nullability(value);
   type.SetHash(0);
+  type.SetTypeTestingStub(
+      Code::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
   if (IsCanonical()) {
     // Object::Clone does not clone canonical bit.
     ASSERT(!type.IsCanonical());
@@ -19515,6 +19517,8 @@ RawTypeParameter* TypeParameter::ToNullability(Nullability value,
   type_parameter ^= Object::Clone(*this, space);
   type_parameter.set_nullability(value);
   type_parameter.SetHash(0);
+  type_parameter.SetTypeTestingStub(Code::Handle(
+      TypeTestingStubGenerator::DefaultCodeForType(type_parameter)));
   // TODO(regis): Should we link type parameters of different nullability?
   return type_parameter.raw();
 }

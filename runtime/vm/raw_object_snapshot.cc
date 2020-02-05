@@ -103,14 +103,14 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
       Class::RawCast(reader->ReadObjectImpl(as_reference));
   type.set_type_class(*reader->ClassHandle());
 
-  if (is_canonical) {
-    type ^= type.Canonicalize();
-  }
-
   // Fill in the type testing stub.
   Code& code = *reader->CodeHandle();
   code = TypeTestingStubGenerator::DefaultCodeForType(type);
   type.SetTypeTestingStub(code);
+
+  if (is_canonical) {
+    type ^= type.Canonicalize();
+  }
 
   return type.raw();
 }

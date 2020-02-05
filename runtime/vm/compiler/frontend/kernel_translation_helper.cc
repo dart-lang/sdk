@@ -2851,8 +2851,8 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       helper_->ReadListLength();  // read type_arguments list length.
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
-  result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
-  Type::Cast(result_).set_nullability(nullability);
+  result_ =
+      Type::New(klass, type_arguments, TokenPosition::kNoSource, nullability);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
     result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -3178,15 +3178,19 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       helper_->SkipDartType();  // read ith bound.
       parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
       if (nnbd_mode == NNBDMode::kOptedInLib) {
-        parameter.set_nullability(Nullability::kUndetermined);
+        parameter =
+            parameter.ToNullability(Nullability::kUndetermined, Heap::kOld);
+        type_parameters.SetTypeAt(i, parameter);
       }
     } else {
       AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
       parameter.set_bound(bound);
       if (nnbd_mode == NNBDMode::kOptedInLib) {
-        parameter.set_nullability(bound.IsNullable()
-                                      ? Nullability::kUndetermined
-                                      : Nullability::kNonNullable);
+        parameter = parameter.ToNullability(bound.IsNullable()
+                                                ? Nullability::kUndetermined
+                                                : Nullability::kNonNullable,
+                                            Heap::kOld);
+        type_parameters.SetTypeAt(i, parameter);
       }
     }
 

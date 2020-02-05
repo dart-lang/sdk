@@ -7471,11 +7471,6 @@ class Type : public AbstractType {
   virtual Nullability nullability() const {
     return static_cast<Nullability>(raw_ptr()->nullability_);
   }
-  void set_nullability(Nullability value) const {
-    ASSERT(!IsCanonical());
-    ASSERT(value != Nullability::kUndetermined);
-    StoreNonPointer(&raw_ptr()->nullability_, static_cast<int8_t>(value));
-  }
   RawType* ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
@@ -7595,6 +7590,11 @@ class Type : public AbstractType {
 
   void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;
+  void set_nullability(Nullability value) const {
+    ASSERT(!IsCanonical());
+    ASSERT(value != Nullability::kUndetermined);
+    StoreNonPointer(&raw_ptr()->nullability_, static_cast<int8_t>(value));
+  }
 
   static RawType* New(Heap::Space space = Heap::kOld);
 
@@ -7707,7 +7707,6 @@ class TypeParameter : public AbstractType {
   virtual Nullability nullability() const {
     return static_cast<Nullability>(raw_ptr()->nullability_);
   }
-  void set_nullability(Nullability value) const;
   RawTypeParameter* ToNullability(Nullability value, Heap::Space space) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
@@ -7775,6 +7774,7 @@ class TypeParameter : public AbstractType {
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
   void set_flags(uint8_t flags) const;
+  void set_nullability(Nullability value) const;
 
   static RawTypeParameter* New();
 
