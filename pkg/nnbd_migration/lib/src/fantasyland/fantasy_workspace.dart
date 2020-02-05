@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+// TODO(jcollins-g): finish port away from io
+import 'dart:io' show Directory;
 
 import 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
@@ -19,8 +20,8 @@ abstract class FantasyWorkspace {
 
 /// Build a "fantasyland"-style repository structure suitable for applying
 /// a migration to.
-Future<FantasyWorkspace> buildFantasyLand(String topLevelPackage,
-    List<String> extraPackages, Directory fantasyLandDir) {
+Future<FantasyWorkspace> buildFantasyLand(
+    String topLevelPackage, List<String> extraPackages, String fantasyLandDir) {
   return FantasyWorkspaceTopLevelDevDepsImpl.buildFor(
       topLevelPackage, extraPackages, fantasyLandDir);
 }

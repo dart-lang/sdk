@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo_impl.dart';
 
 const githubHost = 'git@github.com';
@@ -108,12 +107,12 @@ class FantasyRepoSettings {
 abstract class FantasyRepo {
   String get name;
   FantasyRepoSettings get repoSettings;
-  Directory get repoRoot;
+  Folder get repoRoot;
 
   static Future<FantasyRepo> buildGitRepoFrom(
-      FantasyRepoSettings repoSettings, Directory repoRoot,
+      FantasyRepoSettings repoSettings, String repoRootPath,
       {FantasyRepoDependencies fantasyRepoDependencies}) async {
-    FantasyRepoGitImpl newRepo = FantasyRepoGitImpl(repoSettings, repoRoot,
+    FantasyRepoGitImpl newRepo = FantasyRepoGitImpl(repoSettings, repoRootPath,
         fantasyRepoDependencies: fantasyRepoDependencies);
     await newRepo.init();
     return newRepo;

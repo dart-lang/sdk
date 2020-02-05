@@ -2,32 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+// TODO(jcollins-g): finish port away from io
+import 'dart:io' show Directory;
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
 import 'package:path/path.dart' as path;
 
+// TODO(jcollins-g): consider refactor that makes resourceProvider required.
 class FantasyWorkspaceDependencies {
-  final File Function(String) fileBuilder;
-  final Directory Function(String) directoryBuilder;
-  final Link Function(String) linkBuilder;
-  final SubprocessLauncher launcher;
-  final Future<FantasyRepo> Function(FantasyRepoSettings, Directory)
+  final Future<FantasyRepo> Function(FantasyRepoSettings, String)
       buildGitRepoFrom;
+  final ResourceProvider resourceProvider;
+  final SubprocessLauncher launcher;
 
   FantasyWorkspaceDependencies(
-      {File Function(String) fileBuilder,
-      Directory Function(String) directoryBuilder,
-      Link Function(String) linkBuilder,
+      {ResourceProvider resourceProvider,
       SubprocessLauncher launcher,
-      Future<FantasyRepo> Function(FantasyRepoSettings, Directory)
+      Future<FantasyRepo> Function(FantasyRepoSettings, String)
           buildGitRepoFrom})
-      : fileBuilder = fileBuilder ?? ((s) => File(s)),
-        directoryBuilder = directoryBuilder ?? ((s) => Directory(s)),
-        linkBuilder = linkBuilder ?? ((s) => Link(s)),
+      : resourceProvider =
+            resourceProvider ?? PhysicalResourceProvider.INSTANCE,
         launcher = launcher, // Pass through to FantasyRepoDependencies.
         buildGitRepoFrom = buildGitRepoFrom ?? FantasyRepo.buildGitRepoFrom;
 }
@@ -88,7 +87,7 @@ abstract class FantasyWorkspaceImpl extends FantasyWorkspace {
     Directory repoRoot = Directory(path.canonicalize(
         path.join(workspaceRoot.path, _repoSubDir, repoSettings.name)));
     _repos[repoSettings.name] =
-        FantasyRepo.buildGitRepoFrom(repoSettings, repoRoot);
+        FantasyRepo.buildGitRepoFrom(repoSettings, repoRoot.path);
     return _repos[repoSettings.name];
   }
 }
@@ -103,12 +102,13 @@ class FantasyWorkspaceTopLevelDevDepsImpl extends FantasyWorkspaceImpl {
       : super._(workspaceRoot);
 
   static Future<FantasyWorkspace> buildFor(String topLevelPackage,
-      List<String> extraPackageNames, Directory workspaceRoot) async {
-    if (!await workspaceRoot.exists())
-      await workspaceRoot.create(recursive: true);
+      List<String> extraPackageNames, String workspaceRoot) async {
+    // TODO(jcollins-g): finish port
+    Directory workspaceRootDir = Directory(workspaceRoot);
+    await workspaceRootDir.create(recursive: true);
 
-    var workspace =
-        FantasyWorkspaceTopLevelDevDepsImpl._(topLevelPackage, workspaceRoot);
+    var workspace = FantasyWorkspaceTopLevelDevDepsImpl._(
+        topLevelPackage, workspaceRootDir);
     await Future.wait([
       for (var n in [topLevelPackage, ...extraPackageNames])
         workspace.addPackageNameToWorkspace(n)
@@ -125,14 +125,6 @@ class FantasyWorkspaceTopLevelDevDepsImpl extends FantasyWorkspaceImpl {
     FantasySubPackage fantasySubPackage =
         FantasySubPackage(packageSettings, containingRepo);
     subPackages[fantasySubPackage.name] = fantasySubPackage;
-
-    // Add a symlink to the top level directory.
-    Link packageSymlink =
-        Link(path.join(workspaceRoot.path, packageSettings.name));
-    if (!await packageSymlink.exists()) {
-      await packageSymlink.create(path.canonicalize(
-          path.join(containingRepo.repoRoot.path, packageSettings.subDir)));
-    }
 
     // TODO(jcollins-g): Add to .packages / package_config.json
     if (packageName == topLevelPackage) {

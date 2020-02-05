@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:io' as io;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:mockito/mockito.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo_impl.dart';
@@ -67,10 +68,10 @@ class FantasyRepoSettingsTest {
 
 @reflectiveTest
 class FantasyRepoE2ETest {
-  Directory tempDir;
+  io.Directory tempDir;
 
   setUp() async {
-    tempDir = await Directory.systemTemp.createTemp('FantasyRepoE2ETest');
+    tempDir = await io.Directory.systemTemp.createTemp('FantasyRepoE2ETest');
   }
 
   test_fantasyRepoE2ETest() async {
@@ -82,17 +83,18 @@ class FantasyRepoE2ETest {
     SubprocessLauncher launcher = SubprocessLauncher('FantasyRepoE2ETest');
     FantasyRepoDependencies fantasyRepoDependencies =
         FantasyRepoDependencies(launcher: launcher);
-    Directory origRepoDir = Directory(path.join(tempDir.path, 'origRepo'));
+    io.Directory origRepoDir =
+        io.Directory(path.join(tempDir.path, 'origRepo'));
 
     // Create and add a commit to origRepoDir that includes a file we should
     // check out, and others we shouldn't.
     await launcher.runStreamed('git', ['init', origRepoDir.path]);
-    File dotPackages = File(path.join(origRepoDir.path, '.packages'));
-    File pubspecLock = File(path.join(origRepoDir.path, 'pubspec.lock'));
-    File pubspecYaml = File(path.join(origRepoDir.path, 'pubspec.yaml'));
-    File packageConfigJson =
-        File(path.join(origRepoDir.path, '.dart_tool', 'package_config.json'));
-    List<File> allFiles = [
+    io.File dotPackages = io.File(path.join(origRepoDir.path, '.packages'));
+    io.File pubspecLock = io.File(path.join(origRepoDir.path, 'pubspec.lock'));
+    io.File pubspecYaml = io.File(path.join(origRepoDir.path, 'pubspec.yaml'));
+    io.File packageConfigJson = io.File(
+        path.join(origRepoDir.path, '.dart_tool', 'package_config.json'));
+    List<io.File> allFiles = [
       dotPackages,
       pubspecLock,
       pubspecYaml,
@@ -110,16 +112,16 @@ class FantasyRepoE2ETest {
 
     // Use the repo builder to clone this and verify that the right files are
     // checked out.
-    Directory repoRoot = Directory(path.join(tempDir.path, 'repoRoot'));
+    io.Directory repoRoot = io.Directory(path.join(tempDir.path, 'repoRoot'));
     await FantasyRepo.buildGitRepoFrom(
-        FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot,
+        FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot.path,
         fantasyRepoDependencies: fantasyRepoDependencies);
 
-    dotPackages = File(path.join(repoRoot.path, '.packages'));
-    pubspecLock = File(path.join(repoRoot.path, 'pubspec.lock'));
-    pubspecYaml = File(path.join(repoRoot.path, 'pubspec.yaml'));
+    dotPackages = io.File(path.join(repoRoot.path, '.packages'));
+    pubspecLock = io.File(path.join(repoRoot.path, 'pubspec.lock'));
+    pubspecYaml = io.File(path.join(repoRoot.path, 'pubspec.yaml'));
     packageConfigJson =
-        File(path.join(repoRoot.path, '.dart_tool', 'package_config.json'));
+        io.File(path.join(repoRoot.path, '.dart_tool', 'package_config.json'));
 
     expect(await dotPackages.exists(), isFalse);
     expect(await pubspecLock.exists(), isFalse);
@@ -127,7 +129,8 @@ class FantasyRepoE2ETest {
     expect(await packageConfigJson.exists(), isFalse);
 
     // Update the original repository.
-    File aNewFile = File(path.join(origRepoDir.path, 'hello_new_file_here'));
+    io.File aNewFile =
+        io.File(path.join(origRepoDir.path, 'hello_new_file_here'));
     await aNewFile.create(recursive: true);
     await launcher.runStreamed(
         'git', ['add', '-f', path.canonicalize(aNewFile.path)],
@@ -138,11 +141,10 @@ class FantasyRepoE2ETest {
     // Finally, use the repoBuilder to update a repository from head and verify
     // we did it right.
     await FantasyRepo.buildGitRepoFrom(
-        FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot,
+        FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot.path,
         fantasyRepoDependencies: fantasyRepoDependencies);
 
-    aNewFile = File(path.join(repoRoot.path, 'hello_new_file_here'));
-
+    aNewFile = io.File(path.join(repoRoot.path, 'hello_new_file_here'));
     expect(await dotPackages.exists(), isFalse);
     expect(await pubspecLock.exists(), isFalse);
     expect(await pubspecYaml.exists(), isTrue);
@@ -155,26 +157,22 @@ class FantasyRepoE2ETest {
 class FantasyRepoTest extends FilesystemTestBase {
   String parentPath;
   String repoPath;
-  MockDirectory repoDir;
-  MockDirectory parentDir;
+  Folder repoDir;
+  Folder parentDir;
 
   setUp() {
     super.setUp();
-    parentPath = 'parentdir';
-    repoPath = path.join(parentPath, 'subdir');
-    repoDir = directoryBuilder(repoPath);
-    parentDir = directoryBuilder('parentdir');
-    when(parentDir.exists()).thenAnswer((_) => Future.value(true));
-    when(repoDir.parent).thenReturn(parentDir);
-    when(repoDir.path).thenReturn(repoPath);
+    parentPath = convertPath('/parentdir');
+    repoPath = join(parentPath, 'subdir');
+    repoDir = resourceProvider.getFolder(repoPath);
+    parentDir = resourceProvider.getFolder(parentPath);
   }
 
   _setUpNewClone(String repoName) async {
     FantasyRepoSettings settings = FantasyRepoSettings.fromName(repoName);
-    when(repoDir.exists()).thenAnswer((_) => Future.value(false));
     FantasyRepoDependencies fantasyRepoDependencies = FantasyRepoDependencies(
-        launcher: mockLauncher, fileBuilder: fileBuilder);
-    await FantasyRepo.buildGitRepoFrom(settings, mockDirectories[repoPath],
+        launcher: mockLauncher, resourceProvider: resourceProvider);
+    await FantasyRepo.buildGitRepoFrom(settings, repoPath,
         fantasyRepoDependencies: fantasyRepoDependencies);
   }
 

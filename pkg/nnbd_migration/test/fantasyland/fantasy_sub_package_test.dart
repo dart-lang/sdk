@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
-import 'package:mockito/mockito.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
@@ -60,7 +58,7 @@ class FantasySubPackageSettingsTest {
 class FantasyRepoFake extends FantasyRepo {
   final String name;
   final FantasyRepoSettings repoSettings;
-  final Directory repoRoot;
+  final Folder repoRoot;
 
   FantasyRepoFake(this.repoSettings, this.repoRoot) : name = repoSettings.name;
 }
@@ -69,29 +67,28 @@ class FantasyRepoFake extends FantasyRepo {
 class FantasySubPackageTest extends FilesystemTestBase {
   FantasyRepoFake fantasyRepo;
   FantasySubPackage fantasySubPackage;
-  MockDirectory repoRoot;
-  MockFile pubspecYaml;
+  Folder repoRoot;
+  File pubspecYaml;
 
   setUp() {
     super.setUp();
-    repoRoot = directoryBuilder(path.join('workspace', 'repo_root'));
+    String repoRootPath = convertPath('/workspace/repo_root');
+    repoRoot = resourceProvider.getFolder(repoRootPath);
     fantasyRepo = FantasyRepoFake(
-        FantasyRepoSettings('unreal_repo', '', '', ''),
-        directoryBuilder(path.join('workspace', 'repo_root')));
+        FantasyRepoSettings('unreal_repo', '', '', ''), repoRoot);
     // subPackage 'unreal_package' at 'workspace_root/repo_root/unreal_package_dir'.
     fantasySubPackage = FantasySubPackage(
         FantasySubPackageSettings('unreal_package', fantasyRepo.repoSettings,
             subDir: 'unreal_package_dir'),
         fantasyRepo,
-        fileBuilder: fileBuilder);
+        resourceProvider: resourceProvider);
     // the pubspecYaml.
-    pubspecYaml = fileBuilder(path.join(
-        'workspace', 'repo_root', 'unreal_package_dir', 'pubspec.yaml'));
+    pubspecYaml = resourceProvider
+        .getFile(join(repoRootPath, 'unreal_package_dir', 'pubspec.yaml'));
   }
 
   test_recognizeAllDependencies() async {
-    when(pubspecYaml.exists()).thenAnswer((_) => Future.value(true));
-    when(pubspecYaml.readAsString()).thenAnswer((_) => Future.value('''
+    pubspecYaml.writeAsStringSync('''
       name: unreal_package
       version: 1.2.3
       dependencies:
@@ -104,38 +101,36 @@ class FantasySubPackageTest extends FilesystemTestBase {
       dev_dependencies:
         package5:
           version: any
-    '''));
+    ''');
     List<FantasySubPackageSettings> dependencies =
         await fantasySubPackage.getPackageAllDependencies();
     expect(dependencies.length, equals(4));
   }
 
   test_recognizePathSubdir() async {
-    when(pubspecYaml.exists()).thenAnswer((_) => Future.value(true));
-    when(pubspecYaml.readAsString()).thenAnswer((_) => Future.value('''
+    pubspecYaml.writeAsStringSync('''
       name: unreal_package
       version: 1.2.3
       dependencies:
         package2:
           path: correctly/enclosed
-    '''));
+    ''');
     List<FantasySubPackageSettings> dependencies =
         await fantasySubPackage.getPackageAllDependencies();
     expect(dependencies.first.name, equals('package2'));
     expect(dependencies.first.repoSettings.name, equals('unreal_repo'));
     expect(dependencies.first.subDir,
-        equals(path.join('unreal_package_dir', 'correctly', 'enclosed')));
+        equals(join('unreal_package_dir', 'correctly', 'enclosed')));
   }
 
   test_recognizeVersion() async {
-    when(pubspecYaml.exists()).thenAnswer((_) => Future.value(true));
-    when(pubspecYaml.readAsString()).thenAnswer((_) => Future.value('''
+    pubspecYaml.writeAsStringSync('''
       name: unreal_package
       version: 1.2.3
       dependencies:
         package3:
           version: '0.0.0 >= 1.0.0'
-    '''));
+    ''');
     List<FantasySubPackageSettings> dependencies =
         await fantasySubPackage.getPackageAllDependencies();
     expect(dependencies.first.name, equals('package3'));
@@ -145,14 +140,13 @@ class FantasySubPackageTest extends FilesystemTestBase {
 
   @assertFailingTest
   test_assertOnPathOutsidePackage() async {
-    when(pubspecYaml.exists()).thenAnswer((_) => Future.value(true));
-    when(pubspecYaml.readAsString()).thenAnswer((_) => Future.value('''
+    pubspecYaml.writeAsStringSync('''
       name: unreal_package
       version: 1.2.3
       dependencies:
         package2:
           path: ../incorrectly/enclosed
-    '''));
+    ''');
     await fantasySubPackage.getPackageAllDependencies();
   }
 }

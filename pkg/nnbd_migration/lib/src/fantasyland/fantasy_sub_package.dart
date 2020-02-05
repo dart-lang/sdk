@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
@@ -166,15 +166,17 @@ class FantasySubPackageSettings {
   /// [subDir] is resolved relative to [parent.packageRoot].
   factory FantasySubPackageSettings.fromNested(
       String name, FantasySubPackage parent, String subDir) {
+    var pathContext = parent.resourceProvider.pathContext;
     String nestedSubdir;
-    if (path.isRelative(subDir)) {
-      nestedSubdir = path.normalize(path.join(parent.packageRoot.path, subDir));
+    if (pathContext.isRelative(subDir)) {
+      nestedSubdir = pathContext
+          .normalize(pathContext.join(parent.packageRoot.path, subDir));
     } else {
-      nestedSubdir = path.normalize(subDir);
+      nestedSubdir = pathContext.normalize(subDir);
     }
-    assert(path.isWithin(parent.packageRoot.path, nestedSubdir));
+    assert(pathContext.isWithin(parent.packageRoot.path, nestedSubdir));
     return FantasySubPackageSettings(name, parent.containingRepo.repoSettings,
-        subDir: path.relative(nestedSubdir,
+        subDir: pathContext.relative(nestedSubdir,
             from: parent.containingRepo.repoRoot.path));
   }
 
@@ -215,15 +217,17 @@ class _AccumulateAllDependenciesVisitor<T>
 }
 
 class FantasySubPackageDependencies {
-  final File Function(String) fileBuilder;
+  final ResourceProvider resourceProvider;
+  File Function(String) get fileBuilder => resourceProvider.getFile;
 
-  FantasySubPackageDependencies({File Function(String) fileBuilder})
-      : fileBuilder = fileBuilder ?? ((s) => File(s));
+  FantasySubPackageDependencies({ResourceProvider resourceProvider})
+      : resourceProvider =
+            resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   factory FantasySubPackageDependencies.fromWorkspaceDependencies(
       FantasyWorkspaceDependencies workspaceDependencies) {
     return FantasySubPackageDependencies(
-        fileBuilder: workspaceDependencies.fileBuilder);
+        resourceProvider: workspaceDependencies.resourceProvider);
   }
 }
 
@@ -235,22 +239,26 @@ class FantasySubPackage {
   final FantasyRepo containingRepo;
   final String name;
   final FantasySubPackageSettings packageSettings;
-  final File Function(String) fileBuilder;
+  final ResourceProvider resourceProvider;
 
   FantasySubPackage(this.packageSettings, this.containingRepo,
-      {this.fileBuilder})
-      : name = packageSettings.name;
+      {ResourceProvider resourceProvider})
+      : name = packageSettings.name,
+        resourceProvider =
+            resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
-  Directory _packageRoot;
-  Directory get packageRoot => _packageRoot ??= Directory(path.normalize(
-      path.join(containingRepo.repoRoot.path, packageSettings.subDir)));
+  Folder _packageRoot;
+  Folder get packageRoot => _packageRoot ??= resourceProvider.getFolder(
+      resourceProvider.pathContext.normalize(resourceProvider.pathContext
+          .join(containingRepo.repoRoot.path, packageSettings.subDir)));
 
   Future<void> _acceptPubspecVisitor<T>(
       PubspecVisitor<T> pubspecVisitor) async {
-    File pubspecYaml = fileBuilder(path.join(packageRoot.path, 'pubspec.yaml'));
-    if (!await pubspecYaml.exists()) return;
-    Pubspec pubspec = Pubspec.parse(await pubspecYaml.readAsString(),
-        sourceUrl: path.toUri(pubspecYaml.path));
+    File pubspecYaml = resourceProvider.getFile(
+        resourceProvider.pathContext.join(packageRoot.path, 'pubspec.yaml'));
+    if (!pubspecYaml.exists) return;
+    Pubspec pubspec = Pubspec.parse(pubspecYaml.readAsStringSync(),
+        sourceUrl: resourceProvider.pathContext.toUri(pubspecYaml.path));
     pubspec.accept(pubspecVisitor);
   }
 

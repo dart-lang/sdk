@@ -2,24 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+import 'dart:io' show ProcessException;
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
-import 'package:path/path.dart' as path;
 
 const _httpGithub = 'https://github.com';
 
 class FantasyRepoDependencies {
-  final File Function(String) fileBuilder;
+  final ResourceProvider resourceProvider;
   final SubprocessLauncher launcher;
 
   FantasyRepoDependencies(
-      {String name,
-      File Function(String) fileBuilder,
+      {ResourceProvider resourceProvider,
+      String name,
       SubprocessLauncher launcher})
-      : fileBuilder = fileBuilder ?? ((s) => File(s)),
+      : resourceProvider =
+            resourceProvider ?? PhysicalResourceProvider.INSTANCE,
         launcher = launcher ??
             SubprocessLauncher(
                 'FantasyRepo.${name == null ? "buildFrom" : "buildFrom-$name"}');
@@ -27,7 +29,7 @@ class FantasyRepoDependencies {
   factory FantasyRepoDependencies.fromWorkspaceDependencies(
       FantasyWorkspaceDependencies workspaceDependencies) {
     return FantasyRepoDependencies(
-        fileBuilder: workspaceDependencies.fileBuilder,
+        resourceProvider: workspaceDependencies.resourceProvider,
         launcher: workspaceDependencies.launcher);
   }
 }
@@ -37,10 +39,11 @@ class FantasyRepoDependencies {
 class FantasyRepoGitImpl extends FantasyRepo {
   final String name;
   final FantasyRepoSettings repoSettings;
-  final Directory repoRoot;
+  final String _repoRootPath;
+  Folder get repoRoot => _external.resourceProvider.getFolder(_repoRootPath);
   final FantasyRepoDependencies _external;
 
-  FantasyRepoGitImpl(this.repoSettings, this.repoRoot,
+  FantasyRepoGitImpl(this.repoSettings, this._repoRootPath,
       {FantasyRepoDependencies fantasyRepoDependencies})
       : name = repoSettings.name,
         _external = fantasyRepoDependencies ??
@@ -54,7 +57,7 @@ class FantasyRepoGitImpl extends FantasyRepo {
   /// not clean up filesystem state.
   Future<void> init() async {
     assert(_isInitialized == false);
-    if (await repoRoot.exists()) {
+    if (repoRoot.exists) {
       await _update(_external.launcher);
       // TODO(jcollins-g): handle "update" of pinned revision edge case
     } else {
@@ -70,8 +73,8 @@ class FantasyRepoGitImpl extends FantasyRepo {
   /// initializing.
   Future<void> _clone(SubprocessLauncher launcher) async {
     assert(_isInitialized == false);
-    if (!await repoRoot.parent.exists()) {
-      await repoRoot.parent.create(recursive: true);
+    if (!repoRoot.parent.exists) {
+      await repoRoot.parent.create();
     }
     await launcher.runStreamed('git', ['init', repoRoot.path]);
     await launcher.runStreamed(
@@ -99,9 +102,10 @@ class FantasyRepoGitImpl extends FantasyRepo {
     await launcher.runStreamed('git', ['config', 'core.sparsecheckout', 'true'],
         workingDirectory: repoRoot.path);
 
-    File sparseCheckout = _external.fileBuilder(
-        path.join(repoRoot.path, '.git', 'info', 'sparse-checkout'));
-    await sparseCheckout.writeAsString([
+    File sparseCheckout = _external.resourceProvider.getFile(_external
+        .resourceProvider.pathContext
+        .join(repoRoot.path, '.git', 'info', 'sparse-checkout'));
+    sparseCheckout.writeAsStringSync([
       '**\n',
       '!**/.packages\n',
       '!**/pubspec.lock\n',
