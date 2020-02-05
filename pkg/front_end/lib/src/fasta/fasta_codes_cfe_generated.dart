@@ -1523,6 +1523,42 @@ Message _withArgumentsInitializingFormalTypeMismatch(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(
+            String string, DartType _type, bool isNonNullableByDefault)>
+    templateInternalProblemUnsupportedNullability = const Template<
+            Message Function(
+                String string, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Unsupported nullability value '#string' on type '#type'.""",
+        withArguments: _withArgumentsInternalProblemUnsupportedNullability);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String string, DartType _type, bool isNonNullableByDefault)>
+    codeInternalProblemUnsupportedNullability = const Code<
+            Message Function(
+                String string, DartType _type, bool isNonNullableByDefault)>(
+        "InternalProblemUnsupportedNullability",
+        templateInternalProblemUnsupportedNullability,
+        severity: Severity.internalProblem);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsInternalProblemUnsupportedNullability(
+    String string, DartType _type, bool isNonNullableByDefault) {
+  if (string.isEmpty) throw 'No string provided';
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeInternalProblemUnsupportedNullability,
+      message:
+          """Unsupported nullability value '${string}' on type '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'string': string, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
             DartType _type, DartType _type2, bool isNonNullableByDefault)>
     templateInvalidAssignmentError = const Template<
             Message Function(

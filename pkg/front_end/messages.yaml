@@ -1704,6 +1704,10 @@ InternalProblemUnfinishedTypeVariable:
   template: "Unfinished type variable '#name' found in non-source library '#uri'."
   severity: INTERNAL_PROBLEM
 
+InternalProblemUnsupportedNullability:
+  template: "Unsupported nullability value '#string' on type '#type'."
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: IGNORED
