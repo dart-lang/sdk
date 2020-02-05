@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/constant/value.dart';
 
 import '../analyzer.dart';
 
@@ -82,23 +81,16 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    final typeProvider = context.typeProvider;
-
-    Map<DartObjectImpl, Expression> values =
-        HashMap<DartObjectImpl, Expression>(
-            equals: (DartObjectImpl key1, DartObjectImpl key2) {
-      final equals = key1.isIdentical(typeProvider, key2);
-      return equals.isBool && equals.toBoolValue();
-    });
+    var values = <DartObject, Expression>{};
 
     for (var member in node.members) {
       if (member is SwitchCase) {
         final expression = member.expression;
 
         final result = context.evaluateConstant(expression);
-        final value = result.value as DartObjectImpl;
+        final value = result.value;
 
-        if (value == null) {
+        if (value == null || !value.hasKnownValue) {
           continue;
         }
 
