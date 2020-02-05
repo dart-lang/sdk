@@ -52,14 +52,9 @@ Abi TargetAbi() {
        (defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS) ||                \
         defined(TARGET_OS_ANDROID))) ||                                        \
     (defined(TARGET_ARCH_ARM) && defined(TARGET_OS_IOS))
-  static_assert(
-      CallingConventions::kFieldAlignment == kAlignedToValueSizeBut8AlignedTo4,
-      "FFI transformation alignment");
   return Abi::kWordSize32Align32;
 #elif defined(TARGET_ARCH_IA32) && defined(TARGET_OS_WINDOWS) ||               \
     defined(TARGET_ARCH_ARM)
-  static_assert(CallingConventions::kFieldAlignment == kAlignedToValueSize,
-                "FFI transformation alignment");
   return Abi::kWordSize32Align64;
 #else
 #error "Unknown platform. Please add alignment requirements for ABI."
