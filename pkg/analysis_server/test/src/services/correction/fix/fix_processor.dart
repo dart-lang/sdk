@@ -35,7 +35,6 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
 
   @override
   Future<void> resolveTestUnit(String code) async {
-    createAnalysisOptionsFile(lints: [lintCode]);
     lintOffset = code.indexOf(lintMarker);
     if (lintOffset < 0) {
       return super.resolveTestUnit(code);
@@ -43,6 +42,12 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
     var endOffset = lintOffset + lintMarker.length;
     code = code.substring(0, lintOffset) + code.substring(endOffset);
     return super.resolveTestUnit(code);
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    createAnalysisOptionsFile(lints: [lintCode]);
   }
 
   /// Find the error that is to be fixed by computing the errors in the file,
