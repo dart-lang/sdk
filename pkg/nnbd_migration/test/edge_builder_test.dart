@@ -184,7 +184,8 @@ class AssignmentCheckerTest extends Object
     var t1 = function(object());
     var t2 = function(object());
     assign(t1, t2, hard: true);
-    assertEdge(t1.returnType.node, t2.returnType.node, hard: false);
+    assertEdge(t1.returnType.node, t2.returnType.node,
+        hard: false, checkable: false);
   }
 
   void test_function_void_to_function_object() {
@@ -193,7 +194,8 @@ class AssignmentCheckerTest extends Object
     var t1 = function(void_);
     var t2 = function(object());
     assign(t1, t2, hard: true);
-    assertEdge(t1.returnType.node, t2.returnType.node, hard: false);
+    assertEdge(t1.returnType.node, t2.returnType.node,
+        hard: false, checkable: false);
   }
 
   void test_future_int_to_future_or_int() {
@@ -2685,7 +2687,7 @@ class C {
     var fieldType = variables.decoratedElementType(findElement.field('f'));
     assertEdge(ctorParamType.node, fieldType.node, hard: true);
     assertEdge(ctorParamType.returnType.node, fieldType.returnType.node,
-        hard: false);
+        hard: false, checkable: false);
     assertEdge(fieldType.positionalParameters[0].node,
         ctorParamType.positionalParameters[0].node,
         hard: false, checkable: false);
@@ -5769,7 +5771,8 @@ int Function(int) g(C c) => c.f;
     var fType = variables.decoratedElementType(findElement.method('f'));
     var gReturnType =
         variables.decoratedElementType(findElement.function('g')).returnType;
-    assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
+    assertEdge(fType.returnType.node, gReturnType.returnType.node,
+        hard: false, checkable: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
         hard: false, checkable: false);
@@ -6194,7 +6197,7 @@ int/*1*/ Function() f(int/*2*/ Function() x) => x;
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int2.node, int1.node, hard: false);
+    assertEdge(int2.node, int1.node, hard: false, checkable: false);
   }
 
   Future<void> test_return_implicit_null() async {
@@ -6449,7 +6452,7 @@ main() {
 
     assertEdge(decoratedTypeAnnotation('int f').node,
         decoratedTypeAnnotation('int Function').node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_simpleIdentifier_local() async {
@@ -6473,7 +6476,8 @@ int Function(int) g() => f;
     var fType = variables.decoratedElementType(findElement.function('f'));
     var gReturnType =
         variables.decoratedElementType(findElement.function('g')).returnType;
-    assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
+    assertEdge(fType.returnType.node, gReturnType.returnType.node,
+        hard: false, checkable: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
         hard: false, checkable: false);
@@ -6489,7 +6493,8 @@ abstract class C {
     var fType = variables.decoratedElementType(findElement.method('f'));
     var gReturnType =
         variables.decoratedElementType(findElement.method('g')).returnType;
-    assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
+    assertEdge(fType.returnType.node, gReturnType.returnType.node,
+        hard: false, checkable: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
         hard: false, checkable: false);

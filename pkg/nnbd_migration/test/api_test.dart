@@ -1118,6 +1118,37 @@ int f(int i) {
     await _checkSingleFileChanges(content, expected, removeViaComments: true);
   }
 
+  Future<void> test_do_not_propagate_non_null_intent_into_callback() async {
+    var content = '''
+void f(int/*!*/ Function(int) callback) {
+  callback(null);
+}
+int g(int x) => x;
+void test() {
+  f(g);
+}
+''';
+    // Even though `g` is passed to `f`'s `callback` parameter, non-null intent
+    // is not allowed to propagate backward from the return type of `callback`
+    // to the return type of `g`, because `g` might be used elsewhere in a
+    // context where it's important for its return type to be nullable.  So no
+    // null check is added to `g`, and instead a cast (which is guaranteed to
+    // fail) is added at the site of the call to `f`.
+    //
+    // Note: https://github.com/dart-lang/sdk/issues/40471 tracks the fact that
+    // we ought to alert the user to the presence of such casts.
+    var expected = '''
+void f(int/*!*/ Function(int?) callback) {
+  callback(null);
+}
+int? g(int? x) => x;
+void test() {
+  f(g as int Function(int?));
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_downcast_dynamic_function_to_functionType() async {
     var content = '''
 void f(Function a) {
@@ -3707,6 +3738,31 @@ int/*!*/ f(List<int/*?*/>/*?*/ x) {
 int/*!*/ f(List<int?/*?*/>?/*?*/ x) {
   x ??= [0];
   return x[0]!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_propagate_non_null_intent_into_function_literal() async {
+    var content = '''
+void f(int/*!*/ Function(int) callback) {
+  callback(null);
+}
+void test() {
+  f((int x) => x);
+}
+''';
+    // Since the function literal `(int x) => x` is created right here at the
+    // point where it's passed to `f`'s `callback` parameter, non-null intent is
+    // allowed to propagate backward from the return type of `callback` to the
+    // return type of the function literal.  As a result, the reference to `x`
+    // in the function literal is null checked.
+    var expected = '''
+void f(int/*!*/ Function(int?) callback) {
+  callback(null);
+}
+void test() {
+  f((int? x) => x!);
 }
 ''';
     await _checkSingleFileChanges(content, expected);
