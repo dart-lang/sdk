@@ -32,7 +32,7 @@ ${parser.usage}''');
   exit(1);
 }
 
-const resultsPerMessage = 50;
+const resultsPerMessage = 100;
 const postUrl =
     'https://pubsub.googleapis.com/v1/projects/dart-ci/topics/results:publish';
 
