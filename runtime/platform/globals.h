@@ -374,19 +374,6 @@ typedef simd128_value_t fpu_register_t;
 #define TARGET_ARCH_IS_64_BIT 1
 #endif
 
-// Determine whether HOST_ARCH equals TARGET_ARCH.
-#if defined(HOST_ARCH_ARM) && defined(TARGET_ARCH_ARM)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#elif defined(HOST_ARCH_ARM64) && defined(TARGET_ARCH_ARM64)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#elif defined(HOST_ARCH_IA32) && defined(TARGET_ARCH_IA32)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#elif defined(HOST_ARCH_X64) && defined(TARGET_ARCH_X64)
-#define HOST_ARCH_EQUALS_TARGET_ARCH 1
-#else
-// HOST_ARCH != TARGET_ARCH.
-#endif
-
 #if !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_FUCHSIA) &&              \
     !defined(TARGET_OS_MACOS_IOS) && !defined(TARGET_OS_LINUX) &&              \
     !defined(TARGET_OS_MACOS) && !defined(TARGET_OS_WINDOWS)

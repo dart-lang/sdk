@@ -69,16 +69,6 @@ class RegisterNames {
     ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
     return fpu_reg_names[reg];
   }
-#if !defined(HOST_ARCH_EQUALS_TARGET_ARCH)
-  static const char* RegisterName(host::Register reg) {
-    ASSERT((0 <= reg) && (reg < host::kNumberOfCpuRegisters));
-    return host::cpu_reg_names[reg];
-  }
-  static const char* FpuRegisterName(host::FpuRegister reg) {
-    ASSERT((0 <= reg) && (reg < host::kNumberOfFpuRegisters));
-    return host::fpu_reg_names[reg];
-  }
-#endif  // !defined(HOST_ARCH_EQUALS_TARGET_ARCH)
 };
 
 static constexpr bool IsArgumentRegister(Register reg) {
