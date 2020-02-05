@@ -26,8 +26,8 @@ class NativeStackLocation;
 // value locations in all native ABIs that the FFI supports.
 //
 // NativeLocations contain two NativeTypes.
-// * The payload representation.
-// * The container representation, equal to or larger than the payload. If the
+// * The payload type.
+// * The container type, equal to or larger than the payload. If the
 //   container is larger than the payload, the upper bits are defined by sign
 //   or zero extension.
 //
@@ -42,7 +42,7 @@ class NativeStackLocation;
 //
 // NativeLocations cannot express the following dart::Locations:
 // * No PairLocations. Instead, NativeRegistersLocations can have multiple
-//   registers, and NativeStackLocations can have arbitrary representations.
+//   registers, and NativeStackLocations can have arbitrary types.
 // * No ConstantLocations.
 //
 // NativeLocation does not satisfy the invariant of Location: bitwise
@@ -58,7 +58,7 @@ class NativeLocation : public ZoneAllocated {
                                           intptr_t index,
                                           Zone* zone);
 
-  // The representation of the data at this location.
+  // The type of the data at this location.
   const NativeType& payload_type() const { return payload_type_; }
 
   // The location container size, possibly larger than data.
@@ -69,9 +69,14 @@ class NativeLocation : public ZoneAllocated {
   // uint32.
   const NativeType& container_type() const { return container_type_; }
 
-  virtual NativeLocation& WithOtherRep(const NativeType& new_payload_type,
-                                       const NativeType& new_container_type,
-                                       Zone* zone) const = 0;
+  virtual NativeLocation& WithOtherNativeType(
+      const NativeType& new_payload_type,
+      const NativeType& new_container_type,
+      Zone* zone) const = 0;
+
+#if defined(TARGET_ARCH_ARM)
+  const NativeLocation& WidenToQFpuRegister(Zone* zone) const;
+#endif  // defined(TARGET_ARCH_ARM)
 
   NativeLocation& WidenTo4Bytes(Zone* zone) const;
 
@@ -97,7 +102,7 @@ class NativeLocation : public ZoneAllocated {
     UNREACHABLE();
   }
 
-  // Equality of location, ignores the payload and container representations.
+  // Equality of location, ignores the payload and container native types.
   virtual bool Equals(const NativeLocation& other) const { UNREACHABLE(); }
 
   virtual ~NativeLocation() {}
@@ -142,7 +147,7 @@ class NativeRegistersLocation : public NativeLocation {
   }
   virtual ~NativeRegistersLocation() {}
 
-  virtual NativeRegistersLocation& WithOtherRep(
+  virtual NativeRegistersLocation& WithOtherNativeType(
       const NativeType& new_payload_type,
       const NativeType& new_container_type,
       Zone* zone) const {
@@ -170,42 +175,88 @@ class NativeRegistersLocation : public NativeLocation {
   DISALLOW_COPY_AND_ASSIGN(NativeRegistersLocation);
 };
 
+enum FpuRegisterKind {
+  kQuadFpuReg,    // 16 bytes
+  kDoubleFpuReg,  //  8 bytes, a double
+  kSingleFpuReg   //  4 bytes, a float
+};
+
+intptr_t SizeFromFpuRegisterKind(FpuRegisterKind kind);
+FpuRegisterKind FpuRegisterKindFromSize(intptr_t size_in_bytes);
+
 class NativeFpuRegistersLocation : public NativeLocation {
  public:
   NativeFpuRegistersLocation(const NativeType& payload_type,
                              const NativeType& container_type,
+                             FpuRegisterKind fpu_reg_kind,
+                             intptr_t fpu_register)
+      : NativeLocation(payload_type, container_type),
+        fpu_reg_kind_(fpu_reg_kind),
+        fpu_reg_(fpu_register) {}
+  NativeFpuRegistersLocation(const NativeType& payload_type,
+                             const NativeType& container_type,
                              FpuRegister fpu_register)
-      : NativeLocation(payload_type, container_type), fpu_reg_(fpu_register) {
-    ASSERT(container_type.IsFloat());
-    // Currently we do not store ints in floating point registers.
-    ASSERT(container_type.Equals(payload_type));
-  }
+      : NativeLocation(payload_type, container_type),
+        fpu_reg_kind_(kQuadFpuReg),
+        fpu_reg_(fpu_register) {}
+#if defined(TARGET_ARCH_ARM)
+  NativeFpuRegistersLocation(const NativeType& payload_type,
+                             const NativeType& container_type,
+                             DRegister fpu_register)
+      : NativeLocation(payload_type, container_type),
+        fpu_reg_kind_(kDoubleFpuReg),
+        fpu_reg_(fpu_register) {}
+  NativeFpuRegistersLocation(const NativeType& payload_type,
+                             const NativeType& container_type,
+                             SRegister fpu_register)
+      : NativeLocation(payload_type, container_type),
+        fpu_reg_kind_(kSingleFpuReg),
+        fpu_reg_(fpu_register) {}
+#endif  // defined(TARGET_ARCH_ARM)
   virtual ~NativeFpuRegistersLocation() {}
 
-  virtual NativeFpuRegistersLocation& WithOtherRep(
+  virtual NativeFpuRegistersLocation& WithOtherNativeType(
       const NativeType& new_payload_type,
       const NativeType& new_container_type,
       Zone* zone) const {
-    return *new (zone) NativeFpuRegistersLocation(new_payload_type,
-                                                  new_container_type, fpu_reg_);
+    return *new (zone) NativeFpuRegistersLocation(
+        new_payload_type, new_container_type, fpu_reg_kind_, fpu_reg_);
   }
-
   virtual bool IsFpuRegisters() const { return true; }
-  virtual bool IsExpressibleAsLocation() const { return true; }
+  virtual bool IsExpressibleAsLocation() const {
+    return fpu_reg_kind_ == kQuadFpuReg;
+  }
   virtual Location AsLocation() const {
     ASSERT(IsExpressibleAsLocation());
-    return Location::FpuRegisterLocation(fpu_reg_);
+    return Location::FpuRegisterLocation(fpu_reg());
   }
-  FpuRegister fpu_reg() const { return fpu_reg_; }
+  FpuRegisterKind fpu_reg_kind() const { return fpu_reg_kind_; }
+  FpuRegister fpu_reg() const {
+    ASSERT(fpu_reg_kind_ == kQuadFpuReg);
+    return static_cast<FpuRegister>(fpu_reg_);
+  }
+#if defined(TARGET_ARCH_ARM)
+  DRegister fpu_d_reg() const {
+    ASSERT(fpu_reg_kind_ == kDoubleFpuReg);
+    return static_cast<DRegister>(fpu_reg_);
+  }
+  SRegister fpu_s_reg() const {
+    ASSERT(fpu_reg_kind_ == kSingleFpuReg);
+    return static_cast<SRegister>(fpu_reg_);
+  }
+  DRegister fpu_as_d_reg() const;
+  SRegister fpu_as_s_reg() const;
+
+  bool IsLowestBits() const;
+#endif  // defined(TARGET_ARCH_ARM)
 
   virtual void PrintTo(BufferFormatter* f) const;
 
   virtual bool Equals(const NativeLocation& other) const;
 
  private:
-  // TODO(36309): Support having multiple fpu registers.
-  FpuRegister fpu_reg_;
-
+  FpuRegisterKind fpu_reg_kind_;
+  intptr_t fpu_reg_;
   DISALLOW_COPY_AND_ASSIGN(NativeFpuRegistersLocation);
 };
 
@@ -220,7 +271,7 @@ class NativeStackLocation : public NativeLocation {
         offset_in_bytes_(offset_in_bytes) {}
   virtual ~NativeStackLocation() {}
 
-  virtual NativeStackLocation& WithOtherRep(
+  virtual NativeStackLocation& WithOtherNativeType(
       const NativeType& new_payload_type,
       const NativeType& new_container_type,
       Zone* zone) const {

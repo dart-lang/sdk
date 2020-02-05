@@ -253,6 +253,16 @@ static inline SRegister OddSRegisterOf(DRegister d) {
   return static_cast<SRegister>((d * 2) + 1);
 }
 
+static inline QRegister QRegisterOf(DRegister d) {
+  return static_cast<QRegister>(d / 2);
+}
+static inline QRegister QRegisterOf(SRegister s) {
+  return static_cast<QRegister>(s / 4);
+}
+static inline DRegister DRegisterOf(SRegister s) {
+  return static_cast<DRegister>(s / 2);
+}
+
 // Register aliases for floating point scratch registers.
 const QRegister QTMP = Q7;                     // Overlaps with DTMP, STMP.
 const DRegister DTMP = EvenDRegisterOf(QTMP);  // Overlaps with STMP.
@@ -267,6 +277,8 @@ const FpuRegister kNoFpuRegister = kNoQRegister;
 
 extern const char* cpu_reg_names[kNumberOfCpuRegisters];
 extern const char* fpu_reg_names[kNumberOfFpuRegisters];
+extern const char* fpu_s_reg_names[kNumberOfSRegisters];
+extern const char* fpu_d_reg_names[kNumberOfDRegisters];
 
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
@@ -346,22 +358,18 @@ class CallingConventions {
   static const Register ArgumentRegisters[];
   static const intptr_t kNumArgRegs = 4;
 
-  static const FpuRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters = 0;
-  static const intptr_t kNumFpuArgRegs = 0;
+
+  static const FpuRegister FpuArgumentRegisters[];
+  static const intptr_t kNumFpuArgRegs = 4;
+  static const DRegister FpuDArgumentRegisters[];
+  static const intptr_t kNumDFpuArgRegs = 8;
+  static const SRegister FpuSArgumentRegisters[];
+  static const intptr_t kNumSFpuArgRegs = 16;
 
   static constexpr bool kArgumentIntRegXorFpuReg = false;
 
   static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
-
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp"). Android and iOS always use the "softfp" calling convention, even
-  // when hardfp support is present.
-#if defined(TARGET_OS_MACOS_IOS) || defined(TARGET_OS_ANDROID)
-  static constexpr bool kAbiSoftFP = true;
-#else
-  static constexpr bool kAbiSoftFP = false;
-#endif
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =

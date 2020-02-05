@@ -2849,7 +2849,7 @@ Fragment FlowGraphBuilder::FfiConvertArgumentToDart(
   if (marshaller.IsPointer(arg_index)) {
     body += Box(kUnboxedFfiIntPtr);
     body += FfiPointerFromAddress(
-        Type::CheckedHandle(Z, marshaller.Type(arg_index)));
+        Type::CheckedHandle(Z, marshaller.CType(arg_index)));
   } else if (marshaller.IsVoid(arg_index)) {
     body += Drop();
     body += NullConstant();

@@ -21,12 +21,20 @@ namespace ffi {
 // Argument #0 is the function pointer.
 const intptr_t kNativeParamsStartAt = 1;
 
-bool RequiresSoftFpConversion(const NativeType& in) {
-  return CallingConventions::kAbiSoftFP && in.IsFloat();
+const intptr_t kNoFpuRegister = -1;
+
+// In Soft FP, floats and doubles get passed in integer registers.
+static bool SoftFpAbi() {
+#if defined(TARGET_ARCH_ARM)
+  return !TargetCPUFeatures::hardfp_supported();
+#else
+  return false;
+#endif
 }
 
-const NativeType& ConvertToSoftFp(const NativeType& rep, Zone* zone) {
-  if (RequiresSoftFpConversion(rep)) {
+// In Soft FP, floats are treated as 4 byte ints, and doubles as 8 byte ints.
+static const NativeType& ConvertIfSoftFp(const NativeType& rep, Zone* zone) {
+  if (SoftFpAbi() && rep.IsFloat()) {
     ASSERT(rep.IsFloat());
     if (rep.SizeInBytes() == 4) {
       return *new (zone) NativeFundamentalType(kInt32);
@@ -68,19 +76,31 @@ class ArgumentAllocator : public ValueObject {
   explicit ArgumentAllocator(Zone* zone) : zone_(zone) {}
 
   const NativeLocation& AllocateArgument(const NativeType& payload_type) {
-    const auto& payload_type_softfp = ConvertToSoftFp(payload_type, zone_);
-    if (payload_type_softfp.IsFloat()) {
-      if (fpu_regs_used < CallingConventions::kNumFpuArgRegs) {
-        return AllocateFpuRegister(payload_type);
+    const auto& payload_type_converted = ConvertIfSoftFp(payload_type, zone_);
+    if (payload_type_converted.IsFloat()) {
+      const auto kind = FpuRegKind(payload_type);
+      const intptr_t reg_index = FirstFreeFpuRegisterIndex(kind);
+      if (reg_index != kNoFpuRegister) {
+        AllocateFpuRegisterAtIndex(kind, reg_index);
+        if (CallingConventions::kArgumentIntRegXorFpuReg) {
+          cpu_regs_used++;
+        }
+        return *new (zone_) NativeFpuRegistersLocation(
+            payload_type, payload_type, kind, reg_index);
+      } else {
+        BlockAllFpuRegisters();
+        if (CallingConventions::kArgumentIntRegXorFpuReg) {
+          ASSERT(cpu_regs_used == CallingConventions::kNumArgRegs);
+        }
       }
     } else {
-      ASSERT(payload_type_softfp.IsInt());
+      ASSERT(payload_type_converted.IsInt());
       // Some calling conventions require the callee to make the lowest 32 bits
       // in registers non-garbage.
       const auto& container_type =
           CallingConventions::kArgumentRegisterExtension == kExtendedTo4
-              ? payload_type_softfp.WidenTo4Bytes(zone_)
-              : payload_type_softfp;
+              ? payload_type_converted.WidenTo4Bytes(zone_)
+              : payload_type_converted;
       if (target::kWordSize == 4 && payload_type.SizeInBytes() == 8) {
         if (CallingConventions::kArgumentRegisterAlignment ==
             kAlignedToWordSizeBut8AlignedTo8) {
@@ -104,27 +124,22 @@ class ArgumentAllocator : public ValueObject {
   }
 
  private:
-  NativeLocation& AllocateFpuRegister(const NativeType& payload_type) {
-    ASSERT(fpu_regs_used < CallingConventions::kNumFpuArgRegs);
-
-    NativeLocation& result = *new (zone_) NativeFpuRegistersLocation(
-        payload_type, payload_type,
-        CallingConventions::FpuArgumentRegisters[fpu_regs_used]);
-    fpu_regs_used++;
-    if (CallingConventions::kArgumentIntRegXorFpuReg) {
-      cpu_regs_used++;
-    }
-    return result;
+  static FpuRegisterKind FpuRegKind(const NativeType& payload_type) {
+#if defined(TARGET_ARCH_ARM)
+    return FpuRegisterKindFromSize(payload_type.SizeInBytes());
+#else
+    return kQuadFpuReg;
+#endif
   }
 
   Register AllocateCpuRegister() {
     ASSERT(cpu_regs_used < CallingConventions::kNumArgRegs);
 
     const auto result = CallingConventions::ArgumentRegisters[cpu_regs_used];
-    cpu_regs_used++;
     if (CallingConventions::kArgumentIntRegXorFpuReg) {
-      fpu_regs_used++;
+      AllocateFpuRegisterAtIndex(kQuadFpuReg, cpu_regs_used);
     }
+    cpu_regs_used++;
     return result;
   }
 
@@ -148,8 +163,62 @@ class ArgumentAllocator : public ValueObject {
     stack_height_in_bytes = Utils::RoundUp(stack_height_in_bytes, alignment);
   }
 
+  int NumFpuRegisters(FpuRegisterKind kind) {
+#if defined(TARGET_ARCH_ARM)
+    if (SoftFpAbi()) return 0;
+    if (kind == kSingleFpuReg) return CallingConventions::kNumSFpuArgRegs;
+    if (kind == kDoubleFpuReg) return CallingConventions::kNumDFpuArgRegs;
+#endif  // defined(TARGET_ARCH_ARM)
+    if (kind == kQuadFpuReg) return CallingConventions::kNumFpuArgRegs;
+    UNREACHABLE();
+  }
+
+  // If no register is free, returns -1.
+  int FirstFreeFpuRegisterIndex(FpuRegisterKind kind) {
+    const intptr_t size = SizeFromFpuRegisterKind(kind) / 4;
+    ASSERT(size == 1 || size == 2 || size == 4);
+    if (fpu_reg_parts_used == -1) return kNoFpuRegister;
+    const intptr_t mask = (1 << size) - 1;
+    intptr_t index = 0;
+    while (index < NumFpuRegisters(kind)) {
+      const intptr_t mask_shifted = mask << (index * size);
+      if ((fpu_reg_parts_used & mask_shifted) == 0) {
+        return index;
+      }
+      index++;
+    }
+    return kNoFpuRegister;
+  }
+
+  void AllocateFpuRegisterAtIndex(FpuRegisterKind kind, int index) {
+    const intptr_t size = SizeFromFpuRegisterKind(kind) / 4;
+    ASSERT(size == 1 || size == 2 || size == 4);
+    const intptr_t mask = (1 << size) - 1;
+    const intptr_t mask_shifted = (mask << (index * size));
+    ASSERT((mask_shifted & fpu_reg_parts_used) == 0);
+    fpu_reg_parts_used |= mask_shifted;
+  }
+
+  // > The back-filling continues only so long as no VFP CPRC has been
+  // > allocated to a slot on the stack.
+  // Procedure Call Standard for the Arm Architecture, Release 2019Q1.1
+  // Chapter 7.1 page 28. https://developer.arm.com/docs/ihi0042/h
+  //
+  // Irrelevant on Android and iOS, as those are both SoftFP.
+  // > For floating-point arguments, the Base Standard variant of the
+  // > Procedure Call Standard is used. In this variant, floating-point
+  // > (and vector) arguments are passed in general purpose registers
+  // > (GPRs) instead of in VFP registers)
+  // https://developer.apple.com/library/archive/documentation/Xcode/Conceptual/iPhoneOSABIReference/Articles/ARMv6FunctionCallingConventions.html#//apple_ref/doc/uid/TP40009021-SW1
+  // https://developer.apple.com/library/archive/documentation/Xcode/Conceptual/iPhoneOSABIReference/Articles/ARMv7FunctionCallingConventions.html#//apple_ref/doc/uid/TP40009022-SW1
+  void BlockAllFpuRegisters() {
+    // Set all bits to 1.
+    fpu_reg_parts_used = -1;
+  }
+
   intptr_t cpu_regs_used = 0;
-  intptr_t fpu_regs_used = 0;
+  // Every bit denotes 32 bits of FPU registers.
+  intptr_t fpu_reg_parts_used = 0;
   intptr_t stack_height_in_bytes = 0;
   Zone* zone_;
 };
@@ -173,11 +242,11 @@ static NativeLocations& ArgumentLocations(
 // Location for the result of a C signature function.
 static NativeLocation& ResultLocation(const NativeType& payload_type,
                                       Zone* zone) {
-  const auto& payload_type_softfp = ConvertToSoftFp(payload_type, zone);
+  const auto& payload_type_converted = ConvertIfSoftFp(payload_type, zone);
   const auto& container_type =
       CallingConventions::kArgumentRegisterExtension == kExtendedTo4
-          ? payload_type_softfp.WidenTo4Bytes(zone)
-          : payload_type_softfp;
+          ? payload_type_converted.WidenTo4Bytes(zone)
+          : payload_type_converted;
   if (container_type.IsFloat()) {
     return *new (zone) NativeFpuRegistersLocation(
         payload_type, container_type, CallingConventions::kReturnFpuReg);
@@ -212,7 +281,7 @@ intptr_t NativeCallingConvention::num_args() const {
   return c_signature_.num_fixed_parameters() - kNativeParamsStartAt;
 }
 
-RawAbstractType* NativeCallingConvention::Type(intptr_t arg_index) const {
+RawAbstractType* NativeCallingConvention::CType(intptr_t arg_index) const {
   if (arg_index == kResultIndex) {
     return c_signature_.result_type();
   }
@@ -222,7 +291,7 @@ RawAbstractType* NativeCallingConvention::Type(intptr_t arg_index) const {
 }
 
 intptr_t NativeCallingConvention::StackTopInBytes() const {
-  intptr_t num_arguments = arg_locs_.length();
+  const intptr_t num_arguments = arg_locs_.length();
   intptr_t max_height_in_bytes = 0;
   for (intptr_t i = 0; i < num_arguments; i++) {
     if (Location(i).IsStack()) {

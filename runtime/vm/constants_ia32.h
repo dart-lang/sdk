@@ -150,10 +150,6 @@ class CallingConventions {
 
   static const bool kArgumentIntRegXorFpuReg = false;
 
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp").
-  static constexpr bool kAbiSoftFP = false;
-
   static constexpr Register kReturnReg = EAX;
   static constexpr Register kSecondReturnReg = EDX;
 

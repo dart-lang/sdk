@@ -2522,20 +2522,21 @@ void FlowGraphCompiler::EmitNativeMove(
         src_container_size >= dst_container_size) {
       // The upper bits of the source are already properly sign or zero
       // extended, so just copy the required amount of bits.
-      return EmitNativeMove(
-          destination.WithOtherRep(dst_container_type, dst_container_type,
-                                   zone_),
-          source.WithOtherRep(dst_container_type, dst_container_type, zone_),
-          temp);
+      return EmitNativeMove(destination.WithOtherNativeType(
+                                dst_container_type, dst_container_type, zone_),
+                            source.WithOtherNativeType(
+                                dst_container_type, dst_container_type, zone_),
+                            temp);
     }
     if (src_payload_size >= dst_payload_size &&
         dst_container_size > dst_payload_size) {
       // The upper bits of the source are not properly sign or zero extended
       // to be copied to the target, so regard the source as smaller.
       return EmitNativeMove(
-          destination.WithOtherRep(dst_container_type, dst_container_type,
-                                   zone_),
-          source.WithOtherRep(dst_payload_type, dst_payload_type, zone_), temp);
+          destination.WithOtherNativeType(dst_container_type,
+                                          dst_container_type, zone_),
+          source.WithOtherNativeType(dst_payload_type, dst_payload_type, zone_),
+          temp);
     }
     UNREACHABLE();
   }
@@ -2578,7 +2579,7 @@ void FlowGraphCompiler::EmitNativeMove(
   if (sign_or_zero_extend && destination.IsStack()) {
     ASSERT(source.IsRegisters());
     const auto& intermediate =
-        source.WithOtherRep(dst_payload_type, dst_container_type, zone_);
+        source.WithOtherNativeType(dst_payload_type, dst_container_type, zone_);
     EmitNativeMove(intermediate, source, temp);
     EmitNativeMove(destination, intermediate, temp);
     return;
@@ -2588,8 +2589,8 @@ void FlowGraphCompiler::EmitNativeMove(
   // Arm does not support sign extending from a memory location, x86 does.
   if (sign_or_zero_extend && source.IsStack()) {
     ASSERT(destination.IsRegisters());
-    const auto& intermediate =
-        destination.WithOtherRep(src_payload_type, src_container_type, zone_);
+    const auto& intermediate = destination.WithOtherNativeType(
+        src_payload_type, src_container_type, zone_);
     EmitNativeMove(intermediate, source, temp);
     EmitNativeMove(destination, intermediate, temp);
     return;

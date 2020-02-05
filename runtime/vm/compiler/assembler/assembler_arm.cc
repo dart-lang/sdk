@@ -3160,6 +3160,13 @@ void Assembler::AddImmediateSetFlags(Register rd,
   }
 }
 
+void Assembler::SubImmediate(Register rd,
+                             Register rn,
+                             int32_t value,
+                             Condition cond) {
+  AddImmediate(rd, rn, -value, cond);
+}
+
 void Assembler::SubImmediateSetFlags(Register rd,
                                      Register rn,
                                      int32_t value,

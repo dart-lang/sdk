@@ -1602,9 +1602,10 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
           __ vmovq(dst.fpu_reg(), src.fpu_reg());
           return;
         case 8:
-          // TODO(36309): Use the proper register instead of asuming even.
-          __ vmovd(EvenDRegisterOf(dst.fpu_reg()),
-                   EvenDRegisterOf(src.fpu_reg()));
+          __ vmovd(dst.fpu_as_d_reg(), src.fpu_as_d_reg());
+          return;
+        case 4:
+          __ vmovs(dst.fpu_as_s_reg(), src.fpu_as_s_reg());
           return;
         default:
           UNREACHABLE();
@@ -1616,14 +1617,12 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsStack();
       switch (dst_size) {
         case 8:
-          // TODO(36309): Use the proper register instead of asuming even.
-          __ StoreDToOffset(EvenDRegisterOf(src.fpu_reg()), dst.base_register(),
+          __ StoreDToOffset(src.fpu_as_d_reg(), dst.base_register(),
                             dst.offset_in_bytes());
           return;
         case 4:
-          // TODO(36309): Use the proper register instead of asuming even.
-          __ StoreSToOffset(EvenSRegisterOf(EvenDRegisterOf(src.fpu_reg())),
-                            dst.base_register(), dst.offset_in_bytes());
+          __ StoreSToOffset(src.fpu_as_s_reg(), dst.base_register(),
+                            dst.offset_in_bytes());
           return;
         default:
           // TODO(dartbug.com/37470): Case 16 for simd packed data.
@@ -1650,14 +1649,12 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsFpuRegisters();
       switch (src_size) {
         case 8:
-          // TODO(36309): Use the proper register instead of asuming even.
-          __ LoadDFromOffset(EvenDRegisterOf(dst.fpu_reg()),
-                             src.base_register(), src.offset_in_bytes());
+          __ LoadDFromOffset(dst.fpu_as_d_reg(), src.base_register(),
+                             src.offset_in_bytes());
           return;
         case 4:
-          // TODO(36309): Use the proper register instead of asuming even.
-          __ LoadSFromOffset(EvenSRegisterOf(EvenDRegisterOf(dst.fpu_reg())),
-                             src.base_register(), src.offset_in_bytes());
+          __ LoadSFromOffset(dst.fpu_as_s_reg(), src.base_register(),
+                             src.offset_in_bytes());
           return;
         default:
           UNIMPLEMENTED();

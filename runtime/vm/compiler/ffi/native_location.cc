@@ -147,9 +147,31 @@ NativeStackLocation& NativeStackLocation::Split(intptr_t index,
 }
 
 NativeLocation& NativeLocation::WidenTo4Bytes(Zone* zone) const {
-  return WithOtherRep(payload_type().WidenTo4Bytes(zone),
-                      container_type().WidenTo4Bytes(zone), zone);
+  return WithOtherNativeType(payload_type().WidenTo4Bytes(zone),
+                             container_type().WidenTo4Bytes(zone), zone);
 }
+
+#if defined(TARGET_ARCH_ARM)
+const NativeLocation& NativeLocation::WidenToQFpuRegister(Zone* zone) const {
+  if (!IsFpuRegisters()) {
+    return *this;
+  }
+  const auto& fpu_loc = AsFpuRegisters();
+  switch (fpu_loc.fpu_reg_kind()) {
+    case kQuadFpuReg:
+      return *this;
+    case kDoubleFpuReg: {
+      return *new (zone) NativeFpuRegistersLocation(
+          payload_type_, container_type_, QRegisterOf(fpu_loc.fpu_d_reg()));
+    }
+    case kSingleFpuReg: {
+      return *new (zone) NativeFpuRegistersLocation(
+          payload_type_, container_type_, QRegisterOf(fpu_loc.fpu_s_reg()));
+    }
+  }
+  UNREACHABLE();
+}
+#endif  // defined(TARGET_ARCH_ARM)
 
 bool NativeRegistersLocation::Equals(const NativeLocation& other) const {
   if (!other.IsRegisters()) {
@@ -221,7 +243,22 @@ void NativeRegistersLocation::PrintTo(BufferFormatter* f) const {
 }
 
 void NativeFpuRegistersLocation::PrintTo(BufferFormatter* f) const {
-  f->Print("%s", RegisterNames::FpuRegisterName(fpu_reg_));
+  switch (fpu_reg_kind()) {
+    case kQuadFpuReg:
+      f->Print("%s", RegisterNames::FpuRegisterName(fpu_reg()));
+      break;
+#if defined(TARGET_ARCH_ARM)
+    case kDoubleFpuReg:
+      f->Print("%s", RegisterNames::FpuDRegisterName(fpu_d_reg()));
+      break;
+    case kSingleFpuReg:
+      f->Print("%s", RegisterNames::FpuSRegisterName(fpu_s_reg()));
+      break;
+#endif  // defined(TARGET_ARCH_ARM)
+    default:
+      UNREACHABLE();
+  }
+
   PrintRepresentations(f, *this);
 }
 
@@ -236,6 +273,67 @@ const char* NativeLocation::ToCString() const {
   PrintTo(&bf);
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
+
+intptr_t SizeFromFpuRegisterKind(enum FpuRegisterKind kind) {
+  switch (kind) {
+    case kQuadFpuReg:
+      return 16;
+    case kDoubleFpuReg:
+      return 8;
+    case kSingleFpuReg:
+      return 4;
+  }
+  UNREACHABLE();
+}
+enum FpuRegisterKind FpuRegisterKindFromSize(intptr_t size_in_bytes) {
+  switch (size_in_bytes) {
+    case 16:
+      return kQuadFpuReg;
+    case 8:
+      return kDoubleFpuReg;
+    case 4:
+      return kSingleFpuReg;
+  }
+  UNREACHABLE();
+}
+
+#if defined(TARGET_ARCH_ARM)
+DRegister NativeFpuRegistersLocation::fpu_as_d_reg() const {
+  switch (fpu_reg_kind_) {
+    case kQuadFpuReg:
+      return EvenDRegisterOf(fpu_reg());
+    case kDoubleFpuReg:
+      return fpu_d_reg();
+    case kSingleFpuReg:
+      return DRegisterOf(fpu_s_reg());
+  }
+}
+
+SRegister NativeFpuRegistersLocation::fpu_as_s_reg() const {
+  switch (fpu_reg_kind_) {
+    case kQuadFpuReg:
+      return EvenSRegisterOf(EvenDRegisterOf(fpu_reg()));
+    case kDoubleFpuReg:
+      return EvenSRegisterOf(fpu_d_reg());
+    case kSingleFpuReg:
+      return fpu_s_reg();
+  }
+}
+
+bool NativeFpuRegistersLocation::IsLowestBits() const {
+  switch (fpu_reg_kind()) {
+    case kQuadFpuReg:
+      return true;
+    case kDoubleFpuReg: {
+      return fpu_d_reg() % 2 == 0;
+    }
+    case kSingleFpuReg: {
+      return fpu_s_reg() % 4 == 0;
+    }
+  }
+  UNREACHABLE();
+}
+#endif  // defined(TARGET_ARCH_ARM)
 
 }  // namespace ffi
 

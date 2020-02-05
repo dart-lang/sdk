@@ -56,6 +56,16 @@ class RegisterNames {
     ASSERT((0 <= reg) && (reg < kNumberOfFpuRegisters));
     return fpu_reg_names[reg];
   }
+#if defined(TARGET_ARCH_ARM)
+  static const char* FpuSRegisterName(SRegister reg) {
+    ASSERT((0 <= reg) && (reg < kNumberOfSRegisters));
+    return fpu_s_reg_names[reg];
+  }
+  static const char* FpuDRegisterName(DRegister reg) {
+    ASSERT((0 <= reg) && (reg < kNumberOfDRegisters));
+    return fpu_d_reg_names[reg];
+  }
+#endif  // defined(TARGET_ARCH_ARM)
 };
 
 static constexpr bool IsArgumentRegister(Register reg) {

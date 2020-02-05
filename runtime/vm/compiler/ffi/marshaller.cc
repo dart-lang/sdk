@@ -38,7 +38,7 @@ Location CallMarshaller::LocInFfiCall(intptr_t arg_index) const {
                          RepInFfiCall(arg_index) == kUnboxedFloat;
 
   const NativeLocation& loc = this->Location(arg_index);
-
+  // Don't pin stack locations, they need to be moved anyway.
   if (loc.IsStack()) {
     if (loc.payload_type().SizeInBytes() == 2 * compiler::target::kWordSize &&
         !is_atomic) {
@@ -46,6 +46,18 @@ Location CallMarshaller::LocInFfiCall(intptr_t arg_index) const {
     }
     return Location::Any();
   }
+
+#if defined(TARGET_ARCH_ARM)
+  // Only pin FPU register if it is the lowest bits.
+  if (loc.IsFpuRegisters()) {
+    const auto& fpu_loc = loc.AsFpuRegisters();
+    if (fpu_loc.IsLowestBits()) {
+      return fpu_loc.WidenToQFpuRegister(zone_).AsLocation();
+    }
+    return Location::Any();
+  }
+#endif  // defined(TARGET_ARCH_ARM)
+
   return loc.AsLocation();
 }
 

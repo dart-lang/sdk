@@ -214,10 +214,6 @@ class CallingConventions {
 
   static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
 
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp").
-  static constexpr bool kAbiSoftFP = false;
-
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
       kAlignedToWordSize;

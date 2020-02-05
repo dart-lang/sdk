@@ -1019,6 +1019,7 @@ void NativeEntryInstr::SaveArgument(
     ASSERT(regs_loc.num_regs() == 1);
     __ pushq(regs_loc.reg_at(0));
   } else if (nloc.IsFpuRegisters()) {
+    // TODO(dartbug.com/40469): Reduce code size.
     __ movq(TMP, nloc.AsFpuRegisters().fpu_reg());
     __ pushq(TMP);
   } else {

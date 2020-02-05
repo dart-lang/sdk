@@ -19,11 +19,6 @@ namespace ffi {
 
 using NativeLocations = ZoneGrowableArray<const NativeLocation*>;
 
-// Whether this argument needs to be Representation-converted.
-bool RequiresSoftFpConversion(const NativeType& in);
-
-// Converted Representation.
-const NativeType& ConvertToSoftFp(const NativeType& in, Zone* zone);
 
 // Values below 0 index result (result might be multiple if composite).
 const intptr_t kResultIndex = -1;
@@ -40,8 +35,10 @@ class NativeCallingConvention : public ZoneAllocated {
   // Excluding the #0 argument which is the function pointer.
   intptr_t num_args() const;
 
+  // The C Type (expressed in a Dart Type) of the argument at `arg_index`.
+  //
   // Excluding the #0 argument which is the function pointer.
-  RawAbstractType* Type(intptr_t arg_index) const;
+  RawAbstractType* CType(intptr_t arg_index) const;
 
   // The location of the argument at `arg_index`.
   const NativeLocation& Location(intptr_t arg_index) const {

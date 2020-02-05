@@ -201,10 +201,6 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
 
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp").
-  static constexpr bool kAbiSoftFP = false;
-
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
       kAlignedToWordSize;
@@ -265,10 +261,6 @@ class CallingConventions {
   static constexpr Register kReturnReg = RAX;
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
-
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp").
-  static constexpr bool kAbiSoftFP = false;
 
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =

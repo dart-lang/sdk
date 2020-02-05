@@ -1235,35 +1235,31 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
-static void save_argument(FlowGraphCompiler* compiler, Location loc) {
-  if (loc.IsPairLocation()) {
-    // Save higher-order component first, so bytes are in little-endian layout
-    // overall.
-    for (intptr_t i : {1, 0}) {
-      save_argument(compiler, loc.Component(i));
-    }
-    return;
-  }
-
-  if (loc.HasStackIndex()) return;
-
-  if (loc.IsRegister()) {
-    __ Push(loc.reg());
-  } else if (loc.IsFpuRegister()) {
-    const DRegister src = EvenDRegisterOf(loc.fpu_reg());
-    __ SubImmediateSetFlags(SPREG, SPREG, 8, AL);
-    __ StoreDToOffset(src, SPREG, 0);
-  } else {
-    UNREACHABLE();
-  }
-}
-
 void NativeEntryInstr::SaveArgument(
     FlowGraphCompiler* compiler,
     const compiler::ffi::NativeLocation& nloc) const {
-  const Location loc = nloc.WidenTo4Bytes(compiler->zone()).AsLocation();
+  if (nloc.IsFpuRegisters()) {
+    auto const& fpu_loc = nloc.AsFpuRegisters();
+    ASSERT(fpu_loc.fpu_reg_kind() != compiler::ffi::kQuadFpuReg);
+    const intptr_t size = fpu_loc.payload_type().SizeInBytes();
+    // TODO(dartbug.com/40469): Reduce code size.
+    __ SubImmediate(SPREG, SPREG, 8);
+    if (size == 8) {
+      __ StoreDToOffset(fpu_loc.fpu_d_reg(), SPREG, 0);
+    } else {
+      ASSERT(size == 4);
+      __ StoreSToOffset(fpu_loc.fpu_s_reg(), SPREG, 0);
+    }
 
-  save_argument(compiler, loc);
+  } else if (nloc.IsRegisters()) {
+    const auto& reg_loc = nloc.WidenTo4Bytes(compiler->zone()).AsRegisters();
+    const intptr_t num_regs = reg_loc.num_regs();
+    // Save higher-order component first, so bytes are in little-endian layout
+    // overall.
+    for (intptr_t i = num_regs - 1; i >= 0; i--) {
+      __ Push(reg_loc.reg_at(i));
+    }
+  }
 }
 
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {

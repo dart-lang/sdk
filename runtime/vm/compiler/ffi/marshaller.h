@@ -60,13 +60,13 @@ class BaseMarshaller : public NativeCallingConvention {
 
   // Requires boxing or unboxing.
   bool IsPointer(intptr_t arg_index) const {
-    return AbstractType::Handle(zone_, Type(arg_index)).type_class_id() ==
+    return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
            kFfiPointerCid;
   }
 
   // Treated as a null constant in Dart.
   bool IsVoid(intptr_t arg_index) const {
-    return AbstractType::Handle(zone_, Type(arg_index)).type_class_id() ==
+    return AbstractType::Handle(zone_, CType(arg_index)).type_class_id() ==
            kFfiVoidCid;
   }
 

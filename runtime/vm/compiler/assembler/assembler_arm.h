@@ -757,6 +757,10 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int32_t value,
                             Condition cond = AL);
+  void SubImmediate(Register rd,
+                    Register rn,
+                    int32_t value,
+                    Condition cond = AL);
   void SubImmediateSetFlags(Register rd,
                             Register rn,
                             int32_t value,
