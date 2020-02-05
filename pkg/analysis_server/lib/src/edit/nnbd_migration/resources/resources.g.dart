@@ -31,6 +31,7 @@ String _decode(String data) {
 }
 
 String _highlight_css;
+// highlight_css md5 is 'fb012626bafd286510d32da815dae448'
 String _highlight_css_base64 = '''
 LyoKRGF0ZTogMjQgRmV2IDIwMTUKQXV0aG9yOiBQZWRybyBPbGl2ZWlyYSA8a2FueXR1QGdtYWlsIC4g
 Y29tPgoqLwoKLmhsanMgewogIGNvbG9yOiAjYTliN2M2OwogIGJhY2tncm91bmQ6ICMyODJiMmU7CiAg
@@ -48,6 +49,7 @@ eWxlOiBpdGFsaWM7Cn0KCi5obGpzLXN0cm9uZyB7CiAgZm9udC13ZWlnaHQ6IGJvbGQ7Cn0K
 ''';
 
 String _highlight_pack_js;
+// highlight_pack_js md5 is '9104bfe8b056f8e00da50b0ea3d6e6d4'
 String _highlight_pack_js_base64 = '''
 LyohIGhpZ2hsaWdodC5qcyB2OS4xNS4xMCB8IEJTRDMgTGljZW5zZSB8IGdpdC5pby9obGpzbGljZW5z
 ZSAqLwohZnVuY3Rpb24oZSl7dmFyIG49Im9iamVjdCI9PXR5cGVvZiB3aW5kb3cmJndpbmRvd3x8Im9i
@@ -264,6 +266,7 @@ Im1ldGEiLGI6IkBbQS1aYS16XSsifSx7YjoiPT4ifV19fSk7Cg==
 ''';
 
 String _migration_js;
+// migration_dart md5 is '61fc6d8b736b7e11eb4f1945dfc64194'
 String _migration_js_base64 = '''
 KGZ1bmN0aW9uIGRhcnRQcm9ncmFtKCl7ZnVuY3Rpb24gY29weVByb3BlcnRpZXMoYSxiKXt2YXIgdD1P
 YmplY3Qua2V5cyhhKQpmb3IodmFyIHM9MDtzPHQubGVuZ3RoO3MrKyl7dmFyIHI9dFtzXQpiW3JdPWFb
@@ -3263,6 +3266,7 @@ IHNvdXJjZU1hcHBpbmdVUkw9bWlncmF0aW9uLmpzLm1hcAo=
 ''';
 
 String _migration_css;
+// migration_css md5 is 'f17223177bb502d5077cd5157c4d0b38'
 String _migration_css_base64 = '''
 LyogQ29weXJpZ2h0IChjKSAyMDE5LCB0aGUgRGFydCBwcm9qZWN0IGF1dGhvcnMuIFBsZWFzZSBzZWUg
 dGhlIEFVVEhPUlMgZmlsZSAgKi8KLyogZm9yIGRldGFpbHMuIEFsbCByaWdodHMgcmVzZXJ2ZWQuIFVz
