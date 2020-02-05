@@ -27,9 +27,9 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
-
 import 'package:kernel/target/targets.dart';
 
 import '../fasta_codes.dart'
@@ -68,8 +68,12 @@ import 'constant_int_folder.dart';
 
 part 'constant_collection_builders.dart';
 
-Component transformComponent(Component component, ConstantsBackend backend,
-    Map<String, String> environmentDefines, ErrorReporter errorReporter,
+Component transformComponent(
+    Component component,
+    ConstantsBackend backend,
+    Map<String, String> environmentDefines,
+    ErrorReporter errorReporter,
+    EvaluationMode evaluationMode,
     {bool keepFields: true,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
@@ -84,7 +88,7 @@ Component transformComponent(Component component, ConstantsBackend backend,
       new TypeEnvironment(coreTypes, hierarchy);
 
   transformLibraries(component.libraries, backend, environmentDefines,
-      typeEnvironment, errorReporter,
+      typeEnvironment, errorReporter, evaluationMode,
       keepFields: keepFields,
       desugarSets: desugarSets,
       enableTripleShift: enableTripleShift,
@@ -99,6 +103,7 @@ void transformLibraries(
     Map<String, String> environmentDefines,
     TypeEnvironment typeEnvironment,
     ErrorReporter errorReporter,
+    EvaluationMode evaluationMode,
     {bool keepFields: true,
     bool evaluateAnnotations: true,
     bool desugarSets: false,
@@ -113,10 +118,17 @@ void transformLibraries(
       enableTripleShift,
       errorOnUnevaluatedConstant,
       typeEnvironment,
-      errorReporter);
+      errorReporter,
+      evaluationMode);
   for (final Library library in libraries) {
     constantsTransformer.convertLibrary(library);
   }
+}
+
+enum EvaluationMode {
+  legacy,
+  weak,
+  strong,
 }
 
 class ConstantsTransformer extends Transformer {
@@ -141,12 +153,14 @@ class ConstantsTransformer extends Transformer {
       this.enableTripleShift,
       this.errorOnUnevaluatedConstant,
       this.typeEnvironment,
-      ErrorReporter errorReporter)
+      ErrorReporter errorReporter,
+      EvaluationMode evaluationMode)
       : constantEvaluator = new ConstantEvaluator(
             backend, environmentDefines, typeEnvironment, errorReporter,
             desugarSets: desugarSets,
             enableTripleShift: enableTripleShift,
-            errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
+            errorOnUnevaluatedConstant: errorOnUnevaluatedConstant,
+            evaluationMode: evaluationMode);
 
   // Transform the library/class members:
 
@@ -519,6 +533,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   final TypeEnvironment typeEnvironment;
   StaticTypeContext _staticTypeContext;
   final ErrorReporter errorReporter;
+  final EvaluationMode evaluationMode;
 
   final bool desugarSets;
   final Field unmodifiableSetMap;
@@ -559,7 +574,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       this.errorReporter,
       {this.desugarSets = false,
       this.enableTripleShift = false,
-      this.errorOnUnevaluatedConstant = false})
+      this.errorOnUnevaluatedConstant = false,
+      this.evaluationMode: EvaluationMode.legacy})
       : numberSemantics = backend.numberSemantics,
         coreTypes = typeEnvironment.coreTypes,
         canonicalizationCache = <Constant, Constant>{},
@@ -589,6 +605,32 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       coreTypes.symbolClass: true,
       coreTypes.typeClass: true,
     };
+  }
+
+  DartType convertType(DartType type) {
+    switch (evaluationMode) {
+      case EvaluationMode.legacy:
+      case EvaluationMode.strong:
+        return type;
+      case EvaluationMode.weak:
+        return legacyErasure(coreTypes, type);
+    }
+    throw new UnsupportedError(
+        "Unexpected evaluation mode: ${evaluationMode}.");
+  }
+
+  List<DartType> convertTypes(List<DartType> types) {
+    switch (evaluationMode) {
+      case EvaluationMode.legacy:
+      case EvaluationMode.strong:
+        return types;
+      case EvaluationMode.weak:
+        return types
+            .map((DartType type) => legacyErasure(coreTypes, type))
+            .toList();
+    }
+    throw new UnsupportedError(
+        "Unexpected evaluation mode: ${evaluationMode}.");
   }
 
   Uri getFileUri(TreeNode node) {
@@ -834,7 +876,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   @override
   Constant visitTypeLiteral(TypeLiteral node) {
-    final DartType type = evaluateDartType(node, node.type);
+    final DartType type = evaluateDartType(node, convertType(node.type));
     return canonicalize(new TypeLiteralConstant(type));
   }
 
@@ -860,7 +902,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return reportInvalid(node, "Non-constant list literal");
     }
     final ListConstantBuilder builder =
-        new ListConstantBuilder(node, node.typeArgument, this);
+        new ListConstantBuilder(node, convertType(node.typeArgument), this);
     for (Expression element in node.expressions) {
       builder.add(element);
     }
@@ -870,7 +912,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   @override
   Constant visitListConcatenation(ListConcatenation node) {
     final ListConstantBuilder builder =
-        new ListConstantBuilder(node, node.typeArgument, this);
+        new ListConstantBuilder(node, convertType(node.typeArgument), this);
     for (Expression list in node.lists) {
       builder.addSpread(list);
     }
@@ -883,7 +925,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       return reportInvalid(node, "Non-constant set literal");
     }
     final SetConstantBuilder builder =
-        new SetConstantBuilder(node, node.typeArgument, this);
+        new SetConstantBuilder(node, convertType(node.typeArgument), this);
     for (Expression element in node.expressions) {
       builder.add(element);
     }
@@ -893,7 +935,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
   @override
   Constant visitSetConcatenation(SetConcatenation node) {
     final SetConstantBuilder builder =
-        new SetConstantBuilder(node, node.typeArgument, this);
+        new SetConstantBuilder(node, convertType(node.typeArgument), this);
     for (Expression set_ in node.sets) {
       builder.addSpread(set_);
     }
@@ -905,8 +947,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     if (!node.isConst) {
       return reportInvalid(node, "Non-constant map literal");
     }
-    final MapConstantBuilder builder =
-        new MapConstantBuilder(node, node.keyType, node.valueType, this);
+    final MapConstantBuilder builder = new MapConstantBuilder(
+        node, convertType(node.keyType), convertType(node.valueType), this);
     for (MapEntry element in node.entries) {
       builder.add(element);
     }
@@ -915,8 +957,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   @override
   Constant visitMapConcatenation(MapConcatenation node) {
-    final MapConstantBuilder builder =
-        new MapConstantBuilder(node, node.keyType, node.valueType, this);
+    final MapConstantBuilder builder = new MapConstantBuilder(
+        node, convertType(node.keyType), convertType(node.valueType), this);
     for (Expression map in node.maps) {
       builder.addSpread(map);
     }
@@ -972,7 +1014,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
     }
 
     final List<DartType> typeArguments =
-        evaluateTypeArguments(node, node.arguments);
+        convertTypes(evaluateTypeArguments(node, node.arguments));
 
     // Fill in any missing type arguments with "dynamic".
     for (int i = typeArguments.length; i < klass.typeParameters.length; i++) {
@@ -1016,7 +1058,8 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
 
   @override
   Constant visitInstanceCreation(InstanceCreation node) {
-    return withNewInstanceBuilder(node.classNode, node.typeArguments, () {
+    return withNewInstanceBuilder(
+        node.classNode, convertTypes(node.typeArguments), () {
       for (AssertStatement statement in node.asserts) {
         checkAssert(statement);
       }
@@ -1859,7 +1902,7 @@ class ConstantEvaluator extends RecursiveVisitor<Constant> {
       if (node.typeArguments.length ==
           constant.procedure.function.typeParameters.length) {
         final List<DartType> typeArguments =
-            evaluateDartTypes(node, node.typeArguments);
+            convertTypes(evaluateDartTypes(node, node.typeArguments));
         return canonicalize(
             new PartialInstantiationConstant(constant, typeArguments));
       }

@@ -116,7 +116,8 @@ import '../target_implementation.dart' show TargetImplementation;
 
 import '../uri_translator.dart' show UriTranslator;
 
-import 'constant_evaluator.dart' as constants show transformLibraries;
+import 'constant_evaluator.dart' as constants
+    show EvaluationMode, transformLibraries;
 
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
@@ -963,12 +964,24 @@ class KernelTarget extends TargetImplementation {
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
+    constants.EvaluationMode evaluationMode;
+    if (enableNonNullable) {
+      if (loader.nnbdStrongMode) {
+        evaluationMode = constants.EvaluationMode.strong;
+      } else {
+        evaluationMode = constants.EvaluationMode.weak;
+      }
+    } else {
+      evaluationMode = constants.EvaluationMode.legacy;
+    }
+
     constants.transformLibraries(
         loader.libraries,
         backendTarget.constantsBackend(loader.coreTypes),
         environmentDefines,
         environment,
         new KernelConstantErrorReporter(loader),
+        evaluationMode,
         desugarSets: !backendTarget.supportsSetLiterals,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);

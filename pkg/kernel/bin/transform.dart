@@ -7,7 +7,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constants show SimpleErrorReporter, transformComponent;
+    as constants show EvaluationMode, SimpleErrorReporter, transformComponent;
 
 import 'package:args/args.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -101,7 +101,11 @@ Future<CompilerOutcome> runTransformation(List<String> arguments) async {
     case 'constants':
       final VmConstantsBackend backend = new VmConstantsBackend(coreTypes);
       component = constants.transformComponent(
-          component, backend, defines, const constants.SimpleErrorReporter());
+          component,
+          backend,
+          defines,
+          const constants.SimpleErrorReporter(),
+          constants.EvaluationMode.legacy);
       break;
     case 'empty':
       component = empty.transformComponent(component);

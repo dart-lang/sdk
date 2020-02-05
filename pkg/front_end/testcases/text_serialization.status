@@ -1212,6 +1212,7 @@ new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
 nnbd/call: TextSerializationFailure
+nnbd/constants: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
 nnbd/demote_closure_types: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure

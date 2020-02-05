@@ -23,6 +23,8 @@ class Dart2jsConstantEvaluator extends ir.ConstantEvaluator {
       bool enableTripleShift = false,
       bool supportReevaluationForTesting: false})
       : _supportReevaluationForTesting = supportReevaluationForTesting,
+        // TODO(johnniwinther,sigmund): Pass evaluation mode for nnbd
+        //  strong/weak mode.
         super(
             const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
             environment,
