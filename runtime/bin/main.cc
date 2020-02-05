@@ -15,9 +15,9 @@
 #include "bin/builtin.h"
 #include "bin/console.h"
 #include "bin/crashpad.h"
+#include "bin/dartdev_utils.h"
 #include "bin/dartutils.h"
 #include "bin/dfe.h"
-#include "bin/directory.h"
 #include "bin/error_exit.h"
 #include "bin/eventhandler.h"
 #include "bin/extensions.h"
@@ -37,6 +37,7 @@
 #include "platform/hashmap.h"
 #include "platform/syslog.h"
 #include "platform/text_buffer.h"
+#include "platform/utils.h"
 
 extern "C" {
 extern const uint8_t kDartVmSnapshotData[];
@@ -1072,31 +1073,47 @@ void main(int argc, char** argv) {
 #endif
 
   // Parse command line arguments.
-  if (app_snapshot == nullptr &&
-      Options::ParseArguments(argc, argv, vm_run_app_snapshot, &vm_options,
-                              &script_name, &dart_options, &print_flags_seen,
-                              &verbose_debug_seen) < 0) {
-    if (Options::help_option()) {
-      Options::PrintUsage();
-      Platform::Exit(0);
-    } else if (Options::version_option()) {
-      Options::PrintVersion();
-      Platform::Exit(0);
-    } else if (print_flags_seen) {
-      // Will set the VM flags, print them out and then we exit as no
-      // script was specified on the command line.
-      char* error = Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
-      if (error != NULL) {
-        Syslog::PrintErr("Setting VM flags failed: %s\n", error);
-        free(error);
+  if (app_snapshot == nullptr) {
+    int result = Options::ParseArguments(
+        argc, argv, vm_run_app_snapshot, &vm_options, &script_name,
+        &dart_options, &print_flags_seen, &verbose_debug_seen);
+    if (result < 0) {
+      if (Options::help_option()) {
+        Options::PrintUsage();
+        Platform::Exit(0);
+      } else if (Options::version_option()) {
+        Options::PrintVersion();
+        Platform::Exit(0);
+      } else if (print_flags_seen) {
+        // Will set the VM flags, print them out and then we exit as no
+        // script was specified on the command line.
+        char* error =
+            Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
+        if (error != NULL) {
+          Syslog::PrintErr("Setting VM flags failed: %s\n", error);
+          free(error);
+          Platform::Exit(kErrorExitCode);
+        }
+        Platform::Exit(0);
+      } else {
+        Options::PrintUsage();
         Platform::Exit(kErrorExitCode);
       }
-      Platform::Exit(0);
-    } else {
-      Options::PrintUsage();
+    }
+
+    // Try to parse a DartDev command if script_name doesn't point to a valid
+    // file. If the command isn't valid we fall through to handle the
+    // possibility that the script_name points to a HTTP resource. If the
+    // relevant snapshot can't be found we abort execution.
+    if (DartDevUtils::ShouldParseCommand(script_name) &&
+        !DartDevUtils::TryParseCommandFromScriptName(&script_name)) {
       Platform::Exit(kErrorExitCode);
     }
   }
+
+  // At this point, script_name now points to either a script or a snapshot
+  // determined by DartDevUtils above.
+
   DartUtils::SetEnvironment(Options::environment());
 
   if (Options::suppress_core_dump()) {
