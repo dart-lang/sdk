@@ -3216,7 +3216,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void visitTypeConversion(HTypeConversion node) {
     assert(node.isTypeCheck || node.isCastCheck);
     DartType type = node.typeExpression;
-    assert(type is! TypedefType);
     assert(type is! DynamicType);
     assert(type is! VoidType);
     if (type is FunctionType) {

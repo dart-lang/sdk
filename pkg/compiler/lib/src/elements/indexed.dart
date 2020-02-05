@@ -45,11 +45,6 @@ abstract class IndexedTypeVariable extends _Indexed
   int get typeVariableIndex => _index;
 }
 
-abstract class IndexedTypedef extends _Indexed implements TypedefEntity {
-  /// Typedef index used for fast lookup in [KernelToElementMapBase].
-  int get typedefIndex => _index;
-}
-
 abstract class IndexedLocal extends _Indexed implements Local {
   int get localIndex => _index;
 }

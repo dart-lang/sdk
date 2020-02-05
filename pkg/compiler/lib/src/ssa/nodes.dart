@@ -3687,7 +3687,6 @@ class HTypeConversion extends HCheck {
       HInstruction input, SourceInformation sourceInformation)
       : checkedType = type,
         super(<HInstruction>[input], type) {
-    assert(typeExpression == null || typeExpression is! TypedefType);
     this.sourceElement = input.sourceElement;
     this.sourceInformation = sourceInformation;
   }
@@ -3696,7 +3695,6 @@ class HTypeConversion extends HCheck {
       AbstractValue type, HInstruction input, HInstruction typeRepresentation)
       : checkedType = type,
         super(<HInstruction>[input, typeRepresentation], type) {
-    assert(typeExpression is! TypedefType);
     sourceElement = input.sourceElement;
   }
 

@@ -420,11 +420,6 @@ class _RecipeGenerator implements DartTypeVisitor<void, void> {
   }
 
   @override
-  void visitTypedefType(TypedefType type, _) {
-    visit(type.unaliased, _);
-  }
-
-  @override
   void visitFutureOrType(FutureOrType type, _) {
     visit(type.typeArgument, _);
     _emitCode(Recipe.wrapFutureOr);

@@ -301,9 +301,6 @@ abstract class DataSink {
   void writeClassMap<V>(Map<ClassEntity, V> map, void f(V value),
       {bool allowNull: false});
 
-  /// Writes a reference to the indexed typedef [value] to this data sink.
-  void writeTypedef(IndexedTypedef value);
-
   /// Writes a reference to the indexed member [value] to this data sink.
   void writeMember(IndexedMember value);
 
@@ -721,9 +718,6 @@ abstract class DataSource {
   Map<K, V> readClassMap<K extends ClassEntity, V>(V f(),
       {bool emptyAsNull: false});
 
-  /// Reads a reference to an indexed typedef from this data source.
-  IndexedTypedef readTypedef();
-
   /// Reads a reference to an indexed member from this data source.
   IndexedMember readMember();
 
@@ -857,9 +851,6 @@ abstract class EntityLookup {
   /// Returns the indexed class corresponding to [index].
   IndexedClass getClassByIndex(int index);
 
-  /// Returns the indexed typedef corresponding to [index].
-  IndexedTypedef getTypedefByIndex(int index);
-
   /// Returns the indexed member corresponding to [index].
   IndexedMember getMemberByIndex(int index);
 
@@ -879,11 +870,6 @@ class EntityReader {
   IndexedClass readClassFromDataSource(
       DataSource source, EntityLookup entityLookup) {
     return entityLookup.getClassByIndex(source.readInt());
-  }
-
-  IndexedTypedef readTypedefFromDataSource(
-      DataSource source, EntityLookup entityLookup) {
-    return entityLookup.getTypedefByIndex(source.readInt());
   }
 
   IndexedMember readMemberFromDataSource(
@@ -907,10 +893,6 @@ class EntityWriter {
 
   void writeClassToDataSink(DataSink sink, IndexedClass value) {
     sink.writeInt(value.classIndex);
-  }
-
-  void writeTypedefToDataSink(DataSink sink, IndexedTypedef value) {
-    sink.writeInt(value.typedefIndex);
   }
 
   void writeMemberToDataSink(DataSink sink, IndexedMember value) {

@@ -1167,8 +1167,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
     if (!node.isRawCheck) {
       return node;
-    } else if (type is TypedefType) {
-      return node;
     } else if (type is FunctionType) {
       return node;
     } else if (type is FutureOrType) {
@@ -3265,8 +3263,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
   void visitIs(HIs instruction) {
     DartType type = instruction.typeExpression;
     if (!instruction.isRawCheck) {
-      return;
-    } else if (type is TypedefType) {
       return;
     } else if (type is FutureOrType) {
       return;

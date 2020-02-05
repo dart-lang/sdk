@@ -881,14 +881,6 @@ class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
   }
 }
 
-class KTypedefData {
-  final ir.Typedef node;
-  final TypedefEntity element;
-  final TypedefType rawType;
-
-  KTypedefData(this.node, this.element, this.rawType);
-}
-
 class KTypeVariableData {
   final ir.TypeParameter node;
   DartType _bound;

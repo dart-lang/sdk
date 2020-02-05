@@ -22,22 +22,22 @@ const null_ = /*cfe.TypeLiteral(Null)*/ Null;
 main() {
   print(
       /*cfe|analyzer.TypeLiteral(dynamic Function())*/
-      /*dart2js.TypeLiteral(Typedef)*/
+      /*dart2js.TypeLiteral(()->dynamic)*/
       typedef);
 
   print(
       /*cfe|analyzer.TypeLiteral(void Function(dynamic))*/
-      /*dart2js.TypeLiteral(GenericTypedef<dynamic>)*/
+      /*dart2js.TypeLiteral((dynamic)->void)*/
       genericTypedef);
 
   print(
       /*cfe|analyzer.TypeLiteral(void Function<T>(T))*/
-      /*dart2js.TypeLiteral(GenericFunctionTypedef)*/
+      /*dart2js.TypeLiteral((0)->void)*/
       genericFunctionTypedef);
 
   print(
       /*cfe|analyzer.TypeLiteral(void Function<T>(FutureOr<T>))*/
-      /*dart2js.TypeLiteral(TypedefWithFutureOr)*/
+      /*dart2js.TypeLiteral((FutureOr<0>)->void)*/
       typedefWithFutureOr);
 
   print(

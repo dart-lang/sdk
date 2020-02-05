@@ -65,12 +65,10 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   /// [JsKernelToElementMap] object in a debugging data stream.
   static const String libraryTag = 'libraries';
   static const String classTag = 'classes';
-  static const String typedefTag = 'typedefs';
   static const String memberTag = 'members';
   static const String typeVariableTag = 'type-variables';
   static const String libraryDataTag = 'library-data';
   static const String classDataTag = 'class-data';
-  static const String typedefDataTag = 'typedef-data';
   static const String memberDataTag = 'member-data';
   static const String typeVariableDataTag = 'type-variable-data';
   static const String nestedClosuresTag = 'nested-closures';
@@ -100,12 +98,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       new EntityDataMap<IndexedMember, JMemberData>();
   final EntityDataMap<IndexedTypeVariable, JTypeVariableData> typeVariables =
       new EntityDataMap<IndexedTypeVariable, JTypeVariableData>();
-  final EntityDataMap<IndexedTypedef, JTypedefData> typedefs =
-      new EntityDataMap<IndexedTypedef, JTypedefData>();
 
   final Map<ir.Library, IndexedLibrary> libraryMap = {};
   final Map<ir.Class, IndexedClass> classMap = {};
-  final Map<ir.Typedef, IndexedTypedef> typedefMap = {};
 
   /// Map from [ir.TypeParameter] nodes to the corresponding
   /// [TypeVariableEntity].
@@ -178,25 +173,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       classMap[env.cls] = classes.register(newClass, data.convert(), newEnv);
       assert(newClass.classIndex == oldClass.classIndex);
       libraries.getEnv(newClass.library).registerClass(newClass.name, newEnv);
-    }
-    for (int typedefIndex = 0;
-        typedefIndex < _elementMap.typedefs.length;
-        typedefIndex++) {
-      IndexedTypedef oldTypedef = _elementMap.typedefs.getEntity(typedefIndex);
-      KTypedefData data = _elementMap.typedefs.getData(oldTypedef);
-      IndexedLibrary oldLibrary = oldTypedef.library;
-      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex);
-      IndexedTypedef newTypedef = new JTypedef(newLibrary, oldTypedef.name);
-      typedefMap[data.node] = typedefs.register(
-          newTypedef,
-          new JTypedefData(
-              data.node,
-              new TypedefType(
-                  newTypedef,
-                  new List<DartType>.filled(
-                      data.node.typeParameters.length, DynamicType()),
-                  getDartType(data.node.type))));
-      assert(newTypedef.typedefIndex == oldTypedef.typedefIndex);
     }
 
     for (int memberIndex = 0;
@@ -350,15 +326,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     }
     source.end(classTag);
 
-    source.begin(typedefTag);
-    int typedefCount = source.readInt();
-    for (int i = 0; i < typedefCount; i++) {
-      int index = source.readInt();
-      JTypedef typedef = new JTypedef.readFromDataSource(source);
-      entityLookup.registerTypedef(index, typedef);
-    }
-    source.end(typedefTag);
-
     source.begin(memberTag);
     int memberCount = source.readInt();
     for (int i = 0; i < memberCount; i++) {
@@ -401,14 +368,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       assert(index == cls.classIndex);
     });
     source.end(classDataTag);
-
-    source.begin(typedefDataTag);
-    entityLookup.forEachTypedef((int index, JTypedef typedef) {
-      JTypedefData data = new JTypedefData.readFromDataSource(source);
-      typedefMap[data.node] = typedefs.registerByIndex(index, typedef, data);
-      assert(index == typedef.typedefIndex);
-    });
-    source.end(typedefDataTag);
 
     source.begin(memberDataTag);
     entityLookup.forEachMember((int index, IndexedMember member) {
@@ -469,7 +428,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     libraries.close();
     classes.close();
     members.close();
-    typedefs.close();
     typeVariables.close();
     return length;
   }
@@ -494,14 +452,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       cls.writeToDataSink(sink);
     });
     sink.end(classTag);
-
-    sink.begin(typedefTag);
-    sink.writeInt(typedefs.size);
-    typedefs.forEach((JTypedef typedef, _) {
-      sink.writeInt(typedef.typedefIndex);
-      typedef.writeToDataSink(sink);
-    });
-    sink.end(typedefTag);
 
     sink.begin(memberTag);
     sink.writeInt(members.size);
@@ -533,12 +483,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       data.writeToDataSink(sink);
     });
     sink.end(classDataTag);
-
-    sink.begin(typedefDataTag);
-    typedefs.forEach((_, JTypedefData data) {
-      data.writeToDataSink(sink);
-    });
-    sink.end(typedefDataTag);
 
     sink.begin(memberDataTag);
     members.forEach((_, JMemberData data) {
@@ -820,12 +764,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         data.interfaces = new List<InterfaceType>.from(interfaces.toList());
       }
     }
-  }
-
-  @override
-  TypedefType getTypedefType(ir.Typedef node) {
-    IndexedTypedef typedef = getTypedefInternal(node);
-    return typedefs.getData(typedef).rawType;
   }
 
   @override
@@ -1675,12 +1613,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         "No type variable entity for $node on "
         "${node.parent is ir.FunctionNode ? node.parent.parent : node.parent}");
     return typeVariable;
-  }
-
-  TypedefEntity getTypedefInternal(ir.Typedef node) {
-    TypedefEntity typedef = typedefMap[node];
-    assert(typedef != null, "No typedef entity for $node");
-    return typedef;
   }
 
   @override
@@ -2552,7 +2484,6 @@ class JsBehaviorBuilder extends BehaviorBuilder {
 class _EntityLookup implements EntityLookup {
   final Map<int, JLibrary> _libraries = {};
   final Map<int, JClass> _classes = {};
-  final Map<int, JTypedef> _typedefs = {};
   final Map<int, JMember> _members = {};
   final Map<int, JTypeVariable> _typeVariables = {};
 
@@ -2566,12 +2497,6 @@ class _EntityLookup implements EntityLookup {
     assert(!_classes.containsKey(index),
         "Class for index $index has already been defined.");
     _classes[index] = cls;
-  }
-
-  void registerTypedef(int index, JTypedef typedef) {
-    assert(!_typedefs.containsKey(index),
-        "Typedef for index $index has already been defined.");
-    _typedefs[index] = typedef;
   }
 
   void registerMember(int index, JMember member) {
@@ -2594,10 +2519,6 @@ class _EntityLookup implements EntityLookup {
     _classes.forEach(f);
   }
 
-  void forEachTypedef(void f(int index, JTypedef typedef)) {
-    _typedefs.forEach(f);
-  }
-
   void forEachMember(void f(int index, JMember member)) {
     _members.forEach(f);
   }
@@ -2618,13 +2539,6 @@ class _EntityLookup implements EntityLookup {
     IndexedClass cls = _classes[index];
     assert(cls != null, "No class found for index $index");
     return cls;
-  }
-
-  @override
-  IndexedTypedef getTypedefByIndex(int index) {
-    IndexedTypedef typedef = _typedefs[index];
-    assert(typedef != null, "No typedef found for index $index");
-    return typedef;
   }
 
   @override
@@ -2656,11 +2570,6 @@ class ClosedEntityLookup implements EntityLookup {
   @override
   IndexedMember getMemberByIndex(int index) {
     return _elementMap.members.getEntity(index);
-  }
-
-  @override
-  IndexedTypedef getTypedefByIndex(int index) {
-    return _elementMap.typedefs.getEntity(index);
   }
 
   @override

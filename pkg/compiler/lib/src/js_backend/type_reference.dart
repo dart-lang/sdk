@@ -772,11 +772,6 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     return false;
   }
 
-  @override
-  void visitTypedefType(covariant TypedefType type, _) {
-    throw StateError('Typedefs should be elided $type');
-  }
-
   /// Returns `true` for types which print as a single identifier.
   static bool _isSimple(DartType type) {
     return type is DynamicType ||

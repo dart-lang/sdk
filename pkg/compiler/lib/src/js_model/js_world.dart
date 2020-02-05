@@ -644,13 +644,6 @@ class KernelSorter implements Sorter {
   }
 
   @override
-  Iterable<TypedefEntity> sortTypedefs(Iterable<TypedefEntity> typedefs) {
-    // TODO(redemption): Support this.
-    assert(typedefs.isEmpty);
-    return typedefs;
-  }
-
-  @override
   int compareLibrariesByLocation(LibraryEntity a, LibraryEntity b) {
     return _compareLibraries(a, b);
   }
@@ -663,13 +656,6 @@ class KernelSorter implements Sorter {
     ClassDefinition definition2 = elementMap.getClassDefinition(b);
     return _compareSourceSpans(
         a, definition1.location, b, definition2.location);
-  }
-
-  @override
-  int compareTypedefsByLocation(TypedefEntity a, TypedefEntity b) {
-    // TODO(redemption): Support this.
-    failedAt(a, 'KernelSorter.compareTypedefsByLocation unimplemented');
-    return 0;
   }
 
   @override

@@ -352,11 +352,6 @@ class _TypeContainedInOutputUnitVisitor
   bool visitAnyType(AnyType type, OutputUnit argument) => true;
 
   @override
-  bool visitTypedefType(TypedefType type, OutputUnit argument) {
-    return visit(type.unaliased, argument);
-  }
-
-  @override
   bool visitInterfaceType(InterfaceType type, OutputUnit argument) {
     if (_outputUnitData.outputUnitForClass(type.element) != argument) {
       return false;

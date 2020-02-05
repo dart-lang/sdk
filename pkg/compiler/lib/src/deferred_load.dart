@@ -173,10 +173,6 @@ abstract class DeferredLoadTask extends CompilerTask {
   Iterable<ImportEntity> memberImportsTo(
       MemberEntity element, LibraryEntity library);
 
-  /// Returns every [ImportEntity] that imports [element] into [library].
-  Iterable<ImportEntity> typedefImportsTo(
-      TypedefEntity element, LibraryEntity library);
-
   /// Collects all direct dependencies of [element].
   ///
   /// The collected dependent elements and constants are are added to
@@ -558,10 +554,6 @@ abstract class DeferredLoadTask extends CompilerTask {
         var imports = classImportsTo(type.element, library);
         _fixDependencyInfo(
             info, imports, "Class (in constant) ", type.element.name, context);
-      } else if (type is TypedefType) {
-        var imports = typedefImportsTo(type.element, library);
-        _fixDependencyInfo(
-            info, imports, "Typedef ", type.element.name, context);
       }
     }
   }
@@ -1694,12 +1686,6 @@ class TypeDependencyVisitor implements DartTypeVisitor<void, Null> {
   @override
   void visitAnyType(AnyType type, Null argument) {
     // Nothing to add.
-  }
-
-  @override
-  void visitTypedefType(TypedefType type, Null argument) {
-    visitList(type.typeArguments);
-    visit(type.unaliased);
   }
 
   @override

@@ -203,8 +203,6 @@ class CheckedModeHelpers {
   String getCheckedModeHelperNameInternal(
       DartType type, CommonElements commonElements,
       {bool typeCast, bool nativeCheckOnly}) {
-    assert(type is! TypedefType);
-
     DartTypes dartTypes = commonElements.dartTypes;
 
     if (type is TypeVariableType) {

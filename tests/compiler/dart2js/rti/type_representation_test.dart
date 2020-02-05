@@ -70,9 +70,7 @@ main() {
   RuntimeTypeTags rtiTags = const RuntimeTypeTags();
   TypeRepresentationGenerator typeRepresentation =
       new TypeRepresentationGenerator(
-          compiler.frontendStrategy.commonElements.dartTypes,
-          rtiTags,
-          compiler.backendClosedWorldForTesting.nativeData);
+          rtiTags, compiler.backendClosedWorldForTesting.nativeData);
 
   Expression onVariable(TypeVariableType _variable) {
     TypeVariableType variable = _variable;
@@ -86,20 +84,12 @@ main() {
 
   void expect(DartType type, String expectedRepresentation,
       [String expectedTypedefRepresentation]) {
-    bool encodeTypedefName = false;
     Expression expression = typeRepresentation.getTypeRepresentation(
-        backendStrategy.emitterTask.emitter,
-        type,
-        onVariable,
-        (x) => encodeTypedefName);
+        backendStrategy.emitterTask.emitter, type, onVariable);
     Expect.stringEquals(expectedRepresentation, stringify(expression));
 
-    encodeTypedefName = true;
     expression = typeRepresentation.getTypeRepresentation(
-        backendStrategy.emitterTask.emitter,
-        type,
-        onVariable,
-        (x) => encodeTypedefName);
+        backendStrategy.emitterTask.emitter, type, onVariable);
     if (expectedTypedefRepresentation == null) {
       expectedTypedefRepresentation = expectedRepresentation;
     }

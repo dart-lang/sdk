@@ -292,68 +292,6 @@ class InterfaceType extends DartType {
   }
 }
 
-class TypedefType extends DartType {
-  final TypedefEntity element;
-  final List<DartType> typeArguments;
-  @override
-  final FunctionType unaliased;
-
-  TypedefType(this.element, this.typeArguments, this.unaliased);
-
-  @override
-  bool _isTop(bool isLegacy) => unaliased._isTop(isLegacy);
-
-  @override
-  bool get containsTypeVariables =>
-      typeArguments.any((type) => type.containsTypeVariables);
-
-  @override
-  void forEachTypeVariable(f(TypeVariableType variable)) {
-    typeArguments.forEach((type) => type.forEachTypeVariable(f));
-  }
-
-  @override
-  bool _treatAsRaw(bool isLegacy) {
-    for (DartType type in typeArguments) {
-      if (!type._isTop(isLegacy)) return false;
-    }
-    return true;
-  }
-
-  @override
-  R accept<R, A>(DartTypeVisitor<R, A> visitor, A argument) =>
-      visitor.visitTypedefType(this, argument);
-
-  @override
-  int get hashCode {
-    int hash = element.hashCode;
-    for (DartType argument in typeArguments) {
-      int argumentHash = argument != null ? argument.hashCode : 0;
-      hash = 17 * hash + 3 * argumentHash;
-    }
-    return hash;
-  }
-
-  @override
-  bool operator ==(other) {
-    if (identical(this, other)) return true;
-    if (other is! TypedefType) return false;
-    return _equalsInternal(other, null);
-  }
-
-  @override
-  bool _equals(DartType other, _Assumptions assumptions) {
-    if (identical(this, other)) return true;
-    if (other is! TypedefType) return false;
-    return _equalsInternal(other, assumptions);
-  }
-
-  bool _equalsInternal(TypedefType other, _Assumptions assumptions) {
-    return identical(element, other.element) &&
-        _equalTypes(typeArguments, other.typeArguments, assumptions);
-  }
-}
-
 class TypeVariableType extends DartType {
   final TypeVariableEntity element;
 
@@ -752,8 +690,6 @@ abstract class DartTypeVisitor<R, A> {
 
   R visitInterfaceType(covariant InterfaceType type, A argument) => null;
 
-  R visitTypedefType(covariant TypedefType type, A argument) => null;
-
   R visitDynamicType(covariant DynamicType type, A argument) => null;
 
   R visitErasedType(covariant ErasedType type, A argument) => null;
@@ -1013,22 +949,6 @@ abstract class DartTypeSubstitutionVisitor<A>
   }
 
   @override
-  DartType visitTypedefType(covariant TypedefType type, A argument) {
-    DartType probe = _map[type];
-    if (probe != null) return probe;
-
-    List<DartType> newTypeArguments = _substTypes(type.typeArguments, argument);
-    FunctionType newUnaliased = visit(type.unaliased, argument);
-    // Create a new type only if necessary.
-    if (identical(type.typeArguments, newTypeArguments) &&
-        identical(type.unaliased, newUnaliased)) {
-      return _mapped(type, type);
-    }
-    return _mapped(
-        type, TypedefType(type.element, newTypeArguments, newUnaliased));
-  }
-
-  @override
   DartType visitDynamicType(covariant DynamicType type, A argument) => type;
 
   @override
@@ -1107,7 +1027,6 @@ abstract class DartTypeStructuralPredicateVisitor
   bool handleFreeFunctionTypeVariable(FunctionTypeVariable type) => false;
   bool handleFunctionType(FunctionType type) => false;
   bool handleInterfaceType(InterfaceType type) => false;
-  bool handleTypedefType(TypedefType type) => false;
   bool handleDynamicType(DynamicType type) => false;
   bool handleErasedType(ErasedType type) => false;
   bool handleAnyType(AnyType type) => false;
@@ -1170,13 +1089,6 @@ abstract class DartTypeStructuralPredicateVisitor
       InterfaceType type, List<FunctionTypeVariable> bindings) {
     if (handleInterfaceType(type)) return true;
     return _visitAll(type.typeArguments, bindings);
-  }
-
-  @override
-  bool visitTypedefType(TypedefType type, List<FunctionTypeVariable> bindings) {
-    if (handleTypedefType(type)) return true;
-    if (_visitAll(type.typeArguments, bindings)) return true;
-    return visit(type.unaliased, bindings);
   }
 
   @override
@@ -1448,12 +1360,6 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
 
   @override
   void visitInterfaceType(covariant InterfaceType type, _) {
-    _identifier(type.element.name);
-    _optionalTypeArguments(type.typeArguments);
-  }
-
-  @override
-  void visitTypedefType(covariant TypedefType type, _) {
     _identifier(type.element.name);
     _optionalTypeArguments(type.typeArguments);
   }

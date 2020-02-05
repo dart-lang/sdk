@@ -94,16 +94,6 @@ class DartTypeToTextVisitor extends DartTypeVisitor<void, StringBuffer> {
   }
 
   @override
-  void visitTypedefType(TypedefType type, StringBuffer sb) {
-    sb.write(type.element.name);
-    if (type.typeArguments.isNotEmpty) {
-      sb.write('<');
-      visitList(type.typeArguments, sb);
-      sb.write('>');
-    }
-  }
-
-  @override
   void visitDynamicType(DynamicType type, StringBuffer sb) {
     sb.write('dynamic');
   }

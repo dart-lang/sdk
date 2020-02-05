@@ -87,8 +87,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       new EntityDataMap<IndexedMember, KMemberData>();
   final EntityDataMap<IndexedTypeVariable, KTypeVariableData> typeVariables =
       new EntityDataMap<IndexedTypeVariable, KTypeVariableData>();
-  final EntityDataMap<IndexedTypedef, KTypedefData> typedefs =
-      new EntityDataMap<IndexedTypedef, KTypedefData>();
 
   /// Set to `true` before creating the J-World from the K-World to assert that
   /// no entities are created late.
@@ -96,7 +94,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   final Map<ir.Library, IndexedLibrary> libraryMap = {};
   final Map<ir.Class, IndexedClass> classMap = {};
-  final Map<ir.Typedef, IndexedTypedef> typedefMap = {};
 
   /// Map from [ir.TypeParameter] nodes to the corresponding
   /// [TypeVariableEntity].
@@ -387,12 +384,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         data.interfaces = new List<InterfaceType>.from(interfaces.toList());
       }
     }
-  }
-
-  @override
-  TypedefType getTypedefType(ir.Typedef node) {
-    IndexedTypedef typedef = getTypedefInternal(node);
-    return typedefs.getData(typedef).rawType;
   }
 
   @override
@@ -758,10 +749,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   ir.Class getClassNode(covariant IndexedClass cls) {
     assert(checkFamily(cls));
     return classes.getData(cls).node;
-  }
-
-  ir.Typedef _getTypedefNode(covariant IndexedTypedef typedef) {
-    return typedefs.getData(typedef).node;
   }
 
   @override
@@ -1172,25 +1159,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     return classes.register(cls, new KClassDataImpl(node), classEnv);
   }
 
-  TypedefEntity getTypedefInternal(ir.Typedef node) {
-    return typedefMap[node] ??= _getTypedefCreate(node);
-  }
-
-  TypedefEntity _getTypedefCreate(ir.Typedef node) {
-    assert(
-        !envIsClosed,
-        "Environment of $this is closed. Trying to create "
-        "typedef for $node.");
-    IndexedLibrary library = getLibraryInternal(node.enclosingLibrary);
-    IndexedTypedef typedef = createTypedef(library, node.name);
-    TypedefType typedefType = new TypedefType(
-        typedef,
-        new List<DartType>.filled(node.typeParameters.length, DynamicType()),
-        getDartType(node.type));
-    return typedefs.register(
-        typedef, new KTypedefData(node, typedef, typedefType));
-  }
-
   TypeVariableEntity getTypeVariableInternal(ir.TypeParameter node) {
     return typeVariableMap[node] ??= _getTypeVariableCreate(node);
   }
@@ -1505,11 +1473,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   }
 
   @override
-  ir.Typedef getTypedefNode(TypedefEntity typedef) {
-    return _getTypedefNode(typedef);
-  }
-
-  @override
   ForeignKind getForeignKind(ir.StaticInvocation node) {
     if (commonElements.isForeignHelper(getMember(node.target))) {
       switch (node.target.name.name) {
@@ -1583,10 +1546,6 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   IndexedClass createClass(LibraryEntity library, String name,
       {bool isAbstract}) {
     return new KClass(library, name, isAbstract: isAbstract);
-  }
-
-  IndexedTypedef createTypedef(LibraryEntity library, String name) {
-    return new KTypedef(library, name);
   }
 
   TypeVariableEntity createTypeVariable(

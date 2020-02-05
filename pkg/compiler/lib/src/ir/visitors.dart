@@ -173,13 +173,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue visitTypeLiteralConstant(ir.TypeLiteralConstant node) {
-    DartType type;
-    if (node.type is ir.FunctionType) {
-      ir.FunctionType functionType = node.type;
-      type = elementMap.getTypedefType(functionType.typedef);
-    } else {
-      type = elementMap.getDartType(node.type);
-    }
+    DartType type = elementMap.getDartType(node.type);
     return constant_system.createType(elementMap.commonElements, type);
   }
 
