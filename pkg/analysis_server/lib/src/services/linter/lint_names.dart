@@ -40,6 +40,7 @@ class LintNames {
   static const String prefer_collection_literals = 'prefer_collection_literals';
   static const String prefer_conditional_assignment =
       'prefer_conditional_assignment';
+  static const String prefer_contains = 'prefer_contains';
   static const String prefer_const_constructors = 'prefer_const_constructors';
   static const String prefer_const_declarations = 'prefer_const_declarations';
   static const String prefer_equal_for_default_values =

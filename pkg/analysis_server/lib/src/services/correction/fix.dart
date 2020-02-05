@@ -188,6 +188,8 @@ class DartFixKind {
       FixKind('CONVERT_FLUTTER_CHILDREN', 50, 'Convert to child:');
   static const CONVERT_INTO_EXPRESSION_BODY =
       FixKind('CONVERT_INTO_EXPRESSION_BODY', 50, 'Convert to expression body');
+  static const CONVERT_TO_CONTAINS =
+      FixKind('CONVERT_TO_CONTAINS', 50, "Convert to using 'contains'");
   static const CONVERT_TO_FOR_ELEMENT =
       FixKind('CONVERT_TO_FOR_ELEMENT', 50, "Convert to a 'for' element");
   static const CONVERT_TO_GENERIC_FUNCTION_SYNTAX = FixKind(
