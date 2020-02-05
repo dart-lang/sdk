@@ -223,7 +223,7 @@ class CompletionCoverageMetrics extends AbstractCompletionMetricsComputer {
     var place = AbstractCompletionMetricsComputer.placementInSuggestionList(
         suggestions, expectedCompletion);
 
-    mRRComputer.addReciprocalRank(place);
+    mRRComputer.addRank(place.rank);
 
     if (place.denominator != 0) {
       includedCount++;
