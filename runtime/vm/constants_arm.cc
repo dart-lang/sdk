@@ -2,9 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"  // NOLINT
+
 #if defined(TARGET_ARCH_ARM)
 
-#include "vm/constants.h"
+#include "vm/constants.h"  // NOLINT
 
 namespace dart {
 
