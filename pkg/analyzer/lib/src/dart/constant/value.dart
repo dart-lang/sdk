@@ -2682,5 +2682,7 @@ class TypeState extends InstanceState {
   }
 
   @override
-  String toString() => _type?.toString() ?? "-unknown-";
+  String toString() {
+    return _type?.getDisplayString(withNullability: true) ?? '-unknown-';
+  }
 }
