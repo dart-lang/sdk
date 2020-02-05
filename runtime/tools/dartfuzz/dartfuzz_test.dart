@@ -261,7 +261,8 @@ class TestRunnerKBC implements TestRunner {
     if (generate != null) {
       print([generate, '--gen-bytecode', platform, '-o', dill, fileName]
           .join(" ")
-          .replaceAll('$top/', ''));
+          .replaceAll('$top/', '')
+          .replaceAll('$tmp/', ''));
     }
     print(cmd.join(" ").replaceAll('$top/', '').replaceAll('$tmp/', ''));
   }
@@ -565,7 +566,7 @@ class DartFuzzTest {
     print(
         "dart runtime/tools/dartfuzz/dartfuzz.dart --${fp ? "" : "no-"}fp --${ffi ? "" : "no-"}ffi "
         "--${flatTp ? "" : "no-"}flat "
-        "--seed ${seed} $fileName");
+        "--seed ${seed} fuzz.dart");
     print("\n-- RUN 1 --\n");
     runner1.printReproductionCommand();
     print("\n-- RUN 2 --\n");
