@@ -243,23 +243,19 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return OpenFD(fd);
 }
 
-static std::unique_ptr<const char[]> DecodeUri(const char* uri) {
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
   const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
       ? uri + 7 : uri;
   UriDecoder uri_decoder(path);
-  if (uri_decoder.decoded() == nullptr) {
+  if (uri_decoder.decoded() == NULL) {
     errno = EINVAL;
-    return nullptr;
+    return NULL;
   }
-  return std::unique_ptr<const char[]>(strdup(uri_decoder.decoded()));
+  return File::Open(namespc, uri_decoder.decoded(), mode);
 }
 
-File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
-  auto path = DecodeUri(uri);
-  if (path == nullptr) {
-    return nullptr;
-  }
-  return File::Open(namespc, path.get(), mode);
+File* File::OpenStdio(int fd) {
+  return new File(new FileHandle(fd));
 }
 
 bool File::Exists(Namespace* namespc, const char* name) {
@@ -270,14 +266,6 @@ bool File::Exists(Namespace* namespc, const char* name) {
     return !S_ISDIR(st.st_mode) && !S_ISLNK(st.st_mode);
   }
   return false;
-}
-
-bool File::ExistsUri(Namespace* namespc, const char* uri) {
-  auto path = DecodeUri(uri);
-  if (path == nullptr) {
-    return false;
-  }
-  return File::Exists(namespc, path.get());
 }
 
 bool File::Create(Namespace* namespc, const char* name) {

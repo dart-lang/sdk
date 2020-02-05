@@ -440,7 +440,7 @@ int Options::ParseArguments(int argc,
 
   // Get the script name.
   if (i < argc) {
-    *script_name = strdup(argv[i]);
+    *script_name = argv[i];
     i++;
   } else {
     return -1;
