@@ -25,16 +25,6 @@ import 'entities.dart';
 abstract class DartType {
   const DartType();
 
-  /// Returns the unaliased type of this type.
-  ///
-  /// The unaliased type of a typedef'd type is the unaliased type to which its
-  /// name is bound. The unaliased version of any other type is the type itself.
-  ///
-  /// For example, the unaliased type of `typedef A Func<A,B>(B b)` is the
-  /// function type `(B) -> A` and the unaliased type of `Func<int,String>`
-  /// is the function type `(String) -> int`.
-  DartType get unaliased => this;
-
   /// Is `true` if this type is a top type.
   bool _isTop(bool isLegacy) => false;
 
@@ -1425,9 +1415,6 @@ abstract class DartTypes {
     /// See also [_isSubtype] in `dart:_rti`.
     bool _isSubtype(DartType s, Set<FunctionTypeVariable> sEnv, DartType t,
         Set<FunctionTypeVariable> tEnv) {
-      s = s.unaliased;
-      t = t.unaliased;
-
       // Reflexivity:
       if (s == t) return true;
       if (s is FunctionTypeVariable &&

@@ -371,7 +371,7 @@ class ConstantEmitter extends ModularConstantEmitter {
 
   @override
   jsAst.Expression visitType(TypeConstantValue constant, [_]) {
-    DartType type = constant.representedType.unaliased;
+    DartType type = constant.representedType;
 
     if (_options.useNewRti) {
       assert(!type.containsTypeVariables);

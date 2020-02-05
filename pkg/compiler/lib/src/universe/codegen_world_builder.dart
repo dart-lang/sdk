@@ -322,7 +322,7 @@ class CodegenWorldBuilderImpl extends WorldBuilderBase
   }
 
   void registerIsCheck(covariant DartType type) {
-    _isChecks.add(type.unaliased);
+    _isChecks.add(type);
   }
 
   void registerNamedTypeVariableNewRti(TypeVariableType type) {

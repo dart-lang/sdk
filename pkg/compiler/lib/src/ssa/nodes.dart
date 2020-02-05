@@ -1405,7 +1405,6 @@ abstract class HInstruction implements Spannable {
 
   HInstruction convertType(JClosedWorld closedWorld, DartType type, int kind) {
     if (type == null) return this;
-    type = type.unaliased;
     // Only the builder knows how to create [HTypeConversion]
     // instructions with generics. It has the generic type context
     // available.

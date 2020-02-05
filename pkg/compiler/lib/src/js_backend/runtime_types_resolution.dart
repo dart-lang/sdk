@@ -601,7 +601,7 @@ class TypeVariableTests {
         InterfaceType instance = types.asInstanceOf(type, cls);
         if (instance != null) {
           for (DartType argument in instance.typeArguments) {
-            addImplicitCheck(argument.unaliased);
+            addImplicitCheck(argument);
           }
         }
       }

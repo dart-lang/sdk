@@ -1700,9 +1700,6 @@ class KernelElementEnvironment extends ElementEnvironment
   }
 
   @override
-  DartType getUnaliasedType(DartType type) => type;
-
-  @override
   ConstructorEntity lookupConstructor(ClassEntity cls, String name,
       {bool required: false}) {
     ConstructorEntity constructor = elementMap.lookupConstructor(cls, name);

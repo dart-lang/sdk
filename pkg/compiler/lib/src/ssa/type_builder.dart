@@ -52,7 +52,6 @@ abstract class TypeBuilder {
   AbstractValue trustTypeMask(DartType type) {
     if (type == null) return null;
     type = builder.localsHandler.substInContext(type);
-    type = type.unaliased;
     if (type is DynamicType) return null;
     if (type is! InterfaceType) return null;
     if (type == _closedWorld.commonElements.objectType) return null;
@@ -255,7 +254,6 @@ abstract class TypeBuilder {
       return analyzeTypeArgumentNewRti(argument, sourceElement,
           sourceInformation: sourceInformation);
     }
-    argument = argument.unaliased;
     if (argument is DynamicType) {
       // Represent [dynamic] as [null].
       return builder.graph.addConstantNull(_closedWorld);
@@ -285,8 +283,6 @@ abstract class TypeBuilder {
   HInstruction analyzeTypeArgumentNewRti(
       DartType argument, MemberEntity sourceElement,
       {SourceInformation sourceInformation}) {
-    argument = argument.unaliased;
-
     if (!argument.containsTypeVariables) {
       HInstruction rti =
           HLoadType.type(argument, _abstractValueDomain.dynamicType)
@@ -432,7 +428,6 @@ abstract class TypeBuilder {
     }
 
     if (type == null) return original;
-    type = type.unaliased;
     if (type is InterfaceType && !_closedWorld.dartTypes.treatAsRawType(type)) {
       InterfaceType interfaceType = type;
       AbstractValue subtype =
@@ -471,8 +466,6 @@ abstract class TypeBuilder {
   HInstruction buildAsCheck(HInstruction original, DartType type,
       {bool isTypeError, SourceInformation sourceInformation}) {
     if (type == null) return original;
-    type = type.unaliased;
-
     if (type is DynamicType) return original;
     if (type is VoidType) return original;
     if (type == _closedWorld.commonElements.objectType) return original;

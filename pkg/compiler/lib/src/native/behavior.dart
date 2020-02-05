@@ -777,7 +777,6 @@ abstract class BehaviorBuilder {
   /// Models the behavior of having instances of [type] escape from Dart code
   /// into native code.
   void _escape(DartType type, bool isJsInterop) {
-    type = elementEnvironment.getUnaliasedType(type);
     if (type is FunctionType) {
       FunctionType functionType = type;
       // A function might be called from native code, passing us novel
@@ -796,7 +795,6 @@ abstract class BehaviorBuilder {
   /// We assume that JS-interop APIs cannot instantiate Dart types or
   /// non-JSInterop native types.
   void _capture(DartType type, bool isJsInterop) {
-    type = elementEnvironment.getUnaliasedType(type);
     if (type is FunctionType) {
       FunctionType functionType = type;
       _capture(functionType.returnType, isJsInterop);
