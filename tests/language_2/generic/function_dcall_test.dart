@@ -46,7 +46,8 @@ void testGenericFnAsGenericFnArg() {
 
 void testGenericFnTypeToString() {
   T f<T>(T a) => a;
-  Expect.equals(f.runtimeType.toString(), "<T>(T) => T");
+  Expect.isTrue(
+      f.runtimeType.toString().contains(RegExp(r'<(\w+)>\(\1\) => \1')));
 }
 
 main() {

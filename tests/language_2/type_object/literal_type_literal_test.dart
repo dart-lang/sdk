@@ -69,12 +69,11 @@ main() {
       ["GenericTypedef2", "GenericTypedef2<dynamic>", "(dynamic) => int"]);
   testType(new Box<GenericTypedef<int>>().typeArg,
       ["GenericTypedef<int>", "(int) => int"]);
-  testType(GenericFunc, ["GenericFunc", "<T>(T) => int", "<T1>(T1) => int"]);
+  testType(GenericFunc, ["GenericFunc", RegExp(r'<(\w+)>\((\1)\) => int')]);
   testType(GenericTypedefAndFunc, [
     "GenericTypedefAndFunc",
     "GenericTypedefAndFunc<dynamic>",
-    "<T>(T) => dynamic",
-    "<T1>(T1) => dynamic",
+    RegExp(r'<(\w+)>\((\1)\) => dynamic')
   ]);
 
   // Literals are canonicalized.
@@ -103,7 +102,15 @@ void testType(Type type, Object expectedToStringValues) {
   if (text.contains('minified:')) return;
 
   if (expectedToStringValues is List) {
-    Expect.isTrue(expectedToStringValues.contains(text),
+    var matched = false;
+    for (var value in expectedToStringValues) {
+      if (value is String) {
+        matched = matched || value == text;
+      } else if (value is RegExp) {
+        matched = matched || value.hasMatch(text);
+      }
+    }
+    Expect.isTrue(matched,
         'type `$type`.toString() should be one of: $expectedToStringValues.');
   } else {
     var string = expectedToStringValues as String;
