@@ -59,11 +59,13 @@ breakpoint_on_if_null_3_test: RuntimeError
 breakpoint_on_if_null_4_test: RuntimeError
 breakpoint_partfile_test: RuntimeError
 breakpoint_two_args_checked_test: Skip, Timeout
+breakpoints_with_mixin_test: RuntimeError # Debugger is disabled in AOT mode.
 capture_stdio_test: Skip, Timeout
 causal_async_stack_contents_test: Skip, Timeout
 causal_async_stack_presence_test: Skip, Timeout
 causal_async_star_stack_contents_test: Skip, Timeout
 causal_async_star_stack_presence_test: Skip, Timeout
+client_resume_approvals_reload_test: RuntimeError # Compiler is disabled in AOT mode.
 code_test: RuntimeError
 column_breakpoint_test: RuntimeError
 complex_reload_test: RuntimeError
