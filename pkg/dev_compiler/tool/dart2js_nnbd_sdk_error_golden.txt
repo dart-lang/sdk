@@ -6,8 +6,8 @@ ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/i
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1153|7|14|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1155|7|12|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1157|7|17|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|708|17|3|'NativeTypedArrayOfDouble.[]=' ('void Function(int, double)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|729|17|3|'NativeTypedArrayOfInt.[]=' ('void Function(int, int)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|704|17|3|'NativeTypedArrayOfDouble.[]=' ('void Function(int, double)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|725|17|3|'NativeTypedArrayOfInt.[]=' ('void Function(int, int)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/js/js.dart|351|17|3|'JsArray.[]=' ('void Function(dynamic, E)') isn't a valid override of 'JsObject.[]=' ('void Function(dynamic, dynamic)').
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1672|28|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1674|27|1|The operator '&' isn't defined for the type 'JSInt'.
@@ -97,8 +97,8 @@ ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|881|3|24|All final variables must be initialized, but 'diffuseConstant', 'height', and 8 others are not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|934|3|24|All final variables must be initialized, but 'height', 'in1', and 8 others are not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/svg/dart2js/svg_dart2js.dart|996|3|21|All final variables must be initialized, but 'azimuth' and 'elevation' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|318|20|6|The final variable 'buffer' must be initialized.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|31|13|13|The final variable 'lengthInBytes' must be initialized.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|320|20|6|The final variable 'buffer' must be initialized.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|324|13|13|The final variable 'lengthInBytes' must be initialized.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|328|13|13|The final variable 'offsetInBytes' must be initialized.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|333|13|18|The final variable 'elementSizeInBytes' must be initialized.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|322|13|13|The final variable 'lengthInBytes' must be initialized.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|326|13|13|The final variable 'offsetInBytes' must be initialized.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED|lib/_internal/js_runtime/lib/native_typed_data.dart|331|13|18|The final variable 'elementSizeInBytes' must be initialized.
