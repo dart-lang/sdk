@@ -151,14 +151,6 @@ var s = {2, 3};
 ''');
   }
 
-  Future<void> test_from_notALiteral() async {
-    await resolveTestUnit('''
-var l = [1];
-Set s = /*LINT*/new Set.from(l);
-''');
-    await assertNoFix();
-  }
-
   Future<void> test_from_trailingComma() async {
     await resolveTestUnit('''
 var s = Set.from([2, 3,]);
@@ -202,13 +194,5 @@ var s = <int>[2, 3].toSet();
     await assertHasFix('''
 var s = <int>{2, 3};
 ''');
-  }
-
-  Future<void> test_toSet_notALiteral() async {
-    await resolveTestUnit('''
-var l = [];
-var s = /*LINT*/l.toSet();
-''');
-    await assertNoFix();
   }
 }

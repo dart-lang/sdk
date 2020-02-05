@@ -50,13 +50,6 @@ var l = [];
 ''');
   }
 
-  Future<void> test_default_tooManyArguments() async {
-    await resolveTestUnit('''
-var l = /*LINT*/List(5);
-''');
-    await assertNoFix();
-  }
-
   Future<void> test_default_typeArg() async {
     await resolveTestUnit('''
 var l = List<int>();

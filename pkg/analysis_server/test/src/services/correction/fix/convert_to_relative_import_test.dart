@@ -45,7 +45,7 @@ C c;
     addSource('/home/test1/lib/foo.dart', '');
     testFile = convertPath('/home/test2/lib/bar.dart');
     await resolveTestUnit('''
-import /*LINT*/'package:test1/foo.dart';
+import 'package:test1/foo.dart';
 ''');
 
     await assertNoFix();
