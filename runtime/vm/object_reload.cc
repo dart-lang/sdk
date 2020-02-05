@@ -618,6 +618,18 @@ class ConstToNonConstClass : public ClassReasonForCancelling {
   }
 };
 
+class ConstClassFieldRemoved : public ClassReasonForCancelling {
+ public:
+  ConstClassFieldRemoved(Zone* zone, const Class& from, const Class& to)
+      : ClassReasonForCancelling(zone, from, to) {}
+
+ private:
+  RawString* ToString() {
+    return String::NewFormatted("Const class cannot remove fields: %s",
+                                from_.ToCString());
+  }
+};
+
 class NativeFieldsConflict : public ClassReasonForCancelling {
  public:
   NativeFieldsConflict(Zone* zone, const Class& from, const Class& to)
@@ -724,11 +736,50 @@ void Class::CheckReload(const Class& replacement,
     TIR_Print("Finalized replacement class for %s\n", ToCString());
   }
 
-  if (is_finalized() && is_const() && !replacement.is_const()) {
-    if (constants() != Array::null() && Array::LengthOf(constants()) > 0) {
+  if (is_finalized() && is_const() && (constants() != Array::null()) &&
+      (Array::LengthOf(constants()) > 0)) {
+    // Consts can't become non-consts.
+    if (!replacement.is_const()) {
       context->group_reload_context()->AddReasonForCancelling(
           new (context->zone())
               ConstToNonConstClass(context->zone(), *this, replacement));
+      return;
+    }
+
+    // Consts can't lose fields.
+    bool field_removed = false;
+    const Array& old_fields =
+        Array::Handle(OffsetToFieldMap(true /* original classes */));
+    const Array& new_fields = Array::Handle(replacement.OffsetToFieldMap());
+    if (new_fields.Length() < old_fields.Length()) {
+      field_removed = true;
+    } else {
+      Field& old_field = Field::Handle();
+      Field& new_field = Field::Handle();
+      String& old_name = String::Handle();
+      String& new_name = String::Handle();
+      for (intptr_t i = 0, n = old_fields.Length(); i < n; i++) {
+        old_field ^= old_fields.At(i);
+        new_field ^= new_fields.At(i);
+        if (old_field.IsNull() != new_field.IsNull()) {
+          field_removed = true;
+          break;
+        }
+        if (!old_field.IsNull()) {
+          old_name = old_field.name();
+          new_name = new_field.name();
+          if (!old_name.Equals(new_name)) {
+            field_removed = true;
+            break;
+          }
+        }
+      }
+    }
+    if (field_removed) {
+      context->group_reload_context()->AddReasonForCancelling(
+          new (context->zone())
+              ConstClassFieldRemoved(context->zone(), *this, replacement));
+      return;
     }
   }
 

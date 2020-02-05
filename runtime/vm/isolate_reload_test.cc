@@ -2973,7 +2973,7 @@ TEST_CASE(IsolateReload_ShapeChangeRetainsHash_Const) {
   EXPECT_STREQ("true", SimpleInvokeStr(lib, "main"));
 }
 
-TEST_CASE(IsolateReload_ShapeChangeConstReferencedByInstructions) {
+TEST_CASE(IsolateReload_ShapeChange_Const_AddSlot) {
   // On IA32, instructions can contain direct pointers to const objects. We need
   // to be careful that if the const objects are reallocated because of a shape
   // change, they are allocated old. Because instructions normally contain
@@ -2999,30 +2999,100 @@ TEST_CASE(IsolateReload_ShapeChangeConstReferencedByInstructions) {
   EXPECT_VALID(lib);
   EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
-  // Flip the size back and forth a few times.
-  for (intptr_t i = 0; i < 3; i++) {
-    const char* kReloadScript = R"(
-      import 'file:///test:isolate_reload_helper';
-      class A {
-        final x, y, z;
-        const A(this.x, this.y, this.z);
-      }
-      var a;
-      main() {
-        a = const A(1, null, null);
-        collectNewSpace();
-        return 'okay';
-      }
-    )";
+  const char* kReloadScript = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y, z;
+      const A(this.x, this.y, this.z);
+    }
+    var a;
+    main() {
+      a = const A(1, null, null);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
 
-    lib = TestCase::ReloadTestScript(kReloadScript);
-    EXPECT_VALID(lib);
-    EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
 
-    lib = TestCase::ReloadTestScript(kScript);
-    EXPECT_VALID(lib);
-    EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
-  }
+  const char* kReloadScript2 = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y, z, w, u;
+      const A(this.x, this.y, this.z, this.w, this.u);
+    }
+    var a;
+    main() {
+      a = const A(1, null, null, null, null);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript2);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+}
+
+TEST_CASE(IsolateReload_ShapeChange_Const_RemoveSlot) {
+  const char* kScript = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y, z;
+      const A(this.x, this.y, this.z);
+    }
+    var a;
+    main() {
+      a = const A(1, 2, 3);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y;
+      const A(this.x, this.y);
+    }
+    var a;
+    main() {
+      a = const A(1, null);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib,
+               "Const class cannot remove fields: "
+               "Library:'file:///test-lib' Class: A");
+
+  // Rename is seen by the VM is unrelated add and remove.
+  const char* kReloadScript2 = R"(
+    import 'file:///test:isolate_reload_helper';
+    class A {
+      final x, y, w;
+      const A(this.x, this.y, this.w);
+    }
+    var a;
+    main() {
+      a = const A(1, null, null);
+      collectNewSpace();
+      return 'okay';
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript2);
+  EXPECT_ERROR(lib,
+               "Const class cannot remove fields: "
+               "Library:'file:///test-lib' Class: A");
 }
 
 TEST_CASE(IsolateReload_ConstToNonConstClass) {
@@ -3034,6 +3104,39 @@ TEST_CASE(IsolateReload_ConstToNonConstClass) {
     dynamic a;
     main() {
       a = const A(1);
+      return 'okay';
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript = R"(
+    class A {
+      dynamic x;
+      A(this.x);
+    }
+    dynamic a;
+    main() {
+      a.x = 10;
+    }
+  )";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_ERROR(lib,
+               "Const class cannot become non-const: "
+               "Library:'file:///test-lib' Class: A");
+}
+
+TEST_CASE(IsolateReload_ConstToNonConstClass_Empty) {
+  const char* kScript = R"(
+    class A {
+      const A();
+    }
+    dynamic a;
+    main() {
+      a = const A();
       return 'okay';
     }
   )";
