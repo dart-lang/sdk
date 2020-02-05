@@ -1426,7 +1426,7 @@ class FixProcessor extends BaseProcessor {
               changeBuilder,
               DartFixKind.CHANGE_TYPE_ANNOTATION,
               args: [
-                typeNode.type,
+                typeNode.type.getDisplayString(withNullability: false),
                 newType.getDisplayString(withNullability: false),
               ],
             );

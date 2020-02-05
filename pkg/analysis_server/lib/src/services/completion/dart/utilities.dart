@@ -332,7 +332,7 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
   if (type == null) {
     return DYNAMIC;
   }
-  return type.toString();
+  return type.getDisplayString(withNullability: false);
 }
 
 /// TODO(pq): fix to use getDefaultStringParameterValue()

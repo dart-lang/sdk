@@ -62,7 +62,7 @@ String getReturnTypeString(engine.Element element) {
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType?.toString();
+      return element.returnType?.getDisplayString(withNullability: false);
     }
   } else if (element is engine.VariableElement) {
     engine.DartType type = element.type;
@@ -70,7 +70,8 @@ String getReturnTypeString(engine.Element element) {
         ? type.getDisplayString(withNullability: false)
         : 'dynamic';
   } else if (element is engine.FunctionTypeAliasElement) {
-    return element.function.returnType.toString();
+    var returnType = element.function.returnType;
+    return returnType.getDisplayString(withNullability: false);
   } else {
     return null;
   }
