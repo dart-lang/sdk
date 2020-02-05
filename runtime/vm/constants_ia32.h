@@ -10,6 +10,7 @@
 #endif
 
 #include "platform/assert.h"
+#include "platform/globals.h"
 
 namespace dart {
 
@@ -37,6 +38,10 @@ enum ByteRegister {
   BH = 7,
   kNoByteRegister = -1  // Signals an illegal register.
 };
+
+inline ByteRegister ByteRegisterOf(Register reg) {
+  return static_cast<ByteRegister>(reg);
+}
 
 enum XmmRegister {
   XMM0 = 0,
@@ -153,17 +158,36 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = EDX;
 
   // Floating point values are returned on the "FPU stack" (in "ST" registers).
-  static constexpr XmmRegister kReturnFpuReg = kNoXmmRegister;
+  // However, we use XMM0 in our compiler pipeline as the location.
+  // The move from and to ST is done in FfiCallInstr::EmitNativeCode and
+  // NativeReturnInstr::EmitNativeCode.
+  static constexpr XmmRegister kReturnFpuReg = XMM0;
 
   static constexpr Register kFirstCalleeSavedCpuReg = EBX;
   static constexpr Register kFirstNonArgumentRegister = EAX;
   static constexpr Register kSecondNonArgumentRegister = ECX;
   static constexpr Register kStackPointerRegister = SPREG;
 
-  // Whether 64-bit arguments must be aligned to an even register or 8-byte
-  // stack address. On IA32, 64-bit integers and floating-point values do *not*
-  // need to be 8-byte aligned.
-  static constexpr bool kAlignArguments = false;
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
+
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+
+  // How fields in composites are aligned.
+#if defined(_WIN32)
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+#else
+  static constexpr AlignmentStrategy kFieldAlignment =
+      kAlignedToValueSizeBut8AlignedTo4;
+#endif
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
 };
 
 }  // namespace dart

@@ -10,6 +10,7 @@
 #endif
 
 #include "platform/assert.h"
+#include "platform/globals.h"
 
 namespace dart {
 
@@ -217,9 +218,30 @@ class CallingConventions {
   // "hardfp").
   static constexpr bool kAbiSoftFP = false;
 
-  // Whether 64-bit arguments must be aligned to an even register or 8-byte
-  // stack address. Not relevant on X64 since the word size is 64-bits already.
-  static constexpr bool kAlignArguments = false;
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
+
+  // How stack arguments are aligned.
+#if defined(TARGET_OS_MACOS_IOS)
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToValueSize;
+#else
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+#endif
+
+  // How fields in composites are aligned.
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+#if defined(TARGET_OS_MACOS_IOS)
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
+#else
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
+#endif
+  static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;
 
   static constexpr Register kReturnReg = R0;
   static constexpr Register kSecondReturnReg = kNoRegister;

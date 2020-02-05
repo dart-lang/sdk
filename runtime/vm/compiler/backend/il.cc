@@ -4098,26 +4098,30 @@ void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   constexpr intptr_t kEntryFramePadding = 4;
   compiler::ffi::FrameRebase rebase(
       /*old_base=*/SPREG, /*new_base=*/FPREG,
-      -kExitLinkSlotFromEntryFp + kEntryFramePadding);
-  const Location dst = locs()->out(0);
-  const Location src = rebase.Rebase(loc_);
+      (-kExitLinkSlotFromEntryFp + kEntryFramePadding) *
+          compiler::target::kWordSize,
+      compiler->zone());
+  const auto& src =
+      rebase.Rebase(marshaller_.NativeLocationOfNativeParameter(index_));
   NoTemporaryAllocator no_temp;
-  compiler->EmitMove(dst, src, &no_temp);
+  const Location out_loc = locs()->out(0);
+  const Representation out_rep = representation();
+  compiler->EmitMoveFromNative(out_loc, out_rep, src, &no_temp);
 }
 
 LocationSummary* NativeParameterInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   ASSERT(opt);
-  Location input = Location::Any();
+  Location output = Location::Any();
   if (representation() == kUnboxedInt64 && compiler::target::kWordSize < 8) {
-    input = Location::Pair(Location::RequiresRegister(),
-                           Location::RequiresFpuRegister());
+    output = Location::Pair(Location::RequiresRegister(),
+                            Location::RequiresFpuRegister());
   } else {
-    input = RegisterKindForResult() == Location::kRegister
-                ? Location::RequiresRegister()
-                : Location::RequiresFpuRegister();
+    output = RegisterKindForResult() == Location::kRegister
+                 ? Location::RequiresRegister()
+                 : Location::RequiresFpuRegister();
   }
-  return LocationSummary::Make(zone, /*num_inputs=*/0, input,
+  return LocationSummary::Make(zone, /*num_inputs=*/0, output,
                                LocationSummary::kNoCall);
 }
 
@@ -5473,7 +5477,7 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx == TargetAddressIndex()) {
     return kUnboxedFfiIntPtr;
   } else {
-    return arg_representations_[idx];
+    return marshaller_.RepInFfiCall(idx);
   }
 }
 
@@ -5507,45 +5511,54 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   summary->set_temp(2, Location::RegisterLocation(
                            CallingConventions::kSecondCalleeSavedCpuReg));
 #endif
-  summary->set_out(0, compiler::ffi::ResultLocation(
-                          compiler::ffi::ResultRepresentation(signature_)));
+  summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
 
-  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    // Floating point values are never split: they are either in a single "FPU"
-    // register or a contiguous 64-bit slot on the stack. Unboxed 64-bit integer
-    // values, in contrast, can be split between any two registers on a 32-bit
-    // system.
-    //
-    // There is an exception for iOS and Android 32-bit ARM, where
-    // floating-point values are treated as integers as far as the calling
-    // convention is concerned. However, the representation of these arguments
-    // are set to kUnboxedInt32 or kUnboxedInt64 already, so we don't have to
-    // account for that here.
-    const bool is_atomic = arg_representations_[i] == kUnboxedFloat ||
-                           arg_representations_[i] == kUnboxedDouble;
-
-    // Since we have to move this input down to the stack, there's no point in
-    // pinning it to any specific register.
-    summary->set_in(i, UnallocateStackSlots(arg_locations_[i], is_atomic));
+  for (intptr_t i = 0, n = marshaller_.num_args(); i < n; ++i) {
+    summary->set_in(i, marshaller_.LocInFfiCall(i));
   }
 
   return summary;
 }
 
-Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
-  if (in.IsPairLocation()) {
-    ASSERT(!is_atomic);
-    return Location::Pair(UnallocateStackSlots(in.AsPairLocation()->At(0)),
-                          UnallocateStackSlots(in.AsPairLocation()->At(1)));
-  } else if (in.IsMachineRegister()) {
-    return in;
-  } else if (in.IsDoubleStackSlot()) {
-    return is_atomic ? Location::Any()
-                     : Location::Pair(Location::Any(), Location::Any());
-  } else {
-    ASSERT(in.IsStackSlot());
-    return Location::Any();
+void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler) {
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
+
+  compiler::ffi::FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
+                                    /*stack_delta=*/0, zone_);
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    const Location origin = rebase.Rebase(locs()->in(i));
+    const Representation origin_rep = RequiredInputRepresentation(i);
+    const auto& target = marshaller_.Location(i);
+    ConstantTemporaryAllocator temp_alloc(temp);
+    if (origin.IsConstant()) {
+      compiler->EmitMoveConst(target, origin, origin_rep, &temp_alloc);
+    } else {
+      compiler->EmitMoveToNative(target, origin, origin_rep, &temp_alloc);
+    }
   }
+}
+
+void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
+  const auto& src = marshaller_.Location(compiler::ffi::kResultIndex);
+  if (src.payload_type().IsVoid()) {
+    return;
+  }
+  const Location dst_loc = locs()->out(0);
+  const Representation dst_type = representation();
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMoveFromNative(dst_loc, dst_type, src, &no_temp);
+}
+
+void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
+  const auto& dst = marshaller_.Location(compiler::ffi::kResultIndex);
+  if (dst.payload_type().IsVoid()) {
+    return;
+  }
+  const Location src_loc = locs()->in(0);
+  const Representation src_type = RequiredInputRepresentation(0);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMoveToNative(dst, src_loc, src_type, &no_temp);
 }
 
 LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
@@ -5554,14 +5567,15 @@ LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, result_location_);
+  locs->set_in(
+      0, marshaller_.LocationOfNativeParameter(compiler::ffi::kResultIndex));
   return locs;
 }
 
 #undef Z
 
 Representation FfiCallInstr::representation() const {
-  return compiler::ffi::ResultRepresentation(signature_);
+  return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
 }
 
 // SIMD

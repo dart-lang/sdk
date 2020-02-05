@@ -13,7 +13,6 @@
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/range_analysis.h"
 #include "vm/compiler/compiler_state.h"
-#include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/cpu.h"
@@ -1133,17 +1132,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterDartFrame(0, /*load_pool_pointer=*/false);
 
   // Reserve space for arguments and align frame before entering C++ world.
-  __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
-                              compiler::target::kWordSize);
+  __ ReserveAlignedFrameSpace(marshaller_.StackTopInBytes());
 
-  compiler::ffi::FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0);
-  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    const Location origin = rebase.Rebase(locs()->in(i));
-    const Location target = arg_locations_[i];
-    ConstantTemporaryAllocator temp_alloc(temp);
-    compiler->EmitMove(target, origin, &temp_alloc);
-  }
+  EmitParamMoves(compiler);
 
   // We need to copy the return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
@@ -1188,6 +1179,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                    THR, compiler::target::Thread::global_object_pool_offset()));
   }
 
+  EmitReturnMoves(compiler);
+
   // Leave dummy exit frame.
   __ LeaveDartFrame();
   __ set_constant_pool_allowed(true);
@@ -1197,6 +1190,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  EmitReturnMoves(compiler);
+
   __ LeaveDartFrame();
 
   // The dummy return address is in LR, no need to pop it as on Intel.
@@ -1240,13 +1235,12 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
-void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
-                                    Location loc) const {
+static void save_argument(FlowGraphCompiler* compiler, Location loc) {
   if (loc.IsPairLocation()) {
     // Save higher-order component first, so bytes are in little-endian layout
     // overall.
     for (intptr_t i : {1, 0}) {
-      SaveArgument(compiler, loc.Component(i));
+      save_argument(compiler, loc.Component(i));
     }
     return;
   }
@@ -1264,6 +1258,14 @@ void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
   }
 }
 
+void NativeEntryInstr::SaveArgument(
+    FlowGraphCompiler* compiler,
+    const compiler::ffi::NativeLocation& nloc) const {
+  const Location loc = nloc.WidenTo4Bytes(compiler->zone()).AsLocation();
+
+  save_argument(compiler, loc);
+}
+
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Constant pool cannot be used until we enter the actual Dart frame.
   __ set_constant_pool_allowed(false);
@@ -1275,8 +1277,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterFrame((1 << FP) | (1 << LR), 0);
 
   // Save the argument registers, in reverse order.
-  for (intptr_t i = argument_locations_->length(); i-- > 0;) {
-    SaveArgument(compiler, argument_locations_->At(i));
+  for (intptr_t i = marshaller_.num_args(); i-- > 0;) {
+    SaveArgument(compiler, marshaller_.Location(i));
   }
 
   // Enter the entry frame.
@@ -1605,8 +1607,7 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
       (representation() == kUnboxedFloat64x2)) {
     if (class_id() == kTypedDataFloat32ArrayCid) {
       // Need register < Q7 for float operations.
-      // TODO(fschneider): Add a register policy to specify a subset of
-      // registers.
+      // TODO(30953): Support register range constraints in the regalloc.
       locs->set_out(0, Location::FpuRegisterLocation(Q6));
     } else {
       locs->set_out(0, Location::RequiresFpuRegister());
@@ -4648,6 +4649,10 @@ LocationSummary* UnboxInstr::MakeLocationSummary(Zone* zone, bool opt) const {
                                        Location::RequiresRegister()));
   } else if (representation() == kUnboxedInt32) {
     summary->set_out(0, Location::RequiresRegister());
+  } else if (representation() == kUnboxedFloat) {
+    // Low (< Q7) Q registers are needed for the vcvtds and vmovs instructions.
+    // TODO(30953): Support register range constraints in the regalloc.
+    summary->set_out(0, Location::FpuRegisterLocation(Q6));
   } else {
     summary->set_out(0, Location::RequiresFpuRegister());
   }
@@ -4674,6 +4679,7 @@ void UnboxInstr::EmitLoadFromBox(FlowGraphCompiler* compiler) {
     }
 
     case kUnboxedFloat: {
+      // Should only be <= Q7, because >= Q8 cannot be addressed as S register.
       const DRegister result = EvenDRegisterOf(locs()->out(0).fpu_reg());
       __ LoadDFromOffset(result, box, ValueOffset() - kHeapObjectTag);
       __ vcvtsd(EvenSRegisterOf(result), result);
@@ -7235,37 +7241,6 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     UNREACHABLE();
-  }
-}
-
-LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, /*num_inputs=*/InputCount(),
-                      /*num_temps=*/kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
-  return summary;
-}
-
-void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register reg = locs()->in(0).reg();
-  // There are no builtin sign- or zero-extension instructions, so we'll have to
-  // use shifts instead.
-  const intptr_t shift_length =
-      (compiler::target::kWordSize - from_width_bytes()) * kBitsPerByte;
-  __ Lsl(reg, reg, compiler::Operand(shift_length));
-  switch (representation_) {
-    case kUnboxedInt32:  // Sign extend operand.
-      __ Asr(reg, reg, compiler::Operand(shift_length));
-      break;
-    case kUnboxedUint32:  // Zero extend operand.
-      __ Lsr(reg, reg, compiler::Operand(shift_length));
-      break;
-    default:
-      UNREACHABLE();
   }
 }
 

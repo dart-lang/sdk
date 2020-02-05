@@ -359,6 +359,9 @@ void Assembler::movb(const Address& dst, const Immediate& imm) {
 }
 
 void Assembler::movw(Register dst, const Address& src) {
+  // This would leave 16 bits above the 2 byte value undefined.
+  // If we ever want to purposefully have those undefined, remove this.
+  // TODO(40210): Allow this.
   FATAL("Use movzxw or movsxw instead.");
 }
 

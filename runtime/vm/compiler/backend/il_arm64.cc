@@ -12,7 +12,6 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/range_analysis.h"
-#include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
@@ -998,17 +997,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterDartFrame(0, PP);
 
   // Make space for arguments and align the frame.
-  __ ReserveAlignedFrameSpace(compiler::ffi::NumStackSlots(arg_locations_) *
-                              kWordSize);
+  __ ReserveAlignedFrameSpace(marshaller_.StackTopInBytes());
 
-  compiler::ffi::FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0);
-  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    const Location origin = rebase.Rebase(locs()->in(i));
-    const Location target = arg_locations_[i];
-    ConstantTemporaryAllocator temp_alloc(temp);
-    compiler->EmitMove(target, origin, &temp_alloc);
-  }
+  EmitParamMoves(compiler);
 
   // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use.
@@ -1057,6 +1048,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Refresh pinned registers values (inc. write barrier mask and null object).
   __ RestorePinnedRegisters();
 
+  EmitReturnMoves(compiler);
+
   // Although PP is a callee-saved register, it may have been moved by the GC.
   __ LeaveDartFrame(compiler::kRestoreCallerPP);
 
@@ -1070,6 +1063,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  EmitReturnMoves(compiler);
+
   __ LeaveDartFrame();
 
   // The dummy return address is in LR, no need to pop it as on Intel.
@@ -1115,16 +1110,17 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ set_constant_pool_allowed(true);
 }
 
-void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
-                                    Location loc) const {
-  ASSERT(!loc.IsPairLocation());
+void NativeEntryInstr::SaveArgument(
+    FlowGraphCompiler* compiler,
+    const compiler::ffi::NativeLocation& nloc) const {
+  if (nloc.IsStack()) return;
 
-  if (loc.HasStackIndex()) return;
-
-  if (loc.IsRegister()) {
-    __ Push(loc.reg());
-  } else if (loc.IsFpuRegister()) {
-    __ PushDouble(loc.fpu_reg());
+  if (nloc.IsRegisters()) {
+    const auto& regs_loc = nloc.AsRegisters();
+    ASSERT(regs_loc.num_regs() == 1);
+    __ Push(regs_loc.reg_at(0));
+  } else if (nloc.IsFpuRegisters()) {
+    __ PushDouble(nloc.AsFpuRegisters().fpu_reg());
   } else {
     UNREACHABLE();
   }
@@ -1147,8 +1143,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterFrame(0);
 
   // Save the argument registers, in reverse order.
-  for (intptr_t i = argument_locations_->length(); i-- > 0;) {
-    SaveArgument(compiler, argument_locations_->At(i));
+  for (intptr_t i = marshaller_.num_args(); i-- > 0;) {
+    SaveArgument(compiler, marshaller_.Location(i));
   }
 
   // Enter the entry frame.
@@ -6340,38 +6336,6 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     UNREACHABLE();
-  }
-}
-
-LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, /*num_inputs=*/InputCount(),
-                      /*num_temps=*/kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(0, Location::SameAsFirstInput());
-  return summary;
-}
-
-void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register reg = locs()->in(0).reg();
-  switch (from_representation()) {
-    case kSmallUnboxedInt8:  // Sign extend operand.
-      __ sxtb(reg, reg);
-      break;
-    case kSmallUnboxedInt16:
-      __ sxth(reg, reg);
-      break;
-    case kSmallUnboxedUint8:  // Zero extend operand.
-      __ uxtb(reg, reg);
-      break;
-    case kSmallUnboxedUint16:
-      __ uxth(reg, reg);
-      break;
-    default:
-      UNREACHABLE();
   }
 }
 

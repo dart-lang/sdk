@@ -350,7 +350,7 @@ static intptr_t LocationToStackIndex(const Location& src) {
 }
 
 static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
-                                        Representation src_rep,
+                                        Representation src_type,
                                         const Location& src,
                                         intptr_t dst_index) {
   if (src.IsConstant()) {
@@ -376,7 +376,7 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
   }
 
   CatchEntryMove::SourceKind src_kind;
-  switch (src_rep) {
+  switch (src_type) {
     case kTagged:
       src_kind = CatchEntryMove::SourceKind::kTaggedSlot;
       break;
@@ -445,11 +445,11 @@ void FlowGraphCompiler::RecordCatchEntryMoves(Environment* env,
       // Can only occur if AllocationSinking is enabled - and it is disabled
       // in functions with try.
       ASSERT(!src.IsInvalid());
-      const Representation src_rep =
+      const Representation src_type =
           env->ValueAt(i)->definition()->representation();
       intptr_t dest_index = i - num_direct_parameters;
       const auto move =
-          CatchEntryMoveFor(assembler(), src_rep, src, dest_index);
+          CatchEntryMoveFor(assembler(), src_type, src, dest_index);
       if (!move.IsRedundant()) {
         catch_entry_moves_maps_builder_->Append(move);
       }
@@ -2482,6 +2482,231 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!use_shared_stub) {
     __ Breakpoint();
   }
+}
+
+void FlowGraphCompiler::EmitNativeMove(
+    const compiler::ffi::NativeLocation& destination,
+    const compiler::ffi::NativeLocation& source,
+    TemporaryRegisterAllocator* temp) {
+  const auto& src_payload_type = source.payload_type();
+  const auto& dst_payload_type = destination.payload_type();
+  const auto& src_container_type = source.container_type();
+  const auto& dst_container_type = destination.container_type();
+  const intptr_t src_payload_size = src_payload_type.SizeInBytes();
+  const intptr_t dst_payload_size = dst_payload_type.SizeInBytes();
+  const intptr_t src_container_size = src_container_type.SizeInBytes();
+  const intptr_t dst_container_size = dst_container_type.SizeInBytes();
+
+  // This function does not know how to do larger mem copy moves yet.
+  ASSERT(src_payload_type.IsFundamental());
+  ASSERT(dst_payload_type.IsFundamental());
+
+  // This function does not deal with sign conversions yet.
+  ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());
+
+  // This function does not deal with bit casts yet.
+  ASSERT(src_container_type.IsFloat() == dst_container_type.IsFloat());
+  ASSERT(src_container_type.IsInt() == dst_container_type.IsInt());
+
+  // If the location, payload, and container are equal, we're done.
+  if (source.Equals(destination) && src_payload_type.Equals(dst_payload_type) &&
+      src_container_type.Equals(dst_container_type)) {
+    return;
+  }
+
+  // Solve descrepancies between container size and payload size.
+  if (src_payload_type.IsInt() && dst_payload_type.IsInt() &&
+      (src_payload_size != src_container_size ||
+       dst_payload_size != dst_container_size)) {
+    if (src_payload_size <= dst_payload_size &&
+        src_container_size >= dst_container_size) {
+      // The upper bits of the source are already properly sign or zero
+      // extended, so just copy the required amount of bits.
+      return EmitNativeMove(
+          destination.WithOtherRep(dst_container_type, dst_container_type,
+                                   zone_),
+          source.WithOtherRep(dst_container_type, dst_container_type, zone_),
+          temp);
+    }
+    if (src_payload_size >= dst_payload_size &&
+        dst_container_size > dst_payload_size) {
+      // The upper bits of the source are not properly sign or zero extended
+      // to be copied to the target, so regard the source as smaller.
+      return EmitNativeMove(
+          destination.WithOtherRep(dst_container_type, dst_container_type,
+                                   zone_),
+          source.WithOtherRep(dst_payload_type, dst_payload_type, zone_), temp);
+    }
+    UNREACHABLE();
+  }
+  ASSERT(src_payload_size == src_container_size);
+  ASSERT(dst_payload_size == dst_container_size);
+
+  // Split moves that are larger than kWordSize, these require separate
+  // instructions on all architectures.
+  if (compiler::target::kWordSize == 4 && src_container_size == 8 &&
+      dst_container_size == 8 && !source.IsFpuRegisters() &&
+      !destination.IsFpuRegisters()) {
+    // TODO(40209): If this is stack to stack, we could use FpuTMP.
+    // Test the impact on code size and speed.
+    EmitNativeMove(destination.Split(0, zone_), source.Split(0, zone_), temp);
+    EmitNativeMove(destination.Split(1, zone_), source.Split(1, zone_), temp);
+    return;
+  }
+
+  // Split moves from stack to stack, none of the architectures provides
+  // memory to memory move instructions.
+  if (source.IsStack() && destination.IsStack()) {
+    Register scratch = TMP;
+    if (TMP == kNoRegister) {
+      scratch = temp->AllocateTemporary();
+    }
+    const auto& intermediate =
+        *new (zone_) compiler::ffi::NativeRegistersLocation(
+            dst_payload_type, dst_container_type, scratch);
+    EmitNativeMove(intermediate, source, temp);
+    EmitNativeMove(destination, intermediate, temp);
+    if (TMP == kNoRegister) {
+      temp->ReleaseTemporary();
+    }
+    return;
+  }
+
+  const bool sign_or_zero_extend = dst_container_size > src_container_size;
+
+  // No architecture supports sign extending with memory as destination.
+  if (sign_or_zero_extend && destination.IsStack()) {
+    ASSERT(source.IsRegisters());
+    const auto& intermediate =
+        source.WithOtherRep(dst_payload_type, dst_container_type, zone_);
+    EmitNativeMove(intermediate, source, temp);
+    EmitNativeMove(destination, intermediate, temp);
+    return;
+  }
+
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  // Arm does not support sign extending from a memory location, x86 does.
+  if (sign_or_zero_extend && source.IsStack()) {
+    ASSERT(destination.IsRegisters());
+    const auto& intermediate =
+        destination.WithOtherRep(src_payload_type, src_container_type, zone_);
+    EmitNativeMove(intermediate, source, temp);
+    EmitNativeMove(destination, intermediate, temp);
+    return;
+  }
+#endif
+
+  // If we're not sign extending, and we're moving 8 or 16 bits into a
+  // register, upgrade the move to take upper bits of garbage from the
+  // source location. This is the same as leaving the previous garbage in
+  // there.
+  //
+  // TODO(40210): If our assemblers would support moving 1 and 2 bytes into
+  // registers, this code can be removed.
+  if (!sign_or_zero_extend && destination.IsRegisters() &&
+      destination.container_type().SizeInBytes() <= 2) {
+    ASSERT(source.payload_type().IsInt());
+    return EmitNativeMove(destination.WidenTo4Bytes(zone_),
+                          source.WidenTo4Bytes(zone_), temp);
+  }
+
+  // Do the simple architecture specific moves.
+  EmitNativeMoveArchitecture(destination, source);
+}
+
+// TODO(dartbug.com/36730): Remove this if PairLocations can be converted
+// into NativeLocations.
+void FlowGraphCompiler::EmitMoveToNative(
+    const compiler::ffi::NativeLocation& dst,
+    Location src_loc,
+    Representation src_type,
+    TemporaryRegisterAllocator* temp) {
+  if (src_loc.IsPairLocation()) {
+    for (intptr_t i : {0, 1}) {
+      const auto& src_split = compiler::ffi::NativeLocation::FromPairLocation(
+          src_loc, src_type, i, zone_);
+      EmitNativeMove(dst.Split(i, zone_), src_split, temp);
+    }
+  } else {
+    const auto& src =
+        compiler::ffi::NativeLocation::FromLocation(src_loc, src_type, zone_);
+    EmitNativeMove(dst, src, temp);
+  }
+}
+
+// TODO(dartbug.com/36730): Remove this if PairLocations can be converted
+// into NativeLocations.
+void FlowGraphCompiler::EmitMoveFromNative(
+    Location dst_loc,
+    Representation dst_type,
+    const compiler::ffi::NativeLocation& src,
+    TemporaryRegisterAllocator* temp) {
+  if (dst_loc.IsPairLocation()) {
+    for (intptr_t i : {0, 1}) {
+      const auto& dest_split = compiler::ffi::NativeLocation::FromPairLocation(
+          dst_loc, dst_type, i, zone_);
+      EmitNativeMove(dest_split, src.Split(i, zone_), temp);
+    }
+  } else {
+    const auto& dest =
+        compiler::ffi::NativeLocation::FromLocation(dst_loc, dst_type, zone_);
+    EmitNativeMove(dest, src, temp);
+  }
+}
+
+void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
+                                      Location src,
+                                      Representation src_type,
+                                      TemporaryRegisterAllocator* temp) {
+  ASSERT(src.IsConstant());
+  const auto& dst_type = dst.payload_type();
+  if (dst.IsExpressibleAsLocation() &&
+      dst_type.IsExpressibleAsRepresentation() &&
+      dst_type.AsRepresentationOverApprox(zone_) == src_type) {
+    // We can directly emit the const in the right place and representation.
+    const Location dst_loc = dst.AsLocation();
+    EmitMove(dst_loc, src, temp);
+  } else {
+    // We need an intermediate location.
+    Location intermediate;
+    if (dst_type.IsInt()) {
+      if (TMP == kNoRegister) {
+        Register scratch = temp->AllocateTemporary();
+        Location::RegisterLocation(scratch);
+      } else {
+        intermediate = Location::RegisterLocation(TMP);
+      }
+    } else {
+      ASSERT(dst_type.IsFloat());
+      intermediate = Location::FpuRegisterLocation(FpuTMP);
+    }
+
+    if (src.IsPairLocation()) {
+      for (intptr_t i : {0, 1}) {
+        const Representation src_type_split =
+            compiler::ffi::NativeType::FromUnboxedRepresentation(src_type,
+                                                                 zone_)
+                .Split(i, zone_)
+                .AsRepresentation();
+        const auto& intermediate_native =
+            compiler::ffi::NativeLocation::FromLocation(intermediate,
+                                                        src_type_split, zone_);
+        EmitMove(intermediate, src.AsPairLocation()->At(i), temp);
+        EmitNativeMove(dst.Split(i, zone_), intermediate_native, temp);
+      }
+    } else {
+      const auto& intermediate_native =
+          compiler::ffi::NativeLocation::FromLocation(intermediate, src_type,
+                                                      zone_);
+      EmitMove(intermediate, src, temp);
+      EmitNativeMove(dst, intermediate_native, temp);
+    }
+
+    if (dst_type.IsInt() && TMP == kNoRegister) {
+      temp->ReleaseTemporary();
+    }
+  }
+  return;
 }
 
 #undef __

@@ -5,6 +5,33 @@
 #ifndef RUNTIME_VM_CONSTANTS_H_
 #define RUNTIME_VM_CONSTANTS_H_
 
+namespace dart {
+
+// Alignment strategies for how to align values.
+enum AlignmentStrategy {
+  // Align to the size of the value.
+  kAlignedToValueSize,
+  // Align to the size of the value, but align 8 byte-sized values to 4 bytes.
+  // Both double and int64.
+  kAlignedToValueSizeBut8AlignedTo4,
+  // Align to the architecture size.
+  kAlignedToWordSize,
+  // Align to the architecture size, but align 8 byte-sized values to 8 bytes.
+  // Both double and int64.
+  kAlignedToWordSizeBut8AlignedTo8,
+};
+
+// Minimum size strategies for how to store values.
+enum ExtensionStrategy {
+  // Values can have arbitrary small size with the upper bits undefined.
+  kNotExtended,
+  // Values smaller than 4 bytes are passed around zero- or signextended to
+  // 4 bytes.
+  kExtendedTo4
+};
+
+}  // namespace dart
+
 #if defined(TARGET_ARCH_IA32)
 #include "vm/constants_ia32.h"
 #elif defined(TARGET_ARCH_X64)

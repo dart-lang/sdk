@@ -8,6 +8,8 @@
 #include <platform/globals.h>
 
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/ffi/native_location.h"
+#include "vm/compiler/ffi/native_type.h"
 
 namespace dart {
 
@@ -15,42 +17,49 @@ namespace compiler {
 
 namespace ffi {
 
-// Unboxed representation of an FFI type (extends 'ffi.NativeType').
-Representation TypeRepresentation(classid_t class_id);
+using NativeLocations = ZoneGrowableArray<const NativeLocation*>;
 
-// Unboxed representation of an FFI type (extends 'ffi.NativeType') for 8 and 16
-// bit integers.
-SmallRepresentation TypeSmallRepresentation(const AbstractType& result_type);
+// Whether this argument needs to be Representation-converted.
+bool RequiresSoftFpConversion(const NativeType& in);
 
-// Whether a type which extends 'ffi.NativeType' also extends 'ffi.Pointer'.
-bool NativeTypeIsPointer(const AbstractType& result_type);
+// Converted Representation.
+const NativeType& ConvertToSoftFp(const NativeType& in, Zone* zone);
 
-// Whether a type is 'ffi.Void'.
-bool NativeTypeIsVoid(const AbstractType& result_type);
+// Values below 0 index result (result might be multiple if composite).
+const intptr_t kResultIndex = -1;
 
-// Location for the result of a C signature function.
-Location ResultLocation(Representation result_rep);
+// Calculates native calling convention, is not aware of Dart calling
+// convention constraints.
+//
+// This class is meant to be extended or embedded in a class that is aware
+// of Dart calling convention constraints.
+class NativeCallingConvention : public ZoneAllocated {
+ public:
+  NativeCallingConvention(Zone* zone, const Function& c_signature);
 
-RawFunction* TrampolineFunction(const Function& dart_signature,
-                                const Function& c_signature);
+  // Excluding the #0 argument which is the function pointer.
+  intptr_t num_args() const;
 
-RawFunction* NativeCallbackFunction(const Function& c_signature,
-                                    const Function& dart_target,
-                                    const Instance& exceptional_return);
+  // Excluding the #0 argument which is the function pointer.
+  RawAbstractType* Type(intptr_t arg_index) const;
 
-// Unboxed representations of the arguments to a C signature function.
-ZoneGrowableArray<Representation>* ArgumentRepresentations(
-    const Function& signature);
+  // The location of the argument at `arg_index`.
+  const NativeLocation& Location(intptr_t arg_index) const {
+    if (arg_index == kResultIndex) {
+      return result_loc_;
+    }
+    return *arg_locs_.At(arg_index);
+  }
 
-// Unboxed representation of the result of a C signature function.
-Representation ResultRepresentation(const Function& signature);
+  intptr_t StackTopInBytes() const;
 
-// Location for the arguments of a C signature function.
-ZoneGrowableArray<Location>* ArgumentLocations(
-    const ZoneGrowableArray<Representation>& arg_reps);
-
-// Number of stack slots used in 'locations'.
-intptr_t NumStackSlots(const ZoneGrowableArray<Location>& locations);
+ protected:
+  Zone* const zone_;
+  // Contains the function pointer as argument #0.
+  const Function& c_signature_;
+  const NativeLocations& arg_locs_;
+  const NativeLocation& result_loc_;
+};
 
 }  // namespace ffi
 

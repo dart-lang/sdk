@@ -1319,11 +1319,6 @@ void ConstantPropagator::VisitIntConverter(IntConverterInstr* instr) {
   SetValue(instr, non_constant_);
 }
 
-void ConstantPropagator::VisitUnboxedWidthExtender(
-    UnboxedWidthExtenderInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
 void ConstantPropagator::VisitBitCast(BitCastInstr* instr) {
   SetValue(instr, non_constant_);
 }

@@ -4,8 +4,7 @@
 
 #if defined(TARGET_ARCH_IA32)
 
-#define RUNTIME_VM_CONSTANTS_H_  // To work around include guard.
-#include "vm/constants_ia32.h"
+#include "vm/constants.h"
 
 namespace dart {
 

@@ -10,7 +10,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/ffi/call.h"
 #include "vm/compiler/ffi/callback.h"
-#include "vm/compiler/ffi/native_representation.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
@@ -72,9 +72,10 @@ static const Double& AsDouble(const Instance& instance) {
 //
 // You must check [IsConcreteNativeType] and [CheckSized] first to verify that
 // this type has a defined size.
-static size_t SizeOf(const AbstractType& type) {
+static size_t SizeOf(const AbstractType& type, Zone* zone) {
   if (RawObject::IsFfiTypeClassId(type.type_class_id())) {
-    return compiler::ffi::ElementSizeInBytes(type.type_class_id());
+    return compiler::ffi::NativeType::FromAbstractType(type, zone)
+        .SizeInBytes();
   } else {
     Class& struct_class = Class::Handle(type.type_class());
     Object& result = Object::Handle(
@@ -105,8 +106,10 @@ static RawObject* LoadValueNumeric(Zone* zone,
                                    const Integer& index) {
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      target.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
-                                   compiler::ffi::ElementSizeInBytes(type_cid);
+      target.NativeAddress() +
+      static_cast<intptr_t>(index.AsInt64Value()) *
+          compiler::ffi::NativeType::FromTypedDataClassId(type_cid, zone)
+              .SizeInBytes();
   switch (type_cid) {
     case kFfiInt8Cid:
       return Integer::New(*reinterpret_cast<int8_t*>(address));
@@ -156,8 +159,8 @@ DEFINE_NATIVE_ENTRY(Ffi_loadPointer, 1, 2) {
 
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      pointer.NativeAddress() +
-      static_cast<intptr_t>(index.AsInt64Value()) * SizeOf(pointer_type_arg);
+      pointer.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
+                                    SizeOf(pointer_type_arg, zone);
 
   return Pointer::New(type_arg, *reinterpret_cast<uword*>(address));
 }
@@ -195,8 +198,8 @@ DEFINE_NATIVE_ENTRY(Ffi_loadStruct, 0, 2) {
 
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      pointer.NativeAddress() +
-      static_cast<intptr_t>(index.AsInt64Value()) * SizeOf(pointer_type_arg);
+      pointer.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
+                                    SizeOf(pointer_type_arg, zone);
   const Pointer& pointer_offset =
       Pointer::Handle(zone, Pointer::New(pointer_type_arg, address));
 
@@ -210,8 +213,10 @@ static void StoreValueNumeric(Zone* zone,
                               const Instance& new_value) {
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      pointer.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
-                                    compiler::ffi::ElementSizeInBytes(type_cid);
+      pointer.NativeAddress() +
+      static_cast<intptr_t>(index.AsInt64Value()) *
+          compiler::ffi::NativeType::FromTypedDataClassId(type_cid, zone)
+              .SizeInBytes();
   switch (type_cid) {
     case kFfiInt8Cid:
       *reinterpret_cast<int8_t*>(address) = AsInteger(new_value).AsInt64Value();
@@ -291,8 +296,8 @@ DEFINE_NATIVE_ENTRY(Ffi_storePointer, 0, 3) {
   ASSERT(IsPointerType(pointer_type_arg));
   // TODO(36370): Make representation consistent with kUnboxedFfiIntPtr.
   const size_t address =
-      pointer.NativeAddress() +
-      static_cast<intptr_t>(index.AsInt64Value()) * SizeOf(pointer_type_arg);
+      pointer.NativeAddress() + static_cast<intptr_t>(index.AsInt64Value()) *
+                                    SizeOf(pointer_type_arg, zone);
   *reinterpret_cast<uword*>(address) = new_value.NativeAddress();
   return Object::null();
 }
@@ -301,7 +306,7 @@ DEFINE_NATIVE_ENTRY(Ffi_sizeOf, 1, 0) {
   GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
   CheckSized(type_arg);
 
-  return Integer::New(SizeOf(type_arg));
+  return Integer::New(SizeOf(type_arg, zone));
 }
 
 // Static invocations to this method are translated directly in streaming FGB

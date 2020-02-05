@@ -36,16 +36,6 @@ enum Representation {
   kNumRepresentations
 };
 
-// The representation of 8 and 16 bit integers in 32 bit. SmallRepresentation
-// tracks the real representation of these small integers.
-enum SmallRepresentation {
-  kNoSmallRepresentation,
-  kSmallUnboxedInt8,
-  kSmallUnboxedUint8,
-  kSmallUnboxedInt16,
-  kSmallUnboxedUint16,
-};
-
 // 'UnboxedFfiIntPtr' should be able to hold a pointer of the target word-size.
 // On a 32-bit platform, it's an unsigned 32-bit int because it should be
 // zero-extended to 64-bits, not sign-extended (pointers are inherently

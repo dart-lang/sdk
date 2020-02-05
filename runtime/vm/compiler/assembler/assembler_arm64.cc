@@ -821,6 +821,16 @@ void Assembler::LoadFromOffset(Register dest,
   }
 }
 
+void Assembler::LoadSFromOffset(VRegister dest, Register base, int32_t offset) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kSWord)) {
+    fldrs(dest, Address(base, offset, Address::Offset, kSWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset);
+    fldrs(dest, Address(TMP2));
+  }
+}
+
 void Assembler::LoadDFromOffset(VRegister dest, Register base, int32_t offset) {
   if (Address::CanHoldOffset(offset, Address::Offset, kDWord)) {
     fldrd(dest, Address(base, offset, Address::Offset, kDWord));
@@ -852,6 +862,16 @@ void Assembler::StoreToOffset(Register src,
     ASSERT(src != TMP2);
     AddImmediate(TMP2, base, offset);
     str(src, Address(TMP2), sz);
+  }
+}
+
+void Assembler::StoreSToOffset(VRegister src, Register base, int32_t offset) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kSWord)) {
+    fstrs(src, Address(base, offset, Address::Offset, kSWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset);
+    fstrs(src, Address(TMP2));
   }
 }
 

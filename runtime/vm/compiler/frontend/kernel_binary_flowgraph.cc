@@ -5168,8 +5168,7 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
       T.BuildTypeArguments(list_length);  // read types.
   ASSERT(type_arguments.Length() == 1 && type_arguments.IsInstantiated());
   const Function& native_sig = Function::Handle(
-      Z, Type::Cast(AbstractType::Handle(Z, type_arguments.TypeAt(0)))
-             .signature());
+      Z, Type::CheckedHandle(Z, type_arguments.TypeAt(0)).signature());
 
   Fragment code;
   const intptr_t positional_count =

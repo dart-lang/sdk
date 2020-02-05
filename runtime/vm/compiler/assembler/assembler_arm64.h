@@ -1270,6 +1270,13 @@ class Assembler : public AssemblerBase {
       orr(rd, ZR, Operand(rn));
     }
   }
+  void movw(Register rd, Register rn) {
+    if ((rd == CSP) || (rn == CSP)) {
+      addw(rd, rn, Operand(0));
+    } else {
+      orrw(rd, ZR, Operand(rn));
+    }
+  }
   void vmov(VRegister vd, VRegister vn) { vorr(vd, vn, vn); }
   void mvn(Register rd, Register rm) { orn(rd, ZR, Operand(rm)); }
   void mvnw(Register rd, Register rm) { ornw(rd, ZR, Operand(rm)); }
@@ -1406,7 +1413,7 @@ class Assembler : public AssemblerBase {
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,
-  // PP should be passed for pp.
+  // PP should be passed for pp. `dest` can be TMP2, `rn` cannot.
   void AddImmediate(Register dest, Register rn, int64_t imm);
   void AddImmediateSetFlags(Register dest,
                             Register rn,
@@ -1432,6 +1439,7 @@ class Assembler : public AssemblerBase {
                            OperandSize sz = kDoubleWord) {
     LoadFromOffset(dest, base, offset - kHeapObjectTag, sz);
   }
+  void LoadSFromOffset(VRegister dest, Register base, int32_t offset);
   void LoadDFromOffset(VRegister dest, Register base, int32_t offset);
   void LoadDFieldFromOffset(VRegister dest, Register base, int32_t offset) {
     LoadDFromOffset(dest, base, offset - kHeapObjectTag);
@@ -1451,6 +1459,8 @@ class Assembler : public AssemblerBase {
                           OperandSize sz = kDoubleWord) {
     StoreToOffset(src, base, offset - kHeapObjectTag, sz);
   }
+
+  void StoreSToOffset(VRegister src, Register base, int32_t offset);
   void StoreDToOffset(VRegister src, Register base, int32_t offset);
   void StoreDFieldToOffset(VRegister src, Register base, int32_t offset) {
     StoreDToOffset(src, base, offset - kHeapObjectTag);

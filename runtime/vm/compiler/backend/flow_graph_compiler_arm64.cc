@@ -1442,6 +1442,155 @@ void FlowGraphCompiler::EmitMove(Location destination,
   }
 }
 
+static OperandSize BytesToOperandSize(intptr_t bytes) {
+  switch (bytes) {
+    case 8:
+      return OperandSize::kDoubleWord;
+    case 4:
+      return OperandSize::kWord;
+    case 2:
+      return OperandSize::kHalfword;
+    case 1:
+      return OperandSize::kByte;
+    default:
+      UNIMPLEMENTED();
+  }
+}
+
+void FlowGraphCompiler::EmitNativeMoveArchitecture(
+    const compiler::ffi::NativeLocation& destination,
+    const compiler::ffi::NativeLocation& source) {
+  const auto& src_type = source.payload_type();
+  const auto& dst_type = destination.payload_type();
+  ASSERT(src_type.IsFloat() == dst_type.IsFloat());
+  ASSERT(src_type.IsInt() == dst_type.IsInt());
+  ASSERT(src_type.IsSigned() == dst_type.IsSigned());
+  ASSERT(src_type.IsFundamental());
+  ASSERT(dst_type.IsFundamental());
+  const intptr_t src_size = src_type.SizeInBytes();
+  const intptr_t dst_size = dst_type.SizeInBytes();
+  const bool sign_or_zero_extend = dst_size > src_size;
+
+  if (source.IsRegisters()) {
+    const auto& src = source.AsRegisters();
+    ASSERT(src.num_regs() == 1);
+    const auto src_reg = src.reg_at(0);
+
+    if (destination.IsRegisters()) {
+      const auto& dst = destination.AsRegisters();
+      ASSERT(dst.num_regs() == 1);
+      const auto dst_reg = dst.reg_at(0);
+      if (!sign_or_zero_extend) {
+        switch (dst_size) {
+          case 8:
+            __ mov(dst_reg, src_reg);
+            return;
+          case 4:
+            __ movw(dst_reg, src_reg);
+            return;
+          default:
+            UNIMPLEMENTED();
+        }
+      } else {
+        switch (src_type.AsFundamental().representation()) {
+          case compiler::ffi::kInt8:  // Sign extend operand.
+            __ sxtb(dst_reg, src_reg);
+            return;
+          case compiler::ffi::kInt16:
+            __ sxth(dst_reg, src_reg);
+            return;
+          case compiler::ffi::kUint8:  // Zero extend operand.
+            __ uxtb(dst_reg, src_reg);
+            return;
+          case compiler::ffi::kUint16:
+            __ uxth(dst_reg, src_reg);
+            return;
+          default:
+            // 32 to 64 bit is covered in IL by Representation conversions.
+            UNIMPLEMENTED();
+        }
+      }
+
+    } else if (destination.IsFpuRegisters()) {
+      // Fpu Registers should only contain doubles and registers only ints.
+      UNIMPLEMENTED();
+
+    } else {
+      ASSERT(destination.IsStack());
+      const auto& dst = destination.AsStack();
+      ASSERT(!sign_or_zero_extend);
+      const OperandSize op_size = BytesToOperandSize(dst_size);
+      __ StoreToOffset(src.reg_at(0), dst.base_register(),
+                       dst.offset_in_bytes(), op_size);
+    }
+
+  } else if (source.IsFpuRegisters()) {
+    const auto& src = source.AsFpuRegisters();
+    // We have not implemented conversions here, use IL convert instructions.
+    ASSERT(src_type.Equals(dst_type));
+
+    if (destination.IsRegisters()) {
+      // Fpu Registers should only contain doubles and registers only ints.
+      UNIMPLEMENTED();
+
+    } else if (destination.IsFpuRegisters()) {
+      const auto& dst = destination.AsFpuRegisters();
+      __ vmov(dst.fpu_reg(), src.fpu_reg());
+
+    } else {
+      ASSERT(destination.IsStack());
+      ASSERT(src_type.IsFloat());
+      const auto& dst = destination.AsStack();
+      switch (dst_size) {
+        case 8:
+          __ StoreDToOffset(src.fpu_reg(), dst.base_register(),
+                            dst.offset_in_bytes());
+          return;
+        case 4:
+          __ StoreSToOffset(src.fpu_reg(), dst.base_register(),
+                            dst.offset_in_bytes());
+          return;
+        default:
+          UNREACHABLE();
+      }
+    }
+
+  } else {
+    ASSERT(source.IsStack());
+    const auto& src = source.AsStack();
+    if (destination.IsRegisters()) {
+      const auto& dst = destination.AsRegisters();
+      ASSERT(dst.num_regs() == 1);
+      const auto dst_reg = dst.reg_at(0);
+      ASSERT(!sign_or_zero_extend);
+      const OperandSize op_size = BytesToOperandSize(dst_size);
+      __ LoadFromOffset(dst_reg, src.base_register(), src.offset_in_bytes(),
+                        op_size);
+
+    } else if (destination.IsFpuRegisters()) {
+      ASSERT(src_type.Equals(dst_type));
+      ASSERT(src_type.IsFloat());
+      const auto& dst = destination.AsFpuRegisters();
+      switch (src_size) {
+        case 8:
+          __ LoadDFromOffset(dst.fpu_reg(), src.base_register(),
+                             src.offset_in_bytes());
+          return;
+        case 4:
+          __ LoadSFromOffset(dst.fpu_reg(), src.base_register(),
+                             src.offset_in_bytes());
+          return;
+        default:
+          UNIMPLEMENTED();
+      }
+
+    } else {
+      ASSERT(destination.IsStack());
+      UNREACHABLE();
+    }
+  }
+}
+
 #undef __
 #define __ compiler_->assembler()->
 

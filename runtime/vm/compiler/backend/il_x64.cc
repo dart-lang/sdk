@@ -13,7 +13,6 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/range_analysis.h"
-#include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
@@ -146,6 +145,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  EmitReturnMoves(compiler);
+
   __ LeaveDartFrame();
 
   // Pop dummy return address.
@@ -935,7 +936,6 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
-  const Register temp = locs()->temp(1).reg();
   const Register target_address = locs()->in(TargetAddressIndex()).reg();
 
   // Save frame pointer because we're going to update it when we enter the exit
@@ -949,22 +949,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // but have a null code object.
   __ LoadObject(CODE_REG, Object::null_object());
   __ set_constant_pool_allowed(false);
-  __ EnterDartFrame(compiler::ffi::NumStackSlots(arg_locations_) * kWordSize,
-                    PP);
+  __ EnterDartFrame(marshaller_.StackTopInBytes(), PP);
 
   // Align frame before entering C++ world.
   if (OS::ActivationFrameAlignment() > 1) {
     __ andq(SPREG, compiler::Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
-  compiler::ffi::FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0);
-  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    const Location origin = rebase.Rebase(locs()->in(i));
-    const Location target = arg_locations_[i];
-    ConstantTemporaryAllocator temp_alloc(temp);
-    compiler->EmitMove(target, rebase.Rebase(origin), &temp_alloc);
-  }
+  EmitParamMoves(compiler);
 
   // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use. RIP points to the *next*
@@ -1000,6 +992,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ call(TMP);
   }
 
+  EmitReturnMoves(compiler);
+
   // Although PP is a callee-saved register, it may have been moved by the GC.
   __ LeaveDartFrame(compiler::kRestoreCallerPP);
 
@@ -1015,16 +1009,17 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popq(TMP);
 }
 
-void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
-                                    Location loc) const {
-  ASSERT(!loc.IsPairLocation());
+void NativeEntryInstr::SaveArgument(
+    FlowGraphCompiler* compiler,
+    const compiler::ffi::NativeLocation& nloc) const {
+  if (nloc.IsStack()) return;
 
-  if (loc.HasStackIndex()) return;
-
-  if (loc.IsRegister()) {
-    __ pushq(loc.reg());
-  } else if (loc.IsFpuRegister()) {
-    __ movq(TMP, loc.fpu_reg());
+  if (nloc.IsRegisters()) {
+    const auto& regs_loc = nloc.AsRegisters();
+    ASSERT(regs_loc.num_regs() == 1);
+    __ pushq(regs_loc.reg_at(0));
+  } else if (nloc.IsFpuRegisters()) {
+    __ movq(TMP, nloc.AsFpuRegisters().fpu_reg());
     __ pushq(TMP);
   } else {
     UNREACHABLE();
@@ -1045,8 +1040,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #endif
 
   // Save the argument registers, in reverse order.
-  for (intptr_t i = argument_locations_->length(); i-- > 0;) {
-    SaveArgument(compiler, argument_locations_->At(i));
+  for (intptr_t i = marshaller_.num_args(); i-- > 0;) {
+    SaveArgument(compiler, marshaller_.Location(i));
   }
 
   // Enter the entry frame. Push a dummy return address for consistency with
@@ -6576,37 +6571,6 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   } else {
     UNREACHABLE();
-  }
-}
-
-LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, /*num_inputs=*/InputCount(),
-                      /*num_temps=*/kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RegisterLocation(RAX));
-  summary->set_out(0, Location::RegisterLocation(RAX));
-  return summary;
-}
-
-void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  switch (from_representation()) {
-    case kSmallUnboxedInt8:  // Sign extend operand.
-      __ movsxb(RAX, RAX);
-      break;
-    case kSmallUnboxedInt16:
-      __ movsxw(RAX, RAX);
-      break;
-    case kSmallUnboxedUint8:  // Zero extend operand.
-      __ movzxb(RAX, RAX);
-      break;
-    case kSmallUnboxedUint16:
-      __ movzxw(RAX, RAX);
-      break;
-    default:
-      UNREACHABLE();
   }
 }
 

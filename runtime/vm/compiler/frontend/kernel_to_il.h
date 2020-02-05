@@ -12,6 +12,8 @@
 
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
+#include "vm/compiler/ffi/marshaller.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/frontend/base_flow_graph_builder.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/frontend/scope_builder.h"
@@ -124,9 +126,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       const CallSiteAttributesMetadata* call_site_attrs = nullptr,
       bool receiver_is_not_smi = false);
 
-  Fragment FfiCall(const Function& signature,
-                   const ZoneGrowableArray<Representation>& arg_reps,
-                   const ZoneGrowableArray<Location>& arg_locs);
+  Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller);
 
   Fragment ThrowException(TokenPosition position);
   Fragment RethrowException(TokenPosition position, int catch_try_index);
@@ -193,11 +193,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Sign-extends kUnboxedInt32 and zero-extends kUnboxedUint32.
   Fragment Box(Representation from);
 
-  // Sign- or zero-extends an integer parameter or return value for an FFI call
-  // as necessary.
-  Fragment FfiUnboxedExtend(Representation representation,
-                            const AbstractType& ffi_type);
-
   // Creates an ffi.Pointer holding a given address (TOS).
   Fragment FfiPointerFromAddress(const Type& result_type);
 
@@ -209,17 +204,17 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Pops a Dart object and push the unboxed native version, according to the
   // semantics of FFI argument translation.
   Fragment FfiConvertArgumentToNative(
-      const Function& function,
-      const AbstractType& ffi_type,
-      const Representation native_representation);
+      const compiler::ffi::BaseMarshaller& marshaller,
+      intptr_t arg_index);
 
   // Reverse of 'FfiConvertArgumentToNative'.
-  Fragment FfiConvertArgumentToDart(const AbstractType& ffi_type,
-                                    const Representation native_representation);
+  Fragment FfiConvertArgumentToDart(
+      const compiler::ffi::BaseMarshaller& marshaller,
+      intptr_t arg_index);
 
   // Return from a native -> Dart callback. Can only be used in conjunction with
   // NativeEntry and NativeParameter are used.
-  Fragment NativeReturn(Representation result);
+  Fragment NativeReturn(const compiler::ffi::CallbackMarshaller& marshaller);
 
   // Bit-wise cast between representations.
   // Pops the input and pushes the converted result.

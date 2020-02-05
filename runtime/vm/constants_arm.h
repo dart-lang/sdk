@@ -363,14 +363,30 @@ class CallingConventions {
   static constexpr bool kAbiSoftFP = false;
 #endif
 
-  // Whether 64-bit arguments must be aligned to an even register or 8-byte
-  // stack address. True for ARM 32-bit, see "Procedure Call Standard for the
-  // ARM Architecture".
-  static constexpr bool kAlignArguments = true;
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSizeBut8AlignedTo8;
+
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSizeBut8AlignedTo8;
+
+  // How fields in composites are aligned.
+#if defined(TARGET_OS_MACOS_IOS)
+  static constexpr AlignmentStrategy kFieldAlignment =
+      kAlignedToValueSizeBut8AlignedTo4;
+#else
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+#endif
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
 
   static constexpr Register kReturnReg = R0;
   static constexpr Register kSecondReturnReg = R1;
-  static constexpr FpuRegister kReturnFpuReg = kNoFpuRegister;
+  static constexpr FpuRegister kReturnFpuReg = Q0;
 
   // We choose these to avoid overlap between themselves and reserved registers.
   static constexpr Register kFirstNonArgumentRegister = R8;

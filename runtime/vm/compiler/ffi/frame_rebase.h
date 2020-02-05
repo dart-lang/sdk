@@ -6,6 +6,8 @@
 #define RUNTIME_VM_COMPILER_FFI_FRAME_REBASE_H_
 
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/ffi/native_location.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/thread.h"
 
@@ -20,20 +22,29 @@ namespace ffi {
 // frame manipulations.
 //
 // If the stack offset register matches 'old_base', it is changed to 'new_base'
-// and 'stack_delta' (# of slots) is applied.
+// and 'stack_delta_in_bytes' (# of bytes) is applied.
+//
+// This class can be used to rebase both Locations and NativeLocations.
 class FrameRebase : public ValueObject {
  public:
   FrameRebase(const Register old_base,
               const Register new_base,
-              intptr_t stack_delta)
-      : old_base_(old_base), new_base_(new_base), stack_delta_(stack_delta) {}
+              intptr_t stack_delta_in_bytes,
+              Zone* zone)
+      : old_base_(old_base),
+        new_base_(new_base),
+        stack_delta_in_bytes_(stack_delta_in_bytes),
+        zone_(zone) {}
+
+  const NativeLocation& Rebase(const NativeLocation& loc) const;
 
   Location Rebase(const Location loc) const;
 
  private:
   const Register old_base_;
   const Register new_base_;
-  const intptr_t stack_delta_;
+  const intptr_t stack_delta_in_bytes_;
+  Zone* zone_;
 };
 
 }  // namespace ffi
