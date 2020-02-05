@@ -17,47 +17,7 @@
 #error Unknown architecture.
 #endif
 
-#if defined(HOST_ARCH_IA32)
-#include "vm/constants_ia32.h"
-#elif defined(HOST_ARCH_X64)
-#include "vm/constants_x64.h"
-#elif defined(HOST_ARCH_ARM)
-#include "vm/constants_arm.h"
-#elif defined(HOST_ARCH_ARM64)
-#include "vm/constants_arm64.h"
-#else
-#error Unknown host architecture.
-#endif
-
 namespace dart {
-
-#if defined(TARGET_ARCH_IA32)
-using namespace arch_ia32;  // NOLINT
-#elif defined(TARGET_ARCH_X64)
-using namespace arch_x64;  // NOLINT
-#elif defined(TARGET_ARCH_ARM)
-using namespace arch_arm;  // NOLINT
-#elif defined(TARGET_ARCH_ARM64)
-using namespace arch_arm64;  // NOLINT
-#else
-#error Unknown architecture.
-#endif
-
-namespace host {
-
-#if defined(HOST_ARCH_IA32)
-using namespace arch_ia32;  // NOLINT
-#elif defined(HOST_ARCH_X64)
-using namespace arch_x64;  // NOLINT
-#elif defined(HOST_ARCH_ARM)
-using namespace arch_arm;  // NOLINT
-#elif defined(HOST_ARCH_ARM64)
-using namespace arch_arm64;  // NOLINT
-#else
-#error Unknown host architecture.
-#endif
-
-}  // namespace host
 
 class RegisterNames {
  public:

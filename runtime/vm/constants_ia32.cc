@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if defined(TARGET_ARCH_IA32)
+
 #define RUNTIME_VM_CONSTANTS_H_  // To work around include guard.
 #include "vm/constants_ia32.h"
 
-namespace arch_ia32 {
+namespace dart {
 
 const char* cpu_reg_names[kNumberOfCpuRegisters] = {"eax", "ecx", "edx", "ebx",
                                                     "esp", "ebp", "esi", "edi"};
@@ -21,4 +23,6 @@ const Register CallingConventions::ArgumentRegisters[] = {
 const FpuRegister CallingConventions::FpuArgumentRegisters[] = {
     static_cast<FpuRegister>(0)};
 
-}  // namespace arch_ia32
+}  // namespace dart
+
+#endif  // defined(TARGET_ARCH_IA32)

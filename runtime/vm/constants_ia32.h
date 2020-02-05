@@ -11,7 +11,7 @@
 
 #include "platform/assert.h"
 
-namespace arch_ia32 {
+namespace dart {
 
 enum Register {
   EAX = 0,
@@ -98,7 +98,7 @@ enum ScaleFactor {
   TIMES_4 = 2,
   TIMES_8 = 3,
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = ::dart::kWordSizeLog2 - 1
+  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };
 
 class Instr {
@@ -117,7 +117,7 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -166,6 +166,6 @@ class CallingConventions {
   static constexpr bool kAlignArguments = false;
 };
 
-}  // namespace arch_ia32
+}  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_IA32_H_

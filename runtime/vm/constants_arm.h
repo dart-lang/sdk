@@ -12,7 +12,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-namespace arch_arm {
+namespace dart {
 
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
@@ -663,14 +663,14 @@ class Instr {
   inline float ImmFloatField() const {
     uint32_t imm32 = (Bit(19) << 31) | (((1 << 5) - Bit(18)) << 25) |
                      (Bits(16, 2) << 23) | (Bits(0, 4) << 19);
-    return ::dart::bit_cast<float, uint32_t>(imm32);
+    return bit_cast<float, uint32_t>(imm32);
   }
 
   // Field used in VFP double immediate move instruction
   inline double ImmDoubleField() const {
     uint64_t imm64 = (Bit(19) * (1LL << 63)) | (((1LL << 8) - Bit(18)) << 54) |
                      (Bits(16, 2) * (1LL << 52)) | (Bits(0, 4) * (1LL << 48));
-    return ::dart::bit_cast<double, uint64_t>(imm64);
+    return bit_cast<double, uint64_t>(imm64);
   }
 
   inline Register DivRdField() const {
@@ -818,7 +818,7 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -835,6 +835,6 @@ float ReciprocalStep(float op1, float op2);
 float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
 
-}  // namespace arch_arm
+}  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM_H_

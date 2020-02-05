@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if defined(TARGET_ARCH_ARM)
+
 #define RUNTIME_VM_CONSTANTS_H_  // To work around include guard.
 #include "vm/constants_arm.h"
 
-namespace arch_arm {
+namespace dart {
 
 using dart::bit_cast;
 
@@ -139,4 +141,6 @@ float ReciprocalSqrtStep(float op1, float op2) {
   return (3.0f - p) / 2.0f;
 }
 
-}  // namespace arch_arm
+}  // namespace dart
+
+#endif  // defined(TARGET_ARCH_ARM)

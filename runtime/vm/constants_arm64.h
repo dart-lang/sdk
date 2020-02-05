@@ -11,7 +11,7 @@
 
 #include "platform/assert.h"
 
-namespace arch_arm64 {
+namespace dart {
 
 enum Register {
   R0 = 0,
@@ -1215,13 +1215,13 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Instr);
 };
 
-}  // namespace arch_arm64
+}  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM64_H_

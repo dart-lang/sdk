@@ -12,7 +12,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-namespace arch_x64 {
+namespace dart {
 
 enum Register {
   RAX = 0,
@@ -150,7 +150,7 @@ enum ScaleFactor {
   TIMES_4 = 2,
   TIMES_8 = 3,
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = ::dart::kWordSizeLog2 - 1
+  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };
 
 #define R(reg) (1 << (reg))
@@ -176,7 +176,7 @@ class CallingConventions {
   // same time? (Windows no, rest yes)
   static const bool kArgumentIntRegXorFpuReg = true;
 
-  static const intptr_t kShadowSpaceBytes = 4 * ::dart::kWordSize;
+  static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
 
   static const intptr_t kVolatileCpuRegisters =
       R(RAX) | R(RCX) | R(RDX) | R(R8) | R(R9) | R(R10) | R(R11);
@@ -295,7 +295,7 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -307,6 +307,6 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
-}  // namespace arch_x64
+}  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_X64_H_
