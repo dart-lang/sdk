@@ -534,16 +534,19 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
   _wait(_NativeSocket stdin, _NativeSocket stdout, _NativeSocket stderr,
       _NativeSocket exitHandler) native "Process_Wait";
 
-  Stream<List<int>> get stdout =>
-      _stdout ?? (throw StateError("Process is detached"));
+  Stream<List<int>> get stdout {
+    return _stdout;
+  }
 
-  Stream<List<int>> get stderr =>
-      _stderr ?? (throw StateError("Process is detached"));
+  Stream<List<int>> get stderr {
+    return _stderr;
+  }
 
-  IOSink get stdin => _stdin ?? (throw StateError("Process is detached"));
+  IOSink get stdin {
+    return _stdin;
+  }
 
-  Future<int> get exitCode =>
-      _exitCode?.future ?? (throw StateError("Process is detached"));
+  Future<int> get exitCode => _exitCode != null ? _exitCode.future : null;
 
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
     if (signal is! ProcessSignal) {

@@ -652,29 +652,21 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
 
   /**
    * Returns the port used by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
    */
   int get port;
 
   /**
    * Returns the remote port connected to by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
    */
   int get remotePort;
 
   /**
    * Returns the [InternetAddress] used to connect this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
    */
   InternetAddress get address;
 
   /**
    * Returns the remote [InternetAddress] connected to by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
    */
   InternetAddress get remoteAddress;
 
@@ -799,9 +791,6 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
    * available options.
    *
    * Returns [:true:] if the option was set successfully, false otherwise.
-   *
-   * Throws a [SocketException] if the socket has been destroyed or upgraded to
-   * a secure socket.
    */
   bool setOption(SocketOption option, bool enabled);
 
@@ -811,8 +800,7 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
    *
    * Returns the [RawSocketOption.value] on success.
    *
-   * Throws an [OSError] on failure and a [SocketException] if the socket has
-   * been destroyed or upgraded to a secure socket.
+   * Throws an [OSError] on failure.
    */
   Uint8List getRawOption(RawSocketOption option);
 
@@ -820,36 +808,27 @@ abstract class Socket implements Stream<Uint8List>, IOSink {
    * Use [setRawOption] to customize the [RawSocket]. See [RawSocketOption] for
    * available options.
    *
-   * Throws an [OSError] on failure and a [SocketException] if the socket has
-   * been destroyed or upgraded to a secure socket.
+   * Throws an [OSError] on failure.
    */
   void setRawOption(RawSocketOption option);
 
   /**
    * Returns the port used by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
    */
   int get port;
 
   /**
    * Returns the remote port connected to by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
    */
   int get remotePort;
 
   /**
    * Returns the [InternetAddress] used to connect this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
    */
   InternetAddress get address;
 
   /**
    * Returns the remote [InternetAddress] connected to by this socket.
-   *
-   * Throws a [SocketException] if the socket is closed.
    */
   InternetAddress get remoteAddress;
 

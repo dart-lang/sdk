@@ -1779,37 +1779,40 @@ class _Socket extends Stream<Uint8List> implements Socket {
   }
 
   bool setOption(SocketOption option, bool enabled) {
-    if (_raw == null) throw const SocketException.closed();
+    if (_raw == null) return false;
     return _raw.setOption(option, enabled);
   }
 
   Uint8List getRawOption(RawSocketOption option) {
-    if (_raw == null) throw const SocketException.closed();
+    if (_raw == null) return null;
     return _raw.getRawOption(option);
   }
 
   void setRawOption(RawSocketOption option) {
-    if (_raw == null) throw const SocketException.closed();
-    _raw.setRawOption(option);
+    _raw?.setRawOption(option);
   }
 
   int get port {
     if (_raw == null) throw const SocketException.closed();
+    ;
     return _raw.port;
   }
 
   InternetAddress get address {
     if (_raw == null) throw const SocketException.closed();
+    ;
     return _raw.address;
   }
 
   int get remotePort {
     if (_raw == null) throw const SocketException.closed();
+    ;
     return _raw.remotePort;
   }
 
   InternetAddress get remoteAddress {
     if (_raw == null) throw const SocketException.closed();
+    ;
     return _raw.remoteAddress;
   }
 
