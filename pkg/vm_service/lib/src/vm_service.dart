@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.27.0';
+const String vmServiceVersion = '3.29.0';
 
 /// @optional
 const String optional = 'optional';
@@ -119,6 +119,7 @@ Map<String, Function> _typeFactories = {
   'Class': Class.parse,
   'ClassHeapStats': ClassHeapStats.parse,
   'ClassList': ClassList.parse,
+  'ClientName': ClientName.parse,
   '@Code': CodeRef.parse,
   'Code': Code.parse,
   '@Context': ContextRef.parse,
@@ -195,6 +196,7 @@ Map<String, List<String>> _methodReturnTypes = {
   'evaluate': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'evaluateInFrame': const ['InstanceRef', 'ErrorRef', 'Sentinel'],
   'getAllocationProfile': const ['AllocationProfile'],
+  'getClientName': const ['ClientName'],
   'getCpuSamples': const ['CpuSamples'],
   'getFlagList': const ['FlagList'],
   'getInboundReferences': const ['InboundReferences', 'Sentinel'],
@@ -219,7 +221,9 @@ Map<String, List<String>> _methodReturnTypes = {
   'reloadSources': const ['ReloadReport'],
   'removeBreakpoint': const ['Success'],
   'requestHeapSnapshot': const ['Success'],
+  'requirePermissionToResume': const ['Success'],
   'resume': const ['Success'],
+  'setClientName': const ['Success'],
   'setExceptionPauseMode': const ['Success'],
   'setFlag': const ['Success', 'Error'],
   'setLibraryDebuggable': const ['Success'],
@@ -446,6 +450,13 @@ abstract class VmServiceInterface {
   /// that a garbage collection will be actually be performed.
   Future<AllocationProfile> getAllocationProfile(String isolateId,
       {bool reset, bool gc});
+
+  /// The `getClientName` RPC is used to retrieve the name associated with the
+  /// currently connected VM service client. If no name was previously set
+  /// through the [setClientName] RPC, a default name will be returned.
+  ///
+  /// See [ClientName].
+  Future<ClientName> getClientName();
 
   /// The `getCpuSamples` RPC is used to retrieve samples collected by the CPU
   /// profiler. Only samples collected in the time range `[timeOriginMicros,
@@ -690,8 +701,8 @@ abstract class VmServiceInterface {
   /// `(timeOriginMicros, timeOriginMicros + timeExtentMicros)`.
   ///
   /// If `getVMTimeline` is invoked while the current recorder is one of Fuchsia
-  /// or Macos or Systrace, the `114` error code, invalid timeline request, will be
-  /// returned as timeline events are handled by the OS in these modes.
+  /// or Macos or Systrace, the `114` error code, invalid timeline request, will
+  /// be returned as timeline events are handled by the OS in these modes.
   Future<Timeline> getVMTimeline({int timeOriginMicros, int timeExtentMicros});
 
   /// The `getVMTimelineFlags` RPC returns information about the current VM
@@ -775,6 +786,31 @@ abstract class VmServiceInterface {
   /// offset.
   Future<Success> requestHeapSnapshot(String isolateId);
 
+  /// The `requirePermissionToResume` RPC is used to change the pause/resume
+  /// behavior of isolates by providing a way for the VM service to wait for
+  /// approval to resume from some set of clients. This is useful for clients
+  /// which want to perform some operation on an isolate after a pause without
+  /// it being resumed by another client.
+  ///
+  /// If the `onPauseStart` parameter is `true`, isolates will not resume after
+  /// pausing on start until the client sends a `resume` request and all other
+  /// clients which need to provide resume approval for this pause type have
+  /// done so.
+  ///
+  /// If the `onPauseReload` parameter is `true`, isolates will not resume after
+  /// pausing after a reload until the client sends a `resume` request and all
+  /// other clients which need to provide resume approval for this pause type
+  /// have done so.
+  ///
+  /// If the `onPauseExit` parameter is `true`, isolates will not resume after
+  /// pausing on exit until the client sends a `resume` request and all other
+  /// clients which need to provide resume approval for this pause type have
+  /// done so.
+  ///
+  /// Important Notes:<strong>Important Notes:</strong>
+  Future<Success> requirePermissionToResume(
+      {bool onPauseStart, bool onPauseReload, bool onPauseExit});
+
   /// The `resume` RPC is used to resume execution of a paused isolate.
   ///
   /// If the `step` parameter is not provided, the program will resume regular
@@ -800,6 +836,15 @@ abstract class VmServiceInterface {
   /// See [Success], [StepOption].
   Future<Success> resume(String isolateId,
       {/*StepOption*/ String step, int frameIndex});
+
+  /// The `setClientName` RPC is used to set a name to be associated with the
+  /// currently connected VM service client. If the `name` parameter is a
+  /// non-empty string, `name` will become the new name associated with the
+  /// client. If `name` is an empty string, the client's name will be reset to
+  /// its default name.
+  ///
+  /// See [Success].
+  Future<Success> setClientName(String name);
 
   /// The `setExceptionPauseMode` RPC is used to control if an isolate pauses
   /// when an exception is thrown.
@@ -1038,6 +1083,9 @@ class VmServerConnection {
             gc: params['gc'],
           );
           break;
+        case 'getClientName':
+          response = await _serviceImplementation.getClientName();
+          break;
         case 'getCpuSamples':
           response = await _serviceImplementation.getCpuSamples(
             params['isolateId'],
@@ -1165,11 +1213,23 @@ class VmServerConnection {
             params['isolateId'],
           );
           break;
+        case 'requirePermissionToResume':
+          response = await _serviceImplementation.requirePermissionToResume(
+            onPauseStart: params['onPauseStart'],
+            onPauseReload: params['onPauseReload'],
+            onPauseExit: params['onPauseExit'],
+          );
+          break;
         case 'resume':
           response = await _serviceImplementation.resume(
             params['isolateId'],
             step: params['step'],
             frameIndex: params['frameIndex'],
+          );
+          break;
+        case 'setClientName':
+          response = await _serviceImplementation.setClientName(
+            params['name'],
           );
           break;
         case 'setExceptionPauseMode':
@@ -1487,6 +1547,9 @@ class VmService implements VmServiceInterface {
   }
 
   @override
+  Future<ClientName> getClientName() => _call('getClientName');
+
+  @override
   Future<CpuSamples> getCpuSamples(
       String isolateId, int timeOriginMicros, int timeExtentMicros) {
     return _call('getCpuSamples', {
@@ -1669,6 +1732,22 @@ class VmService implements VmServiceInterface {
   }
 
   @override
+  Future<Success> requirePermissionToResume(
+      {bool onPauseStart, bool onPauseReload, bool onPauseExit}) {
+    Map m = {};
+    if (onPauseStart != null) {
+      m['onPauseStart'] = onPauseStart;
+    }
+    if (onPauseReload != null) {
+      m['onPauseReload'] = onPauseReload;
+    }
+    if (onPauseExit != null) {
+      m['onPauseExit'] = onPauseExit;
+    }
+    return _call('requirePermissionToResume', m);
+  }
+
+  @override
   Future<Success> resume(String isolateId,
       {/*StepOption*/ String step, int frameIndex}) {
     Map m = {'isolateId': isolateId};
@@ -1679,6 +1758,11 @@ class VmService implements VmServiceInterface {
       m['frameIndex'] = frameIndex;
     }
     return _call('resume', m);
+  }
+
+  @override
+  Future<Success> setClientName(String name) {
+    return _call('setClientName', {'name': name});
   }
 
   @override
@@ -2716,6 +2800,34 @@ class ClassList extends Response {
   }
 
   String toString() => '[ClassList type: ${type}, classes: ${classes}]';
+}
+
+/// See [getClientName] and [setClientName].
+class ClientName extends Response {
+  static ClientName parse(Map<String, dynamic> json) =>
+      json == null ? null : ClientName._fromJson(json);
+
+  /// The name of the currently connected VM service client.
+  String name;
+
+  ClientName({
+    @required this.name,
+  });
+  ClientName._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    name = json['name'];
+  }
+
+  @override
+  Map<String, dynamic> toJson() {
+    var json = <String, dynamic>{};
+    json['type'] = 'ClientName';
+    json.addAll({
+      'name': name,
+    });
+    return json;
+  }
+
+  String toString() => '[ClientName type: ${type}, name: ${name}]';
 }
 
 /// `CodeRef` is a reference to a `Code` object.
@@ -6098,8 +6210,8 @@ class TimelineFlags extends Response {
       json == null ? null : TimelineFlags._fromJson(json);
 
   /// The name of the recorder currently in use. Recorder types include, but are
-  /// not limited to: Callback, Endless, Fuchsia, Macos, Ring, Startup, and Systrace.
-  /// Set to "null" if no recorder is currently set.
+  /// not limited to: Callback, Endless, Fuchsia, Macos, Ring, Startup, and
+  /// Systrace. Set to "null" if no recorder is currently set.
   String recorderName;
 
   /// The list of all available timeline streams.

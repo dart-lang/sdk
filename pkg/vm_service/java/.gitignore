@@ -3,6 +3,7 @@
 src/org/dartlang/vm/service/VmService.java
 src/org/dartlang/vm/service/consumer/AllocationProfileConsumer.java
 src/org/dartlang/vm/service/consumer/BreakpointConsumer.java
+src/org/dartlang/vm/service/consumer/ClientNameConsumer.java
 src/org/dartlang/vm/service/consumer/CpuSamplesConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateConsumer.java
 src/org/dartlang/vm/service/consumer/EvaluateInFrameConsumer.java
@@ -35,6 +36,7 @@ src/org/dartlang/vm/service/element/ClassHeapStats.java
 src/org/dartlang/vm/service/element/ClassList.java
 src/org/dartlang/vm/service/element/ClassObj.java
 src/org/dartlang/vm/service/element/ClassRef.java
+src/org/dartlang/vm/service/element/ClientName.java
 src/org/dartlang/vm/service/element/Code.java
 src/org/dartlang/vm/service/element/CodeKind.java
 src/org/dartlang/vm/service/element/CodeRef.java
