@@ -224,7 +224,7 @@ dart2js:
       patches: "_internal/js_runtime/lib/typed_data_patch.dart"
 
     _native_typed_data:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/native_typed_data.dart"
+      uri: "_internal/js_runtime/lib/native_typed_data.dart"
 
     svg:
       uri: "../../sdk/lib/svg/dart2js/svg_dart2js.dart"
@@ -332,7 +332,7 @@ dart2js_server:
       patches: "_internal/js_runtime/lib/typed_data_patch.dart"
 
     _native_typed_data:
-      uri: "../../sdk/lib/_internal/js_runtime/lib/native_typed_data.dart"
+      uri: "_internal/js_runtime/lib/native_typed_data.dart"
 
     _internal:
       uri: "../../sdk/lib/internal/internal.dart"
