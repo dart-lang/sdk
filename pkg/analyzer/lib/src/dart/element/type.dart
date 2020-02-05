@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -583,6 +584,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       TypeParameterElement p2 = params2[i];
       TypeParameterElementImpl pFresh =
           TypeParameterElementImpl.synthetic(p2.name);
+      ElementTypeProvider.current.freshTypeParameterCreated(pFresh, p2);
 
       DartType variableFresh = pFresh.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,

@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart' as type_algebra;
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -127,7 +126,8 @@ class Variables implements VariableRecorder, VariableRepository {
               'recordTypeParameterBound');
         }
         decoratedType = _alreadyMigratedCodeDecorator.decorate(
-            typeParameter.bound ?? DynamicTypeImpl.instance, typeParameter);
+            typeParameter.preMigrationBound ?? DynamicTypeImpl.instance,
+            typeParameter);
         instrumentation?.externalDecoratedTypeParameterBound(
             typeParameter, decoratedType);
         DecoratedTypeParameterBounds.current.put(typeParameter, decoratedType);
@@ -234,26 +234,6 @@ class Variables implements VariableRecorder, VariableRepository {
         ? NullabilitySuffix.question
         : NullabilitySuffix.none;
     if (type is FunctionType) {
-      var newTypeFormals = <TypeParameterElementImpl>[];
-      var typeFormalSubstitution = <TypeParameterElement, DartType>{};
-      for (var typeFormal in decoratedType.typeFormals) {
-        var newTypeFormal = TypeParameterElementImpl.synthetic(typeFormal.name);
-        newTypeFormals.add(newTypeFormal);
-        typeFormalSubstitution[typeFormal] = TypeParameterTypeImpl(
-            newTypeFormal,
-            nullabilitySuffix: NullabilitySuffix.none);
-      }
-      for (int i = 0; i < newTypeFormals.length; i++) {
-        var bound = type_algebra.substitute(
-            toFinalType(
-                DecoratedTypeParameterBounds.current.get(type.typeFormals[i])),
-            typeFormalSubstitution);
-        if (!bound.isDynamic &&
-            !(bound.isDartCoreObject &&
-                bound.nullabilitySuffix == NullabilitySuffix.question)) {
-          newTypeFormals[i].bound = bound;
-        }
-      }
       var parameters = <ParameterElement>[];
       for (int i = 0; i < type.parameters.length; i++) {
         var origParameter = type.parameters[i];
@@ -272,18 +252,12 @@ class Variables implements VariableRecorder, VariableRepository {
           parameterType = decoratedType.positionalParameters[i];
         }
         parameters.add(ParameterElementImpl.synthetic(
-            name,
-            type_algebra.substitute(
-                toFinalType(parameterType), typeFormalSubstitution),
-            parameterKind));
+            name, toFinalType(parameterType), parameterKind));
       }
       return FunctionTypeImpl(
-        typeFormals: newTypeFormals,
+        typeFormals: type.typeFormals,
         parameters: parameters,
-        returnType: type_algebra.substitute(
-          toFinalType(decoratedType.returnType),
-          typeFormalSubstitution,
-        ),
+        returnType: toFinalType(decoratedType.returnType),
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (type is InterfaceType) {
@@ -295,23 +269,7 @@ class Variables implements VariableRecorder, VariableRepository {
         nullabilitySuffix: nullabilitySuffix,
       );
     } else if (type is TypeParameterType) {
-      var element = type.element;
-      var decoratedBound =
-          decoratedTypeParameterBound(element, allowNullUnparentedBounds: true);
-      // Note: it's possible that we won't have a decorated type parameter bound
-      // for the type parameter.  If that happens, it's because it was a type
-      // parameter that was synthetically generated from other type parameters
-      // during resolution (e.g. because of a LUB computation or a
-      // substitution).  If this occurs, then the type parameters it was based
-      // on should have had bounds reflecting their final types, so we can just
-      // use the element's bound.
-      var finalBound =
-          decoratedBound == null ? element.bound : toFinalType(decoratedBound);
-      // The easiest way to override the bound is to create a
-      // TypeParameterMember and supply the new bound.
-      var member = TypeParameterMember(
-          element.declaration, type_algebra.Substitution.empty, finalBound);
-      return TypeParameterTypeImpl(member,
+      return TypeParameterTypeImpl(type.element,
           nullabilitySuffix: nullabilitySuffix);
     } else {
       // The above cases should cover all possible types.  On the off chance
@@ -449,6 +407,18 @@ class Variables implements VariableRecorder, VariableRepository {
     // computed from `end` as `end*(end + 1)/2`.  We use `~/` for integer
     // division.
     return end * (end + 1) ~/ 2 + offset;
+  }
+}
+
+extension on TypeParameterElement {
+  DartType get preMigrationBound {
+    var previousElementTypeProvider = ElementTypeProvider.current;
+    try {
+      ElementTypeProvider.current = const ElementTypeProvider();
+      return bound;
+    } finally {
+      ElementTypeProvider.current = previousElementTypeProvider;
+    }
   }
 }
 

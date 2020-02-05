@@ -187,6 +187,30 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_call_generic_function_returns_generic_class() async {
+    var content = '''
+class B<E> implements List<E/*?*/> {
+  final C c;
+  B(this.c);
+  B<T> cast<T>() => c._castFrom<E, T>(this);
+}
+abstract class C {
+  B<T> _castFrom<S, T>(B<S> source);
+}
+''';
+    var expected = '''
+class B<E> implements List<E?/*?*/> {
+  final C c;
+  B(this.c);
+  B<T> cast<T>() => c._castFrom<E, T>(this);
+}
+abstract class C {
+  B<T> _castFrom<S, T>(B<S> source);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_catch_simple() async {
     var content = '''
 void f() {

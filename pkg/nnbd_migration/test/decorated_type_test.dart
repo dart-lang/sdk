@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -31,6 +32,8 @@ class DecoratedTypeTest extends Object
 
   final Variables _variables;
 
+  final _ElementTypeProvider elementTypeProvider;
+
   @override
   final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
 
@@ -41,26 +44,29 @@ class DecoratedTypeTest extends Object
     return DecoratedTypeTest._(graph, typeProvider, variables);
   }
 
-  DecoratedTypeTest._(this.graph, this.typeProvider, this._variables);
+  DecoratedTypeTest._(this.graph, this.typeProvider, this._variables)
+      : elementTypeProvider = _ElementTypeProvider(_variables);
 
   NullabilityNode get always => graph.always;
 
   ClassElement get listElement => typeProvider.listElement;
 
   void assertDartType(DartType type, String expected) {
-    // Note: by default DartType.toString doesn't print nullability suffixes,
-    // so we have to override that behavior in order to make sure the
+    // Note: by default DartType.getDisplayString doesn't print nullability
+    // suffixes, so we have to override that behavior in order to make sure the
     // nullability suffixes are correct.
     expect(type.getDisplayString(withNullability: true), expected);
   }
 
   void setUp() {
     DecoratedTypeParameterBounds.current = decoratedTypeParameterBounds;
+    ElementTypeProvider.current = elementTypeProvider;
     NullabilityNode.clearDebugNames();
   }
 
   void tearDown() {
     DecoratedTypeParameterBounds.current = null;
+    ElementTypeProvider.current = const ElementTypeProvider();
   }
 
   void test_equal_dynamic_and_void() {
@@ -334,8 +340,10 @@ class DecoratedTypeTest extends Object
     var t = typeParameter('T', dynamic_);
     var type = _variables.toFinalType(
         function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
-    assertDartType(type, 'dynamic Function<T>()');
-    expect(type.typeFormals[0].bound, isNull);
+    assertDartType(type, 'dynamic Function<T extends dynamic>()');
+    assertDartType(
+        elementTypeProvider.getTypeParameterBound(type.typeFormals[0]),
+        'dynamic');
   }
 
   void test_toFinalType_function_generic_bound_num_question() {
@@ -343,15 +351,18 @@ class DecoratedTypeTest extends Object
     var type = _variables.toFinalType(
         function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends num?>()');
-    assertDartType(type.typeFormals[0].bound, 'num?');
+    assertDartType(
+        elementTypeProvider.getTypeParameterBound(type.typeFormals[0]), 'num?');
   }
 
   void test_toFinalType_function_generic_bound_object_question() {
     var t = typeParameter('T', object(node: always));
     var type = _variables.toFinalType(
         function(dynamic_, typeFormals: [t], node: never)) as FunctionType;
-    assertDartType(type, 'dynamic Function<T>()');
-    expect(type.typeFormals[0].bound, isNull);
+    assertDartType(type, 'dynamic Function<T extends Object?>()');
+    assertDartType(
+        elementTypeProvider.getTypeParameterBound(type.typeFormals[0]),
+        'Object?');
   }
 
   void test_toFinalType_function_generic_substitute_bounds() {
@@ -367,9 +378,9 @@ class DecoratedTypeTest extends Object
         type,
         'dynamic Function<T extends List<U>, U extends Object, '
         'V extends List<U>>()');
-    expect(type.typeFormals[0], isNot(same(t)));
-    expect(type.typeFormals[1], isNot(same(u)));
-    expect(type.typeFormals[2], isNot(same(v)));
+    expect(type.typeFormals[0], same(t));
+    expect(type.typeFormals[1], same(u));
+    expect(type.typeFormals[2], same(v));
     expect(
         ((type.typeFormals[0].bound as InterfaceType).typeArguments[0]
                 as TypeParameterType)
@@ -389,7 +400,7 @@ class DecoratedTypeTest extends Object
         named: {'x': list(typeParameterType(t, node: never), node: never)},
         node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends Object>({List<T> x})');
-    expect(type.typeFormals[0], isNot(same(t)));
+    expect(type.typeFormals[0], same(t));
     expect(
         ((type.parameters[0].type as InterfaceType).typeArguments[0]
                 as TypeParameterType)
@@ -404,7 +415,7 @@ class DecoratedTypeTest extends Object
         positional: [list(typeParameterType(t, node: never), node: never)],
         node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends Object>([List<T>])');
-    expect(type.typeFormals[0], isNot(same(t)));
+    expect(type.typeFormals[0], same(t));
     expect(
         ((type.parameters[0].type as InterfaceType).typeArguments[0]
                 as TypeParameterType)
@@ -419,7 +430,7 @@ class DecoratedTypeTest extends Object
         required: [list(typeParameterType(t, node: never), node: never)],
         node: never)) as FunctionType;
     assertDartType(type, 'dynamic Function<T extends Object>(List<T>)');
-    expect(type.typeFormals[0], isNot(same(t)));
+    expect(type.typeFormals[0], same(t));
     expect(
         ((type.parameters[0].type as InterfaceType).typeArguments[0]
                 as TypeParameterType)
@@ -434,7 +445,7 @@ class DecoratedTypeTest extends Object
         typeFormals: [t],
         node: never)) as FunctionType;
     assertDartType(type, 'List<T> Function<T extends Object>()');
-    expect(type.typeFormals[0], isNot(same(t)));
+    expect(type.typeFormals[0], same(t));
     expect(
         ((type.returnType as InterfaceType).typeArguments[0]
                 as TypeParameterType)
@@ -601,5 +612,24 @@ class DecoratedTypeTest extends Object
     var xType = int_();
     var decoratedType = function(dynamic_, positional: [xType], node: always);
     expect(decoratedType.toString(), 'dynamic Function([$xType])?');
+  }
+}
+
+class _ElementTypeProvider extends ElementTypeProvider {
+  final Variables variables;
+
+  _ElementTypeProvider(this.variables);
+
+  void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
+      TypeParameterElement oldTypeParameter) {
+    DecoratedTypeParameterBounds.current.put(newTypeParameter,
+        DecoratedTypeParameterBounds.current.get(oldTypeParameter));
+  }
+
+  DartType getTypeParameterBound(TypeParameterElement element) {
+    var decoratedType = variables.decoratedTypeParameterBound(element,
+        allowNullUnparentedBounds: true);
+    if (decoratedType == null) return element.bound;
+    return variables.toFinalType(decoratedType);
   }
 }

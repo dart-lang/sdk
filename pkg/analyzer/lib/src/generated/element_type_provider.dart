@@ -25,6 +25,13 @@ class ElementTypeProvider {
 
   const ElementTypeProvider();
 
+  /// Notifies the [ElementTypeProvider] that a fresh type parameter element has
+  /// been created.  If the [ElementTypeProvider] is storing additional
+  /// information about type parameter elements, this gives it an opportunity to
+  /// copy that information.
+  void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
+      TypeParameterElement oldTypeParameter) {}
+
   /// Queries the parameters of an executable element's signature.
   ///
   /// Equivalent to `getExecutableType(...).parameters`.
@@ -47,6 +54,10 @@ class ElementTypeProvider {
   /// Queries the type of a field.
   DartType getFieldType(PropertyInducingElementImpl element) =>
       element.typeInternal;
+
+  /// Queries the bound of a type parameter.
+  DartType getTypeParameterBound(TypeParameterElementImpl element) =>
+      element.boundInternal;
 
   /// Queries the type of a variable element.
   DartType getVariableType(VariableElementImpl variable) =>

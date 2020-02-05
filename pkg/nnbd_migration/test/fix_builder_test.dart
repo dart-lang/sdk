@@ -2728,7 +2728,7 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
     try {
       assert(
           identical(ElementTypeProvider.current, const ElementTypeProvider()));
-      ElementTypeProvider.current = MigrationResolutionHooksImpl(fixBuilder);
+      ElementTypeProvider.current = fixBuilder.migrationResolutionHooks;
       var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
       var isReadWrite = assignment.operator.type != TokenType.EQ;
       var readType =

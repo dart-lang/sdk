@@ -7420,7 +7420,13 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
-  DartType get bound {
+  DartType get bound => ElementTypeProvider.current.getTypeParameterBound(this);
+
+  set bound(DartType bound) {
+    _bound = bound;
+  }
+
+  DartType get boundInternal {
     if (_bound != null) return _bound;
 
     if (linkedNode != null) {
@@ -7429,10 +7435,6 @@ class TypeParameterElementImpl extends ElementImpl
     }
 
     return _bound;
-  }
-
-  set bound(DartType bound) {
-    _bound = bound;
   }
 
   @override
