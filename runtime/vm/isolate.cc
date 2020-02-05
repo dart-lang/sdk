@@ -167,11 +167,18 @@ bool IdleTimeHandler::ShouldNotifyIdle(int64_t* expiry) {
 }
 
 void IdleTimeHandler::NotifyIdle(int64_t deadline) {
-  MutexLocker ml(&mutex_, /*no_safepoint_scope=*/false);
+  {
+    MutexLocker ml(&mutex_);
+    disabled_counter_++;
+  }
   if (heap_ != nullptr) {
     heap_->NotifyIdle(deadline);
   }
-  idle_start_time_ = 0;
+  {
+    MutexLocker ml(&mutex_);
+    disabled_counter_--;
+    idle_start_time_ = 0;
+  }
 }
 
 void IdleTimeHandler::NotifyIdleUsingDefaultDeadline() {
