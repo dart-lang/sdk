@@ -7,12 +7,36 @@ import 'dart:io';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
+import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
 import 'package:path/path.dart' as path;
+
+class FantasyWorkspaceDependencies {
+  final File Function(String) fileBuilder;
+  final Directory Function(String) directoryBuilder;
+  final Link Function(String) linkBuilder;
+  final SubprocessLauncher launcher;
+  final Future<FantasyRepo> Function(FantasyRepoSettings, Directory)
+      buildGitRepoFrom;
+
+  FantasyWorkspaceDependencies(
+      {File Function(String) fileBuilder,
+      Directory Function(String) directoryBuilder,
+      Link Function(String) linkBuilder,
+      SubprocessLauncher launcher,
+      Future<FantasyRepo> Function(FantasyRepoSettings, Directory)
+          buildGitRepoFrom})
+      : fileBuilder = fileBuilder ?? ((s) => File(s)),
+        directoryBuilder = directoryBuilder ?? ((s) => Directory(s)),
+        linkBuilder = linkBuilder ?? ((s) => Link(s)),
+        launcher = launcher, // Pass through to FantasyRepoDependencies.
+        buildGitRepoFrom = buildGitRepoFrom ?? FantasyRepo.buildGitRepoFrom;
+}
 
 abstract class FantasyWorkspaceImpl extends FantasyWorkspace {
   @override
   final Directory workspaceRoot;
 
+  // TODO(jcollins-g): inject FantasyWorkspaceDependencies here.
   FantasyWorkspaceImpl._(this.workspaceRoot);
 
   /// Repositories on which [addRepoToWorkspace] has been called.

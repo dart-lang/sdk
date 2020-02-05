@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo_impl.dart';
-import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
 
 const githubHost = 'git@github.com';
 
@@ -113,13 +112,10 @@ abstract class FantasyRepo {
 
   static Future<FantasyRepo> buildGitRepoFrom(
       FantasyRepoSettings repoSettings, Directory repoRoot,
-      {SubprocessLauncher launcher, File Function(String) fileBuilder}) async {
-    FantasyRepoGitImpl newRepo =
-        FantasyRepoGitImpl(repoSettings, repoRoot, fileBuilder: fileBuilder);
-    if (launcher == null) {
-      launcher = SubprocessLauncher('FantasyRepo.buildFrom-${newRepo.name}');
-    }
-    await newRepo.init(launcher);
+      {FantasyRepoDependencies fantasyRepoDependencies}) async {
+    FantasyRepoGitImpl newRepo = FantasyRepoGitImpl(repoSettings, repoRoot,
+        fantasyRepoDependencies: fantasyRepoDependencies);
+    await newRepo.init();
     return newRepo;
   }
 }

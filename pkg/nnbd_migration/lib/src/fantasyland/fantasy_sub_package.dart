@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
+import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
 import 'package:path/path.dart' as path;
 
 final Map<String, FantasySubPackageSettings> _subPackageTable = {
@@ -213,6 +214,19 @@ class _AccumulateAllDependenciesVisitor<T>
       results.add(transformDependency(dependency));
 }
 
+class FantasySubPackageDependencies {
+  final File Function(String) fileBuilder;
+
+  FantasySubPackageDependencies({File Function(String) fileBuilder})
+      : fileBuilder = fileBuilder ?? ((s) => File(s));
+
+  factory FantasySubPackageDependencies.fromWorkspaceDependencies(
+      FantasyWorkspaceDependencies workspaceDependencies) {
+    return FantasySubPackageDependencies(
+        fileBuilder: workspaceDependencies.fileBuilder);
+  }
+}
+
 /// Represents one package within a [FantasyWorkspaceImpl].
 ///
 /// A `FantasySubPackage` differs from a normal package in that Dart code within
@@ -228,8 +242,8 @@ class FantasySubPackage {
       : name = packageSettings.name;
 
   Directory _packageRoot;
-  Directory get packageRoot => _packageRoot ??= Directory(
-      path.join(containingRepo.repoRoot.path, packageSettings.subDir));
+  Directory get packageRoot => _packageRoot ??= Directory(path.normalize(
+      path.join(containingRepo.repoRoot.path, packageSettings.subDir)));
 
   Future<void> _acceptPubspecVisitor<T>(
       PubspecVisitor<T> pubspecVisitor) async {

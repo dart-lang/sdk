@@ -6,6 +6,7 @@ import 'dart:io';
 
 import 'package:mockito/mockito.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
+import 'package:nnbd_migration/src/fantasyland/fantasy_repo_impl.dart';
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
@@ -79,6 +80,8 @@ class FantasyRepoE2ETest {
     // TODO(jcollins-g): This test is not fully isolated from the global git
     // config.  Fix that.
     SubprocessLauncher launcher = SubprocessLauncher('FantasyRepoE2ETest');
+    FantasyRepoDependencies fantasyRepoDependencies =
+        FantasyRepoDependencies(launcher: launcher);
     Directory origRepoDir = Directory(path.join(tempDir.path, 'origRepo'));
 
     // Create and add a commit to origRepoDir that includes a file we should
@@ -110,7 +113,7 @@ class FantasyRepoE2ETest {
     Directory repoRoot = Directory(path.join(tempDir.path, 'repoRoot'));
     await FantasyRepo.buildGitRepoFrom(
         FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot,
-        launcher: launcher);
+        fantasyRepoDependencies: fantasyRepoDependencies);
 
     dotPackages = File(path.join(repoRoot.path, '.packages'));
     pubspecLock = File(path.join(repoRoot.path, 'pubspec.lock'));
@@ -136,7 +139,7 @@ class FantasyRepoE2ETest {
     // we did it right.
     await FantasyRepo.buildGitRepoFrom(
         FantasyRepoSettings('repoE2Etest', origRepoDir.path), repoRoot,
-        launcher: launcher);
+        fantasyRepoDependencies: fantasyRepoDependencies);
 
     aNewFile = File(path.join(repoRoot.path, 'hello_new_file_here'));
 
@@ -148,30 +151,19 @@ class FantasyRepoE2ETest {
   }
 }
 
-class MockSubprocessLauncher extends Mock implements SubprocessLauncher {}
-
 @reflectiveTest
 class FantasyRepoTest extends FilesystemTestBase {
-  MockSubprocessLauncher mockLauncher;
   String parentPath;
   String repoPath;
+  MockDirectory repoDir;
+  MockDirectory parentDir;
 
   setUp() {
     super.setUp();
-    mockDirectories = {};
-    fileBuilder = (String s) {
-      mockFiles[s] ??= MockFile();
-      return mockFiles[s];
-    };
-    directoryBuilder = (String s) {
-      mockDirectories[s] ??= MockDirectory();
-      return mockDirectories[s];
-    };
-    mockLauncher = MockSubprocessLauncher();
     parentPath = 'parentdir';
     repoPath = path.join(parentPath, 'subdir');
-    MockDirectory repoDir = directoryBuilder(repoPath);
-    MockDirectory parentDir = directoryBuilder('parentdir');
+    repoDir = directoryBuilder(repoPath);
+    parentDir = directoryBuilder('parentdir');
     when(parentDir.exists()).thenAnswer((_) => Future.value(true));
     when(repoDir.parent).thenReturn(parentDir);
     when(repoDir.path).thenReturn(repoPath);
@@ -179,10 +171,11 @@ class FantasyRepoTest extends FilesystemTestBase {
 
   _setUpNewClone(String repoName) async {
     FantasyRepoSettings settings = FantasyRepoSettings.fromName(repoName);
-    when(directoryBuilder(repoPath).exists())
-        .thenAnswer((_) => Future.value(false));
-    await FantasyRepo.buildGitRepoFrom(settings, mockDirectories[repoPath],
+    when(repoDir.exists()).thenAnswer((_) => Future.value(false));
+    FantasyRepoDependencies fantasyRepoDependencies = FantasyRepoDependencies(
         launcher: mockLauncher, fileBuilder: fileBuilder);
+    await FantasyRepo.buildGitRepoFrom(settings, mockDirectories[repoPath],
+        fantasyRepoDependencies: fantasyRepoDependencies);
   }
 
   test_checkHttpStringSubstitution() async {

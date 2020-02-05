@@ -5,10 +5,32 @@
 import 'dart:io';
 
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
+import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
 import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
 import 'package:path/path.dart' as path;
 
 const _httpGithub = 'https://github.com';
+
+class FantasyRepoDependencies {
+  final File Function(String) fileBuilder;
+  final SubprocessLauncher launcher;
+
+  FantasyRepoDependencies(
+      {String name,
+      File Function(String) fileBuilder,
+      SubprocessLauncher launcher})
+      : fileBuilder = fileBuilder ?? ((s) => File(s)),
+        launcher = launcher ??
+            SubprocessLauncher(
+                'FantasyRepo.${name == null ? "buildFrom" : "buildFrom-$name"}');
+
+  factory FantasyRepoDependencies.fromWorkspaceDependencies(
+      FantasyWorkspaceDependencies workspaceDependencies) {
+    return FantasyRepoDependencies(
+        fileBuilder: workspaceDependencies.fileBuilder,
+        launcher: workspaceDependencies.launcher);
+  }
+}
 
 /// Represent a single git clone that may be referred to by one or more
 /// [FantasySubPackage]s.
@@ -16,12 +38,13 @@ class FantasyRepoGitImpl extends FantasyRepo {
   final String name;
   final FantasyRepoSettings repoSettings;
   final Directory repoRoot;
-  final File Function(String) fileBuilder;
+  final FantasyRepoDependencies _external;
 
   FantasyRepoGitImpl(this.repoSettings, this.repoRoot,
-      {File Function(String) fileBuilder})
+      {FantasyRepoDependencies fantasyRepoDependencies})
       : name = repoSettings.name,
-        fileBuilder = fileBuilder ?? ((s) => File(s));
+        _external = fantasyRepoDependencies ??
+            FantasyRepoDependencies(name: repoSettings.name);
 
   bool _isInitialized = false;
 
@@ -29,13 +52,13 @@ class FantasyRepoGitImpl extends FantasyRepo {
   ///
   /// May throw [FantasyRepoException] in the event of problems and does
   /// not clean up filesystem state.
-  Future<void> init(SubprocessLauncher launcher) async {
+  Future<void> init() async {
     assert(_isInitialized == false);
     if (await repoRoot.exists()) {
-      await _update(launcher);
+      await _update(_external.launcher);
       // TODO(jcollins-g): handle "update" of pinned revision edge case
     } else {
-      await _clone(launcher);
+      await _clone(_external.launcher);
     }
     _isInitialized = true;
     return;
@@ -76,7 +99,7 @@ class FantasyRepoGitImpl extends FantasyRepo {
     await launcher.runStreamed('git', ['config', 'core.sparsecheckout', 'true'],
         workingDirectory: repoRoot.path);
 
-    File sparseCheckout = fileBuilder(
+    File sparseCheckout = _external.fileBuilder(
         path.join(repoRoot.path, '.git', 'info', 'sparse-checkout'));
     await sparseCheckout.writeAsString([
       '**\n',
