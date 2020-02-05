@@ -223,8 +223,8 @@
         "supported": false
       },
       "typed_data": {
-        "uri": "../../sdk/lib/typed_data/typed_data.dart",
-        "patches": "../../sdk/lib/_internal/js_runtime/lib/typed_data_patch.dart"
+        "uri": "typed_data/typed_data.dart",
+        "patches": "_internal/js_runtime/lib/typed_data_patch.dart"
       },
       "_native_typed_data": {
         "uri": "../../sdk/lib/_internal/js_runtime/lib/native_typed_data.dart"
@@ -333,8 +333,8 @@
         "supported": false
       },
       "typed_data": {
-        "uri": "../../sdk/lib/typed_data/typed_data.dart",
-        "patches": "../../sdk/lib/_internal/js_runtime/lib/typed_data_patch.dart"
+        "uri": "typed_data/typed_data.dart",
+        "patches": "_internal/js_runtime/lib/typed_data_patch.dart"
       },
       "_native_typed_data": {
         "uri": "../../sdk/lib/_internal/js_runtime/lib/native_typed_data.dart"
