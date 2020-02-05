@@ -1000,11 +1000,12 @@ class _Base extends AbstractContextTest {
 
   static String _executableStr(ExecutableElement element) {
     var executableStr = _executableNameStr(element);
-
-    return '$executableStr: ${element.type}';
+    var typeStr = element.type.getDisplayString(withNullability: false);
+    return '$executableStr: $typeStr';
   }
 
   static String _parameterStr(ParameterElement element) {
-    return '${element.name}: ${element.type}';
+    var typeStr = element.type.getDisplayString(withNullability: false);
+    return '${element.name}: $typeStr';
   }
 }
