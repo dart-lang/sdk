@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
 import 'package:test/test.dart';
@@ -36,7 +37,7 @@ Derived<int> x;
     var decoratedType = decoratedTypeAnnotation('Derived<int>');
     var asInstanceOfBase =
         _hierarchy.asInstanceOf(decoratedType, findElement.class_('Base'));
-    expect(asInstanceOfBase.type.toString(), 'Base<List<int>>');
+    _assertType(asInstanceOfBase.type, 'Base<List<int>>');
     expect(asInstanceOfBase.node, same(decoratedType.node));
     var listOfUType = decoratedTypeAnnotation('List<U>');
     expect(asInstanceOfBase.typeArguments[0].node, same(listOfUType.node));
@@ -59,23 +60,23 @@ class Derived<V> extends Intermediate<Map<int, V>> {}
     var mapRef = decoratedTypeAnnotation('Map');
     var intRef = decoratedTypeAnnotation('int');
     var vRef = decoratedTypeAnnotation('V>>');
-    expect(decoratedSupertype.type.toString(), 'Base<List<Map<int, V>>>');
+    _assertType(decoratedSupertype.type, 'Base<List<Map<int, V>>>');
     expect(decoratedSupertype.node, same(never));
     var baseArgs = decoratedSupertype.typeArguments;
     expect(baseArgs, hasLength(1));
-    expect(baseArgs[0].type.toString(), 'List<Map<int, V>>');
+    _assertType(baseArgs[0].type, 'List<Map<int, V>>');
     expect(baseArgs[0].node, same(listRef.node));
     var listArgs = baseArgs[0].typeArguments;
     expect(listArgs, hasLength(1));
-    expect(listArgs[0].type.toString(), 'Map<int, V>');
+    _assertType(listArgs[0].type, 'Map<int, V>');
     var mapNode = listArgs[0].node as NullabilityNodeForSubstitution;
     expect(mapNode.innerNode, same(mapRef.node));
     expect(mapNode.outerNode, same(uRef.node));
     var mapArgs = listArgs[0].typeArguments;
     expect(mapArgs, hasLength(2));
-    expect(mapArgs[0].type.toString(), 'int');
+    _assertType(mapArgs[0].type, 'int');
     expect(mapArgs[0].node, same(intRef.node));
-    expect(mapArgs[1].type.toString(), 'V');
+    _assertType(mapArgs[1].type, 'V');
     expect(mapArgs[1].node, same(vRef.node));
   }
 
@@ -88,12 +89,12 @@ class Derived<V, W> extends Base<V, W> {}
         findElement.class_('Derived'), findElement.class_('Base'));
     var vRef = decoratedTypeAnnotation('V, W> {');
     var wRef = decoratedTypeAnnotation('W> {');
-    expect(decoratedSupertype.type.toString(), 'Base<V, W>');
+    _assertType(decoratedSupertype.type, 'Base<V, W>');
     expect(decoratedSupertype.node, same(never));
     expect(decoratedSupertype.typeArguments, hasLength(2));
-    expect(decoratedSupertype.typeArguments[0].type.toString(), 'V');
+    _assertType(decoratedSupertype.typeArguments[0].type, 'V');
     expect(decoratedSupertype.typeArguments[0].node, same(vRef.node));
-    expect(decoratedSupertype.typeArguments[1].type.toString(), 'W');
+    _assertType(decoratedSupertype.typeArguments[1].type, 'W');
     expect(decoratedSupertype.typeArguments[1].node, same(wRef.node));
   }
 
@@ -106,12 +107,12 @@ class Derived<V, W> implements Base<V, W> {}
         findElement.class_('Derived'), findElement.class_('Base'));
     var vRef = decoratedTypeAnnotation('V, W> {');
     var wRef = decoratedTypeAnnotation('W> {');
-    expect(decoratedSupertype.type.toString(), 'Base<V, W>');
+    _assertType(decoratedSupertype.type, 'Base<V, W>');
     expect(decoratedSupertype.node, same(never));
     expect(decoratedSupertype.typeArguments, hasLength(2));
-    expect(decoratedSupertype.typeArguments[0].type.toString(), 'V');
+    _assertType(decoratedSupertype.typeArguments[0].type, 'V');
     expect(decoratedSupertype.typeArguments[0].node, same(vRef.node));
-    expect(decoratedSupertype.typeArguments[1].type.toString(), 'W');
+    _assertType(decoratedSupertype.typeArguments[1].type, 'W');
     expect(decoratedSupertype.typeArguments[1].node, same(wRef.node));
   }
 
@@ -122,7 +123,7 @@ class Derived<T> extends Base {}
 ''');
     var decoratedSupertype = _hierarchy.getDecoratedSupertype(
         findElement.class_('Derived'), findElement.class_('Base'));
-    expect(decoratedSupertype.type.toString(), 'Base');
+    _assertType(decoratedSupertype.type, 'Base');
     expect(decoratedSupertype.node, same(never));
     expect(decoratedSupertype.typeArguments, isEmpty);
   }
@@ -136,12 +137,12 @@ mixin Derived<V, W> on Base<V, W> {}
         findElement.mixin('Derived'), findElement.class_('Base'));
     var vRef = decoratedTypeAnnotation('V, W> {');
     var wRef = decoratedTypeAnnotation('W> {');
-    expect(decoratedSupertype.type.toString(), 'Base<V, W>');
+    _assertType(decoratedSupertype.type, 'Base<V, W>');
     expect(decoratedSupertype.node, same(never));
     expect(decoratedSupertype.typeArguments, hasLength(2));
-    expect(decoratedSupertype.typeArguments[0].type.toString(), 'V');
+    _assertType(decoratedSupertype.typeArguments[0].type, 'V');
     expect(decoratedSupertype.typeArguments[0].node, same(vRef.node));
-    expect(decoratedSupertype.typeArguments[1].type.toString(), 'W');
+    _assertType(decoratedSupertype.typeArguments[1].type, 'W');
     expect(decoratedSupertype.typeArguments[1].node, same(wRef.node));
   }
 
@@ -165,12 +166,17 @@ class Derived<V, W> extends Object with Base<V, W> {}
         findElement.class_('Derived'), findElement.class_('Base'));
     var vRef = decoratedTypeAnnotation('V, W> {');
     var wRef = decoratedTypeAnnotation('W> {');
-    expect(decoratedSupertype.type.toString(), 'Base<V, W>');
+    _assertType(decoratedSupertype.type, 'Base<V, W>');
     expect(decoratedSupertype.node, same(never));
     expect(decoratedSupertype.typeArguments, hasLength(2));
-    expect(decoratedSupertype.typeArguments[0].type.toString(), 'V');
+    _assertType(decoratedSupertype.typeArguments[0].type, 'V');
     expect(decoratedSupertype.typeArguments[0].node, same(vRef.node));
-    expect(decoratedSupertype.typeArguments[1].type.toString(), 'W');
+    _assertType(decoratedSupertype.typeArguments[1].type, 'W');
     expect(decoratedSupertype.typeArguments[1].node, same(wRef.node));
+  }
+
+  void _assertType(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
   }
 }

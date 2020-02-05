@@ -76,7 +76,7 @@ class DecoratedType implements DecoratedTypeInfo {
         for (int i = 0; i < typeFormalBounds.length; i++) {
           var declaredBound = type.typeFormals[i].bound;
           if (declaredBound == null) {
-            assert(typeFormalBounds[i].type.toString() == 'Object');
+            assert(typeFormalBounds[i].type.isDartCoreObject);
           } else {
             assert(typeFormalBounds[i].type == declaredBound);
           }

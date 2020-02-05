@@ -115,7 +115,8 @@ class PotentiallyAddQuestionSuffix extends PotentialModification {
 
   @override
   NullabilityFixDescription get description =>
-      NullabilityFixDescription.makeTypeNullable(type.toString());
+      NullabilityFixDescription.makeTypeNullable(
+          type.getDisplayString(withNullability: false));
 
   @override
   bool get isEmpty => !node.isNullable;

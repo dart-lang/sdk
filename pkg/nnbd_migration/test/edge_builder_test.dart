@@ -2509,16 +2509,16 @@ class C<T, U> {
 ''');
     var constructor = findElement.unnamedConstructor('C');
     var constructorDecoratedType = variables.decoratedElementType(constructor);
-    expect(constructorDecoratedType.type.toString(), 'C<T, U> Function()');
+    _assertType(constructorDecoratedType.type, 'C<T, U> Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
     expect(constructorDecoratedType.returnType.node, same(never));
-    expect(constructorDecoratedType.returnType.type.toString(), 'C<T, U>');
+    _assertType(constructorDecoratedType.returnType.type, 'C<T, U>');
     var typeArguments = constructorDecoratedType.returnType.typeArguments;
     expect(typeArguments, hasLength(2));
-    expect(typeArguments[0].type.toString(), 'T');
+    _assertType(typeArguments[0].type, 'T');
     expect(typeArguments[0].node, same(never));
-    expect(typeArguments[1].type.toString(), 'U');
+    _assertType(typeArguments[1].type, 'U');
     expect(typeArguments[1].node, same(never));
   }
 
@@ -2528,16 +2528,16 @@ class C<T, U> {}
 ''');
     var constructor = findElement.unnamedConstructor('C');
     var constructorDecoratedType = variables.decoratedElementType(constructor);
-    expect(constructorDecoratedType.type.toString(), 'C<T, U> Function()');
+    _assertType(constructorDecoratedType.type, 'C<T, U> Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
     expect(constructorDecoratedType.returnType.node, same(never));
-    expect(constructorDecoratedType.returnType.type.toString(), 'C<T, U>');
+    _assertType(constructorDecoratedType.returnType.type, 'C<T, U>');
     var typeArguments = constructorDecoratedType.returnType.typeArguments;
     expect(typeArguments, hasLength(2));
-    expect(typeArguments[0].type.toString(), 'T');
+    _assertType(typeArguments[0].type, 'T');
     expect(typeArguments[0].node, same(never));
-    expect(typeArguments[1].type.toString(), 'U');
+    _assertType(typeArguments[1].type, 'U');
     expect(typeArguments[1].node, same(never));
   }
 
@@ -2549,7 +2549,7 @@ class C {
 ''');
     var constructorDecoratedType =
         variables.decoratedElementType(findElement.unnamedConstructor('C'));
-    expect(constructorDecoratedType.type.toString(), 'C Function()');
+    _assertType(constructorDecoratedType.type, 'C Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
     expect(constructorDecoratedType.returnType.node, same(never));
@@ -2562,7 +2562,7 @@ class C {}
 ''');
     var constructorDecoratedType =
         variables.decoratedElementType(findElement.unnamedConstructor('C'));
-    expect(constructorDecoratedType.type.toString(), 'C Function()');
+    _assertType(constructorDecoratedType.type, 'C Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
     expect(constructorDecoratedType.returnType.node, same(never));
@@ -6842,7 +6842,7 @@ void f(Point<int> x) {}
         findNode.typeName('Point').name.staticElement as ClassElement;
     var pointBound =
         variables.decoratedTypeParameterBound(pointClass.typeParameters[0]);
-    expect(pointBound.type.toString(), 'num');
+    _assertType(pointBound.type, 'num');
     assertEdge(decoratedTypeAnnotation('int>').node, pointBound.node,
         hard: true);
   }
@@ -6854,7 +6854,7 @@ void f(List<int> x) {}
     var listClass = typeProvider.listElement;
     var listBound =
         variables.decoratedTypeParameterBound(listClass.typeParameters[0]);
-    expect(listBound.type.toString(), 'dynamic');
+    _assertType(listBound.type, 'dynamic');
     assertEdge(decoratedTypeAnnotation('int>').node, listBound.node,
         hard: true);
   }
@@ -6952,6 +6952,11 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node,
         decoratedTypeAnnotation('int j').node,
         hard: true);
+  }
+
+  void _assertType(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
   }
 }
 

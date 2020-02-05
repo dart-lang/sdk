@@ -415,7 +415,7 @@ class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
     return aggregator.planner.makeNullable(innerPlan,
         info: AtomicEditInfo(
             NullabilityFixDescription.makeTypeNullable(
-                makeNullableType.type.toString()),
+                makeNullableType.type.getDisplayString(withNullability: false)),
             [makeNullableType.node]));
   }
 }
