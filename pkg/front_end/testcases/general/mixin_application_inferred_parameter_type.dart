@@ -13,8 +13,9 @@ class Super {
 class Class = Super with Mixin;
 
 main() {
-  // TODO(johnniwinther): The parameter is created before the super constructor
-  //  parameter type is inferred. Set up a way to propagate the inferred type
-  //  to its use sites.
+  new Class(0);
+}
+
+error() {
   new Class('');
 }

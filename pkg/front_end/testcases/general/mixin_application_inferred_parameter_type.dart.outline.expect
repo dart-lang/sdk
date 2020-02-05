@@ -12,9 +12,11 @@ class Super extends core::Object {
     ;
 }
 class Class = self::Super with self::Mixin {
-  synthetic constructor •(dynamic field) → self::Class*
+  synthetic constructor •(core::int* field) → self::Class*
     : super self::Super::•(field)
     ;
 }
 static method main() → dynamic
+  ;
+static method error() → dynamic
   ;

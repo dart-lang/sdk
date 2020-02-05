@@ -318,6 +318,7 @@ class KernelTarget extends TargetImplementation {
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
       loader.buildOutlineExpressions(loader.coreTypes);
+      _updateDelayedParameterTypes();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
       return component;
@@ -450,6 +451,17 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed synthetic constructors");
   }
 
+  List<DelayedParameterType> _delayedParameterTypes = <DelayedParameterType>[];
+
+  /// Update the type of parameters cloned from parameters with inferred
+  /// parameter types.
+  void _updateDelayedParameterTypes() {
+    for (DelayedParameterType delayedParameterType in _delayedParameterTypes) {
+      delayedParameterType.updateType();
+    }
+    _delayedParameterTypes.clear();
+  }
+
   ClassBuilder get objectClassBuilder => objectType.declaration;
 
   Class get objectClass => objectClassBuilder.cls;
@@ -565,6 +577,9 @@ class KernelTarget extends TargetImplementation {
           isFinal: formal.isFinal, isConst: formal.isConst);
       if (formal.type != null) {
         copy.type = substitute(formal.type, substitutionMap);
+      } else {
+        _delayedParameterTypes
+            .add(new DelayedParameterType(formal, copy, substitutionMap));
       }
       return copy;
     }
@@ -1080,5 +1095,23 @@ class KernelDiagnosticReporter
   void report(Message message, int charOffset, int length, Uri fileUri,
       {List<LocatedMessage> context}) {
     loader.addProblem(message, charOffset, noLength, fileUri, context: context);
+  }
+}
+
+/// Data for updating cloned parameters of parameters with inferred parameter
+/// types.
+///
+/// The type of [source] is not declared so the type of [target] needs to be
+/// updated when the type of [source] has been inferred.
+class DelayedParameterType {
+  final VariableDeclaration source;
+  final VariableDeclaration target;
+  final Map<TypeParameter, DartType> substitutionMap;
+
+  DelayedParameterType(this.source, this.target, this.substitutionMap);
+
+  void updateType() {
+    assert(source.type != null, "No type computed for $source.");
+    target.type = substitute(source.type, substitutionMap);
   }
 }
