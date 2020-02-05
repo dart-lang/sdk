@@ -2373,10 +2373,8 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitNullCheck(
       NullCheck node, DartType typeContext) {
-    // TODO(johnniwinther): Should the typeContext for the operand be
-    //  `Nullable(typeContext)`?
-    ExpressionInferenceResult operandResult =
-        inferrer.inferExpression(node.operand, typeContext, true);
+    ExpressionInferenceResult operandResult = inferrer.inferExpression(
+        node.operand, inferrer.computeNullable(typeContext), true);
     node.operand = operandResult.expression..parent = node;
     // TODO(johnniwinther): Check that the inferred type is potentially
     //  nullable.

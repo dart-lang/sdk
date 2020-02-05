@@ -1251,6 +1251,7 @@ nnbd/non_nullable_field_initialization: TextSerializationFailure
 nnbd/null_access: TextSerializationFailure
 nnbd/null_aware_chain: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
+nnbd/null_check_context: TextSerializationFailure
 nnbd/null_shorting: TextSerializationFailure
 nnbd/null_shorting_cascade: TextSerializationFailure
 nnbd/null_shorting_explicit_extension: TextSerializationFailure
