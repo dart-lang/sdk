@@ -131,7 +131,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /**
-   * Creates a project `/project`.
+   * Creates a project [projectPath].
    */
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
@@ -148,7 +148,7 @@ class AbstractAnalysisTest with ResourceProviderMixin {
   }
 
   /**
-   * Returns the offset of [search] in [testCode].
+   * Returns the offset of [search] in the file at the given [path].
    * Fails if not found.
    */
   int findFileOffset(String path, String search) {
