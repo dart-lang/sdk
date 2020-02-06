@@ -312,8 +312,9 @@ class ConstantEvaluationEngine {
     if (constant is ConstructorElement) {
       constant = (constant as ConstructorElement).declaration;
     }
-    if (constant is VariableElementImpl) {
-      Expression initializer = constant.constantInitializer;
+    if (constant is VariableElement) {
+      VariableElementImpl declaration = constant.declaration;
+      Expression initializer = declaration.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
       }

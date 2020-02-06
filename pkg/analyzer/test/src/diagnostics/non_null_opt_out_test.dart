@@ -334,40 +334,6 @@ main(A a) {
     _assertLegacyMember(element, _import_a.method('+'));
   }
 
-  test_const_field() async {
-    newFile('/test/lib/a.dart', content: r'''
-class A {
-  static const foo = 42;
-}
-''');
-    await assertNoErrorsInCode(r'''
-// @dart = 2.5
-import 'a.dart';
-
-const bar = A.foo;
-''');
-
-    var bar = findElement.topVar('bar');
-    assertType(bar.type, 'int*');
-    expect(bar.constantValue.toIntValue(), 42);
-  }
-
-  test_const_topLevelVariable() async {
-    newFile('/test/lib/a.dart', content: r'''
-const foo = 42;
-''');
-    await assertNoErrorsInCode(r'''
-// @dart = 2.5
-import 'a.dart';
-
-const bar = foo;
-''');
-
-    var bar = findElement.topVar('bar');
-    assertType(bar.type, 'int*');
-    expect(bar.constantValue.toIntValue(), 42);
-  }
-
   test_functionExpressionInvocation() async {
     newFile('/test/lib/a.dart', content: r'''
 int Function(int, int?)? foo;
