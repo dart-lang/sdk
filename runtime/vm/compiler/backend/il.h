@@ -4920,6 +4920,9 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
       return false;
     }
 
+    if (value()->definition()->Type()->IsBool()) {
+      return false;
+    }
     return value()->NeedsWriteBarrier() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
@@ -5372,6 +5375,9 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
       return false;
     }
 
+    if (value()->definition()->Type()->IsBool()) {
+      return false;
+    }
     return value()->NeedsWriteBarrier() &&
            (emit_store_barrier_ == kEmitStoreBarrier);
   }

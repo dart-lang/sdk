@@ -188,6 +188,9 @@ class CompileType : public ZoneAllocated {
   // Return true if value of this type is a non-nullable double.
   bool IsDouble() { return !is_nullable() && IsNullableDouble(); }
 
+  // Return true if value of this type is a non-nullable double.
+  bool IsBool() { return !is_nullable() && IsNullableBool(); }
+
   // Return true if value of this type is either int or null.
   bool IsNullableInt() {
     if (cid_ == kSmiCid || cid_ == kMintCid) {
@@ -218,6 +221,17 @@ class CompileType : public ZoneAllocated {
     }
     if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
       return type_ != nullptr && compiler::IsDoubleType(*type_);
+    }
+    return false;
+  }
+
+  // Return true if value of this type is either double or null.
+  bool IsNullableBool() {
+    if (cid_ == kBoolCid) {
+      return true;
+    }
+    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
+      return type_ != nullptr && compiler::IsBoolType(*type_);
     }
     return false;
   }

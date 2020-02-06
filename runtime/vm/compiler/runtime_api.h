@@ -124,6 +124,9 @@ bool IsIntType(const AbstractType& type);
 // Returns true if [type] is the "double" type.
 bool IsDoubleType(const AbstractType& type);
 
+// Returns true if [type] is the "double" type.
+bool IsBoolType(const AbstractType& type);
+
 // Returns true if [type] is the "_Smi" type.
 bool IsSmiType(const AbstractType& type);
 

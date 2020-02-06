@@ -51,6 +51,10 @@ bool IsDoubleType(const AbstractType& type) {
   return type.IsDoubleType();
 }
 
+bool IsBoolType(const AbstractType& type) {
+  return type.IsBoolType();
+}
+
 bool IsIntType(const AbstractType& type) {
   return type.IsIntType();
 }
