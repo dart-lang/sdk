@@ -2127,47 +2127,19 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
       : super.subclassing(typeParameters, currentLibrary);
 
   @override
+  CoreTypes get coreTypes => hierarchy.coreTypes;
+
+  @override
   Class get objectClass => hierarchy.objectClass;
 
   @override
   Class get functionClass => hierarchy.functionClass;
 
   @override
-  Class get futureClass => hierarchy.futureClass;
-
-  @override
   Class get futureOrClass => hierarchy.futureOrClass;
 
   @override
   Class get nullClass => hierarchy.nullClass;
-
-  @override
-  InterfaceType get nullType => hierarchy.coreTypes.nullType;
-
-  @override
-  InterfaceType get objectLegacyRawType {
-    return hierarchy.coreTypes.objectLegacyRawType;
-  }
-
-  @override
-  InterfaceType get objectNonNullableRawType {
-    return hierarchy.coreTypes.objectNonNullableRawType;
-  }
-
-  @override
-  InterfaceType objectRawType(Nullability nullability) {
-    return hierarchy.coreTypes.objectRawType(nullability);
-  }
-
-  @override
-  InterfaceType get functionLegacyRawType {
-    return hierarchy.coreTypes.functionLegacyRawType;
-  }
-
-  @override
-  InterfaceType functionRawType(Nullability nullability) {
-    return hierarchy.coreTypes.functionRawType(nullability);
-  }
 
   @override
   void addLowerBound(
