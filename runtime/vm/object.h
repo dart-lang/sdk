@@ -2479,6 +2479,8 @@ class Function : public Object {
   RawObject* RawOwner() const { return raw_ptr()->owner_; }
 
   // The NNBD mode to use when compiling type tests.
+  // TODO(alexmarkov): nnbd_mode() doesn't work for mixins.
+  // It should be either removed or fixed.
   NNBDMode nnbd_mode() const { return Class::Handle(origin()).nnbd_mode(); }
 
   RawRegExp* regexp() const;

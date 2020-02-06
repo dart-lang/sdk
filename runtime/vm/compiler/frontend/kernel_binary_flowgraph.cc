@@ -3575,9 +3575,8 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
                     ? NNBDMode::kOptedInLib
                     : NNBDMode::kLegacyLib;
   } else {
-    nnbd_mode = parsed_function()->function().nnbd_mode();
+    nnbd_mode = NNBDMode::kLegacyLib;
   }
-  ASSERT(nnbd_mode == parsed_function()->function().nnbd_mode());
 
   Fragment instructions = BuildExpression();  // read operand.
 
@@ -3634,7 +3633,6 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
       ((flags & kAsExpressionFlagForNonNullableByDefault) != 0)
           ? NNBDMode::kOptedInLib
           : NNBDMode::kLegacyLib;
-  ASSERT(nnbd_mode == parsed_function()->function().nnbd_mode());
 
   Fragment instructions = BuildExpression();  // read operand.
 
