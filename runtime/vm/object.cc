@@ -5625,7 +5625,7 @@ void TypeArguments::PrintSubvectorName(intptr_t from_index,
 bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
                                           intptr_t from_index,
                                           intptr_t len,
-                                          bool syntactically,
+                                          TypeEquality kind,
                                           TrailPtr trail) const {
   if (this->raw() == other.raw()) {
     return true;
@@ -5643,7 +5643,7 @@ bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
     type = TypeAt(i);
     other_type = other.TypeAt(i);
     // Still unfinalized vectors should not be considered equivalent.
-    if (type.IsNull() || !type.IsEquivalent(other_type, syntactically, trail)) {
+    if (type.IsNull() || !type.IsEquivalent(other_type, kind, trail)) {
       return false;
     }
   }
@@ -7721,7 +7721,8 @@ bool Function::IsContravariantParameter(NNBDMode mode,
   return other_param_type.IsSubtypeOf(mode, param_type, space);
 }
 
-bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
+bool Function::HasSameTypeParametersAndBounds(const Function& other,
+                                              TypeEquality kind) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -7747,10 +7748,7 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
       ASSERT(bound.IsFinalized());
       other_bound = other_type_param.bound();
       ASSERT(other_bound.IsFinalized());
-      // TODO(dartbug.com/40259): Treat top types as equivalent and disregard
-      // nullability in weak mode.
-      const bool syntactically = !FLAG_strong_non_nullable_type_checks;
-      if (!bound.IsEquivalent(other_bound, syntactically)) {
+      if (!bound.IsEquivalent(other_bound, kind)) {
         return false;
       }
     }
@@ -7785,7 +7783,8 @@ bool Function::IsSubtypeOf(NNBDMode mode,
     return false;
   }
   // Check the type parameters and bounds of generic functions.
-  if (!HasSameTypeParametersAndBounds(other)) {
+  if (!HasSameTypeParametersAndBounds(other,
+                                      TypeEquality::kSubtypeNullability)) {
     return false;
   }
   Thread* thread = Thread::Current();
@@ -17982,7 +17981,7 @@ void AbstractType::SetIsBeingFinalized() const {
 }
 
 bool AbstractType::IsEquivalent(const Instance& other,
-                                bool syntactically,
+                                TypeEquality kind,
                                 TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -18422,7 +18421,8 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
     const TypeParameter& type_param = TypeParameter::Cast(*this);
     if (other.IsTypeParameter()) {
       const TypeParameter& other_type_param = TypeParameter::Cast(other);
-      if (type_param.Equals(other_type_param)) {
+      if (type_param.IsEquivalent(other_type_param,
+                                  TypeEquality::kSubtypeNullability)) {
         return true;
       }
       if (type_param.IsFunctionTypeParameter() &&
@@ -18441,6 +18441,10 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
         const int other_offset = other_sig_fun.NumParentTypeParameters();
         if (type_param.index() - offset ==
             other_type_param.index() - other_offset) {
+          if (FLAG_strong_non_nullable_type_checks && type_param.IsNullable() &&
+              other_type_param.IsNonNullable()) {
+            return false;
+          }
           return true;
         }
       }
@@ -18843,7 +18847,7 @@ RawAbstractType* Type::InstantiateFrom(
 }
 
 bool Type::IsEquivalent(const Instance& other,
-                        bool syntactically,
+                        TypeEquality kind,
                         TrailPtr trail) const {
   ASSERT(!IsNull());
   if (raw() == other.raw()) {
@@ -18854,7 +18858,7 @@ bool Type::IsEquivalent(const Instance& other,
     const AbstractType& other_ref_type =
         AbstractType::Handle(TypeRef::Cast(other).type());
     ASSERT(!other_ref_type.IsTypeRef());
-    return IsEquivalent(other_ref_type, syntactically, trail);
+    return IsEquivalent(other_ref_type, kind, trail);
   }
   if (!other.IsType()) {
     return false;
@@ -18866,18 +18870,30 @@ bool Type::IsEquivalent(const Instance& other,
   if (type_class_id() != other_type.type_class_id()) {
     return false;
   }
-  Nullability this_type_nullability = nullability();
-  Nullability other_type_nullability = other_type.nullability();
-  if (syntactically) {
-    if (this_type_nullability == Nullability::kLegacy) {
-      this_type_nullability = Nullability::kNonNullable;
+  if (kind != TypeEquality::kIgnoreNullability) {
+    Nullability this_type_nullability = nullability();
+    Nullability other_type_nullability = other_type.nullability();
+    if (kind == TypeEquality::kSubtypeNullability) {
+      if (FLAG_strong_non_nullable_type_checks &&
+          this_type_nullability == Nullability::kNullable &&
+          other_type_nullability == Nullability::kNonNullable) {
+        return false;
+      }
+    } else {
+      if (kind == TypeEquality::kSyntactical) {
+        if (this_type_nullability == Nullability::kLegacy) {
+          this_type_nullability = Nullability::kNonNullable;
+        }
+        if (other_type_nullability == Nullability::kLegacy) {
+          other_type_nullability = Nullability::kNonNullable;
+        }
+      } else {
+        ASSERT(kind == TypeEquality::kCanonical);
+      }
+      if (this_type_nullability != other_type_nullability) {
+        return false;
+      }
     }
-    if (other_type_nullability == Nullability::kLegacy) {
-      other_type_nullability = Nullability::kNonNullable;
-    }
-  }
-  if (this_type_nullability != other_type_nullability) {
-    return false;
   }
   if (!IsFinalized() || !other_type.IsFinalized()) {
     return false;  // Too early to decide if equal.
@@ -18909,8 +18925,8 @@ bool Type::IsEquivalent(const Instance& other,
           return false;
         }
       } else if (!type_args.IsSubvectorEquivalent(other_type_args, from_index,
-                                                  num_type_params,
-                                                  syntactically, trail)) {
+                                                  num_type_params, kind,
+                                                  trail)) {
         return false;
       }
 #ifdef DEBUG
@@ -18926,7 +18942,7 @@ bool Type::IsEquivalent(const Instance& other,
         for (intptr_t i = 0; i < from_index; i++) {
           type_arg = type_args.TypeAt(i);
           other_type_arg = other_type_args.TypeAt(i);
-          ASSERT(type_arg.IsEquivalent(other_type_arg, syntactically, trail));
+          ASSERT(type_arg.IsEquivalent(other_type_arg, kind, trail));
         }
       }
 #endif
@@ -18947,7 +18963,7 @@ bool Type::IsEquivalent(const Instance& other,
 
   // Compare function type parameters and their bounds.
   // Check the type parameters and bounds of generic functions.
-  if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {
+  if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun, kind)) {
     return false;
   }
 
@@ -18989,7 +19005,7 @@ bool Type::IsEquivalent(const Instance& other,
   for (intptr_t i = 0; i < num_params; i++) {
     param_type = sig_fun.ParameterTypeAt(i);
     other_param_type = other_sig_fun.ParameterTypeAt(i);
-    if (!param_type.IsEquivalent(other_param_type, syntactically)) {
+    if (!param_type.IsEquivalent(other_param_type, kind)) {
       return false;
     }
   }
@@ -19354,7 +19370,7 @@ bool TypeRef::IsInstantiated(Genericity genericity,
 }
 
 bool TypeRef::IsEquivalent(const Instance& other,
-                           bool syntactically,
+                           TypeEquality kind,
                            TrailPtr trail) const {
   if (raw() == other.raw()) {
     return true;
@@ -19366,8 +19382,7 @@ bool TypeRef::IsEquivalent(const Instance& other,
     return true;
   }
   const AbstractType& ref_type = AbstractType::Handle(type());
-  return !ref_type.IsNull() &&
-         ref_type.IsEquivalent(other, syntactically, trail);
+  return !ref_type.IsNull() && ref_type.IsEquivalent(other, kind, trail);
 }
 
 RawTypeRef* TypeRef::InstantiateFrom(
@@ -19535,7 +19550,7 @@ bool TypeParameter::IsInstantiated(Genericity genericity,
 }
 
 bool TypeParameter::IsEquivalent(const Instance& other,
-                                 bool syntactically,
+                                 TypeEquality kind,
                                  TrailPtr trail) const {
   if (raw() == other.raw()) {
     return true;
@@ -19545,7 +19560,7 @@ bool TypeParameter::IsEquivalent(const Instance& other,
     const AbstractType& other_ref_type =
         AbstractType::Handle(TypeRef::Cast(other).type());
     ASSERT(!other_ref_type.IsTypeRef());
-    return IsEquivalent(other_ref_type, syntactically, trail);
+    return IsEquivalent(other_ref_type, kind, trail);
   }
   if (!other.IsTypeParameter()) {
     return false;
@@ -19558,18 +19573,32 @@ bool TypeParameter::IsEquivalent(const Instance& other,
   if (parameterized_function() != other_type_param.parameterized_function()) {
     return false;
   }
-  Nullability this_type_param_nullability = nullability();
-  Nullability other_type_param_nullability = other_type_param.nullability();
-  if (syntactically) {
-    if (this_type_param_nullability == Nullability::kLegacy) {
-      this_type_param_nullability = Nullability::kNonNullable;
+  if (kind != TypeEquality::kIgnoreNullability) {
+    Nullability this_type_param_nullability = nullability();
+    Nullability other_type_param_nullability = other_type_param.nullability();
+    if (kind == TypeEquality::kSubtypeNullability) {
+      if (FLAG_strong_non_nullable_type_checks &&
+          this_type_param_nullability == Nullability::kNullable &&
+          other_type_param_nullability == Nullability::kNonNullable) {
+        return false;
+      }
+    } else {
+      if (kind == TypeEquality::kSyntactical) {
+        if (this_type_param_nullability == Nullability::kLegacy ||
+            this_type_param_nullability == Nullability::kUndetermined) {
+          this_type_param_nullability = Nullability::kNonNullable;
+        }
+        if (other_type_param_nullability == Nullability::kLegacy ||
+            other_type_param_nullability == Nullability::kUndetermined) {
+          other_type_param_nullability = Nullability::kNonNullable;
+        }
+      } else {
+        ASSERT(kind == TypeEquality::kCanonical);
+      }
+      if (this_type_param_nullability != other_type_param_nullability) {
+        return false;
+      }
     }
-    if (other_type_param_nullability == Nullability::kLegacy) {
-      other_type_param_nullability = Nullability::kNonNullable;
-    }
-  }
-  if (this_type_param_nullability != other_type_param_nullability) {
-    return false;
   }
   if (IsFinalized() == other_type_param.IsFinalized()) {
     return (index() == other_type_param.index());

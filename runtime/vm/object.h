@@ -874,6 +874,14 @@ enum class Nullability : int8_t {
   kLegacy = 3,
 };
 
+// Equality kind between types.
+enum class TypeEquality {
+  kCanonical = 0,
+  kSyntactical = 1,
+  kSubtypeNullability = 2,
+  kIgnoreNullability = 3,
+};
+
 // The NNBDMode is passed to routines performing type reification and/or subtype
 // tests. The mode reflects the opted-in status of the library performing type
 // reification and/or subtype tests.
@@ -2514,7 +2522,8 @@ class Function : public Object {
 
   // Returns true if this function has the same number of type parameters with
   // equal bounds as the other function. Type parameter names are ignored.
-  bool HasSameTypeParametersAndBounds(const Function& other) const;
+  bool HasSameTypeParametersAndBounds(const Function& other,
+                                      TypeEquality kind) const;
 
   // Return the number of type parameters declared in parent generic functions.
   intptr_t NumParentTypeParameters() const;
@@ -7031,19 +7040,19 @@ class TypeArguments : public Instance {
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
     return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
-                                 /* syntactically = */ false);
+                                 TypeEquality::kCanonical);
   }
 
   bool IsEquivalent(const TypeArguments& other,
-                    bool syntactically,
+                    TypeEquality kind,
                     TrailPtr trail = NULL) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
-                                 syntactically, trail);
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), kind,
+                                 trail);
   }
   bool IsSubvectorEquivalent(const TypeArguments& other,
                              intptr_t from_index,
                              intptr_t len,
-                             bool syntactically,
+                             TypeEquality kind,
                              TrailPtr trail = NULL) const;
 
   // Check if the vector is instantiated (it must not be null).
@@ -7233,10 +7242,10 @@ class AbstractType : public Instance {
   }
   virtual uint32_t CanonicalizeHash() const { return Hash(); }
   virtual bool Equals(const Instance& other) const {
-    return IsEquivalent(other, /* syntactically = */ false);
+    return IsEquivalent(other, TypeEquality::kCanonical);
   }
   virtual bool IsEquivalent(const Instance& other,
-                            bool syntactically,
+                            TypeEquality kind,
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
 
@@ -7482,7 +7491,7 @@ class Type : public AbstractType {
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
-                            bool syntactically,
+                            TypeEquality kind,
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
 
@@ -7647,7 +7656,7 @@ class TypeRef : public AbstractType {
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
-                            bool syntactically,
+                            TypeEquality kind,
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
   virtual bool IsFunctionType() const {
@@ -7731,7 +7740,7 @@ class TypeParameter : public AbstractType {
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
-                            bool syntactically,
+                            TypeEquality kind,
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
   virtual RawAbstractType* InstantiateFrom(

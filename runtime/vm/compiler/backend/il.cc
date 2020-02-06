@@ -387,7 +387,9 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
     // arguments are not "dynamic" but instantiated-to-bounds.
     const Type& rare_type =
         Type::Handle(zone, Type::RawCast(type_class.RareType()));
-    if (!rare_type.IsEquivalent(type, /* syntactically = */ true)) {
+    // TODO(regis): Revisit the usage of TypeEquality::kSyntactical when
+    // implementing strong mode.
+    if (!rare_type.IsEquivalent(type, TypeEquality::kSyntactical)) {
       return false;
     }
   }

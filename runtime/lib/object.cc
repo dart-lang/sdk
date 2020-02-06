@@ -110,7 +110,7 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
     const AbstractType& right_type =
         AbstractType::Handle(right.GetType(Heap::kNew));
     return Bool::Get(
-               left_type.IsEquivalent(right_type, /* syntactically = */ true))
+               left_type.IsEquivalent(right_type, TypeEquality::kSyntactical))
         .raw();
   }
 
@@ -129,7 +129,7 @@ DEFINE_NATIVE_ENTRY(Object_haveSameRuntimeType, 0, 2) {
   const intptr_t num_type_params = cls.NumTypeParameters();
   return Bool::Get(left_type_arguments.IsSubvectorEquivalent(
                        right_type_arguments, num_type_args - num_type_params,
-                       num_type_params, /* syntactically = */ true))
+                       num_type_params, TypeEquality::kSyntactical))
       .raw();
 }
 
@@ -205,7 +205,7 @@ DEFINE_NATIVE_ENTRY(Type_equality, 0, 2) {
   if (type.raw() == other.raw()) {
     return Bool::True().raw();
   }
-  return Bool::Get(type.IsEquivalent(other, /* syntactically = */ true)).raw();
+  return Bool::Get(type.IsEquivalent(other, TypeEquality::kSyntactical)).raw();
 }
 
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0, 0) {
