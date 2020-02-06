@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/generated/resolver.dart'
@@ -43,7 +44,21 @@ class ExtensionMemberContributor extends DartCompletionContributor {
       if (classOrMixin != null) {
         var type = classOrMixin.declaredElement.thisType;
         _addExtensionMembers(containingLibrary, type);
+      } else {
+        var extension = request.target.containingNode
+            .thisOrAncestorOfType<ExtensionDeclaration>();
+        if (extension != null) {
+          var type = extension.extendedType.type;
+          if (type is InterfaceType) {
+            var types = <InterfaceType>[];
+            ClassElementImpl.collectAllSupertypes(types, type, null);
+            for (var type in types) {
+              _addTypeMembers(type);
+            }
+          }
+        }
       }
+
       return builder.suggestions.toList();
     }
 
@@ -104,6 +119,25 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     for (PropertyAccessorElement accessor in extension.accessors) {
       if (!accessor.isStatic) {
         builder.addSuggestion(accessor);
+      }
+    }
+  }
+
+  void _addTypeMembers(InterfaceType type) {
+    for (var elem in type.methods) {
+      builder.addSuggestion(elem);
+    }
+    var variables = <Element>{};
+    for (var elem in type.accessors) {
+      if (elem.isSynthetic) {
+        var variable = elem.variable;
+        // Ensure we don't have duplicate suggestions for accessors of non-final
+        // fields (which have a getter and setter).
+        if (variables.add(variable)) {
+          builder.addSuggestion(elem.variable);
+        }
+      } else {
+        builder.addSuggestion(elem);
       }
     }
   }

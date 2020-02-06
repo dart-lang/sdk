@@ -27,6 +27,79 @@ class ExtensionMemberContributorTest extends DartCompletionContributorTest {
     super.setUp();
   }
 
+  Future<void> test_extended_members_inExtension_field() async {
+    addTestSource('''
+class A {
+  int a = 0;
+}
+class B extends A {
+  int b = 0;
+}
+extension E on B {
+  void e() { 
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+    assertSuggestField('a', 'int');
+    assertSuggestField('b', 'int');
+  }
+
+  Future<void> test_extended_members_inExtension_getter_setter() async {
+    addTestSource('''
+class A {
+  int get a => 0;
+}
+class B extends A {
+  set b(int b) { }
+}
+extension E on B {
+  void e() { 
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+    assertSuggestGetter('a', 'int');
+    assertSuggestSetter('b');
+  }
+
+  Future<void> test_extended_members_inExtension_method() async {
+    addTestSource('''
+class A {
+  void a() { }
+}
+class B extends A {
+  void b() { }
+}
+extension E on B {
+  void e() { 
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('b', 'B', 'void');
+    assertSuggestMethod('a', 'A', 'void');
+  }
+
+  Future<void> test_extended_members_inExtension_method_paramType() async {
+    addTestSource('''
+class A<T> {
+  T a() => null;
+}
+
+extension E on A<int> {
+  void e() { 
+    ^
+  }
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('a', 'A', 'int');
+  }
+
   Future<void> test_extension() async {
     addTestSource('''
 extension E on int {}
