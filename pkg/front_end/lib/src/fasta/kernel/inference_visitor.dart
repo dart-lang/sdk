@@ -352,6 +352,10 @@ class InferenceVisitor
     ExpressionInferenceResult result = inferrer.inferExpression(
         node.variable.initializer, typeContext, true,
         isVoidAllowed: false);
+    if (node.isNullAware) {
+      reportNonNullableInNullAwareWarningIfNeeded(
+          result.inferredType, "?..", node.fileOffset);
+    }
 
     node.variable.initializer = result.expression..parent = node.variable;
     node.variable.type = result.inferredType;
@@ -1087,6 +1091,8 @@ class InferenceVisitor
     ExpressionInferenceResult lhsResult = inferrer.inferExpression(
         node.left, inferrer.computeNullable(typeContext), true,
         isVoidAllowed: false);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        lhsResult.inferredType, "??", node.left.fileOffset);
 
     Member equalsMember = inferrer
         .findInterfaceMember(
@@ -1280,6 +1286,10 @@ class InferenceVisitor
               <DartType>[inferredTypeArgument]),
           inferenceNeeded || typeChecksNeeded,
           isVoidAllowed: true);
+      if (element.isNullAware) {
+        reportNonNullableInNullAwareWarningIfNeeded(
+            spreadResult.inferredType, "...?", element.expression.fileOffset);
+      }
       element.expression = spreadResult.expression..parent = element;
       DartType spreadType = spreadResult.inferredType;
       inferredSpreadTypes[element.expression] = spreadType;
@@ -1689,6 +1699,10 @@ class InferenceVisitor
       ExpressionInferenceResult spreadResult = inferrer.inferExpression(
           entry.expression, spreadContext, inferenceNeeded || typeChecksNeeded,
           isVoidAllowed: true);
+      if (entry.isNullAware) {
+        reportNonNullableInNullAwareWarningIfNeeded(
+            spreadResult.inferredType, "...?", entry.expression.fileOffset);
+      }
       entry.expression = spreadResult.expression..parent = entry;
       DartType spreadType = spreadResult.inferredType;
       inferredSpreadTypes[entry.expression] = spreadType;
@@ -2376,8 +2390,8 @@ class InferenceVisitor
     ExpressionInferenceResult operandResult = inferrer.inferExpression(
         node.operand, inferrer.computeNullable(typeContext), true);
     node.operand = operandResult.expression..parent = node;
-    // TODO(johnniwinther): Check that the inferred type is potentially
-    //  nullable.
+    reportNonNullableInNullAwareWarningIfNeeded(
+        operandResult.inferredType, "!", node.operand.fileOffset);
     inferrer.flowAnalysis.nonNullAssert_end(node.operand);
     DartType nonNullableResultType =
         inferrer.computeNonNullable(operandResult.inferredType);
@@ -2388,6 +2402,8 @@ class InferenceVisitor
       NullAwareMethodInvocation node, DartType typeContext) {
     Link<NullAwareGuard> nullAwareGuards =
         inferrer.inferSyntheticVariableNullAware(node.variable);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard =
         inferrer.createNullAwareGuard(node.variable);
     ExpressionInferenceResult invocationResult = inferrer.inferExpression(
@@ -2403,6 +2419,8 @@ class InferenceVisitor
       NullAwarePropertyGet node, DartType typeContext) {
     Link<NullAwareGuard> nullAwareGuards =
         inferrer.inferSyntheticVariableNullAware(node.variable);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard =
         inferrer.createNullAwareGuard(node.variable);
     ExpressionInferenceResult readResult =
@@ -2417,6 +2435,8 @@ class InferenceVisitor
       NullAwarePropertySet node, DartType typeContext) {
     Link<NullAwareGuard> nullAwareGuards =
         inferrer.inferSyntheticVariableNullAware(node.variable);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard =
         inferrer.createNullAwareGuard(node.variable);
     ExpressionInferenceResult writeResult =
@@ -2430,6 +2450,8 @@ class InferenceVisitor
   ExpressionInferenceResult visitNullAwareExtension(
       NullAwareExtension node, DartType typeContext) {
     inferrer.inferSyntheticVariable(node.variable);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        node.variable.type, "?.", node.variable.fileOffset);
     NullAwareGuard nullAwareGuard =
         inferrer.createNullAwareGuard(node.variable);
     ExpressionInferenceResult expressionResult =
@@ -2572,6 +2594,8 @@ class InferenceVisitor
     ExpressionInferenceResult readResult = inferrer.inferExpression(
         node.read, const UnknownType(), true,
         isVoidAllowed: true);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        readResult.inferredType, "??=", node.read.fileOffset);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
 
@@ -2633,6 +2657,8 @@ class InferenceVisitor
       IfNullSet node, DartType typeContext) {
     ExpressionInferenceResult readResult =
         inferrer.inferExpression(node.read, const UnknownType(), true);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        readResult.inferredType, "??=", node.read.fileOffset);
     Link<NullAwareGuard> nullAwareGuards;
     Expression read;
     DartType readType;
@@ -2995,6 +3021,8 @@ class InferenceVisitor
 
     ExpressionInferenceResult readResult = _computeIndexGet(node.readOffset,
         readReceiver, receiverType, readTarget, readIndex, checkKind);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        readResult.inferredType, "??=", node.readOffset);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     inferrer.flowAnalysis.ifNullExpression_rightBegin(read);
@@ -3114,6 +3142,8 @@ class InferenceVisitor
         : const ObjectAccessTarget.missing();
 
     DartType readType = inferrer.getReturnType(readTarget, inferrer.thisType);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        readType, "??=", node.readOffset);
     DartType readIndexType =
         inferrer.getIndexKeyType(readTarget, inferrer.thisType);
 
@@ -3314,6 +3344,8 @@ class InferenceVisitor
         readTarget,
         readIndex,
         MethodContravarianceCheckKind.none);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        readResult.inferredType, "??=", node.readOffset);
     Expression read = readResult.expression;
     DartType readType = readResult.inferredType;
     inferrer.flowAnalysis.ifNullExpression_rightBegin(read);
@@ -4157,6 +4189,8 @@ class InferenceVisitor
     ExpressionInferenceResult receiverResult = inferrer.inferExpression(
         node.receiver, const UnknownType(), true,
         isVoidAllowed: true);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        receiverResult.inferredType, "?.", node.receiver.fileOffset);
 
     Expression receiver;
     DartType receiverType;
@@ -4666,6 +4700,8 @@ class InferenceVisitor
     ExpressionInferenceResult receiverResult = inferrer.inferExpression(
         node.receiver, const UnknownType(), true,
         isVoidAllowed: false);
+    reportNonNullableInNullAwareWarningIfNeeded(
+        receiverResult.inferredType, "?.", node.receiver.fileOffset);
 
     Link<NullAwareGuard> nullAwareGuards;
     Expression receiver;
@@ -5658,6 +5694,20 @@ class InferenceVisitor
         isVoidAllowed: true);
     return new ExpressionInferenceResult(
         result.inferredType, result.expression);
+  }
+
+  void reportNonNullableInNullAwareWarningIfNeeded(
+      DartType operandType, String operationName, int offset) {
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (operandType != InvalidType && !operandType.isPotentiallyNullable) {
+        inferrer.library.addProblem(
+            templateNonNullableInNullAware.withArguments(
+                operationName, operandType, inferrer.isNonNullableByDefault),
+            offset,
+            noLength,
+            inferrer.library.fileUri);
+      }
+    }
   }
 }
 

@@ -2048,6 +2048,42 @@ Message _withArgumentsMixinInferenceNoMatchingClass(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateNonNullableInNullAware = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Operand of null-aware operation '#name' has type '#type' which excludes null.""",
+        withArguments: _withArgumentsNonNullableInNullAware);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeNonNullableInNullAware = const Code<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        "NonNullableInNullAware", templateNonNullableInNullAware,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonNullableInNullAware(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeNonNullableInNullAware,
+      message:
+          """Operand of null-aware operation '${name}' has type '${type}' which excludes null.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateNullableExpressionCallError = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(

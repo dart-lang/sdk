@@ -1028,6 +1028,7 @@ exceptions
 exclamation
 exclude
 excluded
+excludes
 excluding
 exclusive
 executable

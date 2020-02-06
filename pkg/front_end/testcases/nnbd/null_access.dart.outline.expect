@@ -15,8 +15,18 @@ class Class extends core::Object {
     ;
   method call() → self::Class
     ;
+  get nonNullableNullableIndexClass() → self::NullableIndexClass
+    ;
+}
+class NullableIndexClass extends core::Object {
+  synthetic constructor •() → self::NullableIndexClass
+    ;
+  operator [](core::int key) → core::int?
+    ;
+  operator []=(core::int key, core::int value) → void
+    ;
 }
 static method main() → dynamic
   ;
-static method errors(self::Class? nullableClass, self::Class nonNullableClass, core::int? nullableInt, core::int nonNullableInt) → dynamic
+static method errors(self::Class? nullableClass, self::Class nonNullableClass, core::int? nullableInt, core::int nonNullableInt, self::NullableIndexClass? nullableNullableIndexClass) → dynamic
   ;
