@@ -8,12 +8,18 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
-    {bool canBubble: false, bool cancelable: false, Window view, String data}) {
+    {bool canBubble: false, bool cancelable: false, Window$NULLABLE view,
+     String$NULLABLE data}) {
     if (view == null) {
       view = window;
     }
-    TextEvent e = document._createEvent("TextEvent");
-    e._initTextEvent(type, canBubble, cancelable, view, data);
+    TextEvent e = document._createEvent("TextEvent") $#NULLSAFECAST(as TextEvent);
+$if NNBD
+    // IDL dictates that some of these must be not null. While the signature of
+    // this function should ideally change, for compatibility, this opts to
+    // instead potentially throw a null assertion error with null-safety.
+$endif
+    e._initTextEvent(type, canBubble, cancelable, view, data$NULLASSERT);
     return e;
   }
 $!MEMBERS

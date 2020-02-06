@@ -115,7 +115,11 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
-  String nonce;
+  String get nonce => JS("String", "#.nonce", this);
+
+  set nonce(String value) {
+    JS("void", "#.nonce = #", this, value);
+  }
 }
 
 /**
@@ -1176,7 +1180,7 @@ class AudioElement extends MediaElement {
    */
   AudioElement.created() : super.created();
 
-  factory AudioElement([String src]) => new AudioElement._(src);
+  factory AudioElement([String? src]) => new AudioElement._(src);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1583,7 +1587,7 @@ class Blob extends Interceptor {
 
   Blob slice([int? start, int? end, String? contentType]) native;
 
-  factory Blob(List blobParts, [String type, String endings]) {
+  factory Blob(List blobParts, [String? type, String? endings]) {
     // TODO: validate that blobParts is a JS Array and convert if not.
     // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
     // array to ArrayBuffer if it is a total view.
@@ -2222,7 +2226,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     if (context == null) {
       context = getContext('experimental-webgl', options);
     }
-    return context;
+    return context as gl.RenderingContext;
   }
 
   /**
@@ -2266,7 +2270,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    *
    * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
    */
-  String toDataUrl([String type = 'image/png', num quality]) =>
+  String toDataUrl([String type = 'image/png', num? quality]) =>
       _toDataUrl(type, quality);
 
   @JSName('toBlob')
@@ -2842,7 +2846,7 @@ class CanvasRenderingContext2D extends Interceptor
    * from the WHATWG.
    */
   void drawImageToRect(CanvasImageSource source, Rectangle destRect,
-      {Rectangle sourceRect}) {
+      {Rectangle? sourceRect}) {
     if (sourceRect == null) {
       drawImageScaled(
           source, destRect.left, destRect.top, destRect.width, destRect.height);
@@ -3032,7 +3036,7 @@ class CanvasRenderingContext2D extends Interceptor
    * [CanvasRenderingContext2D.textBaseLine] properties are also applied to the
    * drawn text.
    */
-  void fillText(String text, num x, num y, [num maxWidth]) {
+  void fillText(String text, num x, num y, [num? maxWidth]) {
     if (maxWidth != null) {
       JS('void', '#.fillText(#, #, #, #)', this, text, x, y, maxWidth);
     } else {
@@ -3210,7 +3214,7 @@ class CloseEvent extends Event {
 
 @Native("Comment")
 class Comment extends CharacterData {
-  factory Comment([String data]) {
+  factory Comment([String? data]) {
     return JS('returns:Comment;depends:none;effects:none;new:true',
         '#.createComment(#)', document, data == null ? "" : data);
   }
@@ -3230,20 +3234,24 @@ class CompositionEvent extends UIEvent {
   factory CompositionEvent(String type,
       {bool canBubble: false,
       bool cancelable: false,
-      Window view,
-      String data,
-      String locale}) {
+      Window? view,
+      String? data,
+      String? locale}) {
     if (view == null) {
       view = window;
     }
-    CompositionEvent e = document._createEvent("CompositionEvent");
+    CompositionEvent e =
+        document._createEvent("CompositionEvent") as CompositionEvent;
 
     if (Device.isFirefox) {
       // Firefox requires the locale parameter that isn't supported elsewhere.
       JS('void', '#.initCompositionEvent(#, #, #, #, #, #)', e, type, canBubble,
           cancelable, view, data, locale);
     } else {
-      e._initCompositionEvent(type, canBubble, cancelable, view, data);
+      // IDL dictates that some of these must be not null. While the signature
+      // of this function should ideally change, for compatibility, this opts to
+      // instead potentially throw a null assertion error with null-safety.
+      e._initCompositionEvent(type, canBubble, cancelable, view, data!);
     }
 
     return e;
@@ -4110,7 +4118,7 @@ class CssStyleDeclaration extends Interceptor with CssStyleDeclarationBase {
     return JS('bool', '# in #', propertyName, this);
   }
 
-  void setProperty(String propertyName, String value, [String priority]) {
+  void setProperty(String propertyName, String value, [String? priority]) {
     return _setPropertyHelper(
         _browserPropertyName(propertyName), value, priority);
   }
@@ -5289,7 +5297,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
       _elementCssStyleDeclarationSetIterable.first
           .getPropertyValue(propertyName);
 
-  void setProperty(String propertyName, String value, [String priority]) {
+  void setProperty(String propertyName, String value, [String? priority]) {
     _elementCssStyleDeclarationSetIterable
         .forEach((e) => e.setProperty(propertyName, value, priority));
   }
@@ -5760,7 +5768,7 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String priority]);
+  void setProperty(String propertyName, String value, [String? priority]);
 
   /** Gets the value of "align-content" */
   String get alignContent => getPropertyValue('align-content');
@@ -8833,8 +8841,8 @@ class CustomEvent extends Event {
   var _dartDetail;
 
   factory CustomEvent(String type,
-      {bool canBubble: true, bool cancelable: true, Object detail}) {
-    final CustomEvent e = document._createEvent('CustomEvent');
+      {bool canBubble: true, bool cancelable: true, Object? detail}) {
+    final CustomEvent e = document._createEvent('CustomEvent') as CustomEvent;
 
     e._dartDetail = detail;
 
@@ -9011,7 +9019,7 @@ class DataTransfer extends Interceptor {
 @Native("DataTransferItem")
 class DataTransferItem extends Interceptor {
   Entry getAsEntry() {
-    Entry entry = _webkitGetAsEntry();
+    Entry entry = _webkitGetAsEntry() as Entry;
 
     if (entry.isFile)
       applyExtension('FileEntry', entry);
@@ -10272,13 +10280,13 @@ class Document extends Node {
   bool get supportsRegister => supportsRegisterElement;
 
   void registerElement(String tag, Type customElementClass,
-      {String extendsTag}) {
+      {String? extendsTag}) {
     registerElement2(
         tag, {'prototype': customElementClass, 'extends': extendsTag});
   }
 
   @pragma('dart2js:tryInline') // Almost all call sites have one argument.
-  Element createElement(String tagName, [String typeExtension]) {
+  Element createElement(String tagName, [String? typeExtension]) {
     return (typeExtension == null)
         ? _createElement_2(tagName)
         : _createElement(tagName, typeExtension);
@@ -10295,19 +10303,19 @@ class Document extends Node {
       'Element', '#.createElementNS(#, #)', this, namespaceURI, qualifiedName);
 
   Element createElementNS(String namespaceURI, String qualifiedName,
-      [String typeExtension]) {
+      [String? typeExtension]) {
     return (typeExtension == null)
         ? _createElementNS_2(namespaceURI, qualifiedName)
         : _createElementNS(namespaceURI, qualifiedName, typeExtension);
   }
 
   NodeIterator _createNodeIterator(Node root,
-          [int whatToShow, NodeFilter filter]) =>
+          [int? whatToShow, NodeFilter? filter]) =>
       JS('NodeIterator', '#.createNodeIterator(#, #, #, false)', this, root,
           whatToShow, filter);
 
   TreeWalker _createTreeWalker(Node root,
-          [int whatToShow, NodeFilter filter]) =>
+          [int? whatToShow, NodeFilter? filter]) =>
       JS('TreeWalker', '#.createTreeWalker(#, #, #, false)', this, root,
           whatToShow, filter);
 
@@ -10333,13 +10341,13 @@ class DocumentFragment extends Node
   factory DocumentFragment() => document.createDocumentFragment();
 
   factory DocumentFragment.html(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     return document.body.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
   }
 
   factory DocumentFragment.svg(String svgContent,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     return new svg.SvgSvgElement().createFragment(svgContent,
         validator: validator, treeSanitizer: treeSanitizer);
   }
@@ -10392,7 +10400,7 @@ class DocumentFragment extends Node
   }
 
   void setInnerHtml(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     this.nodes.clear();
     append(document.body.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer));
@@ -10411,7 +10419,7 @@ class DocumentFragment extends Node
    * last child of this document fragment.
    */
   void appendHtml(String text,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     this.append(new DocumentFragment.html(text,
         validator: validator, treeSanitizer: treeSanitizer));
   }
@@ -10579,7 +10587,7 @@ class DomException extends Interceptor {
     // Chrome release still uses old string, remove this line when Chrome stable
     // also prints out SyntaxError.
     if (Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
-    return errorName;
+    return errorName as String;
   }
 
   // To suppress missing implicit constructor warnings.
@@ -11380,7 +11388,7 @@ class DomRectReadOnly extends Interceptor implements Rectangle {
    * Returns the intersection of this and `other`, or null if they don't
    * intersect.
    */
-  Rectangle intersection(Rectangle other) {
+  Rectangle? intersection(Rectangle other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 
@@ -11626,7 +11634,7 @@ class _ChildrenElementList extends ListBase<Element>
   final HtmlCollection _childElements;
 
   _ChildrenElementList._wrap(Element element)
-      : _childElements = element._children,
+      : _childElements = element._children as HtmlCollection,
         _element = element;
 
   bool contains(Object? element) => _childElements.contains(element);
@@ -11640,7 +11648,7 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   Element operator [](int index) {
-    return _childElements[index];
+    return _childElements[index] as Element;
   }
 
   void operator []=(int index, Element value) {
@@ -11759,13 +11767,13 @@ class _ChildrenElementList extends ListBase<Element>
   }
 
   Element get first {
-    Element result = _element._firstElementChild;
+    Element? result = _element._firstElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
 
   Element get last {
-    Element result = _element._lastElementChild;
+    Element? result = _element._lastElementChild;
     if (result == null) throw new StateError("No elements");
     return result;
   }
@@ -12171,7 +12179,7 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
 
   int get length => _nodeList.length;
 
-  E operator [](int index) => _nodeList[index];
+  E operator [](int index) => _nodeList[index] as E;
 
   void operator []=(int index, E value) {
     throw new UnsupportedError('Cannot modify list');
@@ -12189,11 +12197,11 @@ class _FrozenElementList<E extends Element> extends ListBase<E>
     throw new UnsupportedError('Cannot shuffle list');
   }
 
-  E get first => _nodeList.first;
+  E get first => _nodeList.first as E;
 
-  E get last => _nodeList.last;
+  E get last => _nodeList.last as E;
 
-  E get single => _nodeList.single;
+  E get single => _nodeList.single as E;
 
   CssClassSet get classes => new _MultiElementCssClassSet(this);
 
@@ -12601,11 +12609,11 @@ class Element extends Node
    *
    */
   factory Element.html(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     var fragment = document.body.createFragment(html,
         validator: validator, treeSanitizer: treeSanitizer);
 
-    return fragment.nodes.where((e) => e is Element).single;
+    return fragment.nodes.where((e) => e is Element).single as Element;
   }
 
   /**
@@ -12650,8 +12658,8 @@ class Element extends Node
    *
    * * [isTagSupported]
    */
-  factory Element.tag(String tag, [String typeExtention]) =>
-      _ElementFactoryProvider.createElement_tag(tag, typeExtention);
+  factory Element.tag(String tag, [String? typeExtension]) =>
+      _ElementFactoryProvider.createElement_tag(tag, typeExtension);
 
   /// Creates a new `<a>` element.
   ///
@@ -12814,67 +12822,57 @@ class Element extends Node
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.keys) {
-      attributes[key] = value[key];
+      attributes[key] = value[key]!;
     }
   }
 
   @pragma('dart2js:tryInline')
-  String getAttribute(String name) {
+  String? getAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-    assert(name != null, 'Attribute name cannot be null');
     return _getAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
-  String getAttributeNS(String namespaceURI, String name) {
+  String? getAttributeNS(String? namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
-    assert(name != null, 'Attribute name cannot be null');
     return _getAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   bool hasAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-    assert(name != null, 'Attribute name cannot be null');
     return _hasAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
-  bool hasAttributeNS(String namespaceURI, String name) {
+  bool hasAttributeNS(String? namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
     // [namespaceURI] does not need protecting, both `null` and `undefined` map to `null`.
-    assert(name != null, 'Attribute name cannot be null');
     return _hasAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   void removeAttribute(String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-    assert(name != null, 'Attribute name cannot be null');
     _removeAttribute(name);
   }
 
   @pragma('dart2js:tryInline')
-  void removeAttributeNS(String namespaceURI, String name) {
+  void removeAttributeNS(String? namespaceURI, String name) {
     // Protect [name] against string conversion to "null" or "undefined".
-    assert(name != null, 'Attribute name cannot be null');
     _removeAttributeNS(namespaceURI, name);
   }
 
   @pragma('dart2js:tryInline')
   void setAttribute(String name, String value) {
     // Protect [name] against string conversion to "null" or "undefined".
-    assert(name != null, 'Attribute name cannot be null');
-    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
     _setAttribute(name, value);
   }
 
   @pragma('dart2js:tryInline')
-  void setAttributeNS(String namespaceURI, String name, String value) {
+  void setAttributeNS(String? namespaceURI, String name, String value) {
     // Protect [name] against string conversion to "null" or "undefined".
-    assert(name != null, 'Attribute name cannot be null');
-    // TODO(sra): assert(value != null, 'Attribute value cannot be null.');
     _setAttributeNS(namespaceURI, name, value);
   }
 
@@ -12988,7 +12986,7 @@ class Element extends Node
     final data = this.dataset;
     data.clear();
     for (String key in value.keys) {
-      data[key] = value[key];
+      data[key] = value[key]!;
     }
   }
 
@@ -13052,7 +13050,7 @@ class Element extends Node
    * last child of this element.
    */
   void appendHtml(String text,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     this.insertAdjacentHtml('beforeend', text,
         validator: validator, treeSanitizer: treeSanitizer);
   }
@@ -13177,7 +13175,7 @@ class Element extends Node
    * * [Node.namespaceURI](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname)
    *   from W3C.
    */
-  String get namespaceUri => _namespaceUri;
+  String? get namespaceUri => _namespaceUri;
 
   /**
    * The string representation of this element.
@@ -13205,7 +13203,7 @@ class Element extends Node
    * * [scrollIntoViewIfNeeded](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoViewIfNeeded)
    *   from MDN.
    */
-  void scrollIntoView([ScrollAlignment alignment]) {
+  void scrollIntoView([ScrollAlignment? alignment]) {
     var hasScrollIntoViewIfNeeded = true;
     hasScrollIntoViewIfNeeded =
         JS('bool', '!!(#.scrollIntoViewIfNeeded)', this);
@@ -13300,7 +13298,7 @@ class Element extends Node
    * * [insertAdjacentElement]
    */
   void insertAdjacentHtml(String where, String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _insertAdjacentHtml(where, html);
     } else {
@@ -13339,7 +13337,7 @@ class Element extends Node
   void _insertAdjacentNode(String where, Node node) {
     switch (where.toLowerCase()) {
       case 'beforebegin':
-        this.parentNode.insertBefore(node, this);
+        this.parentNode!.insertBefore(node, this);
         break;
       case 'afterbegin':
         var first = this.nodes.length > 0 ? this.nodes[0] : null;
@@ -13349,7 +13347,7 @@ class Element extends Node
         this.append(node);
         break;
       case 'afterend':
-        this.parentNode.insertBefore(node, this.nextNode);
+        this.parentNode!.insertBefore(node, this.nextNode);
         break;
       default:
         throw new ArgumentError("Invalid position ${where}");
@@ -13377,9 +13375,9 @@ class Element extends Node
 
   /** Checks if this element or any of its parents match the CSS selectors. */
   bool matchesWithAncestors(String selectors) {
-    var elem = this;
+    var elem = this as Element?;
     do {
-      if (elem.matches(selectors)) return true;
+      if (elem!.matches(selectors)) return true;
       elem = elem.parent;
     } while (elem != null);
     return false;
@@ -13495,7 +13493,7 @@ class Element extends Node
    * This method is the Dart equivalent to jQuery's
    * [offset](http://api.jquery.com/offset/) method.
    */
-  Point get documentOffset => offsetTo(document.documentElement);
+  Point get documentOffset => offsetTo(document.documentElement!);
 
   /**
    * Provides the offset of this element's [borderEdge] relative to the
@@ -13529,10 +13527,10 @@ class Element extends Node
     return new Point(p.x + current.offsetLeft, p.y + current.offsetTop);
   }
 
-  static HtmlDocument _parseDocument;
-  static Range _parseRange;
-  static NodeValidatorBuilder _defaultValidator;
-  static _ValidatingTreeSanitizer _defaultSanitizer;
+  static HtmlDocument? _parseDocument;
+  static Range? _parseRange;
+  static NodeValidatorBuilder? _defaultValidator;
+  static _ValidatingTreeSanitizer? _defaultSanitizer;
 
   /**
    * Create a DocumentFragment from the HTML fragment and ensure that it follows
@@ -13555,7 +13553,7 @@ class Element extends Node
    * * [NodeTreeSanitizer]
    */
   DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
         if (_defaultValidator == null) {
@@ -13564,9 +13562,9 @@ class Element extends Node
         validator = _defaultValidator;
       }
       if (_defaultSanitizer == null) {
-        _defaultSanitizer = new _ValidatingTreeSanitizer(validator);
+        _defaultSanitizer = new _ValidatingTreeSanitizer(validator!);
       } else {
-        _defaultSanitizer.validator = validator;
+        _defaultSanitizer!.validator = validator!;
       }
       treeSanitizer = _defaultSanitizer;
     } else if (validator != null) {
@@ -13576,45 +13574,46 @@ class Element extends Node
 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
-      _parseRange = _parseDocument.createRange();
+      _parseRange = _parseDocument!.createRange();
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      BaseElement base = _parseDocument.createElement('base') as BaseElement;
+      BaseElement base = _parseDocument!.createElement('base') as BaseElement;
       base.href = document.baseUri;
-      _parseDocument.head.append(base);
+      _parseDocument!.head!.append(base);
     }
 
     // TODO(terry): Fixes Chromium 50 change no body after createHtmlDocument()
-    if (_parseDocument.body == null) {
-      _parseDocument.body = _parseDocument.createElement("body");
+    if (_parseDocument!.body == null) {
+      _parseDocument!.body =
+          _parseDocument!.createElement("body") as BodyElement;
     }
 
     var contextElement;
     if (this is BodyElement) {
-      contextElement = _parseDocument.body;
+      contextElement = _parseDocument!.body;
     } else {
-      contextElement = _parseDocument.createElement(tagName);
-      _parseDocument.body.append(contextElement);
+      contextElement = _parseDocument!.createElement(tagName);
+      _parseDocument!.body.append(contextElement);
     }
     var fragment;
     if (Range.supportsCreateContextualFragment &&
         _canBeUsedToCreateContextualFragment) {
-      _parseRange.selectNodeContents(contextElement);
-      fragment = _parseRange.createContextualFragment(html);
+      _parseRange!.selectNodeContents(contextElement);
+      fragment = _parseRange!.createContextualFragment(html);
     } else {
       contextElement._innerHtml = html;
 
-      fragment = _parseDocument.createDocumentFragment();
+      fragment = _parseDocument!.createDocumentFragment();
       while (contextElement.firstChild != null) {
         fragment.append(contextElement.firstChild);
       }
     }
-    if (contextElement != _parseDocument.body) {
+    if (contextElement != _parseDocument!.body) {
       contextElement.remove();
     }
 
-    treeSanitizer.sanitizeTree(fragment);
+    treeSanitizer!.sanitizeTree(fragment);
     // Copy the fragment over to the main document (fix for 14184)
     document.adoptNode(fragment);
 
@@ -13690,7 +13689,7 @@ class Element extends Node
    * * [NodeTreeSanitizer]
    */
   void setInnerHtml(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
       _innerHtml = html;
@@ -13703,7 +13702,7 @@ class Element extends Node
   String get innerHtml => _innerHtml;
 
   @JSName('innerText')
-  String innerText;
+  String? innerText;
 
   /**
    * This is an ease-of-use accessor for event streams which should only be
@@ -13774,7 +13773,7 @@ class Element extends Node
     return result;
   }
 
-  final Element offsetParent;
+  Element get offsetParent => JS("Element", "#.offsetParent", this);
 
   int get offsetHeight => JS<num>('num', '#.offsetHeight', this).round();
 
@@ -15151,7 +15150,7 @@ class Element extends Node
 class _ElementFactoryProvider {
   // Optimization to improve performance until the dart2js compiler inlines this
   // method.
-  static dynamic createElement_tag(String tag, String typeExtension) {
+  static dynamic createElement_tag(String tag, String? typeExtension) {
     // Firefox may return a JS function for some types (Embed, Object).
     if (typeExtension != null) {
       return JS('Element|=Object', 'document.createElement(#, #)', tag,
@@ -15438,7 +15437,7 @@ class Event extends Interceptor {
   }
 
   /** The CSS selector involved with event delegation. */
-  String _selector;
+  String? _selector;
 
   /**
    * A pointer to the element whose CSS selector matched within which an event
@@ -15450,18 +15449,18 @@ class Event extends Interceptor {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    Element currentTarget = this.currentTarget;
-    Element target = this.target;
+    Element? currentTarget = this.currentTarget as Element?;
+    Element? target = this.target as Element?;
     var matchedTarget;
     do {
-      if (target.matches(_selector)) return target;
+      if (target!.matches(_selector!)) return target;
       target = target.parent;
-    } while (target != null && target != currentTarget.parent);
+    } while (target != null && target != currentTarget!.parent);
     throw new StateError('No selector matched for populating matchedTarget.');
   }
 
   List<EventTarget> get path =>
-      JS('bool', '!!#.composedPath', this) ? composedPath() : [];
+      JS('bool', '!!#.composedPath', this) == null ? composedPath() : [];
 
   factory Event._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
@@ -15726,8 +15725,8 @@ class EventTarget extends Interceptor {
    */
   Events get on => new Events(this);
 
-  void addEventListener(String type, EventListener listener,
-      [bool useCapture]) {
+  void addEventListener(String type, EventListener? listener,
+      [bool? useCapture]) {
     // TODO(leafp): This check is avoid a bug in our dispatch code when
     // listener is null.  The browser treats this call as a no-op in this
     // case, so it's fine to short-circuit it, but we should not have to.
@@ -15736,8 +15735,8 @@ class EventTarget extends Interceptor {
     }
   }
 
-  void removeEventListener(String type, EventListener listener,
-      [bool useCapture]) {
+  void removeEventListener(String type, EventListener? listener,
+      [bool? useCapture]) {
     // TODO(leafp): This check is avoid a bug in our dispatch code when
     // listener is null.  The browser treats this call as a no-op in this
     // case, so it's fine to short-circuit it, but we should not have to.
@@ -16119,7 +16118,7 @@ class FileList extends Interceptor
 
 @Native("FileReader")
 class FileReader extends EventTarget {
-  Object get result {
+  Object? get result {
     var res = JS('Null|String|NativeByteBuffer', '#.result', this);
     if (res is ByteBuffer) {
       return new Uint8List.view(res);
@@ -16884,25 +16883,22 @@ class Geolocation extends Interceptor {
       options['maximumAge'] = maximumAge.inMilliseconds;
     }
 
-    int watchId;
-    // TODO(jacobr): it seems like a bug that we have to specifiy the static
-    // type here for controller.stream to have the right type.
-    // dartbug.com/26278
-    StreamController<Geoposition> controller;
-    controller = new StreamController<Geoposition>(
-        sync: true,
-        onListen: () {
-          assert(watchId == null);
-          watchId = _watchPosition((position) {
-            controller.add(_ensurePosition(position));
-          }, (error) {
-            controller.addError(error);
-          }, options);
-        },
-        onCancel: () {
-          assert(watchId != null);
-          _clearWatch(watchId);
-        });
+    int? watchId;
+    StreamController<Geoposition> controller =
+        new StreamController<Geoposition>(
+            sync: true,
+            onCancel: () {
+              assert(watchId != null);
+              _clearWatch(watchId!);
+            });
+    controller.onListen = () {
+      assert(watchId == null);
+      watchId = _watchPosition((position) {
+        controller.add(_ensurePosition(position));
+      }, (error) {
+        controller.addError(error);
+      }, options);
+    };
 
     return controller.stream;
   }
@@ -17012,11 +17008,11 @@ class Geoposition extends Interceptor {
 // convince the scripts to make our instance methods abstract, and the bodies that
 // get generated require `this` to be an EventTarget.
 abstract class GlobalEventHandlers implements EventTarget {
-  void addEventListener(String type, dynamic listener(Event event),
-      [bool useCapture]);
+  void addEventListener(String type, dynamic listener(Event event)?,
+      [bool? useCapture]);
   bool dispatchEvent(Event event);
-  void removeEventListener(String type, dynamic listener(Event event),
-      [bool useCapture]);
+  void removeEventListener(String type, dynamic listener(Event event)?,
+      [bool? useCapture]);
   Events get on;
 
   // To suppress missing implicit constructor warnings.
@@ -17386,8 +17382,8 @@ class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
       {bool canBubble: true,
       bool cancelable: true,
-      String oldUrl,
-      String newUrl}) {
+      String? oldUrl,
+      String? newUrl}) {
     var options = {
       'canBubble': canBubble,
       'cancelable': cancelable,
@@ -17674,20 +17670,20 @@ class HtmlDocument extends Document {
     return _caretRangeFromPoint(x, y);
   }
 
-  Element elementFromPoint(int x, int y) {
+  Element? elementFromPoint(int x, int y) {
     return _elementFromPoint(x, y);
   }
 
-  HeadElement get head => _head;
+  HeadElement? get head => _head;
 
   String get lastModified => _lastModified;
 
-  String get preferredStylesheetSet => _preferredStylesheetSet;
+  String? get preferredStylesheetSet => _preferredStylesheetSet;
 
   String get referrer => _referrer;
 
-  String get selectedStylesheetSet => _selectedStylesheetSet;
-  set selectedStylesheetSet(String value) {
+  String? get selectedStylesheetSet => _selectedStylesheetSet;
+  set selectedStylesheetSet(String? value) {
     _selectedStylesheetSet = value;
   }
 
@@ -17758,13 +17754,13 @@ class HtmlDocument extends Document {
    * `<input is="x-bar"></input>`
    *
    */
-  Function registerElement2(String tag, [Map options]) {
+  Function registerElement2(String tag, [Map? options]) {
     return _registerCustomElement(JS('', 'window'), this, tag, options);
   }
 
   /** *Deprecated*: use [registerElement] instead. */
   @deprecated
-  void register(String tag, Type customElementClass, {String extendsTag}) {
+  void register(String tag, Type customElementClass, {String? extendsTag}) {
     return registerElement(tag, customElementClass, extendsTag: extendsTag);
   }
 
@@ -17808,7 +17804,7 @@ class HtmlDocument extends Document {
   ///
   /// If the type is not a direct subclass of HtmlElement then the extendsTag
   /// parameter must be provided.
-  ElementUpgrader createElementUpgrader(Type type, {String extendsTag}) {
+  ElementUpgrader createElementUpgrader(Type type, {String? extendsTag}) {
     return new _JSElementUpgrader(this, type, extendsTag);
   }
 }
@@ -18042,10 +18038,10 @@ class HttpRequest extends HttpRequestEventTarget {
    * * [request]
    */
   static Future<HttpRequest> postFormData(String url, Map<String, String> data,
-      {bool withCredentials,
-      String responseType,
-      Map<String, String> requestHeaders,
-      void onProgress(ProgressEvent e)}) {
+      {bool? withCredentials,
+      String? responseType,
+      Map<String, String>? requestHeaders,
+      void onProgress(ProgressEvent e)?}) {
     var parts = [];
     data.forEach((key, value) {
       parts.add('${Uri.encodeQueryComponent(key)}='
@@ -18123,13 +18119,13 @@ class HttpRequest extends HttpRequestEventTarget {
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   static Future<HttpRequest> request(String url,
-      {String method,
-      bool withCredentials,
-      String responseType,
-      String mimeType,
-      Map<String, String> requestHeaders,
+      {String? method,
+      bool? withCredentials,
+      String? responseType,
+      String? mimeType,
+      Map<String, String>? requestHeaders,
       sendData,
-      void onProgress(ProgressEvent e)}) {
+      void onProgress(ProgressEvent e)?}) {
     var completer = new Completer<HttpRequest>();
 
     var xhr = new HttpRequest();
@@ -18233,7 +18229,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * cross-origin support is not required then [request] should be used instead.
    */
   static Future<String> requestCrossOrigin(String url,
-      {String method, String sendData}) {
+      {String? method, String? sendData}) {
     if (supportsCrossOrigin) {
       return request(url, method: method, sendData: sendData).then((xhr) {
         return xhr.responseText;
@@ -18251,7 +18247,7 @@ class HttpRequest extends HttpRequestEventTarget {
         xhr,
         convertDartClosureToJS((e) {
           var response = JS('String', '#.responseText', xhr);
-          completer.complete(response);
+          completer.complete(response as FutureOr<String>?);
         }, 1));
     JS(
         '',
@@ -18329,7 +18325,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * finer-grained control is needed.
    */
   void open(String method, String url,
-      {bool async, String user, String password}) native;
+      {bool? async, String? user, String? password}) native;
 
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() {
@@ -19151,7 +19147,7 @@ class InputElement extends HtmlElement
         ResetButtonInputElement,
         ButtonInputElement {
   factory InputElement({String? type}) {
-    InputElement e = document.createElement("input");
+    InputElement e = document.createElement("input") as InputElement;
     if (type != null) {
       try {
         // IE throws an exception for unknown types.
@@ -19469,23 +19465,31 @@ class InputElement extends HtmlElement
  * Exposes the functionality common between all InputElement types.
  */
 abstract class InputElementBase implements Element {
-  bool autofocus;
+  // These fields here and below are overridden by generated code and therefore
+  // can't be nullable. Opted to translate these fields to getters/setters.
+  bool get autofocus;
+  set autofocus(bool value);
 
-  bool disabled;
+  bool get disabled;
+  set disabled(bool value);
 
-  bool incremental;
+  bool get incremental;
+  set incremental(bool value);
 
-  bool indeterminate;
+  bool get indeterminate;
+  set indeterminate(bool value);
+
+  String get name;
+  set name(String value);
+
+  String get value;
+  set value(String value);
 
   List<Node> get labels;
-
-  String name;
 
   String get validationMessage;
 
   ValidityState get validity;
-
-  String value;
 
   bool get willValidate;
 
@@ -19505,29 +19509,36 @@ abstract class HiddenInputElement implements InputElementBase {
  * Base interface for all inputs which involve text editing.
  */
 abstract class TextInputElementBase implements InputElementBase {
-  String autocomplete;
+  String get autocomplete;
+  set autocomplete(String value);
 
-  int maxLength;
+  int get maxLength;
+  set maxLength(int value);
 
-  String pattern;
+  String get pattern;
+  set pattern(String value);
 
-  String placeholder;
+  String get placeholder;
+  set placeholder(String value);
 
-  bool readOnly;
+  bool get readOnly;
+  set readOnly(bool value);
 
-  bool required;
+  bool get required;
+  set required(bool value);
 
-  int size;
+  int get size;
+  set size(int value);
 
   void select();
 
-  String selectionDirection;
+  String? selectionDirection;
 
-  int selectionEnd;
+  int? selectionEnd;
 
-  int selectionStart;
+  int? selectionStart;
 
-  void setSelectionRange(int start, int end, [String direction]);
+  void setSelectionRange(int start, int end, [String? direction]);
 }
 
 /**
@@ -19658,17 +19669,21 @@ abstract class PasswordInputElement implements TextInputElementBase {
 abstract class RangeInputElementBase implements InputElementBase {
   Element? get list;
 
-  String max;
+  String get max;
+  set max(String value);
 
-  String min;
+  String get min;
+  set min(String value);
 
-  String step;
+  String get step;
+  set step(String value);
 
-  num valueAsNumber;
+  num get valueAsNumber;
+  set valueAsNumber(num value);
 
-  void stepDown([int n]);
+  void stepDown([int? n]);
 
-  void stepUp([int n]);
+  void stepUp([int? n]);
 }
 
 /**
@@ -19680,7 +19695,7 @@ abstract class RangeInputElementBase implements InputElementBase {
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
-  DateTime valueAsDate;
+  DateTime? valueAsDate;
 
   bool readOnly;
 
@@ -19701,7 +19716,7 @@ abstract class DateInputElement implements RangeInputElementBase {
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
-  DateTime valueAsDate;
+  DateTime? valueAsDate;
 
   bool readOnly;
 
@@ -19722,7 +19737,7 @@ abstract class MonthInputElement implements RangeInputElementBase {
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
-  DateTime valueAsDate;
+  DateTime? valueAsDate;
 
   bool readOnly;
 
@@ -19743,7 +19758,7 @@ abstract class WeekInputElement implements RangeInputElementBase {
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
-  DateTime valueAsDate;
+  DateTime? valueAsDate;
 
   bool readOnly;
 
@@ -19859,7 +19874,7 @@ abstract class FileUploadInputElement implements InputElementBase {
 
   bool required;
 
-  List<File> files;
+  List<File>? files;
 }
 
 /**
@@ -20071,11 +20086,11 @@ class KeyboardEvent extends UIEvent {
    * Event [KeyEvent].
    */
   factory KeyboardEvent(String type,
-      {Window view,
+      {Window? view,
       bool canBubble: true,
       bool cancelable: true,
-      int location,
-      int keyLocation, // Legacy alias for location
+      int? location,
+      int? keyLocation, // Legacy alias for location
       bool ctrlKey: false,
       bool altKey: false,
       bool shiftKey: false,
@@ -20084,7 +20099,7 @@ class KeyboardEvent extends UIEvent {
       view = window;
     }
     location ??= keyLocation ?? 1;
-    KeyboardEvent e = document._createEvent("KeyboardEvent");
+    KeyboardEvent e = document._createEvent("KeyboardEvent") as KeyboardEvent;
     e._initKeyboardEvent(type, canBubble, cancelable, view, "", location,
         ctrlKey, altKey, shiftKey, metaKey);
     return e;
@@ -20094,9 +20109,9 @@ class KeyboardEvent extends UIEvent {
       String type,
       bool canBubble,
       bool cancelable,
-      Window view,
+      Window? view,
       String keyIdentifier,
-      int location,
+      int? location,
       bool ctrlKey,
       bool altKey,
       bool shiftKey,
@@ -21664,10 +21679,10 @@ class MessageEvent extends Event {
   factory MessageEvent(String type,
       {bool canBubble: false,
       bool cancelable: false,
-      Object data,
-      String origin,
-      String lastEventId,
-      Window source,
+      Object? data,
+      String? origin,
+      String? lastEventId,
+      Window? source,
       List<MessagePort> messagePorts: const []}) {
     if (source == null) {
       source = window;
@@ -21687,9 +21702,12 @@ class MessageEvent extends Event {
           source,
           messagePorts);
     }
-    MessageEvent event = document._createEvent("MessageEvent");
-    event._initMessageEvent(type, canBubble, cancelable, data, origin,
-        lastEventId, source, messagePorts);
+    MessageEvent event = document._createEvent("MessageEvent") as MessageEvent;
+    // IDL dictates that all of these must be not null. While the signature of
+    // this function should ideally change, for compatibility, this opts to
+    // instead potentially throw a null assertion error with null-safety.
+    event._initMessageEvent(type, canBubble, cancelable, data!, origin!,
+        lastEventId!, source, messagePorts);
     return event;
   }
 
@@ -21760,8 +21778,8 @@ class MessageEvent extends Event {
 @Unstable()
 @Native("MessagePort")
 class MessagePort extends EventTarget {
-  void addEventListener(String type, EventListener listener,
-      [bool useCapture]) {
+  void addEventListener(String type, EventListener? listener,
+      [bool? useCapture]) {
     // Messages posted to ports are initially paused, allowing listeners to be
     // setup, start() needs to be explicitly invoked to begin handling messages.
     if (type == 'message') {
@@ -22341,7 +22359,7 @@ typedef void MojoWatchCallback(int result);
 @Native("MouseEvent,DragEvent")
 class MouseEvent extends UIEvent {
   factory MouseEvent(String type,
-      {Window view,
+      {Window? view,
       int detail: 0,
       int screenX: 0,
       int screenY: 0,
@@ -22354,11 +22372,11 @@ class MouseEvent extends UIEvent {
       bool altKey: false,
       bool shiftKey: false,
       bool metaKey: false,
-      EventTarget relatedTarget}) {
+      EventTarget? relatedTarget}) {
     if (view == null) {
       view = window;
     }
-    MouseEvent event = document._createEvent('MouseEvent');
+    MouseEvent event = document._createEvent('MouseEvent') as MouseEvent;
     event._initMouseEvent(
         type,
         canBubble,
@@ -22534,13 +22552,13 @@ class MouseEvent extends UIEvent {
     if (JS('bool', '!!#.offsetX', this)) {
       var x = JS('int', '#.offsetX', this);
       var y = JS('int', '#.offsetY', this);
-      return new Point(x, y);
+      return new Point(x as num, y as num);
     } else {
       // Firefox does not support offsetX.
       if (!(this.target is Element)) {
         throw new UnsupportedError('offsetX is only supported on elements');
       }
-      Element target = this.target;
+      Element target = this.target as Element;
       var point = (this.client - target.getBoundingClientRect().topLeft);
       return new Point(point.x.toInt(), point.y.toInt());
     }
@@ -22649,12 +22667,12 @@ class MutationObserver extends Interceptor {
    * * If characterDataOldValue is true then characterData must be true.
    */
   void observe(Node target,
-      {bool childList,
-      bool attributes,
-      bool characterData,
-      bool subtree,
-      bool attributeOldValue,
-      bool characterDataOldValue,
+      {bool? childList,
+      bool? attributes,
+      bool? characterData,
+      bool? subtree,
+      bool? attributeOldValue,
+      bool? characterDataOldValue,
       List<String>? attributeFilter}) {
     // Parse options into map of known type.
     var parsedOptions = _createDict();
@@ -23205,7 +23223,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
       if (!identical(otherList._this, _this)) {
         // Optimized route for copying between nodes.
         for (var i = 0, len = otherList.length; i < len; ++i) {
-          _this.append(otherList._this.firstChild);
+          _this.append(otherList._this.firstChild!);
         }
       }
       return;
@@ -23267,9 +23285,9 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
     // time.
-    Node child = _this.firstChild;
+    Node? child = _this.firstChild;
     while (child != null) {
-      Node nextChild = child.nextNode;
+      Node? nextChild = child.nextNode;
       if (test(child) == removeMatching) {
         _this._removeChild(child);
       }
@@ -23364,8 +23382,8 @@ class Node extends EventTarget {
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
     if (this.parentNode != null) {
-      final Node parent = this.parentNode;
-      parentNode._removeChild(this);
+      final Node parent = this.parentNode!;
+      parent._removeChild(this);
     }
   }
 
@@ -23374,10 +23392,9 @@ class Node extends EventTarget {
    */
   Node replaceWith(Node otherNode) {
     try {
-      final Node parent = this.parentNode;
+      final Node parent = this.parentNode!;
       parent._replaceChild(otherNode, this);
     } catch (e) {}
-    ;
     return this;
   }
 
@@ -23397,7 +23414,7 @@ class Node extends EventTarget {
 
       // Optimized route for copying between nodes.
       for (var i = 0, len = otherList.length; i < len; ++i) {
-        this.insertBefore(otherList._this.firstChild, refChild);
+        this.insertBefore(otherList._this.firstChild!, refChild);
       }
     } else {
       for (var node in newNodes) {
@@ -23408,7 +23425,7 @@ class Node extends EventTarget {
 
   void _clearChildren() {
     while (firstChild != null) {
-      _removeChild(firstChild);
+      _removeChild(firstChild!);
     }
   }
 
@@ -23416,7 +23433,7 @@ class Node extends EventTarget {
    * Print out a String representation of this Node.
    */
   String toString() {
-    String value = nodeValue; // Fetch DOM Node property once.
+    String? value = nodeValue; // Fetch DOM Node property once.
     return value == null ? super.toString() : value;
   }
 
@@ -23430,7 +23447,7 @@ class Node extends EventTarget {
    */
   @Returns('NodeList')
   @Creates('NodeList')
-  final List<Node> childNodes;
+  List<Node> get childNodes => JS("NodeList", "#.childNodes", this);
 
   // To suppress missing implicit constructor warnings.
   factory Node._() {
@@ -23860,11 +23877,7 @@ class NoncedElement extends Interceptor {
 @Native("Notification")
 class Notification extends EventTarget {
   factory Notification(String title,
-      {String dir: null,
-      String body: null,
-      String lang: null,
-      String tag: null,
-      String icon: null}) {
+      {String? dir, String? body, String? lang, String? tag, String? icon}) {
     var parsedOptions = {};
     if (dir != null) parsedOptions['dir'] = dir;
     if (body != null) parsedOptions['body'] = body;
@@ -25262,7 +25275,7 @@ class PaymentManager extends Interceptor {
 
 @Native("PaymentRequest")
 class PaymentRequest extends EventTarget {
-  factory PaymentRequest(List<Map> methodData, Map details, [Map options]) {
+  factory PaymentRequest(List<Map> methodData, Map details, [Map? options]) {
     var methodData_1 = [];
     for (var i in methodData) {
       methodData_1.add(convertDartToNative_Dictionary(i));
@@ -26567,7 +26580,7 @@ class Range extends Interceptor {
   factory Range() => document.createRange();
 
   factory Range.fromPoint(Point point) =>
-      document._caretRangeFromPoint(point.x, point.y);
+      document._caretRangeFromPoint(point.x.toInt(), point.y.toInt());
   // To suppress missing implicit constructor warnings.
   factory Range._() {
     throw new UnsupportedError("Not supported");
@@ -27104,7 +27117,7 @@ class RtcLegacyStatsReport extends Interceptor {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Native("RTCPeerConnection,webkitRTCPeerConnection,mozRTCPeerConnection")
 class RtcPeerConnection extends EventTarget {
-  factory RtcPeerConnection(Map rtcIceServers, [Map mediaConstraints]) {
+  factory RtcPeerConnection(Map rtcIceServers, [Map? mediaConstraints]) {
     var constructorName =
         JS('RtcPeerConnection', 'window[#]', 'RTCPeerConnection');
     if (mediaConstraints != null) {
@@ -27146,7 +27159,7 @@ class RtcPeerConnection extends EventTarget {
   * Temporarily exposes _getStats and old getStats as getLegacyStats until Chrome fully supports
   * new getStats API.
   */
-  Future<RtcStatsResponse> getLegacyStats([MediaStreamTrack selector]) {
+  Future<RtcStatsResponse> getLegacyStats([MediaStreamTrack? selector]) {
     var completer = new Completer<RtcStatsResponse>();
     _getStats((value) {
       completer.complete(value);
@@ -27156,7 +27169,7 @@ class RtcPeerConnection extends EventTarget {
 
   @JSName('getStats')
   Future _getStats(
-      [RtcStatsCallback successCallback, MediaStreamTrack selector]) native;
+      [RtcStatsCallback? successCallback, MediaStreamTrack? selector]) native;
 
   static Future generateCertificate(/*AlgorithmIdentifier*/ keygenAlgorithm) =>
       JS('dynamic', 'generateCertificate(#)', keygenAlgorithm);
@@ -29373,7 +29386,7 @@ class Storage extends Interceptor with MapMixin<String, String> {
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(Object? value) => values.any((e) => e == value);
 
-  bool containsKey(Object? key) => _getItem(key) != null;
+  bool containsKey(Object? key) => _getItem(key as String) != null;
 
   String? operator [](Object? key) => _getItem(key as String);
 
@@ -29383,12 +29396,12 @@ class Storage extends Interceptor with MapMixin<String, String> {
 
   String putIfAbsent(String key, String ifAbsent()) {
     if (!containsKey(key)) this[key] = ifAbsent();
-    return this[key];
+    return this[key] as String;
   }
 
   String? remove(Object? key) {
     final value = this[key];
-    _removeItem(key);
+    _removeItem(key as String);
     return value;
   }
 
@@ -29399,7 +29412,7 @@ class Storage extends Interceptor with MapMixin<String, String> {
       final key = _key(i);
       if (key == null) return;
 
-      f(key, this[key]);
+      f(key, this[key]!);
     }
   }
 
@@ -29462,14 +29475,17 @@ class StorageEvent extends Event {
   factory StorageEvent(String type,
       {bool canBubble: false,
       bool cancelable: false,
-      String key,
-      String oldValue,
-      String newValue,
-      String url,
-      Storage storageArea}) {
-    StorageEvent e = document._createEvent("StorageEvent");
-    e._initStorageEvent(
-        type, canBubble, cancelable, key, oldValue, newValue, url, storageArea);
+      String? key,
+      String? oldValue,
+      String? newValue,
+      String? url,
+      Storage? storageArea}) {
+    StorageEvent e = document._createEvent("StorageEvent") as StorageEvent;
+    // IDL dictates that some of these must be not null. While the signature of
+    // this function should ideally change, for compatibility, this opts to
+    // instead potentially throw a null assertion error with null-safety.
+    e._initStorageEvent(type, canBubble, cancelable, key!, oldValue, newValue,
+        url!, storageArea!);
     return e;
   }
 
@@ -29825,14 +29841,14 @@ class TableElement extends HtmlElement {
     }
     var tbody = new Element.tag('tbody');
     this.children.add(tbody);
-    return tbody;
+    return tbody as TableSectionElement;
   }
 
   @JSName('createTBody')
   TableSectionElement _nativeCreateTBody() native;
 
   DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
           validator: validator, treeSanitizer: treeSanitizer);
@@ -29913,10 +29929,11 @@ class TableRowElement extends HtmlElement {
     return insertCell(-1);
   }
 
-  TableCellElement insertCell(int index) => _insertCell(index);
+  TableCellElement insertCell(int index) =>
+      _insertCell(index) as TableCellElement;
 
   DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
           validator: validator, treeSanitizer: treeSanitizer);
@@ -29976,10 +29993,10 @@ class TableSectionElement extends HtmlElement {
     return insertRow(-1);
   }
 
-  TableRowElement insertRow(int index) => _insertRow(index);
+  TableRowElement insertRow(int index) => _insertRow(index) as TableRowElement;
 
   DocumentFragment createFragment(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (Range.supportsCreateContextualFragment) {
       return super.createFragment(html,
           validator: validator, treeSanitizer: treeSanitizer);
@@ -30074,7 +30091,7 @@ class TemplateElement extends HtmlElement {
    * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
   void setInnerHtml(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     text = null;
     content.nodes.clear();
     var fragment = createFragment(html,
@@ -30303,13 +30320,16 @@ class TextEvent extends UIEvent {
   factory TextEvent(String type,
       {bool canBubble: false,
       bool cancelable: false,
-      Window view,
-      String data}) {
+      Window? view,
+      String? data}) {
     if (view == null) {
       view = window;
     }
-    TextEvent e = document._createEvent("TextEvent");
-    e._initTextEvent(type, canBubble, cancelable, view, data);
+    TextEvent e = document._createEvent("TextEvent") as TextEvent;
+    // IDL dictates that some of these must be not null. While the signature of
+    // this function should ideally change, for compatibility, this opts to
+    // instead potentially throw a null assertion error with null-safety.
+    e._initTextEvent(type, canBubble, cancelable, view, data!);
     return e;
   }
   // To suppress missing implicit constructor warnings.
@@ -30812,17 +30832,10 @@ class TouchEvent extends UIEvent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 @Native("TouchList")
 class TouchList extends Interceptor
     with ListMixin<Touch>, ImmutableListMixin<Touch>
     implements JavaScriptIndexingBehavior<Touch>, List<Touch> {
-  /// NB: This constructor likely does not work as you might expect it to! This
-  /// constructor will simply fail (returning null) if you are not on a device
-  /// with touch enabled. See dartbug.com/8314.
-  // TODO(5760): createTouchList now uses varargs.
-  factory TouchList() => null; //document._createTouchList();
   // To suppress missing implicit constructor warnings.
   factory TouchList._() {
     throw new UnsupportedError("Not supported");
@@ -31172,14 +31185,14 @@ class UIEvent extends Event {
   // Contrary to JS, we default canBubble and cancelable to true, since that's
   // what people want most of the time anyway.
   factory UIEvent(String type,
-      {Window view,
+      {Window? view,
       int detail: 0,
       bool canBubble: true,
       bool cancelable: true}) {
     if (view == null) {
       view = window;
     }
-    UIEvent e = document._createEvent("UIEvent");
+    UIEvent e = document._createEvent("UIEvent") as UIEvent;
     e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
@@ -32351,7 +32364,7 @@ class WebSocket extends EventTarget {
 @Native("WheelEvent")
 class WheelEvent extends MouseEvent {
   factory WheelEvent(String type,
-      {Window view,
+      {Window? view,
       num deltaX: 0,
       num deltaY: 0,
       num deltaZ: 0,
@@ -32368,7 +32381,7 @@ class WheelEvent extends MouseEvent {
       bool altKey: false,
       bool shiftKey: false,
       bool metaKey: false,
-      EventTarget relatedTarget}) {
+      EventTarget? relatedTarget}) {
     var options = {
       'view': view,
       'deltaMode': deltaMode,
@@ -32603,7 +32616,7 @@ class Window extends EventTarget
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
    */
-  WindowBase open(String url, String name, [String options]) {
+  WindowBase open(String url, String name, [String? options]) {
     if (options == null) {
       return _DOMWindowCrossFrame._createSafe(_open2(url, name));
     } else {
@@ -34219,7 +34232,7 @@ class Window extends EventTarget
    *   from W3C.
    */
   void moveTo(Point p) {
-    _moveTo(p.x, p.y);
+    _moveTo(p.x.toInt(), p.y.toInt());
   }
 
   @JSName('openDatabase')
@@ -34228,7 +34241,7 @@ class Window extends EventTarget
   @Creates('SqlDatabase')
   SqlDatabase openDatabase(
       String name, String version, String displayName, int estimatedSize,
-      [DatabaseCallback creationCallback]) {
+      [DatabaseCallback? creationCallback]) {
     var db;
     if (creationCallback == null)
       db = _openDatabase(name, version, displayName, estimatedSize);
@@ -34257,7 +34270,7 @@ class Window extends EventTarget
    */
   int get scrollX => JS<bool>('bool', '("scrollX" in #)', this)
       ? JS<num>('num', '#.scrollX', this).round()
-      : document.documentElement.scrollLeft;
+      : document.documentElement!.scrollLeft;
 
   /**
    * The distance this window has been scrolled vertically.
@@ -34271,13 +34284,15 @@ class Window extends EventTarget
    */
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
-      : document.documentElement.scrollTop;
+      : document.documentElement!.scrollTop;
 }
 
 class _BeforeUnloadEvent extends _WrappedEvent implements BeforeUnloadEvent {
   String _returnValue;
 
-  _BeforeUnloadEvent(Event base) : super(base);
+  _BeforeUnloadEvent(Event base)
+      : _returnValue = '',
+        super(base);
 
   String get returnValue => _returnValue;
 
@@ -34297,7 +34312,8 @@ class _BeforeUnloadEventStreamProvider
 
   const _BeforeUnloadEventStreamProvider(this._eventType);
 
-  Stream<BeforeUnloadEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+  Stream<BeforeUnloadEvent> forTarget(EventTarget? e,
+      {bool useCapture: false}) {
     // Specify the generic type for EventStream only in dart2js.
     var stream = new _EventStream<BeforeUnloadEvent>(e, _eventType, useCapture);
     var controller = new StreamController<BeforeUnloadEvent>(sync: true);
@@ -35128,7 +35144,7 @@ class _DomRect extends DomRectReadOnly implements Rectangle {
    * Returns the intersection of this and `other`, or null if they don't
    * intersect.
    */
-  Rectangle intersection(Rectangle other) {
+  Rectangle? intersection(Rectangle other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 
@@ -36375,7 +36391,7 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   String? operator [](Object? key) {
-    return _element.getAttribute(key as String?);
+    return _element.getAttribute(key as String);
   }
 
   void operator []=(String key, String value) {
@@ -36423,7 +36439,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   String? operator [](Object? key) {
-    return _element.getAttributeNS(_namespace, key as String?);
+    return _element.getAttributeNS(_namespace, key as String);
   }
 
   void operator []=(String key, String value) {

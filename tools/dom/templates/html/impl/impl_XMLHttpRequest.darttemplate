@@ -104,9 +104,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * * [request]
    */
   static Future<HttpRequest> postFormData(String url, Map<String, String> data,
-      {bool withCredentials, String responseType,
-      Map<String, String> requestHeaders,
-      void onProgress(ProgressEvent e)}) {
+      {bool$NULLABLE withCredentials, String$NULLABLE responseType,
+      Map<String, String>$NULLABLE requestHeaders,
+      void onProgress(ProgressEvent e)$NULLABLE}) {
 
     var parts = [];
     data.forEach((key, value) {
@@ -182,9 +182,10 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * See also: [authorization headers](http://en.wikipedia.org/wiki/Basic_access_authentication).
    */
   static Future<HttpRequest> request(String url,
-      {String method, bool withCredentials, String responseType,
-      String mimeType, Map<String, String> requestHeaders, sendData,
-      void onProgress(ProgressEvent e)}) {
+      {String$NULLABLE method, bool$NULLABLE withCredentials,
+      String$NULLABLE responseType, String$NULLABLE mimeType,
+      Map<String, String>$NULLABLE requestHeaders, sendData,
+      void onProgress(ProgressEvent e)$NULLABLE}) {
     var completer = new Completer<HttpRequest>();
 
     var xhr = new HttpRequest();
@@ -288,7 +289,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * cross-origin support is not required then [request] should be used instead.
    */
   static Future<String> requestCrossOrigin(String url,
-      {String method, String sendData}) {
+      {String$NULLABLE method, String$NULLABLE sendData}) {
     if (supportsCrossOrigin) {
       return request(url, method: method, sendData: sendData).then((xhr) {
         return xhr.responseText;
@@ -302,7 +303,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     JS('', '#.open(#, #)', xhr, method, url);
     JS('', '#.onload = #', xhr, convertDartClosureToJS((e) {
       var response = JS('String', '#.responseText', xhr);
-      completer.complete(response);
+      completer.complete(response $#NULLSAFECAST(as FutureOr<String>$NULLABLE));
     }, 1));
     JS('', '#.onerror = #', xhr, convertDartClosureToJS((e) {
       completer.completeError(e);
@@ -375,7 +376,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * `open` method is intended only for more complex HTTP requests where
    * finer-grained control is needed.
    */
-  void open(String method, String url, {bool async, String user, String password}) native;
+  void open(String method, String url, {bool$NULLABLE async,
+      String$NULLABLE user, String$NULLABLE password}) native;
 
 $!MEMBERS
 }

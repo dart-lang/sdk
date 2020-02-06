@@ -47,7 +47,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     // Chrome release still uses old string, remove this line when Chrome stable
     // also prints out SyntaxError.
     if (Device.isWebKit && errorName == 'SYNTAX_ERR') return 'SyntaxError';
-    return errorName;
+    return errorName $#NULLSAFECAST(as String);
   }
 $!MEMBERS
   String toString() => JS('String', 'String(#)', this);

@@ -16,8 +16,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   Future<Database> open(String name,
-      {int version, void onUpgradeNeeded(VersionChangeEvent event),
-      void onBlocked(Event event)}) {
+      {int$NULLABLE version,
+      void onUpgradeNeeded(VersionChangeEvent event)$NULLABLE,
+      void onBlocked(Event event)$NULLABLE}) {
     if ((version == null) != (onUpgradeNeeded == null)) {
       return new Future.error(new ArgumentError(
           'version and onUpgradeNeeded must be specified together'));
@@ -43,7 +44,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   Future<IdbFactory> deleteDatabase(String name,
-      {void onBlocked(Event e)}) {
+      {void onBlocked(Event e)$NULLABLE}) {
     try {
       var request = _deleteDatabase(name);
 

@@ -12163,8 +12163,8 @@ class Element extends Node
    *
    * * [isTagSupported]
    */
-  factory Element.tag(String tag, [String typeExtention]) =>
-      _ElementFactoryProvider.createElement_tag(tag, typeExtention);
+  factory Element.tag(String tag, [String typeExtension]) =>
+      _ElementFactoryProvider.createElement_tag(tag, typeExtension);
 
   /// Creates a new `<a>` element.
   ///
@@ -14845,7 +14845,7 @@ class Event extends Interceptor {
   }
 
   List<EventTarget> get path =>
-      JS('bool', '!!#.composedPath', this) ? composedPath() : [];
+      JS('bool', '!!#.composedPath', this) == null ? composedPath() : [];
 
   factory Event._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
@@ -16194,24 +16194,21 @@ class Geolocation extends Interceptor {
     }
 
     int watchId;
-    // TODO(jacobr): it seems like a bug that we have to specifiy the static
-    // type here for controller.stream to have the right type.
-    // dartbug.com/26278
-    StreamController<Geoposition> controller;
-    controller = new StreamController<Geoposition>(
-        sync: true,
-        onListen: () {
-          assert(watchId == null);
-          watchId = _watchPosition((position) {
-            controller.add(_ensurePosition(position));
-          }, (error) {
-            controller.addError(error);
-          }, options);
-        },
-        onCancel: () {
-          assert(watchId != null);
-          _clearWatch(watchId);
-        });
+    StreamController<Geoposition> controller =
+        new StreamController<Geoposition>(
+            sync: true,
+            onCancel: () {
+              assert(watchId != null);
+              _clearWatch(watchId);
+            });
+    controller.onListen = () {
+      assert(watchId == null);
+      watchId = _watchPosition((position) {
+        controller.add(_ensurePosition(position));
+      }, (error) {
+        controller.addError(error);
+      }, options);
+    };
 
     return controller.stream;
   }
@@ -18447,15 +18444,15 @@ abstract class InputElementBase implements Element {
 
   bool indeterminate;
 
-  List<Node> get labels;
-
   String name;
+
+  String value;
+
+  List<Node> get labels;
 
   String get validationMessage;
 
   ValidityState get validity;
-
-  String value;
 
   bool get willValidate;
 
@@ -22099,7 +22096,7 @@ class Node extends EventTarget {
     // TODO(vsm): Use the native remove when available.
     if (this.parentNode != null) {
       final Node parent = this.parentNode;
-      parentNode._removeChild(this);
+      parent._removeChild(this);
     }
   }
 
@@ -22111,7 +22108,6 @@ class Node extends EventTarget {
       final Node parent = this.parentNode;
       parent._replaceChild(otherNode, this);
     } catch (e) {}
-    ;
     return this;
   }
 
@@ -22587,11 +22583,7 @@ class NoncedElement extends Interceptor {
 @Native("Notification")
 class Notification extends EventTarget {
   factory Notification(String title,
-      {String dir: null,
-      String body: null,
-      String lang: null,
-      String tag: null,
-      String icon: null}) {
+      {String dir, String body, String lang, String tag, String icon}) {
     var parsedOptions = {};
     if (dir != null) parsedOptions['dir'] = dir;
     if (body != null) parsedOptions['body'] = body;
@@ -25004,7 +24996,7 @@ class Range extends Interceptor {
   factory Range() => document.createRange();
 
   factory Range.fromPoint(Point point) =>
-      document._caretRangeFromPoint(point.x, point.y);
+      document._caretRangeFromPoint(point.x.toInt(), point.y.toInt());
   // To suppress missing implicit constructor warnings.
   factory Range._() {
     throw new UnsupportedError("Not supported");
@@ -28923,17 +28915,10 @@ class TouchEvent extends UIEvent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 @Native("TouchList")
 class TouchList extends Interceptor
     with ListMixin<Touch>, ImmutableListMixin<Touch>
     implements JavaScriptIndexingBehavior<Touch>, List<Touch> {
-  /// NB: This constructor likely does not work as you might expect it to! This
-  /// constructor will simply fail (returning null) if you are not on a device
-  /// with touch enabled. See dartbug.com/8314.
-  // TODO(5760): createTouchList now uses varargs.
-  factory TouchList() => null; //document._createTouchList();
   // To suppress missing implicit constructor warnings.
   factory TouchList._() {
     throw new UnsupportedError("Not supported");
@@ -32089,7 +32074,7 @@ class Window extends EventTarget
    *   from W3C.
    */
   void moveTo(Point p) {
-    _moveTo(p.x, p.y);
+    _moveTo(p.x.toInt(), p.y.toInt());
   }
 
   @JSName('openDatabase')

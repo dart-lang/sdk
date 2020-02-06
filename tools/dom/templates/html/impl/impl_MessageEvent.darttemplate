@@ -8,9 +8,10 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
-      {bool canBubble: false, bool cancelable: false, Object data,
-      String origin, String lastEventId,
-      Window source, List<MessagePort> messagePorts: const []}) {
+      {bool canBubble: false, bool cancelable: false, Object$NULLABLE data,
+      String$NULLABLE origin, String$NULLABLE lastEventId,
+      Window$NULLABLE source,
+      List<MessagePort> messagePorts: const []}) {
     if (source == null) {
       source = window;
     }
@@ -20,9 +21,14 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
           type, canBubble, cancelable, data, origin, lastEventId, source,
           messagePorts);
     }
-    MessageEvent event = document._createEvent("MessageEvent");
-    event._initMessageEvent(type, canBubble, cancelable, data, origin,
-        lastEventId, source, messagePorts);
+    MessageEvent event = document._createEvent("MessageEvent") $#NULLSAFECAST(as MessageEvent);
+$if NNBD
+    // IDL dictates that all of these must be not null. While the signature of
+    // this function should ideally change, for compatibility, this opts to
+    // instead potentially throw a null assertion error with null-safety.
+$endif
+    event._initMessageEvent(type, canBubble, cancelable, data$NULLASSERT,
+        origin$NULLASSERT, lastEventId$NULLASSERT, source, messagePorts);
     return event;
   }
 

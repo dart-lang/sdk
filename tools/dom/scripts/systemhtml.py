@@ -818,7 +818,8 @@ class HtmlDartInterfaceGenerator(object):
             KEYTYPE=maplikeKeyType,
             VALUETYPE=maplikeValueType,
             NULLABLE='?' if self._options.nnbd else '',
-            NULLSAFECAST=True if self._options.nnbd else False)
+            NULLSAFECAST=True if self._options.nnbd else False,
+            NULLASSERT='!' if self._options.nnbd else '')
         stream_getter_signatures_emitter = None
         element_stream_getters_emitter = None
         if type(implementation_members_emitter) == tuple:

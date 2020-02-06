@@ -30,7 +30,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
    * Returns the intersection of this and `other`, or null if they don't
    * intersect.
    */
-  Rectangle intersection(Rectangle other) {
+  Rectangle$NULLABLE intersection(Rectangle other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 

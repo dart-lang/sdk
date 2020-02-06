@@ -231,7 +231,7 @@ class Cursor extends Interceptor {
   }
 
   @JSName('continue')
-  void next([Object key]) {
+  void next([Object? key]) {
     if (key == null) {
       JS('void', '#.continue()', this);
     } else {
@@ -305,7 +305,7 @@ class CursorWithValue extends Cursor {
 @Unstable()
 @Native("IDBDatabase")
 class Database extends EventTarget {
-  ObjectStore createObjectStore(String name, {keyPath, bool autoIncrement}) {
+  ObjectStore createObjectStore(String name, {keyPath, bool? autoIncrement}) {
     var options = {};
     if (keyPath != null) {
       options['keyPath'] = keyPath;
@@ -470,9 +470,9 @@ class IdbFactory extends Interceptor {
   }
 
   Future<Database> open(String name,
-      {int version,
-      void onUpgradeNeeded(VersionChangeEvent event),
-      void onBlocked(Event event)}) {
+      {int? version,
+      void onUpgradeNeeded(VersionChangeEvent event)?,
+      void onBlocked(Event event)?}) {
     if ((version == null) != (onUpgradeNeeded == null)) {
       return new Future.error(new ArgumentError(
           'version and onUpgradeNeeded must be specified together'));
@@ -497,7 +497,7 @@ class IdbFactory extends Interceptor {
     }
   }
 
-  Future<IdbFactory> deleteDatabase(String name, {void onBlocked(Event e)}) {
+  Future<IdbFactory> deleteDatabase(String name, {void onBlocked(Event e)?}) {
     try {
       var request = _deleteDatabase(name);
 
@@ -601,7 +601,7 @@ class Index extends Interceptor {
    * * [ObjectStore.openCursor]
    */
   Stream<CursorWithValue> openCursor(
-      {key, KeyRange range, String direction, bool autoAdvance}) {
+      {key, KeyRange? range, String? direction, bool? autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -629,7 +629,7 @@ class Index extends Interceptor {
    * * [ObjectStore.openCursor]
    */
   Stream<Cursor> openKeyCursor(
-      {key, KeyRange range, String direction, bool autoAdvance}) {
+      {key, KeyRange? range, String? direction, bool? autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -844,7 +844,7 @@ class ObjectStore extends Interceptor {
    * the current transaction.
    */
   Stream<CursorWithValue> openCursor(
-      {key, KeyRange range, String direction, bool autoAdvance}) {
+      {key, KeyRange? range, String? direction, bool? autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -865,7 +865,7 @@ class ObjectStore extends Interceptor {
     return _cursorStreamFromResult(request, autoAdvance);
   }
 
-  Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
+  Index createIndex(String name, keyPath, {bool? unique, bool? multiEntry}) {
     var options = {};
     if (unique != null) {
       options['unique'] = unique;
@@ -997,7 +997,7 @@ class ObjectStore extends Interceptor {
    * Helper for iterating over cursors in a request.
    */
   static Stream<T> _cursorStreamFromResult<T extends Cursor>(
-      Request request, bool autoAdvance) {
+      Request request, bool? autoAdvance) {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.

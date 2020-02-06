@@ -7,7 +7,7 @@ part of $LIBRARYNAME;
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   Entry getAsEntry() {
-    Entry entry = _webkitGetAsEntry();
+    Entry entry = _webkitGetAsEntry() $#NULLSAFECAST(as Entry);
 
     if (entry.isFile)
       applyExtension('FileEntry', entry);

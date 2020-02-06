@@ -3104,16 +3104,16 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory SvgElement.tag(String tag) =>
-      document.createElementNS("http://www.w3.org/2000/svg", tag);
+      document.createElementNS("http://www.w3.org/2000/svg", tag) as SvgElement;
   factory SvgElement.svg(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (validator == null && treeSanitizer == null) {
       validator = new NodeValidatorBuilder.common()..allowSvg();
     }
 
     final match = _START_TAG_REGEXP.firstMatch(svg);
     var parentElement;
-    if (match != null && match.group(1).toLowerCase() == 'svg') {
+    if (match != null && match.group(1)!.toLowerCase() == 'svg') {
       parentElement = document.body;
     } else {
       parentElement = new SvgSvgElement();
@@ -3135,14 +3135,14 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   String get outerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.add(cloned);
     return container.innerHtml;
   }
 
   String get innerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.addAll(cloned.children);
     return container.innerHtml;
   }
@@ -3152,7 +3152,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   }
 
   DocumentFragment createFragment(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
         validator = new NodeValidatorBuilder.common()..allowSvg();
@@ -3169,7 +3169,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     // The root is the <svg/> element, need to pull out the contents.
     var root = fragment.nodes.single;
     while (root.firstChild != null) {
-      svgFragment.append(root.firstChild);
+      svgFragment.append(root.firstChild!);
     }
     return svgFragment;
   }
@@ -3181,7 +3181,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   }
 
   void insertAdjacentHtml(String where, String text,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
@@ -3554,7 +3554,7 @@ class SvgSvgElement extends GraphicsElement
     final el = new SvgElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";
-    return el;
+    return el as SvgSvgElement;
   }
 
   // To suppress missing implicit constructor warnings.

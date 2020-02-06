@@ -238,9 +238,9 @@ class AudioContext extends BaseAudioContext {
   }
 
   @JSName('decodeAudioData')
-  Future _decodeAudioData(ByteBuffer audioData,
-      [DecodeSuccessCallback successCallback,
-      DecodeErrorCallback errorCallback]) native;
+  Future<AudioBuffer> _decodeAudioData(ByteBuffer audioData,
+      [DecodeSuccessCallback? successCallback,
+      DecodeErrorCallback? errorCallback]) native;
 
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
       [DecodeSuccessCallback? successCallback,

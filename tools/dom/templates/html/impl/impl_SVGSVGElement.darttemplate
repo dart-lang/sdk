@@ -9,7 +9,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     final el = new SvgElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";
-    return el;
+    return el $#NULLSAFECAST(as $CLASSNAME);
   }
 
 $!MEMBERS

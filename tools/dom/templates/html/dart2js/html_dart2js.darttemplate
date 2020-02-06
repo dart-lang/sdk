@@ -132,7 +132,16 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
+$if NNBD
+  String get nonce => JS("String", "#.nonce", this);
+
+  set nonce(String value) {
+    JS("void", "#.nonce = #", this, value);
+  }
+$else
   String nonce;
+$endif
+
 }
 
 /**

@@ -151,7 +151,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
 
-  void setProperty(String propertyName, String value, [String priority]) {
+  void setProperty(String propertyName, String value,
+      [String$NULLABLE priority]) {
     return _setPropertyHelper(_browserPropertyName(propertyName),
       value, priority);
   }
@@ -240,7 +241,8 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
       _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
           propertyName);
 
-  void setProperty(String propertyName, String value, [String priority]) {
+  void setProperty(String propertyName, String value,
+      [String$NULLABLE priority]) {
     _elementCssStyleDeclarationSetIterable.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
@@ -276,7 +278,8 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String priority]);
+  void setProperty(String propertyName, String value,
+      [String$NULLABLE priority]);
 """)
 
     class_lines = []

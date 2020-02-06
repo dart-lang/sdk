@@ -6,5 +6,5 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 $!MEMBERS
-  factory AudioElement([String src]) => new AudioElement._(src);
+  factory AudioElement([String$NULLABLE src]) => new AudioElement._(src);
 }

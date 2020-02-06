@@ -17,7 +17,8 @@ $!MEMBERS
    * * <https://w3c.github.io/DOM-Parsing/#the-innerhtml-mixin>
    */
   void setInnerHtml(String html,
-    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    {NodeValidator$NULLABLE validator,
+     NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     text = null;
     content.nodes.clear();
     var fragment = createFragment(
