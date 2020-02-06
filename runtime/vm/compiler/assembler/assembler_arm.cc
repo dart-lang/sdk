@@ -3164,6 +3164,7 @@ void Assembler::SubImmediate(Register rd,
                              Register rn,
                              int32_t value,
                              Condition cond) {
+  ASSERT(value != kMinInt32);  // Cannot be negated.
   AddImmediate(rd, rn, -value, cond);
 }
 
@@ -3171,27 +3172,8 @@ void Assembler::SubImmediateSetFlags(Register rd,
                                      Register rn,
                                      int32_t value,
                                      Condition cond) {
-  Operand o;
-  if (Operand::CanHold(value, &o)) {
-    // Handles value == kMinInt32.
-    subs(rd, rn, o, cond);
-  } else if (Operand::CanHold(-value, &o)) {
-    ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-    adds(rd, rn, o, cond);
-  } else {
-    ASSERT(rn != IP);
-    if (Operand::CanHold(~value, &o)) {
-      mvn(IP, o, cond);
-      subs(rd, rn, Operand(IP), cond);
-    } else if (Operand::CanHold(~(-value), &o)) {
-      ASSERT(value != kMinInt32);  // Would cause erroneous overflow detection.
-      mvn(IP, o, cond);
-      adds(rd, rn, Operand(IP), cond);
-    } else {
-      LoadDecodableImmediate(IP, value, cond);
-      subs(rd, rn, Operand(IP), cond);
-    }
-  }
+  ASSERT(value != kMinInt32);  // Cannot be negated.
+  AddImmediateSetFlags(rd, rn, -value, cond);
 }
 
 void Assembler::AndImmediate(Register rd,
