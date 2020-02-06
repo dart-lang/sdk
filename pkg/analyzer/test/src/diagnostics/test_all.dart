@@ -158,6 +158,8 @@ import 'import_deferred_library_with_load_function_test.dart'
 import 'import_duplicated_library_named_test.dart'
     as import_duplicated_library_named;
 import 'import_of_non_library_test.dart' as import_of_non_library;
+import 'inconsistent_case_expression_types_test.dart'
+    as inconsistent_case_expression_types;
 import 'inference_failure_on_collection_literal_test.dart'
     as inference_failure_on_collection_literal;
 import 'inference_failure_on_function_return_type_test.dart'
@@ -283,6 +285,9 @@ import 'non_abstract_class_inherits_abstract_member_test.dart'
 import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
+import 'non_constant_case_expression_from_deferred_library_test.dart'
+    as non_constant_case_expression_from_deferred_library;
+import 'non_constant_case_expression_test.dart' as non_constant_case_expression;
 import 'non_constant_list_element_from_deferred_library_test.dart'
     as non_constant_list_element_from_deferred_library;
 import 'non_constant_list_element_test.dart' as non_constant_list_element;
@@ -594,6 +599,7 @@ main() {
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
+    inconsistent_case_expression_types.main();
     import_of_non_library.main();
     inference_failure_on_collection_literal.main();
     inference_failure_on_function_return_type.main();
@@ -682,6 +688,8 @@ main() {
     non_bool_negation_expression.main();
     non_bool_operand.main();
     non_constant_list_element.main();
+    non_constant_case_expression_from_deferred_library.main();
+    non_constant_case_expression.main();
     non_constant_list_element_from_deferred_library.main();
     non_constant_map_key.main();
     non_constant_map_key_from_deferred_library.main();

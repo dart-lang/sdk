@@ -1622,19 +1622,6 @@ main() {
 ''');
   }
 
-  test_inconsistentCaseExpressionTypes() async {
-    await assertNoErrorsInCode(r'''
-f(var p) {
-  switch (p) {
-    case 1:
-      break;
-    case 2:
-      break;
-  }
-}
-''');
-  }
-
   test_inconsistentMethodInheritance_accessors_typeParameter2() async {
     await assertNoErrorsInCode(r'''
 abstract class A<E> {
@@ -2647,35 +2634,6 @@ class A {
 }
 class B extends A {
   const B({b}) : super(a: b);
-}
-''');
-  }
-
-  test_nonConstCaseExpression_constField() async {
-    await assertErrorsInCode(r'''
-f(double p) {
-  switch (p) {
-    case double.INFINITY:
-      return true;
-    default:
-      return false;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, 16, 6),
-    ]);
-  }
-
-  test_nonConstCaseExpression_typeLiteral() async {
-    await assertNoErrorsInCode(r'''
-f(Type t) {
-  switch (t) {
-    case bool:
-    case int:
-      return true;
-    default:
-      return false;
-  }
 }
 ''');
   }
