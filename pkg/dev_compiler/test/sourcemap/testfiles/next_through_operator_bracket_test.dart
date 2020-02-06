@@ -14,7 +14,7 @@ class Class2 {
 }
 
 void main() {
-  /*bl*/ /*sl:1*/ Class2 c = Class2();
+  /*bl*/ /*sl:1*/ var c = Class2();
   c /*sl:2*/ [42];
   c /*sl:3*/ .code();
 }

@@ -183,10 +183,14 @@ void HostCPUFeatures::Init() {
 #endif
   }
 
+#if defined(DART_RUN_IN_QEMU_ARMv7)
+  vfp_supported_ = true;
+#else
   // Has floating point unit.
   vfp_supported_ =
       (CpuInfo::FieldContains(kCpuInfoFeatures, "vfp") || is_arm64) &&
       FLAG_use_vfp;
+#endif
 
   // Has integer division.
   // Special cases:
@@ -224,7 +228,7 @@ void HostCPUFeatures::Init() {
 
 // Use the cross-compiler's predefined macros to determine whether we should
 // use the hard or soft float ABI.
-#if defined(__ARM_PCS_VFP)
+#if defined(__ARM_PCS_VFP) || defined(DART_RUN_IN_QEMU_ARMv7)
   hardfp_supported_ = true;
 #else
   hardfp_supported_ = false;

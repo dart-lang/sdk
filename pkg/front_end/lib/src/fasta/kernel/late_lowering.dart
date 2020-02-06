@@ -7,6 +7,14 @@ import 'package:kernel/core_types.dart';
 
 import '../names.dart';
 
+/// Creates the body for the synthesized getter used to encode the lowering
+/// of a late non-final field with an initializer or a late local with an
+/// initializer.
+///
+/// Late final field needs to detect writes during initialization and therefore
+/// uses [createGetterWithInitializerWithRecheck] instead. Late final locals
+/// cannot have writes during initialization since they are not in scope in
+/// their own initializer.
 Statement createGetterWithInitializer(
     int fileOffset, String name, DartType type, Expression initializer,
     {Expression createVariableRead({bool needsPromotion}),
@@ -73,6 +81,129 @@ Statement createGetterWithInitializer(
   }
 }
 
+/// Creates the body for the synthesized getter used to encode the lowering
+/// of a late final field with an initializer.
+///
+/// A late final field needs to detect writes during initialization for
+/// which a `LateInitializationError` should be thrown. Late final locals
+/// cannot have writes during initialization since they are not in scope in
+/// their own initializer.
+Statement createGetterWithInitializerWithRecheck(
+    CoreTypes coreTypes,
+    int fileOffset,
+    String name,
+    DartType type,
+    String variableKindName,
+    Expression initializer,
+    {Expression createVariableRead({bool needsPromotion}),
+    Expression createVariableWrite(Expression value),
+    Expression createIsSetRead(),
+    Expression createIsSetWrite(Expression value)}) {
+  Expression exception = new Throw(new ConstructorInvocation(
+      coreTypes.lateInitializationErrorConstructor,
+      new Arguments(<Expression>[
+        new StringLiteral(
+            "$variableKindName '${name}' has been assigned during "
+            "initialization.")
+          ..fileOffset = fileOffset
+      ])
+        ..fileOffset = fileOffset)
+    ..fileOffset = fileOffset)
+    ..fileOffset = fileOffset;
+  VariableDeclaration temp =
+      new VariableDeclaration.forValue(initializer, type: type)
+        ..fileOffset = fileOffset;
+  if (type.isPotentiallyNullable) {
+    // Generate:
+    //
+    //    if (!_#isSet#field) {
+    //      var temp = <init>;
+    //      if (_#isSet#field) throw '...'
+    //      _#isSet#field = true
+    //      _#field = temp;
+    //    }
+    //    return _#field;
+    return new Block(<Statement>[
+      new IfStatement(
+          new Not(createIsSetRead()..fileOffset = fileOffset)
+            ..fileOffset = fileOffset,
+          new Block(<Statement>[
+            temp,
+            new IfStatement(
+                createIsSetRead()..fileOffset = fileOffset,
+                new ExpressionStatement(exception)..fileOffset = fileOffset,
+                null)
+              ..fileOffset = fileOffset,
+            new ExpressionStatement(
+                createIsSetWrite(new BoolLiteral(true)..fileOffset = fileOffset)
+                  ..fileOffset = fileOffset)
+              ..fileOffset = fileOffset,
+            new ExpressionStatement(
+                createVariableWrite(
+                    new VariableGet(temp)..fileOffset = fileOffset)
+                  ..fileOffset = fileOffset)
+              ..fileOffset = fileOffset,
+          ]),
+          null)
+        ..fileOffset = fileOffset,
+      new ReturnStatement(
+          // If [type] is a type variable with undetermined nullability we need
+          // to create a read of the field that is promoted to the type variable
+          // type.
+          createVariableRead(needsPromotion: type.isPotentiallyNonNullable))
+        ..fileOffset = fileOffset
+    ])
+      ..fileOffset = fileOffset;
+  } else {
+    // Generate:
+    //
+    //    return let #1 = _#field in #1 == null
+    //        ? let #2 = <init> in _#field == null ? _#field = #2 : throw '...'
+    //        : #1;
+    VariableDeclaration variable = new VariableDeclaration.forValue(
+        createVariableRead(needsPromotion: false)..fileOffset = fileOffset,
+        type: type.withNullability(Nullability.nullable))
+      ..fileOffset = fileOffset;
+    return new ReturnStatement(
+        new Let(
+            variable,
+            new ConditionalExpression(
+                new MethodInvocation(
+                    new VariableGet(variable)..fileOffset = fileOffset,
+                    equalsName,
+                    new Arguments(<Expression>[
+                      new NullLiteral()..fileOffset = fileOffset
+                    ])
+                      ..fileOffset = fileOffset)
+                  ..fileOffset = fileOffset,
+                new Let(
+                    temp,
+                    new ConditionalExpression(
+                        new MethodInvocation(
+                            createVariableRead(needsPromotion: false)
+                              ..fileOffset = fileOffset,
+                            equalsName,
+                            new Arguments(<Expression>[
+                              new NullLiteral()..fileOffset = fileOffset
+                            ])
+                              ..fileOffset = fileOffset)
+                          ..fileOffset = fileOffset,
+                        createVariableWrite(
+                            new VariableGet(temp)..fileOffset = fileOffset)
+                          ..fileOffset = fileOffset,
+                        exception,
+                        type)
+                      ..fileOffset = fileOffset),
+                new VariableGet(variable, type)..fileOffset = fileOffset,
+                type)
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset)
+      ..fileOffset = fileOffset;
+  }
+}
+
+/// Creates the body for the synthesized getter used to encode the lowering
+/// of a late field or local without an initializer.
 Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
     int fileOffset, String name, DartType type, String variableKindName,
     {Expression createVariableRead({bool needsPromotion}),
@@ -129,6 +260,8 @@ Statement createGetterBodyWithoutInitializer(CoreTypes coreTypes,
   }
 }
 
+/// Creates the body for the synthesized setter used to encode the lowering
+/// of a non-final late field or local.
 Statement createSetterBody(
     int fileOffset, String name, VariableDeclaration parameter, DartType type,
     {bool shouldReturnValue,
@@ -169,6 +302,8 @@ Statement createSetterBody(
   }
 }
 
+/// Creates the body for the synthesized setter used to encode the lowering
+/// of a final late field or local.
 Statement createSetterBodyFinal(
     CoreTypes coreTypes,
     int fileOffset,

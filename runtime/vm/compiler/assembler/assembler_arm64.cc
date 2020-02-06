@@ -821,6 +821,16 @@ void Assembler::LoadFromOffset(Register dest,
   }
 }
 
+void Assembler::LoadSFromOffset(VRegister dest, Register base, int32_t offset) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kSWord)) {
+    fldrs(dest, Address(base, offset, Address::Offset, kSWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset);
+    fldrs(dest, Address(TMP2));
+  }
+}
+
 void Assembler::LoadDFromOffset(VRegister dest, Register base, int32_t offset) {
   if (Address::CanHoldOffset(offset, Address::Offset, kDWord)) {
     fldrd(dest, Address(base, offset, Address::Offset, kDWord));
@@ -852,6 +862,16 @@ void Assembler::StoreToOffset(Register src,
     ASSERT(src != TMP2);
     AddImmediate(TMP2, base, offset);
     str(src, Address(TMP2), sz);
+  }
+}
+
+void Assembler::StoreSToOffset(VRegister src, Register base, int32_t offset) {
+  if (Address::CanHoldOffset(offset, Address::Offset, kSWord)) {
+    fstrs(src, Address(base, offset, Address::Offset, kSWord));
+  } else {
+    ASSERT(base != TMP2);
+    AddImmediate(TMP2, base, offset);
+    fstrs(src, Address(TMP2));
   }
 }
 
@@ -1162,9 +1182,17 @@ void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
 }
 
 void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
-  LoadClassIdMayBeSmi(TMP, object);
-  // Finally, tag the result.
-  SmiTag(result, TMP);
+  if (result == object) {
+    LoadClassIdMayBeSmi(TMP, object);
+    SmiTag(result, TMP);
+  } else {
+    Label done;
+    LoadImmediate(result, target::ToRawSmi(kSmiCid));
+    BranchIfSmi(object, &done);
+    LoadClassId(result, object);
+    SmiTag(result);
+    Bind(&done);
+  }
 }
 
 // Frame entry and exit.
@@ -1205,6 +1233,16 @@ void Assembler::RestorePinnedRegisters() {
   ldr(BARRIER_MASK,
       compiler::Address(THR, target::Thread::write_barrier_mask_offset()));
   ldr(NULL_REG, compiler::Address(THR, target::Thread::object_null_offset()));
+}
+
+void Assembler::SetupGlobalPoolAndDispatchTable() {
+  ASSERT(FLAG_precompiled_mode && FLAG_use_bare_instructions);
+  ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
+  sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+  if (FLAG_use_table_dispatch) {
+    ldr(DISPATCH_TABLE_REG,
+        Address(THR, target::Thread::dispatch_table_array_offset()));
+  }
 }
 
 void Assembler::CheckCodePointer() {

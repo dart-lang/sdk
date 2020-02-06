@@ -2,17 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
+// TODO(jcollins-g): finish port away from io
+import 'dart:io' show Directory;
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
+import 'package:nnbd_migration/src/utilities/subprocess_launcher.dart';
 import 'package:path/path.dart' as path;
+
+// TODO(jcollins-g): consider refactor that makes resourceProvider required.
+class FantasyWorkspaceDependencies {
+  final Future<FantasyRepo> Function(FantasyRepoSettings, String)
+      buildGitRepoFrom;
+  final ResourceProvider resourceProvider;
+  final SubprocessLauncher launcher;
+
+  FantasyWorkspaceDependencies(
+      {ResourceProvider resourceProvider,
+      SubprocessLauncher launcher,
+      Future<FantasyRepo> Function(FantasyRepoSettings, String)
+          buildGitRepoFrom})
+      : resourceProvider =
+            resourceProvider ?? PhysicalResourceProvider.INSTANCE,
+        launcher = launcher, // Pass through to FantasyRepoDependencies.
+        buildGitRepoFrom = buildGitRepoFrom ?? FantasyRepo.buildGitRepoFrom;
+}
 
 abstract class FantasyWorkspaceImpl extends FantasyWorkspace {
   @override
   final Directory workspaceRoot;
 
+  // TODO(jcollins-g): inject FantasyWorkspaceDependencies here.
   FantasyWorkspaceImpl._(this.workspaceRoot);
 
   /// Repositories on which [addRepoToWorkspace] has been called.
@@ -63,7 +86,8 @@ abstract class FantasyWorkspaceImpl extends FantasyWorkspace {
     if (_repos.containsKey(repoSettings.name)) return _repos[repoSettings.name];
     Directory repoRoot = Directory(path.canonicalize(
         path.join(workspaceRoot.path, _repoSubDir, repoSettings.name)));
-    _repos[repoSettings.name] = FantasyRepo.buildFrom(repoSettings, repoRoot);
+    _repos[repoSettings.name] =
+        FantasyRepo.buildGitRepoFrom(repoSettings, repoRoot.path);
     return _repos[repoSettings.name];
   }
 }
@@ -78,12 +102,13 @@ class FantasyWorkspaceTopLevelDevDepsImpl extends FantasyWorkspaceImpl {
       : super._(workspaceRoot);
 
   static Future<FantasyWorkspace> buildFor(String topLevelPackage,
-      List<String> extraPackageNames, Directory workspaceRoot) async {
-    if (!await workspaceRoot.exists())
-      await workspaceRoot.create(recursive: true);
+      List<String> extraPackageNames, String workspaceRoot) async {
+    // TODO(jcollins-g): finish port
+    Directory workspaceRootDir = Directory(workspaceRoot);
+    await workspaceRootDir.create(recursive: true);
 
-    var workspace =
-        FantasyWorkspaceTopLevelDevDepsImpl._(topLevelPackage, workspaceRoot);
+    var workspace = FantasyWorkspaceTopLevelDevDepsImpl._(
+        topLevelPackage, workspaceRootDir);
     await Future.wait([
       for (var n in [topLevelPackage, ...extraPackageNames])
         workspace.addPackageNameToWorkspace(n)
@@ -98,16 +123,8 @@ class FantasyWorkspaceTopLevelDevDepsImpl extends FantasyWorkspaceImpl {
     FantasyRepo containingRepo =
         await addRepoToWorkspace(packageSettings.repoSettings);
     FantasySubPackage fantasySubPackage =
-        FantasySubPackage(packageSettings, containingRepo, this);
+        FantasySubPackage(packageSettings, containingRepo);
     subPackages[fantasySubPackage.name] = fantasySubPackage;
-
-    // Add a symlink to the top level directory.
-    Link packageSymlink =
-        Link(path.join(workspaceRoot.path, packageSettings.name));
-    if (!await packageSymlink.exists()) {
-      await packageSymlink.create(path.canonicalize(
-          path.join(containingRepo.repoRoot.path, packageSettings.subDir)));
-    }
 
     // TODO(jcollins-g): Add to .packages / package_config.json
     if (packageName == topLevelPackage) {

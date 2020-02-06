@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:analyzer/src/generated/type_system.dart';
@@ -27,7 +26,6 @@ class BinaryExpressionResolver {
   final ResolverVisitor _resolver;
   final TypePromotionManager _promoteManager;
   final FlowAnalysisHelper _flowAnalysis;
-  final ElementTypeProvider _elementTypeProvider;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
 
@@ -35,11 +33,9 @@ class BinaryExpressionResolver {
     @required ResolverVisitor resolver,
     @required TypePromotionManager promoteManager,
     @required FlowAnalysisHelper flowAnalysis,
-    @required ElementTypeProvider elementTypeProvider,
   })  : _resolver = resolver,
         _promoteManager = promoteManager,
         _flowAnalysis = flowAnalysis,
-        _elementTypeProvider = elementTypeProvider,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper;
 
@@ -119,8 +115,7 @@ class BinaryExpressionResolver {
   ///
   /// TODO(scheglov) this is duplicate
   DartType _getExpressionType(Expression expr, {bool read = false}) =>
-      getExpressionType(expr, _typeSystem, _typeProvider,
-          read: read, elementTypeProvider: _elementTypeProvider);
+      getExpressionType(expr, _typeSystem, _typeProvider, read: read);
 
   /// Return the static type of the given [expression] that is to be used for
   /// type analysis.
@@ -130,9 +125,7 @@ class BinaryExpressionResolver {
     if (expression is NullLiteral) {
       return _typeProvider.nullType;
     }
-    DartType type = read
-        ? getReadType(expression, elementTypeProvider: _elementTypeProvider)
-        : expression.staticType;
+    DartType type = read ? getReadType(expression) : expression.staticType;
     return _resolveTypeParameter(type);
   }
 
@@ -200,8 +193,7 @@ class BinaryExpressionResolver {
     );
 
     node.staticElement = result.getter;
-    node.staticInvokeType =
-        _elementTypeProvider.safeExecutableType(result.getter);
+    node.staticInvokeType = result.getter?.type;
     if (_shouldReportInvalidMember(leftType, result)) {
       if (leftOperand is SuperExpression) {
         _errorReporter.reportErrorForToken(
@@ -351,8 +343,7 @@ class BinaryExpressionResolver {
       // If this is a user-defined operator, set the right operand context
       // using the operator method's parameter type.
       var rightParam = invokeType.parameters[0];
-      InferenceContext.setType(
-          right, _elementTypeProvider.getVariableType(rightParam));
+      InferenceContext.setType(right, rightParam.type);
     }
 
     // TODO(scheglov) Do we need these checks for null?

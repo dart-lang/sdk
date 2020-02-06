@@ -28,33 +28,39 @@ import 'visitors.dart';
 // TODO(jwren) have the analysis root and verbose option be configurable via a
 //  command line UX
 Future<void> main() async {
-  await CompletionMetricsComputer('', true).computeCompletionMetrics();
+  await CompletionCoverageMetrics('').compute();
+//  await RelevanceAnalyzerMetrics('', [RHSOfAsExpression()]).compute();
 }
 
 /// This is the main metrics computer class for code completions. After the
 /// object is constructed, [computeCompletionMetrics] is executed to do analysis
 /// and print a summary of the metrics gathered from the completion tests.
-class CompletionMetricsComputer {
-  /// The analysis root path that this CompletionMetrics class will be computed.
+abstract class AbstractCompletionMetricsComputer {
   final String _rootPath;
 
-  /// When enabled, expected, but missing completion tokens will be printed to
-  /// stdout.
-  final bool _verbose;
+  String _currentFilePath;
 
-  final RelevanceAnalyzer _relevanceAnalyzer = null;
+  ResolvedUnitResult _resolvedUnitResult;
 
-  CompletionMetricsComputer(this._rootPath, this._verbose);
+  final CompletionPerformance _performance = CompletionPerformance();
 
-  Future computeCompletionMetrics() async {
-    int includedCount = 0;
-    int notIncludedCount = 0;
-    var completionMissedTokenCounter = Counter('missing completion counter');
-    var completionKindCounter = Counter('completion kind counter');
-    var completionElementKindCounter =
-        Counter('completion element kind counter');
-    var mRRComputer = MeanReciprocalRankComputer();
+  AbstractCompletionMetricsComputer(this._rootPath);
 
+  /// The path to the current file.
+  String get currentFilePath => _currentFilePath;
+
+  /// If the concrete class has this getter return true, then when
+  /// [forEachExpectedCompletion] is called, the [List] of
+  /// [CompletionSuggestion]s will be passed.
+  bool get doComputeCompletionsFromAnalysisServer;
+
+  /// The current [ResolvedUnitResult].
+  ResolvedUnitResult get resolvedUnitResult => _resolvedUnitResult;
+
+  /// The analysis root path that this CompletionMetrics class will be computed.
+  String get rootPath => _rootPath;
+
+  void compute() async {
     print('Analyzing root: \"$_rootPath\"');
 
     if (!io.Directory(_rootPath).existsSync()) {
@@ -68,21 +74,27 @@ class CompletionMetricsComputer {
     );
 
     for (var context in collection.contexts) {
+      // Set the DeclarationsTracker, only call doWork to build up the available
+      // suggestions if doComputeCompletionsFromAnalysisServer is true.
       var declarationsTracker = DeclarationsTracker(
           MemoryByteStore(), PhysicalResourceProvider.INSTANCE);
       declarationsTracker.addContext(context);
-
-      while (declarationsTracker.hasWork) {
-        declarationsTracker.doWork();
+      if (doComputeCompletionsFromAnalysisServer) {
+        while (declarationsTracker.hasWork) {
+          declarationsTracker.doWork();
+        }
       }
 
+      // Loop through each file, resolve the file and call
+      // forEachExpectedCompletion
       for (var filePath in context.contextRoot.analyzedFiles()) {
         if (AnalysisEngine.isDartFileName(filePath)) {
+          _currentFilePath = filePath;
           try {
-            final resolvedUnitResult =
+            _resolvedUnitResult =
                 await context.currentSession.getResolvedUnit(filePath);
 
-            var error = _getFirstErrorOrNull(resolvedUnitResult);
+            var error = getFirstErrorOrNull(resolvedUnitResult);
             if (error != null) {
               print('File $filePath skipped due to errors such as:');
               print('  ${error.toString()}');
@@ -96,39 +108,15 @@ class CompletionMetricsComputer {
             resolvedUnitResult.unit.accept(visitor);
 
             for (var expectedCompletion in visitor.expectedCompletions) {
-              var suggestions = await _computeCompletionSuggestions(
-                  resolvedUnitResult,
-                  expectedCompletion.offset,
-                  declarationsTracker);
-
-              var place =
-                  _placementInSuggestionList(suggestions, expectedCompletion);
-
-              mRRComputer.addReciprocalRank(place);
-
-              _relevanceAnalyzer?.report(expectedCompletion);
-
-              if (place.denominator != 0) {
-                includedCount++;
-              } else {
-                notIncludedCount++;
-
-                completionMissedTokenCounter
-                    .count(expectedCompletion.completion);
-                completionKindCounter.count(expectedCompletion.kind.toString());
-                completionElementKindCounter
-                    .count(expectedCompletion.elementKind.toString());
-
-                if (_verbose) {
-                  // The format "/file/path/foo.dart:3:4" makes for easier input
-                  // with the Files dialog in IntelliJ
-                  print(
-                      '$filePath:${expectedCompletion.lineNumber}:${expectedCompletion.columnNumber}');
-                  print(
-                      '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
-                  print('');
-                }
-              }
+              // Call forEachExpectedCompletion, passing in the computed
+              // suggestions only if doComputeCompletionsFromAnalysisServer is
+              // true:
+              forEachExpectedCompletion(
+                  expectedCompletion,
+                  doComputeCompletionsFromAnalysisServer
+                      ? await _computeCompletionSuggestions(resolvedUnitResult,
+                          expectedCompletion.offset, declarationsTracker)
+                      : null);
             }
           } catch (e) {
             print('Exception caught analyzing: $filePath');
@@ -137,40 +125,17 @@ class CompletionMetricsComputer {
         }
       }
     }
-
-    final totalCompletionCount = includedCount + notIncludedCount;
-    final percentIncluded = includedCount / totalCompletionCount;
-    final percentNotIncluded = 1 - percentIncluded;
-
-    completionMissedTokenCounter.printCounterValues();
-    print('');
-
-    completionKindCounter.printCounterValues();
-    print('');
-
-    completionElementKindCounter.printCounterValues();
-    print('');
-
-    mRRComputer.printMean();
-    print('');
-
-    print('Summary for $_rootPath:');
-    print('Total number of completion tests   = $totalCompletionCount');
-    print(
-        'Number of successful completions   = $includedCount (${printPercentage(percentIncluded)})');
-    print(
-        'Number of unsuccessful completions = $notIncludedCount (${printPercentage(percentNotIncluded)})');
-
-    includedCount = 0;
-    notIncludedCount = 0;
-    completionMissedTokenCounter.clear();
-    completionKindCounter.clear();
-    completionElementKindCounter.clear();
-    mRRComputer.clear();
-
-    _relevanceAnalyzer?.printData();
-    _relevanceAnalyzer?.clear();
+    printAndClearComputers();
   }
+
+  /// Overridden by each subclass, this method gathers some set of data from
+  /// each [ExpectedCompletion], and each [CompletionSuggestion] list (if
+  /// [doComputeCompletionsFromAnalysisServer] is set to true.)
+  void forEachExpectedCompletion(ExpectedCompletion expectedCompletion,
+      List<CompletionSuggestion> suggestions);
+
+  /// This method is called to print a summary of the data collected.
+  void printAndClearComputers();
 
   Future<List<CompletionSuggestion>> _computeCompletionSuggestions(
       ResolvedUnitResult resolvedUnitResult, int offset,
@@ -214,7 +179,7 @@ class CompletionMetricsComputer {
 
   /// Given some [ResolvedUnitResult] return the first error of high severity
   /// if such an error exists, null otherwise.
-  err.AnalysisError _getFirstErrorOrNull(
+  static err.AnalysisError getFirstErrorOrNull(
       ResolvedUnitResult resolvedUnitResult) {
     for (var error in resolvedUnitResult.errors) {
       if (error.severity == Severity.error) {
@@ -224,7 +189,7 @@ class CompletionMetricsComputer {
     return null;
   }
 
-  Place _placementInSuggestionList(List<CompletionSuggestion> suggestions,
+  static Place placementInSuggestionList(List<CompletionSuggestion> suggestions,
       ExpectedCompletion expectedCompletion) {
     var placeCounter = 1;
     for (var completionSuggestion in suggestions) {
@@ -234,5 +199,117 @@ class CompletionMetricsComputer {
       placeCounter++;
     }
     return Place.none();
+  }
+}
+
+class CompletionCoverageMetrics extends AbstractCompletionMetricsComputer {
+  int includedCount = 0;
+  int notIncludedCount = 0;
+  var completionMissedTokenCounter = Counter('missing completion counter');
+  var completionKindCounter = Counter('completion kind counter');
+  var completionElementKindCounter = Counter('completion element kind counter');
+  var mRRComputer = MeanReciprocalRankComputer();
+
+  CompletionCoverageMetrics(String rootPath) : super(rootPath);
+
+  @override
+  bool get doComputeCompletionsFromAnalysisServer => true;
+
+  @override
+  void forEachExpectedCompletion(ExpectedCompletion expectedCompletion,
+      List<CompletionSuggestion> suggestions) {
+    assert(suggestions != null);
+
+    var place = AbstractCompletionMetricsComputer.placementInSuggestionList(
+        suggestions, expectedCompletion);
+
+    mRRComputer.addRank(place.rank);
+
+    if (place.denominator != 0) {
+      includedCount++;
+    } else {
+      notIncludedCount++;
+
+      completionMissedTokenCounter.count(expectedCompletion.completion);
+      completionKindCounter.count(expectedCompletion.kind.toString());
+      completionElementKindCounter
+          .count(expectedCompletion.elementKind.toString());
+
+      // The format "/file/path/foo.dart:3:4" makes for easier input
+      // with the Files dialog in IntelliJ
+      print(
+          '$currentFilePath:${expectedCompletion.lineNumber}:${expectedCompletion.columnNumber}');
+      print(
+          '\tdid not include the expected completion: \"${expectedCompletion.completion}\", completion kind: ${expectedCompletion.kind.toString()}, element kind: ${expectedCompletion.elementKind.toString()}');
+      print('');
+    }
+  }
+
+  @override
+  void printAndClearComputers() {
+    final totalCompletionCount = includedCount + notIncludedCount;
+    final percentIncluded = includedCount / totalCompletionCount;
+    final percentNotIncluded = 1 - percentIncluded;
+
+    completionMissedTokenCounter.printCounterValues();
+    print('');
+
+    completionKindCounter.printCounterValues();
+    print('');
+
+    completionElementKindCounter.printCounterValues();
+    print('');
+
+    mRRComputer.printMean();
+    print('');
+
+    print('Summary for $_rootPath:');
+    print('Total number of completion tests   = $totalCompletionCount');
+    print(
+        'Number of successful completions   = $includedCount (${printPercentage(percentIncluded)})');
+    print(
+        'Number of unsuccessful completions = $notIncludedCount (${printPercentage(percentNotIncluded)})');
+
+    includedCount = 0;
+    notIncludedCount = 0;
+    completionMissedTokenCounter.clear();
+    completionKindCounter.clear();
+    completionElementKindCounter.clear();
+    mRRComputer.clear();
+  }
+}
+
+class RelevanceAnalyzerMetrics extends AbstractCompletionMetricsComputer {
+  /// A non-null list of [RelevanceAnalyzer]s to execute when computing the
+  /// completion metrics.
+  final List<RelevanceAnalyzer> _relevanceAnalyzers;
+
+  RelevanceAnalyzerMetrics(String rootPath, this._relevanceAnalyzers)
+      : assert(_relevanceAnalyzers.isNotEmpty),
+        super(rootPath);
+
+  @override
+  bool get doComputeCompletionsFromAnalysisServer => false;
+
+  List<RelevanceAnalyzer> get relevanceAnalyzers => _relevanceAnalyzers;
+
+  @override
+  void forEachExpectedCompletion(ExpectedCompletion expectedCompletion,
+      List<CompletionSuggestion> suggestions) async {
+    assert(suggestions == null);
+    var dartCompletionRequest = await DartCompletionRequestImpl.from(
+        CompletionRequestImpl(
+            resolvedUnitResult, expectedCompletion.offset, _performance));
+
+    _relevanceAnalyzers.forEach((analyzer) =>
+        analyzer.report(expectedCompletion, dartCompletionRequest));
+  }
+
+  @override
+  void printAndClearComputers() {
+    print('\nRelevance Analysis (count: ${_relevanceAnalyzers.length}):');
+    _relevanceAnalyzers.forEach((analyzer) => analyzer
+      ..printData()
+      ..clear());
   }
 }

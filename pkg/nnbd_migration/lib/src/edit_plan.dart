@@ -1112,11 +1112,18 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
     separators =
         sequenceNodes == null ? null : _computeSeparators(node, sequenceNodes);
     _processPlans();
+    Precedence precedence;
+    if (node is FunctionExpression && node.body is ExpressionFunctionBody) {
+      // To avoid ambiguities when adding `as Type` after a function expression,
+      // assume assignment precedence.
+      precedence = Precedence.assignment;
+    } else if (node is Expression) {
+      precedence = node.precedence;
+    } else {
+      precedence = Precedence.primary;
+    }
     return _PassThroughEditPlan._(
-        node,
-        node is Expression ? node.precedence : Precedence.primary,
-        endsInCascade ?? node.endsInCascade,
-        changes);
+        node, precedence, endsInCascade ?? node.endsInCascade, changes);
   }
 
   /// Starting at index [planIndex] of [innerPlans] (whose value is [plan]),

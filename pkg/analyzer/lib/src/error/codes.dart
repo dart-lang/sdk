@@ -107,7 +107,8 @@ class CheckedModeCompileTimeErrorCode extends AnalyzerErrorCode {
       CheckedModeCompileTimeErrorCode(
           'VARIABLE_TYPE_MISMATCH',
           "A value of type '{0}' can't be assigned to a variable of type "
-              "'{1}'.");
+              "'{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -553,7 +554,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE =
       CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_TYPE',
           "The built-in identifier '{0}' can't be used as a type.",
-          correction: "Try correcting the name to match an existing type.");
+          correction: "Try correcting the name to match an existing type.",
+          hasPublishedDocs: true);
 
   /**
    * 16.33 Identifier Reference: It is a compile-time error if a built-in
@@ -852,7 +854,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
           "Can't define a const constructor for a class with non-final fields.",
           correction: "Try making all of the fields final, or "
-              "removing the keyword 'const' from the constructor.");
+              "removing the keyword 'const' from the constructor.",
+          hasPublishedDocs: true);
 
   /**
    * 12.12.2 Const: It is a compile-time error if <i>T</i> is a deferred type.
@@ -1048,7 +1051,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode CONST_INSTANCE_FIELD = CompileTimeErrorCode(
       'CONST_INSTANCE_FIELD', "Only static fields can be declared as const.",
       correction: "Try declaring the field as final, or adding the keyword "
-          "'static'.");
+          "'static'.",
+      hasPublishedDocs: true);
 
   /**
    * 12.8 Maps: It is a compile-time error if the key of an entry in a constant
@@ -1219,7 +1223,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode CONST_WITH_NON_CONST = CompileTimeErrorCode(
       'CONST_WITH_NON_CONST',
       "The constructor being called isn't a const constructor.",
-      correction: "Try removing 'const' from the constructor invocation.");
+      correction: "Try removing 'const' from the constructor invocation.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -1589,7 +1594,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The argument for the named parameter '{0}' was already specified.",
           correction: "Try removing one of the named arguments, or "
               "correcting one of the names to reference a different named "
-              "parameter.");
+              "parameter.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2469,7 +2475,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode IMPLEMENTS_REPEATED = CompileTimeErrorCode(
       'IMPLEMENTS_REPEATED', "'{0}' can only be implemented once.",
-      correction: "Try removing all but one occurrence of the class name.");
+      correction: "Try removing all but one occurrence of the class name.",
+      hasPublishedDocs: true);
 
   /**
    * 7.10 Superinterfaces: It is a compile-time error if the superclass of a
@@ -2665,7 +2672,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('INITIALIZER_FOR_NON_EXISTENT_FIELD',
           "'{0}' isn't a field in the enclosing class.",
           correction: "Try correcting the name to match an existing field, or "
-              "defining a field named '{0}'.");
+              "defining a field named '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
@@ -2825,7 +2833,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode INSTANCE_MEMBER_ACCESS_FROM_FACTORY =
       CompileTimeErrorCode('INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
           "Instance members can't be accessed from a factory constructor.",
-          correction: "Try removing the reference to the instance member.");
+          correction: "Try removing the reference to the instance member.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2881,7 +2890,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('INSTANCE_MEMBER_ACCESS_FROM_STATIC',
           "Instance members can't be accessed from a static method.",
           correction: "Try removing the reference to the instance member, or "
-              "removing the keyword 'static' from the method.");
+              "removing the keyword 'static' from the method.",
+          hasPublishedDocs: true);
 
   /**
    * Enum proposal: It is also a compile-time error to explicitly instantiate an
@@ -3090,7 +3100,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode(
           'INVALID_FACTORY_NAME_NOT_A_CLASS',
           "The name of a factory constructor must be the same as the name of "
-              "the immediately enclosing class.");
+              "the immediately enclosing class.",
+          hasPublishedDocs: true);
 
   static const CompileTimeErrorCode INVALID_INLINE_FUNCTION_TYPE =
       CompileTimeErrorCode(
@@ -3220,7 +3231,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode INVALID_REFERENCE_TO_THIS =
       CompileTimeErrorCode('INVALID_REFERENCE_TO_THIS',
-          "Invalid reference to 'this' expression.");
+          "Invalid reference to 'this' expression.",
+          hasPublishedDocs: true);
 
   /**
    * 12.6 Lists: It is a compile time error if the type argument of a constant
@@ -3295,8 +3307,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // #### Common fixes
   //
   // Replace the invalid URI with a valid URI.
-  static const CompileTimeErrorCode INVALID_URI =
-      CompileTimeErrorCode('INVALID_URI', "Invalid URI syntax: '{0}'.");
+  static const CompileTimeErrorCode INVALID_URI = CompileTimeErrorCode(
+      'INVALID_URI', "Invalid URI syntax: '{0}'.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -3733,7 +3746,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // class C {}
   // ```
   static const CompileTimeErrorCode MIXIN_OF_NON_CLASS = CompileTimeErrorCode(
-      'MIXIN_OF_NON_CLASS', "Classes can only mix in mixins and classes.");
+      'MIXIN_OF_NON_CLASS', "Classes can only mix in mixins and classes.",
+      hasPublishedDocs: true);
 
   /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin refers
@@ -3854,7 +3868,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS =
       CompileTimeErrorCode('NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
           "Annotation creation must have arguments.",
-          correction: "Try adding an empty argument list.");
+          correction: "Try adding an empty argument list.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -4285,7 +4300,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode NON_CONSTANT_SET_ELEMENT =
       CompileTimeErrorCode('NON_CONSTANT_SET_ELEMENT',
           "The values in a const set literal must be constants.",
-          correction: "Try removing the keyword 'const' from the set literal.");
+          correction: "Try removing the keyword 'const' from the set literal.",
+          hasPublishedDocs: true);
 
   /**
    * This error code is no longer being generated. It should be removed when the
@@ -4644,7 +4660,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode PART_OF_NON_PART = CompileTimeErrorCode(
       'PART_OF_NON_PART',
       "The included part '{0}' must have a part-of directive.",
-      correction: "Try adding a part-of directive to '{0}'.");
+      correction: "Try adding a part-of directive to '{0}'.",
+      hasPublishedDocs: true);
 
   /// Parts: It is a static warning if the referenced part declaration
   /// <i>p</i> names a library that does not have a library tag.
@@ -5076,8 +5093,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   //
   // Rewrite the code to not use `super`.
   static const CompileTimeErrorCode SUPER_IN_INVALID_CONTEXT =
-      CompileTimeErrorCode('SUPER_IN_INVALID_CONTEXT',
-          "Invalid context for 'super' invocation.");
+      CompileTimeErrorCode(
+          'SUPER_IN_INVALID_CONTEXT', "Invalid context for 'super' invocation.",
+          hasPublishedDocs: true);
 
   /**
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting,
@@ -5095,6 +5113,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode SUPER_INITIALIZER_IN_OBJECT =
       CompileTimeErrorCode('SUPER_INITIALIZER_IN_OBJECT',
           "The class 'Object' can't invoke a constructor from a superclass.");
+
+  /// It is an error if any case of a switch statement except the last case
+  /// (the default case if present) may complete normally. The previous
+  /// syntactic restriction requiring the last statement of each case to be
+  /// one of an enumerated list of statements (break, continue, return,
+  /// throw, or rethrow) is removed.
+  static const CompileTimeErrorCode SWITCH_CASE_COMPLETES_NORMALLY =
+      CompileTimeErrorCode('SWITCH_CASE_COMPLETES_NORMALLY',
+          "The 'case' should not complete normally.",
+          correction: "Try adding 'break', or 'return', etc.");
 
   /**
    * Parameters:
@@ -5299,7 +5327,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
       CompileTimeErrorCode('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
           "The class '{0}' doesn't have a constructor named '{1}'.",
           correction: "Try defining a constructor named '{1}' in '{0}', or "
-              "invoking a different constructor.");
+              "invoking a different constructor.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -5951,7 +5980,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   // ```
   static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER =
       CompileTimeErrorCode('WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER',
-          "Setters must declare exactly one required positional parameter.");
+          "Setters must declare exactly one required positional parameter.",
+          hasPublishedDocs: true);
 
   /**
    * Let `C` be a generic class that declares a formal type parameter `X`, and
@@ -6201,7 +6231,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   static const StaticTypeWarningCode INSTANCE_ACCESS_TO_STATIC_MEMBER =
       StaticTypeWarningCode('INSTANCE_ACCESS_TO_STATIC_MEMBER',
           "Static {1} '{0}' can't be accessed through an instance.",
-          correction: "Try using the class '{2}' to access the {1}.");
+          correction: "Try using the class '{2}' to access the {1}.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6338,7 +6369,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
       StaticTypeWarningCode(
           'INVOCATION_OF_NON_FUNCTION_EXPRESSION',
           "The expression doesn't evaluate to a function, so it can't be "
-              "invoked.");
+              "invoked.",
+          hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -6407,7 +6439,7 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   static const StaticTypeWarningCode NON_BOOL_EXPRESSION =
       StaticTypeWarningCode('NON_BOOL_EXPRESSION',
           "The expression in an assert must be of type 'bool'.",
-          correction: "Try changing the expression.");
+          correction: "Try changing the expression.", hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -6438,7 +6470,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   static const StaticTypeWarningCode NON_BOOL_NEGATION_EXPRESSION =
       StaticTypeWarningCode('NON_BOOL_NEGATION_EXPRESSION',
           "A negation operand must have a static type of 'bool'.",
-          correction: "Try changing the operand to the '!' operator.");
+          correction: "Try changing the operand to the '!' operator.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6469,7 +6502,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // ```
   static const StaticTypeWarningCode NON_BOOL_OPERAND = StaticTypeWarningCode(
       'NON_BOOL_OPERAND',
-      "The operands of the operator '{0}' must be assignable to 'bool'.");
+      "The operands of the operator '{0}' must be assignable to 'bool'.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -6554,7 +6588,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
       StaticTypeWarningCode(
           'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
           "The return type '{0}' isn't a '{1}', as required by the closure's "
-              "context.");
+              "context.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -7134,7 +7169,8 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // ```
   static const StaticTypeWarningCode FOR_IN_OF_INVALID_TYPE =
       StaticTypeWarningCode('FOR_IN_OF_INVALID_TYPE',
-          "The type '{0}' used in the 'for' loop must implement {1}.");
+          "The type '{0}' used in the 'for' loop must implement {1}.",
+          hasPublishedDocs: true);
 
   /**
    * 17.6.2 For-in. It the iterable expression does not implement Iterable with
@@ -7381,7 +7417,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode ASSIGNMENT_TO_FINAL = StaticWarningCode(
       'ASSIGNMENT_TO_FINAL',
       "'{0}' can't be used as a setter because it's final.",
-      correction: "Try finding a different setter, or making '{0}' non-final.");
+      correction: "Try finding a different setter, or making '{0}' non-final.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -7419,7 +7456,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   static const StaticWarningCode ASSIGNMENT_TO_FINAL_LOCAL = StaticWarningCode(
       'ASSIGNMENT_TO_FINAL_LOCAL',
       "The final variable '{0}' can only be set once.",
-      correction: "Try making '{0}' non-final.");
+      correction: "Try making '{0}' non-final.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -7520,7 +7558,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   //
   // Rewrite the code so that there isn't an assignment to a method.
   static const StaticWarningCode ASSIGNMENT_TO_METHOD = StaticWarningCode(
-      'ASSIGNMENT_TO_METHOD', "Methods can't be assigned a value.");
+      'ASSIGNMENT_TO_METHOD', "Methods can't be assigned a value.",
+      hasPublishedDocs: true);
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form
@@ -7576,7 +7615,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       'CASE_BLOCK_NOT_TERMINATED',
       "The last statement of the 'case' should be 'break', 'continue', "
           "'rethrow', 'return', or 'throw'.",
-      correction: "Try adding one of the required statements.");
+      correction: "Try adding one of the required statements.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -8025,7 +8065,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // create an instance of the concrete subclass.
   static const StaticWarningCode INSTANTIATE_ABSTRACT_CLASS = StaticWarningCode(
       'INSTANTIATE_ABSTRACT_CLASS', "Abstract classes can't be instantiated.",
-      correction: "Try creating an instance of a concrete subtype.");
+      correction: "Try creating an instance of a concrete subtype.",
+      hasPublishedDocs: true);
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -8158,7 +8199,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCode(
           'MAP_KEY_TYPE_NOT_ASSIGNABLE',
           "The element type '{0}' can't be assigned to the map key type "
-              "'{1}'.");
+              "'{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8198,7 +8240,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCode(
           'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
           "The element type '{0}' can't be assigned to the map value type "
-              "'{1}'.");
+              "'{1}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8267,7 +8310,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCode(
           'MISSING_ENUM_CONSTANT_IN_SWITCH', "Missing case clause for '{0}'.",
           correction: "Try adding a case clause for the missing constant, or "
-              "adding a default clause.");
+              "adding a default clause.",
+          hasPublishedDocs: true);
 
   @Deprecated('No longer an error in the spec and no longer generated')
   static const StaticWarningCode MIXED_RETURN_TYPES = StaticWarningCode(
@@ -8360,7 +8404,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       StaticWarningCode('NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
           "The class '{0}' doesn't have a default constructor.",
           correction:
-              "Try using one of the named constructors defined in '{0}'.");
+              "Try using one of the named constructors defined in '{0}'.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8543,7 +8588,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       'NON_TYPE_IN_CATCH_CLAUSE',
       "The name '{0}' isn't a type and can't be used in an on-catch "
           "clause.",
-      correction: "Try correcting the name to match an existing class.");
+      correction: "Try correcting the name to match an existing class.",
+      hasPublishedDocs: true);
 
   /**
    * 7.1.1 Operators: It is a static warning if the return type of the
@@ -8685,7 +8731,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'REDIRECT_TO_INVALID_FUNCTION_TYPE',
           "The redirected constructor '{0}' has incompatible parameters with "
               "'{1}'.",
-          correction: "Try redirecting to a different constructor.");
+          correction: "Try redirecting to a different constructor.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8747,7 +8794,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'REDIRECT_TO_INVALID_RETURN_TYPE',
           "The return type '{0}' of the redirected constructor isn't "
               "assignable to '{1}'.",
-          correction: "Try redirecting to a different constructor.");
+          correction: "Try redirecting to a different constructor.",
+          hasPublishedDocs: true);
 
   @Deprecated('Use CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR')
   static const CompileTimeErrorCode REDIRECT_TO_MISSING_CONSTRUCTOR =
@@ -8786,7 +8834,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // }
   // ```
   static const StaticWarningCode RETURN_WITHOUT_VALUE = StaticWarningCode(
-      'RETURN_WITHOUT_VALUE', "The  return value is missing after 'return'.");
+      'RETURN_WITHOUT_VALUE', "The  return value is missing after 'return'.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -8851,7 +8900,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
   // ```
   static const StaticWarningCode STATIC_ACCESS_TO_INSTANCE_MEMBER =
       StaticWarningCode('STATIC_ACCESS_TO_INSTANCE_MEMBER',
-          "Instance member '{0}' can't be accessed using static access.");
+          "Instance member '{0}' can't be accessed using static access.",
+          hasPublishedDocs: true);
 
   /**
    * 13.9 Switch: It is a static warning if the type of <i>e</i> may not be
@@ -9089,7 +9139,8 @@ class StaticWarningCode extends AnalyzerErrorCode {
       correction:
           "Try checking to see if you're using the correct API; there might "
           "be a function or call that returns void you didn't expect. Also "
-          "check type parameters and variables which might also be void.");
+          "check type parameters and variables which might also be void.",
+      hasPublishedDocs: true);
 
   @override
   final ErrorSeverity errorSeverity;

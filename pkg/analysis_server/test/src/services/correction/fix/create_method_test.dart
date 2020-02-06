@@ -31,7 +31,7 @@ class AddMissingHashOrEqualsTest extends FixProcessorLintTest {
     await resolveTestUnit('''
 class C {
   @override
-  int get /*LINT*/hashCode => 13;
+  int get hashCode => 13;
 }
 ''');
     await assertHasFix('''
@@ -52,7 +52,7 @@ class C {
     await resolveTestUnit('''
 class C {
   @override
-  bool operator /*LINT*/==(Object other) => false;
+  bool operator ==(Object other) => false;
 }
 ''');
     await assertHasFix('''

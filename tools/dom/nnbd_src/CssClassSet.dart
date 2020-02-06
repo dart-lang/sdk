@@ -23,7 +23,7 @@ abstract class CssClassSet implements Set<String> {
    * non-empty string containing no whitespace.  To toggle multiple classes, use
    * [toggleAll].
    */
-  bool toggle(String value, [bool shouldAdd]);
+  bool toggle(String value, [bool? shouldAdd]);
 
   /**
    * Returns [:true:] if classes cannot be added or removed from this
@@ -107,5 +107,5 @@ abstract class CssClassSet implements Set<String> {
    * Each element of [iterable] must be a valid 'token' representing a single
    * class, i.e. a non-empty string containing no whitespace.
    */
-  void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
+  void toggleAll(Iterable<String> iterable, [bool? shouldAdd]);
 }

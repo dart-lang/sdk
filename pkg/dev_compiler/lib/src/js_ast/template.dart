@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: slash_for_doc_comments, prefer_single_quotes
+// ignore_for_file: slash_for_doc_comments, omit_local_variable_types
 // ignore_for_file: always_declare_return_types, prefer_collection_literals
+// ignore_for_file: prefer_single_quotes, prefer_generic_function_type_aliases
 
 part of js_ast;
 

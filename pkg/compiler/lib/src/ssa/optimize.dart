@@ -902,7 +902,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
       // @Native methods have conversion code for function arguments. Rather
       // than insert that code at the inlined call site, call the target on the
       // interceptor.
-      if (parameterType.unaliased is FunctionType) return true;
+      if (parameterType is FunctionType) return true;
     }
 
     if (!_closedWorld.annotationsData
@@ -1166,8 +1166,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
     DartType type = node.typeExpression;
 
     if (!node.isRawCheck) {
-      return node;
-    } else if (type is TypedefType) {
       return node;
     } else if (type is FunctionType) {
       return node;
@@ -1523,8 +1521,8 @@ class SsaInstructionSimplifier extends HBaseVisitor
 
       if (!_closedWorld.dartTypes.treatAsRawType(fieldType) ||
           fieldType is TypeVariableType ||
-          fieldType.unaliased is FunctionType ||
-          fieldType.unaliased is FutureOrType) {
+          fieldType is FunctionType ||
+          fieldType is FutureOrType) {
         // We cannot generate the correct type representation here, so don't
         // inline this access.
         // TODO(sra): If the input is such that we don't need a type check, we
@@ -3265,8 +3263,6 @@ class SsaTypeConversionInserter extends HBaseVisitor
   void visitIs(HIs instruction) {
     DartType type = instruction.typeExpression;
     if (!instruction.isRawCheck) {
-      return;
-    } else if (type is TypedefType) {
       return;
     } else if (type is FutureOrType) {
       return;

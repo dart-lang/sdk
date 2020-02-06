@@ -874,6 +874,14 @@ enum class Nullability : int8_t {
   kLegacy = 3,
 };
 
+// Equality kind between types.
+enum class TypeEquality {
+  kCanonical = 0,
+  kSyntactical = 1,
+  kSubtypeNullability = 2,
+  kIgnoreNullability = 3,
+};
+
 // The NNBDMode is passed to routines performing type reification and/or subtype
 // tests. The mode reflects the opted-in status of the library performing type
 // reification and/or subtype tests.
@@ -2514,7 +2522,8 @@ class Function : public Object {
 
   // Returns true if this function has the same number of type parameters with
   // equal bounds as the other function. Type parameter names are ignored.
-  bool HasSameTypeParametersAndBounds(const Function& other) const;
+  bool HasSameTypeParametersAndBounds(const Function& other,
+                                      TypeEquality kind) const;
 
   // Return the number of type parameters declared in parent generic functions.
   intptr_t NumParentTypeParameters() const;
@@ -2788,6 +2797,8 @@ class Function : public Object {
     return IsClosureFunction() ||
            !(is_static() || (kind() == RawFunction::kConstructor));
   }
+
+  bool NeedsMonomorphicCheckedEntry(Zone* zone) const;
 
   bool MayHaveUncheckedEntryPoint(Isolate* I) const;
 
@@ -3875,6 +3886,16 @@ class Field : public Object {
     return has_initializer() && !has_nontrivial_initializer();
   }
 
+  bool is_non_nullable_integer() const {
+    return IsNonNullableIntBit::decode(raw_ptr()->kind_bits_);
+  }
+
+  void set_is_non_nullable_integer(bool is_non_nullable_integer) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
+    set_kind_bits(IsNonNullableIntBit::update(is_non_nullable_integer,
+                                              raw_ptr()->kind_bits_));
+  }
+
   StaticTypeExactnessState static_type_exactness_state() const {
     return StaticTypeExactnessState::Decode(
         raw_ptr()->static_type_exactness_state_);
@@ -4103,6 +4124,7 @@ class Field : public Object {
     kIsExtensionMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
+    kIsNonNullableIntBit,
   };
   class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
   class StaticBit : public BitField<uint16_t, bool, kStaticBit, 1> {};
@@ -4130,6 +4152,8 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit
       : public BitField<uint16_t, bool, kHasInitializerBit, 1> {};
+  class IsNonNullableIntBit
+      : public BitField<uint16_t, bool, kIsNonNullableIntBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -7016,19 +7040,19 @@ class TypeArguments : public Instance {
   // Check if the vectors are equal (they may be null).
   bool Equals(const TypeArguments& other) const {
     return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
-                                 /* syntactically = */ false);
+                                 TypeEquality::kCanonical);
   }
 
   bool IsEquivalent(const TypeArguments& other,
-                    bool syntactically,
+                    TypeEquality kind,
                     TrailPtr trail = NULL) const {
-    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(),
-                                 syntactically, trail);
+    return IsSubvectorEquivalent(other, 0, IsNull() ? 0 : Length(), kind,
+                                 trail);
   }
   bool IsSubvectorEquivalent(const TypeArguments& other,
                              intptr_t from_index,
                              intptr_t len,
-                             bool syntactically,
+                             TypeEquality kind,
                              TrailPtr trail = NULL) const;
 
   // Check if the vector is instantiated (it must not be null).
@@ -7218,10 +7242,10 @@ class AbstractType : public Instance {
   }
   virtual uint32_t CanonicalizeHash() const { return Hash(); }
   virtual bool Equals(const Instance& other) const {
-    return IsEquivalent(other, /* syntactically = */ false);
+    return IsEquivalent(other, TypeEquality::kCanonical);
   }
   virtual bool IsEquivalent(const Instance& other,
-                            bool syntactically,
+                            TypeEquality kind,
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
 
@@ -7456,11 +7480,6 @@ class Type : public AbstractType {
   virtual Nullability nullability() const {
     return static_cast<Nullability>(raw_ptr()->nullability_);
   }
-  void set_nullability(Nullability value) const {
-    ASSERT(!IsCanonical());
-    ASSERT(value != Nullability::kUndetermined);
-    StoreNonPointer(&raw_ptr()->nullability_, static_cast<int8_t>(value));
-  }
   RawType* ToNullability(Nullability value, Heap::Space space) const;
   virtual classid_t type_class_id() const;
   virtual RawClass* type_class() const;
@@ -7472,7 +7491,7 @@ class Type : public AbstractType {
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
-                            bool syntactically,
+                            TypeEquality kind,
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
 
@@ -7580,6 +7599,11 @@ class Type : public AbstractType {
 
   void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;
+  void set_nullability(Nullability value) const {
+    ASSERT(!IsCanonical());
+    ASSERT(value != Nullability::kUndetermined);
+    StoreNonPointer(&raw_ptr()->nullability_, static_cast<int8_t>(value));
+  }
 
   static RawType* New(Heap::Space space = Heap::kOld);
 
@@ -7632,7 +7656,7 @@ class TypeRef : public AbstractType {
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
-                            bool syntactically,
+                            TypeEquality kind,
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return true; }
   virtual bool IsFunctionType() const {
@@ -7692,7 +7716,6 @@ class TypeParameter : public AbstractType {
   virtual Nullability nullability() const {
     return static_cast<Nullability>(raw_ptr()->nullability_);
   }
-  void set_nullability(Nullability value) const;
   RawTypeParameter* ToNullability(Nullability value, Heap::Space space) const;
   virtual bool HasTypeClass() const { return false; }
   virtual classid_t type_class_id() const { return kIllegalCid; }
@@ -7717,7 +7740,7 @@ class TypeParameter : public AbstractType {
                               intptr_t num_free_fun_type_params = kAllFree,
                               TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other,
-                            bool syntactically,
+                            TypeEquality kind,
                             TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const { return false; }
   virtual RawAbstractType* InstantiateFrom(
@@ -7760,6 +7783,7 @@ class TypeParameter : public AbstractType {
   void set_name(const String& value) const;
   void set_token_pos(TokenPosition token_pos) const;
   void set_flags(uint8_t flags) const;
+  void set_nullability(Nullability value) const;
 
   static RawTypeParameter* New();
 

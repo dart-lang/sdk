@@ -91,8 +91,8 @@ class FantasyLandPackage extends Package {
       String name, Playground playground) async {
     return FantasyLandPackage._(
         name,
-        await buildFantasyLand(name, [],
-            Directory(path.join(playground.playgroundPath, '${name}__flat'))));
+        await buildFantasyLand(
+            name, [], path.join(playground.playgroundPath, '${name}__flat')));
   }
 
   @override
@@ -156,9 +156,8 @@ class GitPackage extends Package {
             workingDirectory: packagePath);
         // TODO(jcollins-g): allow for migrating dependencies?
       }
-      await pubTracker.addFutureFromClosure(() =>
+      await pubTracker.runFutureFromClosure(() =>
           launcher.runStreamed('pub', ['get'], workingDirectory: packagePath));
-      await pubTracker.wait();
     }
   }
 

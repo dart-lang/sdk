@@ -4,6 +4,9 @@
   feature, type arguments derived from type parameter bounds cannot be used as
   is, and might require erasing nullability, when the element is instantiated
   from a legacy library. Use `TypeSystem.instantiateToBounds2()` instead.
+* Deprecated `DeclaredVariables.getBool/getInt/getString()`. These methods
+  are used internally for constants computation, and should not be used by
+  clients.
 
 ## 0.39.4
 * Deprecated `DartType.name`, use `element` or `getDisplayString()` instead.

@@ -1,4 +1,11 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/mixin_application_inferred_parameter_type.dart:20:13: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+//   new Class('');
+//             ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -14,10 +21,15 @@ class Super extends core::Object {
     ;
 }
 class Class = self::Super with self::Mixin {
-  synthetic constructor •(dynamic field) → self::Class*
+  synthetic constructor •(core::int* field) → self::Class*
     : super self::Super::•(field)
     ;
 }
 static method main() → dynamic {
-  new self::Class::•("");
+  new self::Class::•(0);
+}
+static method error() → dynamic {
+  new self::Class::•(let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/general/mixin_application_inferred_parameter_type.dart:20:13: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
+  new Class('');
+            ^" in "" as{TypeError} core::int*);
 }

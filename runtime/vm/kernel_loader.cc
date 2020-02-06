@@ -957,8 +957,10 @@ void KernelLoader::ReadInferredType(const Field& field,
          (field.guarded_cid() == kFloat32x4Cid &&
           FlowGraphCompiler::SupportsUnboxedSimd128()) ||
          (field.guarded_cid() == kFloat64x2Cid &&
-          FlowGraphCompiler::SupportsUnboxedSimd128())) &&
+          FlowGraphCompiler::SupportsUnboxedSimd128()) ||
+         type.IsInt()) &&
         !field.is_nullable());
+    field.set_is_non_nullable_integer(!field.is_nullable() && type.IsInt());
   }
 }
 
@@ -2118,6 +2120,13 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     field.SetStaticValue(Object::sentinel(), true);
   }
   ASSERT(field.NeedsGetter());
+
+  if (field.is_late() && field.has_nontrivial_initializer()) {
+    // Late fields are initialized to Object::sentinel, which is a flavor of
+    // null. So we need to record that store so that the field guard doesn't
+    // prematurely optimise out the late field's sentinel checking logic.
+    field.RecordStore(Object::null_object());
+  }
 
   const String& getter_name = H.DartGetterName(field_helper->canonical_name_);
   const Object& script_class =

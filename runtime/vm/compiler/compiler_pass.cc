@@ -345,6 +345,7 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(SelectRepresentations);
   INVOKE_PASS(Canonicalize);
+  INVOKE_PASS(UseTableDispatch);
   INVOKE_PASS(EliminateStackOverflowChecks);
   INVOKE_PASS(Canonicalize);
   INVOKE_PASS(AllocationSinking_DetachMaterializations);
@@ -438,6 +439,12 @@ COMPILER_PASS(SelectRepresentations, {
   // interference from phis merging double values and tagged
   // values coming from dead paths.
   flow_graph->SelectRepresentations();
+});
+
+COMPILER_PASS(UseTableDispatch, {
+  if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
+    state->call_specializer->ReplaceInstanceCallsWithDispatchTableCalls();
+  }
 });
 
 COMPILER_PASS_REPEAT(CSE, { return DominatorBasedCSE::Optimize(flow_graph); });

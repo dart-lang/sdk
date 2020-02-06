@@ -4,7 +4,7 @@
 
 void main() {
   /*bl*/
-  Foo foo = Foo();
+  var foo = Foo();
   foo.foo();
   /*nbb:0:1*/
 }

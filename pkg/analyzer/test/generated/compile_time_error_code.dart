@@ -192,29 +192,6 @@ class A<as> {}
     ]);
   }
 
-  test_caseExpressionTypeImplementsEquals() async {
-    await assertErrorsInCode(r'''
-class IntWrapper {
-  final int value;
-  const IntWrapper(this.value);
-  bool operator ==(Object x) {
-    return x is IntWrapper && x.value == value;
-  }
-  get hashCode => value;
-}
-
-f(var a) {
-  switch(a) {
-    case(const IntWrapper(1)) : return 1;
-    default: return 0;
-  }
-}
-''', [
-      error(
-          CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, 194, 6),
-    ]);
-  }
-
   test_conflictingGenericInterfaces_hierarchyLoop() async {
     // There is no interface conflict here, but there is a loop in the class
     // hierarchy leading to a finite set of implemented types; this loop

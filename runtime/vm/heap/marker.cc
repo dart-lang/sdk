@@ -532,9 +532,6 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
 
 void GCMarker::ProcessObjectIdTable(Thread* thread) {
 #ifndef PRODUCT
-  if (!FLAG_support_service) {
-    return;
-  }
   TIMELINE_FUNCTION_GC_DURATION(thread, "ProcessObjectIdTable");
   ObjectIdRingClearPointerVisitor visitor(isolate_);
   ObjectIdRing* ring = isolate_->object_id_ring();

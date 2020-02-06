@@ -931,22 +931,6 @@ mixin NonFinalLate on AbstractLateFieldEncoding {
   }
 }
 
-mixin LateWithInitializer on AbstractLateFieldEncoding {
-  @override
-  Statement _createGetterBody(
-      CoreTypes coreTypes, String name, Expression initializer) {
-    assert(_type != null, "Type has not been computed for field $name.");
-    return late_lowering.createGetterWithInitializer(
-        fileOffset, name, _type, initializer,
-        createVariableRead: _createFieldRead,
-        createVariableWrite: (Expression value) =>
-            _createFieldSet(_field, value),
-        createIsSetRead: () => _createFieldGet(_lateIsSetField),
-        createIsSetWrite: (Expression value) =>
-            _createFieldSet(_lateIsSetField, value));
-  }
-}
-
 mixin LateWithoutInitializer on AbstractLateFieldEncoding {
   @override
   Statement _createGetterBody(
@@ -975,7 +959,7 @@ class LateFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
 }
 
 class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
-    with NonFinalLate, LateWithInitializer {
+    with NonFinalLate {
   LateFieldWithInitializerEncoding(
       String name,
       Uri fileUri,
@@ -987,6 +971,20 @@ class LateFieldWithInitializerEncoding extends AbstractLateFieldEncoding
       Procedure setterReferenceFrom)
       : super(name, fileUri, charOffset, charEndOffset, referenceFrom,
             lateIsSetReferenceFrom, getterReferenceFrom, setterReferenceFrom);
+
+  @override
+  Statement _createGetterBody(
+      CoreTypes coreTypes, String name, Expression initializer) {
+    assert(_type != null, "Type has not been computed for field $name.");
+    return late_lowering.createGetterWithInitializer(
+        fileOffset, name, _type, initializer,
+        createVariableRead: _createFieldRead,
+        createVariableWrite: (Expression value) =>
+            _createFieldSet(_field, value),
+        createIsSetRead: () => _createFieldGet(_lateIsSetField),
+        createIsSetWrite: (Expression value) =>
+            _createFieldSet(_lateIsSetField, value));
+  }
 }
 
 class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
@@ -1019,8 +1017,7 @@ class LateFinalFieldWithoutInitializerEncoding extends AbstractLateFieldEncoding
   }
 }
 
-class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding
-    with LateWithInitializer {
+class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding {
   LateFinalFieldWithInitializerEncoding(
       String name,
       Uri fileUri,
@@ -1032,6 +1029,19 @@ class LateFinalFieldWithInitializerEncoding extends AbstractLateFieldEncoding
       Procedure setterReferenceFrom)
       : super(name, fileUri, charOffset, charEndOffset, referenceFrom,
             lateIsSetReferenceFrom, getterReferenceFrom, setterReferenceFrom);
+  @override
+  Statement _createGetterBody(
+      CoreTypes coreTypes, String name, Expression initializer) {
+    assert(_type != null, "Type has not been computed for field $name.");
+    return late_lowering.createGetterWithInitializerWithRecheck(
+        coreTypes, fileOffset, name, _type, 'Field', initializer,
+        createVariableRead: _createFieldRead,
+        createVariableWrite: (Expression value) =>
+            _createFieldSet(_field, value),
+        createIsSetRead: () => _createFieldGet(_lateIsSetField),
+        createIsSetWrite: (Expression value) =>
+            _createFieldSet(_lateIsSetField, value));
+  }
 
   @override
   Procedure _createSetter(

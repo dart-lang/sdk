@@ -329,7 +329,6 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
       _backendUsageBuilder.processBackendImpact(impact);
     }
 
-    type = _elementEnvironment.getUnaliasedType(type);
     registerImpact(_impacts.typeCheck);
 
     if (!_dartTypes.treatAsRawType(type) ||
@@ -381,7 +380,6 @@ class CodegenImpactTransformer {
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
     if (type is DynamicType) return;
     if (type is VoidType) return;
-    type = type.unaliased;
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);
 
     if (!_closedWorld.dartTypes.treatAsRawType(type) ||

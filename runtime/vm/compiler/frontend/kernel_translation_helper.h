@@ -960,10 +960,15 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 };
 
 struct ProcedureAttributesMetadata {
-  bool has_dynamic_invocations = true;
+  static const int32_t kInvalidSelectorId = 0;
+
+  bool method_or_setter_called_dynamically = true;
+  bool getter_called_dynamically = true;
   bool has_this_uses = true;
   bool has_non_this_uses = true;
   bool has_tearoff_uses = true;
+  int32_t method_or_setter_selector_id = kInvalidSelectorId;
+  int32_t getter_selector_id = kInvalidSelectorId;
 
   void InitializeFromFlags(uint8_t flags);
 };

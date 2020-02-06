@@ -25,7 +25,7 @@ class ReplaceWithIdentifierTest extends FixProcessorLintTest {
 
   Future<void> test_functionTypedFormalParameter() async {
     await resolveTestUnit('''
-var functionWithFunction = (/*LINT*/int f(int x)) => f(0);
+var functionWithFunction = (int f(int x)) => f(0);
 ''');
     await assertHasFix('''
 var functionWithFunction = (f) => f(0);

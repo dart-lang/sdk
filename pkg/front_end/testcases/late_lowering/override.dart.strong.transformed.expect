@@ -58,7 +58,7 @@ class SubClass extends self::Class {
     else
       throw new _in::LateInitializationErrorImpl::•("Field 'field3' has already been initialized.");
   get field4() → core::int
-    return let final core::int? #t15 = this.{self::SubClass::_#SubClass#field4} in #t15.==(null) ?{core::int} this.{self::SubClass::_#SubClass#field4} = 0 : #t15{core::int};
+    return let final core::int? #t15 = this.{self::SubClass::_#SubClass#field4} in #t15.==(null) ?{core::int} let final core::int #t16 = 0 in this.{self::SubClass::_#SubClass#field4}.==(null) ?{core::int} this.{self::SubClass::_#SubClass#field4} = #t16 : throw new _in::LateInitializationErrorImpl::•("Field 'field4' has been assigned during initialization.") : #t15{core::int};
   get directField1() → core::int
     return super.{self::Class::field1};
   set directField1(core::int value) → void {

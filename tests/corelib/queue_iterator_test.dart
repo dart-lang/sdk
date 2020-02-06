@@ -31,7 +31,6 @@ class QueueIteratorTest {
     Iterator<int> it = queue.iterator;
     sum(6, it);
     Expect.isFalse(it.moveNext());
-    Expect.isNull(it.current);
   }
 
   static void testLargeQueue() {
@@ -44,7 +43,6 @@ class QueueIteratorTest {
     Iterator<int> it = queue.iterator;
     sum(count, it);
     Expect.isFalse(it.moveNext());
-    Expect.isNull(it.current);
   }
 
   static void testEmptyQueue() {
@@ -52,7 +50,6 @@ class QueueIteratorTest {
     Iterator<int> it = queue.iterator;
     sum(0, it);
     Expect.isFalse(it.moveNext());
-    Expect.isNull(it.current);
   }
 }
 

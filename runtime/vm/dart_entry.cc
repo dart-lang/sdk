@@ -9,6 +9,7 @@
 #include "vm/compiler/frontend/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/debugger.h"
+#include "vm/dispatch_table.h"
 #include "vm/heap/safepoint.h"
 #include "vm/interpreter.h"
 #include "vm/object_store.h"
@@ -111,6 +112,10 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
       Thread* thread = Thread::Current();
       thread->set_global_object_pool(
           thread->isolate()->object_store()->global_object_pool());
+      const DispatchTable* dispatch_table = thread->isolate()->dispatch_table();
+      if (dispatch_table != nullptr) {
+        thread->set_dispatch_table_array(dispatch_table->ArrayOrigin());
+      }
       ASSERT(thread->global_object_pool() != Object::null());
     }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

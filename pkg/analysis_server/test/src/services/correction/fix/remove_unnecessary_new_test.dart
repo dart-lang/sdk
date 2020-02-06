@@ -26,14 +26,16 @@ class RemoveUnnecessaryNewTest extends FixProcessorLintTest {
   Future<void> test_constructor() async {
     await resolveTestUnit('''
 class A { A(); }
-m(){
-  final a = /*LINT*/new A();
+f() {
+  final a = new A();
+  print(a);
 }
 ''');
     await assertHasFix('''
 class A { A(); }
-m(){
+f() {
   final a = A();
+  print(a);
 }
 ''');
   }

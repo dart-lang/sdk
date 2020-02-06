@@ -233,10 +233,10 @@ class _ClassVerifier {
         //  overriding method. The classNameNode is always wrong.
         CorrectOverrideHelper(
           typeSystem: typeSystem,
-          errorReporter: reporter,
           thisMember: concreteElement,
         ).verify(
           superMember: interfaceElement,
+          errorReporter: reporter,
           errorNode: classNameNode,
         );
       }
@@ -272,7 +272,6 @@ class _ClassVerifier {
     var name = Name(libraryUri, member.name);
     var correctOverrideHelper = CorrectOverrideHelper(
       typeSystem: typeSystem,
-      errorReporter: reporter,
       thisMember: member,
     );
 
@@ -290,6 +289,7 @@ class _ClassVerifier {
 
       correctOverrideHelper.verify(
         superMember: superMember,
+        errorReporter: reporter,
         errorNode: node,
       );
 
@@ -601,7 +601,10 @@ class _ClassVerifier {
     } else {
       var candidatesStr = conflict.candidates.map((candidate) {
         var className = candidate.enclosingElement.name;
-        return '$className.${name.name} (${candidate.displayName})';
+        var typeStr = candidate.type.getDisplayString(
+          withNullability: typeSystem.isNonNullableByDefault,
+        );
+        return '$className.${name.name} ($typeStr)';
       }).join(', ');
 
       reporter.reportErrorForNode(

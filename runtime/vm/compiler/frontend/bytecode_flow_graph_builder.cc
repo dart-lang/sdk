@@ -1928,7 +1928,7 @@ void BytecodeFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
       TypeArguments::Cast(B->Peek(/*depth=*/2)->AsConstant()->value());
   ASSERT(type_args.IsInstantiated() && type_args.Length() == 1);
   const Function& native_sig = Function::Handle(
-      Z, Type::Cast(AbstractType::Handle(Z, type_args.TypeAt(0))).signature());
+      Z, Type::CheckedHandle(Z, type_args.TypeAt(0)).signature());
 
   const Closure& target_closure =
       Closure::Cast(B->Peek(/*depth=*/1)->AsConstant()->value());

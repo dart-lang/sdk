@@ -28,7 +28,7 @@ class ConvertDocumentationIntoLineTest extends FixProcessorLintTest {
     await resolveTestUnit('''
 class A {
   /**
-   * /*LINT*/AAAAAAA [int] AAAAAAA
+   * AAAAAAA [int] AAAAAAA
    * BBBBBBBB BBBB BBBB
    * CCC [A] CCCCCCCCCCC
    */

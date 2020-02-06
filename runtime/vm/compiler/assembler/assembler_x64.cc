@@ -359,6 +359,9 @@ void Assembler::movb(const Address& dst, const Immediate& imm) {
 }
 
 void Assembler::movw(Register dst, const Address& src) {
+  // This would leave 16 bits above the 2 byte value undefined.
+  // If we ever want to purposefully have those undefined, remove this.
+  // TODO(40210): Allow this.
   FATAL("Use movzxw or movsxw instead.");
 }
 
@@ -1233,6 +1236,10 @@ void Assembler::LoadWordFromPoolOffset(Register dst, int32_t offset) {
 
 void Assembler::LoadIsolate(Register dst) {
   movq(dst, Address(THR, target::Thread::isolate_offset()));
+}
+
+void Assembler::LoadDispatchTable(Register dst) {
+  movq(dst, Address(THR, target::Thread::dispatch_table_array_offset()));
 }
 
 void Assembler::LoadObjectHelper(Register dst,
@@ -2198,12 +2205,12 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
     Bind(&join);
   } else {
     testq(object, Immediate(kSmiTagMask));
-    movq(result, Immediate(kSmiCid));
+    movq(result, Immediate(target::ToRawSmi(kSmiCid)));
     j(EQUAL, &smi, Assembler::kNearJump);
     LoadClassId(result, object);
+    SmiTag(result);
 
     Bind(&smi);
-    SmiTag(result);
   }
 }
 

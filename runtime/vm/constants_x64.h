@@ -12,7 +12,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-namespace arch_x64 {
+namespace dart {
 
 enum Register {
   RAX = 0,
@@ -150,7 +150,7 @@ enum ScaleFactor {
   TIMES_4 = 2,
   TIMES_8 = 3,
   TIMES_16 = 4,
-  TIMES_HALF_WORD_SIZE = ::dart::kWordSizeLog2 - 1
+  TIMES_HALF_WORD_SIZE = kWordSizeLog2 - 1
 };
 
 #define R(reg) (1 << (reg))
@@ -176,7 +176,7 @@ class CallingConventions {
   // same time? (Windows no, rest yes)
   static const bool kArgumentIntRegXorFpuReg = true;
 
-  static const intptr_t kShadowSpaceBytes = 4 * ::dart::kWordSize;
+  static const intptr_t kShadowSpaceBytes = 4 * kWordSize;
 
   static const intptr_t kVolatileCpuRegisters =
       R(RAX) | R(RCX) | R(RDX) | R(R8) | R(R9) | R(R10) | R(R11);
@@ -201,13 +201,22 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
 
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp").
-  static constexpr bool kAbiSoftFP = false;
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
 
-  // Whether 64-bit arguments must be aligned to an even register or 8-byte
-  // stack address. Not relevant on X64 since the word size is 64-bits already.
-  static constexpr bool kAlignArguments = false;
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+
+  // How fields in composites are aligned.
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;
+
 #else
   static const Register kArg1Reg = RDI;
   static const Register kArg2Reg = RSI;
@@ -253,13 +262,22 @@ class CallingConventions {
   static constexpr Register kSecondReturnReg = kNoRegister;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
 
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp").
-  static constexpr bool kAbiSoftFP = false;
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSize;
 
-  // Whether 64-bit arguments must be aligned to an even register or 8-byte
-  // stack address. Not relevant on X64 since the word size is 64-bits already.
-  static constexpr bool kAlignArguments = false;
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSize;
+
+  // How fields in composites are aligned.
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
+
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
+
 #endif
 
   COMPILE_ASSERT((kArgumentRegisters & kReservedCpuRegisters) == 0);
@@ -295,7 +313,7 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -307,6 +325,6 @@ class Instr {
 // becomes important to us.
 const int MAX_NOP_SIZE = 8;
 
-}  // namespace arch_x64
+}  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_X64_H_

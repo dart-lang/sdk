@@ -38,6 +38,8 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
 
   Element element = _MockElement();
 
+  final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
+
   _AlreadyMigratedCodeDecoratorTestBase(NullabilitySuffix nullabilitySuffix)
       : this._(
           nullabilitySuffix,
@@ -138,12 +140,23 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
     return decoratedType;
   }
 
+  DecoratedType getDecoratedBound(TypeParameterElement element) =>
+      decoratedTypeParameterBounds.get(element);
+
+  void setUp() {
+    DecoratedTypeParameterBounds.current = decoratedTypeParameterBounds;
+  }
+
+  void tearDown() {
+    DecoratedTypeParameterBounds.current = null;
+  }
+
   void test_decorate_dynamic() {
     checkDynamic(decorate(typeProvider.dynamicType));
   }
 
   void test_decorate_functionType_generic_bounded() {
-    var typeFormal = TypeParameterElementImpl.synthetic('T')
+    var typeFormal = element = TypeParameterElementImpl.synthetic('T')
       ..bound = typeProvider.numType;
     var decoratedType = decorate(
       FunctionTypeImpl(
@@ -153,14 +166,13 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         nullabilitySuffix: suffix,
       ),
     );
-    expect(decoratedType.typeFormalBounds, hasLength(1));
-    checkNum(decoratedType.typeFormalBounds[0], checkExplicitlyNonNullable);
+    checkNum(getDecoratedBound(typeFormal), checkExplicitlyNonNullable);
     checkTypeParameter(
         decoratedType.returnType, checkExplicitlyNonNullable, typeFormal);
   }
 
   void test_decorate_functionType_generic_no_explicit_bound() {
-    var typeFormal = TypeParameterElementImpl.synthetic('T');
+    var typeFormal = element = TypeParameterElementImpl.synthetic('T');
     var decoratedType = decorate(
       FunctionTypeImpl(
         typeFormals: [typeFormal],
@@ -169,8 +181,7 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
         nullabilitySuffix: suffix,
       ),
     );
-    expect(decoratedType.typeFormalBounds, hasLength(1));
-    checkObject(decoratedType.typeFormalBounds[0], checkExplicitlyNullable);
+    checkObject(getDecoratedBound(typeFormal), checkExplicitlyNullable);
     checkTypeParameter(
         decoratedType.returnType, checkExplicitlyNonNullable, typeFormal);
   }

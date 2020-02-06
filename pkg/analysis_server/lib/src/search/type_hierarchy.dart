@@ -119,8 +119,10 @@ class TypeHierarchyComputer {
     {
       String displayName;
       if (typeArguments != null && typeArguments.isNotEmpty) {
-        displayName =
-            classElement.displayName + '<' + typeArguments.join(', ') + '>';
+        var typeArgumentsStr = typeArguments
+            .map((type) => type.getDisplayString(withNullability: false))
+            .join(', ');
+        displayName = classElement.displayName + '<' + typeArgumentsStr + '>';
       }
       ExecutableElement memberElement = _findMemberElement(classElement);
       item = TypeHierarchyItem(convertElement(classElement),

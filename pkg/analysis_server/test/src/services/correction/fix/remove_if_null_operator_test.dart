@@ -26,7 +26,7 @@ class RemoveIfNullOperatorTest extends FixProcessorLintTest {
   Future<void> test_left() async {
     await resolveTestUnit('''
 var a = '';
-var b = /*LINT*/null ?? a;
+var b = null ?? a;
 ''');
     await assertHasFix('''
 var a = '';
@@ -37,7 +37,7 @@ var b = a;
   Future<void> test_right() async {
     await resolveTestUnit('''
 var a = '';
-var b = /*LINT*/a ?? null;
+var b = a ?? null;
 ''');
     await assertHasFix('''
 var a = '';

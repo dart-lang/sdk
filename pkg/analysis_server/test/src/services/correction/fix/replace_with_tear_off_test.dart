@@ -25,12 +25,12 @@ class ReplaceWithTearOffTest extends FixProcessorLintTest {
 
   Future<void> test_function_oneParameter() async {
     await resolveTestUnit('''
-final x = /*LINT*/(name) {
+Function f() => (name) {
   print(name);
 };
 ''');
     await assertHasFix('''
-final x = print;
+Function f() => print;
 ''');
   }
 
@@ -38,7 +38,7 @@ final x = print;
     await resolveTestUnit('''
 void foo(){}
 Function finalVar() {
-  return /*LINT*/() {
+  return () {
     foo();
   };
 }
@@ -56,7 +56,7 @@ Function finalVar() {
 void foo() {
   bool isPair(int a) => a % 2 == 0;
   final finalList = <int>[];
-  finalList.where(/*LINT*/(number) =>
+  finalList.where((number) =>
     isPair(number));
 }
 ''');
@@ -71,24 +71,26 @@ void foo() {
 
   Future<void> test_method_oneParameter() async {
     await resolveTestUnit('''
-var a = /*LINT*/(x) => finalList.remove(x);
+final l = <int>[];
+var a = (x) => l.indexOf(x);
 ''');
     await assertHasFix('''
-var a = finalList.remove;
+final l = <int>[];
+var a = l.indexOf;
 ''');
   }
 
   Future<void> test_method_zeroParameter() async {
     await resolveTestUnit('''
-final Object a;
+final Object a = '';
 Function finalVar() {
-  return /*LINT*/() {
+  return () {
     return a.toString();
   };
 }
 ''');
     await assertHasFix('''
-final Object a;
+final Object a = '';
 Function finalVar() {
   return a.toString;
 }

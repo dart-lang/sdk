@@ -34,7 +34,7 @@ class EventStreamProvider<T extends Event> {
    * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
    *   from MDN.
    */
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
+  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) =>
       new _EventStream<T>(e, _eventType, useCapture);
 
   /**
@@ -126,7 +126,7 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
  * Adapter for exposing DOM events as Dart streams.
  */
 class _EventStream<T extends Event> extends Stream<T> {
-  final EventTarget _target;
+  final EventTarget? _target;
   final String _eventType;
   final bool _useCapture;
 
@@ -225,9 +225,9 @@ typedef _EventListener<T extends Event>(T event);
 
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
-  EventTarget _target;
+  EventTarget? _target;
   final String _eventType;
-  EventListener _onData;
+  EventListener? _onData;
   final bool _useCapture;
 
   // TODO(leafp): It would be better to write this as
@@ -240,7 +240,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   // which are typed correctly.  But this currently runs afoul of restrictions
   // on is checks for compatibility with the VM.
   _EventStreamSubscription(
-      this._target, this._eventType, void onData(T event), this._useCapture)
+      this._target, this._eventType, void onData(T event)?, this._useCapture)
       : _onData = onData == null
             ? null
             : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
@@ -248,13 +248,16 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   Future cancel() {
-    if (_canceled) return null;
+    // Return type cannot be null due to override, so return empty Future
+    // instead.
+    var emptyFuture = new Future<void>.value();
+    if (_canceled) return emptyFuture;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
-    return null;
+    return emptyFuture;
   }
 
   bool get _canceled => _target == null;
@@ -297,13 +300,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   void _tryResume() {
     if (_onData != null && !isPaused) {
-      _target.addEventListener(_eventType, _onData, _useCapture);
+      _target!.addEventListener(_eventType, _onData, _useCapture);
     }
   }
 
   void _unlisten() {
     if (_onData != null) {
-      _target.removeEventListener(_eventType, _onData, _useCapture);
+      _target!.removeEventListener(_eventType, _onData, _useCapture);
     }
   }
 
@@ -332,10 +335,9 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
   /** The type of event this stream is providing (e.g. "keydown"). */
   String _type;
 
-  _CustomEventStreamImpl(String type) {
-    _type = type;
-    _streamController = new StreamController.broadcast(sync: true);
-  }
+  _CustomEventStreamImpl(String type)
+      : _type = type,
+        _streamController = new StreamController.broadcast(sync: true);
 
   // Delegate all regular Stream behavior to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event)?,
@@ -362,7 +364,7 @@ class _CustomKeyEventStreamImpl extends _CustomEventStreamImpl<KeyEvent>
 
   void add(KeyEvent event) {
     if (event.type == _type) {
-      event.currentTarget.dispatchEvent(event._parent);
+      event.currentTarget!.dispatchEvent(event._parent);
       _streamController.add(event);
     }
   }
@@ -374,7 +376,7 @@ class _CustomKeyEventStreamImpl extends _CustomEventStreamImpl<KeyEvent>
  */
 // TODO (efortuna): Remove this when Issue 12218 is addressed.
 class _StreamPool<T> {
-  StreamController<T> _controller;
+  StreamController<T>? _controller;
 
   /// Subscriptions to the streams that make up the pool.
   var _subscriptions = new Map<Stream<T>, StreamSubscription<T>>();
@@ -394,7 +396,7 @@ class _StreamPool<T> {
   /**
    * The stream through which all events from streams in the pool are emitted.
    */
-  Stream<T> get stream => _controller.stream;
+  Stream<T> get stream => _controller!.stream;
 
   /**
    * Adds [stream] as a member of this pool.
@@ -405,8 +407,8 @@ class _StreamPool<T> {
    */
   void add(Stream<T> stream) {
     if (_subscriptions.containsKey(stream)) return;
-    _subscriptions[stream] = stream.listen(_controller.add,
-        onError: _controller.addError, onDone: () => remove(stream));
+    _subscriptions[stream] = stream.listen(_controller!.add,
+        onError: _controller!.addError, onDone: () => remove(stream));
   }
 
   /** Removes [stream] as a member of this pool. */
@@ -421,7 +423,7 @@ class _StreamPool<T> {
       subscription.cancel();
     }
     _subscriptions.clear();
-    _controller.close();
+    _controller!.close();
   }
 }
 
@@ -434,7 +436,7 @@ class _CustomEventStreamProvider<T extends Event>
   final _eventTypeGetter;
   const _CustomEventStreamProvider(this._eventTypeGetter);
 
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) {
     return new _EventStream<T>(e, _eventTypeGetter(e), useCapture);
   }
 

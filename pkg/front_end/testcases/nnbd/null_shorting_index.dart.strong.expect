@@ -13,7 +13,7 @@ class Class1 extends core::Object {
   operator []=(core::int index, core::int value) → void {}
 }
 class Class2 extends core::Object {
-  field core::int field = null;
+  field core::int field = 42;
   synthetic constructor •() → self::Class2
     : super core::Object::•()
     ;

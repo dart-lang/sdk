@@ -14,6 +14,7 @@
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/relocation.h"
 #include "vm/dart.h"
+#include "vm/dispatch_table.h"
 #include "vm/flag_list.h"
 #include "vm/heap/heap.h"
 #include "vm/image_snapshot.h"
@@ -4437,8 +4438,11 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 class FakeSerializationCluster : public SerializationCluster {
  public:
-  FakeSerializationCluster(const char* name, intptr_t size)
+  FakeSerializationCluster(const char* name,
+                           intptr_t num_objects,
+                           intptr_t size)
       : SerializationCluster(name) {
+    num_objects_ = num_objects;
     size_ = size;
   }
   ~FakeSerializationCluster() {}
@@ -4952,7 +4956,9 @@ void Serializer::Serialize() {
 #endif
     }
   }
+}
 
+void Serializer::PrintSnapshotSizes() {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (FLAG_print_snapshot_sizes_verbose) {
     OS::PrintErr("             Cluster   Objs     Size Fraction Cumulative\n");
@@ -4965,7 +4971,13 @@ void Serializer::Serialize() {
     }
     if (GetTextSize() != 0) {
       clusters_by_size.Add(new (zone_) FakeSerializationCluster(
-          "(RO)Instructions", GetTextSize()));
+          "(RO)Instructions", 0, GetTextSize()));
+    }
+    // An null dispatch table will serialize to a single byte.
+    if (dispatch_table_size_ > 1) {
+      clusters_by_size.Add(new (zone_) FakeSerializationCluster(
+          "(RO)DispatchTable", isolate()->dispatch_table()->length(),
+          dispatch_table_size_));
     }
     clusters_by_size.Sort(CompareClusters);
     double total_size =
@@ -5084,6 +5096,8 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   Write<int32_t>(kSectionMarker);
 #endif
 
+  PrintSnapshotSizes();
+
   // Note we are not clearing the object id table. The full ref table
   // of the vm isolate snapshot serves as the base objects for the
   // regular isolate snapshot.
@@ -5122,9 +5136,18 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
     WriteRootRef(*p);
   }
 
+  // Serialize dispatch table.
+  GrowableArray<RawCode*>* code_objects =
+      static_cast<CodeSerializationCluster*>(clusters_by_cid_[kCodeCid])
+          ->discovered_objects();
+  dispatch_table_size_ = DispatchTable::Serialize(
+      this, isolate()->dispatch_table(), *code_objects);
+
 #if defined(DEBUG)
   Write<int32_t>(kSectionMarker);
 #endif
+
+  PrintSnapshotSizes();
 
   heap_->ResetObjectIdTable();
 }
@@ -5594,6 +5617,12 @@ void Deserializer::ReadIsolateSnapshot(ObjectStore* object_store) {
     for (RawObject** p = from; p <= to; p++) {
       *p = ReadRef();
     }
+
+    // Deserialize dispatch table
+    const Array& code_array =
+        Array::Handle(zone_, object_store->code_order_table());
+    thread()->isolate()->set_dispatch_table(
+        DispatchTable::Deserialize(this, code_array));
 
 #if defined(DEBUG)
     int32_t section_marker = Read<int32_t>();

@@ -202,7 +202,8 @@ abstract class Loader {
       if (coreLibrary == library) {
         target.loadExtraRequiredLibraries(this);
       }
-      if (target.backendTarget.mayDefineRestrictedType(origin?.uri ?? uri)) {
+      if (target.backendTarget
+          .mayDefineRestrictedType(origin?.importUri ?? uri)) {
         library.mayImplementRestrictedTypes = true;
       }
       if (uri.scheme == "dart") {
@@ -220,7 +221,7 @@ abstract class Loader {
       if (!accessor.isPatch &&
           !accessor.isPart &&
           !target.backendTarget
-              .allowPlatformPrivateLibraryAccess(accessor.uri, uri)) {
+              .allowPlatformPrivateLibraryAccess(accessor.importUri, uri)) {
         accessor.addProblem(messagePlatformPrivateLibraryAccess, charOffset,
             noLength, accessor.fileUri);
       }
@@ -243,7 +244,7 @@ abstract class Loader {
     assert(coreLibrary != null);
     for (LibraryBuilder library in builders.values) {
       if (library.loader == this) {
-        currentUriForCrashReporting = library.uri;
+        currentUriForCrashReporting = library.importUri;
         await buildBody(library);
       }
     }
@@ -255,7 +256,7 @@ abstract class Loader {
     ensureCoreLibrary();
     while (unparsedLibraries.isNotEmpty) {
       LibraryBuilder library = unparsedLibraries.removeFirst();
-      currentUriForCrashReporting = library.uri;
+      currentUriForCrashReporting = library.importUri;
       await buildOutline(library);
     }
     currentUriForCrashReporting = null;

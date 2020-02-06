@@ -10,12 +10,12 @@
 
 part of html;
 
-WindowBase _convertNativeToDart_Window(win) {
+WindowBase? _convertNativeToDart_Window(win) {
   if (win == null) return null;
   return _DOMWindowCrossFrame._createSafe(win);
 }
 
-EventTarget _convertNativeToDart_EventTarget(e) {
+EventTarget? _convertNativeToDart_EventTarget(e) {
   if (e == null) {
     return null;
   }

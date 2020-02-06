@@ -399,11 +399,15 @@ class _DispatchableInvocation extends _Invocation {
 
           if (selector.callKind != CallKind.PropertyGet) {
             if (selector is DynamicSelector) {
-              typeFlowAnalysis._calledViaDynamicSelector.add(target);
+              typeFlowAnalysis._methodsAndSettersCalledDynamically.add(target);
             } else if (selector is VirtualSelector) {
               typeFlowAnalysis._calledViaThis.add(target);
             } else {
               typeFlowAnalysis._calledViaInterfaceSelector.add(target);
+            }
+          } else {
+            if (selector is DynamicSelector) {
+              typeFlowAnalysis._gettersCalledDynamically.add(target);
             }
           }
 
@@ -1312,7 +1316,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   final Map<Member, Summary> _summaries = <Member, Summary>{};
   final Map<Field, _FieldValue> _fieldValues = <Field, _FieldValue>{};
   final Set<Member> _tearOffTaken = new Set<Member>();
-  final Set<Member> _calledViaDynamicSelector = new Set<Member>();
+  final Set<Member> _methodsAndSettersCalledDynamically = new Set<Member>();
+  final Set<Member> _gettersCalledDynamically = new Set<Member>();
   final Set<Member> _calledViaInterfaceSelector = new Set<Member>();
   final Set<Member> _calledViaThis = new Set<Member>();
 
@@ -1396,10 +1401,15 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   bool isTearOffTaken(Member member) => _tearOffTaken.contains(member);
 
-  /// Returns true if this member is called dynamically.
-  /// Getters are not tracked. For fields, only setter is tracked.
+  /// Returns true if this member is called on a receiver with static type
+  /// dynamic. Getters are not tracked. For fields, only setter is tracked.
   bool isCalledDynamically(Member member) =>
-      _calledViaDynamicSelector.contains(member);
+      _methodsAndSettersCalledDynamically.contains(member);
+
+  /// Returns true if this getter (or implicit getter for field) is called
+  /// on a receiver with static type dynamic.
+  bool isGetterCalledDynamically(Member member) =>
+      _gettersCalledDynamically.contains(member);
 
   /// Returns true if this member is called via this call.
   /// Getters are not tracked. For fields, only setter is tracked.
@@ -1408,7 +1418,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   /// Returns true if this member is called via non-this call.
   /// Getters are not tracked. For fields, only setter is tracked.
   bool isCalledNotViaThis(Member member) =>
-      _calledViaDynamicSelector.contains(member) ||
+      _methodsAndSettersCalledDynamically.contains(member) ||
       _calledViaInterfaceSelector.contains(member);
 
   /// ---- Implementation of [CallHandler] interface. ----

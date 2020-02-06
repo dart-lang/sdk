@@ -28,7 +28,7 @@ class RemoveEmptyCatchTest extends FixProcessorLintTest {
 void foo() {
   try {
     1;
-  } catch (e) {/*LINT*/
+  } catch (e) {
   } finally {
     2;
   }
@@ -48,7 +48,7 @@ void foo() {
   Future<void> test_singleCatch_finally_sameLine() async {
     await resolveTestUnit('''
 void foo() {
-  try {} catch (e) {/*LINT*/} finally {}
+  try {} catch (e) {} finally {}
 }
 ''');
     await assertHasFix('''
@@ -64,7 +64,7 @@ void foo() {
     await resolveTestUnit('''
 void foo() {
   try {
-  } catch (e) {/*LINT*/}
+  } catch (e) {}
 }
 ''');
     await assertNoFix();

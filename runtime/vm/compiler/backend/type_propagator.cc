@@ -1311,6 +1311,19 @@ CompileType InstanceCallBaseInstr::ComputeType() const {
   return CompileType::Dynamic();
 }
 
+CompileType DispatchTableCallInstr::ComputeType() const {
+  // TODO(dartbug.com/40188): Share implementation with InstanceCallBaseInstr.
+  const Function& target = interface_target();
+  ASSERT(!target.IsNull());
+  const auto& result_type = AbstractType::ZoneHandle(target.result_type());
+  if (result_type.IsInstantiated()) {
+    TraceStrongModeType(this, result_type);
+    return CompileType::FromAbstractType(result_type);
+  }
+
+  return CompileType::Dynamic();
+}
+
 CompileType PolymorphicInstanceCallInstr::ComputeType() const {
   bool is_nullable = CompileType::kNullable;
   if (IsSureToCallSingleRecognizedTarget()) {

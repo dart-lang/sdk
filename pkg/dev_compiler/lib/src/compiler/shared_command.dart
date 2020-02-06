@@ -242,7 +242,7 @@ List<String> filterUnknownArguments(List<String> args, ArgParser parser) {
   });
 
   String optionName(int prefixLength, String arg) {
-    int equalsOffset = arg.lastIndexOf('=');
+    var equalsOffset = arg.lastIndexOf('=');
     if (equalsOffset < 0) {
       return arg.substring(prefixLength);
     }
@@ -287,7 +287,7 @@ Uri sourcePathToUri(String source, {bool windows}) {
     source = source.replaceAll('\\', '/');
   }
 
-  Uri result = Uri.base.resolve(source);
+  var result = Uri.base.resolve(source);
   if (windows && result.scheme.length == 1) {
     // Assume c: or similar --- interpret as file path.
     return Uri.file(source, windows: true);
@@ -364,7 +364,7 @@ Map placeSourceMap(Map sourceMap, String sourceMapPath, String multiRootScheme,
     return p.toUri(sourcePath).path;
   }
 
-  for (int i = 0; i < list.length; i++) {
+  for (var i = 0; i < list.length; i++) {
     list[i] = makeRelative(list[i] as String);
   }
   map['sources'] = list;
@@ -480,10 +480,10 @@ class ParsedArguments {
     if (args.isEmpty) return ParsedArguments._(args);
 
     var newArgs = <String>[];
-    bool isWorker = false;
-    bool isBatch = false;
-    bool reuseResult = false;
-    bool useIncrementalCompiler = false;
+    var isWorker = false;
+    var isBatch = false;
+    var reuseResult = false;
+    var useIncrementalCompiler = false;
 
     Iterable<String> argsToParse = args;
 

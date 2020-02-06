@@ -101,7 +101,7 @@ class DevCompilerConstantsBackend extends ConstantsBackend {
 
   @override
   bool shouldInlineConstant(ConstantExpression initializer) {
-    Constant constant = initializer.constant;
+    var constant = initializer.constant;
     if (constant is StringConstant) {
       // Only inline small string constants, not large ones.
       // (The upper bound value is arbitrary.)

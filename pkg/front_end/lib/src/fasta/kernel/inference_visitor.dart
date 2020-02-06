@@ -718,6 +718,7 @@ class InferenceVisitor
             computeConstructorReturnType(node.target, inferrer.coreTypes),
         isConst: node.isConst);
     node.hasBeenInferred = true;
+    Expression resultNode = node;
     if (!inferrer.isTopLevel) {
       SourceLibraryBuilder library = inferrer.library;
       if (!hadExplicitTypeArguments) {
@@ -726,8 +727,19 @@ class InferenceVisitor
             inferred: true);
       }
     }
+    if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+      if (node.target == inferrer.coreTypes.listDefaultConstructor) {
+        if (inferrer.nnbdStrongMode) {
+          resultNode = inferrer.helper.wrapInProblem(
+              node, messageDefaultListConstructorError, noLength);
+        } else {
+          inferrer.library.addProblem(messageDefaultListConstructorWarning,
+              node.fileOffset, noLength, inferrer.library.fileUri);
+        }
+      }
+    }
     return new ExpressionInferenceResult(
-        result.inferredType, result.applyResult(node));
+        result.inferredType, result.applyResult(resultNode));
   }
 
   @override
@@ -2361,10 +2373,8 @@ class InferenceVisitor
   @override
   ExpressionInferenceResult visitNullCheck(
       NullCheck node, DartType typeContext) {
-    // TODO(johnniwinther): Should the typeContext for the operand be
-    //  `Nullable(typeContext)`?
-    ExpressionInferenceResult operandResult =
-        inferrer.inferExpression(node.operand, typeContext, true);
+    ExpressionInferenceResult operandResult = inferrer.inferExpression(
+        node.operand, inferrer.computeNullable(typeContext), true);
     node.operand = operandResult.expression..parent = node;
     // TODO(johnniwinther): Check that the inferred type is potentially
     //  nullable.
@@ -5283,8 +5293,9 @@ class InferenceVisitor
       initializerResult = inferrer.inferExpression(node.initializer,
           declaredType, !inferrer.isTopLevel || node.isImplicitlyTyped,
           isVoidAllowed: true);
-      inferredType =
-          inferrer.inferDeclarationType(initializerResult.inferredType);
+      inferredType = inferrer.inferDeclarationType(
+          initializerResult.inferredType,
+          forSyntheticVariable: node.name == null);
       inferrer.flowAnalysis.initialize(node);
     } else {
       inferredType = const DynamicType();

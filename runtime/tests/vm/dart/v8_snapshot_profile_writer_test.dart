@@ -203,8 +203,14 @@ main() async {
     final _thisTestPath = path.join(sdkDir, 'runtime', 'tests', 'vm', 'dart',
         'v8_snapshot_profile_writer_test.dart');
     final dillPath = path.join(tempDir, 'test.dill');
-    await run(genKernel,
-        <String>['--platform', platformDill, '-o', dillPath, _thisTestPath]);
+    await run(genKernel, <String>[
+      '--aot',
+      '--platform',
+      platformDill,
+      '-o',
+      dillPath,
+      _thisTestPath
+    ]);
 
     // Test stripped ELF generation directly.
     await test(

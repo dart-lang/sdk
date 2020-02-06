@@ -129,12 +129,6 @@ class NullabilityGraph {
       {bool hard: false,
       bool checkable = true,
       List<NullabilityNode> guards: const []}) {
-    // Hard nodes are always considered checkable, since the only time they
-    // arise is from an explicit use of an expression in a context that requires
-    // non-nullability (and hence, a null check could be added in that
-    // location).  Verify that the flags passed in by the caller are consistent
-    // with this.
-    assert(checkable || !hard);
     var upstreamNodes = [sourceNode]..addAll(guards);
     var kind = hard
         ? _NullabilityEdgeKind.hard

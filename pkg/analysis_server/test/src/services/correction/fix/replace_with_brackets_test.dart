@@ -25,15 +25,15 @@ class ReplaceWithBracketsTest extends FixProcessorLintTest {
 
   Future<void> test_outOfBlock_otherLine() async {
     await resolveTestUnit('''
-void foo() {
-  while(true)
-  /*LINT*/;
+void f(bool c) {
+  while(c)
+  ;
   print('hi');
 }
 ''');
     await assertHasFix('''
-void foo() {
-  while(true) {}
+void f(bool c) {
+  while(c) {}
   print('hi');
 }
 ''');
@@ -41,14 +41,14 @@ void foo() {
 
   Future<void> test_outOfBlock_sameLine() async {
     await resolveTestUnit('''
-void foo() {
-  while(true)/*LINT*/;
+void f(bool c) {
+  while(c);
   print('hi');
 }
 ''');
     await assertHasFix('''
-void foo() {
-  while(true) {}
+void f(bool c) {
+  while(c) {}
   print('hi');
 }
 ''');

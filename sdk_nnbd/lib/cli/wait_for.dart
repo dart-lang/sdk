@@ -116,7 +116,7 @@ T waitFor<T>(Future<T> future, {Duration? timeout}) {
   bool futureCompleted = false;
   Object? error;
   StackTrace? stacktrace;
-  future.then((r) {
+  future.then((T r) {
     futureCompleted = true;
     result = r;
   }, onError: (e, st) {

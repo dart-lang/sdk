@@ -72,6 +72,10 @@ ConstAndFinal/declaration4: Fail
 ConstAndFinal/part_wrapped_declaration3: Fail
 ConstAndFinal/part_wrapped_declaration4: Fail
 ConstConstructorInSubclassOfMixinApplication/example: Fail
+ConstConstructorLateFinalFieldError/analyzerCode: Fail
+ConstConstructorLateFinalFieldError/example: Fail
+ConstConstructorLateFinalFieldWarning/analyzerCode: Fail
+ConstConstructorLateFinalFieldWarning/example: Fail
 ConstConstructorNonFinalField/example: Fail
 ConstConstructorRedirectionToNonConst/analyzerCode: Fail # The analyzer doesn't report this error.
 ConstEvalCircularity/example: Fail
@@ -135,6 +139,10 @@ CyclicClassHierarchy/part_wrapped_script2: Fail
 CyclicClassHierarchy/script1: Fail # We report an error for each class involved in the cycle.
 CyclicClassHierarchy/script2: Fail # We report an error for each class involved in the cycle.
 CyclicTypedef/example: Fail
+DefaultListConstructorError/analyzerCode: Fail
+DefaultListConstructorError/example: Fail
+DefaultListConstructorWarning/analyzerCode: Fail
+DefaultListConstructorWarning/example: Fail
 DeferredAfterPrefix/example: Fail
 DeferredExtensionImport/analyzerCode: Fail
 DeferredExtensionImport/part_wrapped_script: Fail
@@ -292,6 +300,14 @@ FieldInitializedOutsideDeclaringClass/part_wrapped_script1: Fail
 FieldInitializedOutsideDeclaringClass/script1: Fail
 FieldInitializerOutsideConstructor/part_wrapped_script1: Fail
 FieldInitializerOutsideConstructor/script1: Fail
+FieldNonNullableNotInitializedByConstructorError/analyzerCode: Fail
+FieldNonNullableNotInitializedByConstructorError/example: Fail
+FieldNonNullableNotInitializedByConstructorWarning/analyzerCode: Fail
+FieldNonNullableNotInitializedByConstructorWarning/example: Fail
+FieldNonNullableWithoutInitializerError/analyzerCode: Fail
+FieldNonNullableWithoutInitializerError/example: Fail
+FieldNonNullableWithoutInitializerWarning/analyzerCode: Fail
+FieldNonNullableWithoutInitializerWarning/example: Fail
 FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
 FinalFieldWithoutInitializer/example: Fail

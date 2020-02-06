@@ -178,15 +178,13 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(strong_non_nullable_type_checks, bool, false,                              \
     "Enable strong non-nullable type checking mode.")                          \
   P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
-  P(enable_isolate_groups, bool, kDartPrecompiledRuntime,                      \
-    "Enable isolate group support.")                                           \
+  P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
+  P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \
     "Show invisible frames in stack traces.")                                  \
   R(show_invisible_isolates, false, bool, false,                               \
     "Show invisible isolates in the vm-service.")                              \
   R(support_il_printer, false, bool, true, "Support the IL printer.")          \
-  C(support_reload, false, false, bool, true, "Support isolate reload.")       \
-  R(support_service, false, bool, true, "Support the service protocol.")       \
   D(trace_cha, bool, false, "Trace CHA operations")                            \
   R(trace_field_guards, false, bool, false, "Trace changes in field's cids.")  \
   D(trace_ic, bool, false, "Trace IC handling")                                \

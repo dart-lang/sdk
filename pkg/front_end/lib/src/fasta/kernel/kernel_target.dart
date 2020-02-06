@@ -22,6 +22,7 @@ import 'package:kernel/ast.dart'
         Initializer,
         InterfaceType,
         InvalidInitializer,
+        InvalidType,
         Library,
         Name,
         NamedExpression,
@@ -84,10 +85,17 @@ import '../loader.dart' show Loader;
 import '../messages.dart'
     show
         FormattedMessage,
+        messageConstConstructorLateFinalFieldCause,
+        messageConstConstructorLateFinalFieldError,
+        messageConstConstructorLateFinalFieldWarning,
         messageConstConstructorNonFinalField,
         messageConstConstructorNonFinalFieldCause,
         messageConstConstructorRedirectionToNonConst,
         noLength,
+        templateFieldNonNullableNotInitializedByConstructorError,
+        templateFieldNonNullableNotInitializedByConstructorWarning,
+        templateFieldNonNullableWithoutInitializerError,
+        templateFieldNonNullableWithoutInitializerWarning,
         templateFinalFieldNotInitialized,
         templateFinalFieldNotInitializedByConstructor,
         templateInferredPackageUri,
@@ -108,7 +116,8 @@ import '../target_implementation.dart' show TargetImplementation;
 
 import '../uri_translator.dart' show UriTranslator;
 
-import 'constant_evaluator.dart' as constants show transformLibraries;
+import 'constant_evaluator.dart' as constants
+    show EvaluationMode, transformLibraries;
 
 import 'kernel_constants.dart' show KernelConstantErrorReporter;
 
@@ -309,6 +318,7 @@ class KernelTarget extends TargetImplementation {
       loader.addNoSuchMethodForwarders(myClasses);
       loader.checkMixins(myClasses);
       loader.buildOutlineExpressions(loader.coreTypes);
+      _updateDelayedParameterTypes();
       installAllComponentProblems(loader.allComponentProblems);
       loader.allComponentProblems.clear();
       return component;
@@ -441,6 +451,17 @@ class KernelTarget extends TargetImplementation {
     ticker.logMs("Installed synthetic constructors");
   }
 
+  List<DelayedParameterType> _delayedParameterTypes = <DelayedParameterType>[];
+
+  /// Update the type of parameters cloned from parameters with inferred
+  /// parameter types.
+  void _updateDelayedParameterTypes() {
+    for (DelayedParameterType delayedParameterType in _delayedParameterTypes) {
+      delayedParameterType.updateType();
+    }
+    _delayedParameterTypes.clear();
+  }
+
   ClassBuilder get objectClassBuilder => objectType.declaration;
 
   Class get objectClass => objectClassBuilder.cls;
@@ -556,6 +577,9 @@ class KernelTarget extends TargetImplementation {
           isFinal: formal.isFinal, isConst: formal.isConst);
       if (formal.type != null) {
         copy.type = substitute(formal.type, substitutionMap);
+      } else {
+        _delayedParameterTypes
+            .add(new DelayedParameterType(formal, copy, substitutionMap));
       }
       return copy;
     }
@@ -701,15 +725,25 @@ class KernelTarget extends TargetImplementation {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
     List<Field> uninitializedFields = <Field>[];
-    List<Field> nonFinalFields = <Field>[];
     for (Field field in cls.fields) {
-      if (field.isInstanceMember && !field.isFinal) {
-        nonFinalFields.add(field);
-      }
       if (field.initializer == null) {
         uninitializedFields.add(field);
       }
     }
+    List<FieldBuilder> nonFinalFields = <FieldBuilder>[];
+    List<FieldBuilder> lateFinalFields = <FieldBuilder>[];
+    builder.forEach((String name, Builder fieldBuilder) {
+      if (fieldBuilder is FieldBuilder) {
+        if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {
+          nonFinalFields.add(fieldBuilder);
+        }
+        if (fieldBuilder.isDeclarationInstanceMember &&
+            fieldBuilder.isLate &&
+            fieldBuilder.isFinal) {
+          lateFinalFields.add(fieldBuilder);
+        }
+      }
+    });
     Map<Constructor, Set<Field>> constructorInitializedFields =
         <Constructor, Set<Field>>{};
     Constructor superTarget;
@@ -786,9 +820,34 @@ class KernelTarget extends TargetImplementation {
               constructor.fileOffset, noLength,
               context: nonFinalFields
                   .map((field) => messageConstConstructorNonFinalFieldCause
-                      .withLocation(field.fileUri, field.fileOffset, noLength))
+                      .withLocation(field.fileUri, field.charOffset, noLength))
                   .toList());
           nonFinalFields.clear();
+        }
+        SourceLibraryBuilder library = builder.library;
+        if (library.isNonNullableByDefault &&
+            library.loader.performNnbdChecks) {
+          if (constructor.isConst && lateFinalFields.isNotEmpty) {
+            if (library.loader.nnbdStrongMode) {
+              builder.addProblem(messageConstConstructorLateFinalFieldError,
+                  constructor.fileOffset, noLength,
+                  context: lateFinalFields
+                      .map((field) => messageConstConstructorLateFinalFieldCause
+                          .withLocation(
+                              field.fileUri, field.charOffset, noLength))
+                      .toList());
+              lateFinalFields.clear();
+            } else {
+              builder.addProblem(messageConstConstructorLateFinalFieldWarning,
+                  constructor.fileOffset, noLength,
+                  context: lateFinalFields
+                      .map((field) => messageConstConstructorLateFinalFieldCause
+                          .withLocation(
+                              field.fileUri, field.charOffset, noLength))
+                      .toList());
+              lateFinalFields.clear();
+            }
+          }
         }
       }
     }
@@ -826,6 +885,30 @@ class KernelTarget extends TargetImplementation {
                   field.name.name.length,
                   field.fileUri);
             }
+          } else if (field.type is! InvalidType &&
+              field.type.isPotentiallyNonNullable &&
+              (cls.constructors.isNotEmpty || cls.isMixinDeclaration)) {
+            SourceLibraryBuilder library = builder.library;
+            if (library.isNonNullableByDefault &&
+                library.loader.performNnbdChecks) {
+              if (library.loader.nnbdStrongMode) {
+                library.addProblem(
+                    templateFieldNonNullableWithoutInitializerError
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    library.fileUri);
+              } else {
+                library.addProblem(
+                    templateFieldNonNullableWithoutInitializerWarning
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    library.fileUri);
+              }
+            }
           }
         }
       }
@@ -855,6 +938,29 @@ class KernelTarget extends TargetImplementation {
                       .withLocation(field.fileUri, field.fileOffset,
                           field.name.name.length)
                 ]);
+          } else if (field.type is! InvalidType &&
+              field.type.isPotentiallyNonNullable) {
+            SourceLibraryBuilder library = builder.library;
+            if (library.isNonNullableByDefault &&
+                library.loader.performNnbdChecks) {
+              if (library.loader.nnbdStrongMode) {
+                library.addProblem(
+                    templateFieldNonNullableNotInitializedByConstructorError
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    library.fileUri);
+              } else {
+                library.addProblem(
+                    templateFieldNonNullableNotInitializedByConstructorWarning
+                        .withArguments(field.name.name, field.type,
+                            library.isNonNullableByDefault),
+                    field.fileOffset,
+                    field.name.name.length,
+                    library.fileUri);
+              }
+            }
           }
         }
       }
@@ -873,12 +979,24 @@ class KernelTarget extends TargetImplementation {
 
     TypeEnvironment environment =
         new TypeEnvironment(loader.coreTypes, loader.hierarchy);
+    constants.EvaluationMode evaluationMode;
+    if (enableNonNullable) {
+      if (loader.nnbdStrongMode) {
+        evaluationMode = constants.EvaluationMode.strong;
+      } else {
+        evaluationMode = constants.EvaluationMode.weak;
+      }
+    } else {
+      evaluationMode = constants.EvaluationMode.legacy;
+    }
+
     constants.transformLibraries(
         loader.libraries,
         backendTarget.constantsBackend(loader.coreTypes),
         environmentDefines,
         environment,
         new KernelConstantErrorReporter(loader),
+        evaluationMode,
         desugarSets: !backendTarget.supportsSetLiterals,
         enableTripleShift: enableTripleShift,
         errorOnUnevaluatedConstant: errorOnUnevaluatedConstant);
@@ -925,8 +1043,8 @@ class KernelTarget extends TargetImplementation {
 
   @override
   void readPatchFiles(SourceLibraryBuilder library) {
-    assert(library.uri.scheme == "dart");
-    List<Uri> patches = uriTranslator.getDartPatches(library.uri.path);
+    assert(library.importUri.scheme == "dart");
+    List<Uri> patches = uriTranslator.getDartPatches(library.importUri.path);
     if (patches != null) {
       SourceLibraryBuilder first;
       for (Uri patch in patches) {
@@ -940,7 +1058,7 @@ class KernelTarget extends TargetImplementation {
               origin: library, fileUri: patch, accessor: library);
           first.parts.add(part);
           first.partOffsets.add(-1);
-          part.partOfUri = first.uri;
+          part.partOfUri = first.importUri;
         }
       }
     }
@@ -977,5 +1095,23 @@ class KernelDiagnosticReporter
   void report(Message message, int charOffset, int length, Uri fileUri,
       {List<LocatedMessage> context}) {
     loader.addProblem(message, charOffset, noLength, fileUri, context: context);
+  }
+}
+
+/// Data for updating cloned parameters of parameters with inferred parameter
+/// types.
+///
+/// The type of [source] is not declared so the type of [target] needs to be
+/// updated when the type of [source] has been inferred.
+class DelayedParameterType {
+  final VariableDeclaration source;
+  final VariableDeclaration target;
+  final Map<TypeParameter, DartType> substitutionMap;
+
+  DelayedParameterType(this.source, this.target, this.substitutionMap);
+
+  void updateType() {
+    assert(source.type != null, "No type computed for $source.");
+    target.type = substitute(source.type, substitutionMap);
   }
 }

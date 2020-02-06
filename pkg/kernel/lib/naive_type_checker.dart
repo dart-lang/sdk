@@ -249,6 +249,10 @@ super method declares ${superParameter.type}
     if (receiver is DynamicType) {
       return;
     }
+    if (receiver is NeverType &&
+        receiver.nullability == Nullability.nonNullable) {
+      return;
+    }
 
     // Permit any invocation on Function type.
     if (receiver == environment.coreTypes.functionLegacyRawType &&

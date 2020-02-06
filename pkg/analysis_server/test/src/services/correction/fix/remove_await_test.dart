@@ -26,7 +26,7 @@ class RemoveAwaitTest extends FixProcessorLintTest {
   Future<void> test_intLiteral() async {
     await resolveTestUnit('''
 bad() async {
-  print(/*LINT*/await 23);
+  print(await 23);
 }
 ''');
     await assertHasFix('''
@@ -39,7 +39,7 @@ bad() async {
   Future<void> test_stringLiteral() async {
     await resolveTestUnit('''
 bad() async {
-  print(/*LINT*/await 'hola');
+  print(await 'hola');
 }
 ''');
     await assertHasFix('''

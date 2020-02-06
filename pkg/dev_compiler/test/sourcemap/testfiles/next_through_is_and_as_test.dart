@@ -20,7 +20,7 @@ void main() {
   /*bc:9*/ if (hex is int) {
     /*bc:10*/ print('hex is int');
     // ignore: unnecessary_cast
-    int x = /*bc:11*/ hex as int;
+    var x = /*bc:11*/ hex as int;
     /*bc:12*/ if (x.isEven) {
       /*bc:13*/ print("it's even even!");
     } else {

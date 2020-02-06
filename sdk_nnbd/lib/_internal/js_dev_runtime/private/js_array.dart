@@ -452,7 +452,8 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   void sort([int Function(E, E)? compare]) {
     checkMutable('sort');
     if (compare == null) {
-      Sort.sort(this, (a, b) => Comparable.compare(a, b));
+      Sort.sort(
+          this, (a, b) => Comparable.compare(a as Comparable, b as Comparable));
     } else {
       Sort.sort(this, compare);
     }

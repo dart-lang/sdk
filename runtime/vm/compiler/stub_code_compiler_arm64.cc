@@ -161,8 +161,7 @@ void StubCodeCompiler::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
-    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+    __ SetupGlobalPoolAndDispatchTable();
   }
 
   __ LeaveStubFrame();
@@ -668,8 +667,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // Restore the global object pool after returning from runtime (old space is
   // moving, so the GOP could have been relocated).
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
-    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+    __ SetupGlobalPoolAndDispatchTable();
   }
 
   __ LeaveStubFrame();
@@ -1382,8 +1380,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Bind(&done_push_arguments);
 
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
-    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+    __ SetupGlobalPoolAndDispatchTable();
   } else {
     // We now load the pool pointer(PP) with a GC safe value as we are about to
     // invoke dart code. We don't need a real object pool here.
@@ -3181,8 +3178,7 @@ void StubCodeCompiler::GenerateJumpToFrameStub(Assembler* assembler) {
   // Restore the pool pointer.
   __ RestoreCodePointer();
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    __ ldr(PP, Address(THR, target::Thread::global_object_pool_offset()));
-    __ sub(PP, PP, Operand(kHeapObjectTag));  // Pool in PP is untagged!
+    __ SetupGlobalPoolAndDispatchTable();
   } else {
     __ LoadPoolPointer();
   }

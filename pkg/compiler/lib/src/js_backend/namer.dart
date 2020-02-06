@@ -1433,17 +1433,11 @@ class Namer extends ModularNamer {
   }
 
   String globalObjectForType(Entity element) {
-    if (element is TypedefEntity) {
-      return globalObjectForLibrary(element.library);
-    }
     return globalObjectForClass(element);
   }
 
   @override
   jsAst.VariableUse readGlobalObjectForType(Entity element) {
-    if (element is TypedefEntity) {
-      return readGlobalObjectForLibrary(element.library);
-    }
     return readGlobalObjectForClass(element);
   }
 
@@ -1619,10 +1613,6 @@ class Namer extends ModularNamer {
 
   String getTypeRepresentationForTypeConstant(DartType type) {
     if (type is DynamicType) return "dynamic";
-    if (type is TypedefType) {
-      return uniqueNameForTypeConstantElement(
-          type.element.library, type.element);
-    }
     if (type is FutureOrType) {
       return "FutureOr<dynamic>";
     }
@@ -1897,8 +1887,6 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
     String name;
     if (type is InterfaceType) {
       name = type.element.name;
-    } else if (type is TypedefType) {
-      name = type.element.name;
     }
     if (name == null) {
       // e.g. DartType 'dynamic' has no element.
@@ -2168,11 +2156,6 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
 
   @override
   visitInterfaceType(InterfaceType type, _) {
-    sb.write(type.element.name);
-  }
-
-  @override
-  visitTypedefType(TypedefType type, _) {
     sb.write(type.element.name);
   }
 
@@ -2581,8 +2564,6 @@ abstract class ModularNamer {
         return asName(fixedNames.operatorSignature);
       case JsGetName.RTI_NAME:
         return asName(fixedNames.rtiName);
-      case JsGetName.TYPEDEF_TAG:
-        return asName(rtiTags.typedefTag);
       case JsGetName.FUNCTION_TYPE_TAG:
         return asName(rtiTags.functionTypeTag);
       case JsGetName.FUNCTION_TYPE_GENERIC_BOUNDS_TAG:

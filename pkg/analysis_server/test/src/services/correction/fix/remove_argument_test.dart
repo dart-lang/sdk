@@ -28,7 +28,7 @@ class RemoveArgumentTest extends FixProcessorLintTest {
 void f({bool valWithDefault = true, bool val}) {}
 
 void main() {
-  f(valWithDefault: /*LINT*/true);
+  f(valWithDefault: true);
 }
 ''');
     await assertHasFix('''
@@ -45,14 +45,14 @@ void main() {
 void f({bool valWithDefault = true, bool val}) {}
 
 void main() {
-  f(valWithDefault: /*LINT*/true, false);
+  f(valWithDefault: true, val: false);
 }
 ''');
     await assertHasFix('''
 void f({bool valWithDefault = true, bool val}) {}
 
 void main() {
-  f(false);
+  f(val: false);
 }
 ''');
   }
@@ -62,7 +62,7 @@ void main() {
 void g(int x, [int y = 0]) {}
 
 void main() {
-  g(1, /*LINT*/0);
+  g(1, 0);
 }
 ''');
     await assertHasFix('''

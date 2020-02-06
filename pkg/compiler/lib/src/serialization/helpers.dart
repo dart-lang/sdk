@@ -97,7 +97,6 @@ enum DartTypeKind {
   functionTypeVariable,
   functionType,
   interfaceType,
-  typedef,
   dynamicType,
   erasedType,
   anyType,
@@ -197,15 +196,6 @@ class DartTypeWriter
     _sink.writeEnum(DartTypeKind.interfaceType);
     _sink.writeClass(type.element);
     visitTypes(type.typeArguments, functionTypeVariables);
-  }
-
-  @override
-  void visitTypedefType(covariant TypedefType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.typedef);
-    _sink.writeTypedef(type.element);
-    visitTypes(type.typeArguments, functionTypeVariables);
-    _sink._writeDartType(type.unaliased, functionTypeVariables);
   }
 
   @override

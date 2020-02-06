@@ -1127,7 +1127,8 @@ class HintCode extends AnalyzerErrorCode {
       'MUST_BE_IMMUTABLE',
       "This class (or a class that this class inherits from) is marked as "
           "'@immutable', but one or more of its instance fields aren't final: "
-          "{0}");
+          "{0}",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -1180,7 +1181,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode MUST_CALL_SUPER = HintCode(
       'MUST_CALL_SUPER',
       "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
-          "but doesn't invoke the overridden method.");
+          "but doesn't invoke the overridden method.",
+      hasPublishedDocs: true);
 
   /**
    * Generate a hint for non-const instance creation using a constructor
@@ -2116,7 +2118,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode UNDEFINED_HIDDEN_NAME = HintCode(
       'UNDEFINED_HIDDEN_NAME',
       "The library '{0}' doesn't export a member with the hidden name '{1}'.",
-      correction: "Try removing the name from the list of hidden members.");
+      correction: "Try removing the name from the list of hidden members.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -2151,7 +2154,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode UNDEFINED_SHOWN_NAME = HintCode('UNDEFINED_SHOWN_NAME',
       "The library '{0}' doesn't export a member with the shown name '{1}'.",
-      correction: "Try removing the name from the list of shown members.");
+      correction: "Try removing the name from the list of shown members.",
+      hasPublishedDocs: true);
 
   /**
    * No parameters.
@@ -2187,7 +2191,7 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode UNNECESSARY_CAST = HintCode(
       'UNNECESSARY_CAST', "Unnecessary cast.",
-      correction: "Try removing the cast.");
+      correction: "Try removing the cast.", hasPublishedDocs: true);
 
   /**
    * Unnecessary `noSuchMethod` declaration.
@@ -2256,7 +2260,8 @@ class HintCode extends AnalyzerErrorCode {
       // TODO(brianwilkerson) Split this error code so that we can differentiate
       // between removing the catch clause and replacing the catch clause with
       // an on clause.
-      correction: "Try removing the catch clause.");
+      correction: "Try removing the catch clause.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -2298,7 +2303,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode UNUSED_CATCH_STACK = HintCode('UNUSED_CATCH_STACK',
       "The stack trace variable '{0}' isn't used and can be removed.",
-      correction: "Try removing the stack trace variable, or using it.");
+      correction: "Try removing the stack trace variable, or using it.",
+      hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -2438,7 +2444,8 @@ class HintCode extends AnalyzerErrorCode {
   static const HintCode UNUSED_LABEL =
       HintCode('UNUSED_LABEL', "The label '{0}' isn't used.",
           correction: "Try removing the label, or "
-              "using it in either a 'break' or 'continue' statement.");
+              "using it in either a 'break' or 'continue' statement.",
+          hasPublishedDocs: true);
 
   /**
    * Parameters:
@@ -2503,7 +2510,8 @@ class HintCode extends AnalyzerErrorCode {
   // ```
   static const HintCode UNUSED_SHOWN_NAME = HintCode(
       'UNUSED_SHOWN_NAME', "The name {0} is shown, but isn’t used.",
-      correction: "Try removing the name from the list of shown members.");
+      correction: "Try removing the name from the list of shown members.",
+      hasPublishedDocs: true);
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

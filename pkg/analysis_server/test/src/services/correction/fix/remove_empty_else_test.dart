@@ -29,7 +29,7 @@ void foo(bool cond) {
   if (cond) {
     //
   }
-  else /*LINT*/;
+  else ;
 }
 ''');
     await assertHasFix('''
@@ -46,7 +46,7 @@ void foo(bool cond) {
 void foo(bool cond) {
   if (cond) {
     //
-  } else /*LINT*/;
+  } else ;
 }
 ''');
     await assertHasFix('''

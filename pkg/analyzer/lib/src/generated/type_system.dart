@@ -1215,26 +1215,6 @@ class Dart2TypeSystem extends TypeSystem {
     return false;
   }
 
-  @override
-  bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2) {
-    return FunctionTypeImpl.relate(f1, f2, isSubtypeOf,
-        parameterRelation: isOverrideSubtypeOfParameter,
-        // Type parameter bounds are invariant.
-        boundsRelation: (t1, t2, p1, p2) =>
-            isSubtypeOf(t1, t2) && isSubtypeOf(t2, t1));
-  }
-
-  /// Check that parameter [p2] is a subtype of [p1], given that we are
-  /// checking `f1 <: f2` where `p1` is a parameter of `f1` and `p2` is a
-  /// parameter of `f2`.
-  ///
-  /// Parameters are contravariant, so we must check `p2 <: p1` to
-  /// determine if `f1 <: f2`. This is used by [isOverrideSubtypeOf].
-  bool isOverrideSubtypeOfParameter(ParameterElement p1, ParameterElement p2) {
-    return isSubtypeOf(p2.type, p1.type) ||
-        p1.isCovariant && isSubtypeOf(p1.type, p2.type);
-  }
-
   /// Check if [_T0] is a subtype of [_T1].
   ///
   /// Implements:
@@ -1528,13 +1508,6 @@ class Dart2TypeSystem extends TypeSystem {
     return NormalizeHelper(this).normalize(T);
   }
 
-  /// Return `true` if runtime types [T1] and [T2] are equal.
-  ///
-  /// nnbd/feature-specification.md#runtime-type-equality-operator
-  bool runtimeTypesEqual(DartType T1, DartType T2) {
-    return RuntimeTypeEqualityHelper(this).equal(T1, T2);
-  }
-
   @override
   DartType refineBinaryExpressionType(DartType leftType, TokenType operator,
       DartType rightType, DartType currentType) {
@@ -1568,6 +1541,13 @@ class Dart2TypeSystem extends TypeSystem {
     }
     return super
         .refineBinaryExpressionType(leftType, operator, rightType, currentType);
+  }
+
+  /// Return `true` if runtime types [T1] and [T2] are equal.
+  ///
+  /// nnbd/feature-specification.md#runtime-type-equality-operator
+  bool runtimeTypesEqual(DartType T1, DartType T2) {
+    return RuntimeTypeEqualityHelper(this).equal(T1, T2);
   }
 
   DartType toLegacyType(DartType type) {
@@ -3462,13 +3442,6 @@ abstract class TypeSystem implements public.TypeSystem {
     return false;
   }
 
-  /// Check that [f1] is a subtype of [f2] for a member override.
-  ///
-  /// This is different from the normal function subtyping in two ways:
-  /// - we know the function types are strict arrows,
-  /// - it allows opt-in covariant parameters.
-  bool isOverrideSubtypeOf(FunctionType f1, FunctionType f2);
-
   @override
   bool isPotentiallyNonNullable(DartType type) => !isNullable(type);
 
@@ -3585,8 +3558,12 @@ abstract class TypeSystem implements public.TypeSystem {
           );
         }
       } else {
+        // Note: we need to use `element.declaration` because `element` might
+        // itself be a TypeParameterMember (due to a previous promotion), and
+        // you can't create a TypeParameterMember wrapping a
+        // TypeParameterMember.
         return TypeParameterTypeImpl(
-          TypeParameterMember(element, null, promotedBound),
+          TypeParameterMember(element.declaration, null, promotedBound),
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }

@@ -1,9 +1,10 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--complete_timeline
 
 import 'dart:developer';
+import 'dart:io';
+
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
@@ -165,4 +166,20 @@ var tests = <VMTest>[
   },
 ];
 
-main(args) async => runVMTests(args, tests, testeeBefore: primeTimeline);
+main(List<String> args) async {
+  // Running the subprocesses of this particular test in opt counter mode
+  // will cause it to be slow and cause many compilations.
+  //
+  // Together with "--complete-timeline" this will create a huge number of
+  // timeline events which can, on ia32, cause the process to hit OOM.
+  //
+  // So we filter out that particular argument.
+  final executableArgs = Platform.executableArguments
+      .where((String arg) => !arg.contains('optimization-counter-threshold'))
+      .toList();
+
+  await runVMTests(args, tests,
+      testeeBefore: primeTimeline,
+      extraArgs: ['--complete-timeline'],
+      executableArgs: executableArgs);
+}

@@ -41,6 +41,8 @@ class Widget {
   final Key key;
 
   const Widget({this.key});
+
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {}
 }
 
 abstract class SingleChildRenderObjectWidget extends RenderObjectWidget {

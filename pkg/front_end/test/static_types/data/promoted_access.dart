@@ -6,11 +6,17 @@
 /*cfe:nnbd.library: nnbd=true*/
 
 class Class<T> {
+  var property;
+
   method(T o) {
     if (/*cfe.T*/ /*cfe:nnbd.T%*/ o is Class) {
       /*cfe.T & Class<dynamic>*/
       /*cfe:nnbd.T! & Class<dynamic>!*/
       o. /*invoke: dynamic*/ method(/*Null*/ null);
+      /*cfe.T & Class<dynamic>*/ /*cfe:nnbd.T! & Class<dynamic>!*/ o
+          ?. /*invoke: dynamic*/ method(/*Null*/ null);
+      /*cfe.T & Class<dynamic>*/ /*cfe:nnbd.T! & Class<dynamic>!*/ o
+          ?. /*dynamic*/ property;
     }
   }
 }
@@ -20,6 +26,10 @@ method<T>(T o) {
     /*cfe.T & Class<dynamic>*/
     /*cfe:nnbd.T! & Class<dynamic>!*/
     o. /*invoke: dynamic*/ method(/*Null*/ null);
+    /*cfe.T & Class<dynamic>*/ /*cfe:nnbd.T! & Class<dynamic>!*/ o
+        ?. /*invoke: dynamic*/ method(/*Null*/ null);
+    /*cfe.T & Class<dynamic>*/ /*cfe:nnbd.T! & Class<dynamic>!*/ o
+        ?. /*dynamic*/ property;
   }
 }
 

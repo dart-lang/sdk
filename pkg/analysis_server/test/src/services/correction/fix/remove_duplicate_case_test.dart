@@ -31,9 +31,9 @@ void switchInt() {
       print('a');
       break;
     case 2:
-    case 2 /*LINT*/:
+    case 2:
     default:
-      print('?);
+      print('?');
   }
 }
 ''');
@@ -45,7 +45,7 @@ void switchInt() {
       break;
     case 2:
     default:
-      print('?);
+      print('?');
   }
 }
 ''');
@@ -62,11 +62,11 @@ void switchString() {
     case 'b':
       print('b');
       break;
-    case 'a' /*LINT*/:
+    case 'a' :
       print('a');
       break;
     default:
-      print('?);
+      print('?');
   }
 }
 ''');
@@ -81,7 +81,7 @@ void switchString() {
       print('b');
       break;
     default:
-      print('?);
+      print('?');
   }
 }
 ''');

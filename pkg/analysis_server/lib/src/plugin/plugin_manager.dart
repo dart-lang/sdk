@@ -569,7 +569,12 @@ class PluginManager {
       plugin.removeContextRoot(contextRoot);
       if (plugin is DiscoveredPluginInfo && plugin.contextRoots.isEmpty) {
         _pluginMap.remove(plugin.path);
-        plugin.stop();
+        try {
+          plugin.stop();
+        } catch (e, st) {
+          AnalysisEngine.instance.instrumentationService
+              .logException(SilentException('Issue stopping a plugin', e, st));
+        }
       }
     }
   }

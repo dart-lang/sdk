@@ -431,6 +431,10 @@ void ConstantPropagator::VisitPolymorphicInstanceCall(
   SetValue(instr, non_constant_);
 }
 
+void ConstantPropagator::VisitDispatchTableCall(DispatchTableCallInstr* instr) {
+  SetValue(instr, non_constant_);
+}
+
 void ConstantPropagator::VisitStaticCall(StaticCallInstr* instr) {
   const auto kind = instr->function().recognized_kind();
   switch (kind) {
@@ -1312,11 +1316,6 @@ void ConstantPropagator::VisitUnboxInt32(UnboxInt32Instr* instr) {
 }
 
 void ConstantPropagator::VisitIntConverter(IntConverterInstr* instr) {
-  SetValue(instr, non_constant_);
-}
-
-void ConstantPropagator::VisitUnboxedWidthExtender(
-    UnboxedWidthExtenderInstr* instr) {
   SetValue(instr, non_constant_);
 }
 

@@ -181,8 +181,6 @@ class MetadataCollector implements jsAst.TokenFinalizer {
           "Type representation for type variable $variable in "
           "$type is not supported.");
       return jsAst.LiteralNull();
-    }, (TypedefType typedef) {
-      return false;
     });
 
     if (representation is jsAst.LiteralString) {

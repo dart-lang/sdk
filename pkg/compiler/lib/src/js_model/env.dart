@@ -1014,32 +1014,6 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
   }
 }
 
-class JTypedefData {
-  /// Tag used for identifying serialized [JTypedefData] objects in
-  /// a debugging data stream.
-  static const String tag = 'typedef-data';
-
-  final ir.Typedef node;
-  final TypedefType rawType;
-
-  JTypedefData(this.node, this.rawType);
-
-  factory JTypedefData.readFromDataSource(DataSource source) {
-    source.begin(tag);
-    ir.Typedef node = source.readTypedefNode();
-    TypedefType rawType = source.readDartType();
-    source.end(tag);
-    return new JTypedefData(node, rawType);
-  }
-
-  void writeToDataSink(DataSink sink) {
-    sink.begin(tag);
-    sink.writeTypedefNode(node);
-    sink.writeDartType(rawType);
-    sink.end(tag);
-  }
-}
-
 class JTypeVariableData {
   /// Tag used for identifying serialized [JTypeVariableData] objects in
   /// a debugging data stream.

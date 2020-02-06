@@ -275,6 +275,9 @@ class Heap {
   static bool IsAllocatableInNewSpace(intptr_t size) {
     return size <= kNewAllocatableSize;
   }
+  static bool IsAllocatableViaFreeLists(intptr_t size) {
+    return size < kAllocatablePageSize;
+  }
 
 #ifndef PRODUCT
   void PrintToJSONObject(Space space, JSONObject* object) const;
@@ -300,6 +303,7 @@ class Heap {
   }
 
   static const intptr_t kNewAllocatableSize = 256 * KB;
+  static const intptr_t kAllocatablePageSize = 64 * KB;
 
   intptr_t GetTLABSize() {
     // Inspired by V8 tlab size. More than threshold for old space allocation,
@@ -484,26 +488,6 @@ class WritableCodePages : StackResource {
 
  private:
   Isolate* isolate_;
-};
-
-// This scope forces heap growth, forces use of the bump allocator, and
-// takes the page lock. It is useful e.g. at program startup when allocating
-// many objects into old gen (like libraries, classes, and functions).
-class BumpAllocateScope : ThreadStackResource {
- public:
-  explicit BumpAllocateScope(Thread* thread);
-  ~BumpAllocateScope();
-
- private:
-  // This is needed to avoid a GC while we hold the page lock, which would
-  // trigger a deadlock.
-  NoHeapGrowthControlScope no_growth_control_;
-
-  // A reload will try to allocate into new gen, which could trigger a
-  // scavenge and deadlock.
-  NoReloadScope no_reload_scope_;
-
-  DISALLOW_COPY_AND_ASSIGN(BumpAllocateScope);
 };
 
 #if defined(TESTING)

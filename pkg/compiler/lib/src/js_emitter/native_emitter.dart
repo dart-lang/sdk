@@ -285,7 +285,6 @@ class NativeEmitter {
       // parameter that was not provided for this stub.
       for (jsAst.Parameter stubParameter in stubParameters) {
         if (stubParameter.name == name) {
-          type = type.unaliased;
           if (type is FunctionType) {
             closureConverter ??= _emitterTask.emitter
                 .staticFunctionAccess(_commonElements.closureConverter);

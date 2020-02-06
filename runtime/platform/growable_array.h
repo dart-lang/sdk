@@ -160,6 +160,16 @@ class BaseGrowableArray : public B {
     RemoveLast();
   }
 
+  // Preserves array order.
+  void EraseAt(intptr_t idx) {
+    ASSERT(idx >= 0);
+    ASSERT(idx < length_);
+    for (intptr_t i = idx; i < length_ - 1; i++) {
+      data_[i] = data_[i + 1];
+    }
+    RemoveLast();
+  }
+
   // The content is uninitialized after calling it.
   void SetLength(intptr_t new_length);
 

@@ -117,7 +117,7 @@ class DietListener extends StackListenerImpl {
         uri = library.fileUri,
         memberScope = library.scope,
         enableNative =
-            library.loader.target.backendTarget.enableNative(library.uri),
+            library.loader.target.backendTarget.enableNative(library.importUri),
         stringExpectedAfterNative =
             library.loader.target.backendTarget.nativeExtensionExpectsString;
 

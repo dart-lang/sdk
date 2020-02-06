@@ -74,9 +74,6 @@ abstract class JsToElementMap {
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
 
-  /// Returns the [TypedefType] corresponding to raw type of the typedef [node].
-  TypedefType getTypedefType(ir.Typedef node);
-
   /// Returns the super [MemberEntity] for a super invocation, get or set of
   /// [name] from the member [context].
   MemberEntity getSuperMember(MemberEntity context, ir.Name name,

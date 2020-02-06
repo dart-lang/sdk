@@ -26,7 +26,7 @@ class RemoveEmptyConstructorBodyTest extends FixProcessorLintTest {
   Future<void> test_empty() async {
     await resolveTestUnit('''
 class C {
-  C() {/*LINT*/}
+  C() {}
 }
 ''');
     await assertHasFix('''

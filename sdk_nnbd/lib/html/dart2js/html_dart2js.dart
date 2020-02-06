@@ -36304,7 +36304,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     if (!containsKey(key)) {
       this[key] = ifAbsent();
     }
-    return this[key];
+    return this[key] as String;
   }
 
   void clear() {
@@ -36316,7 +36316,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
   void forEach(void f(String key, String value)) {
     for (var key in keys) {
       var value = this[key];
-      f(key, value);
+      f(key, value as String);
     }
   }
 
@@ -36325,7 +36325,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     var attributes = _element._attributes;
     var keys = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      _Attr attr = attributes[i];
+      _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
         keys.add(attr.name);
       }
@@ -36338,7 +36338,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     var attributes = _element._attributes;
     var values = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      _Attr attr = attributes[i];
+      _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
         values.add(attr.value);
       }
@@ -36371,11 +36371,11 @@ class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttribute(key);
+    return _element._hasAttribute(key as String);
   }
 
   String? operator [](Object? key) {
-    return _element.getAttribute(key);
+    return _element.getAttribute(key as String?);
   }
 
   void operator []=(String key, String value) {
@@ -36419,11 +36419,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
   _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttributeNS(_namespace, key);
+    return _element._hasAttributeNS(_namespace, key as String);
   }
 
   String? operator [](Object? key) {
-    return _element.getAttributeNS(_namespace, key);
+    return _element.getAttributeNS(_namespace, key as String?);
   }
 
   void operator []=(String key, String value) {
@@ -36482,9 +36482,10 @@ class _DataAttributeMap extends MapBase<String, String> {
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(Object? value) => values.any((v) => v == value);
 
-  bool containsKey(Object? key) => _attributes.containsKey(_attr(key));
+  bool containsKey(Object? key) =>
+      _attributes.containsKey(_attr(key as String));
 
-  String? operator [](Object? key) => _attributes[_attr(key)];
+  String? operator [](Object? key) => _attributes[_attr(key as String)];
 
   void operator []=(String key, String value) {
     _attributes[_attr(key)] = value;
@@ -36493,7 +36494,7 @@ class _DataAttributeMap extends MapBase<String, String> {
   String putIfAbsent(String key, String ifAbsent()) =>
       _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String? remove(Object? key) => _attributes.remove(_attr(key));
+  String? remove(Object? key) => _attributes.remove(_attr(key as String));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.
@@ -36672,7 +36673,7 @@ abstract class WindowBase implements EventTarget {
    *     WindowBase otherWindow = thisWindow.open('http://www.example.com/', 'foo');
    *     print(otherWindow.opener == thisWindow); // 'true'
    */
-  WindowBase get opener;
+  WindowBase? get opener;
 
   /**
    * A reference to the parent of this window.
@@ -36686,7 +36687,7 @@ abstract class WindowBase implements EventTarget {
    *
    *     print(window.parent == window) // 'true'
    */
-  WindowBase get parent;
+  WindowBase? get parent;
 
   /**
    * A reference to the topmost window in the window hierarchy.
@@ -36707,7 +36708,7 @@ abstract class WindowBase implements EventTarget {
    *
    *     print(window.top == window) // 'true'
    */
-  WindowBase get top;
+  WindowBase? get top;
 
   // Methods.
   /**
@@ -36753,7 +36754,7 @@ abstract class WindowBase implements EventTarget {
    *   from WHATWG.
    */
   void postMessage(var message, String targetOrigin,
-      [List<MessagePort> messagePorts]);
+      [List<MessagePort>? messagePorts]);
 }
 
 abstract class LocationBase {
@@ -36788,7 +36789,7 @@ abstract class CssClassSet implements Set<String> {
    * non-empty string containing no whitespace.  To toggle multiple classes, use
    * [toggleAll].
    */
-  bool toggle(String value, [bool shouldAdd]);
+  bool toggle(String value, [bool? shouldAdd]);
 
   /**
    * Returns [:true:] if classes cannot be added or removed from this
@@ -36872,7 +36873,7 @@ abstract class CssClassSet implements Set<String> {
    * Each element of [iterable] must be a valid 'token' representing a single
    * class, i.e. a non-empty string containing no whitespace.
    */
-  void toggleAll(Iterable<String> iterable, [bool shouldAdd]);
+  void toggleAll(Iterable<String> iterable, [bool? shouldAdd]);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36949,9 +36950,9 @@ class _ContentCssRect extends CssRect {
 class _ContentCssListRect extends _ContentCssRect {
   List<Element> _elementList;
 
-  _ContentCssListRect(List<Element> elementList) : super(elementList.first) {
-    _elementList = elementList;
-  }
+  _ContentCssListRect(List<Element> elementList)
+      : _elementList = elementList,
+        super(elementList.first);
 
   /**
    * Set the height to `newHeight`.
@@ -37173,7 +37174,7 @@ abstract class CssRect implements Rectangle<num> {
    * Returns the intersection of this and `other`, or `null` if they don't
    * intersect.
    */
-  Rectangle<num> intersection(Rectangle<num> other) {
+  Rectangle<num>? intersection(Rectangle<num> other) {
     var x0 = max(left, other.left);
     var x1 = min(left + width, other.left + other.width);
 
@@ -37380,7 +37381,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _removeWhere(_element, test, false);
   }
 
-  static bool _contains(Element _element, Object value) {
+  static bool _contains(Element _element, Object? value) {
     return value is String && _classListContains(_classListOf(_element), value);
   }
 
@@ -37437,10 +37438,10 @@ class _ElementCssClassSet extends CssClassSetImpl {
     }
   }
 
-  static void _removeAll(Element _element, Iterable<Object> iterable) {
+  static void _removeAll(Element _element, Iterable<Object?> iterable) {
     DomTokenList list = _classListOf(_element);
-    for (String value in iterable) {
-      _classListRemove(list, value);
+    for (Object? value in iterable) {
+      _classListRemove(list, value as String);
     }
   }
 
@@ -37449,7 +37450,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
     DomTokenList list = _classListOf(_element);
     int i = 0;
     while (i < _classListLength(list)) {
-      String item = list.item(i);
+      String item = list.item(i)!;
       if (doRemove == test(item)) {
         _classListRemove(list, item);
       } else {
@@ -37560,7 +37561,9 @@ class Dimension {
    * `inherit` or invalid CSS will cause this constructor to throw a
    * FormatError.
    */
-  Dimension.css(String cssValue) {
+  Dimension.css(String cssValue)
+      : _unit = '',
+        _value = 0 {
     if (cssValue == '') cssValue = '0px';
     if (cssValue.endsWith('%')) {
       _unit = '%';
@@ -37622,7 +37625,7 @@ class EventStreamProvider<T extends Event> {
    * * [EventTarget.addEventListener](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)
    *   from MDN.
    */
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) =>
+  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) =>
       new _EventStream<T>(e, _eventType, useCapture);
 
   /**
@@ -37714,7 +37717,7 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
  * Adapter for exposing DOM events as Dart streams.
  */
 class _EventStream<T extends Event> extends Stream<T> {
-  final EventTarget _target;
+  final EventTarget? _target;
   final String _eventType;
   final bool _useCapture;
 
@@ -37813,9 +37816,9 @@ typedef _EventListener<T extends Event>(T event);
 
 class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   int _pauseCount = 0;
-  EventTarget _target;
+  EventTarget? _target;
   final String _eventType;
-  EventListener _onData;
+  EventListener? _onData;
   final bool _useCapture;
 
   // TODO(leafp): It would be better to write this as
@@ -37828,7 +37831,7 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   // which are typed correctly.  But this currently runs afoul of restrictions
   // on is checks for compatibility with the VM.
   _EventStreamSubscription(
-      this._target, this._eventType, void onData(T event), this._useCapture)
+      this._target, this._eventType, void onData(T event)?, this._useCapture)
       : _onData = onData == null
             ? null
             : _wrapZone<Event>((e) => (onData as dynamic)(e)) {
@@ -37836,13 +37839,16 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
   }
 
   Future cancel() {
-    if (_canceled) return null;
+    // Return type cannot be null due to override, so return empty Future
+    // instead.
+    var emptyFuture = new Future<void>.value();
+    if (_canceled) return emptyFuture;
 
     _unlisten();
     // Clear out the target to indicate this is complete.
     _target = null;
     _onData = null;
-    return null;
+    return emptyFuture;
   }
 
   bool get _canceled => _target == null;
@@ -37885,13 +37891,13 @@ class _EventStreamSubscription<T extends Event> extends StreamSubscription<T> {
 
   void _tryResume() {
     if (_onData != null && !isPaused) {
-      _target.addEventListener(_eventType, _onData, _useCapture);
+      _target!.addEventListener(_eventType, _onData, _useCapture);
     }
   }
 
   void _unlisten() {
     if (_onData != null) {
-      _target.removeEventListener(_eventType, _onData, _useCapture);
+      _target!.removeEventListener(_eventType, _onData, _useCapture);
     }
   }
 
@@ -37920,10 +37926,9 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
   /** The type of event this stream is providing (e.g. "keydown"). */
   String _type;
 
-  _CustomEventStreamImpl(String type) {
-    _type = type;
-    _streamController = new StreamController.broadcast(sync: true);
-  }
+  _CustomEventStreamImpl(String type)
+      : _type = type,
+        _streamController = new StreamController.broadcast(sync: true);
 
   // Delegate all regular Stream behavior to our wrapped Stream.
   StreamSubscription<T> listen(void onData(T event)?,
@@ -37950,7 +37955,7 @@ class _CustomKeyEventStreamImpl extends _CustomEventStreamImpl<KeyEvent>
 
   void add(KeyEvent event) {
     if (event.type == _type) {
-      event.currentTarget.dispatchEvent(event._parent);
+      event.currentTarget!.dispatchEvent(event._parent);
       _streamController.add(event);
     }
   }
@@ -37962,7 +37967,7 @@ class _CustomKeyEventStreamImpl extends _CustomEventStreamImpl<KeyEvent>
  */
 // TODO (efortuna): Remove this when Issue 12218 is addressed.
 class _StreamPool<T> {
-  StreamController<T> _controller;
+  StreamController<T>? _controller;
 
   /// Subscriptions to the streams that make up the pool.
   var _subscriptions = new Map<Stream<T>, StreamSubscription<T>>();
@@ -37982,7 +37987,7 @@ class _StreamPool<T> {
   /**
    * The stream through which all events from streams in the pool are emitted.
    */
-  Stream<T> get stream => _controller.stream;
+  Stream<T> get stream => _controller!.stream;
 
   /**
    * Adds [stream] as a member of this pool.
@@ -37993,8 +37998,8 @@ class _StreamPool<T> {
    */
   void add(Stream<T> stream) {
     if (_subscriptions.containsKey(stream)) return;
-    _subscriptions[stream] = stream.listen(_controller.add,
-        onError: _controller.addError, onDone: () => remove(stream));
+    _subscriptions[stream] = stream.listen(_controller!.add,
+        onError: _controller!.addError, onDone: () => remove(stream));
   }
 
   /** Removes [stream] as a member of this pool. */
@@ -38009,7 +38014,7 @@ class _StreamPool<T> {
       subscription.cancel();
     }
     _subscriptions.clear();
-    _controller.close();
+    _controller!.close();
   }
 }
 
@@ -38022,7 +38027,7 @@ class _CustomEventStreamProvider<T extends Event>
   final _eventTypeGetter;
   const _CustomEventStreamProvider(this._eventTypeGetter);
 
-  Stream<T> forTarget(EventTarget e, {bool useCapture: false}) {
+  Stream<T> forTarget(EventTarget? e, {bool useCapture: false}) {
     return new _EventStream<T>(e, _eventTypeGetter(e), useCapture);
   }
 
@@ -39455,7 +39460,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   final String _type;
 
   /** The element we are watching for events to happen on. */
-  final EventTarget _target;
+  final EventTarget? _target;
 
   // The distance to shift from upper case alphabet Roman letters to lower case.
   static final int _ROMAN_ALPHABET_OFFSET = "a".codeUnits[0] - "A".codeUnits[0];
@@ -39498,7 +39503,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
 
   /** Return a stream for KeyEvents for the specified target. */
   // Note: this actually functions like a factory constructor.
-  CustomStream<KeyEvent> forTarget(EventTarget e, {bool useCapture: false}) {
+  CustomStream<KeyEvent> forTarget(EventTarget? e, {bool useCapture: false}) {
     var handler =
         new _KeyboardEventHandler.initializeAllEventListeners(_type, e);
     return handler._stream;
@@ -39518,7 +39523,8 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
    * and charcodes when they are not provided.
    */
   _KeyboardEventHandler.initializeAllEventListeners(this._type, this._target)
-      : super(_EVENT_TYPE) {
+      : _stream = new _CustomKeyEventStreamImpl(_type),
+        super(_EVENT_TYPE) {
     Element.keyDownEvent
         .forTarget(_target, useCapture: true)
         .listen(processKeyDown);
@@ -39528,7 +39534,6 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
     Element.keyUpEvent
         .forTarget(_target, useCapture: true)
         .listen(processKeyUp);
-    _stream = new _CustomKeyEventStreamImpl(_type);
   }
 
   /** Determine if caps lock is one of the currently depressed keys. */
@@ -39770,7 +39775,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
         _keyIdentifier.containsKey(e._shadowKeyIdentifier)) {
       // This is needed for Safari Windows because it currently doesn't give a
       // keyCode/which for non printable keys.
-      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier];
+      e._shadowKeyCode = _keyIdentifier[e._shadowKeyIdentifier]!;
     }
     e._shadowAltKey = _keyDownList.any((var element) => element.altKey);
     _stream.add(e);
@@ -39779,7 +39784,7 @@ class _KeyboardEventHandler extends EventStreamProvider<KeyEvent> {
   /** Handle keyup events. */
   void processKeyUp(KeyboardEvent event) {
     var e = new KeyEvent.wrap(event);
-    KeyboardEvent toRemove = null;
+    KeyboardEvent? toRemove = null;
     for (var key in _keyDownList) {
       if (key.keyCode == e.keyCode) {
         toRemove = key;
@@ -39883,7 +39888,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * The UriPolicy can be used to restrict the locations the navigation elements
    * are allowed to direct to. By default this will use the default [UriPolicy].
    */
-  void allowNavigation([UriPolicy uriPolicy]) {
+  void allowNavigation([UriPolicy? uriPolicy]) {
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -39896,7 +39901,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * The UriPolicy can be used to restrict the locations the images may be
    * loaded from. By default this will use the default [UriPolicy].
    */
-  void allowImages([UriPolicy uriPolicy]) {
+  void allowImages([UriPolicy? uriPolicy]) {
     if (uriPolicy == null) {
       uriPolicy = new UriPolicy();
     }
@@ -39937,7 +39942,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * If [tagName] is not specified then this allows inline styles on all
    * elements. Otherwise tagName limits the styles to the specified elements.
    */
-  void allowInlineStyles({String tagName}) {
+  void allowInlineStyles({String? tagName}) {
     if (tagName == null) {
       tagName = '*';
     } else {
@@ -39955,7 +39960,7 @@ class NodeValidatorBuilder implements NodeValidator {
    * Common things which are not allowed are script elements, style attributes
    * and any script handlers.
    */
-  void allowHtml5({UriPolicy uriPolicy}) {
+  void allowHtml5({UriPolicy? uriPolicy}) {
     add(new _Html5NodeValidator(uriPolicy: uriPolicy));
   }
 
@@ -39974,9 +39979,9 @@ class NodeValidatorBuilder implements NodeValidator {
    * tag extensions.
    */
   void allowCustomElement(String tagName,
-      {UriPolicy uriPolicy,
+      {UriPolicy? uriPolicy,
       Iterable<String>? attributes,
-      Iterable<String> uriAttributes}) {
+      Iterable<String>? uriAttributes}) {
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
         ?.map<String>((name) => '$tagNameUpper::${name.toLowerCase()}');
@@ -39999,9 +40004,9 @@ class NodeValidatorBuilder implements NodeValidator {
    * custom tags.
    */
   void allowTagExtension(String tagName, String baseName,
-      {UriPolicy uriPolicy,
-      Iterable<String> attributes,
-      Iterable<String> uriAttributes}) {
+      {UriPolicy? uriPolicy,
+      Iterable<String>? attributes,
+      Iterable<String>? uriAttributes}) {
     var baseNameUpper = baseName.toUpperCase();
     var tagNameUpper = tagName.toUpperCase();
     var attrs = attributes
@@ -40017,9 +40022,9 @@ class NodeValidatorBuilder implements NodeValidator {
   }
 
   void allowElement(String tagName,
-      {UriPolicy uriPolicy,
-      Iterable<String> attributes,
-      Iterable<String> uriAttributes}) {
+      {UriPolicy? uriPolicy,
+      Iterable<String>? attributes,
+      Iterable<String>? uriAttributes}) {
     allowCustomElement(tagName,
         uriPolicy: uriPolicy,
         attributes: attributes,
@@ -40061,7 +40066,7 @@ class _SimpleNodeValidator implements NodeValidator {
   final Set<String> allowedElements = new Set<String>();
   final Set<String> allowedAttributes = new Set<String>();
   final Set<String> allowedUriAttributes = new Set<String>();
-  final UriPolicy uriPolicy;
+  final UriPolicy? uriPolicy;
 
   factory _SimpleNodeValidator.allowNavigation(UriPolicy uriPolicy) {
     return new _SimpleNodeValidator(uriPolicy, allowedElements: const [
@@ -40136,9 +40141,9 @@ class _SimpleNodeValidator implements NodeValidator {
    * lowercase attribute name. For example `'IMG:src'`.
    */
   _SimpleNodeValidator(this.uriPolicy,
-      {Iterable<String> allowedElements,
-      Iterable<String> allowedAttributes,
-      Iterable<String> allowedUriAttributes}) {
+      {Iterable<String>? allowedElements,
+      Iterable<String>? allowedAttributes,
+      Iterable<String>? allowedUriAttributes}) {
     this.allowedElements.addAll(allowedElements ?? const []);
     allowedAttributes = allowedAttributes ?? const [];
     allowedUriAttributes = allowedUriAttributes ?? const [];
@@ -40158,9 +40163,9 @@ class _SimpleNodeValidator implements NodeValidator {
   bool allowsAttribute(Element element, String attributeName, String value) {
     var tagName = Element._safeTagName(element);
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
-      return uriPolicy.allowsUri(value);
+      return uriPolicy!.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
-      return uriPolicy.allowsUri(value);
+      return uriPolicy!.allowsUri(value);
     } else if (allowedAttributes.contains('$tagName::$attributeName')) {
       return true;
     } else if (allowedAttributes.contains('*::$attributeName')) {
@@ -40181,8 +40186,8 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
   _CustomElementNodeValidator(
       UriPolicy uriPolicy,
       Iterable<String> allowedElements,
-      Iterable<String> allowedAttributes,
-      Iterable<String> allowedUriAttributes,
+      Iterable<String>? allowedAttributes,
+      Iterable<String>? allowedUriAttributes,
       bool allowTypeExtension,
       bool allowCustomTag)
       : this.allowTypeExtension = allowTypeExtension == true,
@@ -40335,7 +40340,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   // List APIs
 
-  E operator [](int index) => _list[index];
+  E operator [](int index) => _list[index] as E;
 
   void operator []=(int index, E value) {
     _list[index] = value;
@@ -40346,18 +40351,22 @@ class _WrappedList<E extends Node> extends ListBase<E>
   }
 
   void sort([int compare(E a, E b)?]) {
-    // Implicit downcast on argument from Node to E-extends-Node.
-    _list.sort((Node a, Node b) => compare(a, b));
+    if (compare == null) {
+      _list.sort();
+    } else {
+      _list.sort((Node a, Node b) => compare(a as E, b as E));
+    }
   }
 
-  int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
+  int indexOf(Object element, [int start = 0]) =>
+      _list.indexOf(element as Node, start);
 
   int lastIndexOf(Object element, [int? start]) =>
-      _list.lastIndexOf(element, start);
+      _list.lastIndexOf(element as Node, start);
 
   void insert(int index, E element) => _list.insert(index, element);
 
-  E removeAt(int index) => _list.removeAt(index);
+  E removeAt(int index) => _list.removeAt(index) as E;
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     _list.setRange(start, end, iterable, skipCount);
@@ -40425,7 +40434,7 @@ class FixedSizeListIterator<T> implements Iterator<T> {
   final List<T> _array;
   final int _length; // Cache array length for faster access.
   int _position;
-  T _current;
+  T? _current;
 
   FixedSizeListIterator(List<T> array)
       : _array = array,
@@ -40444,14 +40453,14 @@ class FixedSizeListIterator<T> implements Iterator<T> {
     return false;
   }
 
-  T get current => _current;
+  T get current => _current as T;
 }
 
 // Iterator for arrays with variable size.
 class _VariableSizeListIterator<T> implements Iterator<T> {
   final List<T> _array;
   int _position;
-  T _current;
+  T? _current;
 
   _VariableSizeListIterator(List<T> array)
       : _array = array,
@@ -40469,7 +40478,7 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
     return false;
   }
 
-  T get current => _current;
+  T get current => _current as T;
 }
 // Copyright (c) 2017, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40481,7 +40490,7 @@ class Console {
 
   bool get _isConsoleDefined => JS('bool', 'typeof console != "undefined"');
 
-  MemoryInfo get memory =>
+  MemoryInfo? get memory =>
       _isConsoleDefined ? JS('MemoryInfo', 'window.console.memory') : null;
 
   void assertCondition(bool condition, Object arg) => _isConsoleDefined
@@ -40561,12 +40570,12 @@ class Console {
 // We omit an unwrapper for Window as no methods take a non-local
 // window as a parameter.
 
-WindowBase _convertNativeToDart_Window(win) {
+WindowBase? _convertNativeToDart_Window(win) {
   if (win == null) return null;
   return _DOMWindowCrossFrame._createSafe(win);
 }
 
-EventTarget _convertNativeToDart_EventTarget(e) {
+EventTarget? _convertNativeToDart_EventTarget(e) {
   if (e == null) {
     return null;
   }
@@ -40664,7 +40673,7 @@ void _checkExtendsNativeClassOrTemplate(
   }
 }
 
-Function _registerCustomElement(context, document, String tag, [Map options]) {
+Function _registerCustomElement(context, document, String tag, [Map? options]) {
   // Function follows the same pattern as the following JavaScript code for
   // registering a custom element.
   //
@@ -40680,7 +40689,7 @@ Function _registerCustomElement(context, document, String tag, [Map options]) {
   //    var e = document.createElement('x-foo');
 
   var extendsTagName = '';
-  Type type;
+  Type? type;
   if (options != null) {
     extendsTagName = options['extends'];
     type = options['prototype'];
@@ -40760,7 +40769,7 @@ class _JSElementUpgrader implements ElementUpgrader {
   var _constructor;
   var _nativeType;
 
-  _JSElementUpgrader(Document document, Type type, String extendsTag) {
+  _JSElementUpgrader(Document document, Type type, String? extendsTag) {
     var interceptorClass = findInterceptorConstructorForType(type);
     if (interceptorClass == null) {
       throw new ArgumentError(type);
@@ -40840,8 +40849,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Methods.
   void close() => JS('void', '#.close()', _window);
 
-  void postMessage(var message, String targetOrigin,
-      [List messagePorts = null]) {
+  void postMessage(var message, String targetOrigin, [List? messagePorts]) {
     if (messagePorts == null) {
       JS('void', '#.postMessage(#,#)', _window,
           convertDartToNative_SerializedScriptValue(message), targetOrigin);
@@ -40878,8 +40886,8 @@ class _DOMWindowCrossFrame implements WindowBase {
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void addEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void addEventListener(String type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
@@ -40891,8 +40899,8 @@ class _DOMWindowCrossFrame implements WindowBase {
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void removeEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void removeEventListener(String type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
 }
@@ -41008,9 +41016,10 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get _realAltKey => JS('bool', '#.altKey', _parent);
 
   /** Shadows on top of the parent's currentTarget. */
-  EventTarget _currentTarget;
+  EventTarget? _currentTarget;
 
-  final InputDeviceCapabilities sourceCapabilities;
+  InputDeviceCapabilities? get sourceCapabilities =>
+      JS('InputDeviceCapabilities', '#.sourceCapabilities', this);
 
   /**
    * The value we want to use for this object's dispatch. Created here so it is
@@ -41025,7 +41034,12 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   }
 
   /** Construct a KeyEvent with [parent] as the event we're emulating. */
-  KeyEvent.wrap(KeyboardEvent parent) : super(parent) {
+  KeyEvent.wrap(KeyboardEvent parent)
+      : _parent = parent,
+        _shadowAltKey = false,
+        _shadowCharCode = 0,
+        _shadowKeyCode = 0,
+        super(parent) {
     _parent = parent;
     _shadowAltKey = _realAltKey;
     _shadowCharCode = _realCharCode;
@@ -41035,7 +41049,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** Programmatically create a new KeyEvent (and KeyboardEvent). */
   factory KeyEvent(String type,
-      {Window view,
+      {Window? view,
       bool canBubble: true,
       bool cancelable: true,
       int keyCode: 0,
@@ -41045,7 +41059,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       bool altKey: false,
       bool shiftKey: false,
       bool metaKey: false,
-      EventTarget currentTarget}) {
+      EventTarget? currentTarget}) {
     if (view == null) {
       view = window;
     }
@@ -41103,7 +41117,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
           '&& document.body.dispatchEvent.length > 0');
 
   /** The currently registered target for this event. */
-  EventTarget get currentTarget => _currentTarget;
+  EventTarget? get currentTarget => _currentTarget;
 
   // This is an experimental method to be sure.
   static String _convertToHexString(int charCode, int keyCode) {
@@ -41146,7 +41160,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   bool get metaKey => _parent.metaKey;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
-  Window get view => _parent.view;
+  WindowBase? get view => _parent.view;
   void _initUIEvent(
       String type, bool canBubble, bool cancelable, Window? view, int detail) {
     throw new UnsupportedError("Cannot initialize a UI Event from a KeyEvent.");
@@ -41166,9 +41180,9 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
       String type,
       bool canBubble,
       bool cancelable,
-      Window view,
+      Window? view,
       String keyIdentifier,
-      int location,
+      int? location,
       bool ctrlKey,
       bool altKey,
       bool shiftKey,
@@ -41213,7 +41227,7 @@ class _WrappedEvent implements Event {
   final Event wrapped;
 
   /** The CSS selector involved with event delegation. */
-  String _selector;
+  String? _selector;
 
   _WrappedEvent(this.wrapped);
 
@@ -41223,7 +41237,7 @@ class _WrappedEvent implements Event {
 
   bool get composed => wrapped.composed;
 
-  EventTarget get currentTarget => wrapped.currentTarget;
+  EventTarget? get currentTarget => wrapped.currentTarget;
 
   bool get defaultPrevented => wrapped.defaultPrevented;
 
@@ -41231,9 +41245,9 @@ class _WrappedEvent implements Event {
 
   bool get isTrusted => wrapped.isTrusted;
 
-  EventTarget get target => wrapped.target;
+  EventTarget? get target => wrapped.target;
 
-  double get timeStamp => wrapped.timeStamp;
+  double get timeStamp => wrapped.timeStamp as double;
 
   String get type => wrapped.type;
 
@@ -41265,13 +41279,12 @@ class _WrappedEvent implements Event {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    Element currentTarget = this.currentTarget;
-    Element target = this.target;
-    var matchedTarget;
+    Element? currentTarget = this.currentTarget as Element?;
+    Element? target = this.target as Element?;
     do {
-      if (target.matches(_selector)) return target;
+      if (target!.matches(_selector!)) return target;
       target = target.parent;
-    } while (target != null && target != currentTarget.parent);
+    } while (target != null && target != currentTarget!.parent);
     throw new StateError('No selector matched for populating matchedTarget.');
   }
 
@@ -41285,7 +41298,7 @@ class _WrappedEvent implements Event {
    *   from W3C.
    */
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
-  List<Node> get path => wrapped.path;
+  List<Node> get path => wrapped.path as List<Node>;
 
   dynamic get _get_currentTarget => wrapped._get_currentTarget;
 
@@ -41298,14 +41311,12 @@ class _WrappedEvent implements Event {
 void Function(T) _wrapZone<T>(void Function(T) callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
-  if (callback == null) return null;
   return Zone.current.bindUnaryCallbackGuarded(callback);
 }
 
 void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
   // For performance reasons avoid wrapping if we are in the root zone.
   if (Zone.current == Zone.root) return callback;
-  if (callback == null) return null;
   return Zone.current.bindBinaryCallbackGuarded(callback);
 }
 
@@ -41326,7 +41337,7 @@ void Function(T1, T2) _wrapBinaryZone<T1, T2>(void Function(T1, T2) callback) {
  * For details about CSS selector syntax, see the
  * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
  */
-Element querySelector(String selectors) => document.querySelector(selectors);
+Element? querySelector(String selectors) => document.querySelector(selectors);
 
 /**
  * Finds all descendant elements of this document that match the specified
@@ -41374,7 +41385,7 @@ abstract class NodeValidator {
    *
    * If a uriPolicy is not specified then the default uriPolicy will be used.
    */
-  factory NodeValidator({UriPolicy uriPolicy}) =>
+  factory NodeValidator({UriPolicy? uriPolicy}) =>
       new _Html5NodeValidator(uriPolicy: uriPolicy);
 
   factory NodeValidator.throws(NodeValidator base) =>
@@ -41514,7 +41525,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   _ValidatingTreeSanitizer(this.validator) {}
 
   void sanitizeTree(Node node) {
-    void walk(Node node, Node parent) {
+    void walk(Node node, Node? parent) {
       sanitizeNode(node, parent);
 
       var child = node.lastChild;
@@ -41541,7 +41552,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Aggressively try to remove node.
-  void _removeNode(Node node, Node parent) {
+  void _removeNode(Node node, Node? parent) {
     // If we have the parent, it's presumably already passed more sanitization
     // or is the fragment, so ask it to remove the child. And if that fails
     // try to set the outer html.
@@ -41553,7 +41564,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Sanitize the element, assuming we can't trust anything about it.
-  void _sanitizeUntrustedElement(/* Element */ element, Node parent) {
+  void _sanitizeUntrustedElement(/* Element */ element, Node? parent) {
     // If the _hasCorruptedAttributes does not successfully return false,
     // then we consider it corrupted and remove.
     // TODO(alanknight): This is a workaround because on Firefox
@@ -41602,7 +41613,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   /// Having done basic sanity checking on the element, and computed the
   /// important attributes we want to check, remove it if it's not valid
   /// or not allowed, either as a whole or particular attributes.
-  void _sanitizeElement(Element element, Node parent, bool corrupted,
+  void _sanitizeElement(Element element, Node? parent, bool corrupted,
       String text, String tag, Map attrs, String isAttr) {
     if (false != corrupted) {
       _removeNode(element, parent);
@@ -41645,7 +41656,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   }
 
   /// Sanitize the node and its children recursively.
-  void sanitizeNode(Node node, Node parent) {
+  void sanitizeNode(Node node, Node? parent) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
         _sanitizeUntrustedElement(node, parent);

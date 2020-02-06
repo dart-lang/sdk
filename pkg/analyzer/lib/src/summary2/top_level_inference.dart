@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -199,7 +200,8 @@ class _ConstructorInferenceNode extends _InferenceNode {
   }
 }
 
-class _FunctionElementForLink_Initializer implements FunctionElementImpl {
+class _FunctionElementForLink_Initializer
+    implements FunctionElementImpl, ElementImplWithFunctionType {
   final _VariableInferenceNode _node;
 
   @override
@@ -208,7 +210,11 @@ class _FunctionElementForLink_Initializer implements FunctionElementImpl {
   _FunctionElementForLink_Initializer(this._node);
 
   @override
-  DartType get returnType {
+  DartType get returnType =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
+
+  @override
+  DartType get returnTypeInternal {
     if (!_node.isEvaluated) {
       _node._walker.walk(_node);
     }

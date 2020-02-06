@@ -4,7 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'declared_variables_test.dart' as declared_variables;
+import 'from_environment_evaluator_test.dart' as declared_variables;
 import 'utilities_test.dart' as utilities;
 
 main() {

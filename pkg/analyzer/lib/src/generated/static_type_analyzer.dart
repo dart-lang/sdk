@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -42,6 +41,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * The feature set that should be used to resolve types.
    */
   final FeatureSet _featureSet;
+
+  final MigrationResolutionHooks _migrationResolutionHooks;
 
   /**
    * The object providing access to the types defined by the language.
@@ -76,8 +77,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
   final FlowAnalysisHelper _flowAnalysis;
 
-  final ElementTypeProvider _elementTypeProvider;
-
   /**
    * Initialize a newly created static type analyzer to analyze types for the
    * [_resolver] based on the
@@ -85,8 +84,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * @param resolver the resolver driving this participant
    */
   StaticTypeAnalyzer(this._resolver, this._featureSet, this._flowAnalysis,
-      {ElementTypeProvider elementTypeProvider = const ElementTypeProvider()})
-      : _elementTypeProvider = elementTypeProvider {
+      this._migrationResolutionHooks) {
     _typeProvider = _resolver.typeProvider;
     _typeSystem = _resolver.typeSystem;
     _dynamicType = _typeProvider.dynamicType;
@@ -138,13 +136,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var classElement = constructor.enclosingElement;
     var typeParameters = classElement.typeParameters;
     if (typeParameters.isEmpty) {
-      return _elementTypeProvider.getExecutableType(constructor);
+      return constructor.type;
     }
 
     return FunctionTypeImpl(
       typeFormals: typeParameters,
-      parameters: _elementTypeProvider.getExecutableParameters(constructor),
-      returnType: _elementTypeProvider.getExecutableReturnType(constructor),
+      parameters: constructor.parameters,
+      returnType: constructor.returnType,
       nullabilitySuffix: NullabilitySuffix.star,
     );
   }
@@ -161,9 +159,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       void inferType(ParameterElementImpl p, DartType inferredType) {
         // Check that there is no declared type, and that we have not already
         // inferred a type in some fashion.
-        if (p.hasImplicitType &&
-            (_elementTypeProvider.getVariableType(p) == null ||
-                _elementTypeProvider.getVariableType(p).isDynamic)) {
+        if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
           inferredType = _typeSystem.greatestClosure(inferredType);
           if (inferredType.isDartCoreNull) {
             inferredType = _typeProvider.objectType;
@@ -182,8 +178,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         Iterator<ParameterElement> fnPositional =
             functionType.parameters.where((p) => p.isPositional).iterator;
         while (positional.moveNext() && fnPositional.moveNext()) {
-          inferType(positional.current,
-              _elementTypeProvider.getVariableType(fnPositional.current));
+          inferType(positional.current, fnPositional.current.type);
         }
       }
 
@@ -299,8 +294,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       functionElement.returnType =
           _computeStaticReturnTypeOfFunctionDeclaration(node);
     }
-    _recordStaticType(
-        function, _elementTypeProvider.getExecutableType(functionElement));
+    _recordStaticType(function, functionElement.type);
   }
 
   /**
@@ -355,14 +349,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     } else {
       DartType type;
       if (node.inSetterContext()) {
-        var parameters =
-            _elementTypeProvider.safeExecutableParameters(node.staticElement);
+        var parameters = node.staticElement?.parameters;
         if (parameters?.length == 2) {
-          type = _elementTypeProvider.getVariableType(parameters[1]);
+          type = parameters[1].type;
         }
       } else {
-        type =
-            _elementTypeProvider.safeExecutableReturnType(node.staticElement);
+        type = node.staticElement?.returnType;
       }
 
       type ??= _dynamicType;
@@ -493,13 +485,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       return;
     } else if (staticElement is MethodElement) {
-      staticType = _elementTypeProvider.getExecutableType(staticElement);
+      staticType = staticElement.type;
     } else if (staticElement is PropertyAccessorElement) {
       staticType = _getTypeOfProperty(staticElement);
     } else if (staticElement is ExecutableElement) {
-      staticType = _elementTypeProvider.getExecutableType(staticElement);
+      staticType = staticElement.type;
     } else if (staticElement is VariableElement) {
-      staticType = _elementTypeProvider.getVariableType(staticElement);
+      staticType = staticElement.type;
     }
 
     staticType = _inferTearOff(node, node.identifier, staticType);
@@ -556,7 +548,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     Element staticElement = propertyName.staticElement;
     DartType staticType = _dynamicType;
     if (staticElement is MethodElement) {
-      staticType = _elementTypeProvider.getExecutableType(staticElement);
+      staticType = staticElement.type;
     } else if (staticElement is PropertyAccessorElement) {
       staticType = _getTypeOfProperty(staticElement);
     } else {
@@ -642,11 +634,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       return;
     } else if (element is MethodElement) {
-      staticType = _elementTypeProvider.getExecutableType(element);
+      staticType = element.type;
     } else if (element is PropertyAccessorElement) {
       staticType = _getTypeOfProperty(element);
     } else if (element is ExecutableElement) {
-      staticType = _elementTypeProvider.getExecutableType(element);
+      staticType = element.type;
     } else if (element is TypeParameterElement) {
       staticType = _nonNullable(_typeProvider.typeType);
     } else if (element is VariableElement) {
@@ -820,8 +812,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * equivalent to [_getStaticType].
    */
   DartType _getExpressionType(Expression expr, {bool read = false}) =>
-      getExpressionType(expr, _typeSystem, _typeProvider,
-          read: read, elementTypeProvider: _elementTypeProvider);
+      getExpressionType(expr, _typeSystem, _typeProvider, read: read);
 
   /**
    * Return the static type of the given [expression].
@@ -829,13 +820,13 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
   DartType _getStaticType(Expression expression, {bool read = false}) {
     DartType type;
     if (read) {
-      type = getReadType(expression, elementTypeProvider: _elementTypeProvider);
+      type = getReadType(expression);
     } else {
       if (expression is SimpleIdentifier && expression.inSetterContext()) {
         var element = expression.staticElement;
         if (element is PromotableElement) {
           // We're writing to the element so ignore promotions.
-          type = _elementTypeProvider.getVariableType(element);
+          type = element.type;
         } else {
           type = expression.staticType;
         }
@@ -871,8 +862,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * @return the type that should be recorded for a node that resolved to the given accessor
    */
   DartType _getTypeOfProperty(PropertyAccessorElement accessor) {
-    FunctionType functionType =
-        _elementTypeProvider.getExecutableType(accessor);
+    FunctionType functionType = accessor.type;
     if (functionType == null) {
       // TODO(brianwilkerson) Report this internal error. This happens when we
       // are analyzing a reference to a property before we have analyzed the
@@ -887,7 +877,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       }
       PropertyAccessorElement getter = accessor.variable.getter;
       if (getter != null) {
-        functionType = _elementTypeProvider.getExecutableType(getter);
+        functionType = getter.type;
         if (functionType != null) {
           return functionType.returnType;
         }
@@ -938,8 +928,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         node.constructorName,
         isConst: node.isConst);
 
-    if (inferred != null &&
-        inferred != _elementTypeProvider.getExecutableType(originalElement)) {
+    if (inferred != null && inferred != originalElement.type) {
       inferred = _resolver.toLegacyTypeIfOptOut(inferred);
       // Fix up the parameter elements based on inferred method.
       arguments.correspondingStaticParameters =
@@ -972,8 +961,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
 
     computedType = _computeReturnTypeOfFunction(body, computedType);
     functionElement.returnType = computedType;
-    _recordStaticType(
-        node, _elementTypeProvider.getExecutableType(functionElement));
+    _recordStaticType(node, functionElement.type);
   }
 
   /**
@@ -1028,8 +1016,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
       return false;
     }
     inferredElement = _resolver.toLegacyElement(inferredElement);
-    DartType inferredType =
-        _elementTypeProvider.getExecutableReturnType(inferredElement);
+    DartType inferredType = inferredElement.returnType;
     if (nodeType != null &&
         nodeType.isDynamic &&
         inferredType is InterfaceType &&
@@ -1109,9 +1096,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
    * @param type the static type of the node
    */
   void _recordStaticType(Expression expression, DartType type) {
-    var elementTypeProvider = this._elementTypeProvider;
-    if (elementTypeProvider is MigrationResolutionHooks) {
-      type = elementTypeProvider.modifyExpressionType(
+    if (_migrationResolutionHooks != null) {
+      type = _migrationResolutionHooks.modifyExpressionType(
           expression, type ?? _dynamicType);
     }
 

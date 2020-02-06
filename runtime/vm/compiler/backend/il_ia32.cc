@@ -13,7 +13,6 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/locations_helpers.h"
 #include "vm/compiler/backend/range_analysis.h"
-#include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/compiler/jit/compiler.h"
@@ -142,9 +141,12 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  EmitReturnMoves(compiler);
+
   bool return_in_st0 = false;
-  if (result_representation_ == kUnboxedFloat ||
-      result_representation_ == kUnboxedDouble) {
+  if (marshaller_.Location(compiler::ffi::kResultIndex)
+          .payload_type()
+          .IsFloat()) {
     ASSERT(locs()->in(0).IsFpuRegister() && locs()->in(0).fpu_reg() == XMM0);
     return_in_st0 = true;
   }
@@ -187,7 +189,9 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Move XMM0 into ST0 if needed.
   if (return_in_st0) {
-    if (result_representation_ == kUnboxedDouble) {
+    if (marshaller_.Location(compiler::ffi::kResultIndex)
+            .payload_type()
+            .SizeInBytes() == 8) {
       __ movsd(compiler::Address(SPREG, -8), XMM0);
       __ fldl(compiler::Address(SPREG, -8));
     } else {
@@ -938,21 +942,14 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // We need to create a dummy "exit frame". It will have a null code object.
   __ LoadObject(CODE_REG, Object::null_object());
-  __ EnterDartFrame(compiler::ffi::NumStackSlots(arg_locations_) * kWordSize);
+  __ EnterDartFrame(marshaller_.StackTopInBytes());
 
   // Align frame before entering C++ world.
   if (OS::ActivationFrameAlignment() > 1) {
     __ andl(SPREG, compiler::Immediate(~(OS::ActivationFrameAlignment() - 1)));
   }
 
-  compiler::ffi::FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
-                                    /*stack_delta=*/0);
-  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    const Location origin = rebase.Rebase(locs()->in(i));
-    const Location target = arg_locations_[i];
-    ConstantTemporaryAllocator temp_alloc(temp);
-    compiler->EmitMove(target, origin, &temp_alloc);
-  }
+  EmitParamMoves(compiler);
 
   // We need to copy a dummy return address up into the dummy stack frame so the
   // stack walker will know which safepoint to use. Unlike X64, there's no
@@ -997,6 +994,8 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ movss(XMM0, compiler::Address(SPREG, -kFloatSize));
   }
 
+  EmitReturnMoves(compiler);
+
   // Leave dummy exit frame.
   __ LeaveFrame();
 
@@ -1004,27 +1003,11 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popl(temp);
 }
 
-void NativeEntryInstr::SaveArgument(FlowGraphCompiler* compiler,
-                                    Location loc) const {
-  if (loc.IsPairLocation()) {
-    // Save the components in reverse order so that they will be in
-    // little-endian order on the stack.
-    for (intptr_t i : {1, 0}) {
-      SaveArgument(compiler, loc.Component(i));
-    }
-    return;
-  }
-
-  if (loc.HasStackIndex()) return;
-
-  if (loc.IsRegister()) {
-    __ pushl(loc.reg());
-  } else if (loc.IsFpuRegister()) {
-    __ subl(SPREG, compiler::Immediate(8));
-    __ movsd(compiler::Address(SPREG, 0), loc.fpu_reg());
-  } else {
-    UNREACHABLE();
-  }
+void NativeEntryInstr::SaveArgument(
+    FlowGraphCompiler* compiler,
+    const compiler::ffi::NativeLocation& nloc) const {
+  // IA32 has no arguments passed in registers.
+  UNREACHABLE();
 }
 
 void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -1221,40 +1204,6 @@ void LoadUntaggedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 DEFINE_BACKEND(StoreUntagged, (NoLocation, Register obj, Register value)) {
   __ movl(compiler::Address(obj, instr->offset_from_tagged()), value);
-}
-
-LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
-                                                       bool opt) const {
-  const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Register object = locs()->in(0).reg();
-  const Register result = locs()->out(0).reg();
-  const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
-  // Using NNBDMode::kLegacyLib is safe, because it throws a wider
-  // net over the types accepting a Smi value, especially during the nnbd
-  // migration that does not guarantee soundness.
-  if (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, value_type) ||
-      value_type.IsTypeParameter()) {
-    // We don't use Assembler::LoadTaggedClassIdMayBeSmi() here---which uses
-    // a conditional move instead, and requires an additional register---because
-    // it is slower, probably due to branch prediction usually working just fine
-    // in this case.
-    ASSERT(result != object);
-    compiler::Label done;
-    __ movl(result, compiler::Immediate(kSmiCid << 1));
-    __ testl(object, compiler::Immediate(kSmiTagMask));
-    __ j(EQUAL, &done, compiler::Assembler::kNearJump);
-    __ LoadClassId(result, object);
-    __ SmiTag(result);
-    __ Bind(&done);
-  } else {
-    __ LoadClassId(result, object);
-    __ SmiTag(result);
-  }
 }
 
 Representation LoadIndexedInstr::representation() const {
@@ -6284,37 +6233,6 @@ void IntConverterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 }
 
-LocationSummary* UnboxedWidthExtenderInstr::MakeLocationSummary(
-    Zone* zone,
-    bool is_optimizing) const {
-  const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, /*num_inputs=*/InputCount(),
-                      /*num_temps=*/kNumTemps, LocationSummary::kNoCall);
-  summary->set_in(0, Location::RegisterLocation(EAX));
-  summary->set_out(0, Location::RegisterLocation(EAX));
-  return summary;
-}
-
-void UnboxedWidthExtenderInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  switch (from_representation()) {
-    case kSmallUnboxedInt8:  // Sign extend operand.
-      __ movsxb(EAX, AL);
-      break;
-    case kSmallUnboxedInt16:
-      __ movsxw(EAX, EAX);
-      break;
-    case kSmallUnboxedUint8:  // Zero extend operand.
-      __ movzxb(EAX, AL);
-      break;
-    case kSmallUnboxedUint16:
-      __ movzxw(EAX, EAX);
-      break;
-    default:
-      UNREACHABLE();
-  }
-}
-
 LocationSummary* ThrowInstr::MakeLocationSummary(Zone* zone, bool opt) const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
@@ -6552,6 +6470,13 @@ void IfThenElseInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ addl(EDX, compiler::Immediate(Smi::RawValue(false_value)));
     }
   }
+}
+
+LocationSummary* DispatchTableCallInstr::MakeLocationSummary(Zone* zone,
+                                                             bool opt) const {
+  // Only generated with precompilation.
+  UNREACHABLE();
+  return NULL;
 }
 
 LocationSummary* ClosureCallInstr::MakeLocationSummary(Zone* zone,

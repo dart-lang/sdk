@@ -44,6 +44,9 @@ class AssignmentCheckerTest extends Object
   @override
   final NullabilityGraphForTesting graph;
 
+  @override
+  final decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
+
   final AssignmentCheckerForTesting checker;
 
   factory AssignmentCheckerTest() {
@@ -181,7 +184,8 @@ class AssignmentCheckerTest extends Object
     var t1 = function(object());
     var t2 = function(object());
     assign(t1, t2, hard: true);
-    assertEdge(t1.returnType.node, t2.returnType.node, hard: false);
+    assertEdge(t1.returnType.node, t2.returnType.node,
+        hard: false, checkable: false);
   }
 
   void test_function_void_to_function_object() {
@@ -190,7 +194,8 @@ class AssignmentCheckerTest extends Object
     var t1 = function(void_);
     var t2 = function(object());
     assign(t1, t2, hard: true);
-    assertEdge(t1.returnType.node, t2.returnType.node, hard: false);
+    assertEdge(t1.returnType.node, t2.returnType.node,
+        hard: false, checkable: false);
   }
 
   void test_future_int_to_future_or_int() {
@@ -2509,16 +2514,16 @@ class C<T, U> {
 ''');
     var constructor = findElement.unnamedConstructor('C');
     var constructorDecoratedType = variables.decoratedElementType(constructor);
-    expect(constructorDecoratedType.type.toString(), 'C<T, U> Function()');
+    _assertType(constructorDecoratedType.type, 'C<T, U> Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
     expect(constructorDecoratedType.returnType.node, same(never));
-    expect(constructorDecoratedType.returnType.type.toString(), 'C<T, U>');
+    _assertType(constructorDecoratedType.returnType.type, 'C<T, U>');
     var typeArguments = constructorDecoratedType.returnType.typeArguments;
     expect(typeArguments, hasLength(2));
-    expect(typeArguments[0].type.toString(), 'T');
+    _assertType(typeArguments[0].type, 'T');
     expect(typeArguments[0].node, same(never));
-    expect(typeArguments[1].type.toString(), 'U');
+    _assertType(typeArguments[1].type, 'U');
     expect(typeArguments[1].node, same(never));
   }
 
@@ -2528,16 +2533,16 @@ class C<T, U> {}
 ''');
     var constructor = findElement.unnamedConstructor('C');
     var constructorDecoratedType = variables.decoratedElementType(constructor);
-    expect(constructorDecoratedType.type.toString(), 'C<T, U> Function()');
+    _assertType(constructorDecoratedType.type, 'C<T, U> Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
     expect(constructorDecoratedType.returnType.node, same(never));
-    expect(constructorDecoratedType.returnType.type.toString(), 'C<T, U>');
+    _assertType(constructorDecoratedType.returnType.type, 'C<T, U>');
     var typeArguments = constructorDecoratedType.returnType.typeArguments;
     expect(typeArguments, hasLength(2));
-    expect(typeArguments[0].type.toString(), 'T');
+    _assertType(typeArguments[0].type, 'T');
     expect(typeArguments[0].node, same(never));
-    expect(typeArguments[1].type.toString(), 'U');
+    _assertType(typeArguments[1].type, 'U');
     expect(typeArguments[1].node, same(never));
   }
 
@@ -2549,7 +2554,7 @@ class C {
 ''');
     var constructorDecoratedType =
         variables.decoratedElementType(findElement.unnamedConstructor('C'));
-    expect(constructorDecoratedType.type.toString(), 'C Function()');
+    _assertType(constructorDecoratedType.type, 'C Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
     expect(constructorDecoratedType.returnType.node, same(never));
@@ -2562,7 +2567,7 @@ class C {}
 ''');
     var constructorDecoratedType =
         variables.decoratedElementType(findElement.unnamedConstructor('C'));
-    expect(constructorDecoratedType.type.toString(), 'C Function()');
+    _assertType(constructorDecoratedType.type, 'C Function()');
     expect(constructorDecoratedType.node, same(never));
     expect(constructorDecoratedType.typeFormals, isEmpty);
     expect(constructorDecoratedType.returnType.node, same(never));
@@ -2682,7 +2687,7 @@ class C {
     var fieldType = variables.decoratedElementType(findElement.field('f'));
     assertEdge(ctorParamType.node, fieldType.node, hard: true);
     assertEdge(ctorParamType.returnType.node, fieldType.returnType.node,
-        hard: false);
+        hard: false, checkable: false);
     assertEdge(fieldType.positionalParameters[0].node,
         ctorParamType.positionalParameters[0].node,
         hard: false, checkable: false);
@@ -5766,7 +5771,8 @@ int Function(int) g(C c) => c.f;
     var fType = variables.decoratedElementType(findElement.method('f'));
     var gReturnType =
         variables.decoratedElementType(findElement.function('g')).returnType;
-    assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
+    assertEdge(fType.returnType.node, gReturnType.returnType.node,
+        hard: false, checkable: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
         hard: false, checkable: false);
@@ -6191,7 +6197,7 @@ int/*1*/ Function() f(int/*2*/ Function() x) => x;
 ''');
     var int1 = decoratedTypeAnnotation('int/*1*/');
     var int2 = decoratedTypeAnnotation('int/*2*/');
-    assertEdge(int2.node, int1.node, hard: false);
+    assertEdge(int2.node, int1.node, hard: false, checkable: false);
   }
 
   Future<void> test_return_implicit_null() async {
@@ -6446,7 +6452,7 @@ main() {
 
     assertEdge(decoratedTypeAnnotation('int f').node,
         decoratedTypeAnnotation('int Function').node,
-        hard: false);
+        hard: false, checkable: false);
   }
 
   Future<void> test_simpleIdentifier_local() async {
@@ -6470,7 +6476,8 @@ int Function(int) g() => f;
     var fType = variables.decoratedElementType(findElement.function('f'));
     var gReturnType =
         variables.decoratedElementType(findElement.function('g')).returnType;
-    assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
+    assertEdge(fType.returnType.node, gReturnType.returnType.node,
+        hard: false, checkable: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
         hard: false, checkable: false);
@@ -6486,7 +6493,8 @@ abstract class C {
     var fType = variables.decoratedElementType(findElement.method('f'));
     var gReturnType =
         variables.decoratedElementType(findElement.method('g')).returnType;
-    assertEdge(fType.returnType.node, gReturnType.returnType.node, hard: false);
+    assertEdge(fType.returnType.node, gReturnType.returnType.node,
+        hard: false, checkable: false);
     assertEdge(gReturnType.positionalParameters[0].node,
         fType.positionalParameters[0].node,
         hard: false, checkable: false);
@@ -6842,7 +6850,7 @@ void f(Point<int> x) {}
         findNode.typeName('Point').name.staticElement as ClassElement;
     var pointBound =
         variables.decoratedTypeParameterBound(pointClass.typeParameters[0]);
-    expect(pointBound.type.toString(), 'num');
+    _assertType(pointBound.type, 'num');
     assertEdge(decoratedTypeAnnotation('int>').node, pointBound.node,
         hard: true);
   }
@@ -6854,7 +6862,7 @@ void f(List<int> x) {}
     var listClass = typeProvider.listElement;
     var listBound =
         variables.decoratedTypeParameterBound(listClass.typeParameters[0]);
-    expect(listBound.type.toString(), 'dynamic');
+    _assertType(listBound.type, 'dynamic');
     assertEdge(decoratedTypeAnnotation('int>').node, listBound.node,
         hard: true);
   }
@@ -6952,6 +6960,11 @@ void f(int i) {
     assertEdge(decoratedTypeAnnotation('int i').node,
         decoratedTypeAnnotation('int j').node,
         hard: true);
+  }
+
+  void _assertType(DartType type, String expected) {
+    var typeStr = type.getDisplayString(withNullability: false);
+    expect(typeStr, expected);
   }
 }
 

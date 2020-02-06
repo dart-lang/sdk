@@ -2335,13 +2335,6 @@ abstract class ElementEnvironment {
   /// Returns the type of [field].
   DartType getFieldType(FieldEntity field);
 
-  /// Returns the 'unaliased' type of [type]. For typedefs this is the function
-  /// type it is an alias of, for other types it is the type itself.
-  ///
-  /// Use this during resolution to ensure that the alias has been computed.
-  // TODO(johnniwinther): Remove this when the resolver is removed.
-  DartType getUnaliasedType(DartType type);
-
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);
 }

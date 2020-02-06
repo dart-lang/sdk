@@ -13,6 +13,7 @@
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
+#include "vm/dispatch_table.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -1244,6 +1245,35 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   __ Drop(count_with_type_args);
 }
 
+void FlowGraphCompiler::EmitDispatchTableCall(
+    Register cid_reg,
+    int32_t selector_offset,
+    const Array& arguments_descriptor) {
+  const Register table_reg = LR;
+  ASSERT(cid_reg != table_reg);
+  ASSERT(cid_reg != ARGS_DESC_REG);
+  if (!arguments_descriptor.IsNull()) {
+    __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
+  }
+  intptr_t offset = (selector_offset - DispatchTable::OriginElement()) *
+                    compiler::target::kWordSize;
+  __ LoadDispatchTable(table_reg);
+  if (offset == 0) {
+    __ ldr(LR, compiler::Address(table_reg, cid_reg, LSL,
+                                 compiler::target::kWordSizeLog2));
+  } else {
+    __ add(table_reg, table_reg,
+           compiler::Operand(cid_reg, LSL, compiler::target::kWordSizeLog2));
+    if (!Utils::IsAbsoluteUint(12, offset)) {
+      const intptr_t adjust = offset & -(1 << 12);
+      __ AddImmediate(table_reg, table_reg, adjust);
+      offset -= adjust;
+    }
+    __ ldr(LR, compiler::Address(table_reg, offset));
+  }
+  __ blx(LR);
+}
+
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     Register reg,
     const Object& obj,
@@ -1479,6 +1509,160 @@ void FlowGraphCompiler::EmitMove(Location destination,
       allocator->ReleaseTemporary();
     } else {
       source.constant_instruction()->EmitMoveToLocation(this, destination);
+    }
+  }
+}
+
+static OperandSize BytesToOperandSize(intptr_t bytes) {
+  switch (bytes) {
+    case 4:
+      return OperandSize::kWord;
+    case 2:
+      return OperandSize::kHalfword;
+    case 1:
+      return OperandSize::kByte;
+    default:
+      UNIMPLEMENTED();
+  }
+}
+
+void FlowGraphCompiler::EmitNativeMoveArchitecture(
+    const compiler::ffi::NativeLocation& destination,
+    const compiler::ffi::NativeLocation& source) {
+  const auto& src_payload_type = source.payload_type();
+  const auto& dst_payload_type = destination.payload_type();
+  const auto& src_container_type = source.container_type();
+  const auto& dst_container_type = destination.container_type();
+  ASSERT(src_container_type.IsFloat() == dst_container_type.IsFloat());
+  ASSERT(src_container_type.IsInt() == dst_container_type.IsInt());
+  ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());
+  ASSERT(src_payload_type.IsFundamental());
+  ASSERT(dst_payload_type.IsFundamental());
+  const intptr_t src_size = src_payload_type.SizeInBytes();
+  const intptr_t dst_size = dst_payload_type.SizeInBytes();
+  const bool sign_or_zero_extend = dst_size > src_size;
+
+  if (source.IsRegisters()) {
+    const auto& src = source.AsRegisters();
+    ASSERT(src.num_regs() == 1);
+    ASSERT(src_size <= 4);
+    const auto src_reg = src.reg_at(0);
+
+    if (destination.IsRegisters()) {
+      const auto& dst = destination.AsRegisters();
+      ASSERT(dst.num_regs() == 1);
+      const auto dst_reg = dst.reg_at(0);
+      if (!sign_or_zero_extend) {
+        ASSERT(dst_size == 4);
+        __ mov(dst_reg, compiler::Operand(src_reg));
+      } else {
+        ASSERT(sign_or_zero_extend);
+        // Arm has no sign- or zero-extension instructions, so use shifts.
+        const intptr_t shift_length =
+            (compiler::target::kWordSize - src_size) * kBitsPerByte;
+        __ Lsl(dst_reg, src_reg, compiler::Operand(shift_length));
+        if (src_payload_type.IsSigned()) {
+          __ Asr(dst_reg, dst_reg, compiler::Operand(shift_length));
+        } else {
+          __ Lsr(dst_reg, dst_reg, compiler::Operand(shift_length));
+        }
+      }
+
+    } else if (destination.IsFpuRegisters()) {
+      // Fpu Registers should only contain doubles and registers only ints.
+      // The bit casts are done with a BitCastInstr.
+      // TODO(dartbug.com/40371): Remove BitCastInstr and implement here.
+      UNIMPLEMENTED();
+
+    } else {
+      ASSERT(destination.IsStack());
+      const auto& dst = destination.AsStack();
+      ASSERT(!sign_or_zero_extend);
+      ASSERT(dst_size <= 4);
+      const OperandSize op_size = BytesToOperandSize(dst_size);
+      __ StoreToOffset(op_size, src.reg_at(0), dst.base_register(),
+                       dst.offset_in_bytes());
+    }
+
+  } else if (source.IsFpuRegisters()) {
+    const auto& src = source.AsFpuRegisters();
+    // We have not implemented conversions here, use IL convert instructions.
+    ASSERT(src_payload_type.Equals(dst_payload_type));
+
+    if (destination.IsRegisters()) {
+      // Fpu Registers should only contain doubles and registers only ints.
+      // The bit casts are done with a BitCastInstr.
+      // TODO(dartbug.com/40371): Remove BitCastInstr and implement here.
+      UNIMPLEMENTED();
+
+    } else if (destination.IsFpuRegisters()) {
+      const auto& dst = destination.AsFpuRegisters();
+      switch (dst_size) {
+        case 16:
+          __ vmovq(dst.fpu_reg(), src.fpu_reg());
+          return;
+        case 8:
+          __ vmovd(dst.fpu_as_d_reg(), src.fpu_as_d_reg());
+          return;
+        case 4:
+          __ vmovs(dst.fpu_as_s_reg(), src.fpu_as_s_reg());
+          return;
+        default:
+          UNREACHABLE();
+      }
+
+    } else {
+      ASSERT(destination.IsStack());
+      ASSERT(src_payload_type.IsFloat());
+      const auto& dst = destination.AsStack();
+      switch (dst_size) {
+        case 8:
+          __ StoreDToOffset(src.fpu_as_d_reg(), dst.base_register(),
+                            dst.offset_in_bytes());
+          return;
+        case 4:
+          __ StoreSToOffset(src.fpu_as_s_reg(), dst.base_register(),
+                            dst.offset_in_bytes());
+          return;
+        default:
+          // TODO(dartbug.com/37470): Case 16 for simd packed data.
+          UNREACHABLE();
+      }
+    }
+
+  } else {
+    ASSERT(source.IsStack());
+    const auto& src = source.AsStack();
+    if (destination.IsRegisters()) {
+      const auto& dst = destination.AsRegisters();
+      ASSERT(dst.num_regs() == 1);
+      const auto dst_reg = dst.reg_at(0);
+      ASSERT(!sign_or_zero_extend);
+      ASSERT(dst_size <= 4);
+      const OperandSize op_size = BytesToOperandSize(dst_size);
+      __ LoadFromOffset(op_size, dst_reg, src.base_register(),
+                        src.offset_in_bytes());
+
+    } else if (destination.IsFpuRegisters()) {
+      ASSERT(src_payload_type.Equals(dst_payload_type));
+      ASSERT(src_payload_type.IsFloat());
+      const auto& dst = destination.AsFpuRegisters();
+      switch (src_size) {
+        case 8:
+          __ LoadDFromOffset(dst.fpu_as_d_reg(), src.base_register(),
+                             src.offset_in_bytes());
+          return;
+        case 4:
+          __ LoadSFromOffset(dst.fpu_as_s_reg(), src.base_register(),
+                             src.offset_in_bytes());
+          return;
+        default:
+          UNIMPLEMENTED();
+      }
+
+    } else {
+      ASSERT(destination.IsStack());
+      UNREACHABLE();
     }
   }
 }

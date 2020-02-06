@@ -300,18 +300,9 @@ class Api : AllStatic {
   static RawString* GetEnvironmentValue(Thread* thread, const String& name);
 
   static bool IsFfiEnabled() {
-    // dart:ffi is not implemented for the following configurations
-#if defined(TARGET_ARCH_ARM) &&                                                \
-    !(defined(TARGET_OS_ANDROID) || defined(TARGET_OS_MACOS_IOS))
-    // TODO(36309): Support hardfp calling convention.
-    return false;
-#elif !defined(TARGET_OS_LINUX) && !defined(TARGET_OS_MACOS) &&                \
-    !defined(TARGET_OS_ANDROID) && !defined(TARGET_OS_WINDOWS)
+#if defined(TAGET_OS_FUCHSIA)
     return false;
 #else
-    // dart:ffi is also not implemented for precompiled in which case
-    // FLAG_enable_ffi is set to false by --precompilation.
-    // Once dart:ffi is supported on all targets, only users will set this flag
     return FLAG_enable_ffi;
 #endif
   }

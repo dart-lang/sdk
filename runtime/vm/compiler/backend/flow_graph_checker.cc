@@ -103,7 +103,7 @@ static bool IsControlFlow(Instruction* instruction) {
   return instruction->IsBranch() || instruction->IsGoto() ||
          instruction->IsIndirectGoto() || instruction->IsReturn() ||
          instruction->IsThrow() || instruction->IsReThrow() ||
-         instruction->IsStop() || instruction->IsTailCall();
+         instruction->IsTailCall();
 }
 
 // Asserts that arguments appear in environment at the right place.

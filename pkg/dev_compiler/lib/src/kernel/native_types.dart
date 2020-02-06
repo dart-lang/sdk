@@ -74,7 +74,7 @@ class NativeTypeSet {
     if (_extensibleTypes.contains(c) || _nativeTypes.contains(c)) {
       return;
     }
-    bool isNative = mustBeNative || _isNative(c);
+    var isNative = mustBeNative || _isNative(c);
     if (isNative) {
       _nativeTypes.add(c);
     } else {

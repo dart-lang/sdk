@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#define RUNTIME_VM_CONSTANTS_H_  // To work around include guard.
-#include "vm/constants_arm64.h"
+#include "platform/globals.h"  // NOLINT
 
-namespace arch_arm64 {
+#if defined(TARGET_ARCH_ARM64)
+
+#include "vm/constants.h"  // NOLINT
+
+namespace dart {
 
 const char* cpu_reg_names[kNumberOfCpuRegisters] = {
     "r0",  "r1",  "r2",  "r3",  "r4",  "r5",  "r6",  "r7",  "r8",  "r9",  "r10",
@@ -27,4 +30,6 @@ const FpuRegister CallingConventions::FpuArgumentRegisters[] = {
     V0, V1, V2, V3, V4, V5, V6, V7,
 };
 
-}  // namespace arch_arm64
+}  // namespace dart
+
+#endif  // defined(TARGET_ARCH_ARM64)

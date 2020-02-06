@@ -233,7 +233,7 @@ analyzer:
     // practice, this should be cheap because typically only one path is given
     // to dartfix.
     List<String> rootParts = included
-        .map((p) => context.absolute(context.canonicalize(p)))
+        .map((p) => context.normalize(context.absolute(p)))
         .map((p) => provider.getResource(p) is File ? context.dirname(p) : p)
         .map((p) => context.split(p))
         .reduce((value, parts) {

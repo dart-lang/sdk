@@ -14,7 +14,7 @@ class Class2 {
 }
 
 void main() {
-  Class2 c = Class2();
+  var c = Class2();
   c[42];
   c.code();
 }

@@ -177,6 +177,7 @@ Precompiler::Precompiler(Thread* thread)
       typeargs_to_retain_(),
       types_to_retain_(),
       consts_to_retain_(),
+      seen_table_selectors_(),
       error_(Error::Handle()),
       get_runtime_type_is_unique_(false),
       il_serialization_stream_(nullptr) {
@@ -225,6 +226,11 @@ void Precompiler::DoCompileAll() {
       // The cid-ranges of subclasses of a class are e.g. used for is/as checks
       // as well as other type checks.
       HierarchyInfo hierarchy_info(T);
+
+      if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
+        dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
+        dispatch_table_generator_->Initialize(I->class_table());
+      }
 
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
@@ -436,6 +442,14 @@ void Precompiler::DoCompileAll() {
     Obfuscate();
 
     ProgramVisitor::Dedup();
+
+    if (FLAG_use_bare_instructions && FLAG_use_table_dispatch) {
+      I->set_dispatch_table(dispatch_table_generator_->BuildTable());
+      // Delete the dispatch table generator while the current zone
+      // is still alive.
+      delete dispatch_table_generator_;
+      dispatch_table_generator_ = nullptr;
+    }
 
     zone_ = NULL;
   }
@@ -1059,6 +1073,25 @@ void Precompiler::AddSelector(const String& selector) {
   }
 }
 
+void Precompiler::AddTableSelector(const compiler::TableSelector* selector) {
+  ASSERT(FLAG_use_bare_instructions && FLAG_use_table_dispatch);
+
+  if (seen_table_selectors_.HasKey(selector->id)) return;
+
+  seen_table_selectors_.Insert(selector->id);
+  changed_ = true;
+}
+
+bool Precompiler::IsHitByTableSelector(const Function& function) {
+  if (!(FLAG_use_bare_instructions && FLAG_use_table_dispatch)) {
+    return false;
+  }
+
+  const int32_t selector_id = selector_map()->SelectorId(function);
+  if (selector_id == compiler::SelectorMap::kInvalidSelectorId) return false;
+  return seen_table_selectors_.HasKey(selector_id);
+}
+
 void Precompiler::AddInstantiatedClass(const Class& cls) {
   if (cls.is_allocated()) return;
 
@@ -1239,7 +1272,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
         // if (function.HasCode()) continue;
 
         selector = function.name();
-        if (IsSent(selector)) {
+        if (IsSent(selector) || IsHitByTableSelector(function)) {
           AddFunction(function);
         }
 
@@ -1291,7 +1324,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
               metadata = kernel::ProcedureAttributesOf(function, Z);
             }
 
-            if (metadata.has_dynamic_invocations) {
+            if (metadata.method_or_setter_called_dynamically) {
               function2 = function.GetDynamicInvocationForwarder(selector2);
               AddFunction(function2);
             }
@@ -2510,6 +2543,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
         // Precompiler::ClearAllCode().
         precompiler_->AddRetainedStaticField(
             *graph_compiler.used_static_fields().At(i));
+      }
+
+      const GrowableArray<const compiler::TableSelector*>& call_selectors =
+          graph_compiler.dispatch_table_call_targets();
+      for (intptr_t i = 0; i < call_selectors.length(); i++) {
+        precompiler_->AddTableSelector(call_selectors[i]);
       }
 
       // In bare instructions mode try adding all entries from the object

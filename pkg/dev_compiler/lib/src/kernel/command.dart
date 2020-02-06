@@ -250,7 +250,7 @@ Future<CompilerResult> _compile(List<String> args,
   var experiments = fe.parseExperimentalFlags(options.experiments,
       onError: stderr.writeln, onWarning: print);
 
-  bool trackWidgetCreation =
+  var trackWidgetCreation =
       argResults['track-widget-creation'] as bool ?? false;
 
   var compileSdk = argResults['compile-sdk'] == true;
@@ -258,8 +258,8 @@ Future<CompilerResult> _compile(List<String> args,
   List<Component> doneInputSummaries;
   fe.IncrementalCompiler incrementalCompiler;
   fe.WorkerInputComponent cachedSdkInput;
-  bool recordUsedInputs = argResults['used-inputs-file'] != null;
-  List<Uri> inputSummaries = summaryModules.keys.toList();
+  var recordUsedInputs = argResults['used-inputs-file'] != null;
+  var inputSummaries = summaryModules.keys.toList();
   if (!useIncrementalCompiler) {
     compilerState = await fe.initializeCompiler(
         oldCompilerState,
@@ -285,7 +285,7 @@ Future<CompilerResult> _compile(List<String> args,
       if (!compileSdk) {
         inputDigests[sourcePathToUri(sdkSummaryPath)] = const [0];
       }
-      for (Uri uri in summaryModules.keys) {
+      for (var uri in summaryModules.keys) {
         inputDigests[uri] = const [0];
       }
     }
@@ -329,7 +329,7 @@ Future<CompilerResult> _compile(List<String> args,
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     compilerState.options.onDiagnostic = diagnosticMessageHandler;
-    Component incrementalComponent = await incrementalCompiler.computeDelta(
+    var incrementalComponent = await incrementalCompiler.computeDelta(
         entryPoints: inputs, fullComponent: true);
     result = fe.DdcResult(incrementalComponent, cachedSdkInput.component,
         doneInputSummaries, incrementalCompiler.userCode.loader.hierarchy);
@@ -341,10 +341,10 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var component = result.component;
-  Set<Library> librariesFromDill = result.computeLibrariesFromDill();
-  Component compiledLibraries =
+  var librariesFromDill = result.computeLibrariesFromDill();
+  var compiledLibraries =
       Component(nameRoot: component.root, uriToSource: component.uriToSource);
-  for (Library lib in component.libraries) {
+  for (var lib in component.libraries) {
     if (!librariesFromDill.contains(lib)) compiledLibraries.libraries.add(lib);
   }
 
@@ -383,7 +383,7 @@ Future<CompilerResult> _compile(List<String> args,
           'the --summarize-text option is not supported.');
       return CompilerResult(64);
     }
-    StringBuffer sb = StringBuffer();
+    var sb = StringBuffer();
     kernel.Printer(sb).writeComponentFile(component);
     outFiles.add(File(outPaths.first + '.txt').writeAsString(sb.toString()));
   }
@@ -429,14 +429,13 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   if (recordUsedInputs) {
-    Set<Uri> usedOutlines = <Uri>{};
+    var usedOutlines = <Uri>{};
     if (useIncrementalCompiler) {
       compilerState.incrementalCompiler
           .updateNeededDillLibrariesWithHierarchy(result.classHierarchy, null);
-      for (Library lib
-          in compilerState.incrementalCompiler.neededDillLibraries) {
+      for (var lib in compilerState.incrementalCompiler.neededDillLibraries) {
         if (lib.importUri.scheme == 'dart') continue;
-        Uri uri = compilerState.libraryToInputDill[lib.importUri];
+        var uri = compilerState.libraryToInputDill[lib.importUri];
         if (uri == null) {
           throw StateError('Library ${lib.importUri} was recorded as used, '
               'but was not in the list of known libraries.');
@@ -602,7 +601,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 /// and removes them from [args] so the result can be parsed normally.
 Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
   var declaredVariables = <String, String>{};
-  for (int i = 0; i < args.length;) {
+  for (var i = 0; i < args.length;) {
     var arg = args[i];
     if (arg.startsWith('-D') && arg.length > 2) {
       var rest = arg.substring(2);

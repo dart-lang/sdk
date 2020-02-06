@@ -29,7 +29,7 @@ class ConvertToForElementTest extends FixProcessorLintTest {
     await resolveTestUnit('''
 f(Iterable<int> i) {
   var k = 3;
-  return Map.fromIterable/*LINT*/(i, key: (k) => k * 2, value: (v) => k);
+  return Map.fromIterable(i, key: (k) => k * 2, value: (v) => k);
 }
 ''');
     await assertHasFix('''

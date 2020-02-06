@@ -13,35 +13,34 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:meta/meta.dart';
 
 class InvocationInferenceHelper {
   final ResolverVisitor _resolver;
-  final ElementTypeProvider _elementTypeProvider;
   final ErrorReporter _errorReporter;
   final FlowAnalysisHelper _flowAnalysis;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
+  final MigrationResolutionHooks _migrationResolutionHooks;
 
   List<DartType> _typeArgumentTypes;
   FunctionType _invokeType;
 
-  InvocationInferenceHelper({
-    @required ResolverVisitor resolver,
-    @required LibraryElementImpl definingLibrary,
-    @required ElementTypeProvider elementTypeProvider,
-    @required ErrorReporter errorReporter,
-    @required FlowAnalysisHelper flowAnalysis,
-    @required TypeSystemImpl typeSystem,
-  })  : _resolver = resolver,
-        _elementTypeProvider = elementTypeProvider,
+  InvocationInferenceHelper(
+      {@required ResolverVisitor resolver,
+      @required LibraryElementImpl definingLibrary,
+      @required ErrorReporter errorReporter,
+      @required FlowAnalysisHelper flowAnalysis,
+      @required TypeSystemImpl typeSystem,
+      @required MigrationResolutionHooks migrationResolutionHooks})
+      : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
         _typeProvider = typeSystem.typeProvider,
-        _flowAnalysis = flowAnalysis;
+        _flowAnalysis = flowAnalysis,
+        _migrationResolutionHooks = migrationResolutionHooks;
 
   /// Compute the return type of the method or function represented by the given
   /// type that is being invoked.
@@ -191,8 +190,7 @@ class InvocationInferenceHelper {
       return false;
     }
     inferredElement = _resolver.toLegacyElement(inferredElement);
-    DartType inferredType =
-        _elementTypeProvider.getExecutableType(inferredElement);
+    DartType inferredType = inferredElement.type;
     if (inferredType is FunctionType) {
       DartType returnType = inferredType.returnType;
       if (inferredType.parameters.isEmpty &&
@@ -213,10 +211,9 @@ class InvocationInferenceHelper {
   ///
   /// TODO(scheglov) this is duplication
   void recordStaticType(Expression expression, DartType type) {
-    var elementTypeProvider = this._elementTypeProvider;
-    if (elementTypeProvider is MigrationResolutionHooks) {
+    if (_migrationResolutionHooks != null) {
       // TODO(scheglov) type cannot be null
-      type = elementTypeProvider.modifyExpressionType(
+      type = _migrationResolutionHooks.modifyExpressionType(
         expression,
         type ?? DynamicTypeImpl.instance,
       );

@@ -80,6 +80,7 @@ import '../type_inference/type_schema.dart' show UnknownType;
 import 'builder.dart';
 import 'constructor_reference_builder.dart';
 import 'declaration_builder.dart';
+import 'field_builder.dart';
 import 'function_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
@@ -788,10 +789,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
 
     // Check in members.
-    for (Field field in cls.fields) {
-      checkVarianceInField(field, typeEnvironment, cls.typeParameters);
-      library.checkBoundsInField(field, typeEnvironment);
-    }
     for (Procedure procedure in cls.procedures) {
       checkVarianceInFunction(procedure, typeEnvironment, cls.typeParameters);
       library.checkBoundsInFunctionNode(
@@ -810,8 +807,15 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
           namedParameters: redirecting.namedParameters);
     }
 
-    // Check initializers.
     forEach((String name, Builder builder) {
+      // Check fields.
+      if (builder is FieldBuilder) {
+        checkVarianceInField(
+            builder.field, typeEnvironment, cls.typeParameters);
+        library.checkTypesInField(builder, typeEnvironment);
+      }
+
+      // Check initializers.
       if (builder is FunctionBuilder &&
           !builder.isAbstract &&
           builder.formals != null) {

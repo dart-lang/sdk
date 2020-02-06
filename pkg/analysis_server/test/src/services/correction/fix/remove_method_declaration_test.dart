@@ -26,17 +26,19 @@ class RemoveMethodDeclarationTest extends FixProcessorLintTest {
   Future<void> test_getter() async {
     await resolveTestUnit('''
 class A {
-  int x;
+  int foo;
 }
+
 class B extends A {
   @override
-  int get /*LINT*/x => super.x;
+  int get foo => super.foo;
 }
 ''');
     await assertHasFix('''
 class A {
-  int x;
+  int foo;
 }
+
 class B extends A {
 }
 ''');
@@ -45,8 +47,85 @@ class B extends A {
   Future<void> test_method() async {
     await resolveTestUnit('''
 class A {
+  int foo() => 0;
+}
+
+class B extends A {
   @override
-  String /*LINT*/toString() => super.toString();
+  int foo() => super.foo();
+}
+''');
+    await assertHasFix('''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
+  Future<void> test_method_generic() async {
+    await resolveTestUnit('''
+class A<T> {
+  T foo() {
+    throw 42;
+  }
+}
+
+class B extends A<int> {
+  @override
+  int foo() => super.foo();
+}
+''');
+    await assertHasFix('''
+class A<T> {
+  T foo() {
+    throw 42;
+  }
+}
+
+class B extends A<int> {
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
+  Future<void> test_method_nullSafety_optIn_fromOptOut() async {
+    createAnalysisOptionsFile(
+      experiments: ['non-nullable'],
+      lints: [lintCode],
+    );
+    newFile('/home/test/lib/a.dart', content: r'''
+class A {
+  int foo() => 0;
+}
+''');
+    await resolveTestUnit('''
+// @dart = 2.7
+import 'a.dart';
+
+class B extends A {
+  @override
+  int foo() => super.foo();
+}
+''');
+    await assertHasFix('''
+// @dart = 2.7
+import 'a.dart';
+
+class B extends A {
+}
+''');
+  }
+
+  /// TODO(scheglov) This test will fail with NNBD SDK.
+  Future<void> test_method_toString() async {
+    await resolveTestUnit('''
+class A {
+  @override
+  String toString() => super.toString();
 }
 ''');
     await assertHasFix('''
@@ -58,19 +137,21 @@ class A {
   Future<void> test_setter() async {
     await resolveTestUnit('''
 class A {
-  int x;
+  int foo;
 }
+
 class B extends A {
   @override
-  set /*LINT*/x(int other) {
-    this.x = other;
+  set /*LINT*/foo(int value) {
+    super.foo = value;
   }
 }
 ''');
     await assertHasFix('''
 class A {
-  int x;
+  int foo;
 }
+
 class B extends A {
 }
 ''');

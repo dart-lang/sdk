@@ -3,14 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart' as type_algebra;
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:nnbd_migration/instrumentation.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -19,14 +16,6 @@ import 'package:nnbd_migration/src/nullability_node.dart';
 /// tracking the (unmigrated) [DartType], we track the [ConstraintVariable]s
 /// indicating whether the type, and the types that compose it, are nullable.
 class DecoratedType implements DecoratedTypeInfo {
-  /// Mapping from type parameter elements to the decorated types of those type
-  /// parameters' bounds.
-  ///
-  /// This expando only applies to type parameters whose enclosing element is
-  /// `null`.  Type parameters whose enclosing element is not `null` should be
-  /// stored in [Variables._decoratedTypeParameterBounds].
-  static final _decoratedTypeParameterBounds = Expando<DecoratedType>();
-
   @override
   final DartType type;
 
@@ -51,16 +40,11 @@ class DecoratedType implements DecoratedTypeInfo {
   /// TODO(paulberry): how should we handle generic typedefs?
   final List<DecoratedType> typeArguments;
 
-  /// If `this` is a function type, the [DecoratedType] of each of the bounds of
-  /// its type parameters.
-  final List<DecoratedType> typeFormalBounds;
-
   DecoratedType(this.type, this.node,
       {this.returnType,
       this.positionalParameters = const [],
       this.namedParameters = const {},
-      this.typeArguments = const [],
-      this.typeFormalBounds = const []}) {
+      this.typeArguments = const []}) {
     assert(() {
       assert(node != null);
       var type = this.type;
@@ -68,22 +52,12 @@ class DecoratedType implements DecoratedTypeInfo {
         assert(returnType == null);
         assert(positionalParameters.isEmpty);
         assert(namedParameters.isEmpty);
-        assert(typeFormalBounds.isEmpty);
         assert(typeArguments.length == type.typeArguments.length);
         for (int i = 0; i < typeArguments.length; i++) {
           assert(typeArguments[i].type == type.typeArguments[i],
               '${typeArguments[i].type} != ${type.typeArguments[i]}');
         }
       } else if (type is FunctionType) {
-        assert(typeFormalBounds.length == type.typeFormals.length);
-        for (int i = 0; i < typeFormalBounds.length; i++) {
-          var declaredBound = type.typeFormals[i].bound;
-          if (declaredBound == null) {
-            assert(typeFormalBounds[i].type.toString() == 'Object');
-          } else {
-            assert(typeFormalBounds[i].type == declaredBound);
-          }
-        }
         assert(returnType.type == type.returnType);
         int positionalParameterCount = 0;
         int namedParameterCount = 0;
@@ -105,13 +79,11 @@ class DecoratedType implements DecoratedTypeInfo {
         assert(positionalParameters.isEmpty);
         assert(namedParameters.isEmpty);
         assert(typeArguments.isEmpty);
-        assert(typeFormalBounds.isEmpty);
       } else {
         assert(returnType == null);
         assert(positionalParameters.isEmpty);
         assert(namedParameters.isEmpty);
         assert(typeArguments.isEmpty);
-        assert(typeFormalBounds.isEmpty);
       }
       return true;
     }());
@@ -136,12 +108,16 @@ class DecoratedType implements DecoratedTypeInfo {
             offset: offset);
       }
     }
+    for (var element in type.typeFormals) {
+      if (DecoratedTypeParameterBounds.current.get(element) == null) {
+        DecoratedTypeParameterBounds.current.put(
+            element,
+            DecoratedType.forImplicitType(
+                typeProvider, element.bound ?? typeProvider.objectType, graph,
+                offset: offset));
+      }
+    }
     return DecoratedType(type, node,
-        typeFormalBounds: type.typeFormals
-            .map((e) => DecoratedType.forImplicitType(
-                typeProvider, e.bound ?? typeProvider.objectType, graph,
-                offset: offset))
-            .toList(),
         returnType: returnType ??
             DecoratedType.forImplicitType(typeProvider, type.returnType, graph,
                 offset: offset),
@@ -193,8 +169,7 @@ class DecoratedType implements DecoratedTypeInfo {
         returnType = null,
         positionalParameters = const [],
         namedParameters = const {},
-        typeArguments = const [],
-        typeFormalBounds = const [] {
+        typeArguments = const [] {
     // We'll be storing the type parameter bounds in
     // [_decoratedTypeParameterBounds] so the type parameter needs to have an
     // enclosing element of `null`.
@@ -302,102 +277,20 @@ class DecoratedType implements DecoratedTypeInfo {
       [DartType undecoratedResult]) {
     if (substitution.isEmpty) return this;
     if (undecoratedResult == null) {
+      var type = this.type;
       undecoratedResult = Substitution.fromPairs(
         substitution.keys.toList(),
         substitution.values.map((d) => d.type).toList(),
       ).substituteType(type);
+      if (undecoratedResult is FunctionType && type is FunctionType) {
+        for (int i = 0; i < undecoratedResult.typeFormals.length; i++) {
+          DecoratedTypeParameterBounds.current.put(
+              undecoratedResult.typeFormals[i],
+              DecoratedTypeParameterBounds.current.get(type.typeFormals[i]));
+        }
+      }
     }
     return _substitute(substitution, undecoratedResult);
-  }
-
-  /// Convert this decorated type into the [DartType] that it will represent
-  /// after the code has been migrated.
-  ///
-  /// This method should be used after nullability propagation; it makes use of
-  /// the nullabilities associated with nullability nodes to determine which
-  /// types should be nullable and which types should not.
-  DartType toFinalType(TypeProvider typeProvider) {
-    var type = this.type;
-    if (type.isVoid || type.isDynamic) return type;
-    if (type.isBottom || type.isDartCoreNull) {
-      if (node.isNullable) {
-        return (typeProvider.nullType as TypeImpl)
-            .withNullability(NullabilitySuffix.none);
-      } else {
-        return NeverTypeImpl.instance;
-      }
-    }
-    var nullabilitySuffix =
-        node.isNullable ? NullabilitySuffix.question : NullabilitySuffix.none;
-    if (type is FunctionType) {
-      var newTypeFormals = <TypeParameterElementImpl>[];
-      var typeFormalSubstitution = <TypeParameterElement, DartType>{};
-      for (var typeFormal in typeFormals) {
-        var newTypeFormal = TypeParameterElementImpl.synthetic(typeFormal.name);
-        newTypeFormals.add(newTypeFormal);
-        typeFormalSubstitution[typeFormal] = TypeParameterTypeImpl(
-            newTypeFormal,
-            nullabilitySuffix: NullabilitySuffix.none);
-      }
-      for (int i = 0; i < newTypeFormals.length; i++) {
-        var bound = type_algebra.substitute(
-            typeFormalBounds[i].toFinalType(typeProvider),
-            typeFormalSubstitution);
-        if (!bound.isDynamic &&
-            !(bound.isDartCoreObject &&
-                bound.nullabilitySuffix == NullabilitySuffix.question)) {
-          newTypeFormals[i].bound = bound;
-        }
-      }
-      var parameters = <ParameterElement>[];
-      for (int i = 0; i < type.parameters.length; i++) {
-        var origParameter = type.parameters[i];
-        ParameterKind parameterKind;
-        DecoratedType parameterType;
-        var name = origParameter.name;
-        if (origParameter.isNamed) {
-          // TODO(paulberry): infer ParameterKind.NAMED_REQUIRED when
-          // appropriate. See https://github.com/dart-lang/sdk/issues/38596.
-          parameterKind = ParameterKind.NAMED;
-          parameterType = namedParameters[name];
-        } else {
-          parameterKind = origParameter.isOptional
-              ? ParameterKind.POSITIONAL
-              : ParameterKind.REQUIRED;
-          parameterType = positionalParameters[i];
-        }
-        parameters.add(ParameterElementImpl.synthetic(
-            name,
-            type_algebra.substitute(parameterType.toFinalType(typeProvider),
-                typeFormalSubstitution),
-            parameterKind));
-      }
-      return FunctionTypeImpl(
-        typeFormals: newTypeFormals,
-        parameters: parameters,
-        returnType: type_algebra.substitute(
-          returnType.toFinalType(typeProvider),
-          typeFormalSubstitution,
-        ),
-        nullabilitySuffix: nullabilitySuffix,
-      );
-    } else if (type is InterfaceType) {
-      return InterfaceTypeImpl(
-        element: type.element,
-        typeArguments: [
-          for (var arg in typeArguments) arg.toFinalType(typeProvider)
-        ],
-        nullabilitySuffix: nullabilitySuffix,
-      );
-    } else if (type is TypeParameterType) {
-      return TypeParameterTypeImpl(type.element,
-          nullabilitySuffix: nullabilitySuffix);
-    } else {
-      // The above cases should cover all possible types.  On the off chance
-      // they don't, fall back on returning DecoratedType.type.
-      assert(false, 'Unexpected type (${type.runtimeType})');
-      return type;
-    }
   }
 
   @override
@@ -456,8 +349,7 @@ class DecoratedType implements DecoratedTypeInfo {
       returnType: returnType,
       positionalParameters: positionalParameters,
       namedParameters: namedParameters,
-      typeArguments: typeArguments,
-      typeFormalBounds: typeFormalBounds);
+      typeArguments: typeArguments);
 
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
@@ -467,7 +359,6 @@ class DecoratedType implements DecoratedTypeInfo {
     if (type is FunctionType && undecoratedResult is FunctionType) {
       var typeFormals = type.typeFormals;
       assert(typeFormals.length == undecoratedResult.typeFormals.length);
-      var newTypeFormalBounds = <DecoratedType>[];
       if (typeFormals.isNotEmpty) {
         // The analyzer sometimes allocates fresh type variables when performing
         // substitutions, so we need to reflect that in our decorations by
@@ -482,13 +373,21 @@ class DecoratedType implements DecoratedTypeInfo {
                     undecoratedResult.typeFormals[i]);
           }
         }
-        for (int i = 0; i < typeFormalBounds.length; i++) {
-          newTypeFormalBounds.add(typeFormalBounds[i]._substitute(
-              substitution, typeFormals[i].bound ?? typeFormalBounds[i].type));
+        for (int i = 0; i < typeFormals.length; i++) {
+          var typeFormal = typeFormals[i];
+          var oldDecoratedBound =
+              DecoratedTypeParameterBounds.current.get(typeFormal);
+          var newDecoratedBound = oldDecoratedBound._substitute(
+              substitution, typeFormal.bound ?? oldDecoratedBound.type);
+          if (identical(typeFormal, undecoratedResult.typeFormals[i])) {
+            assert(oldDecoratedBound == newDecoratedBound);
+          } else {
+            DecoratedTypeParameterBounds.current
+                .put(typeFormal, newDecoratedBound);
+          }
         }
       }
-      return _substituteFunctionAfterFormals(undecoratedResult, substitution,
-          newTypeFormalBounds: newTypeFormalBounds);
+      return _substituteFunctionAfterFormals(undecoratedResult, substitution);
     } else if (type is InterfaceType && undecoratedResult is InterfaceType) {
       List<DecoratedType> newTypeArguments = [];
       for (int i = 0; i < typeArguments.length; i++) {
@@ -516,8 +415,7 @@ class DecoratedType implements DecoratedTypeInfo {
   /// is [undecoratedResult], and whose return type, positional parameters, and
   /// named parameters are formed by performing the given [substitution].
   DecoratedType _substituteFunctionAfterFormals(FunctionType undecoratedResult,
-      Map<TypeParameterElement, DecoratedType> substitution,
-      {List<DecoratedType> newTypeFormalBounds = const []}) {
+      Map<TypeParameterElement, DecoratedType> substitution) {
     var newPositionalParameters = <DecoratedType>[];
     var numRequiredParameters = undecoratedResult.normalParameterTypes.length;
     for (int i = 0; i < positionalParameters.length; i++) {
@@ -536,33 +434,10 @@ class DecoratedType implements DecoratedTypeInfo {
           (entry.value._substitute(substitution, undecoratedParameterType));
     }
     return DecoratedType(undecoratedResult, node,
-        typeFormalBounds: newTypeFormalBounds,
         returnType:
             returnType._substitute(substitution, undecoratedResult.returnType),
         positionalParameters: newPositionalParameters,
         namedParameters: newNamedParameters);
-  }
-
-  /// Retrieves the decorated bound of the given [typeParameter].
-  ///
-  /// [typeParameter] must have an enclosing element of `null`.  Type parameters
-  /// whose enclosing element is not `null` are tracked by the [Variables]
-  /// class.
-  static DecoratedType decoratedTypeParameterBound(
-      TypeParameterElement typeParameter) {
-    assert(typeParameter.enclosingElement == null);
-    return _decoratedTypeParameterBounds[typeParameter];
-  }
-
-  /// Stores he decorated bound of the given [typeParameter].
-  ///
-  /// [typeParameter] must have an enclosing element of `null`.  Type parameters
-  /// whose enclosing element is not `null` are tracked by the [Variables]
-  /// class.
-  static void recordTypeParameterBound(
-      TypeParameterElement typeParameter, DecoratedType bound) {
-    assert(typeParameter.enclosingElement == null);
-    _decoratedTypeParameterBounds[typeParameter] = bound;
   }
 
   static bool _compareLists(
@@ -583,6 +458,41 @@ class DecoratedType implements DecoratedTypeInfo {
       if (entry.value != map2[entry.key]) return false;
     }
     return true;
+  }
+}
+
+/// Data structure mapping type parameters to their decorated bounds.
+///
+/// Since we need to be able to access this mapping globally throughout the
+/// migration engine, from places where we can't easily inject it, the current
+/// mapping is stored in a static variable.
+class DecoratedTypeParameterBounds {
+  /// The [DecoratedTypeParameterBounds] currently in use, or `null` if we are
+  /// not currently in a stage of migration where we need access to the
+  /// decorated types of type parameter bounds.
+  ///
+  /// If `null`, then attempts to look up the decorated types of type parameter
+  /// bounds will fail.
+  static DecoratedTypeParameterBounds current;
+
+  final _orphanBounds = Expando<DecoratedType>();
+
+  final _parentedBounds = <TypeParameterElement, DecoratedType>{};
+
+  DecoratedType get(TypeParameterElement element) {
+    if (element.enclosingElement == null) {
+      return _orphanBounds[element];
+    } else {
+      return _parentedBounds[element];
+    }
+  }
+
+  void put(TypeParameterElement element, DecoratedType bounds) {
+    if (element.enclosingElement == null) {
+      _orphanBounds[element] = bounds;
+    } else {
+      _parentedBounds[element] = bounds;
+    }
   }
 }
 
@@ -646,10 +556,14 @@ class RenamedDecoratedFunctionTypes {
       substitution2[type2.typeFormals[i]] = newParameterType;
     }
     for (int i = 0; i < type1.typeFormals.length; i++) {
-      var bound1 = type1.typeFormalBounds[i].substitute(substitution1);
-      var bound2 = type2.typeFormalBounds[i].substitute(substitution2);
+      var bound1 = DecoratedTypeParameterBounds.current
+          .get((type1.type as FunctionType).typeFormals[i])
+          .substitute(substitution1);
+      var bound2 = DecoratedTypeParameterBounds.current
+          .get((type2.type as FunctionType).typeFormals[i])
+          .substitute(substitution2);
       if (!boundsMatcher(bound1, bound2)) return null;
-      DecoratedType.recordTypeParameterBound(newParameters[i], bound1);
+      DecoratedTypeParameterBounds.current.put(newParameters[i], bound1);
     }
     var returnType1 = type1.returnType.substitute(substitution1);
     var returnType2 = type2.returnType.substitute(substitution2);

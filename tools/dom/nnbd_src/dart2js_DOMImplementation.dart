@@ -30,8 +30,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Methods.
   void close() => JS('void', '#.close()', _window);
 
-  void postMessage(var message, String targetOrigin,
-      [List messagePorts = null]) {
+  void postMessage(var message, String targetOrigin, [List? messagePorts]) {
     if (messagePorts == null) {
       JS('void', '#.postMessage(#,#)', _window,
           convertDartToNative_SerializedScriptValue(message), targetOrigin);
@@ -68,8 +67,8 @@ class _DOMWindowCrossFrame implements WindowBase {
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void addEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void addEventListener(String type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
@@ -81,8 +80,8 @@ class _DOMWindowCrossFrame implements WindowBase {
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void removeEventListener(String type, EventListener listener,
-          [bool useCapture]) =>
+  void removeEventListener(String type, EventListener? listener,
+          [bool? useCapture]) =>
       throw new UnsupportedError(
           'You can only attach EventListeners to your own window.');
 }

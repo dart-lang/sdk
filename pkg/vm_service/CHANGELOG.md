@@ -1,11 +1,15 @@
 # Changelog
 
+## 2.3.2
+- Added `getClientName`, `setClientName`, and `requireResumePermission` methods.
+- Added `ClientName` class.
+
 ## 2.3.1
 - Fixed issue where `dart:io` extensions were not being exported.
 
 ## 2.3.0
 - Added `getHttpEnableTimelineLogging` and `setHttpEnableTimelineLogging` methods.
-- Added `HttpTimelineLoggingState` class.`
+- Added `HttpTimelineLoggingState` class.
 
 ## 2.2.1
 - Fixed issue where `TimelineEvent.toJson` always returned an empty map.

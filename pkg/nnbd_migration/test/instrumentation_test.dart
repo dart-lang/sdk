@@ -165,7 +165,7 @@ main() {
     expect(
         externalDecoratedType[findNode.simple('print').staticElement]
             .type
-            .toString(),
+            .getDisplayString(withNullability: false),
         'void Function(Object)');
   }
 
@@ -179,7 +179,7 @@ f(Point<int> x) {}
     expect(
         externalDecoratedTypeParameterBound[pointElementTypeParameter]
             .type
-            .toString(),
+            .getDisplayString(withNullability: false),
         'num');
   }
 

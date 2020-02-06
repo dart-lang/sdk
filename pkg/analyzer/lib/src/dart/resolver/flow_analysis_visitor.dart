@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
@@ -292,12 +291,6 @@ class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
       : super(typeSystem, false);
 
   @override
-  LocalVariableTypeProvider get localVariableTypeProvider {
-    return _LocalVariableTypeProvider(this,
-        elementTypeProvider: migrationResolutionHooks);
-  }
-
-  @override
   void topLevelDeclaration_enter(
       Declaration node, FormalParameterList parameters, FunctionBody body) {
     super.topLevelDeclaration_enter(node, parameters, body);
@@ -558,11 +551,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
 class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   final FlowAnalysisHelper _manager;
 
-  final ElementTypeProvider _elementTypeProvider;
-
-  _LocalVariableTypeProvider(this._manager,
-      {ElementTypeProvider elementTypeProvider = const ElementTypeProvider()})
-      : _elementTypeProvider = elementTypeProvider;
+  _LocalVariableTypeProvider(this._manager);
 
   @override
   DartType getType(SimpleIdentifier node) {
@@ -571,6 +560,6 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
       var promotedType = _manager.flow?.variableRead(node, variable);
       if (promotedType != null) return promotedType;
     }
-    return _elementTypeProvider.getVariableType(variable);
+    return variable.type;
   }
 }

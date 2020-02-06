@@ -92,7 +92,7 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
   @override
   bool isEmpty(DartType actualData) => actualData == null;
 
-  String _typeToString(TypeImpl type) {
-    return type.toString(withNullability: true);
+  String _typeToString(DartType type) {
+    return type.getDisplayString(withNullability: true);
   }
 }

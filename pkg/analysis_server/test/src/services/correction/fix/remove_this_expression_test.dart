@@ -27,7 +27,7 @@ class RemoveThisExpressionTest extends FixProcessorLintTest {
     await resolveTestUnit('''
 class A {
   int x;
-  A(int x) : /*LINT*/this.x = x;
+  A(int x) : this.x = x;
 }
 ''');
     await assertHasFix('''
@@ -42,7 +42,7 @@ class A {
     await resolveTestUnit('''
 class A {
   void foo() {
-    /*LINT*/this.foo();
+    this.foo();
   }
 }
 ''');
@@ -59,7 +59,7 @@ class A {
     await resolveTestUnit('''
 class A {
   void foo() {
-    /*LINT*/this?.foo();
+    this?.foo();
   }
 }
 ''');
@@ -72,21 +72,12 @@ class A {
 ''');
   }
 
-  Future<void> test_notAThisExpression() async {
-    await resolveTestUnit('''
-void foo() {
-  final /*LINT*/this.id;
-}
-''');
-    await assertNoFix();
-  }
-
   Future<void> test_propertyAccess_oneCharacterOperator() async {
     await resolveTestUnit('''
 class A {
   int x;
   void foo() {
-    /*LINT*/this.x = 2;
+    this.x = 2;
   }
 }
 ''');
@@ -105,7 +96,7 @@ class A {
 class A {
   int x;
   void foo() {
-    /*LINT*/this?.x = 2;
+    this?.x = 2;
   }
 }
 ''');

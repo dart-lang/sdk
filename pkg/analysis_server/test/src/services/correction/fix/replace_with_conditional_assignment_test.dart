@@ -29,11 +29,12 @@ class Person {
   String _fullName;
   void foo() {
     print('hi');
-    /*LINT*/if (_fullName == null) {
+    if (_fullName == null) {
       _fullName = getFullUserName(this);
     }
     print('hi');
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
     await assertHasFix('''
@@ -44,6 +45,7 @@ class Person {
     _fullName ??= getFullUserName(this);
     print('hi');
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
   }
@@ -53,10 +55,11 @@ class Person {
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/if (_fullName == null) {
+    if (_fullName == null) {
       _fullName = getFullUserName(this);
     }
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
     await assertHasFix('''
@@ -65,6 +68,7 @@ class Person {
   void foo() {
     _fullName ??= getFullUserName(this);
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
   }
@@ -74,9 +78,10 @@ class Person {
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/if (_fullName == null)
+    if (_fullName == null)
       _fullName = getFullUserName(this);
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
     await assertHasFix('''
@@ -85,6 +90,7 @@ class Person {
   void foo() {
     _fullName ??= getFullUserName(this);
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
   }
@@ -94,10 +100,11 @@ class Person {
 class Person {
   String _fullName;
   void foo() {
-    /*LINT*/if (_fullName == null) {{
+    if (_fullName == null) {{
       _fullName = getFullUserName(this);
     }}
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
     await assertHasFix('''
@@ -106,6 +113,7 @@ class Person {
   void foo() {
     _fullName ??= getFullUserName(this);
   }
+  String getFullUserName(Person p) => '';
 }
 ''');
   }

@@ -55,23 +55,56 @@ class _HasPromotedTypeVariableVisitor extends DartTypeVisitor<bool> {
 }
 
 /// Returns [type] in which all promoted type variables have been replace with
-/// their unpromoted equivalents.
-DartType demoteType(DartType type) {
-  return type.accept(const _TypeVariableDemotion()) ?? type;
+/// their unpromoted equivalents, and, if [library] is non-nullable by default,
+/// replaces all legacy types with their non-nullable equivalents.
+DartType demoteTypeInLibrary(DartType type, Library library) {
+  if (library.isNonNullableByDefault) {
+    return type.accept(const _DemotionNonNullification()) ?? type;
+  } else {
+    return type
+            .accept(const _DemotionNonNullification(nonNullifyTypes: false)) ??
+        type;
+  }
 }
 
-/// Visitor that replaces all promoted type variables the type variable itself.
+/// Returns [type] in which all legacy types have been replaced with
+/// non-nullable types.
+DartType nonNullifyInLibrary(DartType type, Library library) {
+  if (library.isNonNullableByDefault) {
+    return type.accept(
+            const _DemotionNonNullification(demoteTypeVariables: false)) ??
+        type;
+  }
+  return type;
+}
+
+/// Visitor that replaces all promoted type variables the type variable itself
+/// and/or replaces all legacy types with non-nullable types.
 ///
 /// The visitor returns `null` if the type wasn't changed.
-class _TypeVariableDemotion extends ReplacementVisitor {
-  const _TypeVariableDemotion();
+class _DemotionNonNullification extends ReplacementVisitor {
+  final bool demoteTypeVariables;
+  final bool nonNullifyTypes;
+
+  const _DemotionNonNullification(
+      {this.demoteTypeVariables: true, this.nonNullifyTypes: true})
+      : assert(demoteTypeVariables || nonNullifyTypes);
+
+  @override
+  Nullability visitNullability(DartType node) {
+    if (nonNullifyTypes && node.nullability == Nullability.legacy) {
+      return Nullability.nonNullable;
+    }
+    return null;
+  }
 
   @override
   DartType visitTypeParameterType(TypeParameterType node) {
-    if (node.promotedBound != null) {
+    Nullability newNullability = visitNullability(node);
+    if (demoteTypeVariables && node.promotedBound != null) {
       return new TypeParameterType(
-          node.parameter, node.typeParameterTypeNullability);
+          node.parameter, newNullability ?? node.typeParameterTypeNullability);
     }
-    return node;
+    return createTypeParameterType(node, newNullability);
   }
 }

@@ -5,6 +5,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// [NNBD non-migrated] Note: This test is specific to legacy mode and
+// deliberately does not have a counter-part in language/.
+
 import "package:expect/expect.dart";
 
 void f(num callback(num x)) {}

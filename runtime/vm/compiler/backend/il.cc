@@ -8,6 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/bootstrap.h"
+#include "vm/compiler/aot/dispatch_table_generator.h"
 #include "vm/compiler/backend/code_statistics.h"
 #include "vm/compiler/backend/constant_propagator.h"
 #include "vm/compiler/backend/evaluator.h"
@@ -19,6 +20,7 @@
 #include "vm/compiler/ffi/frame_rebase.h"
 #include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
+#include "vm/compiler/frontend/kernel_translation_helper.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/cpu.h"
@@ -46,7 +48,6 @@ DEFINE_FLAG(bool,
             two_args_smi_icd,
             true,
             "Generate special IC stubs for two args Smi operations");
-DECLARE_FLAG(bool, unbox_numeric_fields);
 
 class SubclassFinder {
  public:
@@ -386,7 +387,9 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
     // arguments are not "dynamic" but instantiated-to-bounds.
     const Type& rare_type =
         Type::Handle(zone, Type::RawCast(type_class.RareType()));
-    if (!rare_type.IsEquivalent(type, /* syntactically = */ true)) {
+    // TODO(regis): Revisit the usage of TypeEquality::kSyntactical when
+    // implementing strong mode.
+    if (!rare_type.IsEquivalent(type, TypeEquality::kSyntactical)) {
       return false;
     }
   }
@@ -875,18 +878,19 @@ intptr_t CheckClassInstr::ComputeCidMask() const {
 }
 
 bool LoadFieldInstr::IsUnboxedLoad() const {
-  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+  return slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
 bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
-  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+  return slot().IsDartField() &&
          FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
 Representation LoadFieldInstr::representation() const {
   if (IsUnboxedLoad()) {
-    const intptr_t cid = slot().field().UnboxedFieldCid();
+    const Field& field = slot().field();
+    const intptr_t cid = field.UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         return kUnboxedDouble;
@@ -895,7 +899,11 @@ Representation LoadFieldInstr::representation() const {
       case kFloat64x2Cid:
         return kUnboxedFloat64x2;
       default:
-        UNREACHABLE();
+        if (field.is_non_nullable_integer()) {
+          return kUnboxedInt64;
+        } else {
+          UNREACHABLE();
+        }
     }
   }
   return kTagged;
@@ -912,12 +920,12 @@ AllocateUninitializedContextInstr::AllocateUninitializedContextInstr(
 }
 
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+  return slot().IsDartField() &&
          FlowGraphCompiler::IsUnboxedField(slot().field());
 }
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
-  return FLAG_unbox_numeric_fields && slot().IsDartField() &&
+  return slot().IsDartField() &&
          FlowGraphCompiler::IsPotentialUnboxedField(slot().field());
 }
 
@@ -925,7 +933,8 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
     intptr_t index) const {
   ASSERT((index == 0) || (index == 1));
   if ((index == 1) && IsUnboxedStore()) {
-    const intptr_t cid = slot().field().UnboxedFieldCid();
+    const Field& field = slot().field();
+    const intptr_t cid = field.UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
         return kUnboxedDouble;
@@ -934,7 +943,11 @@ Representation StoreInstanceFieldInstr::RequiredInputRepresentation(
       case kFloat64x2Cid:
         return kUnboxedFloat64x2;
       default:
-        UNREACHABLE();
+        if (field.is_non_nullable_integer()) {
+          return kUnboxedInt64;
+        } else {
+          UNREACHABLE();
+        }
     }
   }
   return kTagged;
@@ -3435,6 +3448,10 @@ Instruction* CheckClassInstr::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* LoadClassIdInstr::Canonicalize(FlowGraph* flow_graph) {
+  // TODO(dartbug.com/40188): Allow this to canonicalize into an untagged
+  // constant and make a subsequent DispatchTableCallInstr canonicalize into a
+  // StaticCall.
+  if (representation() == kUntagged) return this;
   const intptr_t cid = object()->Type()->ToCid();
   if (cid != kDynamicCid) {
     const auto& smi = Smi::ZoneHandle(flow_graph->zone(), Smi::New(cid));
@@ -3921,15 +3938,7 @@ void FunctionEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // [Intrinsify]).
   const Function& function = compiler->parsed_function().function();
 
-  // For functions which need an args descriptor the switchable call sites will
-  // transition directly to calling via a stub (and therefore never call the
-  // monomorphic entry).
-  //
-  // See runtime_entry.cc:DEFINE_RUNTIME_ENTRY(UnlinkedCall)
-  const bool needs_args_descriptor =
-      function.HasOptionalParameters() || function.IsGeneric();
-
-  if (function.IsDynamicFunction() && !needs_args_descriptor) {
+  if (function.NeedsMonomorphicCheckedEntry(compiler->zone())) {
     compiler->SpecialStatsBegin(CombinedCodeStatistics::kTagCheckedEntry);
     if (!FLAG_precompiled_mode) {
       __ MonomorphicCheckedEntryJIT();
@@ -4091,26 +4100,30 @@ void NativeParameterInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   constexpr intptr_t kEntryFramePadding = 4;
   compiler::ffi::FrameRebase rebase(
       /*old_base=*/SPREG, /*new_base=*/FPREG,
-      -kExitLinkSlotFromEntryFp + kEntryFramePadding);
-  const Location dst = locs()->out(0);
-  const Location src = rebase.Rebase(loc_);
+      (-kExitLinkSlotFromEntryFp + kEntryFramePadding) *
+          compiler::target::kWordSize,
+      compiler->zone());
+  const auto& src =
+      rebase.Rebase(marshaller_.NativeLocationOfNativeParameter(index_));
   NoTemporaryAllocator no_temp;
-  compiler->EmitMove(dst, src, &no_temp);
+  const Location out_loc = locs()->out(0);
+  const Representation out_rep = representation();
+  compiler->EmitMoveFromNative(out_loc, out_rep, src, &no_temp);
 }
 
 LocationSummary* NativeParameterInstr::MakeLocationSummary(Zone* zone,
                                                            bool opt) const {
   ASSERT(opt);
-  Location input = Location::Any();
+  Location output = Location::Any();
   if (representation() == kUnboxedInt64 && compiler::target::kWordSize < 8) {
-    input = Location::Pair(Location::RequiresRegister(),
-                           Location::RequiresFpuRegister());
+    output = Location::Pair(Location::RequiresRegister(),
+                            Location::RequiresFpuRegister());
   } else {
-    input = RegisterKindForResult() == Location::kRegister
-                ? Location::RequiresRegister()
-                : Location::RequiresFpuRegister();
+    output = RegisterKindForResult() == Location::kRegister
+                 ? Location::RequiresRegister()
+                 : Location::RequiresFpuRegister();
   }
-  return LocationSummary::Make(zone, /*num_inputs=*/0, input,
+  return LocationSummary::Make(zone, /*num_inputs=*/0, output,
                                LocationSummary::kNoCall);
 }
 
@@ -4244,6 +4257,36 @@ StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
   SetInputAt(0, left);
   SetInputAt(1, right);
+}
+
+LocationSummary* LoadClassIdInstr::MakeLocationSummary(Zone* zone,
+                                                       bool opt) const {
+  const intptr_t kNumInputs = 1;
+  return LocationSummary::Make(zone, kNumInputs, Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
+}
+
+void LoadClassIdInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  const Register object = locs()->in(0).reg();
+  const Register result = locs()->out(0).reg();
+  const AbstractType& value_type = *this->object()->Type()->ToAbstractType();
+  // Using NNBDMode::kLegacyLib is safe, because it throws a wider
+  // net over the types accepting a Smi value, especially during the nnbd
+  // migration that does not guarantee soundness.
+  if (input_can_be_smi_ &&
+      (CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, value_type) ||
+       value_type.IsTypeParameter())) {
+    if (representation() == kTagged) {
+      __ LoadTaggedClassIdMayBeSmi(result, object);
+    } else {
+      __ LoadClassIdMayBeSmi(result, object);
+    }
+  } else {
+    __ LoadClassId(result, object);
+    if (representation() == kTagged) {
+      __ SmiTag(result);
+    }
+  }
 }
 
 LocationSummary* InstanceCallInstr::MakeLocationSummary(Zone* zone,
@@ -4382,6 +4425,41 @@ const BinaryFeedback& InstanceCallInstr::BinaryFeedback() {
     }
   }
   return *binary_;
+}
+
+DispatchTableCallInstr* DispatchTableCallInstr::FromCall(
+    Zone* zone,
+    const InstanceCallBaseInstr* call,
+    Value* cid,
+    const compiler::TableSelector* selector) {
+  InputsArray* args = new (zone) InputsArray(zone, call->ArgumentCount() + 1);
+  for (intptr_t i = 0; i < call->ArgumentCount(); i++) {
+    args->Add(call->ArgumentValueAt(i)->CopyWithType());
+  }
+  args->Add(cid);
+  auto dispatch_table_call = new (zone) DispatchTableCallInstr(
+      call->token_pos(), call->interface_target(), selector, args,
+      call->type_args_len(), call->argument_names());
+  if (call->has_inlining_id()) {
+    dispatch_table_call->set_inlining_id(call->inlining_id());
+  }
+  return dispatch_table_call;
+}
+
+void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Array& arguments_descriptor = Array::ZoneHandle();
+  if (selector()->requires_args_descriptor) {
+    ArgumentsInfo args_info(type_args_len(), ArgumentCount(), argument_names());
+    arguments_descriptor = args_info.ToArgumentsDescriptor();
+  }
+  const Register cid_reg = locs()->in(0).reg();
+  compiler->EmitDispatchTableCall(cid_reg, selector()->offset,
+                                  arguments_descriptor);
+  compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
+                                 RawPcDescriptors::kOther, locs());
+  __ Drop(ArgumentCount());
+
+  compiler->AddDispatchTableCallTarget(selector());
 }
 
 const CallTargets& StaticCallInstr::Targets() {
@@ -4539,6 +4617,12 @@ Definition* InstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
       flow_graph->zone(), this, target, new_target->AggregateCallCount());
   flow_graph->InsertBefore(this, specialized, env(), FlowGraph::kValue);
   return specialized;
+}
+
+Definition* DispatchTableCallInstr::Canonicalize(FlowGraph* flow_graph) {
+  // TODO(dartbug.com/40188): Allow this to canonicalize into a StaticCall when
+  // when input class id is constant;
+  return this;
 }
 
 Definition* PolymorphicInstanceCallInstr::Canonicalize(FlowGraph* flow_graph) {
@@ -5395,7 +5479,7 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   if (idx == TargetAddressIndex()) {
     return kUnboxedFfiIntPtr;
   } else {
-    return arg_representations_[idx];
+    return marshaller_.RepInFfiCall(idx);
   }
 }
 
@@ -5429,45 +5513,54 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   summary->set_temp(2, Location::RegisterLocation(
                            CallingConventions::kSecondCalleeSavedCpuReg));
 #endif
-  summary->set_out(0, compiler::ffi::ResultLocation(
-                          compiler::ffi::ResultRepresentation(signature_)));
+  summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
 
-  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
-    // Floating point values are never split: they are either in a single "FPU"
-    // register or a contiguous 64-bit slot on the stack. Unboxed 64-bit integer
-    // values, in contrast, can be split between any two registers on a 32-bit
-    // system.
-    //
-    // There is an exception for iOS and Android 32-bit ARM, where
-    // floating-point values are treated as integers as far as the calling
-    // convention is concerned. However, the representation of these arguments
-    // are set to kUnboxedInt32 or kUnboxedInt64 already, so we don't have to
-    // account for that here.
-    const bool is_atomic = arg_representations_[i] == kUnboxedFloat ||
-                           arg_representations_[i] == kUnboxedDouble;
-
-    // Since we have to move this input down to the stack, there's no point in
-    // pinning it to any specific register.
-    summary->set_in(i, UnallocateStackSlots(arg_locations_[i], is_atomic));
+  for (intptr_t i = 0, n = marshaller_.num_args(); i < n; ++i) {
+    summary->set_in(i, marshaller_.LocInFfiCall(i));
   }
 
   return summary;
 }
 
-Location FfiCallInstr::UnallocateStackSlots(Location in, bool is_atomic) {
-  if (in.IsPairLocation()) {
-    ASSERT(!is_atomic);
-    return Location::Pair(UnallocateStackSlots(in.AsPairLocation()->At(0)),
-                          UnallocateStackSlots(in.AsPairLocation()->At(1)));
-  } else if (in.IsMachineRegister()) {
-    return in;
-  } else if (in.IsDoubleStackSlot()) {
-    return is_atomic ? Location::Any()
-                     : Location::Pair(Location::Any(), Location::Any());
-  } else {
-    ASSERT(in.IsStackSlot());
-    return Location::Any();
+void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler) {
+  const Register saved_fp = locs()->temp(0).reg();
+  const Register temp = locs()->temp(1).reg();
+
+  compiler::ffi::FrameRebase rebase(/*old_base=*/FPREG, /*new_base=*/saved_fp,
+                                    /*stack_delta=*/0, zone_);
+  for (intptr_t i = 0, n = NativeArgCount(); i < n; ++i) {
+    const Location origin = rebase.Rebase(locs()->in(i));
+    const Representation origin_rep = RequiredInputRepresentation(i);
+    const auto& target = marshaller_.Location(i);
+    ConstantTemporaryAllocator temp_alloc(temp);
+    if (origin.IsConstant()) {
+      compiler->EmitMoveConst(target, origin, origin_rep, &temp_alloc);
+    } else {
+      compiler->EmitMoveToNative(target, origin, origin_rep, &temp_alloc);
+    }
   }
+}
+
+void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
+  const auto& src = marshaller_.Location(compiler::ffi::kResultIndex);
+  if (src.payload_type().IsVoid()) {
+    return;
+  }
+  const Location dst_loc = locs()->out(0);
+  const Representation dst_type = representation();
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMoveFromNative(dst_loc, dst_type, src, &no_temp);
+}
+
+void NativeReturnInstr::EmitReturnMoves(FlowGraphCompiler* compiler) {
+  const auto& dst = marshaller_.Location(compiler::ffi::kResultIndex);
+  if (dst.payload_type().IsVoid()) {
+    return;
+  }
+  const Location src_loc = locs()->in(0);
+  const Representation src_type = RequiredInputRepresentation(0);
+  NoTemporaryAllocator no_temp;
+  compiler->EmitMoveToNative(dst, src_loc, src_type, &no_temp);
 }
 
 LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
@@ -5476,14 +5569,15 @@ LocationSummary* NativeReturnInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
-  locs->set_in(0, result_location_);
+  locs->set_in(
+      0, marshaller_.LocationOfNativeParameter(compiler::ffi::kResultIndex));
   return locs;
 }
 
 #undef Z
 
 Representation FfiCallInstr::representation() const {
-  return compiler::ffi::ResultRepresentation(signature_);
+  return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
 }
 
 // SIMD

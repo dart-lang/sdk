@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
@@ -2261,7 +2262,6 @@ _f(_C/*?*/ c) => c?.toString;
         findNode.propertyAccess('c?.toString'), 'String Function()?');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40313')
   Future<void> test_propertyAccess_nullAware_potentiallyNullable() async {
     // In the code example below, the `?.` is not changed to `.` because `T`
     // might be instantiated to `int?`, in which case the null check is still
@@ -2725,16 +2725,19 @@ void _f(bool/*?*/ x, bool/*?*/ y) {
 
   AssignmentTargetInfo _computeAssignmentTargetInfo(
       Expression node, FixBuilder fixBuilder) {
-    var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
-    var isReadWrite = assignment.operator.type != TokenType.EQ;
-    var readType = isReadWrite
-        ? getReadType(node,
-                elementTypeProvider:
-                    MigrationResolutionHooksImpl(fixBuilder)) ??
-            typeProvider.dynamicType
-        : null;
-    var writeType = node.staticType;
-    return AssignmentTargetInfo(readType, writeType);
+    try {
+      assert(
+          identical(ElementTypeProvider.current, const ElementTypeProvider()));
+      ElementTypeProvider.current = fixBuilder.migrationResolutionHooks;
+      var assignment = node.thisOrAncestorOfType<AssignmentExpression>();
+      var isReadWrite = assignment.operator.type != TokenType.EQ;
+      var readType =
+          isReadWrite ? getReadType(node) ?? typeProvider.dynamicType : null;
+      var writeType = node.staticType;
+      return AssignmentTargetInfo(readType, writeType);
+    } finally {
+      ElementTypeProvider.current = const ElementTypeProvider();
+    }
   }
 
   FixBuilder _createFixBuilder(AstNode scope) {

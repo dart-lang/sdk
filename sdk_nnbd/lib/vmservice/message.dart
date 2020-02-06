@@ -159,7 +159,7 @@ class Message {
     };
     final keys = _makeAllString(params.keys.toList(growable: false));
     final values = _makeAllString(params.values.toList(growable: false));
-    final request = List.filled(6, null)
+    final request = List<dynamic>.filled(6, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = receivePort.sendPort
       ..[2] = serial
@@ -207,7 +207,7 @@ class Message {
       keys = _makeAllString(keys);
       values = _makeAllString(values);
     }
-    final request = List.filled(6, null)
+    final request = List<dynamic>.filled(6, null)
       ..[0] = 0 // Make room for OOB message type.
       ..[1] = receivePort.sendPort
       ..[2] = serial

@@ -28,6 +28,7 @@ main(List<String> args) async {
           'from_opt_in',
           'from_opt_out',
           'if_null.dart',
+          'null_check.dart',
         ]
       });
 }

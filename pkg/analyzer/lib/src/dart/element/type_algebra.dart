@@ -147,7 +147,7 @@ abstract class MapSubstitution extends Substitution {
 }
 
 abstract class Substitution {
-  static const Substitution empty = _NullSubstitution.instance;
+  static const MapSubstitution empty = _NullSubstitution.instance;
 
   const Substitution();
 

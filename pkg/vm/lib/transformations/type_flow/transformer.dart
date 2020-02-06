@@ -17,6 +17,7 @@ import 'package:kernel/type_environment.dart';
 import 'analysis.dart';
 import 'calls.dart';
 import 'summary.dart';
+import 'table_selector.dart';
 import 'types.dart';
 import 'utils.dart';
 import '../pragma.dart';
@@ -112,6 +113,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
+  final TableSelectorAssigner _tableSelectorAssigner;
   final Class _intClass;
   Constant _nullConstant;
 
@@ -120,6 +122,7 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
         _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
+        _tableSelectorAssigner = new TableSelectorAssigner(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
@@ -275,18 +278,27 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
 
         // TODO(alexmarkov): figure out how to pass receiver type.
       }
-
-      if (member.isInstanceMember &&
-          !(member is Procedure && member.isGetter)) {
-        final attrs = new ProcedureAttributesMetadata(
-            hasDynamicUses: _typeFlowAnalysis.isCalledDynamically(member),
-            hasThisUses: _typeFlowAnalysis.isCalledViaThis(member),
-            hasNonThisUses: _typeFlowAnalysis.isCalledNotViaThis(member),
-            hasTearOffUses: _typeFlowAnalysis.isTearOffTaken(member));
-        _procedureAttributesMetadata.mapping[member] = attrs;
-      }
     } else if (!member.isAbstract) {
       _setUnreachable(member);
+    }
+
+    // We need to attach ProcedureAttributesMetadata to all members, even
+    // unreachable ones, since an unreachable member could still be used as an
+    // interface target, and table dispatch calls need selector IDs for all
+    // interface targets.
+    if (member.isInstanceMember) {
+      final attrs = new ProcedureAttributesMetadata(
+          methodOrSetterCalledDynamically:
+              _typeFlowAnalysis.isCalledDynamically(member),
+          getterCalledDynamically:
+              _typeFlowAnalysis.isGetterCalledDynamically(member),
+          hasThisUses: _typeFlowAnalysis.isCalledViaThis(member),
+          hasNonThisUses: _typeFlowAnalysis.isCalledNotViaThis(member),
+          hasTearOffUses: _typeFlowAnalysis.isTearOffTaken(member),
+          methodOrSetterSelectorId:
+              _tableSelectorAssigner.methodOrSetterSelectorId(member),
+          getterSelectorId: _tableSelectorAssigner.getterSelectorId(member));
+      _procedureAttributesMetadata.mapping[member] = attrs;
     }
   }
 

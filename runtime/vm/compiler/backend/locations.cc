@@ -70,28 +70,22 @@ LocationSummary* LocationSummary::Make(
   return summary;
 }
 
-template <class Register, class FpuRegister>
-TemplateLocation<Register, FpuRegister>
-TemplateLocation<Register, FpuRegister>::Pair(
-    TemplateLocation<Register, FpuRegister> first,
-    TemplateLocation<Register, FpuRegister> second) {
-  TemplatePairLocation<TemplateLocation<Register, FpuRegister>>* pair_location =
-      new TemplatePairLocation<TemplateLocation<Register, FpuRegister>>();
+Location Location::Pair(Location first, Location second) {
+  PairLocation* pair_location = new PairLocation();
   ASSERT((reinterpret_cast<intptr_t>(pair_location) & kLocationTagMask) == 0);
   pair_location->SetAt(0, first);
   pair_location->SetAt(1, second);
-  TemplateLocation<Register, FpuRegister> loc(
-      reinterpret_cast<uword>(pair_location) | kPairLocationTag);
+  Location loc(reinterpret_cast<uword>(pair_location) | kPairLocationTag);
   return loc;
 }
 
-template <class Register, class FpuRegister>
-TemplatePairLocation<TemplateLocation<Register, FpuRegister>>*
-TemplateLocation<Register, FpuRegister>::AsPairLocation() const {
+PairLocation* Location::AsPairLocation() const {
   ASSERT(IsPairLocation());
-  return reinterpret_cast<
-      TemplatePairLocation<TemplateLocation<Register, FpuRegister>>*>(
-      value_ & ~kLocationTagMask);
+  return reinterpret_cast<PairLocation*>(value_ & ~kLocationTagMask);
+}
+
+Location Location::Component(intptr_t i) const {
+  return AsPairLocation()->At(i);
 }
 
 Location LocationRegisterOrConstant(Value* value) {
@@ -145,18 +139,15 @@ compiler::Address LocationToStackSlotAddress(Location loc) {
   return compiler::Address(loc.base_reg(), loc.ToStackSlotOffset());
 }
 
-template <class Register, class FpuRegister>
-intptr_t TemplateLocation<Register, FpuRegister>::ToStackSlotOffset() const {
+intptr_t Location::ToStackSlotOffset() const {
   return stack_index() * compiler::target::kWordSize;
 }
 
-template <class Register, class FpuRegister>
-const Object& TemplateLocation<Register, FpuRegister>::constant() const {
+const Object& Location::constant() const {
   return constant_instruction()->value();
 }
 
-template <class Register, class FpuRegister>
-const char* TemplateLocation<Register, FpuRegister>::Name() const {
+const char* Location::Name() const {
   switch (kind()) {
     case kInvalid:
       return "?";
@@ -197,9 +188,7 @@ const char* TemplateLocation<Register, FpuRegister>::Name() const {
   return "?";
 }
 
-template <class Register, class FpuRegister>
-void TemplateLocation<Register, FpuRegister>::PrintTo(
-    BufferFormatter* f) const {
+void Location::PrintTo(BufferFormatter* f) const {
   if (!FLAG_support_il_printer) {
     return;
   }
@@ -220,16 +209,14 @@ void TemplateLocation<Register, FpuRegister>::PrintTo(
   }
 }
 
-template <class Register, class FpuRegister>
-const char* TemplateLocation<Register, FpuRegister>::ToCString() const {
+const char* Location::ToCString() const {
   char buffer[1024];
   BufferFormatter bf(buffer, 1024);
   PrintTo(&bf);
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
 
-template <class Register, class FpuRegister>
-void TemplateLocation<Register, FpuRegister>::Print() const {
+void Location::Print() const {
   if (kind() == kStackSlot) {
     THR_Print("S%+" Pd "", stack_index());
   } else {
@@ -237,15 +224,12 @@ void TemplateLocation<Register, FpuRegister>::Print() const {
   }
 }
 
-template <class Register, class FpuRegister>
-TemplateLocation<Register, FpuRegister>
-TemplateLocation<Register, FpuRegister>::Copy() const {
+Location Location::Copy() const {
   if (IsPairLocation()) {
-    TemplatePairLocation<TemplateLocation<Register, FpuRegister>>* pair =
-        AsPairLocation();
+    PairLocation* pair = AsPairLocation();
     ASSERT(!pair->At(0).IsPairLocation());
     ASSERT(!pair->At(1).IsPairLocation());
-    return TemplateLocation::Pair(pair->At(0).Copy(), pair->At(1).Copy());
+    return Location::Pair(pair->At(0).Copy(), pair->At(1).Copy());
   } else {
     // Copy by value.
     return *this;
@@ -383,14 +367,6 @@ void LocationSummary::CheckWritableInputs() {
   }
 }
 #endif
-
-template class TemplateLocation<dart::Register, dart::FpuRegister>;
-template class TemplatePairLocation<Location>;
-
-#if !defined(HOST_ARCH_EQUALS_TARGET_ARCH)
-template class TemplateLocation<dart::host::Register, dart::host::FpuRegister>;
-template class TemplatePairLocation<HostLocation>;
-#endif  // !defined(HOST_ARCH_EQUALS_TARGET_ARCH)
 
 }  // namespace dart
 

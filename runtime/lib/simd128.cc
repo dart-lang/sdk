@@ -189,14 +189,31 @@ DEFINE_NATIVE_ENTRY(Float32x4_clamp, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, hi, arguments->NativeArgAt(2));
   // The order of the clamping must match the order of the optimized code:
   // MAX(MIN(self, hi), lo).
-  float _x = self.x() < hi.x() ? self.x() : hi.x();
-  float _y = self.y() < hi.y() ? self.y() : hi.y();
-  float _z = self.z() < hi.z() ? self.z() : hi.z();
-  float _w = self.w() < hi.w() ? self.w() : hi.w();
-  _x = _x < lo.x() ? lo.x() : _x;
-  _y = _y < lo.y() ? lo.y() : _y;
-  _z = _z < lo.z() ? lo.z() : _z;
-  _w = _w < lo.w() ? lo.w() : _w;
+  float _x;
+  float _y;
+  float _z;
+  float _w;
+  // ARM semantics are different from X86/X64 at an instruction level. Ensure
+  // that we match the semantics of the architecture in the C version.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+  _x = self.x() < hi.x() ? self.x() : hi.x();
+  _y = self.y() < hi.y() ? self.y() : hi.y();
+  _z = self.z() < hi.z() ? self.z() : hi.z();
+  _w = self.w() < hi.w() ? self.w() : hi.w();
+  _x = lo.x() < _x ? _x : lo.x();
+  _y = lo.y() < _y ? _y : lo.y();
+  _z = lo.z() < _z ? _z : lo.z();
+  _w = lo.w() < _w ? _w : lo.w();
+#else
+  _x = fminf(self.x(), hi.x());
+  _y = fminf(self.y(), hi.y());
+  _z = fminf(self.z(), hi.z());
+  _w = fminf(self.w(), hi.w());
+  _x = fmaxf(_x, lo.x());
+  _y = fmaxf(_y, lo.y());
+  _z = fmaxf(_z, lo.z());
+  _w = fmaxf(_w, lo.w());
+#endif
   return Float32x4::New(_x, _y, _z, _w);
 }
 
@@ -719,10 +736,22 @@ DEFINE_NATIVE_ENTRY(Float64x2_clamp, 0, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, hi, arguments->NativeArgAt(2));
   // The order of the clamping must match the order of the optimized code:
   // MAX(MIN(self, hi), lo).
-  double _x = self.x() < hi.x() ? self.x() : hi.x();
-  double _y = self.y() < hi.y() ? self.y() : hi.y();
-  _x = _x < lo.x() ? lo.x() : _x;
-  _y = _y < lo.y() ? lo.y() : _y;
+  double _x;
+  double _y;
+
+  // ARM semantics are different from X86/X64 at an instruction level. Ensure
+  // that we match the semantics of the architecture in the C version.
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
+  _x = self.x() < hi.x() ? self.x() : hi.x();
+  _y = self.y() < hi.y() ? self.y() : hi.y();
+  _x = lo.x() < _x ? _x : lo.x();
+  _y = lo.y() < _y ? _y : lo.y();
+#else
+  _x = fmin(self.x(), hi.x());
+  _y = fmin(self.y(), hi.y());
+  _x = fmax(_x, lo.x());
+  _y = fmax(_y, lo.y());
+#endif
   return Float64x2::New(_x, _y);
 }
 

@@ -6,6 +6,7 @@
 #define RUNTIME_PLATFORM_UTILS_H_
 
 #include <limits>
+#include <memory>
 #include <type_traits>
 
 #include "platform/assert.h"
@@ -416,6 +417,11 @@ class Utils {
   // Allocate a string and print formatted output into a malloc'd buffer.
   static char* SCreate(const char* format, ...) PRINTF_ATTRIBUTE(1, 2);
   static char* VSCreate(const char* format, va_list args);
+
+  typedef std::unique_ptr<char, decltype(std::free)*> CStringUniquePtr;
+
+  // Returns str in a unique_ptr with free used as its deleter.
+  static CStringUniquePtr CreateCStringUniquePtr(char* str);
 };
 
 }  // namespace dart

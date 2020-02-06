@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,6 +12,9 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideDifferentDefaultValuesPositionalTest);
+    defineReflectiveTests(
+      InvalidOverrideDifferentDefaultValuesPositionalWithNnbdTest,
+    );
   });
 }
 
@@ -184,5 +189,51 @@ class B extends A {
           57,
           1),
     ]);
+  }
+}
+
+@reflectiveTest
+class InvalidOverrideDifferentDefaultValuesPositionalWithNnbdTest
+    extends InvalidOverrideDifferentDefaultValuesPositionalTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.non_nullable]
+    ..implicitCasts = false;
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_equal_optIn_extends_optOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+// @dart = 2.7
+class A {
+  void foo([int a = 0]) {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'a.dart';
+
+class B extends A {
+  void foo([int a = 0]) {}
+}
+''');
+  }
+
+  test_equal_optOut_extends_optIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  void foo([int a = 0]) {}
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.7
+import 'a.dart';
+
+class B extends A {
+  void foo([int a = 0]) {}
+}
+''');
   }
 }

@@ -1704,6 +1704,10 @@ InternalProblemUnfinishedTypeVariable:
   template: "Unfinished type variable '#name' found in non-source library '#uri'."
   severity: INTERNAL_PROBLEM
 
+InternalProblemUnsupportedNullability:
+  template: "Unsupported nullability value '#string' on type '#type'."
+  severity: INTERNAL_PROBLEM
+
 LocalDefinitionHidesExport:
   template: "Local definition of '#name' hides export from '#uri'."
   severity: IGNORED
@@ -2725,6 +2729,17 @@ ConstConstructorNonFinalField:
 
 ConstConstructorNonFinalFieldCause:
   template: "Field isn't final, but constructor is 'const'."
+  severity: CONTEXT
+
+ConstConstructorLateFinalFieldError:
+  template: "Constructor is marked 'const' so fields can't be late."
+
+ConstConstructorLateFinalFieldWarning:
+  template: "Constructor is marked 'const' and some fields are late."
+  severity: WARNING
+
+ConstConstructorLateFinalFieldCause:
+  template: "Field is late, but constructor is 'const'."
   severity: CONTEXT
 
 ConstConstructorRedirectionToNonConst:
@@ -3833,6 +3848,20 @@ OptionalNonNullableWithoutInitializerWarning:
   template: "Optional parameter '#name' doesn't have a default value and its type '#type' doesn't allow null."
   severity: WARNING
 
+FieldNonNullableWithoutInitializerError:
+  template: "Field '#name' should be initialized because its type '#type' doesn't allow null."
+
+FieldNonNullableWithoutInitializerWarning:
+  template: "Field '#name' isn't initialized and its type '#type' doesn't allow null."
+  severity: WARNING
+
+FieldNonNullableNotInitializedByConstructorError:
+  template: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
+
+FieldNonNullableNotInitializedByConstructorWarning:
+  template: "This constructor doesn't initialize field '#name' and its type '#type' doesn't allow null."
+  severity: WARNING
+
 NonNullableOptOut:
   template: "Null safety features are disabled for this library."
   tip: "Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`."
@@ -3868,3 +3897,12 @@ NullableMixinWarning:
 JsInteropIndexNotSupported:
   template: "JS interop classes do not support [] and []= operator methods."
   tip: "Try replacing with a normal method."
+
+DefaultListConstructorError:
+  template: "Can't use the default List constructor."
+  tip: "Try using List.filled instead."
+
+DefaultListConstructorWarning:
+  template: "Using the default List constructor."
+  tip: "Try using List.filled instead."
+  severity: WARNING

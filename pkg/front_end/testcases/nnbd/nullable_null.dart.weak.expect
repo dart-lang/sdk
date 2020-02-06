@@ -29,5 +29,5 @@ static method main() → dynamic {}
 
 constants  {
   #C1 = <core::Null?>[]
-  #C2 = <self::A<core::Null?>>[]
+  #C2 = <self::A<core::Null?>*>[]
 }

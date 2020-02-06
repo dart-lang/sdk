@@ -48,7 +48,7 @@ import '../kernel/type_algorithms.dart' show hasAnyTypeVariables;
 
 import '../names.dart';
 
-import '../problems.dart' show unexpected, unhandled;
+import '../problems.dart' show internalProblem, unexpected, unhandled;
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
@@ -356,7 +356,7 @@ class ClosureContext {
           returnExpressionTypes[i]);
     }
 
-    return inferredType;
+    return demoteTypeInLibrary(inferredType, inferrer.library.library);
   }
 
   DartType _wrapAsyncOrGenerator(
@@ -540,6 +540,10 @@ class TypeInferrerImpl implements TypeInferrer {
       return isNonNullableByDefault
           ? const NeverType(Nullability.nonNullable)
           : type;
+    }
+    if (type is TypeParameterType && type.promotedBound != null) {
+      return new TypeParameterType(type.parameter, Nullability.nonNullable,
+          computeNonNullable(type.promotedBound));
     }
     return type.withNullability(library.nonNullable);
   }
@@ -1047,6 +1051,24 @@ class TypeInferrerImpl implements TypeInferrer {
       target = new ObjectAccessTarget.interfaceMember(interfaceMember);
     } else if (receiverType is DynamicType) {
       target = const ObjectAccessTarget.dynamic();
+    } else if (receiverType is NeverType) {
+      switch (receiverType.nullability) {
+        case Nullability.nonNullable:
+          target = const ObjectAccessTarget.never();
+          break;
+        case Nullability.nullable:
+        case Nullability.legacy:
+          // Never? and Never* are equivalent to Null.
+          return findInterfaceMember(coreTypes.nullType, name, fileOffset);
+        case Nullability.undetermined:
+          return internalProblem(
+              templateInternalProblemUnsupportedNullability.withArguments(
+                  "${receiverType.nullability}",
+                  receiverType,
+                  isNonNullableByDefault),
+              fileOffset,
+              library.fileUri);
+      }
     } else if (receiverType is InvalidType) {
       target = const ObjectAccessTarget.invalid();
     } else if (receiverType is InterfaceType &&
@@ -1150,7 +1172,8 @@ class TypeInferrerImpl implements TypeInferrer {
                         thisBuilder.kind,
                         inferredTypeArguments)
                     : const ObjectAccessTarget.missing(),
-                isPlatform: extensionBuilder.library.uri.scheme == 'dart');
+                isPlatform:
+                    extensionBuilder.library.importUri.scheme == 'dart');
             if (noneMoreSpecific.isNotEmpty) {
               bool isMostSpecific = true;
               for (ExtensionAccessCandidate other in noneMoreSpecific) {
@@ -1351,6 +1374,8 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
         return const DynamicType();
+      case ObjectAccessTargetKind.never:
+        return const NeverType(Nullability.nonNullable);
       case ObjectAccessTargetKind.instanceMember:
         return getGetterTypeForMemberTarget(target.member, receiverType);
       case ObjectAccessTargetKind.extensionMember:
@@ -1451,6 +1476,7 @@ class TypeInferrerImpl implements TypeInferrer {
         return _getFunctionType(receiverType);
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
         return unknownFunction;
@@ -1514,6 +1540,8 @@ class TypeInferrerImpl implements TypeInferrer {
             throw unhandled('$target', 'getFunctionType', null, null);
         }
         break;
+      case ObjectAccessTargetKind.never:
+        return const NeverType(Nullability.nonNullable);
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
@@ -1551,6 +1579,7 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
         break;
@@ -1609,6 +1638,7 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
         break;
@@ -1664,6 +1694,7 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.callFunction:
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
         break;
@@ -1718,6 +1749,7 @@ class TypeInferrerImpl implements TypeInferrer {
     switch (target.kind) {
       case ObjectAccessTargetKind.unresolved:
       case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
       case ObjectAccessTargetKind.invalid:
       case ObjectAccessTargetKind.missing:
         return const DynamicType();
@@ -1840,7 +1872,8 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   /// Modifies a type as appropriate when inferring a declared variable's type.
-  DartType inferDeclarationType(DartType initializerType) {
+  DartType inferDeclarationType(DartType initializerType,
+      {bool forSyntheticVariable: false}) {
     if (initializerType is BottomType ||
         (initializerType is InterfaceType &&
             initializerType.classNode == coreTypes.nullClass)) {
@@ -1850,7 +1883,11 @@ class TypeInferrerImpl implements TypeInferrer {
       // not spec'ed anywhere.
       return const DynamicType();
     }
-    return demoteType(initializerType);
+    if (forSyntheticVariable) {
+      return nonNullifyInLibrary(initializerType, library.library);
+    } else {
+      return demoteTypeInLibrary(initializerType, library.library);
+    }
   }
 
   void inferSyntheticVariable(VariableDeclarationImpl variable) {
@@ -1860,7 +1897,8 @@ class TypeInferrerImpl implements TypeInferrer {
         variable.initializer, const UnknownType(), true,
         isVoidAllowed: true);
     variable.initializer = result.expression..parent = variable;
-    DartType inferredType = inferDeclarationType(result.inferredType);
+    DartType inferredType =
+        inferDeclarationType(result.inferredType, forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
         new InstrumentationValueForType(inferredType));
     variable.type = inferredType;
@@ -1881,7 +1919,8 @@ class TypeInferrerImpl implements TypeInferrer {
       variable.initializer = result.expression..parent = variable;
       nullAwareGuards = const Link<NullAwareGuard>();
     }
-    DartType inferredType = inferDeclarationType(result.inferredType);
+    DartType inferredType =
+        inferDeclarationType(result.inferredType, forSyntheticVariable: true);
     instrumentation?.record(uriForInstrumentation, variable.fileOffset, 'type',
         new InstrumentationValueForType(inferredType));
     variable.type = inferredType;
@@ -2482,7 +2521,7 @@ class TypeInferrerImpl implements TypeInferrer {
         }
         instrumentation?.record(uriForInstrumentation, formal.fileOffset,
             'type', new InstrumentationValueForType(inferredType));
-        formal.type = inferredType;
+        formal.type = demoteTypeInLibrary(inferredType, library.library);
       }
 
       if (isNonNullableByDefault && performNnbdChecks) {
@@ -2502,7 +2541,7 @@ class TypeInferrerImpl implements TypeInferrer {
                         formal.name, formal.type, isNonNullableByDefault),
                 formal.fileOffset,
                 formal.name.length,
-                library.uri);
+                library.importUri);
           } else {
             library.addProblem(
                 templateOptionalNonNullableWithoutInitializerWarning
@@ -2510,7 +2549,7 @@ class TypeInferrerImpl implements TypeInferrer {
                         formal.name, formal.type, isNonNullableByDefault),
                 formal.fileOffset,
                 formal.name.length,
-                library.uri);
+                library.importUri);
           }
         }
       }
@@ -2526,14 +2565,14 @@ class TypeInferrerImpl implements TypeInferrer {
                     .withArguments(formal.name),
                 formal.fileOffset,
                 formal.name.length,
-                library.uri);
+                library.importUri);
           } else {
             library.addProblem(
                 templateRequiredNamedParameterHasDefaultValueWarning
                     .withArguments(formal.name),
                 formal.fileOffset,
                 formal.name.length,
-                library.uri);
+                library.importUri);
           }
         }
       }
@@ -2631,6 +2670,25 @@ class TypeInferrerImpl implements TypeInferrer {
     InvocationInferenceResult result = inferInvocation(
         typeContext, fileOffset, unknownFunction, arguments, name,
         receiverType: const DynamicType());
+    assert(name != equalsName);
+    return createNullAwareExpressionInferenceResult(
+        result.inferredType,
+        result.applyResult(new MethodInvocation(receiver, name, arguments)
+          ..fileOffset = fileOffset),
+        nullAwareGuards);
+  }
+
+  ExpressionInferenceResult _inferNeverInvocation(
+      int fileOffset,
+      Link<NullAwareGuard> nullAwareGuards,
+      Expression receiver,
+      NeverType receiverType,
+      Name name,
+      Arguments arguments,
+      DartType typeContext) {
+    InvocationInferenceResult result = inferInvocation(
+        typeContext, fileOffset, unknownFunction, arguments, name,
+        receiverType: receiverType);
     assert(name != equalsName);
     return createNullAwareExpressionInferenceResult(
         result.inferredType,
@@ -3034,6 +3092,9 @@ class TypeInferrerImpl implements TypeInferrer {
       case ObjectAccessTargetKind.unresolved:
         return _inferDynamicInvocation(fileOffset, nullAwareGuards, receiver,
             name, arguments, typeContext);
+      case ObjectAccessTargetKind.never:
+        return _inferNeverInvocation(fileOffset, nullAwareGuards, receiver,
+            receiverType, name, arguments, typeContext);
     }
     return unhandled(
         '$target', 'inferMethodInvocation', fileOffset, uriForInstrumentation);
@@ -3919,6 +3980,7 @@ enum ObjectAccessTargetKind {
   callFunction,
   extensionMember,
   dynamic,
+  never,
   invalid,
   missing,
   // TODO(johnniwinther): Remove this.
@@ -3959,6 +4021,10 @@ class ObjectAccessTarget {
   /// Creates an access on a dynamic receiver type with no known target.
   const ObjectAccessTarget.dynamic()
       : this.internal(ObjectAccessTargetKind.dynamic, null);
+
+  /// Creates an access on a receiver of type Never with no known target.
+  const ObjectAccessTarget.never()
+      : this.internal(ObjectAccessTargetKind.never, null);
 
   /// Creates an access with no target due to an invalid receiver type.
   ///

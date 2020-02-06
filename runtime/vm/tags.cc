@@ -118,9 +118,6 @@ int64_t VMTagCounters::count(uword tag) {
 
 #ifndef PRODUCT
 void VMTagCounters::PrintToJSONObject(JSONObject* obj) {
-  if (!FLAG_support_service) {
-    return;
-  }
   {
     JSONArray arr(obj, "names");
     for (intptr_t i = 1; i < VMTag::kNumVMTags; i++) {

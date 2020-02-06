@@ -2901,6 +2901,9 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
   ApiLocalScope* scope = thread->api_top_scope();
+
+  const intptr_t handle_count_start = state->CountPersistentHandles();
+
   Dart_PersistentHandle handles[2000];
   Dart_EnterScope();
   {
@@ -2952,7 +2955,7 @@ VM_UNIT_TEST_CASE(DartAPI_PersistentHandles) {
     }
   }
   EXPECT(scope == thread->api_top_scope());
-  EXPECT_EQ(2001, state->CountPersistentHandles());
+  EXPECT_EQ(handle_count_start + 2000, state->CountPersistentHandles());
   Dart_ShutdownIsolate();
 }
 

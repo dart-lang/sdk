@@ -93,11 +93,6 @@ DECLARE_FLAG(bool, write_protect_code);
 DECLARE_FLAG(bool, precompiled_mode);
 DECLARE_FLAG(int, max_polymorphic_checks);
 
-DEFINE_FLAG(bool,
-            unbox_numeric_fields,
-            true,
-            "Support unboxed double and float32x4 fields.");
-
 static const char* const kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
 static const char* const kSetterPrefix = "set:";
@@ -1046,7 +1041,13 @@ void Object::Init(Isolate* isolate) {
   void_type_->SetCanonical();
 
   cls = never_class_;
-  *never_type_ = Type::NewNonParameterizedType(cls);
+  *never_type_ =
+      Type::New(cls, Object::null_type_arguments(), TokenPosition::kNoSource,
+                Dart::non_nullable_flag() ? Nullability::kNonNullable
+                                          : Nullability::kLegacy);
+  never_type_->SetIsFinalized();
+  never_type_->ComputeHash();
+  never_type_->SetCanonical();
 
   // Since TypeArguments objects are passed as function arguments, make them
   // behave as Dart instances, although they are just VM objects.
@@ -2456,10 +2457,31 @@ void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
       cur += compiler::target::kWordSize;
     }
   } else {
-    uword initial_value = reinterpret_cast<uword>(null_);
-    while (cur < end) {
-      *reinterpret_cast<uword*>(cur) = initial_value;
-      cur += kWordSize;
+    uword initial_value;
+    bool needs_init;
+    if (RawObject::IsTypedDataBaseClassId(class_id)) {
+      initial_value = 0;
+      // If the size is greater than both kNewAllocatableSize and
+      // kAllocatablePageSize, the object must have been allocated to a new
+      // large page, which must already have been zero initialized by the OS.
+      needs_init = Heap::IsAllocatableInNewSpace(size) ||
+                   Heap::IsAllocatableViaFreeLists(size);
+    } else {
+      initial_value = reinterpret_cast<uword>(null_);
+      needs_init = true;
+    }
+    if (needs_init) {
+      while (cur < end) {
+        *reinterpret_cast<uword*>(cur) = initial_value;
+        cur += kWordSize;
+      }
+    } else {
+#if defined(DEBUG)
+      while (cur < end) {
+        ASSERT(*reinterpret_cast<uword*>(cur) == initial_value);
+        cur += kWordSize;
+      }
+#endif
     }
   }
   uint32_t tags = 0;
@@ -2509,15 +2531,7 @@ RawObject* Object::Allocate(intptr_t cls_id, intptr_t size, Heap::Space space) {
   ASSERT(thread->no_callback_scope_depth() == 0);
   Heap* heap = thread->heap();
 
-  uword address;
-
-  // In a bump allocation scope, all allocations go into old space.
-  if (thread->bump_allocate() && (space != Heap::kCode)) {
-    DEBUG_ASSERT(heap->old_space()->CurrentThreadOwnsDataLock());
-    address = heap->old_space()->TryAllocateDataBumpLocked(size);
-  } else {
-    address = heap->Allocate(size, space);
-  }
+  uword address = heap->Allocate(size, space);
   if (UNLIKELY(address == 0)) {
     if (thread->top_exit_frame_info() != 0) {
       // Use the preallocated out of memory exception to avoid calling
@@ -3239,8 +3253,12 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
             field_size = sizeof(RawFloat64x2::value_);
             break;
           default:
-            UNREACHABLE();
-            field_size = 0;
+            if (field.is_non_nullable_integer()) {
+              field_size = sizeof(RawMint::value_);
+            } else {
+              UNREACHABLE();
+              field_size = 0;
+            }
             break;
         }
 
@@ -5607,7 +5625,7 @@ void TypeArguments::PrintSubvectorName(intptr_t from_index,
 bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
                                           intptr_t from_index,
                                           intptr_t len,
-                                          bool syntactically,
+                                          TypeEquality kind,
                                           TrailPtr trail) const {
   if (this->raw() == other.raw()) {
     return true;
@@ -5625,7 +5643,7 @@ bool TypeArguments::IsSubvectorEquivalent(const TypeArguments& other,
     type = TypeAt(i);
     other_type = other.TypeAt(i);
     // Still unfinalized vectors should not be considered equivalent.
-    if (type.IsNull() || !type.IsEquivalent(other_type, syntactically, trail)) {
+    if (type.IsNull() || !type.IsEquivalent(other_type, kind, trail)) {
       return false;
     }
   }
@@ -7703,7 +7721,8 @@ bool Function::IsContravariantParameter(NNBDMode mode,
   return other_param_type.IsSubtypeOf(mode, param_type, space);
 }
 
-bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
+bool Function::HasSameTypeParametersAndBounds(const Function& other,
+                                              TypeEquality kind) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
@@ -7729,10 +7748,7 @@ bool Function::HasSameTypeParametersAndBounds(const Function& other) const {
       ASSERT(bound.IsFinalized());
       other_bound = other_type_param.bound();
       ASSERT(other_bound.IsFinalized());
-      // TODO(dartbug.com/40259): Treat top types as equivalent and disregard
-      // nullability in weak mode.
-      const bool syntactically = !FLAG_strong_non_nullable_type_checks;
-      if (!bound.IsEquivalent(other_bound, syntactically)) {
+      if (!bound.IsEquivalent(other_bound, kind)) {
         return false;
       }
     }
@@ -7767,7 +7783,8 @@ bool Function::IsSubtypeOf(NNBDMode mode,
     return false;
   }
   // Check the type parameters and bounds of generic functions.
-  if (!HasSameTypeParametersAndBounds(other)) {
+  if (!HasSameTypeParametersAndBounds(other,
+                                      TypeEquality::kSubtypeNullability)) {
     return false;
   }
   Thread* thread = Thread::Current();
@@ -8763,6 +8780,48 @@ RawCode* Function::EnsureHasCode() const {
   return CurrentCode();
 }
 
+bool Function::NeedsMonomorphicCheckedEntry(Zone* zone) const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (!IsDynamicFunction()) {
+    return false;
+  }
+
+  // For functions which need an args descriptor the switchable call sites will
+  // transition directly to calling via a stub (and therefore never call the
+  // monomorphic entry).
+  //
+  // See runtime_entry.cc:DEFINE_RUNTIME_ENTRY(UnlinkedCall)
+  if (HasOptionalParameters() || IsGeneric()) {
+    return false;
+  }
+
+  // If table dispatch is disabled, all instance calls use switchable calls.
+  if (!(FLAG_precompiled_mode && FLAG_use_bare_instructions &&
+        FLAG_use_table_dispatch)) {
+    return true;
+  }
+
+  // Method extractors are always called dynamically (for now).
+  // See dartbug.com/40188.
+  if (IsMethodExtractor()) {
+    return true;
+  }
+
+  // Use the results of TFA to determine whether this function is ever
+  // called dynamically, i.e. using switchable calls.
+  kernel::ProcedureAttributesMetadata metadata;
+  metadata = kernel::ProcedureAttributesOf(*this, zone);
+  if (IsGetterFunction() || IsImplicitGetterFunction()) {
+    return metadata.getter_called_dynamically;
+  } else {
+    return metadata.method_or_setter_called_dynamically;
+  }
+#else
+  UNREACHABLE();
+  return true;
+#endif
+}
+
 bool Function::MayHaveUncheckedEntryPoint(Isolate* I) const {
   return FLAG_enable_multiple_entrypoints &&
          (NeedsArgumentTypeChecks(I) || IsImplicitClosureFunction());
@@ -8989,7 +9048,7 @@ RawField* Field::Original() const {
 }
 
 const Object* Field::CloneForUnboxed(const Object& value) const {
-  if (FLAG_unbox_numeric_fields && is_unboxing_candidate() && !is_nullable()) {
+  if (is_unboxing_candidate() && !is_nullable()) {
     switch (guarded_cid()) {
       case kDoubleCid:
       case kFloat32x4Cid:
@@ -12185,7 +12244,7 @@ void Library::AllocatePrivateKey() const {
   Isolate* isolate = thread->isolate();
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  if (FLAG_support_reload && isolate->group()->IsReloading()) {
+  if (isolate->group()->IsReloading()) {
     // When reloading, we need to make sure we use the original private key
     // if this library previously existed.
     IsolateReloadContext* reload_context = isolate->reload_context();
@@ -17237,8 +17296,13 @@ RawObject* Instance::GetField(const Field& field) const {
         return Float64x2::New(
             *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
       default:
-        UNREACHABLE();
-        return nullptr;
+        if (field.is_non_nullable_integer()) {
+          return Integer::New(
+              LoadNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field))));
+        } else {
+          UNREACHABLE();
+          return nullptr;
+        }
     }
   } else {
     return *FieldAddr(field);
@@ -17261,7 +17325,12 @@ void Instance::SetField(const Field& field, const Object& value) const {
                         Float64x2::Cast(value).value());
         break;
       default:
-        UNREACHABLE();
+        if (field.is_non_nullable_integer()) {
+          StoreNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field)),
+                          Integer::Cast(value).AsInt64Value());
+        } else {
+          UNREACHABLE();
+        }
         break;
     }
   } else {
@@ -17912,7 +17981,7 @@ void AbstractType::SetIsBeingFinalized() const {
 }
 
 bool AbstractType::IsEquivalent(const Instance& other,
-                                bool syntactically,
+                                TypeEquality kind,
                                 TrailPtr trail) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
@@ -18352,7 +18421,8 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
     const TypeParameter& type_param = TypeParameter::Cast(*this);
     if (other.IsTypeParameter()) {
       const TypeParameter& other_type_param = TypeParameter::Cast(other);
-      if (type_param.Equals(other_type_param)) {
+      if (type_param.IsEquivalent(other_type_param,
+                                  TypeEquality::kSubtypeNullability)) {
         return true;
       }
       if (type_param.IsFunctionTypeParameter() &&
@@ -18371,6 +18441,10 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
         const int other_offset = other_sig_fun.NumParentTypeParameters();
         if (type_param.index() - offset ==
             other_type_param.index() - other_offset) {
+          if (FLAG_strong_non_nullable_type_checks && type_param.IsNullable() &&
+              other_type_param.IsNonNullable()) {
+            return false;
+          }
           return true;
         }
       }
@@ -18627,6 +18701,8 @@ RawType* Type::ToNullability(Nullability value, Heap::Space space) const {
   type ^= Object::Clone(*this, space);
   type.set_nullability(value);
   type.SetHash(0);
+  type.SetTypeTestingStub(
+      Code::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
   if (IsCanonical()) {
     // Object::Clone does not clone canonical bit.
     ASSERT(!type.IsCanonical());
@@ -18771,7 +18847,7 @@ RawAbstractType* Type::InstantiateFrom(
 }
 
 bool Type::IsEquivalent(const Instance& other,
-                        bool syntactically,
+                        TypeEquality kind,
                         TrailPtr trail) const {
   ASSERT(!IsNull());
   if (raw() == other.raw()) {
@@ -18782,7 +18858,7 @@ bool Type::IsEquivalent(const Instance& other,
     const AbstractType& other_ref_type =
         AbstractType::Handle(TypeRef::Cast(other).type());
     ASSERT(!other_ref_type.IsTypeRef());
-    return IsEquivalent(other_ref_type, syntactically, trail);
+    return IsEquivalent(other_ref_type, kind, trail);
   }
   if (!other.IsType()) {
     return false;
@@ -18794,18 +18870,30 @@ bool Type::IsEquivalent(const Instance& other,
   if (type_class_id() != other_type.type_class_id()) {
     return false;
   }
-  Nullability this_type_nullability = nullability();
-  Nullability other_type_nullability = other_type.nullability();
-  if (syntactically) {
-    if (this_type_nullability == Nullability::kLegacy) {
-      this_type_nullability = Nullability::kNonNullable;
+  if (kind != TypeEquality::kIgnoreNullability) {
+    Nullability this_type_nullability = nullability();
+    Nullability other_type_nullability = other_type.nullability();
+    if (kind == TypeEquality::kSubtypeNullability) {
+      if (FLAG_strong_non_nullable_type_checks &&
+          this_type_nullability == Nullability::kNullable &&
+          other_type_nullability == Nullability::kNonNullable) {
+        return false;
+      }
+    } else {
+      if (kind == TypeEquality::kSyntactical) {
+        if (this_type_nullability == Nullability::kLegacy) {
+          this_type_nullability = Nullability::kNonNullable;
+        }
+        if (other_type_nullability == Nullability::kLegacy) {
+          other_type_nullability = Nullability::kNonNullable;
+        }
+      } else {
+        ASSERT(kind == TypeEquality::kCanonical);
+      }
+      if (this_type_nullability != other_type_nullability) {
+        return false;
+      }
     }
-    if (other_type_nullability == Nullability::kLegacy) {
-      other_type_nullability = Nullability::kNonNullable;
-    }
-  }
-  if (this_type_nullability != other_type_nullability) {
-    return false;
   }
   if (!IsFinalized() || !other_type.IsFinalized()) {
     return false;  // Too early to decide if equal.
@@ -18837,8 +18925,8 @@ bool Type::IsEquivalent(const Instance& other,
           return false;
         }
       } else if (!type_args.IsSubvectorEquivalent(other_type_args, from_index,
-                                                  num_type_params,
-                                                  syntactically, trail)) {
+                                                  num_type_params, kind,
+                                                  trail)) {
         return false;
       }
 #ifdef DEBUG
@@ -18854,7 +18942,7 @@ bool Type::IsEquivalent(const Instance& other,
         for (intptr_t i = 0; i < from_index; i++) {
           type_arg = type_args.TypeAt(i);
           other_type_arg = other_type_args.TypeAt(i);
-          ASSERT(type_arg.IsEquivalent(other_type_arg, syntactically, trail));
+          ASSERT(type_arg.IsEquivalent(other_type_arg, kind, trail));
         }
       }
 #endif
@@ -18875,7 +18963,7 @@ bool Type::IsEquivalent(const Instance& other,
 
   // Compare function type parameters and their bounds.
   // Check the type parameters and bounds of generic functions.
-  if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun)) {
+  if (!sig_fun.HasSameTypeParametersAndBounds(other_sig_fun, kind)) {
     return false;
   }
 
@@ -18917,7 +19005,7 @@ bool Type::IsEquivalent(const Instance& other,
   for (intptr_t i = 0; i < num_params; i++) {
     param_type = sig_fun.ParameterTypeAt(i);
     other_param_type = other_sig_fun.ParameterTypeAt(i);
-    if (!param_type.IsEquivalent(other_param_type, syntactically)) {
+    if (!param_type.IsEquivalent(other_param_type, kind)) {
       return false;
     }
   }
@@ -19282,7 +19370,7 @@ bool TypeRef::IsInstantiated(Genericity genericity,
 }
 
 bool TypeRef::IsEquivalent(const Instance& other,
-                           bool syntactically,
+                           TypeEquality kind,
                            TrailPtr trail) const {
   if (raw() == other.raw()) {
     return true;
@@ -19294,8 +19382,7 @@ bool TypeRef::IsEquivalent(const Instance& other,
     return true;
   }
   const AbstractType& ref_type = AbstractType::Handle(type());
-  return !ref_type.IsNull() &&
-         ref_type.IsEquivalent(other, syntactically, trail);
+  return !ref_type.IsNull() && ref_type.IsEquivalent(other, kind, trail);
 }
 
 RawTypeRef* TypeRef::InstantiateFrom(
@@ -19445,6 +19532,8 @@ RawTypeParameter* TypeParameter::ToNullability(Nullability value,
   type_parameter ^= Object::Clone(*this, space);
   type_parameter.set_nullability(value);
   type_parameter.SetHash(0);
+  type_parameter.SetTypeTestingStub(Code::Handle(
+      TypeTestingStubGenerator::DefaultCodeForType(type_parameter)));
   // TODO(regis): Should we link type parameters of different nullability?
   return type_parameter.raw();
 }
@@ -19461,7 +19550,7 @@ bool TypeParameter::IsInstantiated(Genericity genericity,
 }
 
 bool TypeParameter::IsEquivalent(const Instance& other,
-                                 bool syntactically,
+                                 TypeEquality kind,
                                  TrailPtr trail) const {
   if (raw() == other.raw()) {
     return true;
@@ -19471,7 +19560,7 @@ bool TypeParameter::IsEquivalent(const Instance& other,
     const AbstractType& other_ref_type =
         AbstractType::Handle(TypeRef::Cast(other).type());
     ASSERT(!other_ref_type.IsTypeRef());
-    return IsEquivalent(other_ref_type, syntactically, trail);
+    return IsEquivalent(other_ref_type, kind, trail);
   }
   if (!other.IsTypeParameter()) {
     return false;
@@ -19484,18 +19573,32 @@ bool TypeParameter::IsEquivalent(const Instance& other,
   if (parameterized_function() != other_type_param.parameterized_function()) {
     return false;
   }
-  Nullability this_type_param_nullability = nullability();
-  Nullability other_type_param_nullability = other_type_param.nullability();
-  if (syntactically) {
-    if (this_type_param_nullability == Nullability::kLegacy) {
-      this_type_param_nullability = Nullability::kNonNullable;
+  if (kind != TypeEquality::kIgnoreNullability) {
+    Nullability this_type_param_nullability = nullability();
+    Nullability other_type_param_nullability = other_type_param.nullability();
+    if (kind == TypeEquality::kSubtypeNullability) {
+      if (FLAG_strong_non_nullable_type_checks &&
+          this_type_param_nullability == Nullability::kNullable &&
+          other_type_param_nullability == Nullability::kNonNullable) {
+        return false;
+      }
+    } else {
+      if (kind == TypeEquality::kSyntactical) {
+        if (this_type_param_nullability == Nullability::kLegacy ||
+            this_type_param_nullability == Nullability::kUndetermined) {
+          this_type_param_nullability = Nullability::kNonNullable;
+        }
+        if (other_type_param_nullability == Nullability::kLegacy ||
+            other_type_param_nullability == Nullability::kUndetermined) {
+          other_type_param_nullability = Nullability::kNonNullable;
+        }
+      } else {
+        ASSERT(kind == TypeEquality::kCanonical);
+      }
+      if (this_type_param_nullability != other_type_param_nullability) {
+        return false;
+      }
     }
-    if (other_type_param_nullability == Nullability::kLegacy) {
-      other_type_param_nullability = Nullability::kNonNullable;
-    }
-  }
-  if (this_type_param_nullability != other_type_param_nullability) {
-    return false;
   }
   if (IsFinalized() == other_type_param.IsFinalized()) {
     return (index() == other_type_param.index());
@@ -22507,9 +22610,6 @@ RawTypedData* TypedData::New(intptr_t class_id,
     result ^= raw;
     result.SetLength(len);
     result.RecomputeDataField();
-    if (len > 0) {
-      memset(result.DataAddr(0), 0, length_in_bytes);
-    }
   }
   return result.raw();
 }

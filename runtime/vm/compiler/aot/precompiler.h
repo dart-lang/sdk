@@ -8,6 +8,7 @@
 #ifndef DART_PRECOMPILED_RUNTIME
 
 #include "vm/allocation.h"
+#include "vm/compiler/aot/dispatch_table_generator.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/hash_map.h"
 #include "vm/hash_table.h"
@@ -30,6 +31,24 @@ class ParsedJSONArray;
 class Precompiler;
 class FlowGraph;
 class PrecompilerEntryPointsPrinter;
+
+class TableSelectorKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef int32_t Key;
+  typedef int32_t Value;
+  typedef int32_t Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) { return key; }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) { return pair == key; }
+};
+
+typedef DirectChainedHashMap<TableSelectorKeyValueTrait> TableSelectorSet;
 
 class SymbolKeyValueTrait {
  public:
@@ -210,11 +229,17 @@ class Precompiler : public ValueObject {
     return &global_object_pool_builder_;
   }
 
+  compiler::SelectorMap* selector_map() {
+    ASSERT(FLAG_use_bare_instructions && FLAG_use_table_dispatch);
+    return dispatch_table_generator_->selector_map();
+  }
+
   void* il_serialization_stream() const { return il_serialization_stream_; }
 
   static Precompiler* Instance() { return singleton_; }
 
   void AddRetainedStaticField(const Field& field);
+  void AddTableSelector(const compiler::TableSelector* selector);
 
  private:
   static Precompiler* singleton_;
@@ -242,6 +267,7 @@ class Precompiler : public ValueObject {
   void AddInstantiatedClass(const Class& cls);
   void AddSelector(const String& selector);
   bool IsSent(const String& selector);
+  bool IsHitByTableSelector(const Function& function);
 
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
@@ -313,7 +339,10 @@ class Precompiler : public ValueObject {
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
   InstanceSet consts_to_retain_;
+  TableSelectorSet seen_table_selectors_;
   Error& error_;
+
+  compiler::DispatchTableGenerator* dispatch_table_generator_;
 
   bool get_runtime_type_is_unique_;
   void* il_serialization_stream_;

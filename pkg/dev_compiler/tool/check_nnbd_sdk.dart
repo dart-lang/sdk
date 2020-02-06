@@ -31,7 +31,7 @@ void main(List<String> argv) {
   var sdkDir = baseUri.resolve('sdk/').toFilePath();
   print('Generating a patched sdk at ${baseUri.path}');
 
-  Uri librariesJson = args['libraries'] != null
+  var librariesJson = args['libraries'] != null
       ? resolveInputUri(args['libraries'] as String)
       : Platform.script.resolve('../../../sdk_nnbd/lib/libraries.json');
   var target = args['target'] as String;
@@ -112,9 +112,9 @@ main() {}
       var toAdd = <String>[];
       var toRemove = <String>[];
       var goldenList = golden.trim().split('\n');
-      int i = 0, j = 0;
+      var i = 0, j = 0;
       for (; i < errorList.length && j < goldenList.length;) {
-        int compare = errorList[i].compareTo(goldenList[j]);
+        var compare = errorList[i].compareTo(goldenList[j]);
         if (compare == 0) {
           i++;
           j++;

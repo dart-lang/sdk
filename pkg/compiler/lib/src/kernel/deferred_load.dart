@@ -48,13 +48,6 @@ class KernelDeferredLoadTask extends DeferredLoadTask {
   }
 
   @override
-  Iterable<ImportEntity> typedefImportsTo(
-      TypedefEntity element, LibraryEntity library) {
-    ir.Typedef node = _elementMap.getTypedefNode(element);
-    return _findImportsTo(node, node.name, node.enclosingLibrary, library);
-  }
-
-  @override
   Iterable<ImportEntity> memberImportsTo(
       Entity element, LibraryEntity library) {
     ir.Member node = _elementMap.getMemberNode(element);

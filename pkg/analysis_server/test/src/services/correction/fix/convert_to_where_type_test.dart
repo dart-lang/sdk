@@ -26,7 +26,7 @@ class ConvertToWhereTypeTest extends FixProcessorLintTest {
   Future<void> test_default_declaredType() async {
     await resolveTestUnit('''
 Iterable<C> f(List<Object> list) {
-  return list./*LINT*/where((e) => e is C);
+  return list.where((e) => e is C);
 }
 class C {}
 ''');

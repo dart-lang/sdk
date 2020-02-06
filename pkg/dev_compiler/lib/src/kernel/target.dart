@@ -102,7 +102,7 @@ class DevCompilerTarget extends Target {
     // Multi-root scheme used by modular test framework.
     if (uri.scheme == 'dev-dart-app') return true;
 
-    String scriptName = uri.path;
+    var scriptName = uri.path;
     return scriptName.contains('tests/compiler/dartdevc_native');
   }
 
@@ -135,7 +135,7 @@ class DevCompilerTarget extends Target {
       Map<String, String> environmentDefines,
       DiagnosticReporter diagnosticReporter,
       ReferenceFromIndex referenceFromIndex,
-      {void logger(String msg),
+      {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
     for (var library in libraries) {
       _CovarianceTransformer(library).transform();
@@ -151,7 +151,7 @@ class DevCompilerTarget extends Target {
       CoreTypes coreTypes,
       List<Library> libraries,
       DiagnosticReporter diagnosticReporter,
-      {void logger(String msg),
+      {void Function(String msg) logger,
       ChangedStructureNotifier changedStructureNotifier}) {
     if (flags.trackWidgetCreation) {
       _widgetTracker ??= WidgetCreatorTracker();

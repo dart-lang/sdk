@@ -111,6 +111,7 @@ abstract class TypeProvider {
   ClassElement get nullElement;
 
   /// Return a [DartObjectImpl] representing the `null` object.
+  @deprecated
   DartObjectImpl get nullObject;
 
   /// Return the type representing the built-in type 'Null'.

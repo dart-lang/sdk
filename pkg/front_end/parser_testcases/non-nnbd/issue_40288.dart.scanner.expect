@@ -1,0 +1,27 @@
+class late {
+int get g => 1;
+}
+
+class required {
+int get g => 2;
+}
+
+class C {
+late l = late();
+required r = required();
+}
+
+
+class[KeywordToken] late[StringToken] {[BeginToken]
+int[StringToken] get[KeywordToken] g[StringToken] =>[SimpleToken] 1[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] required[StringToken] {[BeginToken]
+int[StringToken] get[KeywordToken] g[StringToken] =>[SimpleToken] 2[StringToken];[SimpleToken]
+}[SimpleToken]
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+late[StringToken] l[StringToken] =[SimpleToken] late[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+required[StringToken] r[StringToken] =[SimpleToken] required[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

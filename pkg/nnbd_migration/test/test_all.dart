@@ -20,8 +20,6 @@ import 'fix_aggregator_test.dart' as fix_aggregator_test;
 import 'fix_builder_test.dart' as fix_builder_test;
 import 'instrumentation_test.dart' as instrumentation_test;
 import 'node_builder_test.dart' as node_builder_test;
-import 'nullability_migration_impl_test.dart'
-    as nullability_migration_impl_test;
 import 'nullability_node_test.dart' as nullability_node_test;
 import 'utilities/test_all.dart' as utilities;
 import 'variables_test.dart' as variables;
@@ -41,7 +39,6 @@ main() {
     fix_builder_test.main();
     instrumentation_test.main();
     node_builder_test.main();
-    nullability_migration_impl_test.main();
     nullability_node_test.main();
     utilities.main();
     variables.main();

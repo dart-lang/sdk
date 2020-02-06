@@ -461,7 +461,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
                                         HeapPage::PageType type,
                                         GrowthPolicy growth_policy,
                                         bool is_locked) {
-  ASSERT(size < kAllocatablePageSize);
+  ASSERT(Heap::IsAllocatableViaFreeLists(size));
 
   EvaluateConcurrentMarking(growth_policy);
 
@@ -497,7 +497,7 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
 uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
                                              HeapPage::PageType type,
                                              GrowthPolicy growth_policy) {
-  ASSERT(size >= kAllocatablePageSize);
+  ASSERT(!Heap::IsAllocatableViaFreeLists(size));
 
   EvaluateConcurrentMarking(growth_policy);
 
@@ -531,7 +531,7 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
   ASSERT(size >= kObjectAlignment);
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
-  if (size < kAllocatablePageSize) {
+  if (Heap::IsAllocatableViaFreeLists(size)) {
     if (is_locked) {
       result = freelist_[type].TryAllocateLocked(size, is_protected);
     } else {
@@ -580,29 +580,14 @@ void PageSpace::FreeExternal(intptr_t size) {
   usage_.external_in_words -= size_in_words;
 }
 
-// Provides exclusive access to all pages, and ensures they are walkable.
-class ExclusivePageIterator : ValueObject {
+class BasePageIterator : ValueObject {
  public:
-  explicit ExclusivePageIterator(const PageSpace* space)
-      : space_(space), ml_(&space->pages_lock_) {
-    space_->MakeIterable();
-    list_ = kRegular;
-    page_ = space_->pages_;
-    if (page_ == NULL) {
-      list_ = kExecutable;
-      page_ = space_->exec_pages_;
-      if (page_ == NULL) {
-        list_ = kLarge;
-        page_ = space_->large_pages_;
-        if (page_ == NULL) {
-          list_ = kImage;
-          page_ = space_->image_pages_;
-        }
-      }
-    }
-  }
+  explicit BasePageIterator(const PageSpace* space) : space_(space) {}
+
   HeapPage* page() const { return page_; }
+
   bool Done() const { return page_ == NULL; }
+
   void Advance() {
     ASSERT(!Done());
     page_ = page_->next();
@@ -621,14 +606,52 @@ class ExclusivePageIterator : ValueObject {
     ASSERT((page_ != NULL) || (list_ == kImage));
   }
 
- private:
+ protected:
   enum List { kRegular, kExecutable, kLarge, kImage };
 
-  const PageSpace* space_;
+  void Initialize() {
+    list_ = kRegular;
+    page_ = space_->pages_;
+    if (page_ == NULL) {
+      list_ = kExecutable;
+      page_ = space_->exec_pages_;
+      if (page_ == NULL) {
+        list_ = kLarge;
+        page_ = space_->large_pages_;
+        if (page_ == NULL) {
+          list_ = kImage;
+          page_ = space_->image_pages_;
+        }
+      }
+    }
+  }
+
+  const PageSpace* space_ = nullptr;
+  List list_;
+  HeapPage* page_ = nullptr;
+};
+
+// Provides unsafe access to all pages. Assumes pages are walkable.
+class UnsafeExclusivePageIterator : public BasePageIterator {
+ public:
+  explicit UnsafeExclusivePageIterator(const PageSpace* space)
+      : BasePageIterator(space) {
+    Initialize();
+  }
+};
+
+// Provides exclusive access to all pages, and ensures they are walkable.
+class ExclusivePageIterator : public BasePageIterator {
+ public:
+  explicit ExclusivePageIterator(const PageSpace* space)
+      : BasePageIterator(space), ml_(&space->pages_lock_) {
+    space_->MakeIterable();
+    Initialize();
+  }
+
+ private:
   MutexLocker ml_;
   NoSafepointScope no_safepoint;
-  List list_;
-  HeapPage* page_;
 };
 
 // Provides exclusive access to code pages, and ensures they are walkable.
@@ -705,6 +728,15 @@ void PageSpace::UpdateMaxUsed() {
 
 bool PageSpace::Contains(uword addr) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if (it.page()->Contains(addr)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool PageSpace::ContainsUnsafe(uword addr) const {
+  for (UnsafeExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     if (it.page()->Contains(addr)) {
       return true;
     }
@@ -827,9 +859,6 @@ void PageSpace::WriteProtect(bool read_only) {
 
 #ifndef PRODUCT
 void PageSpace::PrintToJSONObject(JSONObject* object) const {
-  if (!FLAG_support_service) {
-    return;
-  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "old");
@@ -868,9 +897,6 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
 
 void PageSpace::PrintHeapMapToJSONStream(Isolate* isolate,
                                          JSONStream* stream) const {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
   heap_map.AddProperty("freeClassId", static_cast<intptr_t>(kFreeListElement));
@@ -1260,7 +1286,7 @@ uword PageSpace::TryAllocateDataBumpLocked(intptr_t size) {
   intptr_t remaining = bump_end_ - bump_top_;
   if (UNLIKELY(remaining < size)) {
     // Checking this first would be logical, but needlessly slow.
-    if (size >= kAllocatablePageSize) {
+    if (!Heap::IsAllocatableViaFreeLists(size)) {
       return TryAllocateDataLocked(size, kForceGrowth);
     }
     FreeListElement* block =

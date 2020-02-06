@@ -441,7 +441,6 @@ class LinterContextImpl implements LinterContext {
       ConstantVerifier(
         errorReporter,
         libraryElement,
-        typeProvider,
         declaredVariables,
         featureSet: currentUnit.unit.featureSet,
       ),

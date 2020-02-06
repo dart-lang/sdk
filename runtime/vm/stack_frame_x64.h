@@ -9,7 +9,7 @@
 #error Do not include stack_frame_x64.h directly; use stack_frame.h instead.
 #endif
 
-#include "vm/constants_x64.h"
+#include "vm/constants.h"
 
 namespace dart {
 

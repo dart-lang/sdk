@@ -89,6 +89,8 @@ vm_sources = [
   "deferred_objects.h",
   "deopt_instructions.cc",
   "deopt_instructions.h",
+  "dispatch_table.cc",
+  "dispatch_table.h",
   "double_conversion.cc",
   "double_conversion.h",
   "double_internals.h",

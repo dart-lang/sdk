@@ -700,17 +700,20 @@ class MockDartType implements TypeImpl {
       this.toStringValueWithoutNullability});
 
   @override
-  noSuchMethod(Invocation invocation) {
-    return super.noSuchMethod(invocation);
-  }
-
-  @override
-  String toString({bool withNullability = false}) {
+  String getDisplayString({
+    bool skipAllDynamicArguments = false,
+    bool withNullability = false,
+  }) {
     var result = withNullability
         ? toStringValueWithNullability
         : toStringValueWithoutNullability;
     expect(result, isNotNull);
     return result;
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
   }
 }
 

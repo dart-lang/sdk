@@ -34,7 +34,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
 
   // List APIs
 
-  E operator [](int index) => _list[index];
+  E operator [](int index) => _list[index] as E;
 
   void operator []=(int index, E value) {
     _list[index] = value;
@@ -45,18 +45,22 @@ class _WrappedList<E extends Node> extends ListBase<E>
   }
 
   void sort([int compare(E a, E b)?]) {
-    // Implicit downcast on argument from Node to E-extends-Node.
-    _list.sort((Node a, Node b) => compare(a, b));
+    if (compare == null) {
+      _list.sort();
+    } else {
+      _list.sort((Node a, Node b) => compare(a as E, b as E));
+    }
   }
 
-  int indexOf(Object element, [int start = 0]) => _list.indexOf(element, start);
+  int indexOf(Object element, [int start = 0]) =>
+      _list.indexOf(element as Node, start);
 
   int lastIndexOf(Object element, [int? start]) =>
-      _list.lastIndexOf(element, start);
+      _list.lastIndexOf(element as Node, start);
 
   void insert(int index, E element) => _list.insert(index, element);
 
-  E removeAt(int index) => _list.removeAt(index);
+  E removeAt(int index) => _list.removeAt(index) as E;
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
     _list.setRange(start, end, iterable, skipCount);

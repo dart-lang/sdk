@@ -790,12 +790,6 @@ abstract class KernelImpactRegistryMixin implements ImpactRegistry {
     ImportEntity deferredImport = elementMap.getImport(import);
     impactBuilder.registerTypeUse(
         new TypeUse.typeLiteral(elementMap.getDartType(type), deferredImport));
-    if (type is ir.FunctionType) {
-      assert(type.typedef != null);
-      // TODO(johnniwinther): Can we avoid the typedef type altogether?
-      // We need to ensure that the typedef is live.
-      elementMap.getTypedefType(type.typedef);
-    }
   }
 
   @override

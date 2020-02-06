@@ -487,7 +487,7 @@ void IsolateGroupReloadContext::ReportError(const Error& error) {
   // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
   // call to accept an isolate group instead of an isolate.
   Isolate* isolate = Isolate::Current();
-  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(isolate)) {
+  if (Isolate::IsVMInternalIsolate(isolate)) {
     return;
   }
   TIR_Print("ISO-RELOAD: Error: %s\n", error.ToErrorCString());
@@ -500,7 +500,7 @@ void IsolateGroupReloadContext::ReportSuccess() {
   // TODO(dartbug.com/36097): We need to change the "reloadSources" service-api
   // call to accept an isolate group instead of an isolate.
   Isolate* isolate = Isolate::Current();
-  if (!FLAG_support_service || Isolate::IsVMInternalIsolate(isolate)) {
+  if (Isolate::IsVMInternalIsolate(isolate)) {
     return;
   }
   ServiceEvent service_event(isolate, ServiceEvent::kIsolateReload);

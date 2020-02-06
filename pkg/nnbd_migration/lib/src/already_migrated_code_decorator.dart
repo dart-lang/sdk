@@ -40,17 +40,19 @@ class AlreadyMigratedCodeDecorator {
           node, AlreadyMigratedTypeOrigin.forElement(element));
     }
     if (type is FunctionType) {
-      var typeFormalBounds = type.typeFormals.map((e) {
-        var bound = e.bound;
+      for (var element in type.typeFormals) {
+        var bound = element.bound;
+        DecoratedType decoratedBound;
         if (bound == null) {
-          return decorate(
+          decoratedBound = decorate(
               (_typeProvider.objectType as TypeImpl)
                   .withNullability(NullabilitySuffix.question),
               element);
         } else {
-          return decorate(bound, element);
+          decoratedBound = decorate(bound, element);
         }
-      }).toList();
+        DecoratedTypeParameterBounds.current.put(element, decoratedBound);
+      }
       var positionalParameters = <DecoratedType>[];
       var namedParameters = <String, DecoratedType>{};
       for (var parameter in type.parameters) {
@@ -61,7 +63,6 @@ class AlreadyMigratedCodeDecorator {
         }
       }
       return DecoratedType(type, node,
-          typeFormalBounds: typeFormalBounds,
           returnType: decorate(type.returnType, element),
           namedParameters: namedParameters,
           positionalParameters: positionalParameters);

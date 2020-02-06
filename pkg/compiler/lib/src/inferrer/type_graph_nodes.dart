@@ -2262,7 +2262,7 @@ AbstractValue _narrowType(
     otherType = abstractValueDomain.createNonNullSubtype(annotation.element);
   } else if (annotation is VoidType) {
     return type;
-  } else if (annotation is TypedefType || annotation is FunctionType) {
+  } else if (annotation is FunctionType) {
     otherType = closedWorld.abstractValueDomain.functionType;
   } else if (annotation is FutureOrType) {
     // TODO(johnniwinther): Narrow FutureOr types.

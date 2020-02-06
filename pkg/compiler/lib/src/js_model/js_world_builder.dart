@@ -683,7 +683,6 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
   Entity toBackendEntity(Entity entity) {
     if (entity is ClassEntity) return toBackendClass(entity);
     if (entity is MemberEntity) return toBackendMember(entity);
-    if (entity is TypedefEntity) return toBackendTypedef(entity);
     if (entity is TypeVariableEntity) {
       return toBackendTypeVariable(entity);
     }
@@ -704,10 +703,6 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
   @override
   MemberEntity toBackendMember(covariant IndexedMember member) {
     return _backend.members.getEntity(member.memberIndex);
-  }
-
-  TypedefEntity toBackendTypedef(covariant IndexedTypedef typedef) {
-    return _backend.typedefs.getEntity(typedef.typedefIndex);
   }
 
   TypeVariableEntity toBackendTypeVariable(TypeVariableEntity typeVariable) {
@@ -789,14 +784,6 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   DartType visitInterfaceType(InterfaceType type, _EntityConverter converter) {
     return new InterfaceType(
         converter(type.element), visitList(type.typeArguments, converter));
-  }
-
-  @override
-  DartType visitTypedefType(TypedefType type, _EntityConverter converter) {
-    return new TypedefType(
-        converter(type.element),
-        visitList(type.typeArguments, converter),
-        visit(type.unaliased, converter));
   }
 
   @override

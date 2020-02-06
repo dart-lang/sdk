@@ -81,9 +81,6 @@ abstract class KernelToElementMap {
   /// Returns the [ClassEntity] corresponding to the class [node].
   ClassEntity getClass(ir.Class node);
 
-  /// Returns the [TypedefType] corresponding to raw type of the typedef [node].
-  TypedefType getTypedefType(ir.Typedef node);
-
   /// Returns the super [MemberEntity] for a super invocation, get or set of
   /// [name] from the member [context].
   MemberEntity getSuperMember(MemberEntity context, ir.Name name,
@@ -173,9 +170,6 @@ abstract class KernelToElementMap {
 
   /// Returns the [ir.Library] corresponding to [library].
   ir.Library getLibraryNode(LibraryEntity library);
-
-  /// Returns the node that defines [typedef].
-  ir.Typedef getTypedefNode(covariant TypedefEntity typedef);
 
   /// Returns the defining node for [member].
   ir.Member getMemberNode(covariant MemberEntity member);

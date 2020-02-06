@@ -48,6 +48,7 @@ namespace dart {
   V(TryCatchOptimization)                                                      \
   V(TryOptimizePatterns)                                                       \
   V(TypePropagation)                                                           \
+  V(UseTableDispatch)                                                          \
   V(WidenSmiToInt32)                                                           \
   V(WriteBarrierElimination)
 

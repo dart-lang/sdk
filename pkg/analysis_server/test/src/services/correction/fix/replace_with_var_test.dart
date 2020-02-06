@@ -26,7 +26,7 @@ class ReplaceWithVarTest extends FixProcessorLintTest {
   Future<void> test_for() async {
     await resolveTestUnit('''
 void f(List<int> list) {
-  for (/*LINT*/int i = 0; i < list.length; i++) {
+  for (int i = 0; i < list.length; i++) {
     print(i);
   }
 }
@@ -43,7 +43,7 @@ void f(List<int> list) {
   Future<void> test_forEach() async {
     await resolveTestUnit('''
 void f(List<int> list) {
-  for (/*LINT*/int i in list) {
+  for (int i in list) {
     print(i);
   }
 }
@@ -60,7 +60,7 @@ void f(List<int> list) {
   Future<void> test_generic_instanceCreation_withArguments() async {
     await resolveTestUnit('''
 C<int> f() {
-  /*LINT*/C<int> c = C<int>();
+  C<int> c = C<int>();
   return c;
 }
 class C<T> {}
@@ -77,7 +77,7 @@ class C<T> {}
   Future<void> test_generic_instanceCreation_withoutArguments() async {
     await resolveTestUnit('''
 C<int> f() {
-  /*LINT*/C<int> c = C();
+  C<int> c = C();
   return c;
 }
 class C<T> {}
@@ -94,7 +94,7 @@ class C<T> {}
   Future<void> test_generic_listLiteral() async {
     await resolveTestUnit('''
 List f() {
-  /*LINT*/List<int> l = [];
+  List<int> l = [];
   return l;
 }
 ''');
@@ -109,7 +109,7 @@ List f() {
   Future<void> test_generic_mapLiteral() async {
     await resolveTestUnit('''
 Map f() {
-  /*LINT*/Map<String, int> m = {};
+  Map<String, int> m = {};
   return m;
 }
 ''');
@@ -124,7 +124,7 @@ Map f() {
   Future<void> test_generic_setLiteral() async {
     await resolveTestUnit('''
 Set f() {
-  /*LINT*/Set<int> s = {};
+  Set<int> s = {};
   return s;
 }
 ''');
@@ -139,7 +139,7 @@ Set f() {
   Future<void> test_generic_setLiteral_ambiguous() async {
     await resolveTestUnit('''
 Set f() {
-  /*LINT*/Set s = {};
+  Set s = {};
   return s;
 }
 ''');
@@ -149,7 +149,7 @@ Set f() {
   Future<void> test_simple() async {
     await resolveTestUnit('''
 String f() {
-  /*LINT*/String s = '';
+  String s = '';
   return s;
 }
 ''');

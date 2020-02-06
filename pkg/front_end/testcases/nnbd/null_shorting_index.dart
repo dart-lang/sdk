@@ -9,7 +9,7 @@ class Class1 {
 }
 
 class Class2 {
-  int field;
+  int field = 42;
 }
 
 extension Extension on Class2 {

@@ -227,7 +227,7 @@ class JSRangeError extends Interceptor implements ArgumentError {
 // Warning: calls to these methods need to be removed before custom elements
 // and cross-frame dom objects behave correctly in ddc.
 // See https://github.com/dart-lang/sdk/issues/28326
-findInterceptorConstructorForType(Type type) {}
-findConstructorForNativeSubclassType(Type type, String name) {}
+findInterceptorConstructorForType(Type? type) {}
+findConstructorForNativeSubclassType(Type? type, String name) {}
 getNativeInterceptor(object) {}
 setDispatchProperty(object, value) {}

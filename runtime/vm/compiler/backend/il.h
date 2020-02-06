@@ -13,6 +13,10 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/backend/slot.h"
 #include "vm/compiler/compiler_state.h"
+#include "vm/compiler/ffi/marshaller.h"
+#include "vm/compiler/ffi/native_calling_convention.h"
+#include "vm/compiler/ffi/native_location.h"
+#include "vm/compiler/ffi/native_type.h"
 #include "vm/compiler/method_recognizer.h"
 #include "vm/flags.h"
 #include "vm/growable_array.h"
@@ -55,6 +59,7 @@ class UnboxIntegerInstr;
 
 namespace compiler {
 class BlockBuilder;
+struct TableSelector;
 }
 
 class Value : public ZoneAllocated {
@@ -396,6 +401,7 @@ struct InstrAttrs {
   M(FfiCall, _)                                                                \
   M(InstanceCall, _)                                                           \
   M(PolymorphicInstanceCall, _)                                                \
+  M(DispatchTableCall, _)                                                      \
   M(StaticCall, _)                                                             \
   M(LoadLocal, kNoGC)                                                          \
   M(DropTemps, kNoGC)                                                          \
@@ -490,7 +496,6 @@ struct InstrAttrs {
   M(UnboxInt32, kNoGC)                                                         \
   M(IntConverter, _)                                                           \
   M(BitCast, _)                                                                \
-  M(UnboxedWidthExtender, _)                                                   \
   M(Deoptimize, kNoGC)                                                         \
   M(SimdOp, kNoGC)
 
@@ -1842,7 +1847,7 @@ class FunctionEntryInstr : public BlockEntryWithInitialDefs {
 // NativeParameter instead (which doesn't count as an initial definition).
 class NativeEntryInstr : public FunctionEntryInstr {
  public:
-  NativeEntryInstr(const ZoneGrowableArray<Location>* argument_locations,
+  NativeEntryInstr(const compiler::ffi::CallbackMarshaller& marshaller,
                    GraphEntryInstr* graph_entry,
                    intptr_t block_id,
                    intptr_t try_index,
@@ -1850,17 +1855,18 @@ class NativeEntryInstr : public FunctionEntryInstr {
                    intptr_t callback_id)
       : FunctionEntryInstr(graph_entry, block_id, try_index, deopt_id),
         callback_id_(callback_id),
-        argument_locations_(argument_locations) {}
+        marshaller_(marshaller) {}
 
   DECLARE_INSTRUCTION(NativeEntry)
 
   PRINT_TO_SUPPORT
 
  private:
-  void SaveArgument(FlowGraphCompiler* compiler, Location loc) const;
+  void SaveArgument(FlowGraphCompiler* compiler,
+                    const compiler::ffi::NativeLocation& loc) const;
 
   const intptr_t callback_id_;
-  const ZoneGrowableArray<Location>* const argument_locations_;
+  const compiler::ffi::CallbackMarshaller& marshaller_;
 };
 
 // Represents an OSR entrypoint to a function.
@@ -2487,21 +2493,18 @@ class ParameterInstr : public Definition {
 // TOOD(33549): Unify with ParameterInstr.
 class NativeParameterInstr : public Definition {
  public:
-  NativeParameterInstr(Location loc, Representation representation)
-      : loc_(loc), representation_(representation) {
-    if (loc.IsPairLocation()) {
-      for (intptr_t i : {0, 1}) {
-        ASSERT(loc_.Component(i).HasStackIndex() &&
-               loc_.Component(i).base_reg() == SPREG);
-      }
-    } else {
-      ASSERT(loc_.HasStackIndex() && loc_.base_reg() == SPREG);
-    }
+  NativeParameterInstr(const compiler::ffi::CallbackMarshaller& marshaller,
+                       intptr_t index)
+      : marshaller_(marshaller), index_(index) {
+    const auto& loc = marshaller.NativeLocationOfNativeParameter(index_);
+    ASSERT(loc.IsStack() && loc.AsStack().base_register() == SPREG);
   }
 
   DECLARE_INSTRUCTION(NativeParameter)
 
-  virtual Representation representation() const { return representation_; }
+  virtual Representation representation() const {
+    return marshaller_.RepInFfiCall(index_);
+  }
 
   intptr_t InputCount() const { return 0; }
   Value* InputAt(intptr_t i) const {
@@ -2523,8 +2526,8 @@ class NativeParameterInstr : public Definition {
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
-  const Location loc_;
-  const Representation representation_;
+  const compiler::ffi::CallbackMarshaller& marshaller_;
+  const intptr_t index_;
 
   DISALLOW_COPY_AND_ASSIGN(NativeParameterInstr);
 };
@@ -2763,12 +2766,9 @@ class NativeReturnInstr : public ReturnInstr {
  public:
   NativeReturnInstr(TokenPosition token_pos,
                     Value* value,
-                    Representation rep,
-                    Location result_location,
+                    const compiler::ffi::CallbackMarshaller& marshaller,
                     intptr_t deopt_id)
-      : ReturnInstr(token_pos, value, deopt_id),
-        result_representation_(rep),
-        result_location_(result_location) {}
+      : ReturnInstr(token_pos, value, deopt_id), marshaller_(marshaller) {}
 
   DECLARE_INSTRUCTION(NativeReturn)
 
@@ -2776,7 +2776,7 @@ class NativeReturnInstr : public ReturnInstr {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT(idx == 0);
-    return result_representation_;
+    return marshaller_.RepInFfiCall(compiler::ffi::kResultIndex);
   }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
@@ -2786,8 +2786,9 @@ class NativeReturnInstr : public ReturnInstr {
   }
 
  private:
-  const Representation result_representation_;
-  const Location result_location_;
+  const compiler::ffi::CallbackMarshaller& marshaller_;
+
+  void EmitReturnMoves(FlowGraphCompiler* compiler);
 
   DISALLOW_COPY_AND_ASSIGN(NativeReturnInstr);
 };
@@ -3997,6 +3998,67 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
   DISALLOW_COPY_AND_ASSIGN(PolymorphicInstanceCallInstr);
 };
 
+// Instance call using the global dispatch table.
+//
+// Takes untagged ClassId of the receiver as extra input.
+class DispatchTableCallInstr : public TemplateDartCall<1> {
+ public:
+  DispatchTableCallInstr(TokenPosition token_pos,
+                         const Function& interface_target,
+                         const compiler::TableSelector* selector,
+                         InputsArray* arguments,
+                         intptr_t type_args_len,
+                         const Array& argument_names)
+      : TemplateDartCall(DeoptId::kNone,
+                         type_args_len,
+                         argument_names,
+                         arguments,
+                         token_pos),
+        interface_target_(interface_target),
+        selector_(selector) {
+    ASSERT(selector != nullptr);
+    ASSERT(interface_target_.IsNotTemporaryScopedHandle());
+    ASSERT(!arguments->is_empty());
+  }
+
+  static DispatchTableCallInstr* FromCall(
+      Zone* zone,
+      const InstanceCallBaseInstr* call,
+      Value* cid,
+      const compiler::TableSelector* selector);
+
+  DECLARE_INSTRUCTION(DispatchTableCall)
+
+  const Function& interface_target() const { return interface_target_; }
+  const compiler::TableSelector* selector() const { return selector_; }
+
+  Value* class_id() const { return InputAt(InputCount() - 1); }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    return (idx == (InputCount() - 1)) ? kUntagged : kTagged;
+  }
+
+  virtual CompileType ComputeType() const;
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual bool CanBecomeDeoptimizationTarget() const { return false; }
+
+  virtual intptr_t DeoptimizationTarget() const { return DeoptId::kNone; }
+
+  virtual bool HasUnknownSideEffects() const { return true; }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+ private:
+  const Function& interface_target_;
+  const compiler::TableSelector* selector_;
+
+  DISALLOW_COPY_AND_ASSIGN(DispatchTableCallInstr);
+};
+
 class StrictCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
  public:
   StrictCompareInstr(TokenPosition token_pos,
@@ -4679,17 +4741,12 @@ class FfiCallInstr : public Definition {
  public:
   FfiCallInstr(Zone* zone,
                intptr_t deopt_id,
-               const Function& signature,
-               const ZoneGrowableArray<Representation>& arg_reps,
-               const ZoneGrowableArray<Location>& arg_locs)
+               const compiler::ffi::CallMarshaller& marshaller)
       : Definition(deopt_id),
         zone_(zone),
-        signature_(signature),
-        inputs_(arg_reps.length() + 1),
-        arg_representations_(arg_reps),
-        arg_locations_(arg_locs) {
-    inputs_.FillWith(nullptr, 0, arg_reps.length() + 1);
-    ASSERT(signature.IsZoneHandle());
+        marshaller_(marshaller),
+        inputs_(marshaller.num_args() + 1) {
+    inputs_.FillWith(nullptr, 0, marshaller.num_args() + 1);
   }
 
   DECLARE_INSTRUCTION(FfiCall)
@@ -4726,16 +4783,13 @@ class FfiCallInstr : public Definition {
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
-  // Mark stack slots in 'loc' as unallocated. Split a double-word stack slot
-  // into a pair location if 'is_atomic' is false.
-  static Location UnallocateStackSlots(Location loc, bool is_atomic = false);
+  void EmitParamMoves(FlowGraphCompiler* compiler);
+  void EmitReturnMoves(FlowGraphCompiler* compiler);
 
   Zone* const zone_;
-  const Function& signature_;
+  const compiler::ffi::CallMarshaller& marshaller_;
 
   GrowableArray<Value*> inputs_;
-  const ZoneGrowableArray<Representation>& arg_representations_;
-  const ZoneGrowableArray<Location>& arg_locations_;
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallInstr);
 };
@@ -5802,9 +5856,15 @@ class StoreUntaggedInstr : public TemplateInstruction<2, NoThrow> {
 
 class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  explicit LoadClassIdInstr(Value* object) { SetInputAt(0, object); }
+  explicit LoadClassIdInstr(Value* object,
+                            Representation representation = kTagged,
+                            bool input_can_be_smi = true)
+      : representation_(representation), input_can_be_smi_(input_can_be_smi) {
+    ASSERT(representation == kTagged || representation == kUntagged);
+    SetInputAt(0, object);
+  }
 
-  virtual Representation representation() const { return kTagged; }
+  virtual Representation representation() const { return representation_; }
   DECLARE_INSTRUCTION(LoadClassId)
   virtual CompileType ComputeType() const;
 
@@ -5814,9 +5874,16 @@ class LoadClassIdInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual bool AttributesEqual(Instruction* other) const { return true; }
+  virtual bool AttributesEqual(Instruction* other) const {
+    auto other_load = other->AsLoadClassId();
+    return other_load->representation_ == representation_ &&
+           other_load->input_can_be_smi_ == input_can_be_smi_;
+  }
 
  private:
+  Representation representation_;
+  bool input_can_be_smi_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadClassIdInstr);
 };
 
@@ -8317,74 +8384,6 @@ class BitCastInstr : public TemplateDefinition<1, NoThrow, Pure> {
   const Representation to_representation_;
 
   DISALLOW_COPY_AND_ASSIGN(BitCastInstr);
-};
-
-// Sign- or zero-extends an integer in unboxed 32-bit representation.
-//
-// The choice between sign- and zero- extension is made based on the whether the
-// chosen representation is signed or unsigned.
-//
-// It is only supported to extend 1- or 2-byte operands; however, since we don't
-// have a representation less than 32-bits, both the input and output
-// representations are 32-bit (and equal).
-class UnboxedWidthExtenderInstr : public TemplateDefinition<1, NoThrow, Pure> {
- public:
-  UnboxedWidthExtenderInstr(Value* value,
-                            Representation rep,
-                            SmallRepresentation from_rep)
-      : TemplateDefinition(DeoptId::kNone),
-        representation_(rep),
-        from_representation_(from_rep) {
-    ASSERT((rep == kUnboxedInt32 && (from_rep == kSmallUnboxedInt8 ||
-                                     from_rep == kSmallUnboxedInt16)) ||
-           (rep == kUnboxedUint32 && (from_rep == kSmallUnboxedUint8 ||
-                                      from_rep == kSmallUnboxedUint16)));
-    SetInputAt(0, value);
-  }
-
-  Value* value() const { return inputs_[0]; }
-
-  Representation representation() const { return representation_; }
-
-  SmallRepresentation from_representation() const {
-    return from_representation_;
-  }
-
-  bool ComputeCanDeoptimize() const { return false; }
-
-  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
-    ASSERT(idx == 0);
-    return representation_;
-  }
-
-  virtual bool AttributesEqual(Instruction* other) const {
-    ASSERT(other->IsUnboxedWidthExtender());
-    const UnboxedWidthExtenderInstr* ext = other->AsUnboxedWidthExtender();
-    return ext->representation() == representation() &&
-           ext->from_representation_ == from_representation_;
-  }
-
-  virtual CompileType ComputeType() const { return CompileType::Int(); }
-
-  DECLARE_INSTRUCTION(UnboxedWidthExtender);
-
-  PRINT_OPERANDS_TO_SUPPORT
-
- private:
-  intptr_t from_width_bytes() const {
-    if (from_representation_ == kSmallUnboxedInt8 ||
-        from_representation_ == kSmallUnboxedUint8) {
-      return 1;
-    }
-    ASSERT(from_representation_ == kSmallUnboxedInt16 ||
-           from_representation_ == kSmallUnboxedUint16);
-    return 2;
-  }
-
-  const Representation representation_;
-  const SmallRepresentation from_representation_;
-
-  DISALLOW_COPY_AND_ASSIGN(UnboxedWidthExtenderInstr);
 };
 
 // SimdOpInstr

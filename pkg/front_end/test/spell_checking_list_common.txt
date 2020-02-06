@@ -392,6 +392,7 @@ case
 cased
 cases
 casting
+cat
 catch
 catches
 categories
@@ -903,6 +904,7 @@ early
 easier
 easiest
 easily
+eat
 edge
 edges
 edit
@@ -1118,6 +1120,7 @@ fetch
 few
 fewer
 field
+field's
 fieldname
 fields
 figure
@@ -1159,6 +1162,7 @@ flatten
 flattened
 flexibility
 flexible
+float
 flow
 flow's
 flush
@@ -1172,6 +1176,7 @@ follow
 followed
 following
 follows
+food
 for
 force
 forced
@@ -1334,6 +1339,7 @@ hostnames
 how
 however
 http
+hungry
 hybrid
 idea
 ideally
@@ -1906,6 +1912,7 @@ noticed
 notifies
 now
 null
+nullability
 nullable
 num
 number
@@ -2218,6 +2225,7 @@ promotion
 promotions
 propagate
 propagating
+propagation
 proper
 properly
 properties

@@ -21,22 +21,22 @@ class A extends core::Object {
   synthetic constructor •() → self::A*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method foo() → dynamic
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → dynamic
     return new self::T1::•();
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method bar() → dynamic
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method bar() → dynamic
     return new self::T2::•();
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method bazz() → dynamic
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method bazz() → dynamic
     return new self::T3::•();
 }
 class B extends core::Object {
   synthetic constructor •() → self::B*
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method foo() → dynamic
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → dynamic
     return new self::T1::•();
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method bar() → dynamic
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method bar() → dynamic
     return new self::T2::•();
-[@vm.procedure-attributes.metadata=hasThisUses:false,hasTearOffUses:false]  method bazz() → dynamic
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method bazz() → dynamic
     return new self::T3::•();
 }
 [@vm.inferred-type.metadata=dart.core::Null? (value: null)]static field core::Function* unknown;

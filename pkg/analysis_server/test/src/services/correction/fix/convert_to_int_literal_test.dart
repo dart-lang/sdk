@@ -26,7 +26,7 @@ class ConvertToIntLiteralTest extends FixProcessorLintTest {
   /// More coverage in the `convert_to_int_literal_test.dart` assist test.
   Future<void> test_decimal() async {
     await resolveTestUnit('''
-const double myDouble = /*LINT*/42.0;
+const double myDouble = 42.0;
 ''');
     await assertHasFix('''
 const double myDouble = 42;

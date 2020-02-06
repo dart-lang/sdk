@@ -88,7 +88,6 @@ DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DECLARE_FLAG(bool, enable_interpreter);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
-DECLARE_FLAG(bool, unbox_numeric_fields);
 
 static void PrecompilationModeHandler(bool value) {
   if (value) {

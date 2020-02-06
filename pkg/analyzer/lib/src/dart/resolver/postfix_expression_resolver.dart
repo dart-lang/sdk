@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
@@ -25,7 +24,6 @@ import 'package:meta/meta.dart';
 class PostfixExpressionResolver {
   final ResolverVisitor _resolver;
   final FlowAnalysisHelper _flowAnalysis;
-  final ElementTypeProvider _elementTypeProvider;
   final TypePropertyResolver _typePropertyResolver;
   final InvocationInferenceHelper _inferenceHelper;
   final AssignmentExpressionShared _assignmentShared;
@@ -33,10 +31,8 @@ class PostfixExpressionResolver {
   PostfixExpressionResolver({
     @required ResolverVisitor resolver,
     @required FlowAnalysisHelper flowAnalysis,
-    @required ElementTypeProvider elementTypeProvider,
   })  : _resolver = resolver,
         _flowAnalysis = flowAnalysis,
-        _elementTypeProvider = elementTypeProvider,
         _typePropertyResolver = resolver.typePropertyResolver,
         _inferenceHelper = resolver.inferenceHelper,
         _assignmentShared = AssignmentExpressionShared(
@@ -60,7 +56,6 @@ class PostfixExpressionResolver {
 
     var receiverType = getReadType(
       node.operand,
-      elementTypeProvider: _elementTypeProvider,
     );
 
     _assignmentShared.checkLateFinalAlreadyAssigned(node.operand);
@@ -97,17 +92,15 @@ class PostfixExpressionResolver {
       // This is a function invocation expression disguised as something else.
       // We are invoking a getter and then invoking the returned function.
       //
-      FunctionType propertyType =
-          _elementTypeProvider.getExecutableType(element);
+      FunctionType propertyType = element.type;
       if (propertyType != null) {
         return _resolver.inferenceHelper.computeInvokeReturnType(
             propertyType.returnType,
             isNullAware: false);
       }
     } else if (element is ExecutableElement) {
-      return _resolver.inferenceHelper.computeInvokeReturnType(
-          _elementTypeProvider.getExecutableType(element),
-          isNullAware: false);
+      return _resolver.inferenceHelper
+          .computeInvokeReturnType(element.type, isNullAware: false);
     }
     return DynamicTypeImpl.instance;
   }
@@ -128,7 +121,7 @@ class PostfixExpressionResolver {
     if (node is SimpleIdentifier) {
       var element = node.staticElement;
       if (element is PromotableElement) {
-        return _elementTypeProvider.getVariableType(element);
+        return element.type;
       }
     }
     return node.staticType;
@@ -213,7 +206,6 @@ class PostfixExpressionResolver {
 
     var operandType = getReadType(
       operand,
-      elementTypeProvider: _elementTypeProvider,
     );
 
     var type = _typeSystem.promoteToNonNull(operandType);

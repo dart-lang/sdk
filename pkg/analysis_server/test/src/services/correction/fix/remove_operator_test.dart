@@ -25,7 +25,7 @@ class RemoveOperatorTest extends FixProcessorLintTest {
 
   Future<void> test_plus() async {
     await resolveTestUnit('''
-var s = 'a' /*LINT*/+ 'b';
+var s = 'a' + 'b';
 ''');
     await assertHasFix('''
 var s = 'a' 'b';

@@ -4,7 +4,8 @@
 
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/constant/value.dart';
+import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 
 /// An object used to provide access to the values of variables that have been
 /// defined on the command line using the `-D` option.
@@ -49,35 +50,18 @@ class DeclaredVariables {
   /// DartObject representing "unknown" is returned. If the value cannot be
   /// parsed as a boolean, a DartObject representing 'null' is returned. The
   /// [typeProvider] is the type provider used to find the type 'bool'.
+  @Deprecated("Clients don't need this functionality")
   DartObject getBool(TypeProvider typeProvider, String name) {
-    String value = _declaredVariables[name];
-    if (value == null) {
-      return DartObjectImpl(typeProvider.boolType, BoolState.UNKNOWN_VALUE);
-    }
-    if (value == "true") {
-      return DartObjectImpl(typeProvider.boolType, BoolState.TRUE_STATE);
-    } else if (value == "false") {
-      return DartObjectImpl(typeProvider.boolType, BoolState.FALSE_STATE);
-    }
-    return DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE);
+    return _evaluator(typeProvider).getBool(name);
   }
 
   /// Return the value of the variable with the given [name] interpreted as an
   /// integer value. If the variable is not defined (or [name] is `null`), a
   /// DartObject representing "unknown" is returned. If the value cannot be
   /// parsed as an integer, a DartObject representing 'null' is returned.
+  @Deprecated("Clients don't need this functionality")
   DartObject getInt(TypeProvider typeProvider, String name) {
-    String value = _declaredVariables[name];
-    if (value == null) {
-      return DartObjectImpl(typeProvider.intType, IntState.UNKNOWN_VALUE);
-    }
-    int bigInteger;
-    try {
-      bigInteger = int.parse(value);
-    } on FormatException {
-      return DartObjectImpl(typeProvider.nullType, NullState.NULL_STATE);
-    }
-    return DartObjectImpl(typeProvider.intType, IntState(bigInteger));
+    return _evaluator(typeProvider).getInt(name);
   }
 
   /// Return the value of the variable with the given [name] interpreted as a
@@ -86,11 +70,18 @@ class DeclaredVariables {
   /// variable is not defined (or [name] is `null`), a DartObject representing
   /// "unknown" is returned. The [typeProvider] is the type provider used to
   /// find the type 'String'.
+  @Deprecated("Clients don't need this functionality")
   DartObject getString(TypeProvider typeProvider, String name) {
-    String value = _declaredVariables[name];
-    if (value == null) {
-      return DartObjectImpl(typeProvider.stringType, StringState.UNKNOWN_VALUE);
-    }
-    return DartObjectImpl(typeProvider.stringType, StringState(value));
+    return _evaluator(typeProvider).getString(name);
+  }
+
+  FromEnvironmentEvaluator _evaluator(TypeProvider typeProvider) {
+    var typeSystem = TypeSystemImpl(
+      implicitCasts: false,
+      isNonNullableByDefault: false,
+      strictInference: false,
+      typeProvider: typeProvider,
+    );
+    return FromEnvironmentEvaluator(typeSystem, this);
   }
 }

@@ -75,11 +75,6 @@ abstract class ClassEntity extends Entity {
   bool get isAbstract;
 }
 
-abstract class TypedefEntity extends Entity {
-  /// The library in which the typedef was declared.
-  LibraryEntity get library;
-}
-
 abstract class TypeVariableEntity extends Entity {
   /// The class or generic method that declared this type variable.
   Entity get typeDeclaration;

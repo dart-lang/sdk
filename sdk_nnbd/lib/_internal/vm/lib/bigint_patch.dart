@@ -107,10 +107,10 @@ class _BigIntImpl implements BigInt {
       new bool.fromEnvironment('dart.vm.not.a.compile.time.constant');
 
   // Result cache for last _divRem call.
-  static late Uint32List _lastDividendDigits;
-  static late int _lastDividendUsed;
-  static late Uint32List _lastDivisorDigits;
-  static late int _lastDivisorUsed;
+  static Uint32List? _lastDividendDigits;
+  static int? _lastDividendUsed;
+  static Uint32List? _lastDivisorDigits;
+  static int? _lastDivisorUsed;
   static late Uint32List _lastQuoRemDigits;
   static late int _lastQuoRemUsed;
   static late int _lastRemUsed;

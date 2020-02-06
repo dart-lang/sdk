@@ -1176,11 +1176,6 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
       HANDLESCOPE(T);
       StackZone zone(T);
 
-      // The kernel loader is about to allocate a bunch of new libraries,
-      // classes and functions into old space. Force growth, and use of the
-      // bump allocator instead of freelists.
-      BumpAllocateScope bump_allocate_scope(T);
-
       // NOTE: We do not attach a finalizer for this object, because the
       // embedder will free it once the isolate group has shutdown.
       const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
@@ -5174,11 +5169,6 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  // The kernel loader is about to allocate a bunch of new libraries, classes,
-  // and functions into old space. Force growth, and use of the bump allocator
-  // instead of freelists.
-  BumpAllocateScope bump_allocate_scope(T);
-
   // NOTE: We do not attach a finalizer for this object, because the embedder
   // will free it once the isolate group has shutdown.
   const auto& td = ExternalTypedData::Handle(ExternalTypedData::New(
@@ -5422,11 +5412,6 @@ DART_EXPORT Dart_Handle Dart_LoadLibraryFromKernel(const uint8_t* buffer,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  // The kernel loader is about to allocate a bunch of new libraries, classes,
-  // and functions into old space. Force growth, and use of the bump allocator
-  // instead of freelists.
-  BumpAllocateScope bump_allocate_scope(T);
-
   // NOTE: We do not attach a finalizer for this object, because the embedder
   // will/should free it once the isolate group has shutdown.
   // See also http://dartbug.com/37030.
@@ -5490,11 +5475,6 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   API_TIMELINE_DURATION(T);
   Isolate* I = T->isolate();
   CHECK_CALLBACK_STATE(T);
-
-  // The kernel loader is about to allocate a bunch of new libraries, classes,
-  // and functions into old space. Force growth, and use of the bump allocator
-  // instead of freelists.
-  BumpAllocateScope bump_allocate_scope(T);
 
   // Finalize all classes if needed.
   Dart_Handle state = Api::CheckAndFinalizePendingClasses(T);
@@ -5741,9 +5721,7 @@ DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data) {
 #if !defined(PRODUCT)
-  if (FLAG_support_service) {
-    Service::RegisterIsolateEmbedderCallback(name, callback, user_data);
-  }
+  Service::RegisterIsolateEmbedderCallback(name, callback, user_data);
 #endif
 }
 
@@ -5752,18 +5730,14 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data) {
 #if !defined(PRODUCT)
-  if (FLAG_support_service) {
-    Service::RegisterRootEmbedderCallback(name, callback, user_data);
-  }
+  Service::RegisterRootEmbedderCallback(name, callback, user_data);
 #endif
 }
 
 DART_EXPORT void Dart_SetEmbedderInformationCallback(
     Dart_EmbedderInformationCallback callback) {
 #if !defined(PRODUCT)
-  if (FLAG_support_service) {
-    Service::SetEmbedderInformationCallback(callback);
-  }
+  Service::SetEmbedderInformationCallback(callback);
 #endif
 }
 
@@ -5773,9 +5747,6 @@ DART_EXPORT char* Dart_SetServiceStreamCallbacks(
 #if defined(PRODUCT)
   return NULL;
 #else
-  if (!FLAG_support_service) {
-    return NULL;
-  }
   if (listen_callback != NULL) {
     if (Service::stream_listen_callback() != NULL) {
       return strdup(
@@ -5845,9 +5816,6 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 DART_EXPORT char* Dart_SetFileModifiedCallback(
     Dart_FileModifiedCallback file_modified_callback) {
 #if !defined(PRODUCT)
-  if (!FLAG_support_service) {
-    return NULL;
-  }
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (file_modified_callback != NULL) {
     if (IsolateGroupReloadContext::file_modified_callback() != NULL) {

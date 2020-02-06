@@ -39,7 +39,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
@@ -197,8 +196,6 @@ class ResolverVisitor extends ScopedVisitor {
    */
   final FeatureSet _featureSet;
 
-  final ElementTypeProvider _elementTypeProvider;
-
   final MigratableAstInfoProvider _migratableAstInfoProvider;
 
   /// Helper for checking expression that should have the `bool` type.
@@ -314,8 +311,8 @@ class ResolverVisitor extends ScopedVisitor {
             propagateTypes,
             reportConstEvaluationErrors,
             flowAnalysisHelper,
-            const ElementTypeProvider(),
-            const MigratableAstInfoProvider());
+            const MigratableAstInfoProvider(),
+            null);
 
   ResolverVisitor._(
       this.inheritance,
@@ -329,8 +326,8 @@ class ResolverVisitor extends ScopedVisitor {
       bool propagateTypes,
       reportConstEvaluationErrors,
       this._flowAnalysis,
-      this._elementTypeProvider,
-      this._migratableAstInfoProvider)
+      this._migratableAstInfoProvider,
+      MigrationResolutionHooks migrationResolutionHooks)
       : _featureSet = featureSet,
         super(definingLibrary, source, typeProvider, errorListener,
             nameScope: nameScope) {
@@ -350,50 +347,39 @@ class ResolverVisitor extends ScopedVisitor {
     this.extensionResolver = ExtensionMemberResolver(this);
     this.typePropertyResolver = TypePropertyResolver(this);
     this.inferenceHelper = InvocationInferenceHelper(
-      resolver: this,
-      definingLibrary: definingLibrary,
-      elementTypeProvider: _elementTypeProvider,
-      flowAnalysis: _flowAnalysis,
-      errorReporter: errorReporter,
-      typeSystem: typeSystem,
-    );
+        resolver: this,
+        definingLibrary: definingLibrary,
+        flowAnalysis: _flowAnalysis,
+        errorReporter: errorReporter,
+        typeSystem: typeSystem,
+        migrationResolutionHooks: migrationResolutionHooks);
     this._assignmentExpressionResolver = AssignmentExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
-      elementTypeProvider: _elementTypeProvider,
     );
     this._binaryExpressionResolver = BinaryExpressionResolver(
       resolver: this,
       promoteManager: _promoteManager,
       flowAnalysis: _flowAnalysis,
-      elementTypeProvider: _elementTypeProvider,
     );
     this._functionExpressionInvocationResolver =
         FunctionExpressionInvocationResolver(
       resolver: this,
-      elementTypeProvider: _elementTypeProvider,
     );
     this._postfixExpressionResolver = PostfixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
-      elementTypeProvider: _elementTypeProvider,
     );
     this._prefixExpressionResolver = PrefixExpressionResolver(
       resolver: this,
       flowAnalysis: _flowAnalysis,
-      elementTypeProvider: _elementTypeProvider,
     );
     this.elementResolver = ElementResolver(this,
         reportConstEvaluationErrors: reportConstEvaluationErrors,
-        elementTypeProvider: _elementTypeProvider,
         migratableAstInfoProvider: _migratableAstInfoProvider);
     this.inferenceContext = InferenceContext._(this);
     this.typeAnalyzer = StaticTypeAnalyzer(
-      this,
-      featureSet,
-      _flowAnalysis,
-      elementTypeProvider: _elementTypeProvider,
-    );
+        this, featureSet, _flowAnalysis, migrationResolutionHooks);
   }
 
   /// Return the element representing the function containing the current node,
@@ -571,8 +557,7 @@ class ResolverVisitor extends ScopedVisitor {
     node.constructorName?.accept(this);
     Element element = node.element;
     if (element is ExecutableElement) {
-      InferenceContext.setType(
-          node.arguments, _elementTypeProvider.getExecutableType(element));
+      InferenceContext.setType(node.arguments, element.type);
     }
     node.arguments?.accept(this);
     node.accept(elementResolver);
@@ -833,8 +818,7 @@ class ResolverVisitor extends ScopedVisitor {
       _flowAnalysis?.executableDeclaration_enter(node, node.parameters, false);
       _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
-      FunctionType type =
-          _elementTypeProvider.getExecutableType(_enclosingFunction);
+      FunctionType type = _enclosingFunction.type;
       InferenceContext.setType(node.body, type.returnType);
       super.visitConstructorDeclaration(node);
     } finally {
@@ -867,8 +851,7 @@ class ResolverVisitor extends ScopedVisitor {
     // to be visited in the context of the constructor field initializer node.
     //
     FieldElement fieldElement = enclosingClass.getField(node.fieldName.name);
-    InferenceContext.setType(
-        node.expression, _elementTypeProvider.safeFieldType(fieldElement));
+    InferenceContext.setType(node.expression, fieldElement?.type);
     node.expression?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -898,8 +881,7 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    InferenceContext.setType(node.defaultValue,
-        _elementTypeProvider.safeVariableType(node.declaredElement));
+    InferenceContext.setType(node.defaultValue, node.declaredElement?.type);
     super.visitDefaultFormalParameter(node);
     ParameterElement element = node.declaredElement;
 
@@ -1072,12 +1054,11 @@ class ResolverVisitor extends ScopedVisitor {
         identifier?.accept(this);
         identifierElement = identifier?.staticElement;
         if (identifierElement is VariableElement) {
-          valueType = _elementTypeProvider.getVariableType(identifierElement);
+          valueType = identifierElement.type;
         } else if (identifierElement is PropertyAccessorElement) {
-          var parameters =
-              _elementTypeProvider.getExecutableParameters(identifierElement);
+          var parameters = identifierElement.parameters;
           if (parameters.isNotEmpty) {
-            valueType = _elementTypeProvider.getVariableType(parameters[0]);
+            valueType = parameters[0].type;
           }
         }
       }
@@ -1169,12 +1150,11 @@ class ResolverVisitor extends ScopedVisitor {
       if (identifier != null) {
         identifierElement = identifier.staticElement;
         if (identifierElement is VariableElement) {
-          valueType = _elementTypeProvider.getVariableType(identifierElement);
+          valueType = identifierElement.type;
         } else if (identifierElement is PropertyAccessorElement) {
-          var parameters =
-              _elementTypeProvider.getExecutableParameters(identifierElement);
+          var parameters = identifierElement.parameters;
           if (parameters.isNotEmpty) {
-            valueType = _elementTypeProvider.getVariableType(parameters[0]);
+            valueType = parameters[0].type;
           }
         }
       }
@@ -1243,8 +1223,8 @@ class ResolverVisitor extends ScopedVisitor {
       }
       _promoteManager.enterFunctionBody(node.functionExpression.body);
       _enclosingFunction = functionName.staticElement as ExecutableElement;
-      InferenceContext.setType(node.functionExpression,
-          _elementTypeProvider.getExecutableType(_enclosingFunction));
+      InferenceContext.setType(
+          node.functionExpression, _enclosingFunction.type);
       super.visitFunctionDeclaration(node);
     } finally {
       if (_flowAnalysis != null) {
@@ -1427,11 +1407,10 @@ class ResolverVisitor extends ScopedVisitor {
     node.accept(elementResolver);
     var method = node.staticElement;
     if (method != null) {
-      var parameters = _elementTypeProvider.getExecutableParameters(method);
+      var parameters = method.parameters;
       if (parameters.isNotEmpty) {
         var indexParam = parameters[0];
-        InferenceContext.setType(
-            node.index, _elementTypeProvider.getVariableType(indexParam));
+        InferenceContext.setType(node.index, indexParam.type);
       }
     }
     node.index?.accept(this);
@@ -1475,7 +1454,7 @@ class ResolverVisitor extends ScopedVisitor {
       _promoteManager.enterFunctionBody(node.body);
       _enclosingFunction = node.declaredElement;
       DartType returnType = _computeReturnOrYieldType(
-        _elementTypeProvider.safeExecutableReturnType(_enclosingFunction),
+        _enclosingFunction?.returnType,
       );
       InferenceContext.setType(node.body, returnType);
       super.visitMethodDeclaration(node);
@@ -1606,8 +1585,7 @@ class ResolverVisitor extends ScopedVisitor {
     // invocation.
     //
     node.accept(elementResolver);
-    InferenceContext.setType(node.argumentList,
-        _elementTypeProvider.safeExecutableType(node.staticElement));
+    InferenceContext.setType(node.argumentList, node.staticElement?.type);
     node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
   }
@@ -1679,8 +1657,7 @@ class ResolverVisitor extends ScopedVisitor {
     // invocation.
     //
     node.accept(elementResolver);
-    InferenceContext.setType(node.argumentList,
-        _elementTypeProvider.safeExecutableType(node.staticElement));
+    InferenceContext.setType(node.argumentList, node.staticElement?.type);
     node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
   }
@@ -1692,6 +1669,17 @@ class ResolverVisitor extends ScopedVisitor {
     InferenceContext.setType(
         node.expression, _enclosingSwitchStatementExpressionType);
     super.visitSwitchCase(node);
+
+    var flow = _flowAnalysis?.flow;
+    if (flow != null && flow.isReachable) {
+      var switchStatement = node.parent as SwitchStatement;
+      if (switchStatement.members.last != node && node.statements.isNotEmpty) {
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
+          node.keyword,
+        );
+      }
+    }
   }
 
   @override
@@ -1818,8 +1806,7 @@ class ResolverVisitor extends ScopedVisitor {
     _flowAnalysis?.variableDeclarationList(node);
     for (VariableDeclaration decl in node.variables) {
       VariableElement variableElement = decl.declaredElement;
-      InferenceContext.setType(
-          decl, _elementTypeProvider.safeVariableType(variableElement));
+      InferenceContext.setType(decl, variableElement?.type);
     }
     super.visitVariableDeclarationList(node);
   }
@@ -2031,7 +2018,7 @@ class ResolverVisitor extends ScopedVisitor {
     }
 
     if (inferred == null) {
-      var type = _elementTypeProvider.safeExecutableType(originalElement);
+      var type = originalElement?.type;
       type = toLegacyTypeIfOptOut(type);
       InferenceContext.setType(node.argumentList, type);
     }
@@ -2142,6 +2129,8 @@ class ResolverVisitor extends ScopedVisitor {
 /// Override of [ResolverVisitorForMigration] that invokes methods of
 /// [MigrationResolutionHooks] when appropriate.
 class ResolverVisitorForMigration extends ResolverVisitor {
+  final MigrationResolutionHooks _migrationResolutionHooks;
+
   ResolverVisitorForMigration(
       InheritanceManager3 inheritanceManager,
       LibraryElement definingLibrary,
@@ -2151,7 +2140,8 @@ class ResolverVisitorForMigration extends ResolverVisitor {
       TypeSystem typeSystem,
       FeatureSet featureSet,
       MigrationResolutionHooks migrationResolutionHooks)
-      : super._(
+      : _migrationResolutionHooks = migrationResolutionHooks,
+        super._(
             inheritanceManager,
             definingLibrary,
             source,
@@ -2170,8 +2160,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
   @override
   void visitIfElement(IfElement node) {
     var conditionalKnownValue =
-        (_elementTypeProvider as MigrationResolutionHooks)
-            .getConditionalKnownValue(node);
+        _migrationResolutionHooks.getConditionalKnownValue(node);
     if (conditionalKnownValue == null) {
       super.visitIfElement(node);
       return;
@@ -2184,8 +2173,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
   @override
   void visitIfStatement(IfStatement node) {
     var conditionalKnownValue =
-        (_elementTypeProvider as MigrationResolutionHooks)
-            .getConditionalKnownValue(node);
+        _migrationResolutionHooks.getConditionalKnownValue(node);
     if (conditionalKnownValue == null) {
       super.visitIfStatement(node);
       return;

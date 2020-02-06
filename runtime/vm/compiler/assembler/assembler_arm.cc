@@ -1591,6 +1591,10 @@ void Assembler::LoadIsolate(Register rd) {
   ldr(rd, Address(THR, target::Thread::isolate_offset()));
 }
 
+void Assembler::LoadDispatchTable(Register rd) {
+  ldr(rd, Address(THR, target::Thread::dispatch_table_array_offset()));
+}
+
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(IsOriginalObject(object));
   ASSERT(!target::CanLoadFromThread(object));
@@ -3154,6 +3158,13 @@ void Assembler::AddImmediateSetFlags(Register rd,
       adds(rd, rn, Operand(IP), cond);
     }
   }
+}
+
+void Assembler::SubImmediate(Register rd,
+                             Register rn,
+                             int32_t value,
+                             Condition cond) {
+  AddImmediate(rd, rn, -value, cond);
 }
 
 void Assembler::SubImmediateSetFlags(Register rd,

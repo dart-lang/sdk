@@ -638,9 +638,6 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
 void Scavenger::IterateObjectIdTable(Isolate* isolate,
                                      ScavengerVisitor* visitor) {
 #ifndef PRODUCT
-  if (!FLAG_support_service) {
-    return;
-  }
   isolate->object_id_ring()->VisitPointers(visitor);
 #endif  // !PRODUCT
 }
@@ -1109,9 +1106,6 @@ void Scavenger::WriteProtect(bool read_only) {
 
 #ifndef PRODUCT
 void Scavenger::PrintToJSONObject(JSONObject* object) const {
-  if (!FLAG_support_service) {
-    return;
-  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "new");

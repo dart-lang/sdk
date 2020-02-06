@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_test_factory.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -153,8 +154,15 @@ class ElementFactory {
           [List<DartType> argumentTypes]) =>
       constructorElement(definingClass, name, false, argumentTypes);
 
+  @deprecated
   static EnumElementImpl enumElement(TypeProvider typeProvider, String enumName,
       [List<String> constantNames]) {
+    var typeSystem = TypeSystemImpl(
+      implicitCasts: false,
+      isNonNullableByDefault: false,
+      strictInference: false,
+      typeProvider: typeProvider,
+    );
     //
     // Build the enum.
     //
@@ -198,10 +206,12 @@ class ElementFactory {
         constantElement.type = enumType;
         Map<String, DartObjectImpl> fieldMap =
             HashMap<String, DartObjectImpl>();
-        fieldMap[indexFieldName] = DartObjectImpl(intType, IntState(i));
+        fieldMap[indexFieldName] =
+            DartObjectImpl(typeSystem, intType, IntState(i));
         fieldMap[nameFieldName] =
-            DartObjectImpl(stringType, StringState(constantName));
-        DartObjectImpl value = DartObjectImpl(enumType, GenericState(fieldMap));
+            DartObjectImpl(typeSystem, stringType, StringState(constantName));
+        DartObjectImpl value =
+            DartObjectImpl(typeSystem, enumType, GenericState(fieldMap));
         constantElement.evaluationResult = EvaluationResultImpl(value);
         fields.add(constantElement);
       }

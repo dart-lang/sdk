@@ -55,6 +55,13 @@ library;
 //   late String s2 = '${fisk}${await hest()}${fisk}';
 //                              ^^^^^
 //
+// pkg/front_end/testcases/nnbd/later.dart:46:9: Warning: Constructor is marked 'const' and some fields are late.
+//   const B();
+//         ^
+// pkg/front_end/testcases/nnbd/later.dart:44:18: Context: Field is late, but constructor is 'const'.
+//   late final int x = 42;
+//                  ^
+//
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -133,7 +140,7 @@ static method hest() → dynamic /* originally async */ {
       #L1:
       {
         {
-          dynamic :stream = asy::Stream::fromIterable<core::String>(<core::String*>["hest"]);
+          dynamic :stream = asy::Stream::fromIterable<core::String>(<core::String>["hest"]);
           asy::_asyncStarListenHelper(:stream, :async_op);
           asy::_StreamIterator<core::String>? :for-iterator = new asy::_StreamIterator::•<core::String>(:stream);
           try

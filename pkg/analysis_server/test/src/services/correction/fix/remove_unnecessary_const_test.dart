@@ -23,36 +23,23 @@ class RemoveUnnecessaryConstTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unnecessary_const;
 
-  Future<void> test_constConstructor() async {
-    await resolveTestUnit('''
-class A { const A(); }
-m(){
-  const a = /*LINT*/const A();
-}
-''');
-    await assertHasFix('''
-class A { const A(); }
-m(){
-  const a = A();
-}
-''');
-  }
-
   Future<void> test_instanceCreation() async {
     await resolveTestUnit('''
-const list = /*LINT*/const List();
+class C { const C(); }
+const c = const C();
 ''');
     await assertHasFix('''
-const list = List();
-''', length: 5);
+class C { const C(); }
+const c = C();
+''');
   }
 
   Future<void> test_typedLiteral() async {
     await resolveTestUnit('''
-const list = /*LINT*/const [];
+const list = const [];
 ''');
     await assertHasFix('''
 const list = [];
-''', length: 5);
+''');
   }
 }

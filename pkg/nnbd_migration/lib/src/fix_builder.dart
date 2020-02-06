@@ -19,12 +19,14 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/best_practices_verifier.dart';
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/decorated_class_hierarchy.dart';
+import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
@@ -88,7 +90,9 @@ class FixBuilder {
   /// The compilation unit for which fixes are being built.
   final CompilationUnit unit;
 
-  FixBuilder(
+  final MigrationResolutionHooksImpl migrationResolutionHooks;
+
+  factory FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
       TypeProvider typeProvider,
@@ -96,17 +100,21 @@ class FixBuilder {
       Variables variables,
       LibraryElement definingLibrary,
       NullabilityMigrationListener listener,
-      CompilationUnit unit)
-      : this._(
-            decoratedClassHierarchy,
-            _makeNnbdTypeSystem(
-                (typeProvider as TypeProviderImpl).asNonNullableByDefault,
-                typeSystem),
-            variables,
-            source,
-            definingLibrary,
-            listener,
-            unit);
+      CompilationUnit unit) {
+    var migrationResolutionHooks = MigrationResolutionHooksImpl();
+    return FixBuilder._(
+        decoratedClassHierarchy,
+        _makeNnbdTypeSystem(
+            (typeProvider as TypeProviderImpl).asNonNullableByDefault,
+            typeSystem,
+            migrationResolutionHooks),
+        variables,
+        source,
+        definingLibrary,
+        listener,
+        unit,
+        migrationResolutionHooks);
+  }
 
   FixBuilder._(
       DecoratedClassHierarchy decoratedClassHierarchy,
@@ -115,8 +123,10 @@ class FixBuilder {
       this.source,
       LibraryElement definingLibrary,
       this.listener,
-      this.unit)
+      this.unit,
+      this.migrationResolutionHooks)
       : typeProvider = _typeSystem.typeProvider {
+    migrationResolutionHooks._fixBuilder = this;
     // TODO(paulberry): make use of decoratedClassHierarchy
     assert(_typeSystem.isNonNullableByDefault);
     assert((typeProvider as TypeProviderImpl).isNonNullableByDefault);
@@ -136,13 +146,14 @@ class FixBuilder {
         errorListener,
         _typeSystem,
         featureSet,
-        MigrationResolutionHooksImpl(this));
+        migrationResolutionHooks);
   }
 
   /// Visits the entire compilation [unit] using the analyzer's resolver and
   /// makes note of changes that need to be made.
   void visitAll() {
     try {
+      ElementTypeProvider.current = migrationResolutionHooks;
       unit.accept(_FixBuilderPreVisitor(this));
       unit.accept(_resolver);
       unit.accept(_FixBuilderPostVisitor(this));
@@ -152,6 +163,8 @@ class FixBuilder {
       } else {
         rethrow;
       }
+    } finally {
+      ElementTypeProvider.current = const ElementTypeProvider();
     }
   }
 
@@ -174,8 +187,7 @@ class FixBuilder {
         element.isSynthetic &&
         !element.variable.isSynthetic) {
       var variableType = _variables
-          .decoratedElementType(element.variable)
-          .toFinalType(typeProvider);
+          .toFinalType(_variables.decoratedElementType(element.variable));
       if (element.isSetter) {
         return FunctionTypeImpl(
             returnType: typeProvider.voidType,
@@ -193,7 +205,7 @@ class FixBuilder {
             nullabilitySuffix: NullabilitySuffix.none);
       }
     } else {
-      return _variables.decoratedElementType(element).toFinalType(typeProvider);
+      return _variables.toFinalType(_variables.decoratedElementType(element));
     }
   }
 
@@ -222,7 +234,9 @@ class FixBuilder {
   }
 
   static TypeSystemImpl _makeNnbdTypeSystem(
-      TypeProvider nnbdTypeProvider, Dart2TypeSystem typeSystem) {
+      TypeProvider nnbdTypeProvider,
+      Dart2TypeSystem typeSystem,
+      MigrationResolutionHooksImpl migrationResolutionHooks) {
     // TODO(paulberry): do we need to test both possible values of
     // strictInference?
     return TypeSystemImpl(
@@ -236,7 +250,7 @@ class FixBuilder {
 /// Implementation of [MigrationResolutionHooks] that interfaces with
 /// [FixBuilder].
 class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
-  final FixBuilder _fixBuilder;
+  FixBuilder _fixBuilder;
 
   final Expando<List<CollectionElement>> _collectionElements = Expando();
 
@@ -245,7 +259,12 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       _flowAnalysis;
 
-  MigrationResolutionHooksImpl(this._fixBuilder);
+  @override
+  void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
+      TypeParameterElement oldTypeParameter) {
+    DecoratedTypeParameterBounds.current.put(newTypeParameter,
+        DecoratedTypeParameterBounds.current.get(oldTypeParameter));
+  }
 
   @override
   bool getConditionalKnownValue(AstNode node) =>
@@ -269,15 +288,15 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
 
   @override
   List<ParameterElement> getExecutableParameters(ExecutableElement element) =>
-      getExecutableType(element).parameters;
+      getExecutableType(element as ElementImplWithFunctionType).parameters;
 
   @override
-  DartType getExecutableReturnType(FunctionTypedElement element) =>
-      getExecutableType(element).returnType;
+  DartType getExecutableReturnType(Element element) =>
+      getExecutableType(element as ElementImplWithFunctionType).returnType;
 
   @override
-  FunctionType getExecutableType(FunctionTypedElement element) =>
-      _wrapExceptions(_fixBuilder.unit, () => element.type, () {
+  FunctionType getExecutableType(ElementImplWithFunctionType element) =>
+      _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
         var type = _fixBuilder._computeMigratedType(element);
         Element baseElement = element;
         if (baseElement is Member) {
@@ -287,8 +306,8 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       });
 
   @override
-  DartType getFieldType(FieldElement element) =>
-      _wrapExceptions(_fixBuilder.unit, () => element.type, () {
+  DartType getFieldType(PropertyInducingElementImpl element) =>
+      _wrapExceptions(_fixBuilder.unit, () => element.typeInternal, () {
         assert(!element.isSynthetic);
         return _fixBuilder._computeMigratedType(element);
       });
@@ -309,13 +328,29 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
               _transformCollectionElements(node.elements, node.typeArguments));
 
   @override
-  DartType getVariableType(VariableElement variable) =>
-      _wrapExceptions(_fixBuilder.unit, () => variable.type, () {
+  DartType getTypeParameterBound(TypeParameterElementImpl element) {
+    var decoratedBound = _fixBuilder._variables
+        .decoratedTypeParameterBound(element, allowNullUnparentedBounds: true);
+    if (decoratedBound == null) return element.boundInternal;
+    var bound = _fixBuilder._variables.toFinalType(decoratedBound);
+    if (bound.isDynamic) {
+      return null;
+    } else if (bound.isDartCoreObject &&
+        bound.nullabilitySuffix == NullabilitySuffix.question) {
+      return null;
+    } else {
+      return bound;
+    }
+  }
+
+  @override
+  DartType getVariableType(VariableElementImpl variable) =>
+      _wrapExceptions(_fixBuilder.unit, () => variable.typeInternal, () {
         if (variable.library == null) {
           // This is a synthetic variable created during resolution (e.g. a
           // parameter of a function type), so the type it currently has is the
           // correct post-migration type.
-          return variable.type;
+          return variable.typeInternal;
         }
         return _fixBuilder._computeMigratedType(variable);
       });
@@ -378,8 +413,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-      ..introduceAsType =
-          (contextType as TypeImpl).toString(withNullability: true)
+      ..introduceAsType = contextType.getDisplayString(withNullability: true)
       ..introduceAsInfo = info;
     _flowAnalysis.asExpression_end(node, contextType);
     return contextType;
@@ -603,7 +637,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         ..makeNullableType = decoratedType;
     }
     (node as GenericFunctionTypeImpl).type =
-        decoratedType.toFinalType(_fixBuilder.typeProvider);
+        _fixBuilder._variables.toFinalType(decoratedType);
     super.visitGenericFunctionType(node);
   }
 
@@ -617,7 +651,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
         ..makeNullable = true
         ..makeNullableType = decoratedType;
     }
-    node.type = decoratedType.toFinalType(_fixBuilder.typeProvider);
+    node.type = _fixBuilder._variables.toFinalType(decoratedType);
     super.visitTypeName(node);
   }
 

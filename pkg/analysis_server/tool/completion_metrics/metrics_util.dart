@@ -50,39 +50,45 @@ class Counter {
 
   void printCounterValues() {
     print('Counts for \'$name\':');
-    _buckets.forEach((id, count) =>
-        print('[$id] $count (${printPercentage(count / _totalCount, 2)})'));
+    if (totalCount > 0) {
+      _buckets.forEach((id, count) =>
+          print('[$id] $count (${printPercentage(count / _totalCount, 2)})'));
+    } else {
+      print('<no counts>');
+    }
   }
 }
 
 /// A computer for the mean reciprocal rank,
 /// https://en.wikipedia.org/wiki/Mean_reciprocal_rank.
 class MeanReciprocalRankComputer {
-  final List<double> _ranks = [];
+  final List<int> ranks = [];
   MeanReciprocalRankComputer();
 
-  double get mean {
+  double get mrr {
+    if (ranks.isEmpty) {
+      return 0;
+    }
+
     double sum = 0;
-    _ranks.forEach((rank) {
-      sum += rank;
+    ranks.forEach((rank) {
+      sum += rank != 0 ? (1 / rank) : 0;
     });
-    return rankCount == 0 ? 0 : sum / rankCount;
+    return sum / rankCount;
   }
 
-  int get rankCount => _ranks.length;
+  int get rankCount => ranks.length;
 
-  int get ranks => _ranks.length;
-
-  void addReciprocalRank(Place place) {
-    _ranks.add(place.reciprocalRank);
+  void addRank(int rank) {
+    ranks.add(rank);
   }
 
-  void clear() => _ranks.clear();
+  void clear() => ranks.clear();
 
   void printMean() {
-    var mrr = mean;
-    print('Mean Reciprocal Rank    = ${mrr.toStringAsFixed(5)}');
-    print('Harmonic Mean (inverse) = ${(1 / mrr).toStringAsFixed(1)}');
+    var mrrVal = mrr;
+    print('Mean Reciprocal Rank    = ${mrrVal.toStringAsFixed(5)}');
+    print('Harmonic Mean (inverse) = ${(1 / mrrVal).toStringAsFixed(2)}');
   }
 }
 
@@ -110,7 +116,7 @@ class Place {
 
   int get numerator => _numerator;
 
-  double get reciprocalRank => denominator == 0 ? 0 : numerator / denominator;
+  int get rank => _numerator;
 
   @override
   bool operator ==(dynamic other) =>

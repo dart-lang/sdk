@@ -17,7 +17,6 @@ import 'package:kernel/ast.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
@@ -1558,7 +1557,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
         assert(!getterBuilder.isStatic);
         readTarget = getterBuilder.readTarget;
         invokeTarget = getterBuilder.invokeTarget;
-      } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
+      } else if (getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
         invokeTarget = getterBuilder.invokeTarget;
       }
@@ -1860,13 +1859,13 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         MemberBuilder procedureBuilder = getterBuilder;
         readTarget = procedureBuilder.readTarget;
         invokeTarget = procedureBuilder.invokeTarget;
-      } else if (getterBuilder is FunctionBuilder && getterBuilder.isOperator) {
+      } else if (getterBuilder.isOperator) {
         assert(!getterBuilder.isStatic);
         MemberBuilder memberBuilder = getterBuilder;
         invokeTarget = memberBuilder.invokeTarget;
       } else {
         return unhandled(
-            "${getterBuilder.runtimeType}",
+            "$getterBuilder (${getterBuilder.runtimeType})",
             "InstanceExtensionAccessGenerator.fromBuilder",
             offsetForToken(token),
             helper.uri);
@@ -1883,7 +1882,7 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
         writeTarget = memberBuilder.writeTarget;
       } else {
         return unhandled(
-            "${setterBuilder.runtimeType}",
+            "$setterBuilder (${setterBuilder.runtimeType})",
             "InstanceExtensionAccessGenerator.fromBuilder",
             offsetForToken(token),
             helper.uri);

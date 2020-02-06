@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "issue39938_lib.dart" as iss;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///issue39938_lib.dart";
+
+static method main() → dynamic {
+  self::expect(true, iss::Extension|+(true, true));
+  self::expect(true, iss::Extension|+(true, false));
+  self::expect(true, iss::Extension|+(false, true));
+  self::expect(false, iss::Extension|+(false, false));
+  self::expect(true, iss::Extension|+(true, true));
+  self::expect(true, iss::Extension|+(true, false));
+  self::expect(true, iss::Extension|+(false, true));
+  self::expect(false, iss::Extension|+(false, false));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}.";
+}
+
+library;
+import self as iss;
+import "dart:core" as core;
+
+extension Extension on core::bool* {
+  operator + = iss::Extension|+;
+}
+static method Extension|+(final core::bool* #this, core::bool* other) → core::bool*
+  return #this.{core::bool::|}(other);

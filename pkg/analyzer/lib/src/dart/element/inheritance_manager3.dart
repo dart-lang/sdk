@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/error/correct_override.dart';
 import 'package:analyzer/src/generated/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:meta/meta.dart';
@@ -416,10 +417,13 @@ class InheritanceManager3 {
       ExecutableElement validOverride;
       for (var i = candidates.length - 1; i >= 0; i--) {
         validOverride = candidates[i];
+        var overrideHelper = CorrectOverrideHelper(
+          typeSystem: typeSystem,
+          thisMember: validOverride,
+        );
         for (var j = 0; j < candidates.length; j++) {
           var candidate = candidates[j];
-          if (!typeSystem.isOverrideSubtypeOf(
-              validOverride.type, candidate.type)) {
+          if (!overrideHelper.isCorrectOverrideOf(superMember: candidate)) {
             validOverride = null;
             break;
           }

@@ -596,9 +596,6 @@ bool TimelineEvent::Within(int64_t time_origin_micros,
 
 #ifndef PRODUCT
 void TimelineEvent::PrintJSON(JSONStream* stream) const {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject obj(stream);
   int64_t pid = OS::ProcessId();
   int64_t tid = OSThread::ThreadIdToIntPtr(thread_);
@@ -912,9 +909,6 @@ TimelineEventRecorder::TimelineEventRecorder()
 
 #ifndef PRODUCT
 void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
-  if (!FLAG_support_service) {
-    return;
-  }
   OSThreadIterator it;
   while (it.HasNext()) {
     OSThread* thread = it.Next();
@@ -1036,9 +1030,6 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
 
 #ifndef PRODUCT
 void TimelineEventRecorder::WriteTo(const char* directory) {
-  if (!FLAG_support_service) {
-    return;
-  }
   Dart_FileOpenCallback file_open = Dart::file_open_callback();
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
@@ -1136,9 +1127,6 @@ intptr_t TimelineEventFixedBufferRecorder::Size() {
 void TimelineEventFixedBufferRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndex();
@@ -1167,9 +1155,6 @@ void TimelineEventFixedBufferRecorder::PrintJSONEvents(
 
 void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
                                                  TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "Timeline");
   {
@@ -1184,9 +1169,6 @@ void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
 void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONArray events(js);
   PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
@@ -1262,9 +1244,6 @@ TimelineEventCallbackRecorder::~TimelineEventCallbackRecorder() {}
 #ifndef PRODUCT
 void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
                                               TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "Timeline");
   {
@@ -1278,9 +1257,6 @@ void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
 void TimelineEventCallbackRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONArray events(js);
 }
 #endif
@@ -1302,9 +1278,6 @@ TimelineEventPlatformRecorder::~TimelineEventPlatformRecorder() {}
 #ifndef PRODUCT
 void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
                                               TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "Timeline");
   {
@@ -1318,9 +1291,6 @@ void TimelineEventPlatformRecorder::PrintJSON(JSONStream* js,
 void TimelineEventPlatformRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONArray events(js);
 }
 #endif
@@ -1352,9 +1322,6 @@ TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
 #ifndef PRODUCT
 void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
                                              TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONObject topLevel(js);
   topLevel.AddProperty("type", "Timeline");
   {
@@ -1369,9 +1336,6 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
 void TimelineEventEndlessRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   JSONArray events(js);
   PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
@@ -1413,9 +1377,6 @@ static int TimelineEventBlockCompare(TimelineEventBlock* const* a,
 void TimelineEventEndlessRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
-  if (!FLAG_support_service) {
-    return;
-  }
   MutexLocker ml(&lock_);
   ResetTimeTracking();
   // Collect all interesting blocks.

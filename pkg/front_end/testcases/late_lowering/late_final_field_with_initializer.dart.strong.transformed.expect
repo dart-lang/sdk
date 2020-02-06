@@ -1,6 +1,7 @@
 library;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Class<T extends core::Object? = dynamic> extends core::Object {
   static field core::int? lateStaticField1Init = null;
@@ -20,12 +21,12 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return self::Class::lateStaticField1Init = value;
   }
   static get lateStaticField1() → core::int
-    return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1.==(null) ?{core::int} self::Class::_#lateStaticField1 = self::Class::initLateStaticField1(87) : #t1{core::int};
+    return let final core::int? #t1 = self::Class::_#lateStaticField1 in #t1.==(null) ?{core::int} let final core::int #t2 = self::Class::initLateStaticField1(87) in self::Class::_#lateStaticField1.==(null) ?{core::int} self::Class::_#lateStaticField1 = #t2 : throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField1' has been assigned during initialization.") : #t1{core::int};
   static method initLateStaticField2(core::int value) → core::int {
     return self::Class::lateStaticField2Init = value;
   }
   static get lateStaticField2() → core::int
-    return let final core::int? #t2 = self::Class::_#lateStaticField2 in #t2.==(null) ?{core::int} self::Class::_#lateStaticField2 = self::Class::initLateStaticField2(42) : #t2{core::int};
+    return let final core::int? #t3 = self::Class::_#lateStaticField2 in #t3.==(null) ?{core::int} let final core::int #t4 = self::Class::initLateStaticField2(42) in self::Class::_#lateStaticField2.==(null) ?{core::int} self::Class::_#lateStaticField2 = #t4 : throw new _in::LateInitializationErrorImpl::•("Field 'lateStaticField2' has been assigned during initialization.") : #t3{core::int};
   static method staticMethod() → dynamic {
     self::expect(null, self::Class::lateStaticField2Init);
     self::expect(42, self::Class::lateStaticField2);
@@ -35,16 +36,19 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return this.{self::Class::lateInstanceFieldInit} = value;
   }
   get lateInstanceField() → core::int
-    return let final core::int? #t3 = this.{self::Class::_#Class#lateInstanceField} in #t3.==(null) ?{core::int} this.{self::Class::_#Class#lateInstanceField} = this.{self::Class::initLateInstanceField}(16) : #t3{core::int};
+    return let final core::int? #t5 = this.{self::Class::_#Class#lateInstanceField} in #t5.==(null) ?{core::int} let final core::int #t6 = this.{self::Class::initLateInstanceField}(16) in this.{self::Class::_#Class#lateInstanceField}.==(null) ?{core::int} this.{self::Class::_#Class#lateInstanceField} = #t6 : throw new _in::LateInitializationErrorImpl::•("Field 'lateInstanceField' has been assigned during initialization.") : #t5{core::int};
   method initLateGenericField(generic-covariant-impl self::Class::T% value) → self::Class::T% {
     return this.{self::Class::lateGenericFieldInit} = value;
   }
   get lateGenericField() → self::Class::T% {
     if(!this.{self::Class::_#Class#lateGenericField#isSet}) {
+      final self::Class::T% #t7 = this.{self::Class::initLateGenericField}(this.{self::Class::field});
+      if(this.{self::Class::_#Class#lateGenericField#isSet})
+        throw new _in::LateInitializationErrorImpl::•("Field 'lateGenericField' has been assigned during initialization.");
       this.{self::Class::_#Class#lateGenericField#isSet} = true;
-      this.{self::Class::_#Class#lateGenericField} = this.{self::Class::initLateGenericField}(this.{self::Class::field});
+      this.{self::Class::_#Class#lateGenericField} = #t7;
     }
-    return let final self::Class::T? #t4 = this.{self::Class::_#Class#lateGenericField} in #t4{self::Class::T%};
+    return let final self::Class::T? #t8 = this.{self::Class::_#Class#lateGenericField} in #t8{self::Class::T%};
   }
   method instanceMethod() → dynamic {
     self::expect(null, this.{self::Class::lateInstanceFieldInit});
@@ -76,17 +80,17 @@ static method initLateTopLevelField1(core::int value) → core::int {
   return self::lateTopLevelField1Init = value;
 }
 static get lateTopLevelField1() → core::int
-  return let final core::int? #t5 = self::_#lateTopLevelField1 in #t5.==(null) ?{core::int} self::_#lateTopLevelField1 = self::initLateTopLevelField1(123) : #t5{core::int};
+  return let final core::int? #t9 = self::_#lateTopLevelField1 in #t9.==(null) ?{core::int} let final core::int #t10 = self::initLateTopLevelField1(123) in self::_#lateTopLevelField1.==(null) ?{core::int} self::_#lateTopLevelField1 = #t10 : throw new _in::LateInitializationErrorImpl::•("Field 'lateTopLevelField1' has been assigned during initialization.") : #t9{core::int};
 static method Extension|initLateExtensionField1(core::int value) → core::int {
   return self::Extension|lateExtensionField1Init = value;
 }
 static get Extension|lateExtensionField1() → core::int
-  return let final core::int? #t6 = self::_#Extension|lateExtensionField1 in #t6.==(null) ?{core::int} self::_#Extension|lateExtensionField1 = self::Extension|initLateExtensionField1(87) : #t6{core::int};
+  return let final core::int? #t11 = self::_#Extension|lateExtensionField1 in #t11.==(null) ?{core::int} let final core::int #t12 = self::Extension|initLateExtensionField1(87) in self::_#Extension|lateExtensionField1.==(null) ?{core::int} self::_#Extension|lateExtensionField1 = #t12 : throw new _in::LateInitializationErrorImpl::•("Field 'lateExtensionField1' has been assigned during initialization.") : #t11{core::int};
 static method Extension|initLateExtensionField2(core::int value) → core::int {
   return self::Extension|lateExtensionField2Init = value;
 }
 static get Extension|lateExtensionField2() → core::int
-  return let final core::int? #t7 = self::_#Extension|lateExtensionField2 in #t7.==(null) ?{core::int} self::_#Extension|lateExtensionField2 = self::Extension|initLateExtensionField2(42) : #t7{core::int};
+  return let final core::int? #t13 = self::_#Extension|lateExtensionField2 in #t13.==(null) ?{core::int} let final core::int #t14 = self::Extension|initLateExtensionField2(42) in self::_#Extension|lateExtensionField2.==(null) ?{core::int} self::_#Extension|lateExtensionField2 = #t14 : throw new _in::LateInitializationErrorImpl::•("Field 'lateExtensionField2' has been assigned during initialization.") : #t13{core::int};
 static method Extension|staticMethod() → dynamic {
   self::expect(null, self::Extension|lateExtensionField2Init);
   self::expect(42, self::Extension|lateExtensionField2);

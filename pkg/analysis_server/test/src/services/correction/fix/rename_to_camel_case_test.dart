@@ -26,7 +26,7 @@ class RenameToCamelCaseTest extends FixProcessorLintTest {
   Future<void> test_localVariable() async {
     await resolveTestUnit('''
 main() {
-  int /*LINT*/my_integer_variable = 42;
+  int my_integer_variable = 42;
   int foo;
   print(my_integer_variable);
   print(foo);
@@ -45,7 +45,7 @@ main() {
   Future<void> test_parameter_closure() async {
     await resolveTestUnit('''
 main() {
-  [0, 1, 2].forEach((/*LINT*/my_integer_variable) {
+  [0, 1, 2].forEach((my_integer_variable) {
     print(my_integer_variable);
   });
 }
@@ -61,7 +61,7 @@ main() {
 
   Future<void> test_parameter_function() async {
     await resolveTestUnit('''
-main(int /*LINT*/my_integer_variable) {
+main(int my_integer_variable) {
   print(my_integer_variable);
 }
 ''');
@@ -75,7 +75,7 @@ main(int myIntegerVariable) {
   Future<void> test_parameter_method() async {
     await resolveTestUnit('''
 class A {
-  main(int /*LINT*/my_integer_variable) {
+  main(int my_integer_variable) {
     print(my_integer_variable);
   }
 }
@@ -91,7 +91,7 @@ class A {
 
   Future<void> test_parameter_optionalNamed() async {
     await resolveTestUnit('''
-foo({int /*LINT*/my_integer_variable}) {
+foo({int my_integer_variable}) {
   print(my_integer_variable);
 }
 ''');
@@ -100,7 +100,7 @@ foo({int /*LINT*/my_integer_variable}) {
 
   Future<void> test_parameter_optionalPositional() async {
     await resolveTestUnit('''
-main([int /*LINT*/my_integer_variable]) {
+main([int my_integer_variable]) {
   print(my_integer_variable);
 }
 ''');

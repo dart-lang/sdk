@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -231,5 +232,67 @@ class A<T, U> {
       findNode.listLiteral('const []'),
       'List<Never Function(Object?)>',
     );
+  }
+
+  test_field_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  static const foo = 42;
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'a.dart';
+
+const bar = A.foo;
+''');
+
+    var bar = findElement.topVar('bar');
+    _assertIntValue(bar, 42);
+  }
+
+  test_topLevelVariable_optIn_fromOptOut() async {
+    newFile('/test/lib/a.dart', content: r'''
+const foo = 42;
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'a.dart';
+
+const bar = foo;
+''');
+
+    var bar = findElement.topVar('bar');
+    assertType(bar.type, 'int*');
+    _assertIntValue(bar, 42);
+  }
+
+  test_topLevelVariable_optOut2() async {
+    newFile('/test/lib/a.dart', content: r'''
+const a = 42;
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+import 'a.dart';
+
+const b = a;
+''');
+
+    await assertNoErrorsInCode(r'''
+// @dart = 2.5
+import 'b.dart';
+
+const c = b;
+''');
+
+    var c = findElement.topVar('c');
+    assertType(c.type, 'int*');
+    _assertIntValue(c, 42);
+  }
+
+  void _assertIntValue(VariableElement element, int value) {
+    expect(element.constantValue.toIntValue(), value);
   }
 }

@@ -1,0 +1,12 @@
+// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'generate_resources.dart' as generate_resources;
+
+/// Validate that the
+/// pkg/analysis_server/lib/src/edit/nnbd_migration/resources/resources.g.dart
+/// file was regenerated after changing upstream dependencies.
+void main() async {
+  generate_resources.main(['--verify']);
+}

@@ -67,7 +67,7 @@ String getTopLevelName(NamedNode n) {
 ///
 ///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
 ///
-Expression findAnnotation(TreeNode node, bool test(Expression value)) {
+Expression findAnnotation(TreeNode node, bool Function(Expression) test) {
   List<Expression> annotations;
   if (node is Class) {
     annotations = node.annotations;

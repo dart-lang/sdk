@@ -37,6 +37,7 @@ b0x
 b1x
 b2x
 ba
+baba
 backed
 bailout
 bash
@@ -341,6 +342,7 @@ reflectee
 reflective
 regenerate
 regressions
+reify
 reload
 remap
 remaps
@@ -446,6 +448,8 @@ workflow
 worlds
 ws
 x's
+xlate
+xrequired
 xxx
 y's
 year

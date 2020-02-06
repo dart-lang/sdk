@@ -934,6 +934,36 @@ const MessageCode messageConstClass = const MessageCode("ConstClass",
         r"""Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstConstructorLateFinalFieldCause =
+    messageConstConstructorLateFinalFieldCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstConstructorLateFinalFieldCause =
+    const MessageCode("ConstConstructorLateFinalFieldCause",
+        severity: Severity.context,
+        message: r"""Field is late, but constructor is 'const'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstConstructorLateFinalFieldError =
+    messageConstConstructorLateFinalFieldError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstConstructorLateFinalFieldError =
+    const MessageCode("ConstConstructorLateFinalFieldError",
+        message: r"""Constructor is marked 'const' so fields can't be late.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeConstConstructorLateFinalFieldWarning =
+    messageConstConstructorLateFinalFieldWarning;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageConstConstructorLateFinalFieldWarning =
+    const MessageCode("ConstConstructorLateFinalFieldWarning",
+        severity: Severity.warning,
+        message:
+            r"""Constructor is marked 'const' and some fields are late.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeConstConstructorNonFinalField =
     messageConstConstructorNonFinalField;
 
@@ -1654,6 +1684,27 @@ const MessageCode messageDeclaredMemberConflictsWithInheritedMemberCause =
     const MessageCode("DeclaredMemberConflictsWithInheritedMemberCause",
         severity: Severity.context,
         message: r"""This is the inherited member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDefaultListConstructorError =
+    messageDefaultListConstructorError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDefaultListConstructorError = const MessageCode(
+    "DefaultListConstructorError",
+    message: r"""Can't use the default List constructor.""",
+    tip: r"""Try using List.filled instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeDefaultListConstructorWarning =
+    messageDefaultListConstructorWarning;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageDefaultListConstructorWarning = const MessageCode(
+    "DefaultListConstructorWarning",
+    severity: Severity.warning,
+    message: r"""Using the default List constructor.""",
+    tip: r"""Try using List.filled instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>

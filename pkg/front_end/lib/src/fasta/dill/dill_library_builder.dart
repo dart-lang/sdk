@@ -139,7 +139,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   void setLanguageVersion(int major, int minor,
       {int offset: 0, int length, bool explicit}) {}
 
-  Uri get uri => library.importUri;
+  Uri get importUri => library.importUri;
 
   Uri get fileUri => library.fileUri;
 

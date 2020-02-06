@@ -28,7 +28,7 @@ class ConvertToIfElementTest extends FixProcessorLintTest {
   Future<void> test_conditional_list() async {
     await resolveTestUnit('''
 f(bool b) {
-  return ['a', b /*LINT*/? 'c' : 'd', 'e'];
+  return ['a', b ? 'c' : 'd', 'e'];
 }
 ''');
     await assertHasFix('''

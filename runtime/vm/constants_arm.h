@@ -12,7 +12,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-namespace arch_arm {
+namespace dart {
 
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
@@ -253,6 +253,16 @@ static inline SRegister OddSRegisterOf(DRegister d) {
   return static_cast<SRegister>((d * 2) + 1);
 }
 
+static inline QRegister QRegisterOf(DRegister d) {
+  return static_cast<QRegister>(d / 2);
+}
+static inline QRegister QRegisterOf(SRegister s) {
+  return static_cast<QRegister>(s / 4);
+}
+static inline DRegister DRegisterOf(SRegister s) {
+  return static_cast<DRegister>(s / 2);
+}
+
 // Register aliases for floating point scratch registers.
 const QRegister QTMP = Q7;                     // Overlaps with DTMP, STMP.
 const DRegister DTMP = EvenDRegisterOf(QTMP);  // Overlaps with STMP.
@@ -267,6 +277,8 @@ const FpuRegister kNoFpuRegister = kNoQRegister;
 
 extern const char* cpu_reg_names[kNumberOfCpuRegisters];
 extern const char* fpu_reg_names[kNumberOfFpuRegisters];
+extern const char* fpu_s_reg_names[kNumberOfSRegisters];
+extern const char* fpu_d_reg_names[kNumberOfDRegisters];
 
 // Register aliases.
 const Register TMP = IP;            // Used as scratch register by assembler.
@@ -346,31 +358,43 @@ class CallingConventions {
   static const Register ArgumentRegisters[];
   static const intptr_t kNumArgRegs = 4;
 
-  static const FpuRegister FpuArgumentRegisters[];
   static const intptr_t kFpuArgumentRegisters = 0;
-  static const intptr_t kNumFpuArgRegs = 0;
+
+  static const FpuRegister FpuArgumentRegisters[];
+  static const intptr_t kNumFpuArgRegs = 4;
+  static const DRegister FpuDArgumentRegisters[];
+  static const intptr_t kNumDFpuArgRegs = 8;
+  static const SRegister FpuSArgumentRegisters[];
+  static const intptr_t kNumSFpuArgRegs = 16;
 
   static constexpr bool kArgumentIntRegXorFpuReg = false;
 
   static constexpr intptr_t kCalleeSaveCpuRegisters = kAbiPreservedCpuRegs;
 
-  // Whether floating-point values should be passed as integers ("softfp" vs
-  // "hardfp"). Android and iOS always use the "softfp" calling convention, even
-  // when hardfp support is present.
-#if defined(TARGET_OS_MACOS_IOS) || defined(TARGET_OS_ANDROID)
-  static constexpr bool kAbiSoftFP = true;
+  // Whether larger than wordsize arguments are aligned to even registers.
+  static constexpr AlignmentStrategy kArgumentRegisterAlignment =
+      kAlignedToWordSizeBut8AlignedTo8;
+
+  // How stack arguments are aligned.
+  static constexpr AlignmentStrategy kArgumentStackAlignment =
+      kAlignedToWordSizeBut8AlignedTo8;
+
+  // How fields in composites are aligned.
+#if defined(TARGET_OS_MACOS_IOS)
+  static constexpr AlignmentStrategy kFieldAlignment =
+      kAlignedToValueSizeBut8AlignedTo4;
 #else
-  static constexpr bool kAbiSoftFP = false;
+  static constexpr AlignmentStrategy kFieldAlignment = kAlignedToValueSize;
 #endif
 
-  // Whether 64-bit arguments must be aligned to an even register or 8-byte
-  // stack address. True for ARM 32-bit, see "Procedure Call Standard for the
-  // ARM Architecture".
-  static constexpr bool kAlignArguments = true;
+  // Whether 1 or 2 byte-sized arguments or return values are passed extended
+  // to 4 bytes.
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
 
   static constexpr Register kReturnReg = R0;
   static constexpr Register kSecondReturnReg = R1;
-  static constexpr FpuRegister kReturnFpuReg = kNoFpuRegister;
+  static constexpr FpuRegister kReturnFpuReg = Q0;
 
   // We choose these to avoid overlap between themselves and reserved registers.
   static constexpr Register kFirstNonArgumentRegister = R8;
@@ -663,14 +687,14 @@ class Instr {
   inline float ImmFloatField() const {
     uint32_t imm32 = (Bit(19) << 31) | (((1 << 5) - Bit(18)) << 25) |
                      (Bits(16, 2) << 23) | (Bits(0, 4) << 19);
-    return ::dart::bit_cast<float, uint32_t>(imm32);
+    return bit_cast<float, uint32_t>(imm32);
   }
 
   // Field used in VFP double immediate move instruction
   inline double ImmDoubleField() const {
     uint64_t imm64 = (Bit(19) * (1LL << 63)) | (((1LL << 8) - Bit(18)) << 54) |
                      (Bits(16, 2) * (1LL << 52)) | (Bits(0, 4) * (1LL << 48));
-    return ::dart::bit_cast<double, uint64_t>(imm64);
+    return bit_cast<double, uint64_t>(imm64);
   }
 
   inline Register DivRdField() const {
@@ -818,7 +842,7 @@ class Instr {
   // reference to an instruction is to convert a pointer. There is no way
   // to allocate or create instances of class Instr.
   // Use the At(pc) function to create references to Instr.
-  static Instr* At(::dart::uword pc) { return reinterpret_cast<Instr*>(pc); }
+  static Instr* At(uword pc) { return reinterpret_cast<Instr*>(pc); }
 
  private:
   DISALLOW_ALLOCATION();
@@ -835,6 +859,6 @@ float ReciprocalStep(float op1, float op2);
 float ReciprocalSqrtEstimate(float op);
 float ReciprocalSqrtStep(float op1, float op2);
 
-}  // namespace arch_arm
+}  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_ARM_H_

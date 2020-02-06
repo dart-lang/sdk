@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 
 /// Abstraction layer allowing the mechanism for looking up the types of
 /// elements to be customized.
@@ -13,54 +14,52 @@ import 'package:analyzer/dart/element/type.dart';
 ///
 /// This base class implementation gets types directly from the elements; for
 /// other behaviors, create a class that extends or implements this class.
+///
+/// Getters in the ElementImpl classes are automatically wired into this
+/// indirection mechanism, so it should be transparent to clients, as well as
+/// most analyzer internal code.
 class ElementTypeProvider {
+  /// The [ElementTypeProvider] currently in use.  Change this value to cause
+  /// element types to be looked up in a different way.
+  static ElementTypeProvider current = const ElementTypeProvider();
+
   const ElementTypeProvider();
+
+  /// Notifies the [ElementTypeProvider] that a fresh type parameter element has
+  /// been created.  If the [ElementTypeProvider] is storing additional
+  /// information about type parameter elements, this gives it an opportunity to
+  /// copy that information.
+  void freshTypeParameterCreated(TypeParameterElement newTypeParameter,
+      TypeParameterElement oldTypeParameter) {}
 
   /// Queries the parameters of an executable element's signature.
   ///
   /// Equivalent to `getExecutableType(...).parameters`.
-  List<ParameterElement> getExecutableParameters(ExecutableElement element) =>
-      element.parameters;
+  List<ParameterElement> getExecutableParameters(
+          ExecutableElementImpl element) =>
+      element.parametersInternal;
 
   /// Queries the return type of an executable element.
   ///
   /// Equivalent to `getExecutableType(...).returnType`.
-  DartType getExecutableReturnType(FunctionTypedElement element) =>
-      element.returnType;
+  DartType getExecutableReturnType(ElementImplWithFunctionType element) =>
+      element.returnTypeInternal;
 
   /// Queries the full type of an executable element.
   ///
   /// Guaranteed to be a function type.
-  FunctionType getExecutableType(FunctionTypedElement element) => element.type;
+  FunctionType getExecutableType(ElementImplWithFunctionType element) =>
+      element.typeInternal;
 
   /// Queries the type of a field.
-  DartType getFieldType(FieldElement element) => element.type;
+  DartType getFieldType(PropertyInducingElementImpl element) =>
+      element.typeInternal;
+
+  /// Queries the bound of a type parameter.
+  DartType getTypeParameterBound(TypeParameterElementImpl element) =>
+      element.boundInternal;
 
   /// Queries the type of a variable element.
-  DartType getVariableType(VariableElement variable) => variable.type;
-}
-
-/// Extension providing additional convenience functions based on
-/// [ElementTypeProvider].  This is an extension so that these methods don't
-/// need to be replicated when [ElementTypeProvider] is overridden.
-extension E on ElementTypeProvider {
-  /// Null-aware version of [ElementTypeProvider.getExecutableParameters].
-  List<ParameterElement> safeExecutableParameters(ExecutableElement element) =>
-      element == null ? null : getExecutableParameters(element);
-
-  /// Null-aware version of [ElementTypeProvider.getExecutableReturnType].
-  DartType safeExecutableReturnType(FunctionTypedElement element) =>
-      element == null ? null : getExecutableReturnType(element);
-
-  /// Null-aware version of [ElementTypeProvider.getExecutableType].
-  FunctionType safeExecutableType(ExecutableElement element) =>
-      element == null ? null : getExecutableType(element);
-
-  /// Null-aware version of [ElementTypeProvider.getFieldType].
-  DartType safeFieldType(FieldElement element) =>
-      element == null ? null : getFieldType(element);
-
-  /// Null-aware version of [ElementTypeProvider.getVariableType].
-  DartType safeVariableType(VariableElement variable) =>
-      variable == null ? null : getVariableType(variable);
+  DartType getVariableType(VariableElementImpl variable) =>
+      variable.typeInternal;
 }

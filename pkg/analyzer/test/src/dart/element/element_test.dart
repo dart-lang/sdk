@@ -223,20 +223,6 @@ class ClassElementImplTest extends AbstractTypeTest {
     expect(classA.hasStaticMember, isTrue);
   }
 
-  void test_isEnum() {
-    String firstConst = "A";
-    String secondConst = "B";
-    EnumElementImpl enumE = ElementFactory.enumElement(
-        TestTypeProvider(), "E", [firstConst, secondConst]);
-
-    // E is an enum
-    expect(enumE.isEnum, true);
-
-    // A and B are static members
-    expect(enumE.getField(firstConst).isEnumConstant, true);
-    expect(enumE.getField(secondConst).isEnumConstant, true);
-  }
-
   void test_lookUpConcreteMethod_declared() {
     // class A {
     //   m() {}
@@ -867,28 +853,6 @@ class ClassElementImplTest extends AbstractTypeTest {
 
 @reflectiveTest
 class CompilationUnitElementImplTest {
-  void test_getEnum_declared() {
-    TestTypeProvider typeProvider = TestTypeProvider();
-    CompilationUnitElementImpl unit =
-        ElementFactory.compilationUnit("/lib.dart");
-    String enumName = "E";
-    ClassElement enumElement =
-        ElementFactory.enumElement(typeProvider, enumName);
-    unit.enums = <ClassElement>[enumElement];
-    expect(unit.getEnum(enumName), same(enumElement));
-  }
-
-  void test_getEnum_undeclared() {
-    TestTypeProvider typeProvider = TestTypeProvider();
-    CompilationUnitElementImpl unit =
-        ElementFactory.compilationUnit("/lib.dart");
-    String enumName = "E";
-    ClassElement enumElement =
-        ElementFactory.enumElement(typeProvider, enumName);
-    unit.enums = <ClassElement>[enumElement];
-    expect(unit.getEnum("${enumName}x"), isNull);
-  }
-
   void test_getType_declared() {
     CompilationUnitElementImpl unit =
         ElementFactory.compilationUnit("/lib.dart");

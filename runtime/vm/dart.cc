@@ -381,15 +381,18 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   Isolate::SetCleanupCallback(cleanup);
   Isolate::SetGroupCleanupCallback(cleanup_group);
 
-  if (FLAG_support_service) {
-    Service::SetGetServiceAssetsCallback(get_service_assets);
-  }
+#ifndef PRODUCT
+  const bool support_service = true;
+  Service::SetGetServiceAssetsCallback(get_service_assets);
+#else
+  const bool support_service = false;
+#endif
 
   const bool is_dart2_aot_precompiler =
       FLAG_precompiled_mode && !kDartPrecompiledRuntime;
 
   if (!is_dart2_aot_precompiler &&
-      (FLAG_support_service || !kDartPrecompiledRuntime)) {
+      (support_service || !kDartPrecompiledRuntime)) {
     ServiceIsolate::Run();
   }
 

@@ -159,7 +159,7 @@ const a = dynamic;
 const a = b;
 const b = 3;''');
     var environment = <String, DartObjectImpl>{
-      'b': DartObjectImpl(typeProvider.intType, IntState(6)),
+      'b': DartObjectImpl(typeSystem, typeProvider.intType, IntState(6)),
     };
     var result = _evaluateConstant('a', lexicalEnvironment: environment);
     expect(result.type, typeProvider.intType);
@@ -171,7 +171,7 @@ const b = 3;''');
 const a = b;
 const b = 3;''');
     var environment = <String, DartObjectImpl>{
-      'c': DartObjectImpl(typeProvider.intType, IntState(6)),
+      'c': DartObjectImpl(typeSystem, typeProvider.intType, IntState(6)),
     };
     var result = _evaluateConstant('a', lexicalEnvironment: environment);
     expect(result.type, typeProvider.intType);

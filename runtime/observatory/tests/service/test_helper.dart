@@ -109,15 +109,21 @@ class _ServiceTesteeLauncher {
       bool testeeControlsServer,
       Uri serviceInfoUri,
       int port,
-      List<String> extraArgs) {
+      List<String> extraArgs,
+      List<String> executableArgs) {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
     assert(pause_on_unhandled_exceptions != null);
     assert(testeeControlsServer != null);
 
     if (_shouldLaunchSkyShell()) {
-      return _spawnSkyProcess(pause_on_start, pause_on_exit,
-          pause_on_unhandled_exceptions, testeeControlsServer, extraArgs);
+      return _spawnSkyProcess(
+          pause_on_start,
+          pause_on_exit,
+          pause_on_unhandled_exceptions,
+          testeeControlsServer,
+          extraArgs,
+          executableArgs);
     } else {
       return _spawnDartProcess(
           pause_on_start,
@@ -127,7 +133,8 @@ class _ServiceTesteeLauncher {
           testeeControlsServer,
           serviceInfoUri,
           port,
-          extraArgs);
+          extraArgs,
+          executableArgs);
     }
   }
 
@@ -139,7 +146,8 @@ class _ServiceTesteeLauncher {
       bool testeeControlsServer,
       Uri serviceInfoUri,
       int port,
-      List<String> extraArgs) {
+      List<String> extraArgs,
+      List<String> executableArgs) {
     assert(!_shouldLaunchSkyShell());
 
     String dartExecutable = Platform.executable;
@@ -163,8 +171,7 @@ class _ServiceTesteeLauncher {
     if (extraArgs != null) {
       fullArgs.addAll(extraArgs);
     }
-
-    fullArgs.addAll(Platform.executableArguments);
+    fullArgs.addAll(executableArgs);
     if (!testeeControlsServer) {
       fullArgs.add('--enable-vm-service:$port');
     }
@@ -178,7 +185,8 @@ class _ServiceTesteeLauncher {
       bool pause_on_exit,
       bool pause_on_unhandled_exceptions,
       bool testeeControlsServer,
-      List<String> extraArgs) {
+      List<String> extraArgs,
+      List<String> executableArgs) {
     assert(_shouldLaunchSkyShell());
 
     String dartExecutable = _skyShellPath();
@@ -201,8 +209,7 @@ class _ServiceTesteeLauncher {
     if (extraArgs != null) {
       fullArgs.addAll(extraArgs);
     }
-
-    fullArgs.addAll(Platform.executableArguments);
+    fullArgs.addAll(executableArgs);
     if (!testeeControlsServer) {
       fullArgs.add('--observatory-port=0');
     }
@@ -233,7 +240,8 @@ class _ServiceTesteeLauncher {
       bool enable_service_port_fallback,
       bool testeeControlsServer,
       int port,
-      List<String> extraArgs) async {
+      List<String> extraArgs,
+      List<String> executableArgs) async {
     final completer = new Completer<Uri>();
     final serviceInfoDir =
         await Directory.systemTemp.createTemp('dart_service');
@@ -247,7 +255,8 @@ class _ServiceTesteeLauncher {
             testeeControlsServer,
             serviceInfoUri,
             port,
-            extraArgs)
+            extraArgs,
+            executableArgs)
         .then((p) async {
       process = p;
       Uri uri;
@@ -312,6 +321,7 @@ class _ServiceTesterRunner {
   void run({
     List<String> mainArgs,
     List<String> extraArgs,
+    List<String> executableArgs,
     List<VMTest> vmTests,
     List<IsolateTest> isolateTests,
     bool pause_on_start: false,
@@ -322,6 +332,10 @@ class _ServiceTesterRunner {
     bool testeeControlsServer: false,
     int port = 0,
   }) {
+    if (executableArgs == null) {
+      executableArgs = Platform.executableArguments;
+    }
+
     var process = new _ServiceTesteeLauncher();
     bool testsDone = false;
     runZoned(() {
@@ -333,7 +347,8 @@ class _ServiceTesterRunner {
               enable_service_port_fallback,
               testeeControlsServer,
               port,
-              extraArgs)
+              extraArgs,
+              executableArgs)
           .then((Uri serverAddress) async {
         if (mainArgs.contains("--gdb")) {
           var pid = process.process.pid;
@@ -515,7 +530,8 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
     bool pause_on_unhandled_exceptions: false,
     bool enable_service_port_fallback: false,
     int port = 0,
-    List<String> extraArgs}) async {
+    List<String> extraArgs,
+    List<String> executableArgs}) async {
   if (_isTestee()) {
     new _ServiceTesteeRunner().run(
         testeeBefore: testeeBefore,
@@ -526,6 +542,7 @@ Future runVMTests(List<String> mainArgs, List<VMTest> tests,
     new _ServiceTesterRunner().run(
       mainArgs: mainArgs,
       extraArgs: extraArgs,
+      executableArgs: executableArgs,
       vmTests: tests,
       pause_on_start: pause_on_start,
       pause_on_exit: pause_on_exit,

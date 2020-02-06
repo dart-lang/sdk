@@ -2248,8 +2248,8 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
     }
   }
-  if (FLAG_deoptimize_filter != nullptr || FLAG_stacktrace_filter != nullptr ||
-      (FLAG_reload_every != 0)) {
+  if ((FLAG_deoptimize_filter != nullptr) ||
+      (FLAG_stacktrace_filter != nullptr) || (FLAG_reload_every != 0)) {
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
@@ -2264,8 +2264,12 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       function = code.function();
     }
     ASSERT(!function.IsNull());
-    const char* function_name = function.ToFullyQualifiedCString();
-    ASSERT(function_name != nullptr);
+    const char* function_name = nullptr;
+    if ((FLAG_deoptimize_filter != nullptr) ||
+        (FLAG_stacktrace_filter != nullptr)) {
+      function_name = function.ToFullyQualifiedCString();
+      ASSERT(function_name != nullptr);
+    }
     if (!code.IsNull()) {
       if (!code.is_optimized() && FLAG_reload_every_optimized) {
         // Don't do the reload if we aren't inside optimized code.

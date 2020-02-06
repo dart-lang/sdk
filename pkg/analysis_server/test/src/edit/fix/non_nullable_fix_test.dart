@@ -30,13 +30,6 @@ class NonNullableFixTest extends AbstractAnalysisTest {
 
   String get nextRequestId => (++requestId).toString();
 
-  /// On Windows, canonicalization results in changing a drive letter to be
-  /// lowercase. When a path is canonicalized in [NonNullableFix], and asserted
-  /// on in a test below, the expected path below also needs to be
-  /// canonicalized.
-  String canonicalizeAndConvertPath(String p) =>
-      convertPath(context.canonicalize(p));
-
   Future<EditDartfixResult> performFix({List<String> included}) async {
     final id = nextRequestId;
     final params = EditDartfixParams(included);
@@ -80,7 +73,7 @@ class NonNullableFixTest extends AbstractAnalysisTest {
 
   Future<void> test_included_multipleRelativeDirectories() async {
     NonNullableFix fix = NonNullableFix(listener, included: ['lib', 'test']);
-    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
+    expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
   Future<void> test_included_multipleRelativeDirectories_nonCanonical() async {
@@ -88,8 +81,7 @@ class NonNullableFixTest extends AbstractAnalysisTest {
       convertPath('../project2/lib'),
       convertPath('../project2/lib/src')
     ]);
-    expect(
-        fix.includedRoot, equals(canonicalizeAndConvertPath('/project2/lib')));
+    expect(fix.includedRoot, equals(convertPath('/project2/lib')));
   }
 
   Future<void>
@@ -98,13 +90,13 @@ class NonNullableFixTest extends AbstractAnalysisTest {
       convertPath('../project2/lib'),
       convertPath('../project/lib')
     ]);
-    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/')));
+    expect(fix.includedRoot, equals(convertPath('/')));
   }
 
   Future<void>
       test_included_multipleRelativeDirectories_subAndSuperDirectories() async {
     NonNullableFix fix = NonNullableFix(listener, included: ['lib', '.']);
-    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
+    expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
   Future<void> test_included_multipleRelativeFiles() async {
@@ -112,14 +104,13 @@ class NonNullableFixTest extends AbstractAnalysisTest {
       convertPath('lib/lib1.dart'),
       convertPath('test/test.dart')
     ]);
-    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
+    expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
   Future<void> test_included_multipleRelativeFiles_sameDirectory() async {
     NonNullableFix fix = NonNullableFix(listener,
         included: [convertPath('lib/lib1.dart'), convertPath('lib/lib2.dart')]);
-    expect(
-        fix.includedRoot, equals(canonicalizeAndConvertPath('/project/lib')));
+    expect(fix.includedRoot, equals(convertPath('/project/lib')));
   }
 
   Future<void> test_included_multipleRelativeFilesAndDirectories() async {
@@ -128,25 +119,23 @@ class NonNullableFixTest extends AbstractAnalysisTest {
       convertPath('lib/src'),
       convertPath('../project/lib/src/lib3.dart')
     ]);
-    expect(
-        fix.includedRoot, equals(canonicalizeAndConvertPath('/project/lib')));
+    expect(fix.includedRoot, equals(convertPath('/project/lib')));
   }
 
   Future<void> test_included_singleAbsoluteDirectory() async {
     NonNullableFix fix =
         NonNullableFix(listener, included: [convertPath('/project')]);
-    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
+    expect(fix.includedRoot, equals(convertPath('/project')));
   }
 
   Future<void> test_included_singleAbsoluteFile() async {
     NonNullableFix fix = NonNullableFix(listener,
         included: [convertPath('/project/bin/bin.dart')]);
-    expect(
-        fix.includedRoot, equals(canonicalizeAndConvertPath('/project/bin')));
+    expect(fix.includedRoot, equals(convertPath('/project/bin')));
   }
 
   Future<void> test_included_singleRelativeDirectory() async {
     NonNullableFix fix = NonNullableFix(listener, included: ['.']);
-    expect(fix.includedRoot, equals(canonicalizeAndConvertPath('/project')));
+    expect(fix.includedRoot, equals(convertPath('/project')));
   }
 }

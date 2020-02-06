@@ -22,6 +22,7 @@ void help() {
     var result = p.runSync('--help');
 
     expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
     expect(result.stdout, contains(DartdevRunner.dartdevDescription));
     expect(result.stdout, contains('Usage: dartdev <command> [arguments]'));
     expect(result.stdout, contains('Global options:'));

@@ -17,6 +17,11 @@ used (see Issue [39627][]).
 
 #### `dart:io`
 
+* The `Socket` class will now throw a `SocketException` if the socket has been
+  destroyed or upgraded to a secure socket upon setting or getting socket
+  options. Previously setting a socket options would be ignored and getting a
+  socket option would return `null`.
+
 ### Dart VM
 
 ### Tools

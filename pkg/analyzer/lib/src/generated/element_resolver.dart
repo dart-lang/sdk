@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -119,26 +118,21 @@ class ElementResolver extends SimpleAstVisitor<void> {
 
   MethodInvocationResolver _methodInvocationResolver;
 
-  final ElementTypeProvider _elementTypeProvider;
-
   /**
    * Initialize a newly created visitor to work for the given [_resolver] to
    * resolve the nodes in a compilation unit.
    */
   ElementResolver(this._resolver,
       {this.reportConstEvaluationErrors = true,
-      ElementTypeProvider elementTypeProvider = const ElementTypeProvider(),
       MigratableAstInfoProvider migratableAstInfoProvider =
           const MigratableAstInfoProvider()})
       : _definingLibrary = _resolver.definingLibrary,
         _extensionResolver = _resolver.extensionResolver,
-        _typePropertyResolver = _resolver.typePropertyResolver,
-        _elementTypeProvider = elementTypeProvider {
+        _typePropertyResolver = _resolver.typePropertyResolver {
     _dynamicType = _typeProvider.dynamicType;
     _typeType = _typeProvider.typeType;
     _methodInvocationResolver = MethodInvocationResolver(
       _resolver,
-      elementTypeProvider,
       migratableAstInfoProvider,
       inferenceHelper: _resolver.inferenceHelper,
     );
@@ -959,9 +953,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (expression is NullLiteral) {
       return _typeProvider.nullType;
     }
-    DartType type = read
-        ? getReadType(expression, elementTypeProvider: _elementTypeProvider)
-        : expression.staticType;
+    DartType type = read ? getReadType(expression) : expression.staticType;
     return _resolveTypeParameter(type);
   }
 
@@ -1220,8 +1212,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
     if (executableElement == null) {
       return null;
     }
-    List<ParameterElement> parameters =
-        _elementTypeProvider.getExecutableParameters(executableElement);
+    List<ParameterElement> parameters = executableElement.parameters;
     return _resolveArgumentsToParameters(argumentList, parameters);
   }
 

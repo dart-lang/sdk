@@ -303,6 +303,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.SUPER_IN_EXTENSION,
   CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT,
   CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
+  CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
   CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF,
   CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
   // ignore: deprecated_member_use_from_same_package

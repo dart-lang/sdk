@@ -281,9 +281,6 @@ enum JsGetName {
   /// instances of parameterized classes.
   RTI_NAME,
 
-  /// Name used to tag typedefs.
-  TYPEDEF_TAG,
-
   /// Name used to tag a function type.
   FUNCTION_TYPE_TAG,
 

@@ -29,7 +29,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     if (!containsKey(key)) {
       this[key] = ifAbsent();
     }
-    return this[key];
+    return this[key] as String;
   }
 
   void clear() {
@@ -41,7 +41,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
   void forEach(void f(String key, String value)) {
     for (var key in keys) {
       var value = this[key];
-      f(key, value);
+      f(key, value as String);
     }
   }
 
@@ -50,7 +50,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     var attributes = _element._attributes;
     var keys = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      _Attr attr = attributes[i];
+      _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
         keys.add(attr.name);
       }
@@ -63,7 +63,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     var attributes = _element._attributes;
     var values = <String>[];
     for (int i = 0, len = attributes.length; i < len; i++) {
-      _Attr attr = attributes[i];
+      _Attr attr = attributes[i] as _Attr;
       if (_matches(attr)) {
         values.add(attr.value);
       }
@@ -96,11 +96,11 @@ class _ElementAttributeMap extends _AttributeMap {
   _ElementAttributeMap(Element element) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttribute(key);
+    return _element._hasAttribute(key as String);
   }
 
   String? operator [](Object? key) {
-    return _element.getAttribute(key);
+    return _element.getAttribute(key as String?);
   }
 
   void operator []=(String key, String value) {
@@ -144,11 +144,11 @@ class _NamespacedAttributeMap extends _AttributeMap {
   _NamespacedAttributeMap(Element element, this._namespace) : super(element);
 
   bool containsKey(Object? key) {
-    return _element._hasAttributeNS(_namespace, key);
+    return _element._hasAttributeNS(_namespace, key as String);
   }
 
   String? operator [](Object? key) {
-    return _element.getAttributeNS(_namespace, key);
+    return _element.getAttributeNS(_namespace, key as String?);
   }
 
   void operator []=(String key, String value) {
@@ -207,9 +207,10 @@ class _DataAttributeMap extends MapBase<String, String> {
   // TODO: Use lazy iterator when it is available on Map.
   bool containsValue(Object? value) => values.any((v) => v == value);
 
-  bool containsKey(Object? key) => _attributes.containsKey(_attr(key));
+  bool containsKey(Object? key) =>
+      _attributes.containsKey(_attr(key as String));
 
-  String? operator [](Object? key) => _attributes[_attr(key)];
+  String? operator [](Object? key) => _attributes[_attr(key as String)];
 
   void operator []=(String key, String value) {
     _attributes[_attr(key)] = value;
@@ -218,7 +219,7 @@ class _DataAttributeMap extends MapBase<String, String> {
   String putIfAbsent(String key, String ifAbsent()) =>
       _attributes.putIfAbsent(_attr(key), ifAbsent);
 
-  String? remove(Object? key) => _attributes.remove(_attr(key));
+  String? remove(Object? key) => _attributes.remove(_attr(key as String));
 
   void clear() {
     // Needs to operate on a snapshot since we are mutating the collection.

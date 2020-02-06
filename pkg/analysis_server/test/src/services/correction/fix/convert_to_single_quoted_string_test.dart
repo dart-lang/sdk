@@ -27,7 +27,7 @@ class ConvertToSingleQuotedStringTest extends FixProcessorLintTest {
   Future<void> test_one_simple() async {
     await resolveTestUnit('''
 main() {
-  print(/*LINT*/"abc");
+  print("abc");
 }
 ''');
     await assertHasFix('''

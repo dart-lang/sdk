@@ -21,14 +21,17 @@ linter:
     - annotate_overrides
     - avoid_null_checks_in_equality_operators
     - camel_case_extensions
+    - omit_local_variable_types
     - prefer_adjacent_string_concatenation
     - prefer_collection_literals
     - prefer_conditional_assignment
     - prefer_final_fields
     - prefer_for_elements_to_map_fromIterable
+    - prefer_generic_function_type_aliases
     - prefer_if_null_operators
     - prefer_single_quotes
     - prefer_spread_collections
+    - use_function_type_syntax_for_parameters
     # Not enforced by pedantic at any version.
     - directives_ordering
     - prefer_null_aware_operators

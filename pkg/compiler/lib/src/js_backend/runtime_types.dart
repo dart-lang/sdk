@@ -27,7 +27,6 @@ import 'runtime_types_codegen.dart';
 import 'runtime_types_resolution.dart';
 
 typedef jsAst.Expression OnVariableCallback(TypeVariableType variable);
-typedef bool ShouldEncodeTypedefCallback(TypedefType variable);
 
 /// Interface for the needed runtime type checks.
 abstract class RuntimeTypesChecks {
@@ -499,8 +498,7 @@ abstract class RuntimeTypesEncoder {
   /// Returns a [jsAst.Expression] representing the given [type]. Type variables
   /// are replaced by the [jsAst.Expression] returned by [onVariable].
   jsAst.Expression getTypeRepresentation(
-      ModularEmitter emitter, DartType type, OnVariableCallback onVariable,
-      [ShouldEncodeTypedefCallback shouldEncodeTypedef]);
+      ModularEmitter emitter, DartType type, OnVariableCallback onVariable);
 
   jsAst.Expression getJsInteropTypeArguments(int count);
 
@@ -832,8 +830,8 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 
   RuntimeTypesEncoderImpl(this.rtiTags, NativeBasicData nativeData,
       this._elementEnvironment, this.commonElements, this._rtiNeed)
-      : _representationGenerator = new TypeRepresentationGenerator(
-            commonElements.dartTypes, rtiTags, nativeData);
+      : _representationGenerator =
+            new TypeRepresentationGenerator(rtiTags, nativeData);
 
   /// Returns the JavaScript template to determine at runtime if a type object
   /// is a function type.
@@ -870,10 +868,9 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 
   @override
   jsAst.Expression getTypeRepresentation(
-      ModularEmitter emitter, DartType type, OnVariableCallback onVariable,
-      [ShouldEncodeTypedefCallback shouldEncodeTypedef]) {
+      ModularEmitter emitter, DartType type, OnVariableCallback onVariable) {
     return _representationGenerator.getTypeRepresentation(
-        emitter, type, onVariable, shouldEncodeTypedef);
+        emitter, type, onVariable);
   }
 
   String getTypeVariableName(TypeVariableType type) {
@@ -946,8 +943,6 @@ class RuntimeTypesEncoderImpl implements RuntimeTypesEncoder {
 class RuntimeTypeTags {
   const RuntimeTypeTags();
 
-  String get typedefTag => r'typedef';
-
   String get functionTypeTag => r'func';
 
   String get functionTypeVoidReturnTag => r'v';
@@ -969,31 +964,21 @@ class RuntimeTypeTags {
 
 class TypeRepresentationGenerator
     implements DartTypeVisitor<jsAst.Expression, ModularEmitter> {
-  final DartTypes _dartTypes;
   final RuntimeTypeTags _rtiTags;
   final NativeBasicData _nativeData;
 
   OnVariableCallback onVariable;
-  ShouldEncodeTypedefCallback shouldEncodeTypedef;
-  Map<TypeVariableType, jsAst.Expression> typedefBindings;
   List<FunctionTypeVariable> functionTypeVariables = <FunctionTypeVariable>[];
 
-  TypeRepresentationGenerator(this._dartTypes, this._rtiTags, this._nativeData);
+  TypeRepresentationGenerator(this._rtiTags, this._nativeData);
 
   /// Creates a type representation for [type]. [onVariable] is called to
   /// provide the type representation for type variables.
   jsAst.Expression getTypeRepresentation(
-      ModularEmitter emitter,
-      DartType type,
-      OnVariableCallback onVariable,
-      ShouldEncodeTypedefCallback encodeTypedef) {
-    assert(typedefBindings == null);
+      ModularEmitter emitter, DartType type, OnVariableCallback onVariable) {
     this.onVariable = onVariable;
-    this.shouldEncodeTypedef =
-        (encodeTypedef != null) ? encodeTypedef : (TypedefType type) => false;
     jsAst.Expression representation = visit(type, emitter);
     this.onVariable = null;
-    this.shouldEncodeTypedef = null;
     assert(functionTypeVariables.isEmpty);
     return representation;
   }
@@ -1016,10 +1001,6 @@ class TypeRepresentationGenerator
   @override
   jsAst.Expression visitTypeVariableType(
       TypeVariableType type, ModularEmitter emitter) {
-    if (typedefBindings != null) {
-      assert(typedefBindings[type] != null);
-      return typedefBindings[type];
-    }
     return onVariable(type);
   }
 
@@ -1205,61 +1186,6 @@ class TypeRepresentationGenerator
   }
 
   @override
-  jsAst.Expression visitTypedefType(TypedefType type, ModularEmitter emitter) {
-    bool shouldEncode = shouldEncodeTypedef(type);
-    DartType unaliasedType = type.unaliased;
-
-    var oldBindings = typedefBindings;
-    if (typedefBindings == null) {
-      // First level typedef - capture arguments for re-use within typedef body.
-      //
-      // The type `Map<T, Foo<Set<T>>>` contains one type variable referenced
-      // twice, so there are two inputs into the HTypeInfoExpression
-      // instruction.
-      //
-      // If Foo is a typedef, T can be reused, e.g.
-      //
-      //     typedef E Foo<E>(E a, E b);
-      //
-      // As the typedef is expanded (to (Set<T>, Set<T>) => Set<T>) it should
-      // not consume additional types from the to-level input.  We prevent this
-      // by capturing the types and using the captured type expressions inside
-      // the typedef expansion.
-      //
-      // TODO(sra): We should make the type subexpression Foo<...> be a second
-      // HTypeInfoExpression, with Set<T> as its input (a third
-      // HTypeInfoExpression). This would share all the Set<T> subexpressions
-      // instead of duplicating them. This would require HTypeInfoExpression
-      // inputs to correspond to type variables AND typedefs.
-      typedefBindings = <TypeVariableType, jsAst.Expression>{};
-      type.forEachTypeVariable((TypeVariableType variable) {
-        typedefBindings[variable] = onVariable(variable);
-      });
-    }
-
-    jsAst.Expression finish(jsAst.Expression result) {
-      typedefBindings = oldBindings;
-      return result;
-    }
-
-    if (shouldEncode) {
-      jsAst.ObjectInitializer initializer = visit(unaliasedType, emitter);
-      // We have to encode the aliased type.
-      jsAst.Expression name = getJavaScriptClassName(type.element, emitter);
-      jsAst.Expression encodedTypedef = _dartTypes.treatAsRawType(type)
-          ? name
-          : visitList(type.typeArguments, emitter, head: name);
-
-      // Add it to the function-type object.
-      jsAst.LiteralString tag = js.string(_rtiTags.typedefTag);
-      initializer.properties.add(new jsAst.Property(tag, encodedTypedef));
-      return finish(initializer);
-    } else {
-      return finish(visit(unaliasedType, emitter));
-    }
-  }
-
-  @override
   jsAst.Expression visitFutureOrType(
       FutureOrType type, ModularEmitter emitter) {
     List<jsAst.Property> properties = <jsAst.Property>[];
@@ -1335,11 +1261,6 @@ class ArgumentCollector extends DartTypeVisitor<void, void> {
   @override
   void visitFutureOrType(FutureOrType type, _) {
     collect(type.typeArgument);
-  }
-
-  @override
-  void visitTypedefType(TypedefType type, _) {
-    collect(type.unaliased);
   }
 
   @override
@@ -1452,11 +1373,6 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
     visitTypes(type.optionalParameterTypes, contravariantArgument(state));
     visitTypes(type.namedParameterTypes, contravariantArgument(state));
     _visitedFunctionTypeVariables.removeAll(type.typeVariables);
-  }
-
-  @override
-  visitTypedefType(TypedefType type, TypeVisitorState state) {
-    visitType(type.unaliased, state);
   }
 
   @override

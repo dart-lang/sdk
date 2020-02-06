@@ -564,6 +564,7 @@ class RawObject {
   static bool IsTwoByteStringClassId(intptr_t index);
   static bool IsExternalStringClassId(intptr_t index);
   static bool IsBuiltinListClassId(intptr_t index);
+  static bool IsTypedDataBaseClassId(intptr_t index);
   static bool IsTypedDataClassId(intptr_t index);
   static bool IsTypedDataViewClassId(intptr_t index);
   static bool IsExternalTypedDataClassId(intptr_t index);
@@ -2302,6 +2303,7 @@ class RawMint : public RawInteger {
   ALIGN8 int64_t value_;
 
   friend class Api;
+  friend class Class;
   friend class Integer;
   friend class SnapshotReader;
 };
@@ -2876,30 +2878,30 @@ inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
   COMPILE_ASSERT(kImmutableArrayCid == kArrayCid + 1);
   return ((index >= kArrayCid && index <= kImmutableArrayCid) ||
-          (index == kGrowableObjectArrayCid) || IsTypedDataClassId(index) ||
-          IsTypedDataViewClassId(index) || IsExternalTypedDataClassId(index) ||
+          (index == kGrowableObjectArrayCid) || IsTypedDataBaseClassId(index) ||
           (index == kByteBufferCid));
+}
+
+inline bool RawObject::IsTypedDataBaseClassId(intptr_t index) {
+  // Make sure this is updated when new TypedData types are added.
+  COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
+  return index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
 }
 
 inline bool RawObject::IsTypedDataClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
   COMPILE_ASSERT(kTypedDataInt8ArrayCid + 3 == kTypedDataUint8ArrayCid);
-
-  const bool is_typed_data_base =
-      index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
-  return is_typed_data_base && ((index - kTypedDataInt8ArrayCid) % 3) ==
-                                   kTypedDataCidRemainderInternal;
+  return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
+                                           3) == kTypedDataCidRemainderInternal;
 }
 
 inline bool RawObject::IsTypedDataViewClassId(intptr_t index) {
   // Make sure this is updated when new TypedData types are added.
   COMPILE_ASSERT(kTypedDataInt8ArrayViewCid + 3 == kTypedDataUint8ArrayViewCid);
 
-  const bool is_typed_data_base =
-      index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
   const bool is_byte_data_view = index == kByteDataViewCid;
   return is_byte_data_view ||
-         (is_typed_data_base &&
+         (IsTypedDataBaseClassId(index) &&
           ((index - kTypedDataInt8ArrayCid) % 3) == kTypedDataCidRemainderView);
 }
 
@@ -2908,10 +2910,8 @@ inline bool RawObject::IsExternalTypedDataClassId(intptr_t index) {
   COMPILE_ASSERT(kExternalTypedDataInt8ArrayCid + 3 ==
                  kExternalTypedDataUint8ArrayCid);
 
-  const bool is_typed_data_base =
-      index >= kTypedDataInt8ArrayCid && index < kByteDataViewCid;
-  return is_typed_data_base && ((index - kTypedDataInt8ArrayCid) % 3) ==
-                                   kTypedDataCidRemainderExternal;
+  return IsTypedDataBaseClassId(index) && ((index - kTypedDataInt8ArrayCid) %
+                                           3) == kTypedDataCidRemainderExternal;
 }
 
 inline bool RawObject::IsFfiNativeTypeTypeClassId(intptr_t index) {

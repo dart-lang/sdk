@@ -861,7 +861,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       body.add(_emitClassStatement(c, className, baseClass, []));
 
       var m = c.mixedInType.asInterfaceType;
-      bool deferMixin = shouldDefer(m);
+      var deferMixin = shouldDefer(m);
       var mixinBody = deferMixin ? deferredSupertypes : body;
       var mixinClass = deferMixin ? emitDeferredType(m) : emitClassRef(m);
       var classExpr = deferMixin ? getBaseClass(0) : className;
@@ -893,7 +893,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // classes lack required synthetic members, such as constructors.
     //
     // Also, we need to generate one extra level of nesting for alias classes.
-    for (int i = 0; i < mixins.length; i++) {
+    for (var i = 0; i < mixins.length; i++) {
       var m = mixins[i];
       var mixinName =
           getLocalClassName(superclass) + '_' + getLocalClassName(m.classNode);
@@ -1636,8 +1636,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var virtualFields = _classProperties.virtualFields;
 
     var jsMethods = <js_ast.Method>[];
-    bool hasJsPeer = _extensionTypes.isNativeClass(c);
-    bool hasIterator = false;
+    var hasJsPeer = _extensionTypes.isNativeClass(c);
+    var hasIterator = false;
 
     if (c == _coreTypes.objectClass) {
       // Dart does not use ES6 constructors.
@@ -1778,7 +1778,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Fun _emitNativeFunctionBody(Procedure node) {
-    String name = _annotationName(node, isJSAnnotation) ?? node.name.name;
+    var name = _annotationName(node, isJSAnnotation) ?? node.name.name;
     if (node.isGetter) {
       return js_ast.Fun([], js.block('{ return this.#; }', [name]));
     } else if (node.isSetter) {
@@ -2142,7 +2142,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     })));
   }
 
-  List<js_ast.Statement> _withLetScope(List<js_ast.Statement> visitBody()) {
+  List<js_ast.Statement> _withLetScope(
+      List<js_ast.Statement> Function() visitBody) {
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
@@ -2154,7 +2155,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return body;
   }
 
-  js_ast.ArrowFun _arrowFunctionWithLetScope(js_ast.Expression visitBody()) {
+  js_ast.ArrowFun _arrowFunctionWithLetScope(
+      js_ast.Expression Function() visitBody) {
     var savedLetVariables = _letVariables;
     _letVariables = [];
 
@@ -2242,7 +2244,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         if (parts.length < 2) return propertyName(runtimeName);
 
         js_ast.Expression result = _emitIdentifier(parts[0]);
-        for (int i = 1; i < parts.length; i++) {
+        for (var i = 1; i < parts.length; i++) {
           result = js_ast.PropertyAccess(result, propertyName(parts[i]));
         }
         return result;
@@ -2874,7 +2876,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.ArrayInitializer _emitTypeNames(List<DartType> types,
       List<VariableDeclaration> parameters, Member member) {
     var result = <js_ast.Expression>[];
-    for (int i = 0; i < types.length; ++i) {
+    for (var i = 0; i < types.length; ++i) {
       var type = _emitType(types[i]);
       if (parameters != null) {
         type = _emitAnnotatedResult(type, parameters[i].annotations, member);
@@ -2918,7 +2920,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // potentially mutated in Kernel. For now we assume all parameters are.
     super.enterFunction(name, formals, () => true);
 
-    js_ast.Block block =
+    var block =
         isSync ? _emitSyncFunctionBody(f) : _emitGeneratorFunctionBody(f, name);
 
     block = super.exitFunction(name, formals, block);
@@ -2986,7 +2988,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Expression _emitGeneratorFunctionExpression(
       FunctionNode function, String name) {
     js_ast.Expression emitGeneratorFn(
-        List<js_ast.Parameter> getParameters(js_ast.Block jsBody)) {
+        List<js_ast.Parameter> Function(js_ast.Block jsBody) getParameters) {
       var savedController = _asyncStarController;
       _asyncStarController = function.asyncMarker == AsyncMarker.AsyncStar
           ? _emitTemporaryId('stream')
@@ -3148,7 +3150,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   List<js_ast.Statement> _withCurrentFunction(
-      FunctionNode fn, List<js_ast.Statement> action()) {
+      FunctionNode fn, List<js_ast.Statement> Function() action) {
     var savedFunction = _currentFunction;
     _currentFunction = fn;
     _nullableInference.enterFunction(fn);
@@ -3160,7 +3162,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return result;
   }
 
-  T _superDisallowed<T>(T action()) {
+  T _superDisallowed<T>(T Function() action) {
     var savedSuperAllowed = _superAllowed;
     _superAllowed = false;
     var result = action();
@@ -3578,7 +3580,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return body;
   }
 
-  T _translateLoop<T extends js_ast.Statement>(Statement node, T action()) {
+  T _translateLoop<T extends js_ast.Statement>(
+      Statement node, T Function() action) {
     List<LabeledStatement> savedBreakTargets;
     if (_currentBreakTargets.isNotEmpty &&
         _effectiveTargets[_currentBreakTargets.first] != node) {
@@ -4214,7 +4217,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Arguments arguments, InvocationExpression node) {
     var name = node.name.name;
     if (isOperatorMethodName(name) && arguments.named.isEmpty) {
-      int argLength = arguments.positional.length;
+      var argLength = arguments.positional.length;
       if (argLength == 0) {
         return _emitUnaryOperator(receiver, target, node);
       } else if (argLength == 1) {
@@ -4226,7 +4229,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsReceiver = _visitExpression(receiver);
     var args = _emitArgumentList(arguments, target: target);
 
-    bool isCallingDynamicField = target is Member &&
+    var isCallingDynamicField = target is Member &&
         target.hasGetter &&
         _isDynamicOrFunction(target.getterType);
     if (name == 'call') {
@@ -4363,7 +4366,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var left = getInvocationReceiver(parent);
       var right = parent.arguments.positional[0];
       if (left != null && op == '==') {
-        const int MAX = 0x7fffffff;
+        const MAX = 0x7fffffff;
         if (_asIntInRange(right, 0, MAX) != null) return uncoerced;
         if (_asIntInRange(left, 0, MAX) != null) return uncoerced;
       } else if (left != null && op == '>>') {
@@ -4415,7 +4418,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (parent.name.name == '&' && parent.arguments.positional.length == 1) {
         var left = getInvocationReceiver(parent);
         var right = parent.arguments.positional[0];
-        final int MAX = (1 << width) - 1;
+        final MAX = (1 << width) - 1;
         if (left != null) {
           if (_asIntInRange(right, 0, MAX) != null) return true;
           if (_asIntInRange(left, 0, MAX) != null) return true;
@@ -4429,7 +4432,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Determines if the result of evaluating [expr] will be an non-negative
   /// value that fits in 31 bits.
   bool _is31BitUnsigned(Expression expr) {
-    const int MAX = 32; // Includes larger and negative values.
+    const MAX = 32; // Includes larger and negative values.
     /// Determines how many bits are required to hold result of evaluation
     /// [expr].  [depth] is used to bound exploration of huge expressions.
     int bitWidth(Expression expr, int depth) {
@@ -4451,20 +4454,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               return max(bitWidth(left, depth), bitWidth(right, depth));
 
             case '>>':
-              int shiftValue = _asIntInRange(right, 0, 31);
+              var shiftValue = _asIntInRange(right, 0, 31);
               if (shiftValue != null) {
-                int leftWidth = bitWidth(left, depth);
+                var leftWidth = bitWidth(left, depth);
                 return leftWidth == MAX ? MAX : max(0, leftWidth - shiftValue);
               }
               return MAX;
 
             case '<<':
-              int leftWidth = bitWidth(left, depth);
-              int shiftValue = _asIntInRange(right, 0, 31);
+              var leftWidth = bitWidth(left, depth);
+              var shiftValue = _asIntInRange(right, 0, 31);
               if (shiftValue != null) {
                 return min(MAX, leftWidth + shiftValue);
               }
-              int rightWidth = bitWidth(right, depth);
+              var rightWidth = bitWidth(right, depth);
               if (rightWidth <= 5) {
                 // e.g.  `1 << (x & 7)` has a rightWidth of 3, so shifts by up to
                 // (1 << 3) - 1 == 7 bits.
@@ -4476,7 +4479,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
         }
       }
-      int value = _asIntInRange(expr, 0, 0x7fffffff);
+      var value = _asIntInRange(expr, 0, 0x7fffffff);
       if (value != null) return value.bitLength;
       return MAX;
     }
@@ -4551,7 +4554,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
                 : bitwise('# ^ #');
 
           case '>>':
-            int shiftCount = _asIntInRange(right, 0, 31);
+            var shiftCount = _asIntInRange(right, 0, 31);
             if (_is31BitUnsigned(left) && shiftCount != null) {
               return binary('# >> #');
             }
@@ -5181,7 +5184,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitAsExpression(AsExpression node) {
-    Expression fromExpr = node.operand;
+    var fromExpr = node.operand;
     var to = node.type;
     var jsFrom = _visitExpression(fromExpr);
     var from = fromExpr.getStaticType(_staticTypeContext);
@@ -5357,14 +5360,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    js_ast.Fun f = _emitFunction(node.function, null);
+    var f = _emitFunction(node.function, null);
     js_ast.Node body = f.body;
 
     // Simplify `=> { return e; }` to `=> e`
     if (body is js_ast.Block) {
       var block = body as js_ast.Block;
       if (block.statements.length == 1) {
-        js_ast.Statement s = block.statements[0];
+        var s = block.statements[0];
         if (s is js_ast.Block) {
           block = s as js_ast.Block;
           s = block.statements.length == 1 ? block.statements[0] : null;
@@ -5501,7 +5504,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// string, this returns the string value.
   ///
   /// Calls [findAnnotation] followed by [getNameFromAnnotation].
-  String _annotationName(NamedNode node, bool test(Expression value)) {
+  String _annotationName(NamedNode node, bool Function(Expression) test) {
     return _constants.getFieldValueFromAnnotation(
         findAnnotation(node, test), 'name') as String;
   }
@@ -5570,8 +5573,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // Emit the constant as an integer, if possible.
     if (value.isFinite) {
       var intValue = value.toInt();
-      const int _MIN_INT32 = -0x80000000;
-      const int _MAX_INT32 = 0x7FFFFFFF;
+      const _MIN_INT32 = -0x80000000;
+      const _MAX_INT32 = 0x7FFFFFFF;
       if (intValue.toDouble() == value &&
           intValue >= _MIN_INT32 &&
           intValue <= _MAX_INT32) {

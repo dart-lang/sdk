@@ -27,7 +27,7 @@ class RemoveInterpolationBracesTest extends FixProcessorLintTest {
     await resolveTestUnit(r'''
 main() {
   var v = 42;
-  print('v: /*LINT*/${ v}');
+  print('v: ${ v}');
 }
 ''');
     await assertHasFix(r'''

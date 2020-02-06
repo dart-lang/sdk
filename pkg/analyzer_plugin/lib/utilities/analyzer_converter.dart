@@ -256,14 +256,15 @@ class AnalyzerConverter {
       if (element.kind == analyzer.ElementKind.SETTER) {
         return null;
       }
-      return element.returnType?.toString();
+      return element.returnType?.getDisplayString(withNullability: false);
     } else if (element is analyzer.VariableElement) {
       analyzer.DartType type = element.type;
       return type != null
           ? type.getDisplayString(withNullability: false)
           : 'dynamic';
     } else if (element is analyzer.FunctionTypeAliasElement) {
-      return element.function.returnType.toString();
+      var returnType = element.function.returnType;
+      return returnType.getDisplayString(withNullability: false);
     }
     return null;
   }

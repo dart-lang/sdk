@@ -53,6 +53,7 @@ extensions/issue38745: TextSerializationFailure
 extensions/issue38750: TextSerializationFailure
 extensions/issue38755: TextSerializationFailure
 extensions/issue38915: TextSerializationFailure
+extensions/issue39938/issue39938: TextSerializationFailure
 extensions/missing_toplevel: TextSerializationFailure
 extensions/nested_on_types: TextSerializationFailure
 extensions/null_aware: TextSerializationFailure
@@ -148,6 +149,7 @@ general/cycles: TextSerializationFailure # Was: Pass
 general/default_values: TextSerializationFailure # Was: Pass
 general/deferred_lib: TextSerializationFailure # Was: Pass
 general/deferred_type_annotation: TextSerializationFailure # Was: Pass
+general/demote_closure_types: TextSerializationFailure
 general/duplicated_bad_prefix: TextSerializationFailure # Was: Pass
 general/duplicated_bad_prefix_lib1: TextSerializationFailure # Was: Pass
 general/duplicated_bad_prefix_lib2: TextSerializationFailure # Was: Pass
@@ -207,8 +209,8 @@ general/interface_covariantImpl_from_class: TextSerializationFailure
 general/interface_covariantInterface_from_class: TextSerializationFailure
 general/invalid_assignment: TextSerializationFailure # Was: Pass
 general/invalid_cast: TextSerializationFailure # Was: Pass
-general/invalid_operator: TypeCheckError
 general/invalid_operator2: TextSerializationFailure
+general/invalid_operator: TypeCheckError
 general/invalid_type: TypeCheckError
 general/invocations: TextSerializationFailure # Was: RuntimeError
 general/issue129167943: TextSerializationFailure
@@ -226,6 +228,7 @@ general/issue38961: TextSerializationFailure
 general/issue39344: TextSerializationFailure
 general/issue39421: TextSerializationFailure
 general/issue39817: TextSerializationFailure
+general/issue40428: TextSerializationFailure
 general/literals: TextSerializationFailure # Was: Pass
 general/local_generic_function: TextSerializationFailure # Was: Pass
 general/long_chain_of_typedefs: TextSerializationFailure
@@ -288,6 +291,7 @@ general/prefer_baseclass: TextSerializationFailure # Was: Pass
 general/private_method_tearoff: TextSerializationFailure # Was: Pass
 general/private_method_tearoff_lib: TextSerializationFailure # Was: Pass
 general/promoted_access: TextSerializationFailure
+general/promoted_null_aware_access: TextSerializationFailure
 general/public_method_tearoff: TextSerializationFailure # Was: Pass
 general/public_method_tearoff_lib: TextSerializationFailure # Was: Pass
 general/qualified: TextSerializationFailure # Was: Pass
@@ -339,6 +343,7 @@ general/unused_methods: TextSerializationFailure # Was: Pass
 general/var_as_type_name: TextSerializationFailure # Was: Pass
 general/void_methods: TextSerializationFailure
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+general/well_boundness_checks_in_outline: TextSerializationFailure
 general/with_dependencies/extension_from_dill/extension_from_dill: TextSerializationFailure
 general/with_dependencies/variance_from_dill/variance_from_dill: TextSerializationFailure
 general_nnbd_opt_out/DeltaBlue: TextSerializationFailure # Was: Pass
@@ -1177,6 +1182,7 @@ instantiate_to_bound/typedef_literal_map: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_omitted_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_raw_in_bound: TextSerializationFailure # Was: Pass
 instantiate_to_bound/typedef_super_bounded_type: TextSerializationFailure # Was: Pass
+late_lowering/initializer_rewrite: TextSerializationFailure
 late_lowering/instance_field_with_initializer: TextSerializationFailure
 late_lowering/instance_field_without_initializer: TextSerializationFailure
 late_lowering/instance_final_field_without_initializer: TextSerializationFailure
@@ -1200,17 +1206,22 @@ late_lowering/late_nullable_field_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_field_without_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
+late_lowering/later: TextSerializationFailure
 late_lowering/override: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
 nnbd/call: TextSerializationFailure
+nnbd/constants: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
+nnbd/demote_closure_types: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure
 nnbd/forin: TextSerializationFailure
 nnbd/function_types: TextSerializationFailure
 nnbd/generic_override: TextSerializationFailure
+nnbd/infer_from_opt_in: TextSerializationFailure
+nnbd/infer_from_opt_out: TextSerializationFailure
 nnbd/infer_if_null: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/inheritance_from_opt_out: TextSerializationFailure
@@ -1230,12 +1241,17 @@ nnbd/member_inheritance_from_opt_out: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/missing_required_named_parameter: TextSerializationFailure
+nnbd/never_receiver: TextSerializationFailure
+nnbd/nnbd_opt_out_language_version: TextSerializationFailure
+nnbd/nnbd_opt_out_language_version_try_to_trick: TextSerializationFailure
 nnbd/no_null_shorting: TextSerializationFailure
 nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
 nnbd/no_null_shorting_extension: TextSerializationFailure
+nnbd/non_nullable_field_initialization: TextSerializationFailure
 nnbd/null_access: TextSerializationFailure
 nnbd/null_aware_chain: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure
+nnbd/null_check_context: TextSerializationFailure
 nnbd/null_shorting: TextSerializationFailure
 nnbd/null_shorting_cascade: TextSerializationFailure
 nnbd/null_shorting_explicit_extension: TextSerializationFailure
@@ -1264,12 +1280,16 @@ no_such_method_forwarders/abstract_accessors_from_field_arent_mixed_in: TextSeri
 no_such_method_forwarders/abstract_accessors_from_field_one_defined: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_accessors_from_field_with_substitution: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/abstract_interface_nsm_inherited: TextSerializationFailure # Was: Pass
+no_such_method_forwarders/abstract_override_abstract_different_type: TextSerializationFailure
+no_such_method_forwarders/abstract_override_with_different_signature: TextSerializationFailure
 no_such_method_forwarders/concrete_method_over_forwarder_in_mixin_application: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/default_argument_values: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/duplicated_abstract_method: TextSerializationFailure # Was: Pass
+no_such_method_forwarders/forwarder_propagation: TextSerializationFailure
 no_such_method_forwarders/forwarders_not_assumed_from_mixin: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/interface_with_concrete: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/interface_with_nsm: TextSerializationFailure # Was: Pass
+no_such_method_forwarders/multiple_abstract_setters: TextSerializationFailure
 no_such_method_forwarders/no_forwarders_for_abstract_classes: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/no_forwarders_for_abstract_classes_chain: TextSerializationFailure # Was: Pass
 no_such_method_forwarders/nsm_inherited: TextSerializationFailure # Was: Pass
@@ -1522,8 +1542,8 @@ runtime_checks_new/stub_from_interface_covariantInterface_from_class: TextSerial
 runtime_checks_new/stub_from_interface_covariant_from_interface: TextSerializationFailure # Was: Pass
 runtime_checks_new/stub_from_interface_covariant_from_super: TextSerializationFailure # Was: Pass
 set_literals/disambiguation_rule: TextSerializationFailure # Was: RuntimeError
-triple_shift/invalid_operator: TextSerializationFailure
 top_level_variance_test: TextSerializationFailure
+triple_shift/invalid_operator: TextSerializationFailure
 unified_collections/mixed_entries: TextSerializationFailure
 unified_collections/string_concatenation: TextSerializationFailure
 variance/class_type_parameter_modifier: TextSerializationFailure

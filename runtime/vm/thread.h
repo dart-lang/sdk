@@ -493,9 +493,6 @@ class Thread : public ThreadState {
   static intptr_t top_offset() { return OFFSET_OF(Thread, top_); }
   static intptr_t end_offset() { return OFFSET_OF(Thread, end_); }
 
-  bool bump_allocate() const { return bump_allocate_; }
-  void set_bump_allocate(bool b) { bump_allocate_ = b; }
-
   int32_t no_safepoint_scope_depth() const {
 #if defined(DEBUG)
     return no_safepoint_scope_depth_;
@@ -572,6 +569,9 @@ class Thread : public ThreadState {
     global_object_pool_ = raw_value;
   }
 
+  const uword* dispatch_table_array() const { return dispatch_table_array_; }
+  void set_dispatch_table_array(uword* array) { dispatch_table_array_ = array; }
+
   static bool CanLoadFromThread(const Object& object);
   static intptr_t OffsetFromThread(const Object& object);
   static bool ObjectAtOffset(intptr_t offset, Object* object);
@@ -603,6 +603,10 @@ class Thread : public ThreadState {
 
   static intptr_t global_object_pool_offset() {
     return OFFSET_OF(Thread, global_object_pool_);
+  }
+
+  static intptr_t dispatch_table_array_offset() {
+    return OFFSET_OF(Thread, dispatch_table_array_);
   }
 
   RawObject* active_exception() const { return active_exception_; }
@@ -859,14 +863,18 @@ class Thread : public ThreadState {
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
   uword stack_limit_;
-  uword saved_stack_limit_;
-  uword stack_overflow_flags_;
   uword write_barrier_mask_;
   Isolate* isolate_;
-  RawInstance** field_table_values_;
-  Heap* heap_;
+  uword* dispatch_table_array_;
   uword top_;
   uword end_;
+  // Offsets up to this point can all fit in a byte on X64. All of the above
+  // fields are very abundantly accessed from code. Thus, keeping them first
+  // is important for code size (although code size on X64 is not a priority).
+  uword saved_stack_limit_;
+  uword stack_overflow_flags_;
+  RawInstance** field_table_values_;
+  Heap* heap_;
   uword volatile top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   MarkingStackBlock* marking_stack_block_;
@@ -930,7 +938,6 @@ class Thread : public ThreadState {
   uint16_t deferred_interrupts_mask_;
   uint16_t deferred_interrupts_;
   int32_t stack_overflow_count_;
-  bool bump_allocate_;
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;

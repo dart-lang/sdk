@@ -31,6 +31,8 @@ import 'builtin_identifier_as_extension_name_test.dart'
     as builtin_as_extension_name;
 import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
+import 'case_expression_type_implements_equals_test.dart'
+    as case_expression_type_implements_equals;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'concrete_class_with_abstract_member_test.dart'
     as concrete_class_with_abstract_member;
@@ -410,6 +412,8 @@ import 'super_in_invalid_context_test.dart' as super_in_invalid_context;
 import 'super_in_redirecting_constructor_test.dart'
     as super_in_redirecting_constructor;
 import 'super_initializer_in_object_test.dart' as super_initializer_in_object;
+import 'switch_case_completes_normally_test.dart'
+    as switch_case_completes_normally;
 import 'switch_expression_not_assignable_test.dart'
     as switch_expression_not_assignable;
 import 'todo_test.dart' as todo_test;
@@ -508,6 +512,7 @@ main() {
     builtin_as_extension_name.main();
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();
+    case_expression_type_implements_equals.main();
     cast_to_non_type.main();
     concrete_class_with_abstract_member.main();
     conflicting_generic_interfaces.main();
@@ -761,6 +766,7 @@ main() {
     super_in_invalid_context.main();
     super_in_redirecting_constructor.main();
     super_initializer_in_object.main();
+    switch_case_completes_normally.main();
     switch_expression_not_assignable.main();
     todo_test.main();
     top_level_instance_getter.main();

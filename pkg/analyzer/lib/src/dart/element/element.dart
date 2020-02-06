@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
+import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -1824,9 +1825,17 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   EvaluationResultImpl get evaluationResult {
     if (_evaluationResult == null) {
       Map<String, DartObjectImpl> fieldMap = <String, DartObjectImpl>{
-        name: DartObjectImpl(library.typeProvider.intType, IntState(_index))
+        name: DartObjectImpl(
+          library.typeSystem,
+          library.typeProvider.intType,
+          IntState(_index),
+        )
       };
-      DartObjectImpl value = DartObjectImpl(type, GenericState(fieldMap));
+      DartObjectImpl value = DartObjectImpl(
+        library.typeSystem,
+        type,
+        GenericState(fieldMap),
+      );
       _evaluationResult = EvaluationResultImpl(value);
     }
     return _evaluationResult;
@@ -1849,7 +1858,10 @@ class ConstFieldElementImpl_EnumValue extends ConstFieldElementImpl_ofEnum {
   }
 
   @override
-  InterfaceType get type => _enum.thisType;
+  InterfaceType get type => ElementTypeProvider.current.getFieldType(this);
+
+  @override
+  InterfaceType get typeInternal => _enum.thisType;
 }
 
 /// The synthetic `values` field of an enum.
@@ -1868,8 +1880,13 @@ class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
           constantValues.add(field.evaluationResult.value);
         }
       }
-      _evaluationResult =
-          EvaluationResultImpl(DartObjectImpl(type, ListState(constantValues)));
+      _evaluationResult = EvaluationResultImpl(
+        DartObjectImpl(
+          library.typeSystem,
+          type,
+          ListState(constantValues),
+        ),
+      );
     }
     return _evaluationResult;
   }
@@ -1878,7 +1895,10 @@ class ConstFieldElementImpl_EnumValues extends ConstFieldElementImpl_ofEnum {
   String get name => 'values';
 
   @override
-  InterfaceType get type {
+  InterfaceType get type => ElementTypeProvider.current.getFieldType(this);
+
+  @override
+  InterfaceType get typeInternal {
     if (_type == null) {
       return _type = library.typeProvider.listType2(_enum.thisType);
     }
@@ -2137,7 +2157,16 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  DartType get returnType {
+  DartType get returnType =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
+
+  @override
+  set returnType(DartType returnType) {
+    assert(false);
+  }
+
+  @override
+  DartType get returnTypeInternal {
     if (_returnType != null) return _returnType;
 
     InterfaceTypeImpl classThisType = enclosingElement.thisType;
@@ -2149,12 +2178,15 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  set returnType(DartType returnType) {
+  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
+
+  @override
+  set type(FunctionType type) {
     assert(false);
   }
 
   @override
-  FunctionType get type {
+  FunctionType get typeInternal {
     // TODO(scheglov) Remove "element" in the breaking changes branch.
     return _type ??= FunctionTypeImpl(
       typeFormals: typeParameters,
@@ -2163,11 +2195,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       nullabilitySuffix: _noneOrStarSuffix,
       element: this,
     );
-  }
-
-  @override
-  set type(FunctionType type) {
-    assert(false);
   }
 
   @override
@@ -3152,6 +3179,22 @@ abstract class ElementImpl implements Element {
   }
 }
 
+/// Abstract base class for elements whose type is guaranteed to be a function
+/// type.
+abstract class ElementImplWithFunctionType implements Element {
+  /// Gets the element's return type, without going through the indirection of
+  /// [ElementTypeProvider].
+  ///
+  /// In most cases, the element's `returnType` getter should be used instead.
+  DartType get returnTypeInternal;
+
+  /// Gets the element's type, without going through the indirection of
+  /// [ElementTypeProvider].
+  ///
+  /// In most cases, the element's `type` getter should be used instead.
+  FunctionType get typeInternal;
+}
+
 /// A concrete implementation of an [ElementLocation].
 class ElementLocationImpl implements ElementLocation {
   /// The character used to separate components in the encoded form.
@@ -3521,7 +3564,7 @@ class EnumElementImpl extends AbstractClassElementImpl {
 /// A base class for concrete implementations of an [ExecutableElement].
 abstract class ExecutableElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
-    implements ExecutableElement {
+    implements ExecutableElement, ElementImplWithFunctionType {
   /// A list containing all of the parameters defined by this executable
   /// element.
   List<ParameterElement> _parameters;
@@ -3660,7 +3703,23 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElement> get parameters =>
+      ElementTypeProvider.current.getExecutableParameters(this);
+
+  /// Set the parameters defined by this executable element to the given
+  /// [parameters].
+  set parameters(List<ParameterElement> parameters) {
+    for (ParameterElement parameter in parameters) {
+      (parameter as ParameterElementImpl).enclosingElement = this;
+    }
+    this._parameters = parameters;
+  }
+
+  /// Gets the element's parameters, without going through the indirection of
+  /// [ElementTypeProvider].
+  ///
+  /// In most cases, the [parameters] getter should be used instead.
+  List<ParameterElement> get parametersInternal {
     if (_parameters != null) return _parameters;
 
     if (linkedNode != null) {
@@ -3678,25 +3737,9 @@ abstract class ExecutableElementImpl extends ElementImpl
     return _parameters ??= const <ParameterElement>[];
   }
 
-  /// Set the parameters defined by this executable element to the given
-  /// [parameters].
-  set parameters(List<ParameterElement> parameters) {
-    for (ParameterElement parameter in parameters) {
-      (parameter as ParameterElementImpl).enclosingElement = this;
-    }
-    this._parameters = parameters;
-  }
-
   @override
-  DartType get returnType {
-    if (_returnType != null) return _returnType;
-
-    if (linkedNode != null) {
-      var context = enclosingUnit.linkedContext;
-      return _returnType = context.getReturnType(linkedNode);
-    }
-    return _returnType;
-  }
+  DartType get returnType =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   set returnType(DartType returnType) {
     if (linkedNode != null) {
@@ -3714,7 +3757,25 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
-  FunctionType get type {
+  DartType get returnTypeInternal {
+    if (_returnType != null) return _returnType;
+
+    if (linkedNode != null) {
+      var context = enclosingUnit.linkedContext;
+      return _returnType = context.getReturnType(linkedNode);
+    }
+    return _returnType;
+  }
+
+  @override
+  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
+
+  set type(FunctionType type) {
+    _type = type;
+  }
+
+  @override
+  FunctionType get typeInternal {
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
@@ -3725,10 +3786,6 @@ abstract class ExecutableElementImpl extends ElementImpl
       nullabilitySuffix: _noneOrStarSuffix,
       element: this,
     );
-  }
-
-  set type(FunctionType type) {
-    _type = type;
   }
 
   /// Set the type parameters defined by this executable element to the given
@@ -4398,7 +4455,10 @@ abstract class FunctionTypedElementImpl
 /// Clients may not extend, implement or mix-in this class.
 class GenericFunctionTypeElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
-    implements GenericFunctionTypeElement, FunctionTypedElementImpl {
+    implements
+        GenericFunctionTypeElement,
+        FunctionTypedElementImpl,
+        ElementImplWithFunctionType {
   /// The declared return type of the function.
   DartType _returnType;
 
@@ -4468,15 +4528,8 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   }
 
   @override
-  DartType get returnType {
-    if (_returnType == null) {
-      if (linkedNode != null) {
-        var context = enclosingUnit.linkedContext;
-        return _returnType = context.getReturnType(linkedNode);
-      }
-    }
-    return _returnType;
-  }
+  DartType get returnType =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   /// Set the return type defined by this function type element to the given
   /// [returnType].
@@ -4486,7 +4539,27 @@ class GenericFunctionTypeElementImpl extends ElementImpl
   }
 
   @override
-  FunctionType get type {
+  DartType get returnTypeInternal {
+    if (_returnType == null) {
+      if (linkedNode != null) {
+        var context = enclosingUnit.linkedContext;
+        return _returnType = context.getReturnType(linkedNode);
+      }
+    }
+    return _returnType;
+  }
+
+  @override
+  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
+
+  /// Set the function type defined by this function type element to the given
+  /// [type].
+  set type(FunctionType type) {
+    _type = type;
+  }
+
+  @override
+  FunctionType get typeInternal {
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
@@ -4498,12 +4571,6 @@ class GenericFunctionTypeElementImpl extends ElementImpl
           isNullable ? NullabilitySuffix.question : _noneOrStarSuffix,
       element: this,
     );
-  }
-
-  /// Set the function type defined by this function type element to the given
-  /// [type].
-  set type(FunctionType type) {
-    _type = type;
   }
 
   @override
@@ -4550,7 +4617,7 @@ class GenericFunctionTypeElementImpl extends ElementImpl
 /// Clients may not extend, implement or mix-in this class.
 class GenericTypeAliasElementImpl extends ElementImpl
     with TypeParameterizedElementMixin
-    implements GenericTypeAliasElement {
+    implements GenericTypeAliasElement, ElementImplWithFunctionType {
   /// The element representing the generic function type.
   GenericFunctionTypeElementImpl _function;
 
@@ -4685,7 +4752,11 @@ class GenericTypeAliasElementImpl extends ElementImpl
       function?.parameters ?? const <ParameterElement>[];
 
   @override
-  DartType get returnType {
+  DartType get returnType =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
+
+  @override
+  DartType get returnTypeInternal {
     if (function == null) {
       return DynamicTypeImpl.instance;
     }
@@ -4694,7 +4765,15 @@ class GenericTypeAliasElementImpl extends ElementImpl
 
   @override
   @deprecated
-  FunctionType get type {
+  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
+
+  set type(FunctionType type) {
+    _type = type;
+  }
+
+  @override
+  @deprecated
+  FunctionType get typeInternal {
     _type ??= FunctionTypeImpl.synthetic(
       function.returnType,
       typeParameters,
@@ -4708,10 +4787,6 @@ class GenericTypeAliasElementImpl extends ElementImpl
       nullabilitySuffix: NullabilitySuffix.star,
     );
     return _type;
-  }
-
-  set type(FunctionType type) {
-    _type = type;
   }
 
   /// Set the type parameters defined for this type to the given
@@ -5761,7 +5836,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   @override
   String get name {
     String name = super.name;
-    if (name == '-' && parameters.isEmpty) {
+    if (name == '-' && parametersInternal.isEmpty) {
       return 'unary-';
     }
     return super.name;
@@ -6300,6 +6375,9 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl {
   }
 
   @override
+  DartType get type => ElementTypeProvider.current.getVariableType(this);
+
+  @override
   set type(DartType type) {
     if (linkedNode != null) {
       return linkedContext.setVariableType(linkedNode, type);
@@ -6567,14 +6645,7 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   @override
-  DartType get type {
-    if (linkedNode != null) {
-      if (_type != null) return _type;
-      var context = enclosingUnit.linkedContext;
-      return _type = context.getType(linkedNode);
-    }
-    return super.type;
-  }
+  DartType get type => ElementTypeProvider.current.getVariableType(this);
 
   @override
   TopLevelInferenceError get typeInferenceError {
@@ -6584,6 +6655,16 @@ class ParameterElementImpl extends VariableElementImpl
 
     // We don't support type inference errors without linking.
     return null;
+  }
+
+  @override
+  DartType get typeInternal {
+    if (linkedNode != null) {
+      if (_type != null) return _type;
+      var context = enclosingUnit.linkedContext;
+      return _type = context.getType(linkedNode);
+    }
+    return super.typeInternal;
   }
 
   @override
@@ -6738,12 +6819,15 @@ class ParameterElementImpl_ofImplicitSetter extends ParameterElementImpl {
   }
 
   @override
-  DartType get type => setter.variable.type;
+  DartType get type => ElementTypeProvider.current.getVariableType(this);
 
   @override
   set type(DartType type) {
     assert(false); // Should never be called.
   }
+
+  @override
+  DartType get typeInternal => setter.variable.type;
 }
 
 /// A mixin that provides a common implementation for methods defined in
@@ -6999,7 +7083,8 @@ class PropertyAccessorElementImpl_ImplicitGetter
   bool get isGetter => true;
 
   @override
-  DartType get returnType => variable.type;
+  DartType get returnType =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
   set returnType(DartType returnType) {
@@ -7007,7 +7092,18 @@ class PropertyAccessorElementImpl_ImplicitGetter
   }
 
   @override
-  FunctionType get type {
+  DartType get returnTypeInternal => variable.type;
+
+  @override
+  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
+
+  @override
+  set type(FunctionType type) {
+    assert(false); // Should never be called.
+  }
+
+  @override
+  FunctionType get typeInternal {
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
@@ -7028,11 +7124,6 @@ class PropertyAccessorElementImpl_ImplicitGetter
 
     return type;
   }
-
-  @override
-  set type(FunctionType type) {
-    assert(false); // Should never be called.
-  }
 }
 
 /// Implicit setter for a [PropertyInducingElementImpl].
@@ -7051,14 +7142,19 @@ class PropertyAccessorElementImpl_ImplicitSetter
   bool get isSetter => true;
 
   @override
-  List<ParameterElement> get parameters {
+  List<ParameterElement> get parameters =>
+      ElementTypeProvider.current.getExecutableParameters(this);
+
+  @override
+  List<ParameterElement> get parametersInternal {
     return _parameters ??= <ParameterElement>[
       ParameterElementImpl_ofImplicitSetter(this)
     ];
   }
 
   @override
-  DartType get returnType => VoidTypeImpl.instance;
+  DartType get returnType =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
   set returnType(DartType returnType) {
@@ -7066,7 +7162,18 @@ class PropertyAccessorElementImpl_ImplicitSetter
   }
 
   @override
-  FunctionType get type {
+  DartType get returnTypeInternal => VoidTypeImpl.instance;
+
+  @override
+  FunctionType get type => ElementTypeProvider.current.getExecutableType(this);
+
+  @override
+  set type(FunctionType type) {
+    assert(false); // Should never be called.
+  }
+
+  @override
+  FunctionType get typeInternal {
     if (_type != null) return _type;
 
     // TODO(scheglov) Remove "element" in the breaking changes branch.
@@ -7086,11 +7193,6 @@ class PropertyAccessorElementImpl_ImplicitSetter
     }
 
     return type;
-  }
-
-  @override
-  set type(FunctionType type) {
-    assert(false); // Should never be called.
   }
 }
 
@@ -7127,7 +7229,10 @@ abstract class PropertyInducingElementImpl
   }
 
   @override
-  DartType get type {
+  DartType get type => ElementTypeProvider.current.getFieldType(this);
+
+  @override
+  DartType get typeInternal {
     if (linkedNode != null) {
       if (_type != null) return _type;
       return _type = linkedContext.getType(linkedNode);
@@ -7144,7 +7249,7 @@ abstract class PropertyInducingElementImpl
         _type = DynamicTypeImpl.instance;
       }
     }
-    return super.type;
+    return super.typeInternal;
   }
 }
 
@@ -7315,7 +7420,13 @@ class TypeParameterElementImpl extends ElementImpl
   }
 
   @override
-  DartType get bound {
+  DartType get bound => ElementTypeProvider.current.getTypeParameterBound(this);
+
+  set bound(DartType bound) {
+    _bound = bound;
+  }
+
+  DartType get boundInternal {
     if (_bound != null) return _bound;
 
     if (linkedNode != null) {
@@ -7324,10 +7435,6 @@ class TypeParameterElementImpl extends ElementImpl
     }
 
     return _bound;
-  }
-
-  set bound(DartType bound) {
-    _bound = bound;
   }
 
   @override
@@ -7654,7 +7761,7 @@ abstract class VariableElementImpl extends ElementImpl
   bool get isStatic => hasModifier(Modifier.STATIC);
 
   @override
-  DartType get type => _type;
+  DartType get type => ElementTypeProvider.current.getVariableType(this);
 
   set type(DartType type) {
     if (linkedNode != null) {
@@ -7669,6 +7776,12 @@ abstract class VariableElementImpl extends ElementImpl
   TopLevelInferenceError get typeInferenceError {
     return null;
   }
+
+  /// Gets the element's type, without going through the indirection of
+  /// [ElementTypeProvider].
+  ///
+  /// In most cases, the element's `returnType` getter should be used instead.
+  DartType get typeInternal => _type;
 
   @override
   void appendTo(ElementDisplayStringBuilder builder) {

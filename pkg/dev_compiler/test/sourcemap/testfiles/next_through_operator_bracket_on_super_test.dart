@@ -22,7 +22,7 @@ class Class3 extends Class2 {
 }
 
 void main() {
-  Class3 c = Class3();
+  var c = Class3();
   c[42];
   c.code();
 }

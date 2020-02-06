@@ -28,7 +28,7 @@ class ConvertToSpreadTest extends FixProcessorLintTest {
     await resolveTestUnit('''
 f() {
   var ints = [1, 2, 3];
-  print(['a']../*LINT*/addAll(ints.map((i) => i.toString()))..addAll(['c']));
+  print(['a']..addAll(ints.map((i) => i.toString()))..addAll(['c']));
 }
 ''');
     await assertHasFix('''

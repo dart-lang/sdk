@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.27
+# Dart VM Service Protocol 3.29
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.27_ of the Dart VM Service Protocol. This
+This document describes of _version 3.29_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -36,6 +36,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [evaluate](#evaluate)
   - [evaluateInFrame](#evaluateinframe)
   - [getAllocationProfile](#getallocationprofile)
+  - [getClientName](#getclientname)
   - [getCpuSamples](#getcpusamples)
   - [getFlagList](#getflaglist)
   - [getInstances](#getinstances)
@@ -59,7 +60,9 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [registerService](#registerService)
   - [reloadSources](#reloadsources)
   - [removeBreakpoint](#removebreakpoint)
+  - [requirePermissionToResume](#requirepermissiontoresume)
   - [resume](#resume)
+  - [setClientName](#setclientname)
   - [setExceptionPauseMode](#setexceptionpausemode)
   - [setFlag](#setflag)
   - [setLibraryDebuggable](#setlibrarydebuggable)
@@ -671,6 +674,18 @@ If _gc_ is provided and is set to true, a garbage collection will be attempted
 before collecting allocation information. There is no guarantee that a garbage
 collection will be actually be performed.
 
+### getClientName
+
+```
+ClientName getClientName()
+```
+
+The _getClientName_ RPC is used to retrieve the name associated with the currently
+connected VM service client. If no name was previously set through the
+[setClientName](#setclientname) RPC, a default name will be returned.
+
+See [ClientName](#clientname).
+
 ### getCpuSamples
 
 ```
@@ -1095,6 +1110,42 @@ events, when concatenated together, conforms to the [SnapshotGraph](heap_snapsho
 type. The splitting of the SnapshotGraph into events can happen at any byte
 offset.
 
+### requirePermissionToResume
+
+```
+Success requirePermissionToResume(bool onPauseStart [optional],
+                                  bool onPauseReload[optional],
+                                  bool onPauseExit [optional])
+```
+
+The _requirePermissionToResume_ RPC is used to change the pause/resume behavior
+of isolates by providing a way for the VM service to wait for approval to resume
+from some set of clients. This is useful for clients which want to perform some
+operation on an isolate after a pause without it being resumed by another client.
+
+If the _onPauseStart_ parameter is `true`, isolates will not resume after pausing
+on start until the client sends a `resume` request and all other clients which
+need to provide resume approval for this pause type have done so.
+
+If the _onPauseReload_ parameter is `true`, isolates will not resume after pausing
+after a reload until the client sends a `resume` request and all other clients
+which need to provide resume approval for this pause type have done so.
+
+If the _onPauseExit_ parameter is `true`, isolates will not resume after pausing
+on exit until the client sends a `resume` request and all other clients which
+need to provide resume approval for this pause type have done so.
+
+**Important Notes:**
+
+- All clients with the same client name share resume permissions. Only a
+  single client of a given name is required to provide resume approval.
+- When a client requiring approval disconnects from the service, a paused
+  isolate may resume if all other clients requiring resume approval have
+  already given approval. In the case that no other client requires resume
+  approval for the current pause event, the isolate will be resumed if at
+  least one other client has attempted to [resume](#resume) the isolate.
+
+
 ### resume
 
 ```
@@ -1125,6 +1176,19 @@ function, so _frameIndex_ must be at least 1.
 If the _frameIndex_ parameter is not provided, it defaults to 1.
 
 See [Success](#success), [StepOption](#StepOption).
+
+### setClientName
+
+```
+Success setClientName(string name)
+```
+
+The _setClientName_ RPC is used to set a name to be associated with the currently
+connected VM service client. If the _name_ parameter is a non-empty string, _name_
+will become the new name associated with the client. If _name_ is an empty string,
+the client's name will be reset to its default name.
+
+See [Success](#success).
 
 ### setExceptionPauseMode
 
@@ -1548,6 +1612,17 @@ class ClassList extends Response {
   @Class[] classes;
 }
 ```
+
+### ClientName
+
+```
+class ClientName extends Response {
+  // The name of the currently connected VM service client.
+  string name;
+}
+```
+
+See [getClientName](#getclientname) and [setClientName](#setclientname).
 
 ### Code
 
@@ -3528,33 +3603,35 @@ version | comments
 ------- | --------
 1.0 | Initial revision
 2.0 | Describe protocol version 2.0.
-3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
-3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
-3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
-3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
-3.4 | Add the superType and mixin fields to Class. Added new pause event 'None'.
-3.5 | Add the error field to SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
-3.6 | Add 'scopeStartTokenPos', 'scopeEndTokenPos', and 'declarationTokenPos' to BoundVariable. Add 'PausePostRequest' event kind. Add 'Rewind' StepOption. Add error code 107 (isolate cannot resume). Add 'reloadSources' RPC and related error codes. Add optional parameter 'scope' to 'evaluate' and 'evaluateInFrame'.
-3.7 | Add 'setFlag'.
-3.8 | Add 'kill'.
+3.0 | Describe protocol version 3.0.  Added `UnresolvedSourceLocation`.  Added `Sentinel` return to `getIsolate`.  Add `AddedBreakpointWithScriptUri`.  Removed `Isolate.entry`. The type of `VM.pid` was changed from `string` to `int`.  Added `VMUpdate` events.  Add offset and count parameters to `getObject` and `offset` and `count` fields to `Instance`. Added `ServiceExtensionAdded` event.
+3.1 | Add the `getSourceReport` RPC.  The `getObject` RPC now accepts `offset` and `count` for string objects.  `String` objects now contain `length`, `offset`, and `count` properties.
+3.2 | `Isolate` objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
+3.3 | Pause event now indicates if the isolate is paused at an `await`, `yield`, or `yield*` suspension point via the `atAsyncSuspension` field. Resume command now supports the step parameter `OverAsyncSuspension`. A Breakpoint added synthetically by an `OverAsyncSuspension` resume command identifies itself as such via the `isSyntheticAsyncContinuation` field.
+3.4 | Add the `superType` and `mixin` fields to `Class`. Added new pause event `None`.
+3.5 | Add the error field to `SourceReportRange.  Clarify definition of token position.  Add "Isolate must be paused" error code.
+3.6 | Add `scopeStartTokenPos`, `scopeEndTokenPos`, and `declarationTokenPos` to `BoundVariable`. Add `PausePostRequest` event kind. Add `Rewind` `StepOption`. Add error code 107 (isolate cannot resume). Add `reloadSources` RPC and related error codes. Add optional parameter `scope` to `evaluate` and `evaluateInFrame`.
+3.7 | Add `setFlag`.
+3.8 | Add `kill`.
 3.9 | Changed numbers for errors related to service extensions.
-3.10 | Add 'invoke'.
-3.11 | Rename 'invoke' parameter 'receiverId' to 'targetId.
-3.12 | Add 'getScripts' RPC and `ScriptList` object.
-3.13 | Class 'mixin' field now properly set for kernel transformed mixin applications.
-3.14 | Flag 'profile_period' can now be set at runtime, allowing for the profiler sample rate to be changed while the program is running.
+3.10 | Add `invoke`.
+3.11 | Rename `invoke` parameter `receiverId` to `targetId`.
+3.12 | Add `getScripts` RPC and `ScriptList` object.
+3.13 | Class `mixin` field now properly set for kernel transformed mixin applications.
+3.14 | Flag `profile_period` can now be set at runtime, allowing for the profiler sample rate to be changed while the program is running.
 3.15 | Added `disableBreakpoints` parameter to `invoke`, `evaluate`, and `evaluateInFrame`.
-3.16 | Add 'getMemoryUsage' RPC and 'MemoryUsage' object.
-3.17 | Add 'Logging' event kind and the LogRecord class.
-3.18 | Add 'getAllocationProfile' RPC and 'AllocationProfile' and 'ClassHeapStats' objects.
-3.19 | Add 'clearVMTimeline', 'getVMTimeline', 'getVMTimelineFlags', 'setVMTimelineFlags', 'Timeline', and 'TimelineFlags'.
-3.20 | Add 'getInstances' RPC and 'InstanceSet' object.
-3.21 | Add 'getVMTimelineMicros' RPC and 'Timestamp' object.
+3.16 | Add `getMemoryUsage` RPC and `MemoryUsage` object.
+3.17 | Add `Logging` event kind and the `LogRecord` class.
+3.18 | Add `getAllocationProfile` RPC and `AllocationProfile` and `ClassHeapStats` objects.
+3.19 | Add `clearVMTimeline`, `getVMTimeline`, `getVMTimelineFlags`, `setVMTimelineFlags`, `Timeline`, and `TimelineFlags`.
+3.20 | Add `getInstances` RPC and `InstanceSet` object.
+3.21 | Add `getVMTimelineMicros` RPC and `Timestamp` object.
 3.22 | Add `registerService` RPC, `Service` stream, and `ServiceRegistered` and `ServiceUnregistered` event kinds.
 3.23 | Add `VMFlagUpdate` event kind to the `VM` stream.
 3.24 | Add `operatingSystem` property to `VM` object.
-3.25 | Add 'getInboundReferences', 'getRetainingPath' RPCs, and 'InboundReferences', 'InboundReference', 'RetainingPath', and 'RetainingObject' objects.
-3.26 | Add 'requestHeapSnapshot'.
-3.27 | Add 'clearCpuSamples', 'getCpuSamples' RPCs and 'CpuSamples', 'CpuSample' objects.
+3.25 | Add `getInboundReferences`, `getRetainingPath` RPCs, and `InboundReferences`, `InboundReference`, `RetainingPath`, and `RetainingObject` objects.
+3.26 | Add `requestHeapSnapshot`.
+3.27 | Add `clearCpuSamples`, `getCpuSamples` RPCs and `CpuSamples`, `CpuSample` objects.
+3.28 | TODO(aam): document changes from 3.28
+3.29 | Add `getClientName`, `setClientName`, `requireResumeApproval`
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

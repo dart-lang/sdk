@@ -1,4 +1,23 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/potentially_non_nullable_field.dart:8:5: Error: Field 'x' should be initialized because its type 'int' doesn't allow null.
+// int x; // Error.
+//     ^
+//
+// pkg/front_end/testcases/nnbd/potentially_non_nullable_field.dart:13:14: Error: Field 'x' should be initialized because its type 'int' doesn't allow null.
+//   static int x; // Error.
+//              ^
+//
+// pkg/front_end/testcases/nnbd/potentially_non_nullable_field.dart:17:7: Error: Field 'lx' should be initialized because its type 'int' doesn't allow null.
+//   int lx; // Error.
+//       ^^
+//
+// pkg/front_end/testcases/nnbd/potentially_non_nullable_field.dart:23:5: Error: Field 'lt' should be initialized because its type 'T' doesn't allow null.
+//   T lt; // Error.
+//     ^^
+//
 import self as self;
 import "dart:core" as core;
 

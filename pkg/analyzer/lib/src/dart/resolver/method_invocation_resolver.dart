@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
@@ -52,7 +51,6 @@ class MethodInvocationResolver {
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
-  final ElementTypeProvider _elementTypeProvider;
   final InvocationInferenceHelper _inferenceHelper;
 
   final MigratableAstInfoProvider _migratableAstInfoProvider;
@@ -65,7 +63,6 @@ class MethodInvocationResolver {
 
   MethodInvocationResolver(
     this._resolver,
-    this._elementTypeProvider,
     this._migratableAstInfoProvider, {
     @required InvocationInferenceHelper inferenceHelper,
   })  : _typeType = _resolver.typeProvider.typeType,
@@ -339,8 +336,7 @@ class MethodInvocationResolver {
       getter = _resolver.toLegacyElement(getter);
       nameNode.staticElement = getter;
       _reportStaticAccessToInstanceMember(getter, nameNode);
-      _rewriteAsFunctionExpressionInvocation(
-          node, _elementTypeProvider.getExecutableReturnType(getter));
+      _rewriteAsFunctionExpressionInvocation(node, getter.returnType);
       return;
     }
 
@@ -349,7 +345,7 @@ class MethodInvocationResolver {
       method = _resolver.toLegacyElement(method);
       nameNode.staticElement = method;
       _reportStaticAccessToInstanceMember(method, nameNode);
-      _setResolution(node, _elementTypeProvider.getExecutableType(method));
+      _setResolution(node, method.type);
       return;
     }
 
@@ -392,11 +388,10 @@ class MethodInvocationResolver {
     nameNode.staticElement = member;
 
     if (member is PropertyAccessorElement) {
-      return _rewriteAsFunctionExpressionInvocation(
-          node, _elementTypeProvider.getExecutableReturnType(member));
+      return _rewriteAsFunctionExpressionInvocation(node, member.returnType);
     }
 
-    _setResolution(node, _elementTypeProvider.getExecutableType(member));
+    _setResolution(node, member.type);
   }
 
   void _resolveReceiverDynamic(MethodInvocation node, String name) {
@@ -459,7 +454,7 @@ class MethodInvocationResolver {
         methodName.staticElement = objectMember;
         _setResolution(
           node,
-          _elementTypeProvider.getExecutableType(objectMember),
+          objectMember.type,
         );
       } else {
         _setDynamicResolution(node);
@@ -503,12 +498,10 @@ class MethodInvocationResolver {
         element = multiply.conflictingElements[0];
       }
       if (element is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(
-            node, _elementTypeProvider.getExecutableReturnType(element));
+        return _rewriteAsFunctionExpressionInvocation(node, element.returnType);
       }
       if (element is ExecutableElement) {
-        return _setResolution(
-            node, _elementTypeProvider.getExecutableType(element));
+        return _setResolution(node, element.type);
       }
       if (element is VariableElement) {
         var targetType = _localVariableTypeProvider.getType(nameNode);
@@ -553,8 +546,7 @@ class MethodInvocationResolver {
         element = _resolver.toLegacyElement(element);
         if (element is ExecutableElement) {
           nameNode.staticElement = element;
-          return _setResolution(
-              node, _elementTypeProvider.getExecutableType(element));
+          return _setResolution(node, element.type);
         }
       }
     }
@@ -572,13 +564,11 @@ class MethodInvocationResolver {
     }
 
     if (element is PropertyAccessorElement) {
-      return _rewriteAsFunctionExpressionInvocation(
-          node, _elementTypeProvider.getExecutableReturnType(element));
+      return _rewriteAsFunctionExpressionInvocation(node, element.returnType);
     }
 
     if (element is ExecutableElement) {
-      return _setResolution(
-          node, _elementTypeProvider.getExecutableType(element));
+      return _setResolution(node, element.type);
     }
 
     _reportUndefinedFunction(node, prefixedName);
@@ -603,10 +593,9 @@ class MethodInvocationResolver {
     if (target != null) {
       nameNode.staticElement = target;
       if (target is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(
-            node, _elementTypeProvider.getExecutableReturnType(target));
+        return _rewriteAsFunctionExpressionInvocation(node, target.returnType);
       }
-      _setResolution(node, _elementTypeProvider.getExecutableType(target));
+      _setResolution(node, target.type);
       return;
     }
 
@@ -616,7 +605,7 @@ class MethodInvocationResolver {
     target = _inheritance.getInherited(receiverType, _currentName);
     if (target != null) {
       nameNode.staticElement = target;
-      _setResolution(node, _elementTypeProvider.getExecutableType(target));
+      _setResolution(node, target.type);
 
       _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE,
@@ -667,11 +656,9 @@ class MethodInvocationResolver {
       }
 
       if (target is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(
-            node, _elementTypeProvider.getExecutableReturnType(target));
+        return _rewriteAsFunctionExpressionInvocation(node, target.returnType);
       }
-      return _setResolution(
-          node, _elementTypeProvider.getExecutableType(target));
+      return _setResolution(node, target.type);
     }
 
     _setDynamicResolution(node);
@@ -702,9 +689,9 @@ class MethodInvocationResolver {
         nameNode.staticElement = element;
         if (element is PropertyAccessorElement) {
           return _rewriteAsFunctionExpressionInvocation(
-              node, _elementTypeProvider.getExecutableReturnType(element));
+              node, element.returnType);
         }
-        _setResolution(node, _elementTypeProvider.getExecutableType(element));
+        _setResolution(node, element.type);
       } else {
         _reportInvocationOfNonFunction(node);
       }

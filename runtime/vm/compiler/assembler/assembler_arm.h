@@ -757,6 +757,10 @@ class Assembler : public AssemblerBase {
                             Register rn,
                             int32_t value,
                             Condition cond = AL);
+  void SubImmediate(Register rd,
+                    Register rn,
+                    int32_t value,
+                    Condition cond = AL);
   void SubImmediateSetFlags(Register rd,
                             Register rn,
                             int32_t value,
@@ -799,6 +803,7 @@ class Assembler : public AssemblerBase {
   void LoadPoolPointer(Register reg = PP);
 
   void LoadIsolate(Register rd);
+  void LoadDispatchTable(Register dst);
 
   // Load word from pool from the given offset using encoding that
   // InstructionPattern::DecodeLoadWordFromPool can decode.

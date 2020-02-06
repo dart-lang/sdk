@@ -25,10 +25,11 @@ class AddTypeAnnotationLintTest extends FixProcessorLintTest {
   String get lintCode => LintNames.always_specify_types;
 
   // More coverage in the `add_type_annotation_test.dart` assist test.
+
   Future<void> test_do_block() async {
     await resolveTestUnit('''
 class A {
-  /*LINT*/final f = 0;
+  final f = 0;
 }
 ''');
     await assertHasFix('''

@@ -25,7 +25,7 @@ class AvoidAnnotatingWithDynamicTest extends RemoveTypeAnnotationTest {
 
   Future<void> test_insideFunctionTypedFormalParameter() async {
     await resolveTestUnit('''
-bad(void foo(/*LINT*/dynamic x)) {
+bad(void foo(dynamic x)) {
   return null;
 }
 ''');
@@ -38,7 +38,7 @@ bad(void foo(x)) {
 
   Future<void> test_namedParameter() async {
     await resolveTestUnit('''
-bad({/*LINT*/dynamic defaultValue}) {
+bad({dynamic defaultValue}) {
   return null;
 }
 ''');
@@ -51,7 +51,7 @@ bad({defaultValue}) {
 
   Future<void> test_normalParameter() async {
     await resolveTestUnit('''
-bad(/*LINT*/dynamic defaultValue) {
+bad(dynamic defaultValue) {
   return null;
 }
 ''');
@@ -64,7 +64,7 @@ bad(defaultValue) {
 
   Future<void> test_optionalParameter() async {
     await resolveTestUnit('''
-bad([/*LINT*/dynamic defaultValue]) {
+bad([dynamic defaultValue]) {
   return null;
 }
 ''');
@@ -83,7 +83,7 @@ class AvoidReturnTypesOnSettersTest extends RemoveTypeAnnotationTest {
 
   Future<void> test_void() async {
     await resolveTestUnit('''
-/*LINT*/void set speed2(int ms) {}
+void set speed2(int ms) {}
 ''');
     await assertHasFix('''
 set speed2(int ms) {}
@@ -98,40 +98,28 @@ class AvoidTypesOnClosureParametersTest extends RemoveTypeAnnotationTest {
 
   Future<void> test_namedParameter() async {
     await resolveTestUnit('''
-var x = ({/*LINT*/Future<int> defaultValue}) {
-  return null;
-};
+var x = ({Future<int> defaultValue}) => null;
 ''');
     await assertHasFix('''
-var x = ({defaultValue}) {
-  return null;
-};
+var x = ({defaultValue}) => null;
 ''');
   }
 
   Future<void> test_normalParameter() async {
     await resolveTestUnit('''
-var x = (/*LINT*/Future<int> defaultValue) {
-  return null;
-};
+var x = (Future<int> defaultValue) => null;
 ''');
     await assertHasFix('''
-var x = (defaultValue) {
-  return null;
-};
+var x = (defaultValue) => null;
 ''');
   }
 
   Future<void> test_optionalParameter() async {
     await resolveTestUnit('''
-var x = ([/*LINT*/Future<int> defaultValue]) {
-  return null;
-};
+var x = ([Future<int> defaultValue]) => null;
 ''');
     await assertHasFix('''
-var x = ([defaultValue]) {
-  return null;
-};
+var x = ([defaultValue]) => null;
 ''');
   }
 }
@@ -151,7 +139,7 @@ class TypeInitFormalsTest extends RemoveTypeAnnotationTest {
     await resolveTestUnit('''
 class C {
   int f;
-  C(/*LINT*/int this.f);
+  C(int this.f);
 }
 ''');
     await assertHasFix('''

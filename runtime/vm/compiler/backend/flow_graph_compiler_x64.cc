@@ -9,9 +9,11 @@
 
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/locations.h"
+#include "vm/compiler/ffi/native_location.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
+#include "vm/dispatch_table.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -1207,6 +1209,22 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   __ Drop(count_with_type_args, RCX);
 }
 
+void FlowGraphCompiler::EmitDispatchTableCall(
+    Register cid_reg,
+    int32_t selector_offset,
+    const Array& arguments_descriptor) {
+  const Register table_reg = RAX;
+  ASSERT(cid_reg != table_reg);
+  ASSERT(cid_reg != ARGS_DESC_REG);
+  if (!arguments_descriptor.IsNull()) {
+    __ LoadObject(ARGS_DESC_REG, arguments_descriptor);
+  }
+  const intptr_t offset = (selector_offset - DispatchTable::OriginElement()) *
+                          compiler::target::kWordSize;
+  __ LoadDispatchTable(table_reg);
+  __ call(compiler::Address(table_reg, cid_reg, TIMES_8, offset));
+}
+
 Condition FlowGraphCompiler::EmitEqualityRegConstCompare(
     Register reg,
     const Object& obj,
@@ -1412,6 +1430,180 @@ void FlowGraphCompiler::EmitMove(Location destination,
       tmp->ReleaseTemporary();
     } else {
       source.constant_instruction()->EmitMoveToLocation(this, destination);
+    }
+  }
+}
+
+void FlowGraphCompiler::EmitNativeMoveArchitecture(
+    const compiler::ffi::NativeLocation& destination,
+    const compiler::ffi::NativeLocation& source) {
+  const auto& src_type = source.payload_type();
+  const auto& dst_type = destination.payload_type();
+  ASSERT(src_type.IsFloat() == dst_type.IsFloat());
+  ASSERT(src_type.IsInt() == dst_type.IsInt());
+  ASSERT(src_type.IsSigned() == dst_type.IsSigned());
+  ASSERT(src_type.IsFundamental());
+  ASSERT(dst_type.IsFundamental());
+  const intptr_t src_size = src_type.SizeInBytes();
+  const intptr_t dst_size = dst_type.SizeInBytes();
+  const bool sign_or_zero_extend = dst_size > src_size;
+
+  if (source.IsRegisters()) {
+    const auto& src = source.AsRegisters();
+    ASSERT(src.num_regs() == 1);
+    const auto src_reg = src.reg_at(0);
+
+    if (destination.IsRegisters()) {
+      const auto& dst = destination.AsRegisters();
+      ASSERT(dst.num_regs() == 1);
+      const auto dst_reg = dst.reg_at(0);
+      if (!sign_or_zero_extend) {
+        switch (dst_size) {
+          case 8:
+            __ movq(dst_reg, src_reg);
+            return;
+          case 4:
+            __ movl(dst_reg, src_reg);
+            return;
+          default:
+            UNIMPLEMENTED();
+        }
+      } else {
+        switch (src_type.AsFundamental().representation()) {
+          case compiler::ffi::kInt8:  // Sign extend operand.
+            __ movsxb(dst_reg, src_reg);
+            return;
+          case compiler::ffi::kInt16:
+            __ movsxw(dst_reg, src_reg);
+            return;
+          case compiler::ffi::kUint8:  // Zero extend operand.
+            __ movzxb(dst_reg, src_reg);
+            return;
+          case compiler::ffi::kUint16:
+            __ movzxw(dst_reg, src_reg);
+            return;
+          default:
+            // 32 to 64 bit is covered in IL by Representation conversions.
+            UNIMPLEMENTED();
+        }
+      }
+
+    } else if (destination.IsFpuRegisters()) {
+      // Fpu Registers should only contain doubles and registers only ints.
+      UNIMPLEMENTED();
+
+    } else {
+      ASSERT(destination.IsStack());
+      const auto& dst = destination.AsStack();
+      const auto dst_addr = NativeLocationToStackSlotAddress(dst);
+      ASSERT(!sign_or_zero_extend);
+      switch (dst_size) {
+        case 8:
+          __ movq(dst_addr, src_reg);
+          return;
+        case 4:
+          __ movl(dst_addr, src_reg);
+          return;
+        case 2:
+          __ movw(dst_addr, src_reg);
+          return;
+        case 1:
+          __ movb(dst_addr, src_reg);
+          return;
+        default:
+          UNREACHABLE();
+      }
+    }
+
+  } else if (source.IsFpuRegisters()) {
+    const auto& src = source.AsFpuRegisters();
+    // We have not implemented conversions here, use IL convert instructions.
+    ASSERT(src_type.Equals(dst_type));
+
+    if (destination.IsRegisters()) {
+      // Fpu Registers should only contain doubles and registers only ints.
+      UNIMPLEMENTED();
+
+    } else if (destination.IsFpuRegisters()) {
+      const auto& dst = destination.AsFpuRegisters();
+      // Optimization manual recommends using MOVAPS for register
+      // to register moves.
+      __ movaps(dst.fpu_reg(), src.fpu_reg());
+
+    } else {
+      ASSERT(destination.IsStack());
+      ASSERT(src_type.IsFloat());
+      const auto& dst = destination.AsStack();
+      const auto dst_addr = NativeLocationToStackSlotAddress(dst);
+      switch (dst_size) {
+        case 8:
+          __ movsd(dst_addr, src.fpu_reg());
+          return;
+        case 4:
+          __ movss(dst_addr, src.fpu_reg());
+          return;
+        default:
+          UNREACHABLE();
+      }
+    }
+
+  } else {
+    ASSERT(source.IsStack());
+    const auto& src = source.AsStack();
+    const auto src_addr = NativeLocationToStackSlotAddress(src);
+    if (destination.IsRegisters()) {
+      const auto& dst = destination.AsRegisters();
+      ASSERT(dst.num_regs() == 1);
+      const auto dst_reg = dst.reg_at(0);
+      if (!sign_or_zero_extend) {
+        switch (dst_size) {
+          case 8:
+            __ movq(dst_reg, src_addr);
+            return;
+          case 4:
+            __ movl(dst_reg, src_addr);
+            return;
+          default:
+            UNIMPLEMENTED();
+        }
+      } else {
+        switch (src_type.AsFundamental().representation()) {
+          case compiler::ffi::kInt8:  // Sign extend operand.
+            __ movsxb(dst_reg, src_addr);
+            return;
+          case compiler::ffi::kInt16:
+            __ movsxw(dst_reg, src_addr);
+            return;
+          case compiler::ffi::kUint8:  // Zero extend operand.
+            __ movzxb(dst_reg, src_addr);
+            return;
+          case compiler::ffi::kUint16:
+            __ movzxw(dst_reg, src_addr);
+            return;
+          default:
+            // 32 to 64 bit is covered in IL by Representation conversions.
+            UNIMPLEMENTED();
+        }
+      }
+
+    } else if (destination.IsFpuRegisters()) {
+      ASSERT(src_type.Equals(dst_type));
+      ASSERT(src_type.IsFloat());
+      const auto& dst = destination.AsFpuRegisters();
+      switch (dst_size) {
+        case 8:
+          __ movsd(dst.fpu_reg(), src_addr);
+          return;
+        case 4:
+          __ movss(dst.fpu_reg(), src_addr);
+          return;
+        default:
+          UNREACHABLE();
+      }
+
+    } else {
+      ASSERT(destination.IsStack());
+      UNREACHABLE();
     }
   }
 }

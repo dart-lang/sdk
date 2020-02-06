@@ -16,17 +16,17 @@ main() {
 test(Class? c) {
   c?.next.field; // ok
   throwsInStrong(() => c?.field + 2); // error
-  // TODO(johnniwinther): Stop shorting a inc/dec.
-  ++c?.field; // error
-  c?.field++; // error
+  ++c?.field; // ok
+  c?.field++; // ok
   throwsInStrong(() => (c?.next).field); // error
+  throwsInStrong(() => -c?.field); // error
 
   c?.next[0].isEven; // ok
   throwsInStrong(() => c?.next[0] + 2); // error
-  // TODO(johnniwinther): Stop shorting a inc/dec.
-  ++c?.next[0]; // error
-  c?.next[0]++; // error
+  ++c?.next[0]; // ok
+  c?.next[0]++; // ok
   throwsInStrong(() => (c?.next[0]).isEven); // error
+  throwsInStrong(() => -c?.next[0]); // error
 }
 
 final bool inStrongMode = _inStrongMode();

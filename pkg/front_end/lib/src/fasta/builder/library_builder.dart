@@ -80,7 +80,7 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// Returns the import uri for the library.
   ///
   /// This is the canonical uri for the library, for instance 'dart:core'.
-  Uri get uri;
+  Uri get importUri;
 
   Iterator<Builder> get iterator;
 
@@ -254,7 +254,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
   int get modifiers => 0;
 
   @override
-  Uri get uri;
+  Uri get importUri;
 
   @override
   Iterator<Builder> get iterator {
@@ -354,7 +354,7 @@ abstract class LibraryBuilderImpl extends ModifierBuilderImpl
     }
     throw internalProblem(
         templateInternalProblemConstructorNotFound.withArguments(
-            "$className.$constructorName", uri),
+            "$className.$constructorName", importUri),
         -1,
         null);
   }

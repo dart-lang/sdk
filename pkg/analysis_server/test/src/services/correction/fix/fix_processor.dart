@@ -37,11 +37,17 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   Future<void> resolveTestUnit(String code) async {
     lintOffset = code.indexOf(lintMarker);
     if (lintOffset < 0) {
-      fail("Missing '$lintMarker' marker");
+      return super.resolveTestUnit(code);
     }
     var endOffset = lintOffset + lintMarker.length;
     code = code.substring(0, lintOffset) + code.substring(endOffset);
     return super.resolveTestUnit(code);
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    createAnalysisOptionsFile(lints: [lintCode]);
   }
 
   /// Find the error that is to be fixed by computing the errors in the file,
@@ -52,6 +58,9 @@ abstract class FixProcessorLintTest extends FixProcessorTest {
   Future<AnalysisError> _findErrorToFix(
       bool Function(AnalysisError) errorFilter,
       {int length}) async {
+    if (lintOffset < 0) {
+      return super._findErrorToFix(errorFilter, length: 0);
+    }
     return AnalysisError(
         testSource, lintOffset, length ?? 0, LintCode(lintCode, '<ignored>'));
   }
@@ -185,8 +194,8 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
         }
       }
       if (actualNumberOfFixesForKind != expectedNumberOfFixesForKind) {
-        fail(
-            "Expected $expectedNumberOfFixesForKind fixes of kind $kind, but found $actualNumberOfFixesForKind:\n${fixes.join('\n')}");
+        fail('Expected $expectedNumberOfFixesForKind fixes of kind $kind,'
+            ' but found $actualNumberOfFixesForKind:\n${fixes.join('\n')}');
       }
     }
 
@@ -197,8 +206,13 @@ abstract class FixProcessorTest extends AbstractSingleUnitTest {
           return fix;
         }
       }
-      fail(
-          'Expected to find fix $kind with name $matchFixMessage in\n${fixes.join('\n')}');
+      if (fixes.isEmpty) {
+        fail('Expected to find fix $kind with name $matchFixMessage'
+            ' but there were no fixes.');
+      } else {
+        fail('Expected to find fix $kind with name $matchFixMessage'
+            ' in\n${fixes.join('\n')}');
+      }
     }
 
     // Assert that none of the fixes are a fix-all fix.

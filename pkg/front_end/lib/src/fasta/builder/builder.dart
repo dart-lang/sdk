@@ -178,6 +178,8 @@ abstract class Builder {
 
   bool get isRegularMethod;
 
+  bool get isOperator;
+
   bool get isSetter;
 
   bool get isStatic;
@@ -263,6 +265,9 @@ abstract class BuilderImpl implements Builder {
 
   @override
   bool get isRegularMethod => false;
+
+  @override
+  bool get isOperator => false;
 
   @override
   bool get isSetter => false;

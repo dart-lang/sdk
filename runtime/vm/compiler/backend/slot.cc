@@ -218,6 +218,10 @@ const Slot& Slot::Get(const Field& field,
     used_guarded_state = false;
   }
 
+  if (field.is_non_nullable_integer()) {
+    is_nullable = false;
+  }
+
   const Slot& slot = SlotCache::Instance(thread).Canonicalize(Slot(
       Kind::kDartField,
       IsImmutableBit::encode(field.is_final() || field.is_const()) |

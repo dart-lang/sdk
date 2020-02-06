@@ -11,6 +11,15 @@ abstract class Client {
   final VMService service;
   final bool sendEvents;
 
+  static int _idCounter = 0;
+  final int _id = ++_idCounter;
+
+  String get defaultClientName => 'client$_id';
+
+  String get name => _name;
+  set name(String? n) => _name = (n ?? defaultClientName);
+  late String _name;
+
   /// A set streamIds which describes the streams the client is connected to
   final streams = <String>{};
 
@@ -25,6 +34,7 @@ abstract class Client {
   final serviceHandles = <String, ClientServiceHandle>{};
 
   Client(this.service, {this.sendEvents = true}) {
+    _name = defaultClientName;
     service._addClient(this);
   }
 

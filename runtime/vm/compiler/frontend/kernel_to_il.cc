@@ -11,7 +11,6 @@
 #include "vm/compiler/backend/locations.h"
 #include "vm/compiler/ffi/abi.h"
 #include "vm/compiler/ffi/marshaller.h"
-#include "vm/compiler/ffi/native_representation.h"
 #include "vm/compiler/ffi/recognized_method.h"
 #include "vm/compiler/frontend/kernel_binary_flowgraph.h"
 #include "vm/compiler/frontend/kernel_translation_helper.h"
@@ -372,13 +371,11 @@ Fragment FlowGraphBuilder::InstanceCall(
 }
 
 Fragment FlowGraphBuilder::FfiCall(
-    const Function& signature,
-    const ZoneGrowableArray<Representation>& arg_reps,
-    const ZoneGrowableArray<Location>& arg_locs) {
+    const compiler::ffi::CallMarshaller& marshaller) {
   Fragment body;
 
   FfiCallInstr* const call =
-      new (Z) FfiCallInstr(Z, GetNextDeoptId(), signature, arg_reps, arg_locs);
+      new (Z) FfiCallInstr(Z, GetNextDeoptId(), marshaller);
 
   for (intptr_t i = call->InputCount() - 1; i >= 0; --i) {
     call->SetInputAt(i, Pop());
@@ -1211,8 +1208,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
-      const Representation representation =
-          compiler::ffi::TypeRepresentation(ffi_type_arg_cid);
+      const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
+          ffi_type_arg_cid, zone_);
 
       // Check Dart signature type.
       const auto& receiver_type =
@@ -1233,7 +1230,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
       body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body += IntConstant(compiler::ffi::ElementSizeInBytes(ffi_type_arg_cid));
+      body += IntConstant(native_rep.SizeInBytes());
       body += UnboxTruncate(kUnboxedIntPtr);
       // TODO(38831): Implement Shift for Uint32, and use that instead.
       body +=
@@ -1250,7 +1247,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         }
         body += Box(kUnboxedDouble);
       } else {
-        body += Box(representation);
+        body += Box(native_rep.AsRepresentationOverApprox(zone_));
         if (kind == MethodRecognizer::kFfiLoadPointer) {
           const auto class_table = thread_->isolate()->class_table();
           ASSERT(class_table->HasValidClassAt(kFfiPointerCid));
@@ -1301,8 +1298,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           compiler::ffi::RecognizedMethodTypeArgCid(kind);
       const classid_t typed_data_cid =
           compiler::ffi::ElementTypedDataCid(ffi_type_arg_cid);
-      const Representation representation =
-          compiler::ffi::TypeRepresentation(ffi_type_arg_cid);
+      const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
+          ffi_type_arg_cid, zone_);
 
       // Check Dart signature type.
       const auto& receiver_type =
@@ -1365,7 +1362,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += CheckNullOptimized(TokenPosition::kNoSource,
                                  String::ZoneHandle(Z, function.name()));
       body += UnboxTruncate(kUnboxedFfiIntPtr);
-      body += IntConstant(compiler::ffi::ElementSizeInBytes(ffi_type_arg_cid));
+      body += IntConstant(native_rep.SizeInBytes());
       body += UnboxTruncate(kUnboxedFfiIntPtr);
       // TODO(38831): Implement Shift for Uint32, and use that instead.
       body +=
@@ -1386,7 +1383,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           body += DoubleToFloat();
         }
       } else {
-        body += UnboxTruncate(representation);
+        body += UnboxTruncate(native_rep.AsRepresentationOverApprox(zone_));
       }
       body += StoreIndexedTypedData(typed_data_cid);
       body += NullConstant();
@@ -2799,22 +2796,10 @@ Fragment FlowGraphBuilder::Box(Representation from) {
   return Fragment(box);
 }
 
-Fragment FlowGraphBuilder::FfiUnboxedExtend(Representation representation,
-                                            const AbstractType& ffi_type) {
-  const SmallRepresentation from_representation =
-      compiler::ffi::TypeSmallRepresentation(ffi_type);
-  if (from_representation == kNoSmallRepresentation) return {};
-
-  auto* extend = new (Z)
-      UnboxedWidthExtenderInstr(Pop(), representation, from_representation);
-  Push(extend);
-  return Fragment(extend);
-}
-
-Fragment FlowGraphBuilder::NativeReturn(Representation result) {
-  auto* instr = new (Z)
-      NativeReturnInstr(TokenPosition::kNoSource, Pop(), result,
-                        compiler::ffi::ResultLocation(result), DeoptId::kNone);
+Fragment FlowGraphBuilder::NativeReturn(
+    const compiler::ffi::CallbackMarshaller& marshaller) {
+  auto* instr = new (Z) NativeReturnInstr(TokenPosition::kNoSource, Pop(),
+                                          marshaller, DeoptId::kNone);
   return Fragment(instr);
 }
 
@@ -2858,54 +2843,48 @@ Fragment FlowGraphBuilder::BitCast(Representation from, Representation to) {
 }
 
 Fragment FlowGraphBuilder::FfiConvertArgumentToDart(
-    const AbstractType& ffi_type,
-    const Representation native_representation) {
+    const compiler::ffi::BaseMarshaller& marshaller,
+    intptr_t arg_index) {
   Fragment body;
-  if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
+  if (marshaller.IsPointer(arg_index)) {
     body += Box(kUnboxedFfiIntPtr);
-    body += FfiPointerFromAddress(Type::Cast(ffi_type));
-  } else if (compiler::ffi::NativeTypeIsVoid(ffi_type)) {
+    body += FfiPointerFromAddress(
+        Type::CheckedHandle(Z, marshaller.CType(arg_index)));
+  } else if (marshaller.IsVoid(arg_index)) {
     body += Drop();
     body += NullConstant();
   } else {
-    const Representation from_rep = native_representation;
-    const Representation to_rep =
-        compiler::ffi::TypeRepresentation(ffi_type.type_class_id());
-    if (from_rep != to_rep) {
-      body += BitCast(from_rep, to_rep);
-    } else {
-      body += FfiUnboxedExtend(from_rep, ffi_type);
+    if (marshaller.RequiresBitCast(arg_index)) {
+      body += BitCast(marshaller.RepInFfiCall(arg_index),
+                      marshaller.RepInDart(arg_index));
     }
-    body += Box(to_rep);
+
+    body += Box(marshaller.RepInDart(arg_index));
   }
   return body;
 }
 
 Fragment FlowGraphBuilder::FfiConvertArgumentToNative(
-    const Function& function,
-    const AbstractType& ffi_type,
-    const Representation native_representation) {
+    const compiler::ffi::BaseMarshaller& marshaller,
+    intptr_t arg_index) {
   Fragment body;
 
   // Check for 'null'.
+  // TODO(36780): Mention the param name instead of function name and reciever.
   body += CheckNullOptimized(TokenPosition::kNoSource,
-                             String::ZoneHandle(Z, function.name()));
+                             String::ZoneHandle(Z, marshaller.function_name()));
 
-  if (compiler::ffi::NativeTypeIsPointer(ffi_type)) {
+  if (marshaller.IsPointer(arg_index)) {
     body += LoadNativeField(Slot::Pointer_c_memory_address());
-    body += UnboxTruncate(kUnboxedFfiIntPtr);
-  } else {
-    Representation from_rep =
-        compiler::ffi::TypeRepresentation(ffi_type.type_class_id());
-    body += UnboxTruncate(from_rep);
-
-    Representation to_rep = native_representation;
-    if (from_rep != to_rep) {
-      body += BitCast(from_rep, to_rep);
-    } else {
-      body += FfiUnboxedExtend(from_rep, ffi_type);
-    }
   }
+
+  body += UnboxTruncate(marshaller.RepInDart(arg_index));
+
+  if (marshaller.RequiresBitCast(arg_index)) {
+    body += BitCast(marshaller.RepInDart(arg_index),
+                    marshaller.RepInFfiCall(arg_index));
+  }
+
   return body;
 }
 
@@ -2933,19 +2912,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
   Fragment body(instruction_cursor);
   body += CheckStackOverflowInPrologue(function.token_pos());
 
-  const Function& signature = Function::ZoneHandle(Z, function.FfiCSignature());
-  const auto& arg_reps = *compiler::ffi::ArgumentRepresentations(signature);
-  const auto& arg_locs = *compiler::ffi::ArgumentLocations(arg_reps);
+  const auto& marshaller = *new (Z) compiler::ffi::CallMarshaller(Z, function);
 
   BuildArgumentTypeChecks(TypeChecksToBuild::kCheckAllTypeParameterBounds,
                           &body, &body, &body);
 
   // Unbox and push the arguments.
-  AbstractType& ffi_type = AbstractType::Handle(Z);
-  for (intptr_t pos = 1; pos < function.num_fixed_parameters(); pos++) {
-    body += LoadLocal(parsed_function_->ParameterVariable(pos));
-    ffi_type = signature.ParameterTypeAt(pos);
-    body += FfiConvertArgumentToNative(function, ffi_type, arg_reps[pos - 1]);
+  for (intptr_t i = 0; i < marshaller.num_args(); i++) {
+    body += LoadLocal(parsed_function_->ParameterVariable(i + 1));
+    body += FfiConvertArgumentToNative(marshaller, i);
   }
 
   // Push the function pointer, which is stored (boxed) in the first slot of the
@@ -2957,12 +2932,10 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
                     Z, Class::Handle(I->object_store()->ffi_pointer_class()))
                     ->context_variables()[0]));
   body += UnboxTruncate(kUnboxedFfiIntPtr);
-  body += FfiCall(signature, arg_reps, arg_locs);
+  body += FfiCall(marshaller);
 
-  ffi_type = signature.result_type();
-  const Representation from_rep =
-      compiler::ffi::ResultRepresentation(signature);
-  body += FfiConvertArgumentToDart(ffi_type, from_rep);
+  body += FfiConvertArgumentToDart(marshaller, compiler::ffi::kResultIndex);
+
   body += Return(TokenPosition::kNoSource);
 
   return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
@@ -2970,18 +2943,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
-  const Function& signature = Function::ZoneHandle(Z, function.FfiCSignature());
-  const auto& arg_reps = *compiler::ffi::ArgumentRepresentations(signature);
-  const auto& arg_locs = *compiler::ffi::ArgumentLocations(arg_reps);
-  const auto& callback_locs =
-      *compiler::ffi::CallbackArgumentTranslator::TranslateArgumentLocations(
-          arg_locs);
+  const auto& marshaller =
+      *new (Z) compiler::ffi::CallbackMarshaller(Z, function);
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
 
   auto* const native_entry = new (Z) NativeEntryInstr(
-      &arg_locs, graph_entry_, AllocateBlockId(), CurrentTryIndex(),
+      marshaller, graph_entry_, AllocateBlockId(), CurrentTryIndex(),
       GetNextDeoptId(), function.FfiCallbackId());
 
   graph_entry_->set_normal_entry(native_entry);
@@ -2996,14 +2965,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   ++try_depth_;
 
   // Box and push the arguments.
-  AbstractType& ffi_type = AbstractType::Handle(Z);
-  for (intptr_t i = 0, n = callback_locs.length(); i < n; ++i) {
-    ffi_type = signature.ParameterTypeAt(i + 1);
-    auto* parameter =
-        new (Z) NativeParameterInstr(callback_locs[i], arg_reps[i]);
+  for (intptr_t i = 0; i < marshaller.num_args(); i++) {
+    auto* parameter = new (Z) NativeParameterInstr(marshaller, i);
     Push(parameter);
     body <<= parameter;
-    body += FfiConvertArgumentToDart(ffi_type, arg_reps[i]);
+    body += FfiConvertArgumentToDart(marshaller, i);
   }
 
   // Call the target.
@@ -3012,14 +2978,11 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   // rebind-rule accordingly.
   body += StaticCall(TokenPosition::kNoSource,
                      Function::ZoneHandle(Z, function.FfiCallbackTarget()),
-                     callback_locs.length(), Array::empty_array(),
+                     marshaller.num_args(), Array::empty_array(),
                      ICData::kNoRebind);
 
-  ffi_type = signature.result_type();
-  const Representation result_rep =
-      compiler::ffi::ResultRepresentation(signature);
-  body += FfiConvertArgumentToNative(function, ffi_type, result_rep);
-  body += NativeReturn(result_rep);
+  body += FfiConvertArgumentToNative(marshaller, compiler::ffi::kResultIndex);
+  body += NativeReturn(marshaller);
 
   --try_depth_;
   function_body += body;
@@ -3033,18 +2996,19 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
   //
   // For pointer and void return types, the exceptional return is always null --
   // return 0 instead.
-  if (compiler::ffi::NativeTypeIsPointer(ffi_type) ||
-      compiler::ffi::NativeTypeIsVoid(ffi_type)) {
+  if (marshaller.IsPointer(compiler::ffi::kResultIndex) ||
+      marshaller.IsVoid(compiler::ffi::kResultIndex)) {
     ASSERT(function.FfiCallbackExceptionalReturn() == Object::null());
     catch_body += IntConstant(0);
     catch_body += UnboxTruncate(kUnboxedFfiIntPtr);
   } else {
     catch_body += Constant(
         Instance::ZoneHandle(Z, function.FfiCallbackExceptionalReturn()));
-    catch_body += FfiConvertArgumentToNative(function, ffi_type, result_rep);
+    catch_body +=
+        FfiConvertArgumentToNative(marshaller, compiler::ffi::kResultIndex);
   }
 
-  catch_body += NativeReturn(result_rep);
+  catch_body += NativeReturn(marshaller);
   --catch_depth_;
 
   PrologueInfo prologue_info(-1, -1);
@@ -3059,6 +3023,7 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
 }
 
 }  // namespace kernel
+
 }  // namespace dart
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

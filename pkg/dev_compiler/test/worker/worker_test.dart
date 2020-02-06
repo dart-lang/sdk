@@ -17,7 +17,7 @@ Directory tmp = Directory.systemTemp.createTempSync('ddc_worker_test');
 File file(String path) => File(join(tmp.path, joinAll(path.split('/'))));
 
 void main() {
-  List<String> baseArgs = [];
+  var baseArgs = <String>[];
   final binDir = dirname(Platform.resolvedExecutable);
   // Note, the bots use the dart binary in the top-level build directory.
   // On windows, this is a .bat file.

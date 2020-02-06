@@ -37,6 +37,8 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_algebra.dart' as type_algebra
     show getSubstitutionMap;
 
+import 'package:kernel/type_environment.dart';
+
 import '../builder/builder.dart';
 
 import '../builder/class_builder.dart';
@@ -426,8 +428,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     library.forwardersOrigins.add(procedure);
   }
 
-  void addNoSuchMethodForwarderGetterForField(Member noSuchMethod,
-      KernelTarget target, Field field, ClassHierarchy hierarchy) {
+  void addNoSuchMethodForwarderGetterForField(
+      Field field, Member noSuchMethod, KernelTarget target) {
+    ClassHierarchy hierarchy = target.loader.hierarchy;
     Substitution substitution = Substitution.fromSupertype(
         hierarchy.getClassAsInstanceOf(cls, field.enclosingClass));
 
@@ -453,8 +456,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     getter.parent = cls;
   }
 
-  void addNoSuchMethodForwarderSetterForField(Member noSuchMethod,
-      KernelTarget target, Field field, ClassHierarchy hierarchy) {
+  void addNoSuchMethodForwarderSetterForField(
+      Field field, Member noSuchMethod, KernelTarget target) {
+    ClassHierarchy hierarchy = target.loader.hierarchy;
     Substitution substitution = Substitution.fromSupertype(
         hierarchy.getClassAsInstanceOf(cls, field.enclosingClass));
 
@@ -484,126 +488,210 @@ class SourceClassBuilder extends ClassBuilderImpl
     setter.parent = cls;
   }
 
-  /// Adds noSuchMethod forwarding stubs to this class. Returns `true` if the
-  /// class was modified.
-  bool addNoSuchMethodForwarders(
-      KernelTarget target, ClassHierarchy hierarchy) {
-    if (cls.isAbstract) return false;
+  bool _addMissingNoSuchMethodForwarders(
+      KernelTarget target, Set<Member> existingForwarders,
+      {bool forSetters}) {
+    assert(forSetters != null);
 
-    Set<Name> existingForwardersNames = new Set<Name>();
-    Set<Name> existingSetterForwardersNames = new Set<Name>();
-    Class leastConcreteSuperclass = cls.superclass;
-    while (
-        leastConcreteSuperclass != null && leastConcreteSuperclass.isAbstract) {
-      leastConcreteSuperclass = leastConcreteSuperclass.superclass;
-    }
-    if (leastConcreteSuperclass != null) {
-      bool superHasUserDefinedNoSuchMethod = hasUserDefinedNoSuchMethod(
-          leastConcreteSuperclass, hierarchy, target.objectClass);
-      List<Member> concrete =
-          hierarchy.getDispatchTargets(leastConcreteSuperclass);
-      for (Member member
-          in hierarchy.getInterfaceMembers(leastConcreteSuperclass)) {
-        if ((superHasUserDefinedNoSuchMethod ||
-                leastConcreteSuperclass.enclosingLibrary.compareTo(
-                            member.enclosingClass.enclosingLibrary) !=
-                        0 &&
-                    member.name.isPrivate) &&
-            ClassHierarchy.findMemberByName(concrete, member.name) == null) {
-          existingForwardersNames.add(member.name);
-        }
-      }
+    ClassHierarchy hierarchy = target.loader.hierarchy;
+    TypeEnvironment typeEnvironment =
+        target.loader.typeInferenceEngine.typeSchemaEnvironment;
 
-      List<Member> concreteSetters =
-          hierarchy.getDispatchTargets(leastConcreteSuperclass, setters: true);
-      for (Member member in hierarchy
-          .getInterfaceMembers(leastConcreteSuperclass, setters: true)) {
-        if (ClassHierarchy.findMemberByName(concreteSetters, member.name) ==
-            null) {
-          existingSetterForwardersNames.add(member.name);
-        }
-      }
-    }
+    List<Member> allMembers =
+        hierarchy.getInterfaceMembers(cls, setters: forSetters);
+    List<Member> concreteMembers =
+        hierarchy.getDispatchTargets(cls, setters: forSetters);
+    List<Member> declaredMembers =
+        hierarchy.getDeclaredMembers(cls, setters: forSetters);
 
     Member noSuchMethod = ClassHierarchy.findMemberByName(
         hierarchy.getInterfaceMembers(cls), noSuchMethodName);
-
-    List<Member> concrete = hierarchy.getDispatchTargets(cls);
-    List<Member> declared = hierarchy.getDeclaredMembers(cls);
-
     bool clsHasUserDefinedNoSuchMethod =
         hasUserDefinedNoSuchMethod(cls, hierarchy, target.objectClass);
+
     bool changed = false;
-    for (Member member in hierarchy.getInterfaceMembers(cls)) {
-      // We generate a noSuchMethod forwarder for [member] in [cls] if the
-      // following three conditions are satisfied simultaneously:
-      // 1) There is a user-defined noSuchMethod in [cls] or [member] is private
-      //    and the enclosing library of [member] is different from that of
-      //    [cls].
-      // 2) There is no implementation of [member] in [cls].
-      // 3) The superclass of [cls] has no forwarder for [member].
-      if (member is Procedure &&
-          (clsHasUserDefinedNoSuchMethod ||
-              cls.enclosingLibrary
-                          .compareTo(member.enclosingClass.enclosingLibrary) !=
-                      0 &&
-                  member.name.isPrivate) &&
-          ClassHierarchy.findMemberByName(concrete, member.name) == null &&
-          !existingForwardersNames.contains(member.name)) {
-        if (ClassHierarchy.findMemberByName(declared, member.name) != null) {
-          transformProcedureToNoSuchMethodForwarder(
-              noSuchMethod, target, member);
-        } else {
-          addNoSuchMethodForwarderForProcedure(
-              noSuchMethod, target, member, hierarchy);
-        }
-        existingForwardersNames.add(member.name);
-        changed = true;
-        continue;
-      }
 
-      if (member is Field &&
-          ClassHierarchy.findMemberByName(concrete, member.name) == null &&
-          !existingForwardersNames.contains(member.name)) {
-        addNoSuchMethodForwarderGetterForField(
-            noSuchMethod, target, member, hierarchy);
-        existingForwardersNames.add(member.name);
-        changed = true;
-      }
+    // It's possible to have multiple abstract members with the same name -- as
+    // long as there's one with function type that's a subtype of function types
+    // of all other members.  Such member is called "best" in the code below.
+    // Members with the same name are put into groups, and "best" is searched
+    // for in each group.
+    Map<Name, List<Member>> sameNameMembers = {};
+    for (Member member in allMembers) {
+      (sameNameMembers[member.name] ??= []).add(member);
     }
+    for (Name name in sameNameMembers.keys) {
+      List<Member> members = sameNameMembers[name];
+      assert(members.isNotEmpty);
+      List<DartType> memberTypes = [];
 
-    List<Member> concreteSetters =
-        hierarchy.getDispatchTargets(cls, setters: true);
-    List<Member> declaredSetters =
-        hierarchy.getDeclaredMembers(cls, setters: true);
-    for (Member member in hierarchy.getInterfaceMembers(cls, setters: true)) {
-      if (member is Procedure &&
-          ClassHierarchy.findMemberByName(concreteSetters, member.name) ==
-              null &&
-          !existingSetterForwardersNames.contains(member.name)) {
-        if (ClassHierarchy.findMemberByName(declaredSetters, member.name) !=
-            null) {
-          transformProcedureToNoSuchMethodForwarder(
-              noSuchMethod, target, member);
-        } else {
-          addNoSuchMethodForwarderForProcedure(
-              noSuchMethod, target, member, hierarchy);
+      // The most specific member has the type that is subtype of the types of
+      // all other members.
+      Member bestSoFar = members.first;
+      DartType bestSoFarType =
+          forSetters ? bestSoFar.setterType : bestSoFar.getterType;
+      bestSoFarType = Substitution.fromSupertype(
+              hierarchy.getClassAsInstanceOf(cls, bestSoFar.enclosingClass))
+          .substituteType(bestSoFarType);
+      for (int i = 1; i < members.length; ++i) {
+        Member candidate = members[i];
+        DartType candidateType =
+            forSetters ? candidate.setterType : candidate.getterType;
+        Substitution substitution = Substitution.fromSupertype(
+            hierarchy.getClassAsInstanceOf(cls, candidate.enclosingClass));
+        candidateType = substitution.substituteType(candidateType);
+        memberTypes.add(candidateType);
+        bool isMoreSpecific = forSetters
+            ? typeEnvironment.isSubtypeOf(bestSoFarType, candidateType,
+                SubtypeCheckMode.withNullabilities)
+            : typeEnvironment.isSubtypeOf(candidateType, bestSoFarType,
+                SubtypeCheckMode.withNullabilities);
+        if (isMoreSpecific) {
+          bestSoFar = candidate;
+          bestSoFarType = candidateType;
         }
-        existingSetterForwardersNames.add(member.name);
-        changed = true;
       }
-      if (member is Field &&
-          ClassHierarchy.findMemberByName(concreteSetters, member.name) ==
-              null &&
-          !existingSetterForwardersNames.contains(member.name)) {
-        addNoSuchMethodForwarderSetterForField(
-            noSuchMethod, target, member, hierarchy);
-        existingSetterForwardersNames.add(member.name);
-        changed = true;
+      // Since isSubtypeOf isn't a linear order on types, we need to check once
+      // again that the found member is indeed the most specific one.
+      bool isActuallyBestSoFar = true;
+      for (DartType memberType in memberTypes) {
+        bool isMoreSpecific = forSetters
+            ? typeEnvironment.isSubtypeOf(
+                memberType, bestSoFarType, SubtypeCheckMode.withNullabilities)
+            : typeEnvironment.isSubtypeOf(
+                bestSoFarType, memberType, SubtypeCheckMode.withNullabilities);
+        if (!isMoreSpecific) {
+          isActuallyBestSoFar = false;
+          break;
+        }
+      }
+      if (!isActuallyBestSoFar) {
+        // It's a member conflict that is reported elsewhere.
+      } else {
+        Member member = bestSoFar;
+
+        if (_isForwarderRequired(
+                clsHasUserDefinedNoSuchMethod, member, cls, concreteMembers,
+                isPatch: member.fileUri != member.enclosingClass.fileUri) &&
+            !existingForwarders.contains(member)) {
+          if (member is Procedure) {
+            // If there's a declared member with such name, then it's abstract
+            // -- transform it into a noSuchMethod forwarder.
+            if (ClassHierarchy.findMemberByName(declaredMembers, member.name) !=
+                null) {
+              transformProcedureToNoSuchMethodForwarder(
+                  noSuchMethod, target, member);
+            } else {
+              addNoSuchMethodForwarderForProcedure(
+                  noSuchMethod, target, member, hierarchy);
+            }
+            changed = true;
+          } else if (member is Field) {
+            // Current class isn't abstract, so it can't have an abstract field
+            // with the same name -- just insert the forwarder.
+            if (forSetters) {
+              addNoSuchMethodForwarderSetterForField(
+                  member, noSuchMethod, target);
+            } else {
+              addNoSuchMethodForwarderGetterForField(
+                  member, noSuchMethod, target);
+            }
+            changed = true;
+          } else {
+            return unhandled(
+                "${member.runtimeType}",
+                "addNoSuchMethodForwarders",
+                cls.fileOffset,
+                cls.enclosingLibrary.fileUri);
+          }
+        }
       }
     }
 
     return changed;
+  }
+
+  /// Adds noSuchMethod forwarding stubs to this class.
+  ///
+  /// Returns `true` if the class was modified.
+  bool addNoSuchMethodForwarders(
+      KernelTarget target, ClassHierarchy hierarchy) {
+    // Don't install forwarders in superclasses.
+    if (cls.isAbstract) return false;
+
+    // Compute signatures of existing noSuchMethod forwarders in superclasses.
+    Set<Member> existingForwarders = new Set<Member>.identity();
+    Set<Member> existingSetterForwarders = new Set<Member>.identity();
+    {
+      Class nearestConcreteSuperclass = cls.superclass;
+      while (nearestConcreteSuperclass != null &&
+          nearestConcreteSuperclass.isAbstract) {
+        nearestConcreteSuperclass = nearestConcreteSuperclass.superclass;
+      }
+      if (nearestConcreteSuperclass != null) {
+        bool superHasUserDefinedNoSuchMethod = hasUserDefinedNoSuchMethod(
+            nearestConcreteSuperclass, hierarchy, target.objectClass);
+        {
+          List<Member> concrete =
+              hierarchy.getDispatchTargets(nearestConcreteSuperclass);
+          for (Member member
+              in hierarchy.getInterfaceMembers(nearestConcreteSuperclass)) {
+            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
+                nearestConcreteSuperclass, concrete,
+                isPatch: member.fileUri != member.enclosingClass.fileUri)) {
+              existingForwarders.add(member);
+            }
+          }
+        }
+
+        {
+          List<Member> concreteSetters = hierarchy
+              .getDispatchTargets(nearestConcreteSuperclass, setters: true);
+          for (Member member in hierarchy
+              .getInterfaceMembers(nearestConcreteSuperclass, setters: true)) {
+            if (_isForwarderRequired(superHasUserDefinedNoSuchMethod, member,
+                nearestConcreteSuperclass, concreteSetters)) {
+              existingSetterForwarders.add(member);
+            }
+          }
+        }
+      }
+    }
+
+    bool changed = false;
+
+    // Install noSuchMethod forwarders for methods and getters.
+    changed = _addMissingNoSuchMethodForwarders(target, existingForwarders,
+            forSetters: false) ||
+        changed;
+
+    // Install noSuchMethod forwarders for setters.
+    changed = _addMissingNoSuchMethodForwarders(
+            target, existingSetterForwarders,
+            forSetters: true) ||
+        changed;
+
+    return changed;
+  }
+
+  /// Tells if a noSuchMethod forwarder is required for [member] in [cls].
+  bool _isForwarderRequired(bool hasUserDefinedNoSuchMethod, Member member,
+      Class cls, List<Member> concreteMembers,
+      {bool isPatch = false}) {
+    // A noSuchMethod forwarder is allowed for an abstract member if the class
+    // has a user-defined noSuchMethod or if the member is private and is
+    // defined in a different library.  Private members in patches are assumed
+    // to be visible only to patches, so they are treated as if they were from
+    // another library.
+    bool isForwarderAllowed = hasUserDefinedNoSuchMethod ||
+        (member.name.isPrivate &&
+            cls.enclosingLibrary.compareTo(member.enclosingLibrary) != 0) ||
+        (member.name.isPrivate && isPatch);
+    // A noSuchMethod forwarder is required if it's allowed and if there's no
+    // concrete implementation or a forwarder already.
+    bool isForwarderRequired = isForwarderAllowed &&
+        ClassHierarchy.findMemberByName(concreteMembers, member.name) == null;
+    return isForwarderRequired;
   }
 
   void addRedirectingConstructor(ProcedureBuilder constructorBuilder,

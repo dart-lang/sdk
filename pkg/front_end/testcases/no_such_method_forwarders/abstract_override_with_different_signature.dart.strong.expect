@@ -1,0 +1,59 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Cat extends core::Object {
+  synthetic constructor •() → self::Cat*
+    : super core::Object::•()
+    ;
+  method eatFood(core::String* food) → core::bool*
+    return true;
+}
+class MockCat extends core::Object implements self::Cat {
+  synthetic constructor •() → self::MockCat*
+    : super core::Object::•()
+    ;
+  method noSuchMethod(core::Invocation* invocation) → dynamic {
+    dynamic arg = invocation.{core::Invocation::positionalArguments}.{core::List::[]}(0);
+    return arg is core::String* && arg{core::String*}.{core::String::isNotEmpty};
+  }
+  no-such-method-forwarder method eatFood(core::String* food) → core::bool*
+    return this.{self::MockCat::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))) as{TypeError,ForDynamic} core::bool*;
+}
+class MockCat2 extends self::MockCat {
+  synthetic constructor •() → self::MockCat2*
+    : super self::MockCat::•()
+    ;
+  abstract method noSuchMethod(core::Invocation* _) → dynamic;
+}
+class MockCat3 extends self::MockCat2 implements self::Cat {
+  synthetic constructor •() → self::MockCat3*
+    : super self::MockCat2::•()
+    ;
+  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount = #C5}) → core::bool*
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C6: amount}))) as{TypeError,ForDynamic} core::bool*;
+}
+class MockCat4 extends self::MockCat2 implements self::HungryCat {
+  synthetic constructor •() → self::MockCat4*
+    : super self::MockCat2::•()
+    ;
+  no-such-method-forwarder method eatFood(core::String* food, {core::double* amount = #C5, core::double* yetAnother = #C5}) → core::bool*
+    return this.{self::MockCat2::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 0, #C2, core::List::unmodifiable<dynamic>(<dynamic>[food]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C6: amount, #C7: yetAnother}))) as{TypeError,ForDynamic} core::bool*;
+}
+abstract class HungryCat extends core::Object {
+  synthetic constructor •() → self::HungryCat*
+    : super core::Object::•()
+    ;
+  abstract method eatFood(core::String* food, {core::double* amount = #C5, core::double* yetAnother = #C5}) → core::bool*;
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = #eatFood
+  #C2 = <core::Type*>[]
+  #C3 = <dynamic>[]
+  #C4 = core::_ImmutableMap<core::Symbol*, dynamic> {_kvPairs:#C3}
+  #C5 = null
+  #C6 = #amount
+  #C7 = #yetAnother
+}

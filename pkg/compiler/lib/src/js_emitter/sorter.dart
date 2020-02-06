@@ -14,14 +14,10 @@ abstract class Sorter {
   /// Returns a sorted list of [classes].
   Iterable<ClassEntity> sortClasses(Iterable<ClassEntity> classes);
 
-  /// Returns a sorted list of [typedefs].
-  Iterable<TypedefEntity> sortTypedefs(Iterable<TypedefEntity> typedefs);
-
   /// Returns a sorted list of [members].
   Iterable<T> sortMembers<T extends MemberEntity>(Iterable<T> members);
 
   int compareLibrariesByLocation(LibraryEntity a, LibraryEntity b);
   int compareClassesByLocation(ClassEntity a, ClassEntity b);
-  int compareTypedefsByLocation(TypedefEntity a, TypedefEntity b);
   int compareMembersByLocation(MemberEntity a, MemberEntity b);
 }

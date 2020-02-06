@@ -1261,6 +1261,67 @@ bool AotCallSpecializer::TryReplaceInstanceOfWithRangeCheck(
   return true;
 }
 
+void AotCallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
+  ASSERT(current_iterator_ == nullptr);
+  for (BlockIterator block_it = flow_graph()->reverse_postorder_iterator();
+       !block_it.Done(); block_it.Advance()) {
+    ForwardInstructionIterator it(block_it.Current());
+    current_iterator_ = &it;
+    for (; !it.Done(); it.Advance()) {
+      Instruction* instr = it.Current();
+      if (auto call = instr->AsInstanceCall()) {
+        TryReplaceWithDispatchTableCall(call);
+      } else if (auto call = instr->AsPolymorphicInstanceCall()) {
+        TryReplaceWithDispatchTableCall(call);
+      }
+    }
+    current_iterator_ = nullptr;
+  }
+}
+
+void AotCallSpecializer::TryReplaceWithDispatchTableCall(
+    InstanceCallBaseInstr* call) {
+  const Function& interface_target = call->interface_target();
+  if (interface_target.IsNull()) {
+    // Dynamic call.
+    return;
+  }
+
+  Value* receiver = call->ArgumentValueAt(call->FirstArgIndex());
+  const compiler::TableSelector* selector =
+      precompiler_->selector_map()->GetSelector(interface_target);
+
+  if (selector == nullptr) {
+    // Target functions were removed by tree shaking. This call is dead code,
+    // or the receiver is always null.
+#if defined(DEBUG)
+    AddCheckNull(receiver->CopyWithType(Z), call->function_name(),
+                 DeoptId::kNone, call->env(), call);
+    StopInstr* stop = new (Z) StopInstr("Dead instance call executed.");
+    InsertBefore(call, stop, call->env(), FlowGraph::kEffect);
+#endif
+    return;
+  }
+
+  if (!selector->on_null_interface) {
+    // Selector not implemented by Null. Add null check if receiver is nullable.
+    AddCheckNull(receiver->CopyWithType(Z), call->function_name(),
+                 DeoptId::kNone, call->env(), call);
+  }
+
+  const AbstractType& target_type =
+      AbstractType::Handle(Class::Handle(interface_target.Owner()).RareType());
+  const bool receiver_can_be_smi =
+      CompileType::Smi().IsAssignableTo(NNBDMode::kLegacyLib, target_type);
+  auto load_cid = new (Z) LoadClassIdInstr(receiver->CopyWithType(Z), kUntagged,
+                                           receiver_can_be_smi);
+  InsertBefore(call, load_cid, call->env(), FlowGraph::kValue);
+
+  auto dispatch_table_call = DispatchTableCallInstr::FromCall(
+      Z, call, new (Z) Value(load_cid), selector);
+  call->ReplaceWith(dispatch_table_call, current_iterator());
+}
+
 #endif  // DART_PRECOMPILER
 
 }  // namespace dart

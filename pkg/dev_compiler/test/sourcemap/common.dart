@@ -28,7 +28,7 @@ abstract class ChainContextWithCleanupHelper extends ChainContext {
       return null;
     }
 
-    Data data = cleanupHelper.remove(description);
+    var data = cleanupHelper.remove(description);
     data?.outDir?.deleteSync(recursive: true);
     return null;
   }
@@ -44,7 +44,7 @@ class Setup extends Step<TestDescription, Data, ChainContext> {
 
   @override
   Future<Result<Data>> run(TestDescription input, ChainContext context) async {
-    Data data = Data()..uri = input.uri;
+    var data = Data()..uri = input.uri;
     if (context is ChainContextWithCleanupHelper) {
       context.cleanupHelper[input] = data;
     }
@@ -75,7 +75,7 @@ class StepWithD8 extends Step<Data, Data, ChainContext> {
   @override
   Future<Result<Data>> run(Data data, ChainContext context) async {
     var outWrapperPath = p.join(data.outDir.path, 'wrapper.js');
-    ProcessResult runResult =
+    var runResult =
         runD8AndStep(data.outDir.path, data.code, ['--module', outWrapperPath]);
     data.d8Output = (runResult.stdout as String).split('\n');
     return pass(data);
@@ -101,7 +101,7 @@ File findInOutDir(String relative) {
   var outerDir = sdkRoot.path;
   for (var outDir in const ['out/ReleaseX64', 'xcodebuild/ReleaseX64']) {
     var tryPath = p.join(outerDir, outDir, relative);
-    File file = File(tryPath);
+    var file = File(tryPath);
     if (file.existsSync()) return file;
   }
   throw "Couldn't find $relative. Try building more targets.";

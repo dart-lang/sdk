@@ -131,11 +131,6 @@ abstract class AbstractDataSource extends DataSourceMixin
   }
 
   @override
-  IndexedTypedef readTypedef() {
-    return _entityReader.readTypedefFromDataSource(this, entityLookup);
-  }
-
-  @override
   IndexedMember readMember() {
     return _entityReader.readMemberFromDataSource(this, entityLookup);
   }
@@ -235,11 +230,6 @@ abstract class AbstractDataSource extends DataSourceMixin
         IndexedClass cls = readClass();
         List<DartType> typeArguments = _readDartTypes(functionTypeVariables);
         return new InterfaceType(cls, typeArguments);
-      case DartTypeKind.typedef:
-        IndexedTypedef typedef = readTypedef();
-        List<DartType> typeArguments = _readDartTypes(functionTypeVariables);
-        DartType unaliased = _readDartType(functionTypeVariables);
-        return new TypedefType(typedef, typeArguments, unaliased);
       case DartTypeKind.dynamicType:
         return DynamicType();
       case DartTypeKind.erasedType:

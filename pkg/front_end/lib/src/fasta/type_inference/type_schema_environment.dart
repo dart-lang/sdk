@@ -204,6 +204,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
       List<DartType> inferredTypes,
       Library clientLibrary,
       {bool isConst: false}) {
+    assert((formalTypes?.length ?? 0) == (actualTypes?.length ?? 0));
     if (typeParametersToInfer.isEmpty) {
       return;
     }
@@ -236,7 +237,7 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
         downwardsInferPhase: formalTypes == null);
 
     for (int i = 0; i < inferredTypes.length; i++) {
-      inferredTypes[i] = demoteType(inferredTypes[i]);
+      inferredTypes[i] = demoteTypeInLibrary(inferredTypes[i], clientLibrary);
     }
   }
 

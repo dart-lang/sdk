@@ -3384,106 +3384,129 @@ bool Debugger::FindBestFit(const Script& script,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
-  Library& lib = Library::Handle(zone, script.FindLibrary());
-  ASSERT(!lib.IsNull());
-  if (!lib.IsDebuggable()) {
-    if (FLAG_verbose_debug) {
-      OS::PrintErr("Library '%s' has been marked as non-debuggable\n",
-                   lib.ToCString());
-    }
-    return false;
-  }
-  const GrowableObjectArray& closures = GrowableObjectArray::Handle(
-      zone, isolate_->object_store()->closure_functions());
-  Array& functions = Array::Handle(zone);
-  Function& function = Function::Handle(zone);
-  Array& fields = Array::Handle(zone);
-  Field& field = Field::Handle(zone);
-  Error& error = Error::Handle(zone);
 
-  const intptr_t num_closures = closures.Length();
-  for (intptr_t i = 0; i < num_closures; i++) {
-    function ^= closures.At(i);
-    if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
-      // Select the inner most closure.
-      SelectBestFit(best_fit, &function);
-    }
-  }
-  if (!best_fit->IsNull()) {
-    // The inner most closure found will be the best fit. Going
-    // over class functions below will not help in any further
-    // narrowing.
-    return true;
-  }
-
-  const ClassTable& class_table = *isolate_->class_table();
-  const intptr_t num_classes = class_table.NumCids();
-  for (intptr_t i = 1; i < num_classes; i++) {
-    if (!class_table.HasValidClassAt(i)) {
-      continue;
-    }
-    cls = class_table.At(i);
-    // This class is relevant to us only if it belongs to the
-    // library to which |script| belongs.
-    if (cls.library() != lib.raw()) {
-      continue;
-    }
-    // Parse class definition if not done yet.
-    error = cls.EnsureIsFinalized(Thread::Current());
-    if (!error.IsNull()) {
-      // Ignore functions in this class.
-      // TODO(hausner): Should we propagate this error? How?
-      // EnsureIsFinalized only returns an error object if there
-      // is no longjump base on the stack.
-      continue;
-    }
-    functions = cls.functions();
-    if (!functions.IsNull()) {
-      const intptr_t num_functions = functions.Length();
-      for (intptr_t pos = 0; pos < num_functions; pos++) {
-        function ^= functions.At(pos);
-        ASSERT(!function.IsNull());
-        if (IsImplicitFunction(function)) {
-          // Implicit functions do not have a user specifiable source
-          // location.
-          continue;
-        }
-        if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
-          // Closures and inner functions within a class method are not
-          // present in the functions of a class. Hence, we can return
-          // right away as looking through other functions of a class
-          // will not narrow down to any inner function/closure.
-          *best_fit = function.raw();
-          return true;
-        }
+  // A single script can belong to several libraries because of mixins.
+  // Go through all libraries and for each that contains the script, try to find
+  // a fit there.
+  // Return the first fit found, but if a library doesn't contain a fit,
+  // process the next one.
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      zone, thread->isolate()->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  for (int i = 0; i < libs.Length(); i++) {
+    lib ^= libs.At(i);
+    ASSERT(!lib.IsNull());
+    const Array& scripts = Array::Handle(zone, lib.LoadedScripts());
+    bool lib_has_script = false;
+    for (intptr_t j = 0; j < scripts.Length(); j++) {
+      if (scripts.At(j) == script.raw()) {
+        lib_has_script = true;
+        break;
       }
     }
-    // If none of the functions in the class contain token_pos, then we
-    // check if it falls within a function literal initializer of a field
-    // that has not been initialized yet. If the field (and hence the
-    // function literal initializer) has already been initialized, then
-    // it would have been found above in the object store as a closure.
-    fields = cls.fields();
-    if (!fields.IsNull()) {
-      const intptr_t num_fields = fields.Length();
-      for (intptr_t pos = 0; pos < num_fields; pos++) {
-        TokenPosition start;
-        TokenPosition end;
-        field ^= fields.At(pos);
-        ASSERT(!field.IsNull());
-        if (field.Script() != script.raw()) {
-          // The field should be defined in the script we want to set
-          // the breakpoint in.
-          continue;
+    if (!lib_has_script) {
+      continue;
+    }
+
+    if (!lib.IsDebuggable()) {
+      if (FLAG_verbose_debug) {
+        OS::PrintErr("Library '%s' has been marked as non-debuggable\n",
+                     lib.ToCString());
+      }
+      continue;
+    }
+    const GrowableObjectArray& closures = GrowableObjectArray::Handle(
+        zone, isolate_->object_store()->closure_functions());
+    Array& functions = Array::Handle(zone);
+    Function& function = Function::Handle(zone);
+    Array& fields = Array::Handle(zone);
+    Field& field = Field::Handle(zone);
+    Error& error = Error::Handle(zone);
+
+    const intptr_t num_closures = closures.Length();
+    for (intptr_t i = 0; i < num_closures; i++) {
+      function ^= closures.At(i);
+      if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
+        // Select the inner most closure.
+        SelectBestFit(best_fit, &function);
+      }
+    }
+    if (!best_fit->IsNull()) {
+      // The inner most closure found will be the best fit. Going
+      // over class functions below will not help in any further
+      // narrowing.
+      return true;
+    }
+
+    const ClassTable& class_table = *isolate_->class_table();
+    const intptr_t num_classes = class_table.NumCids();
+    for (intptr_t i = 1; i < num_classes; i++) {
+      if (!class_table.HasValidClassAt(i)) {
+        continue;
+      }
+      cls = class_table.At(i);
+      // This class is relevant to us only if it belongs to the
+      // library to which |script| belongs.
+      if (cls.library() != lib.raw()) {
+        continue;
+      }
+      // Parse class definition if not done yet.
+      error = cls.EnsureIsFinalized(Thread::Current());
+      if (!error.IsNull()) {
+        // Ignore functions in this class.
+        // TODO(hausner): Should we propagate this error? How?
+        // EnsureIsFinalized only returns an error object if there
+        // is no longjump base on the stack.
+        continue;
+      }
+      functions = cls.functions();
+      if (!functions.IsNull()) {
+        const intptr_t num_functions = functions.Length();
+        for (intptr_t pos = 0; pos < num_functions; pos++) {
+          function ^= functions.At(pos);
+          ASSERT(!function.IsNull());
+          if (IsImplicitFunction(function)) {
+            // Implicit functions do not have a user specifiable source
+            // location.
+            continue;
+          }
+          if (FunctionOverlaps(function, script, token_pos, last_token_pos)) {
+            // Closures and inner functions within a class method are not
+            // present in the functions of a class. Hence, we can return
+            // right away as looking through other functions of a class
+            // will not narrow down to any inner function/closure.
+            *best_fit = function.raw();
+            return true;
+          }
         }
-        if (!field.has_nontrivial_initializer()) {
-          continue;
-        }
-        start = field.token_pos();
-        end = field.end_token_pos();
-        if ((start <= token_pos && token_pos <= end) ||
-            (token_pos <= start && start <= last_token_pos)) {
-          return true;
+      }
+      // If none of the functions in the class contain token_pos, then we
+      // check if it falls within a function literal initializer of a field
+      // that has not been initialized yet. If the field (and hence the
+      // function literal initializer) has already been initialized, then
+      // it would have been found above in the object store as a closure.
+      fields = cls.fields();
+      if (!fields.IsNull()) {
+        const intptr_t num_fields = fields.Length();
+        for (intptr_t pos = 0; pos < num_fields; pos++) {
+          TokenPosition start;
+          TokenPosition end;
+          field ^= fields.At(pos);
+          ASSERT(!field.IsNull());
+          if (field.Script() != script.raw()) {
+            // The field should be defined in the script we want to set
+            // the breakpoint in.
+            continue;
+          }
+          if (!field.has_nontrivial_initializer()) {
+            continue;
+          }
+          start = field.token_pos();
+          end = field.end_token_pos();
+          if ((start <= token_pos && token_pos <= end) ||
+              (token_pos <= start && start <= last_token_pos)) {
+            return true;
+          }
         }
       }
     }

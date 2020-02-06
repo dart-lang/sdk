@@ -216,7 +216,7 @@ class MetaLet extends Expression {
       // Since this is let*, subsequent variables can refer to previous ones,
       // so we need to substitute here.
       init = _substitute(init, substitutions);
-      int n = counter.counts[variable];
+      var n = counter.counts[variable];
       if (n == 1) {
         // Replace interpolated exprs with their value, if it only occurs once.
         substitutions[variable] = init;
@@ -330,7 +330,7 @@ class _VariableUseCounter extends BaseVisitor<void> {
   @override
   void visitInterpolatedExpression(InterpolatedExpression node) {
     if (node is MetaLetVariable) {
-      int n = counts[node];
+      var n = counts[node];
       counts[node] = n == null ? 1 : n + 1;
     }
   }

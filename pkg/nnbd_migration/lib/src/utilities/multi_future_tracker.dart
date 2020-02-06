@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 /// This library helps run parallel thread-like closures asynchronously.
 /// Borrowed from dartdoc:src/io_utils.dart.
 
 // TODO(jcollins-g): like SubprocessLauncher, merge with io_utils in dartdoc
 // before cut-and-paste gets out of hand.
-
 class MultiFutureTracker {
   /// Maximum number of simultaneously incomplete [Future]s.
   final int parallel;
@@ -37,6 +38,17 @@ class MultiFutureTracker {
     Future<void> future = closure();
     _trackedFutures.add(future);
     future.then((f) => _trackedFutures.remove(future));
+  }
+
+  /// Generates a [Future] from the given closure and adds it to the queue,
+  /// once the queue is sufficiently empty.  Completes when the generated
+  /// closure completes.
+  Future<T> runFutureFromClosure<T>(FutureOr<T> Function() closure) async {
+    Completer<T> futureComplete = Completer();
+    await addFutureFromClosure(() async {
+      futureComplete.complete(await closure());
+    });
+    return futureComplete.future;
   }
 
   /// Wait until all futures added so far have completed.

@@ -200,10 +200,6 @@ Fragment StreamingFlowGraphBuilder::BuildLateFieldInitializer(
     }
     return Fragment();
   }
-  // Late fields are initialized to Object::sentinel, which is a flavor of null.
-  // So we need to record that store so that the field guard doesn't prematurely
-  // optimise out the late field's sentinel checking logic.
-  field.RecordStore(Object::null_object());
 
   Fragment instructions;
   instructions += LoadLocal(parsed_function()->receiver_var());
@@ -3572,16 +3568,20 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
+  NNBDMode nnbd_mode;
   if (translation_helper_.info().kernel_binary_version() >= 38) {
-    // TODO(alexmarkov): Handle flags.
-    ReadFlags();  // read flags.
+    const uint8_t flags = ReadFlags();  // read flags.
+    nnbd_mode = ((flags & kIsExpressionFlagForNonNullableByDefault) != 0)
+                    ? NNBDMode::kOptedInLib
+                    : NNBDMode::kLegacyLib;
+  } else {
+    nnbd_mode = parsed_function()->function().nnbd_mode();
   }
+  ASSERT(nnbd_mode == parsed_function()->function().nnbd_mode());
 
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
-
-  const NNBDMode nnbd_mode = parsed_function()->function().nnbd_mode();
 
   // The VM does not like an instanceOf call with a dynamic type. We need to
   // special case this situation by detecting a top type.
@@ -3628,14 +3628,17 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   TokenPosition position = ReadPosition();  // read position.
   if (p != NULL) *p = position;
 
-  // TODO(alexmarkov): Handle new flags.
   const uint8_t flags = ReadFlags();  // read flags.
-  const bool is_type_error = (flags & (1 << 0)) != 0;
+  const bool is_type_error = (flags & kAsExpressionFlagTypeError) != 0;
+  const NNBDMode nnbd_mode =
+      ((flags & kAsExpressionFlagForNonNullableByDefault) != 0)
+          ? NNBDMode::kOptedInLib
+          : NNBDMode::kLegacyLib;
+  ASSERT(nnbd_mode == parsed_function()->function().nnbd_mode());
 
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
-  const NNBDMode nnbd_mode = parsed_function()->function().nnbd_mode();
   if (type.IsInstantiated() && type.IsTopType(nnbd_mode)) {
     // We already evaluated the operand on the left and just leave it there as
     // the result of the `obj as dynamic` expression.
@@ -5165,8 +5168,7 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
       T.BuildTypeArguments(list_length);  // read types.
   ASSERT(type_arguments.Length() == 1 && type_arguments.IsInstantiated());
   const Function& native_sig = Function::Handle(
-      Z, Type::Cast(AbstractType::Handle(Z, type_arguments.TypeAt(0)))
-             .signature());
+      Z, Type::CheckedHandle(Z, type_arguments.TypeAt(0)).signature());
 
   Fragment code;
   const intptr_t positional_count =

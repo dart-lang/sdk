@@ -27,6 +27,7 @@ import 'package:kernel/ast.dart'
         FunctionNode,
         FunctionType,
         InterfaceType,
+        InvalidType,
         Library,
         LibraryDependency,
         LibraryPart,
@@ -617,7 +618,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         context: [
           templateConstructorWithWrongNameContext
               .withArguments(currentTypeParameterScopeBuilder.name)
-              .withLocation(uri, currentTypeParameterScopeBuilder.charOffset,
+              .withLocation(
+                  importUri,
+                  currentTypeParameterScopeBuilder.charOffset,
                   currentTypeParameterScopeBuilder.name.length)
         ]);
 
@@ -640,8 +643,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    LibraryBuilder exportedLibrary = loader
-        .read(resolve(this.uri, uri, uriOffset), charOffset, accessor: this);
+    LibraryBuilder exportedLibrary = loader.read(
+        resolve(this.importUri, uri, uriOffset), charOffset,
+        accessor: this);
     exportedLibrary.addExporter(this, combinators, charOffset);
     exports.add(new Export(this, exportedLibrary, combinators, charOffset));
   }
@@ -657,8 +661,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
     if (imported == null) {
       LibraryBuilder coreLibrary = loader.read(
-          resolve(
-              this.uri, new Uri(scheme: "dart", path: "core").toString(), -1),
+          resolve(this.importUri,
+              new Uri(scheme: "dart", path: "core").toString(), -1),
           -1);
       imported = coreLibrary
           .loader.builders[new Uri(scheme: 'dart', path: dottedName)];
@@ -694,8 +698,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     if (uri.startsWith(nativeExtensionScheme)) {
       String strippedUri = uri.substring(nativeExtensionScheme.length);
       if (strippedUri.startsWith("package")) {
-        resolvedUri = resolve(
-            this.uri, strippedUri, uriOffset + nativeExtensionScheme.length);
+        resolvedUri = resolve(this.importUri, strippedUri,
+            uriOffset + nativeExtensionScheme.length);
         resolvedUri = loader.target.translateUri(resolvedUri);
         nativePath = resolvedUri.toString();
       } else {
@@ -703,7 +707,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         nativePath = uri;
       }
     } else {
-      resolvedUri = resolve(this.uri, uri, uriOffset);
+      resolvedUri = resolve(this.importUri, uri, uriOffset);
       builder = loader.read(resolvedUri, uriOffset, accessor: this);
     }
 
@@ -715,7 +719,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   void addPart(List<MetadataBuilder> metadata, String uri, int charOffset) {
     Uri resolvedUri;
     Uri newFileUri;
-    resolvedUri = resolve(this.uri, uri, charOffset, isPart: true);
+    resolvedUri = resolve(this.importUri, uri, charOffset, isPart: true);
     newFileUri = resolve(fileUri, uri, charOffset);
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
@@ -733,7 +737,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<MetadataBuilder> metadata, String name, String uri, int uriOffset) {
     partOfName = name;
     if (uri != null) {
-      partOfUri = resolve(this.uri, uri, uriOffset);
+      partOfUri = resolve(this.importUri, uri, uriOffset);
       Uri newFileUri = resolve(fileUri, uri, uriOffset);
       LibraryBuilder library = loader.read(partOfUri, uriOffset,
           fileUri: newFileUri, accessor: this);
@@ -958,7 +962,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// (../kernel/kernel_mixin_application_builder.dart)).
   void addImplementationBuilder(
       String name, Builder declaration, int charOffset) {
-    assert(canAddImplementationBuilders, "$uri");
+    assert(canAddImplementationBuilders, "$importUri");
     implementationBuilders
         .add(new ImplementationInfo(name, declaration, charOffset));
   }
@@ -976,7 +980,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
       for (SourceLibraryBuilder part in parts) {
         // Mark this part as used so we don't report it as orphaned.
-        usedParts.add(part.uri);
+        usedParts.add(part.importUri);
       }
     }
     parts.clear();
@@ -1012,7 +1016,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           if (isPatch) {
             usedParts.add(part.fileUri);
           } else {
-            usedParts.add(part.uri);
+            usedParts.add(part.importUri);
           }
           includePart(part, usedParts, partOffset);
         }
@@ -1026,12 +1030,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   bool includePart(
       SourceLibraryBuilder part, Set<Uri> usedParts, int partOffset) {
     if (part.partOfUri != null) {
-      if (uriIsValid(part.partOfUri) && part.partOfUri != uri) {
+      if (uriIsValid(part.partOfUri) && part.partOfUri != importUri) {
         // This is an error, but the part is not removed from the list of parts,
         // so that metadata annotations can be associated with it.
         addProblem(
             templatePartOfUriMismatch.withArguments(
-                part.fileUri, uri, part.partOfUri),
+                part.fileUri, importUri, part.partOfUri),
             partOffset,
             noLength,
             fileUri);
@@ -1313,7 +1317,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   SourceLibraryBuilder get origin => actualOrigin ?? this;
 
-  Uri get uri => library.importUri;
+  Uri get importUri => library.importUri;
 
   void addSyntheticDeclarationOfDynamic() {
     addBuilder(
@@ -2406,7 +2410,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       modifiers |= initializingFormalMask;
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
-        metadata, modifiers, type, name, this, charOffset, uri)
+        metadata, modifiers, type, name, this, charOffset, importUri)
       ..initializerToken = initializerToken
       ..hasDeclaredInitializer = (initializerToken != null);
     return formal;
@@ -2955,8 +2959,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void exportMemberFromPatch(String name, Builder member) {
-    if (uri.scheme != "dart" || !uri.path.startsWith("_")) {
-      addProblem(templatePatchInjectionFailed.withArguments(name, uri),
+    if (importUri.scheme != "dart" || !importUri.path.startsWith("_")) {
+      addProblem(templatePatchInjectionFailed.withArguments(name, importUri),
           member.charOffset, noLength, member.fileUri);
     }
     // Platform-private libraries, such as "dart:_internal" have special
@@ -3057,10 +3061,45 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     addProblem(message, fileOffset, noLength, fileUri, context: context);
   }
 
-  void checkBoundsInField(Field field, TypeEnvironment typeEnvironment) {
-    checkBoundsInType(
-        field.type, typeEnvironment, field.fileUri, field.fileOffset,
+  void checkTypesInField(
+      FieldBuilder fieldBuilder, TypeEnvironment typeEnvironment) {
+    // Check the bounds in the field's type.
+    checkBoundsInType(fieldBuilder.field.type, typeEnvironment,
+        fieldBuilder.fileUri, fieldBuilder.field.fileOffset,
         allowSuperBounded: true);
+
+    // Check that the field has an initializer if its type is potentially
+    // non-nullable.
+    if (isNonNullableByDefault && loader.performNnbdChecks) {
+      // Only static and top-level fields are checked here.  Instance fields are
+      // checked elsewhere.
+      DartType fieldType = fieldBuilder.field.type;
+      if (!fieldBuilder.isDeclarationInstanceMember &&
+          !fieldBuilder.field.isLate &&
+          fieldType is! InvalidType &&
+          fieldType.isPotentiallyNonNullable &&
+          !fieldBuilder.hasInitializer) {
+        if (loader.nnbdStrongMode) {
+          addProblem(
+              templateFieldNonNullableWithoutInitializerError.withArguments(
+                  fieldBuilder.name,
+                  fieldBuilder.field.type,
+                  isNonNullableByDefault),
+              fieldBuilder.charOffset,
+              fieldBuilder.name.length,
+              fileUri);
+        } else {
+          addProblem(
+              templateFieldNonNullableWithoutInitializerWarning.withArguments(
+                  fieldBuilder.name,
+                  fieldBuilder.field.type,
+                  isNonNullableByDefault),
+              fieldBuilder.charOffset,
+              fieldBuilder.name.length,
+              fileUri);
+        }
+      }
+    }
   }
 
   void checkInitializersInFormals(List<FormalParameterBuilder> formals) {
@@ -3334,7 +3373,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     while (iterator.moveNext()) {
       Builder declaration = iterator.current;
       if (declaration is FieldBuilder) {
-        checkBoundsInField(declaration.field, typeEnvironment);
+        checkTypesInField(declaration, typeEnvironment);
       } else if (declaration is ProcedureBuilder) {
         checkBoundsInFunctionNode(declaration.procedure.function,
             typeEnvironment, declaration.fileUri);
@@ -3683,7 +3722,7 @@ class ImplementationInfo {
 Uri computeLibraryUri(Builder declaration) {
   Builder current = declaration;
   do {
-    if (current is LibraryBuilder) return current.uri;
+    if (current is LibraryBuilder) return current.importUri;
     current = current.parent;
   } while (current != null);
   return unhandled("no library parent", "${declaration.runtimeType}",

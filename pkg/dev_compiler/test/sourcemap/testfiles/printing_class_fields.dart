@@ -5,7 +5,7 @@
 /*Debugger:stepOver*/
 void main() {
   /*bl*/
-  /*sl:1*/ Foo foo = Foo(1, 2);
+  /*sl:1*/ var foo = Foo(1, 2);
   /*sl:2*/ print(foo.x);
   /*sl:3*/ print(foo.y);
   /*sl:4*/ print(foo.z);

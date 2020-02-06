@@ -25,14 +25,14 @@ class AddAwaitTest extends FixProcessorLintTest {
 
   Future<void> test_intLiteral() async {
     await resolveTestUnit('''
-Future doSomething() => new Future();
+Future doSomething() => new Future.value('');
 
 void main() async {
-  doSomething()/*LINT*/;
+  doSomething();
 }
 ''');
     await assertHasFix('''
-Future doSomething() => new Future();
+Future doSomething() => new Future.value('');
 
 void main() async {
   await doSomething();

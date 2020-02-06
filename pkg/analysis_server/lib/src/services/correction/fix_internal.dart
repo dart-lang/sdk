@@ -12,6 +12,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
@@ -1426,7 +1427,7 @@ class FixProcessor extends BaseProcessor {
               changeBuilder,
               DartFixKind.CHANGE_TYPE_ANNOTATION,
               args: [
-                typeNode.type,
+                typeNode.type.getDisplayString(withNullability: false),
                 newType.getDisplayString(withNullability: false),
               ],
             );
@@ -4722,6 +4723,11 @@ class FixProcessor extends BaseProcessor {
         await compute(
           ConvertToSetLiteral(),
           DartFixKind.CONVERT_TO_SET_LITERAL,
+        );
+      } else if (name == LintNames.prefer_contains) {
+        await compute(
+          ConvertToContains(),
+          DartFixKind.CONVERT_TO_CONTAINS,
         );
       } else if (name == LintNames.prefer_iterable_whereType) {
         await compute(

@@ -6,6 +6,7 @@
 
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/ffi/native_calling_convention.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 
@@ -500,16 +501,6 @@ void ClosureCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
-void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print(" pointer=");
-  InputAt(TargetAddressIndex())->PrintTo(f);
-  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
-    f->Print(", ");
-    InputAt(i)->PrintTo(f);
-    f->Print(" (@%s)", arg_locations_[i].ToCString());
-  }
-}
-
 void InstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s<%" Pd ">", function_name().ToCString(), type_args_len());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
@@ -543,6 +534,18 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
   if (entry_kind() == Code::EntryKind::kUnchecked) {
     f->Print(" using unchecked entrypoint");
+  }
+}
+
+void DispatchTableCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  const String& name =
+      String::Handle(interface_target().QualifiedUserVisibleName());
+  f->Print(" cid=");
+  class_id()->PrintTo(f);
+  f->Print(" %s<%" Pd ">", name.ToCString(), type_args_len());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentValueAt(i)->PrintTo(f);
   }
 }
 
@@ -995,12 +998,6 @@ void IntConverterInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
 }
 
-void UnboxedWidthExtenderInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%" Pd " -> 4 (%s), ", from_width_bytes(),
-           RepresentationToCString(representation()));
-  Definition::PrintOperandsTo(f);
-}
-
 void BitCastInstr::PrintOperandsTo(BufferFormatter* f) const {
   Definition::PrintOperandsTo(f);
   f->Print(" (%s -> %s)", RepresentationToCString(from()),
@@ -1074,13 +1071,31 @@ void ReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+void FfiCallInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print(" pointer=");
+  InputAt(TargetAddressIndex())->PrintTo(f);
+  for (intptr_t i = 0, n = InputCount(); i < n - 1; ++i) {
+    f->Print(", ");
+    InputAt(i)->PrintTo(f);
+    f->Print(" (@");
+    marshaller_.Location(i).PrintTo(f);
+    f->Print(")");
+  }
+}
+
 void NativeReturnInstr::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
+  f->Print(" (@");
+  marshaller_.Location(compiler::ffi::kResultIndex).PrintTo(f);
+  f->Print(")");
 }
 
 void NativeParameterInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s as %s", loc_.ToCString(),
-           RepresentationToCString(representation_));
+  // Where the calling convention puts it.
+  marshaller_.Location(index_).PrintTo(f);
+  f->Print(" at ");
+  // Where the arguments are when pushed on the stack.
+  marshaller_.NativeLocationOfNativeParameter(index_).PrintTo(f);
 }
 
 void CatchBlockEntryInstr::PrintTo(BufferFormatter* f) const {

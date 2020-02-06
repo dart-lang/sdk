@@ -1506,7 +1506,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var typeArguments = typeName.typeArguments?.arguments;
     var element = typeName.name.staticElement;
     if (element is GenericTypeAliasElement) {
-      final typedefType = _variables.decoratedElementType(element);
+      final typedefType = _variables.decoratedElementType(element.function);
       final typeNameType = _variables.decoratedTypeAnnotation(source, typeName);
 
       Map<TypeParameterElement, DecoratedType> substitutions;
@@ -1789,7 +1789,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             isLUB, "shouldn't be possible to get a function from GLB(null, S)");
         return DecoratedType(type, node,
             returnType: right.returnType,
-            typeFormalBounds: right.typeFormalBounds,
             positionalParameters: right.positionalParameters,
             namedParameters: right.namedParameters);
       } else if (rightType.isDartCoreNull) {
@@ -1797,7 +1796,6 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             isLUB, "shouldn't be possible to get a function from GLB(S, null)");
         return DecoratedType(type, node,
             returnType: left.returnType,
-            typeFormalBounds: left.typeFormalBounds,
             positionalParameters: left.positionalParameters,
             namedParameters: left.namedParameters);
       }
@@ -1945,7 +1943,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _checkAssignment(edgeOrigin,
               source: sourceType,
               destination: compoundOperatorType.positionalParameters[0],
-              hard: _postDominatedLocals.isReferenceInScope(expression));
+              hard: _postDominatedLocals.isReferenceInScope(expression),
+              sourceIsFunctionLiteral: expression is FunctionExpression);
           sourceType = _fixNumericTypes(
               compoundOperatorType.returnType, compoundOperatorInfo.staticType);
           _checkAssignment(
@@ -1961,7 +1960,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
             source: sourceType,
             destination: destinationType,
             hard: questionAssignNode == null &&
-                _postDominatedLocals.isReferenceInScope(expression));
+                _postDominatedLocals.isReferenceInScope(expression),
+            sourceIsFunctionLiteral: expression is FunctionExpression);
       }
       if (destinationLocalVariable != null) {
         _flowAnalysis.write(destinationLocalVariable, sourceType);
@@ -2231,7 +2231,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var i = 0; i < argumentTypes.length; ++i) {
       _checkAssignment(null,
           source: argumentTypes[i],
-          destination: type.typeFormalBounds[i],
+          destination: DecoratedTypeParameterBounds.current
+              .get((type.type as FunctionType).typeFormals[i]),
           hard: true);
     }
 
@@ -2591,11 +2592,14 @@ mixin _AssignmentChecker {
   /// Creates the necessary constraint(s) for an assignment from [source] to
   /// [destination].  [origin] should be used as the origin for any edges
   /// created.  [hard] indicates whether a hard edge should be created.
+  /// [sourceIsFunctionLiteral] indicates whether the source of the assignment
+  /// is a function literal expression.
   void _checkAssignment(EdgeOrigin origin,
       {@required DecoratedType source,
       @required DecoratedType destination,
       @required bool hard,
-      bool checkable = true}) {
+      bool checkable = true,
+      bool sourceIsFunctionLiteral = false}) {
     var sourceType = source.type;
     var destinationType = destination.type;
     if (!_typeSystem.isSubtypeOf(sourceType, destinationType)) {
@@ -2618,14 +2622,19 @@ mixin _AssignmentChecker {
     _connect(source.node, destination.node, origin,
         hard: hard, checkable: checkable);
     _checkAssignment_recursion(origin,
-        source: source, destination: destination);
+        source: source,
+        destination: destination,
+        sourceIsFunctionLiteral: sourceIsFunctionLiteral);
   }
 
   /// Does the recursive part of [_checkAssignment], visiting all of the types
   /// constituting [source] and [destination], and creating the appropriate
-  /// edges between them.
+  /// edges between them.  [sourceIsFunctionLiteral] indicates whether the
+  /// source of the assignment is a function literal expression.
   void _checkAssignment_recursion(EdgeOrigin origin,
-      {@required DecoratedType source, @required DecoratedType destination}) {
+      {@required DecoratedType source,
+      @required DecoratedType destination,
+      bool sourceIsFunctionLiteral = false}) {
     var sourceType = source.type;
     var destinationType = destination.type;
     assert(_typeSystem.isSubtypeOf(sourceType, destinationType));
@@ -2731,10 +2740,15 @@ mixin _AssignmentChecker {
             hard: false);
       }
     } else if (sourceType is FunctionType && destinationType is FunctionType) {
+      // If the source is a function literal, we want a hard edge, so that if a
+      // function returning non-null is required, we will insure that the
+      // function literal has a non-nullable return type (e.g. by inserting null
+      // checks into the function literal).
       _checkAssignment(origin,
           source: source.returnType,
           destination: destination.returnType,
-          hard: false);
+          hard: sourceIsFunctionLiteral,
+          checkable: false);
       if (source.typeArguments.isNotEmpty ||
           destination.typeArguments.isNotEmpty) {
         throw UnimplementedError('TODO(paulberry)');

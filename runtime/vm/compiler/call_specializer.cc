@@ -738,6 +738,10 @@ bool CallSpecializer::TryInlineImplicitInstanceGetter(InstanceCallInstr* call) {
   if (field.needs_load_guard()) {
     return false;
   }
+  if (field.is_late()) {
+    // TODO(http://dartbug.com/40447): Inline implicit getters for late fields.
+    return false;
+  }
   if (should_clone_fields_) {
     field = field.CloneFromOriginal();
   }
@@ -1802,6 +1806,10 @@ void TypedDataSpecializer::AppendStoreIndexed(TemplateDartCall<0>* call,
       kNoStoreBarrier, index_scale, cid, kAlignedAccess, DeoptId::kNone,
       call->token_pos(), Instruction::kNotSpeculative);
   flow_graph_->InsertBefore(call, store, call->env(), FlowGraph::kEffect);
+}
+
+void CallSpecializer::ReplaceInstanceCallsWithDispatchTableCalls() {
+  // Only implemented for AOT.
 }
 
 }  // namespace dart

@@ -1730,12 +1730,15 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
 }
 
 void ProcedureAttributesMetadata::InitializeFromFlags(uint8_t flags) {
-  const int kDynamicUsesBit = 1 << 0;
+  const int kMethodOrSetterCalledDynamicallyBit = 1 << 0;
   const int kNonThisUsesBit = 1 << 1;
   const int kTearOffUsesBit = 1 << 2;
   const int kThisUsesBit = 1 << 3;
+  const int kGetterCalledDynamicallyBit = 1 << 4;
 
-  has_dynamic_invocations = (flags & kDynamicUsesBit) != 0;
+  method_or_setter_called_dynamically =
+      (flags & kMethodOrSetterCalledDynamicallyBit) != 0;
+  getter_called_dynamically = (flags & kGetterCalledDynamicallyBit) != 0;
   has_this_uses = (flags & kThisUsesBit) != 0;
   has_non_this_uses = (flags & kNonThisUsesBit) != 0;
   has_tearoff_uses = (flags & kTearOffUsesBit) != 0;
@@ -1758,6 +1761,8 @@ bool ProcedureAttributesMetadataHelper::ReadMetadata(
 
   const uint8_t flags = helper_->ReadByte();
   metadata->InitializeFromFlags(flags);
+  metadata->method_or_setter_selector_id = helper_->ReadUInt();
+  metadata->getter_selector_id = helper_->ReadUInt();
   return true;
 }
 
@@ -2846,8 +2851,8 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       helper_->ReadListLength();  // read type_arguments list length.
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
-  result_ = Type::New(klass, type_arguments, TokenPosition::kNoSource);
-  Type::Cast(result_).set_nullability(nullability);
+  result_ =
+      Type::New(klass, type_arguments, TokenPosition::kNoSource, nullability);
   if (finalize_) {
     ASSERT(active_class_->klass != NULL);
     result_ = ClassFinalizer::FinalizeType(*active_class_->klass, result_);
@@ -3173,15 +3178,19 @@ void TypeTranslator::LoadAndSetupTypeParameters(
       helper_->SkipDartType();  // read ith bound.
       parameter.set_bound(Type::Handle(Z, I->object_store()->object_type()));
       if (nnbd_mode == NNBDMode::kOptedInLib) {
-        parameter.set_nullability(Nullability::kUndetermined);
+        parameter =
+            parameter.ToNullability(Nullability::kUndetermined, Heap::kOld);
+        type_parameters.SetTypeAt(i, parameter);
       }
     } else {
       AbstractType& bound = BuildTypeWithoutFinalization();  // read ith bound.
       parameter.set_bound(bound);
       if (nnbd_mode == NNBDMode::kOptedInLib) {
-        parameter.set_nullability(bound.IsNullable()
-                                      ? Nullability::kUndetermined
-                                      : Nullability::kNonNullable);
+        parameter = parameter.ToNullability(bound.IsNullable()
+                                                ? Nullability::kUndetermined
+                                                : Nullability::kNonNullable,
+                                            Heap::kOld);
+        type_parameters.SetTypeAt(i, parameter);
       }
     }
 
