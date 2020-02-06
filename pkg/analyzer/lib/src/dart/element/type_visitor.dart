@@ -135,3 +135,32 @@ class DartTypeVisitor1<R, T> {
     throw UnimplementedError('(${type.runtimeType}) $type');
   }
 }
+
+/// Recursively visits a DartType tree until any visit method returns `false`.
+abstract class RecursiveTypeVisitor extends DartTypeVisitor<bool> {
+  /// Visit each item in the list until one returns `false`, in which case, this
+  /// will also return `false`.
+  bool visitChildren(Iterable<DartType> types) =>
+      types.every((type) => DartTypeVisitor.visit(type, this));
+
+  @override
+  bool visitFunctionType(FunctionType type) => visitChildren([
+        type.returnType,
+        ...type.typeFormals
+            .map((formal) => formal.bound)
+            .where((type) => type != null),
+        ...type.parameters.map((param) => param.type),
+      ]);
+
+  @override
+  bool visitFunctionTypeBuilder(FunctionTypeBuilder type) =>
+      throw StateError("Builders should not exist outside substitution.");
+
+  @override
+  bool visitInterfaceType(InterfaceType type) =>
+      visitChildren(type.typeArguments);
+
+  @override
+  bool visitNamedTypeBuilder(NamedTypeBuilder type) =>
+      throw StateError("Builders should not exist outside substitution.");
+}

@@ -16,6 +16,7 @@ import 'subtype_test.dart' as subtype;
 import 'top_merge_test.dart' as top_merge;
 import 'type_algebra_test.dart' as type_algebra;
 import 'type_parameter_element_test.dart' as type_parameter_element;
+import 'type_visitor_test.dart' as type_visitor;
 import 'upper_lower_bound_test.dart' as upper_bound;
 
 /// Utility for manually running all tests.
@@ -33,6 +34,7 @@ main() {
     top_merge.main();
     type_algebra.main();
     type_parameter_element.main();
+    type_visitor.main();
     upper_bound.main();
   }, name: 'element');
 }
