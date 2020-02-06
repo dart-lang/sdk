@@ -286,15 +286,23 @@ File* File::Open(Namespace* namespc, const char* name, FileOpenMode mode) {
   return new File(new FileHandle(fd));
 }
 
-File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+static Utils::CStringUniquePtr DecodeUri(const char* uri) {
   const char* path = (strlen(uri) >= 8 && strncmp(uri, "file:///", 8) == 0)
       ? uri + 7 : uri;
   UriDecoder uri_decoder(path);
-  if (uri_decoder.decoded() == NULL) {
+  if (uri_decoder.decoded() == nullptr) {
     errno = EINVAL;
-    return NULL;
+    return Utils::CreateCStringUniquePtr(nullptr);
   }
-  return File::Open(namespc, uri_decoder.decoded(), mode);
+  return Utils::CreateCStringUniquePtr(strdup(uri_decoder.decoded()));
+}
+
+File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
+    return nullptr;
+  }
+  return File::Open(namespc, path.get(), mode);
 }
 
 File* File::OpenStdio(int fd) {
@@ -309,6 +317,14 @@ bool File::Exists(Namespace* namespc, const char* name) {
   } else {
     return false;
   }
+}
+
+bool File::ExistsUri(Namespace* namespc, const char* uri) {
+  auto path = DecodeUri(uri);
+  if (path == nullptr) {
+    return false;
+  }
+  return File::Exists(namespc, path.get());
 }
 
 bool File::Create(Namespace* namespc, const char* name) {

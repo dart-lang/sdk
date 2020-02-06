@@ -353,6 +353,15 @@ bool File::Exists(Namespace* namespc, const char* name) {
   return StatHelper(system_name.wide(), &st);
 }
 
+bool File::ExistsUri(Namespace* namespc, const char* uri) {
+  UriDecoder uri_decoder(uri);
+  if (uri_decoder.decoded() == nullptr) {
+    SetLastError(ERROR_INVALID_NAME);
+    return false;
+  }
+  return File::Exists(namespc, uri_decoder.decoded());
+}
+
 bool File::Create(Namespace* namespc, const char* name) {
   Utf8ToWideScope system_name(name);
   int fd = _wopen(system_name.wide(), O_RDONLY | O_CREAT, 0666);
