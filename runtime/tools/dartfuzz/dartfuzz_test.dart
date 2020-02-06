@@ -373,9 +373,9 @@ class DartFuzzTest {
 
     // Testcase generation flags.
 
-    // Only use FP when modes have same precision (to avoid false
+    // Only use FP when modes have the same architecture (to avoid false
     // divergences between 32-bit and 64-bit versions).
-    fp = samePrecision(mode1, mode2);
+    fp = sameArchitecture(mode1, mode2);
     // Occasionally test FFI (if capable).
     ffi = ffiCapable(mode1, mode2) && (rand.nextInt(5) == 0);
     // Resort to flat types for the more expensive modes.
@@ -404,8 +404,11 @@ class DartFuzzTest {
     skippedSeeds = {};
   }
 
-  bool samePrecision(String mode1, String mode2) =>
-      mode1.contains('64') == mode2.contains('64');
+  bool sameArchitecture(String mode1, String mode2) =>
+      ((mode1.contains('arm32') && mode2.contains('arm32')) ||
+          (mode1.contains('arm64') && mode2.contains('arm64')) ||
+          (mode1.contains('x64') && mode2.contains('x64')) ||
+          (mode1.contains('ia32') && mode2.contains('ia32')));
 
   bool ffiCapable(String mode1, String mode2) =>
       (mode1.startsWith('jit') || mode1.startsWith('kbc')) &&
