@@ -25,6 +25,8 @@ abstract class CorrectionProducer {
 
   AstNode get node => _context.node;
 
+  ResolvedUnitResult get resolvedResult => _context.resolvedResult;
+
   int get selectionLength => _context.selectionLength;
 
   int get selectionOffset => _context.selectionOffset;

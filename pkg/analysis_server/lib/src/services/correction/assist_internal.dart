@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_map_lite
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/exchange_operands.dart';
+import 'package:analysis_server/src/services/correction/dart/shadow_field.dart';
 import 'package:analysis_server/src/services/correction/dart/split_and_condition.dart';
 import 'package:analysis_server/src/services/correction/name_suggestion.dart';
 import 'package:analysis_server/src/services/correction/selection_analyzer.dart';
@@ -292,6 +293,10 @@ class AssistProcessor extends BaseProcessor {
     await compute(
       ExchangeOperands(),
       DartAssistKind.EXCHANGE_OPERANDS,
+    );
+    await compute(
+      ShadowField(),
+      DartAssistKind.SHADOW_FIELD,
     );
     await compute(
       SplitAndCondition(),

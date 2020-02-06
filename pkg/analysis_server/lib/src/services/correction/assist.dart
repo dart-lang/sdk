@@ -199,6 +199,8 @@ class DartAssistKind {
       'dart.assist.convert.replaceWithVar',
       30,
       "Replace type annotation with 'var'");
+  static const SHADOW_FIELD = AssistKind('dart.assist.shadowField', 30,
+      'Create a local variable that shadows the field');
   static const SORT_CHILD_PROPERTY_LAST = AssistKind(
       'dart.assist.sort.child.properties.last',
       30,
