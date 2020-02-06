@@ -25,11 +25,18 @@ import 'metrics_util.dart';
 import 'relevance_analyzers.dart';
 import 'visitors.dart';
 
-// TODO(jwren) have the analysis root and verbose option be configurable via a
-//  command line UX
-Future<void> main() async {
-  await CompletionCoverageMetrics('').compute();
-//  await RelevanceAnalyzerMetrics('', [RHSOfAsExpression()]).compute();
+Future<void> main(List<String> args) async {
+  if (args.isEmpty) {
+    print('Usage: a single absolute file path to analyze.');
+    io.exit(1);
+  } else {
+    if (args.length > 1 && args[1] == '--relevance-analyzers') {
+      await RelevanceAnalyzerMetrics(args[0], [RHSOfAsExpression()]).compute();
+    } else {
+      await CompletionCoverageMetrics(args[0]).compute();
+    }
+    io.exit(0);
+  }
 }
 
 /// This is the main metrics computer class for code completions. After the
