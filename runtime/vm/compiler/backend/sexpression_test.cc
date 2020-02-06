@@ -10,6 +10,27 @@
 
 namespace dart {
 
+#define EXPECT_SEXP_PARSE_ERROR(sexp, parser, pos, message)                    \
+  do {                                                                         \
+    if (sexp != nullptr) {                                                     \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("parse unexpectedly succeeded for \"%s\"", parser.Input());    \
+    }                                                                          \
+    EXPECT_EQ(pos, parser.error_pos());                                        \
+    EXPECT_STREQ(message, parser.error_message());                             \
+  } while (false);
+
+#define EXPECT_SEXP_PARSE_SUCCESS(sexp, parser)                                \
+  do {                                                                         \
+    if (sexp == nullptr) {                                                     \
+      EXPECT_NOTNULL(parser.error_message());                                  \
+      dart::Expect(__FILE__, __LINE__)                                         \
+          .Fail("parse unexpectedly failed at \"%s\": %" Pd ": %s",            \
+                parser.Input() + parser.error_pos(), parser.error_pos(),       \
+                parser.error_message());                                       \
+    }                                                                          \
+  } while (false);
+
 static const char* const shared_sexp_cstr =
     "(def v0 (Constant 3) { type (CompileType 147 { nullable false, name "
     "\"T{Smi}\"}), })";
@@ -70,13 +91,27 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExp) {
     const char* const cstr = "(def v0 (Constant 3) { foo \"123\\\\\" })";
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NOTNULL(sexp);
+    EXPECT_SEXP_PARSE_SUCCESS(sexp, parser);
     EXPECT(sexp->IsList());
     EXPECT_EQ(1, sexp->AsList()->ExtraLength());
     EXPECT(sexp->AsList()->ExtraHasKey("foo"));
     auto val = sexp->AsList()->ExtraLookupValue("foo");
     EXPECT(val->IsString());
     EXPECT_STREQ("123\\", val->AsString()->value());
+  }
+  // Valid unicode escapes are properly handled.
+  {
+    const char* const cstr =
+        "(def v0 (Constant 3) { foo \"\\u0001\\u0020\\u0054\" })";
+    SExpParser parser(zone, cstr, strlen(cstr));
+    SExpression* const sexp = parser.Parse();
+    EXPECT_SEXP_PARSE_SUCCESS(sexp, parser);
+    EXPECT(sexp->IsList());
+    EXPECT_EQ(1, sexp->AsList()->ExtraLength());
+    EXPECT(sexp->AsList()->ExtraHasKey("foo"));
+    auto val = sexp->AsList()->ExtraLookupValue("foo");
+    EXPECT(val->IsString());
+    EXPECT_STREQ("\x01 T", val->AsString()->value());
   }
 }
 
@@ -88,7 +123,7 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpNumbers) {
     const char* const cstr = "(-4 -50 -1414243)";
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NOTNULL(sexp);
+    EXPECT_SEXP_PARSE_SUCCESS(sexp, parser);
     EXPECT(sexp->IsList());
     auto list = sexp->AsList();
     EXPECT_EQ(3, list->Length());
@@ -104,7 +139,7 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpNumbers) {
     const char* const cstr = "(1.05 0.05 .03 1e100 1e-100)";
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NOTNULL(sexp);
+    EXPECT_SEXP_PARSE_SUCCESS(sexp, parser);
     EXPECT(sexp->IsList());
     auto list = sexp->AsList();
     EXPECT_EQ(5, list->Length());
@@ -131,7 +166,7 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpNumbers) {
     const char* const cstr = "(NaN Infinity -Infinity)";
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NOTNULL(sexp);
+    EXPECT_SEXP_PARSE_SUCCESS(sexp, parser);
     EXPECT(sexp->IsList());
     auto list = sexp->AsList();
     EXPECT_EQ(3, list->Length());
@@ -190,11 +225,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const intptr_t error_pos = strlen(cstr);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         OS::SCreate(zone, SExpParser::ErrorStrings::kOpenSExpList, start_pos);
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
   // Non-symbol label in map pair
   {
@@ -204,11 +237,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const char* const cstr = OS::SCreate(zone, "%s%s", before_error, error);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         SExpParser::ErrorStrings::kNonSymbolLabel;
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
   // No values in a map pair
   {
@@ -220,11 +251,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const char* const cstr = OS::SCreate(zone, "%s%s", before_error, error);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         OS::SCreate(zone, SExpParser::ErrorStrings::kNoMapValue, label);
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
   // Multiple values in a map pair
   {
@@ -236,11 +265,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const char* const cstr = OS::SCreate(zone, "%s%s", before_error, error);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         OS::SCreate(zone, SExpParser::ErrorStrings::kExtraMapValue, label);
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
   // Unterminated quoted string
   {
@@ -252,11 +279,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const intptr_t error_pos = strlen(cstr);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         OS::SCreate(zone, SExpParser::ErrorStrings::kOpenString, string_pos);
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
   // Unterminated extra info map
   {
@@ -270,11 +295,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const char* const cstr = OS::SCreate(zone, "%s%s", before_error, error);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         OS::SCreate(zone, SExpParser::ErrorStrings::kOpenMap, map_pos);
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
   // Repeated extra info map label
   {
@@ -286,11 +309,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const char* const cstr = OS::SCreate(zone, "%s%s", before_error, error);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         OS::SCreate(zone, SExpParser::ErrorStrings::kRepeatedMapLabel, label);
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
   // Unicode escape with non-hex digits.
   {
@@ -300,11 +321,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const char* const cstr = OS::SCreate(zone, "%s%s", before_error, error);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         SExpParser::ErrorStrings::kBadUnicodeEscape;
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
   // Unicode escape with less than four hex digits.
   {
@@ -314,11 +333,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const char* const cstr = OS::SCreate(zone, "%s%s", before_error, error);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         SExpParser::ErrorStrings::kBadUnicodeEscape;
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
   // Treating backslashed quote appropriately to detect unterminated string
   {
@@ -329,11 +346,9 @@ ISOLATE_UNIT_TEST_CASE(DeserializeSExpFailures) {
     const intptr_t error_pos = strlen(cstr);
     SExpParser parser(zone, cstr, strlen(cstr));
     SExpression* const sexp = parser.Parse();
-    EXPECT_NULLPTR(sexp);
-    EXPECT_EQ(error_pos, parser.error_pos());
     const char* const expected_message =
         OS::SCreate(zone, SExpParser::ErrorStrings::kOpenString, string_pos);
-    EXPECT_STREQ(expected_message, parser.error_message());
+    EXPECT_SEXP_PARSE_ERROR(sexp, parser, error_pos, expected_message);
   }
 }
 
