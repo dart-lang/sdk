@@ -2178,7 +2178,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitNeverType(NeverType node) {
-    write('Never');
+    writeWord('Never');
     writeNullability(node.nullability);
   }
 

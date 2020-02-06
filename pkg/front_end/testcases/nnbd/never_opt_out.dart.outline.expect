@@ -1,0 +1,21 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///never_opt_out_lib.dart";
+
+static field Never* optOutNever;
+static field core::Null? inferredOptOutNever;
+static method main() → dynamic
+  ;
+static method throws(() →* void f) → dynamic
+  ;
+
+library /*isNonNullableByDefault*/;
+import self as self2;
+
+import "org-dartlang-testcase:///never_opt_out.dart";
+
+static field Never optInNever;
+static method throwing() → Never
+  ;
