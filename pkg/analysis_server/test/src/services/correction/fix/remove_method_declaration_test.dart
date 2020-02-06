@@ -120,7 +120,7 @@ class B extends A {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
+  /// TODO(scheglov) This test will fail with NNBD SDK.
   Future<void> test_method_toString() async {
     await resolveTestUnit('''
 class A {

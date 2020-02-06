@@ -26,46 +26,29 @@ import 'dart:math';
 
 part 'stream.dart';
 
-abstract class Future<T> {
-  factory Future(computation()) {
-    throw 0;
-  }
+class Future<T> {
+  factory Future(computation()) => null;
+  factory Future.delayed(Duration duration, [T computation()]) => null;
+  factory Future.microtask(FutureOr<T> computation()) => null;
+  factory Future.value([FutureOr<T> result]) => null;
 
-  factory Future.delayed(Duration duration, [T computation()?]) {
-    throw 0;
-  }
-
-  factory Future.microtask(FutureOr<T> computation()) {
-    throw 0;
-  }
-
-  factory Future.value([FutureOr<T>? result]) {
-    throw 0;
-  }
-
-  Future<R> then<R>(FutureOr<R> onValue(T value));
-
+  Future<R> then<R>(FutureOr<R> onValue(T value)) => null;
   Future<T> whenComplete(action());
 
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures) => null;
 }
 
-abstract class FutureOr<T> {}
+class FutureOr<T> {}
 
 abstract class Completer<T> {
-  factory Completer() {
-    throw 0;
-  }
-
-  factory Completer.sync() {
-    throw 0;
-  }
+  factory Completer() => null;
+  factory Completer.sync() => null;
 
   Future<T> get future;
   bool get isCompleted;
 
-  void complete([FutureOr<T>? value]);
-  void completeError(Object error, [StackTrace? stackTrace]);
+  void complete([value]);
+  void completeError(Object error, [StackTrace stackTrace]);
 }
 
 abstract class Timer {
@@ -85,8 +68,10 @@ abstract class Stream<T> {
 
   Future<T> get first;
 
-  StreamSubscription<T> listen(void onData(T event)?,
-      {Function? onError, void onDone()?, bool? cancelOnError});
+  StreamSubscription<T> listen(void onData(T event),
+                               { Function onError,
+                                 void onDone(),
+                                 bool cancelOnError});
 }
 
 abstract class StreamIterator<T> {}
@@ -94,12 +79,12 @@ abstract class StreamIterator<T> {}
 abstract class StreamSubscription<T> {
   bool get isPaused;
 
-  Future<E> asFuture<E>([E? futureValue]);
+  Future<E> asFuture<E>([E futureValue]);
   Future cancel();
-  void onData(void handleData(T data)?);
-  void onError(Function? handleError);
-  void onDone(void handleDone()?);
-  void pause([Future<void>? resumeSignal]);
+  void onData(void handleData(T data));
+  void onError(Function handleError);
+  void onDone(void handleDone());
+  void pause([Future resumeSignal]);
   void resume();
 }
 
@@ -129,80 +114,56 @@ library dart.collection;
 
 abstract class HashMap<K, V> implements Map<K, V> {
   external factory HashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey});
+      {bool equals(K key1, K key2),
+      int hashCode(K key),
+      bool isValidKey(potentialKey)});
 
   external factory HashMap.identity();
 
-  factory HashMap.from(Map<dynamic, dynamic> other) {
-    throw 0;
-  }
+  factory HashMap.from(Map other) => null;
 
-  factory HashMap.of(Map<K, V> other) {
-    throw 0;
-  }
+  factory HashMap.of(Map<K, V> other) => null;
 
   factory HashMap.fromIterable(Iterable iterable,
-      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
-    throw 0;
-  }
+      {K key(element), V value(element)}) => null;
 
-  factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
-    throw 0;
-  }
+  factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) => null;
 
-  factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
-    throw 0;
-  }
+  factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) => null;
 }
 
 abstract class LinkedHashMap<K, V> implements Map<K, V> {
   external factory LinkedHashMap(
-      {bool Function(K, K)? equals,
-      int Function(K)? hashCode,
-      bool Function(dynamic)? isValidKey});
+      {bool equals(K key1, K key2),
+      int hashCode(K key),
+      bool isValidKey(potentialKey)});
 
   external factory LinkedHashMap.identity();
 
-  factory LinkedHashMap.from(Map<dynamic, dynamic> other) {
-    throw 0;
-  }
+  factory LinkedHashMap.from(Map other) => null;
 
-  factory LinkedHashMap.of(Map<K, V> other) {
-    throw 0;
-  }
+  factory LinkedHashMap.of(Map<K, V> other) => null;
 
-    factory LinkedHashMap.fromIterable(Iterable iterable,
-      {K Function(dynamic element)? key, V Function(dynamic element)? value}) {
-    throw 0;
-  }
+  factory LinkedHashMap.fromIterable(Iterable iterable,
+      {K key(element), V value(element)}) => null;
 
+  factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values)
+      => null;
 
-  factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
-    throw 0;
-  }
-
-  factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
-    throw 0;
-  }
+  factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) => null;
 }
 
 abstract class LinkedHashSet<E> implements Set<E> {
   external factory LinkedHashSet(
-      {bool Function(E, E)? equals,
-      int Function(E)? hashCode,
-      bool Function(dynamic)? isValidKey});
+      {bool equals(E e1, E e2),
+      int hashCode(E e),
+      bool isValidKey(potentialKey)});
 
   external factory LinkedHashSet.identity();
 
-  factory LinkedHashSet.from(Iterable<dynamic> elements) {
-    throw 0;
-  }
+  factory LinkedHashSet.from(Iterable elements) => null;
 
-  factory LinkedHashSet.of(Iterable<E> elements) {
-    throw 0;
-  }
+  factory LinkedHashSet.of(Iterable<E> elements) => null;
 }
 ''',
   )
@@ -244,9 +205,9 @@ const override = const _Override();
 
 const proxy = const _Proxy();
 
-external bool identical(Object? a, Object? b);
+external bool identical(Object a, Object b);
 
-void print(Object? object) {}
+void print(Object object) {}
 
 abstract class bool extends Object {
   external const factory bool.fromEnvironment(String name,
@@ -270,7 +231,7 @@ class Deprecated extends Object {
 
 class pragma {
   final String name;
-  final Object? options;
+  final Object options;
   const pragma(this.name, [this.options]);
 }
 
@@ -301,24 +262,19 @@ abstract class double extends num {
   int truncate();
   double truncateToDouble();
 
-  external static double parse(String source,
-      [@deprecated double onError(String source)?]);
-
-  external static double? tryParse(String source);
+  external static double parse(String source, [double onError(String source)]);
 }
 
 class Duration implements Comparable<Duration> {}
 
 class Error {
   Error();
-  static String safeToString(Object? object) => '';
-  external StackTrace? get stackTrace;
+  static String safeToString(Object object) => '';
+  external StackTrace get stackTrace;
 }
 
 class Exception {
-  factory Exception([var message]) {
-    throw 0;
-  }
+  factory Exception([var message]) => null;
 }
 
 class FormatException implements Exception {}
@@ -326,8 +282,7 @@ class FormatException implements Exception {}
 class Function {}
 
 abstract class int extends num {
-  external const factory int.fromEnvironment(String name,
-      {int defaultValue = 0});
+  external const factory int.fromEnvironment(String name, {int defaultValue});
 
   bool get isEven => false;
   bool get isNegative;
@@ -345,9 +300,7 @@ abstract class int extends num {
   String toString();
 
   external static int parse(String source,
-      {int? radix, @deprecated int onError(String source)?});
-
-  external static int? tryParse(String source, {int? radix});
+      {int radix, int onError(String source)});
 }
 
 abstract class Invocation {}
@@ -363,9 +316,9 @@ abstract class Iterable<E> {
 
   Iterable<T> expand<T>(Iterable<T> f(E element));
 
-  E firstWhere(bool test(E element), {E orElse()?});
+  E firstWhere(bool test(E element), { E orElse()});
 
-  R fold<R>(R initialValue, R combine(R previousValue, E element));
+  R fold<R>(R initialValue, R combine(R previousValue, E element)) => null;
 
   void forEach(void f(E element));
 
@@ -384,9 +337,9 @@ abstract class Iterator<E> {
 }
 
 class List<E> implements Iterable<E> {
-  external factory List([int? length]);
+  List([int length]);
+  external factory List.from(Iterable elements, {bool growable: true});
   external factory List.filled(int length, E fill, {bool growable = false});
-  external factory List.empty({bool growable = false});
   external factory List.from(Iterable elements, {bool growable = true});
   external factory List.of(Iterable<E> elements, {bool growable = true});
   external factory List.generate(int length, E generator(int index),
@@ -408,17 +361,10 @@ class List<E> implements Iterable<E> {
 }
 
 class Map<K, V> {
-  external factory Map();
-  external factory Map.from();
-  external Map.of(Map<K, V> other);
-  external factory Map.unmodifiable(Map<dynamic, dynamic> other);
-  external factory Map.identity();
+  factory Map() => null;
 
-  external factory Map.fromIterable(Iterable iterable,
-      {K key(element)?, V value(element)?});
-
-  external factory Map.fromIterables(Iterable<K> keys, Iterable<V> values);
-  external factory Map.fromEntries(Iterable<MapEntry<K, V>> entries);
+  factory Map.fromIterable(Iterable iterable,
+      {K key(element), V value(element)}) => null;
 
   Iterable<K> get keys => null;
   bool get isEmpty;
@@ -426,22 +372,15 @@ class Map<K, V> {
   int get length => 0;
   Iterable<V> get values => null;
 
-  V? operator [](K key) => null;
+  V operator [](K key) => null;
   void operator []=(K key, V value) {}
 
   Map<RK, RV> cast<RK, RV>() => null;
-  bool containsKey(Object? key) => false;
+  bool containsKey(Object key) => false;
 }
 
 class Null extends Object {
   factory Null._uninstantiable() => null;
-}
-
-class MapEntry<K, V> {
-  final K key;
-  final V value;
-  const factory MapEntry(K key, V value) = MapEntry<K, V>._;
-  const MapEntry._(this.key, this.value);
 }
 
 abstract class num implements Comparable<num> {
@@ -473,13 +412,13 @@ abstract class num implements Comparable<num> {
 class Object {
   const Object();
 
-  external int get hashCode;
-  external Type get runtimeType;
+  int get hashCode => 0;
+  Type get runtimeType => null;
 
-  external bool operator ==(Object other);
+  bool operator ==(Object other) => identical(this, other);
 
-  external String toString();
-  external dynamic noSuchMethod(Invocation invocation);
+  String toString() => 'a string';
+  dynamic noSuchMethod(Invocation invocation) => null;
 }
 
 abstract class Pattern {}
@@ -489,46 +428,32 @@ abstract class RegExp implements Pattern {
 }
 
 abstract class Set<E> implements Iterable<E> {
-  external factory Set();
-  external factory Set.identity();
-  external factory Set.from(Iterable elements);
-  external factory Set.of(Iterable<E> elements);
+  factory Set() => null;
+  factory Set.identity() => null;
+  factory Set.from(Iterable elements) => null;
+  factory Set.of(Iterable<E> elements) => null;
 
   Set<R> cast<R>();
-
-  bool add(E value);
-  void addAll(Iterable<E> elements);
-  bool remove(Object? value);
-  E? lookup(Object? object);
 }
 
 class StackTrace {}
 
 abstract class String implements Comparable<String>, Pattern {
   external factory String.fromCharCodes(Iterable<int> charCodes,
-      [int start = 0, int? end]);
-
-  external factory String.fromCharCode(int charCode);
-
-  external const factory String.fromEnvironment(String name,
-    {String defaultValue = ""});
+      [int start = 0, int end]);
 
   List<int> get codeUnits;
+  int indexOf(Pattern pattern, [int start]);
   bool get isEmpty => false;
   bool get isNotEmpty => false;
   int get length => 0;
 
+  String operator +(String other) => null;
   bool operator ==(Object other);
-  String operator [](int index);
-  String operator +(String other);
-  String operator *(int times);
 
   int codeUnitAt(int index);
   bool contains(String other, [int startIndex = 0]);
-  int indexOf(Pattern pattern, [int start = 0]);
-  int lastIndexOf(Pattern pattern, [int? start]);
-  bool startsWith(Pattern pattern, [int index = 0]);
-  String substring(int startIndex, [int? endIndex]);
+  String substring(int len) => null;
   String toLowerCase();
   String toUpperCase();
 }
