@@ -12,10 +12,6 @@ import 'package:analysis_server/src/edit/preview/preview_site.dart';
 /// The page that contains the CSS used to style the semantic highlighting
 /// within a Dart file.
 class HighlightCssPage extends PreviewPage {
-  /// The decoded content of the page. Use [pageContent] to access this field so
-  /// that it is initialized on first read.
-  static String _pageContent;
-
   /// Initialize a newly created CSS page within the given [site].
   HighlightCssPage(PreviewSite site)
       : super(site, PreviewSite.highlightCssPath.substring(1));
@@ -27,11 +23,6 @@ class HighlightCssPage extends PreviewPage {
 
   @override
   Future<void> generatePage(Map<String, String> params) async {
-    buf.write(pageContent());
-  }
-
-  /// Return the content of the page.
-  String pageContent() {
-    return _pageContent ??= resources.highlight_css;
+    buf.write(resources.highlight_css);
   }
 }

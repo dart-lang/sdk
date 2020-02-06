@@ -14,7 +14,7 @@ class NavigationTreePage extends PreviewPage {
 
   @override
   // TODO(srawlins): Refactor JSON-returning pages like this to not inherit all
-  //  of the HTML logic from  [PreviewPage].
+  //  of the HTML logic from [PreviewPage].
   void generateBody(Map<String, String> params) {
     throw UnsupportedError('generateBody');
   }

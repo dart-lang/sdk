@@ -9,11 +9,14 @@ import 'package:analysis_server/src/edit/nnbd_migration/resources/resources.g.da
 import 'package:mustache/mustache.dart' as mustache;
 import 'package:path/path.dart' as path;
 
+// TODO(devoncarew): Remove the use of package:mustache (for overall
+//                   simplification).
+
 /// A mustache template for one library's instrumentation output.
 mustache.Template _template = mustache.Template(r'''
 <html>
   <head>
-    <title>Non-nullable fix instrumentation report</title>
+    <title>Null Safety Preview</title>
     <script src="{{ highlightJsPath }}"></script>
     <script>{{{ dartPageScript }}}</script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:400,600&display=swap">
@@ -21,13 +24,14 @@ mustache.Template _template = mustache.Template(r'''
     <style>{{{ dartPageStyle }}}</style>
   </head>
   <body>
-    <h1>Preview of NNBD migration</h1>
-    <h2 id="unit-name">&nbsp;</h2>
-    <div class="panels">
-    <div class="horizontal">
+    <header class="elevation-z4">
+      <h1>Proposed null safety changes</h1>
+      <h2 id="unit-name">&nbsp;</h2>
+    </header>
+    <div class="panels horizontal">
     <div class="nav-panel">
       <div class="nav-inner">
-        <p class="panel-heading">Navigation</p>
+        <div class="panel-heading">Navigation</div>
         <p class="root">{{{ root }}}</p>
         <div class="nav-tree"></div>
       </div><!-- /nav-inner -->
@@ -45,13 +49,12 @@ mustache.Template _template = mustache.Template(r'''
     '{{! The regions are then written again, overlaying the first copy of }}'
     '{{! the content, to provide tooltips for modified regions. }}'
     '</div><!-- /regions -->'
-    '<div class="footer"><em>Generated on {{ generationDate }}</em></div>'
     '</div><!-- /content -->'
     '''
     <div class="info-panel">
       <div class="panel-container">
         <div class="edit-panel">
-          <p class="panel-heading">Edit info</p>
+          <div class="panel-heading">Edit info</div>
           <div class="panel-content">
             <p>
             Click a modified region of code to see why the migration tool chose
@@ -60,13 +63,16 @@ mustache.Template _template = mustache.Template(r'''
           </div><!-- /panel-content -->
         </div><!-- /edit-panel -->
         <div class="edit-list">
-          <p class="panel-heading">Edits</p>
+          <div class="panel-heading">Edits</div>
           <div class="panel-content"></div>
         </div><!-- /edit-list -->
       </div><!-- /panel-container -->
     </div><!-- /info-panel -->
-    </div><!-- /horizontal -->
     </div><!-- /panels -->
+    <footer>
+      <a target=”_blank” 
+        href="https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/lib/src/edit/nnbd_migration/README.md">Null safety migration help</a>
+    </footer>
   </body>
 </html>''');
 
@@ -95,7 +101,6 @@ class InstrumentationRenderer {
       'dartPageStyle': resources.migration_css,
       'highlightJsPath': migrationInfo.highlightJsPath,
       'highlightStylePath': migrationInfo.highlightStylePath,
-      'generationDate': migrationInfo.migrationDate,
     };
     return _template.renderString(mustacheContext);
   }
