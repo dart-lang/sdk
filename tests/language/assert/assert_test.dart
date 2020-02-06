@@ -56,7 +56,9 @@ testMessage(value, message) {
   try {
     assert(value, message);
     return null;
-  } on AssertionError catch (error) {
+  } catch (error) {
+    // Catch any type to allow the Boolean conversion to throw either
+    // AssertionError or TypeError.
     return error;
   }
 }
@@ -70,7 +72,6 @@ main() {
   Expect.equals(1, testBoolean(false));
   Expect.equals(1, testDynamic(unknown(false)));
 
-  Expect.equals(1, testBoolean(null));
   Expect.equals(1, testDynamic(null));
   Expect.equals(1, testDynamic(42));
   Expect.equals(1, testDynamic(() => true));
@@ -80,4 +81,11 @@ main() {
 
   Expect.equals(1234, testMessage(false, 1234).message);
   Expect.equals('hi', testMessage(false, 'hi').message);
+
+  // These errors do not have the message because boolean conversion failed.
+  Expect.notEquals(1234, testMessage(null, 1234).message);
+  Expect.notEquals('hi', testMessage(null, 'hi').message);
+  Expect.notEquals('hi', testMessage(() => null, 'hi').message);
+  Expect.notEquals('hi', testMessage(() => false, 'hi').message);
+  Expect.notEquals('hi', testMessage(() => true, 'hi').message);
 }

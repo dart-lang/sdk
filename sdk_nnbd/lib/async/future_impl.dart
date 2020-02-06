@@ -393,7 +393,7 @@ class _Future<T> implements Future<T> {
   void _prependListeners(_FutureListener? listeners) {
     if (listeners == null) return;
     if (_mayAddListener) {
-      _FutureListener existingListeners = _resultOrListeners;
+      _FutureListener? existingListeners = _resultOrListeners;
       _resultOrListeners = listeners;
       if (existingListeners != null) {
         _FutureListener cursor = listeners;
