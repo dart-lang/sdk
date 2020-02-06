@@ -126,13 +126,7 @@ class Dart : public AllStatic {
 
   // TODO(dartbug.com/40342): Delete these functions.
   static void set_non_nullable_flag(bool value) { non_nullable_flag_ = value; }
-  static bool non_nullable_flag() {
-#ifdef DART_BUILT_WITH_NNBD_FLAG
-    return true;
-#else
-    return non_nullable_flag_;
-#endif
-  }
+  static bool non_nullable_flag() { return true; }
 
  private:
   static void WaitForIsolateShutdown();
