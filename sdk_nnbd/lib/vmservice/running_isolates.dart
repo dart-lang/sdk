@@ -120,7 +120,7 @@ class _Evaluator {
     Client? externalClient =
         _service._findFirstClientThatHandlesService('compileExpression');
 
-    final compileParams = <String, String>{
+    final compileParams = <String, dynamic>{
       'isolateId': _message.params['isolateId']!,
       'expression': _message.params['expression']!,
       'definitions': buildScopeResponseResult['param_names']!,
