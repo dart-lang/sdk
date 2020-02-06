@@ -43,6 +43,7 @@ class Asset {
       return null;
     }
     List assetList = _decodeAssets(tarBytes);
+    Map<String, Asset> assets = new HashMap<String, Asset>();
     for (int i = 0; i < assetList.length; i += 2) {
       final a = Asset(assetList[i], assetList[i + 1]);
       assets[a.name] = a;

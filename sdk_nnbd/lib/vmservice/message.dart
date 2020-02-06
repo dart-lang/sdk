@@ -147,9 +147,13 @@ class Message {
   // elements in the list are strings, making consumption by C++ simpler.
   // This has a side effect that boolean literal values like true become 'true'
   // and thus indistinguishable from the string literal 'true'.
-  List<String> _makeAllString(List list) => <String>[
-        for (final e in list) e.toString(),
-      ];
+  List<String> _makeAllString(List list) {
+    var new_list = List<String>.filled(list.length, "");
+    for (var i = 0; i < list.length; i++) {
+      new_list[i] = list[i].toString();
+    }
+    return new_list;
+  }
 
   Future<Response> sendToIsolate(SendPort sendPort) {
     final receivePort = RawReceivePort();

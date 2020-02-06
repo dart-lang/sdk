@@ -226,9 +226,9 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List.filled(numArguments, null);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List.filled(numNamedArguments, null);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -316,10 +316,10 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
     int numPositionalArguments = positionalArguments.length + 1; // Receiver.
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List.filled(numArguments, null);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments[0] = _reflectee; // Receiver.
     arguments.setRange(1, numPositionalArguments, positionalArguments);
-    List names = new List.filled(numNamedArguments, null);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -651,9 +651,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List.filled(numArguments, null);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List.filled(numNamedArguments, null);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {

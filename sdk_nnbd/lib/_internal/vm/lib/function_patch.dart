@@ -17,12 +17,12 @@ class Function {
         (positionalArguments != null ? positionalArguments.length : 0);
     int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List.filled(numArguments, null);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments[0] = function;
     if (positionalArguments != null) {
       arguments.setRange(1, numPositionalArguments, positionalArguments);
     }
-    List names = new List.filled(numNamedArguments, null);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
