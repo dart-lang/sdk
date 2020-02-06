@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
@@ -25,6 +26,19 @@ testWriteAsStringSync(dir) {
   Expect.equals(data, f.readAsStringSync());
   f.writeAsStringSync(data, mode: FileMode.append, flush: true);
   Expect.equals('$data$data', f.readAsStringSync());
+}
+
+testWriteWithLargeList(dir) {
+  var f;
+  if (Platform.isWindows) {
+    f = File('NUL');
+  } else {
+    f = File('/dev/null');
+  }
+  // 0x100000000 exceeds the maximum of unsigned long.
+  // This should no longer hang.
+  // Issue: https://github.com/dart-lang/sdk/issues/40339
+  f.writeAsBytesSync(Uint8List(0x100000000));
 }
 
 Future testWriteAsBytes(dir) {
@@ -73,6 +87,7 @@ main() {
   var tempDir = Directory.systemTemp.createTempSync('dart_file_write_as');
   testWriteAsBytesSync(tempDir);
   testWriteAsStringSync(tempDir);
+  testWriteWithLargeList(tempDir);
   testWriteAsBytes(tempDir).then((_) {
     return testWriteAsString(tempDir);
   }).then((_) {

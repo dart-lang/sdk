@@ -146,10 +146,15 @@ int64_t File::Read(void* buffer, int64_t num_bytes) {
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
   int fd = handle_->fd();
-  ASSERT(fd >= 0);
+  // TODO(zichangguo): num_bytes from signed integer to unsigned integer.
+  ASSERT(fd >= 0 && num_bytes >= 0);
   HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
+  // On Windows, int64_t is much larger than required size DWORD(unsigned long).
+  // Limit the size to be a valid DWORD(unsigned long).
+  COMPILE_ASSERT(sizeof(uint32_t) == sizeof(DWORD));
+  DWORD bytes_to_write = num_bytes > MAXDWORD ? MAXDWORD : num_bytes;
   DWORD written = 0;
-  BOOL result = WriteFile(handle, buffer, num_bytes, &written, NULL);
+  BOOL result = WriteFile(handle, buffer, bytes_to_write, &written, NULL);
   if (!result) {
     return -1;
   }
