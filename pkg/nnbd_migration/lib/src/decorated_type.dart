@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -164,7 +165,8 @@ class DecoratedType implements DecoratedTypeInfo {
   /// Creates a [DecoratedType] for a synthetic type parameter, to be used
   /// during comparison of generic function types.
   DecoratedType._forTypeParameterSubstitution(TypeParameterElement parameter)
-      : type = TypeParameterTypeImpl(parameter),
+      : type = TypeParameterTypeImpl(parameter,
+            nullabilitySuffix: NullabilitySuffix.none),
         node = null,
         returnType = null,
         positionalParameters = const [],
@@ -351,6 +353,15 @@ class DecoratedType implements DecoratedTypeInfo {
       namedParameters: namedParameters,
       typeArguments: typeArguments);
 
+  /// Creates a shallow copy of `this`, replacing the nullability node and the
+  /// type.
+  DecoratedType withNodeAndType(NullabilityNode node, DartType type) =>
+      DecoratedType(type, node,
+          returnType: returnType,
+          positionalParameters: positionalParameters,
+          namedParameters: namedParameters,
+          typeArguments: typeArguments);
+
   /// Internal implementation of [_substitute], used as a recursion target.
   DecoratedType _substitute(
       Map<TypeParameterElement, DecoratedType> substitution,
@@ -377,8 +388,8 @@ class DecoratedType implements DecoratedTypeInfo {
           var typeFormal = typeFormals[i];
           var oldDecoratedBound =
               DecoratedTypeParameterBounds.current.get(typeFormal);
-          var newDecoratedBound = oldDecoratedBound._substitute(
-              substitution, typeFormal.bound ?? oldDecoratedBound.type);
+          var newDecoratedBound = oldDecoratedBound._substitute(substitution,
+              undecoratedResult.typeFormals[i].bound ?? oldDecoratedBound.type);
           if (identical(typeFormal, undecoratedResult.typeFormals[i])) {
             assert(oldDecoratedBound == newDecoratedBound);
           } else {
@@ -401,8 +412,9 @@ class DecoratedType implements DecoratedTypeInfo {
       if (inner == null) {
         return this;
       } else {
-        return inner
-            .withNode(NullabilityNode.forSubstitution(inner.node, node));
+        return inner.withNodeAndType(
+            NullabilityNode.forSubstitution(inner.node, node),
+            undecoratedResult);
       }
     } else if (type.isVoid || type.isDynamic) {
       return this;

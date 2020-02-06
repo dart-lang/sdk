@@ -2253,6 +2253,7 @@ _f(_C/*?*/ c) => c?.hashCode;
     visitSubexpression(findNode.propertyAccess('c?.hashCode'), 'int?');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40475')
   Future<void> test_propertyAccess_nullAware_object_tearoff() async {
     await analyze('''
 class _C {}
