@@ -14,7 +14,7 @@ class B extends core::Object implements self::I {
 [@vm.inferred-type.metadata=#lib::B?]static field self::I* ii = new self::B::•();
 static method bar([@vm.inferred-type.metadata=#lib::B?] self::I* i) → void {
   if(i is self::A*) {
-    let dynamic #t1 = i{self::A*} in let dynamic #t2 = 42 in throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
+    throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
   }
 }
 static method main(core::List<core::String*>* args) → dynamic {
