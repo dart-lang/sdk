@@ -979,8 +979,19 @@ class Instruction : public ZoneAllocated {
     return kTagged;
   }
 
-  // By default, instructions should check types of inputs when unboxing.
-  virtual SpeculativeMode speculative_mode() const { return kGuardInputs; }
+  SpeculativeMode SpeculativeModeOfInputs() const {
+    for (intptr_t i = 0; i < InputCount(); i++) {
+      if (SpeculativeModeOfInput(i) == kGuardInputs) {
+        return kGuardInputs;
+      }
+    }
+    return kNotSpeculative;
+  }
+
+  // By default, instructions should check types of inputs when unboxing
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kGuardInputs;
+  }
 
   // Representation of the value produced by this computation.
   virtual Representation representation() const { return kTagged; }
@@ -2378,7 +2389,7 @@ class PhiInstr : public Definition {
   virtual void set_representation(Representation r) { representation_ = r; }
 
   // In AOT mode Phi instructions do not check types of inputs when unboxing.
-  virtual SpeculativeMode speculative_mode() const {
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     return FLAG_precompiled_mode ? kNotSpeculative : kGuardInputs;
   }
 
@@ -4203,12 +4214,13 @@ class EqualityCompareInstr : public TemplateComparison<2, NoThrow, Pure> {
     return kTagged;
   }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   virtual bool AttributesEqual(Instruction* other) const {
     return ComparisonInstr::AttributesEqual(other) &&
-           (speculative_mode() ==
-            other->AsEqualityCompare()->speculative_mode());
+           (speculative_mode_ == other->AsEqualityCompare()->speculative_mode_);
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -4250,11 +4262,13 @@ class RelationalOpInstr : public TemplateComparison<2, NoThrow, Pure> {
     return kTagged;
   }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   virtual bool AttributesEqual(Instruction* other) const {
     return ComparisonInstr::AttributesEqual(other) &&
-           (speculative_mode() == other->AsRelationalOp()->speculative_mode());
+           (speculative_mode_ == other->AsRelationalOp()->speculative_mode_);
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -4881,7 +4895,7 @@ class StoreInstanceFieldInstr : public TemplateInstruction<2, NoThrow> {
                                 token_pos,
                                 kind) {}
 
-  virtual SpeculativeMode speculative_mode() const {
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
     // In AOT unbox is done based on TFA, therefore it was proven to be correct
     // and it can never deoptmize.
     return (IsUnboxedStore() && FLAG_precompiled_mode) ? kNotSpeculative
@@ -5362,7 +5376,9 @@ class StoreIndexedInstr : public TemplateInstruction<3, NoThrow> {
            (emit_store_barrier_ == kEmitStoreBarrier);
   }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
@@ -6306,7 +6322,9 @@ class BoxIntegerInstr : public BoxInstr {
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
-  virtual SpeculativeMode speculative_mode() const { return kNotSpeculative; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
 
   virtual CompileType ComputeType() const;
   virtual bool RecomputeType();
@@ -6375,7 +6393,7 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
 
   virtual bool ComputeCanDeoptimize() const {
-    if (speculative_mode() == kNotSpeculative) {
+    if (SpeculativeModeOfInputs() == kNotSpeculative) {
       return false;
     }
 
@@ -6393,7 +6411,9 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return true;
   }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   virtual Representation representation() const { return representation_; }
 
@@ -6403,7 +6423,7 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual bool AttributesEqual(Instruction* other) const {
     UnboxInstr* other_unbox = other->AsUnbox();
     return (representation() == other_unbox->representation()) &&
-           (speculative_mode() == other_unbox->speculative_mode());
+           (speculative_mode_ == other_unbox->speculative_mode_);
   }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
@@ -6763,7 +6783,9 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   virtual intptr_t DeoptimizationTarget() const {
     // Direct access since this instruction cannot deoptimize, and the deopt-id
@@ -6781,7 +6803,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
   virtual bool AttributesEqual(Instruction* other) const {
     const BinaryDoubleOpInstr* other_bin_op = other->AsBinaryDoubleOp();
     return (op_kind() == other_bin_op->op_kind()) &&
-           (speculative_mode() == other_bin_op->speculative_mode());
+           (speculative_mode_ == other_bin_op->speculative_mode_);
   }
 
  private:
@@ -6939,11 +6961,14 @@ class UnaryInt64OpInstr : public UnaryIntegerOpInstr {
   }
 
   virtual bool AttributesEqual(Instruction* other) const {
+    UnaryInt64OpInstr* unary_op_other = other->AsUnaryInt64Op();
     return UnaryIntegerOpInstr::AttributesEqual(other) &&
-           (speculative_mode() == other->speculative_mode());
+           (speculative_mode_ == unary_op_other->speculative_mode_);
   }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   DECLARE_INSTRUCTION(UnaryInt64Op)
 
@@ -7259,11 +7284,13 @@ class BinaryInt64OpInstr : public BinaryIntegerOpInstr {
     return kUnboxedInt64;
   }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   virtual bool AttributesEqual(Instruction* other) const {
     return BinaryIntegerOpInstr::AttributesEqual(other) &&
-           (speculative_mode() == other->AsBinaryInt64Op()->speculative_mode());
+           (speculative_mode_ == other->AsBinaryInt64Op()->speculative_mode_);
   }
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
@@ -7321,7 +7348,9 @@ class ShiftInt64OpInstr : public ShiftIntegerOpInstr {
                     intptr_t deopt_id)
       : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
 
-  virtual SpeculativeMode speculative_mode() const { return kNotSpeculative; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool MayThrow() const { return true; }
 
@@ -7380,7 +7409,9 @@ class ShiftUint32OpInstr : public ShiftIntegerOpInstr {
                      intptr_t deopt_id)
       : ShiftIntegerOpInstr(op_kind, left, right, deopt_id) {}
 
-  virtual SpeculativeMode speculative_mode() const { return kNotSpeculative; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return kNotSpeculative;
+  }
   virtual bool ComputeCanDeoptimize() const { return false; }
   virtual bool MayThrow() const { return true; }
 
@@ -7465,10 +7496,12 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return speculative_mode() == other->AsUnaryDoubleOp()->speculative_mode();
+    return speculative_mode_ == other->AsUnaryDoubleOp()->speculative_mode_;
   }
 
   PRINT_OPERANDS_TO_SUPPORT
@@ -7614,10 +7647,12 @@ class Int64ToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual bool ComputeCanDeoptimize() const { return false; }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   virtual bool AttributesEqual(Instruction* other) const {
-    return speculative_mode() == other->AsInt64ToDouble()->speculative_mode();
+    return speculative_mode_ == other->AsInt64ToDouble()->speculative_mode_;
   }
 
  private:
@@ -7746,7 +7781,9 @@ class DoubleToFloatInstr : public TemplateDefinition<1, NoThrow, Pure> {
     return kUnboxedDouble;
   }
 
-  virtual SpeculativeMode speculative_mode() const { return speculative_mode_; }
+  virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
+    return speculative_mode_;
+  }
 
   virtual intptr_t DeoptimizationTarget() const { return GetDeoptId(); }
 
