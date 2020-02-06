@@ -51,7 +51,8 @@ double atan2(@nullCheck num a, @nullCheck num b) =>
     JS<double>('!', r'Math.atan2(#, #)', a, b);
 
 @patch
-double exp(num x) => JS<double>('!', r'Math.exp(#)', x);
+@notNull
+double exp(@nullCheck num x) => JS<double>('!', r'Math.exp(#)', x);
 
 @patch
 @notNull
