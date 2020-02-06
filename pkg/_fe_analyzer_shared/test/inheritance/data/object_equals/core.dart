@@ -14,6 +14,10 @@ class Object {
   const Object();
 
   bool operator ==(Object other) => true;
+
+  noSuchMethod(Invocation invocation) => null;
+
+  String toString() => '';
 }
 
 /*class: Null:Null,Object*/
@@ -61,3 +65,6 @@ class Symbol {}
 
 /*class: Type:Object,Type*/
 class Type {}
+
+/*class: Invocation:Invocation,Object*/
+class Invocation {}

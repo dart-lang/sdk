@@ -551,8 +551,10 @@ class ClassHierarchyNodeBuilder {
           debug?.log("supertypes: checkValidOverride("
               "${classBuilder.fullNameForErrors}, "
               "${fullName(a)}, ${fullName(b)})");
-          checkValidOverride(a, b);
-          if (a is DelayedMember && !a.isInheritableConflict) {
+          if (a is! DelayedMember) {
+            checkValidOverride(a, b);
+          }
+          if (a is DelayedMember) {
             if (b is DelayedMember) {
               b.addAllDeclarationsTo(a.declarations);
             } else {
@@ -2432,7 +2434,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
     return parent == this.classBuilder
         ? this
         : new InheritedImplementationInterfaceConflict(
-            parent, declarations, isSetter, modifyKernel);
+            parent, declarations.toList(), isSetter, modifyKernel);
   }
 
   static ClassMember combined(
@@ -2497,9 +2499,13 @@ class InterfaceConflict extends DelayedMember {
       unhandled("${member.runtimeType}", "$member", classBuilder.charOffset,
           classBuilder.fileUri);
     }
-    return Substitution.fromInterfaceType(hierarchy.getKernelTypeAsInstanceOf(
-            thisType, member.enclosingClass, classBuilder.library.library))
-        .substituteType(type);
+    InterfaceType instance = hierarchy.getKernelTypeAsInstanceOf(
+        thisType, member.enclosingClass, classBuilder.library.library);
+    assert(
+        instance != null,
+        "No instance of $thisType as ${member.enclosingClass} found for "
+        "$member.");
+    return Substitution.fromInterfaceType(instance).substituteType(type);
   }
 
   bool isMoreSpecific(ClassHierarchyBuilder hierarchy, DartType a, DartType b) {
@@ -2628,7 +2634,8 @@ class InterfaceConflict extends DelayedMember {
   DelayedMember withParent(ClassBuilder parent) {
     return parent == this.classBuilder
         ? this
-        : new InterfaceConflict(parent, declarations, isSetter, modifyKernel);
+        : new InterfaceConflict(
+            parent, declarations.toList(), isSetter, modifyKernel);
   }
 
   static ClassMember combined(ClassBuilder parent, ClassMember a, ClassMember b,
