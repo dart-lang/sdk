@@ -804,11 +804,11 @@ int Process::Start(Namespace* namespc,
   return starter.Start();
 }
 
-static bool CloseProcessBuffers(struct pollfd fds[3]) {
+static bool CloseProcessBuffers(struct pollfd* fds, int alive) {
   int e = errno;
-  close(fds[0].fd);
-  close(fds[1].fd);
-  close(fds[2].fd);
+  for (int i = 0; i < alive; i++) {
+    close(fds[i].fd);
+  }
   errno = e;
   return false;
 }
@@ -845,28 +845,30 @@ bool Process::Wait(intptr_t pid,
   while (alive > 0) {
     // Blocking call waiting for events from the child process.
     if (TEMP_FAILURE_RETRY(poll(fds, alive, -1)) <= 0) {
-      return CloseProcessBuffers(fds);
+      return CloseProcessBuffers(fds, alive);
     }
 
     // Process incoming data.
-    int current_alive = alive;
-    for (int i = 0; i < current_alive; i++) {
+    for (int i = 0; i < alive; i++) {
+      if ((fds[i].revents & (POLLNVAL | POLLERR)) != 0) {
+        return CloseProcessBuffers(fds, alive);
+      }
       if ((fds[i].revents & POLLIN) != 0) {
         intptr_t avail = FDUtils::AvailableBytes(fds[i].fd);
         if (fds[i].fd == out) {
           if (!out_data.Read(out, avail)) {
-            return CloseProcessBuffers(fds);
+            return CloseProcessBuffers(fds, alive);
           }
         } else if (fds[i].fd == err) {
           if (!err_data.Read(err, avail)) {
-            return CloseProcessBuffers(fds);
+            return CloseProcessBuffers(fds, alive);
           }
         } else if (fds[i].fd == exit_event) {
           if (avail == 8) {
             intptr_t b =
                 TEMP_FAILURE_RETRY(read(exit_event, exit_code_data.bytes, 8));
             if (b != 8) {
-              return CloseProcessBuffers(fds);
+              return CloseProcessBuffers(fds, alive);
             }
           }
         } else {
@@ -874,11 +876,15 @@ bool Process::Wait(intptr_t pid,
         }
       }
       if ((fds[i].revents & POLLHUP) != 0) {
+        // Remove the pollfd from the list of pollfds.
         close(fds[i].fd);
         alive--;
         if (i < alive) {
           fds[i] = fds[alive];
         }
+        // Process the same index again.
+        i--;
+        continue;
       }
     }
   }
