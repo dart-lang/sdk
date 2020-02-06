@@ -8,7 +8,7 @@ additionalExports = (lib2::Foo)
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
 
-  class Foo extends dart.core::Object {
+  class Foo extends dart.core::Object /*hasConstConstructor*/  {
     static const field lib2::Foo* BAR = #C1;
     const constructor •(dart.core::String* x) → lib2::Foo*
       : super dart.core::Object::•()
