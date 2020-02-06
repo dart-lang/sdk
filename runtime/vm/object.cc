@@ -10060,6 +10060,9 @@ void Field::RecordStore(const Object& value) const {
     return;
   }
 
+  // We should never try to record a sentinel.
+  ASSERT(value.raw() != Object::sentinel().raw());
+
   if ((guarded_cid() == kDynamicCid) ||
       (is_nullable() && value.raw() == Object::null())) {
     // Nothing to do: the field is not guarded or we are storing null into
