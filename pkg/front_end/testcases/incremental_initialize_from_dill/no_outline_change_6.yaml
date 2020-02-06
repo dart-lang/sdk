@@ -61,7 +61,7 @@ worlds:
 
         enum CompilationStrategy { direct, toKernel, toData, fromData }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    expectsRebuildBodiesOnly: false # For now, libraries with errors cannot have bodies rebuild.
   - entry: main.dart
     useExperimentalInvalidation: true
     worldType: updated
@@ -88,4 +88,4 @@ worlds:
 
         enum CompilationStrategy { direct, toKernel, toData, fromData }
     expectedLibraryCount: 2
-    expectsRebuildBodiesOnly: true
+    expectsRebuildBodiesOnly: false # For now, libraries with errors cannot have bodies rebuild.

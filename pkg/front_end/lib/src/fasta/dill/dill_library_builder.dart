@@ -32,6 +32,7 @@ import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/dynamic_type_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/modifier_builder.dart';
 import '../builder/never_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -89,7 +90,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
   /// [../kernel/kernel_library_builder.dart].
   Map<String, String> unserializableExports;
 
-  // TODO(jensj): These 4 booleans could potentially be merged into a single
+  // TODO(jensj): These 5 booleans could potentially be merged into a single
   // state field.
   bool isReadyToBuild = false;
   bool isReadyToFinalizeExports = false;
@@ -294,53 +295,75 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       exportScopeBuilder.addMember(name, declaration);
     });
 
+    Map<Reference, Builder> sourceBuildersMap =
+        loader.currentSourceLoader?.buildersCreatedWithReferences;
     for (Reference reference in library.additionalExports) {
       NamedNode node = reference.node;
-      Uri libraryUri;
-      String name;
-      bool isSetter = false;
-      if (node is Class) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name;
-      } else if (node is Procedure) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name.name;
-        isSetter = node.isSetter;
-      } else if (node is Member) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name.name;
-      } else if (node is Typedef) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name;
-      } else if (node is Extension) {
-        libraryUri = node.enclosingLibrary.importUri;
-        name = node.name;
-      } else {
-        unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
-      }
-      DillLibraryBuilder library = loader.builders[libraryUri];
-      if (library == null) {
-        internalProblem(
-            templateUnspecified.withArguments("No builder for '$libraryUri'."),
-            -1,
-            fileUri);
-      }
       Builder declaration;
-      if (isSetter) {
-        declaration = library.exportScope.lookupLocalMember(name, setter: true);
-        exportScopeBuilder.addSetter(name, declaration);
+      String name;
+      if (sourceBuildersMap?.containsKey(reference) == true) {
+        declaration = sourceBuildersMap[reference];
+        assert(declaration != null);
+        if (declaration is ModifierBuilder) {
+          name = declaration.name;
+        } else {
+          throw new StateError(
+              "Unexpected: $declaration (${declaration.runtimeType}");
+        }
+
+        if (declaration.isSetter) {
+          exportScopeBuilder.addSetter(name, declaration);
+        } else {
+          exportScopeBuilder.addMember(name, declaration);
+        }
       } else {
-        declaration =
-            library.exportScope.lookupLocalMember(name, setter: false);
-        exportScopeBuilder.addMember(name, declaration);
+        Uri libraryUri;
+        bool isSetter = false;
+        if (node is Class) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name;
+        } else if (node is Procedure) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name.name;
+          isSetter = node.isSetter;
+        } else if (node is Member) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name.name;
+        } else if (node is Typedef) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name;
+        } else if (node is Extension) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name;
+        } else {
+          unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
+        }
+        LibraryBuilder library = loader.builders[libraryUri];
+        if (library == null) {
+          internalProblem(
+              templateUnspecified
+                  .withArguments("No builder for '$libraryUri'."),
+              -1,
+              fileUri);
+        }
+        if (isSetter) {
+          declaration =
+              library.exportScope.lookupLocalMember(name, setter: true);
+          exportScopeBuilder.addSetter(name, declaration);
+        } else {
+          declaration =
+              library.exportScope.lookupLocalMember(name, setter: false);
+          exportScopeBuilder.addMember(name, declaration);
+        }
+        if (declaration == null) {
+          internalProblem(
+              templateUnspecified.withArguments(
+                  "Exported element '$name' not found in '$libraryUri'."),
+              -1,
+              fileUri);
+        }
       }
-      if (declaration == null) {
-        internalProblem(
-            templateUnspecified.withArguments(
-                "Exported element '$name' not found in '$libraryUri'."),
-            -1,
-            fileUri);
-      }
+
       assert(
           (declaration is ClassBuilder && node == declaration.cls) ||
               (declaration is TypeAliasBuilder &&

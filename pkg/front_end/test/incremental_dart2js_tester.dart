@@ -31,58 +31,50 @@ main(List<String> args) async {
     }
   }
 
-  Stopwatch stopwatch = new Stopwatch()..start();
-  Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
-  CompilerOptions options = helper.getOptions(targetName: "VM");
-  helper.TestIncrementalCompiler compiler =
-      new helper.TestIncrementalCompiler(options, input);
-  compiler.useExperimentalInvalidation = useExperimentalInvalidation;
-  Component c = await compiler.computeDelta();
-  print("Compiled dart2js to Component with ${c.libraries.length} libraries "
-      "in ${stopwatch.elapsedMilliseconds} ms.");
-  stopwatch.reset();
+  Dart2jsTester dart2jsTester =
+      new Dart2jsTester(useExperimentalInvalidation, fast, addDebugBreaks);
+  await dart2jsTester.test();
+}
+
+class Dart2jsTester {
+  final bool useExperimentalInvalidation;
+  final bool fast;
+  final bool addDebugBreaks;
+
+  Stopwatch stopwatch = new Stopwatch();
   List<int> firstCompileData;
   Map<Uri, List<int>> libToData;
-  if (fast) {
-    libToData = {};
-    c.libraries.sort((l1, l2) {
-      return "${l1.fileUri}".compareTo("${l2.fileUri}");
-    });
-
-    c.problemsAsJson?.sort();
-
-    c.computeCanonicalNames();
-
-    for (Library library in c.libraries) {
-      library.additionalExports.sort((Reference r1, Reference r2) {
-        return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-      });
-      library.problemsAsJson?.sort();
-
-      List<int> libSerialized =
-          serializeComponent(c, filter: (l) => l == library);
-      libToData[library.importUri] = libSerialized;
-    }
-  } else {
-    firstCompileData = util.postProcess(c);
-  }
-  print("Serialized in ${stopwatch.elapsedMilliseconds} ms");
-  stopwatch.reset();
-
-  List<Uri> uris = c.uriToSource.values
-      .map((s) => s != null ? s.importUri : null)
-      .where((u) => u != null && u.scheme != "dart")
-      .toSet()
-      .toList();
-
-  c = null;
+  List<Uri> uris;
 
   List<Uri> diffs = new List<Uri>();
   Set<Uri> componentUris = new Set<Uri>();
 
-  Stopwatch localStopwatch = new Stopwatch()..start();
-  for (int i = 0; i < uris.length; i++) {
-    Uri uri = uris[i];
+  Dart2jsTester(
+      this.useExperimentalInvalidation, this.fast, this.addDebugBreaks);
+
+  void test() async {
+    helper.TestIncrementalCompiler compiler = await setup();
+
+    diffs = new List<Uri>();
+    componentUris = new Set<Uri>();
+
+    Stopwatch localStopwatch = new Stopwatch()..start();
+    for (int i = 0; i < uris.length; i++) {
+      Uri uri = uris[i];
+      await step(uri, i, compiler, localStopwatch);
+    }
+
+    print("A total of ${diffs.length} diffs:");
+    for (Uri uri in diffs) {
+      print(" - $uri");
+    }
+
+    print("Done after ${uris.length} recompiles in "
+        "${stopwatch.elapsedMilliseconds} ms");
+  }
+
+  Future step(Uri uri, int i, helper.TestIncrementalCompiler compiler,
+      Stopwatch localStopwatch) async {
     print("Invalidating $uri ($i)");
     compiler.invalidate(uri);
     localStopwatch.reset();
@@ -168,24 +160,65 @@ main(List<String> args) async {
     print("-----");
   }
 
-  print("A total of ${diffs.length} diffs:");
-  for (Uri uri in diffs) {
-    print(" - $uri");
+  Future<helper.TestIncrementalCompiler> setup() async {
+    stopwatch.reset();
+    stopwatch.start();
+    Uri input = Platform.script.resolve("../../compiler/bin/dart2js.dart");
+    CompilerOptions options = helper.getOptions(targetName: "VM");
+    helper.TestIncrementalCompiler compiler =
+        new helper.TestIncrementalCompiler(options, input);
+    compiler.useExperimentalInvalidation = useExperimentalInvalidation;
+    Component c = await compiler.computeDelta();
+    print("Compiled dart2js to Component with ${c.libraries.length} libraries "
+        "in ${stopwatch.elapsedMilliseconds} ms.");
+    stopwatch.reset();
+    if (fast) {
+      libToData = {};
+      c.libraries.sort((l1, l2) {
+        return "${l1.fileUri}".compareTo("${l2.fileUri}");
+      });
+
+      c.problemsAsJson?.sort();
+
+      c.computeCanonicalNames();
+
+      for (Library library in c.libraries) {
+        library.additionalExports.sort((Reference r1, Reference r2) {
+          return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
+        });
+        library.problemsAsJson?.sort();
+
+        List<int> libSerialized =
+            serializeComponent(c, filter: (l) => l == library);
+        libToData[library.importUri] = libSerialized;
+      }
+    } else {
+      firstCompileData = util.postProcess(c);
+    }
+    print("Serialized in ${stopwatch.elapsedMilliseconds} ms");
+    stopwatch.reset();
+
+    uris = c.uriToSource.values
+        .map((s) => s != null ? s.importUri : null)
+        .where((u) => u != null && u.scheme != "dart")
+        .toSet()
+        .toList();
+
+    c = null;
+
+    return compiler;
   }
 
-  print("Done after ${uris.length} recompiles in "
-      "${stopwatch.elapsedMilliseconds} ms");
-}
-
-bool isEqual(List<int> a, List<int> b) {
-  int length = a.length;
-  if (b.length != length) {
-    return false;
-  }
-  for (int i = 0; i < length; ++i) {
-    if (a[i] != b[i]) {
+  bool isEqual(List<int> a, List<int> b) {
+    int length = a.length;
+    if (b.length != length) {
       return false;
     }
+    for (int i = 0; i < length; ++i) {
+      if (a[i] != b[i]) {
+        return false;
+      }
+    }
+    return true;
   }
-  return true;
 }

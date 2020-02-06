@@ -95,7 +95,6 @@ worlds:
         }
     expectedLibraryCount: 3
     expectsRebuildBodiesOnly: true
-
   - entry: main.dart
     useExperimentalInvalidation: true
     worldType: updated
