@@ -13,7 +13,7 @@ Dart is:
   * **Fast on all platforms**:
   Compile to ARM & x64 machine code for mobile,  desktop, and backend. Or compile to JavaScript for the web
 
-Dart has flexible compiler technology lets you run Dart code in different ways,
+Dart's flexible compiler technology lets you run Dart code in different ways,
 depending on your target platform and goals:
 
   * **Dart Native**: For programs targeting devices (mobile, desktop, server, and more),
