@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -1690,6 +1691,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     element = element?.declaration;
     Element variableElement =
         element is PropertyAccessorElement ? element.variable : element;
+
+    if (node is SimpleIdentifier &&
+        (node.tearOffTypeArgumentTypes?.any(_hasAppliedTypeParameters) ??
+            false)) {
+      _error(node, null);
+    }
+
     if (variableElement is VariableElementImpl) {
       // We access values of constant variables here in two cases: when we
       // compute values of other constant variables, or when we compute values
@@ -1755,6 +1763,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     return null;
   }
 
+  /// Check if any type parameters are referenced by [type], which is an error.
+  bool _hasAppliedTypeParameters(DartType type) {
+    final visitor = _ReferencesTypeParameterVisitor();
+    DartTypeVisitor.visit(type, visitor);
+    return visitor.result;
+  }
+
   /// Return `true` if the given [targetResult] represents a string and the
   /// [identifier] is "length".
   bool _isStringLength(
@@ -1799,6 +1814,27 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     return false;
   }
+}
+
+/// A visitor to find if a type contains any [TypeParameterType]s.
+///
+/// To find the result, check [result] on this instance after visiting the tree.
+/// The actual value returned by the visit methods is merely used so that
+/// [RecursiveTypeVisitor] stops visiting the type once the first type parameter
+/// type is found.
+class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
+  /// The result of whether any type parameters were found.
+  bool result = false;
+
+  @override
+  bool visitTypeParameterType(_) {
+    result = true;
+    // Stop visiting at this point.
+    return false;
+  }
+
+  @override
+  bool defaultDartType(_) => true; // Continue visiting in this case.
 }
 
 /// A utility class that contains methods for manipulating instances of a Dart

@@ -288,6 +288,7 @@ import 'non_bool_operand_test.dart' as non_bool_operand;
 import 'non_constant_case_expression_from_deferred_library_test.dart'
     as non_constant_case_expression_from_deferred_library;
 import 'non_constant_case_expression_test.dart' as non_constant_case_expression;
+import 'non_constant_default_value_test.dart' as non_constant_default_value;
 import 'non_constant_list_element_from_deferred_library_test.dart'
     as non_constant_list_element_from_deferred_library;
 import 'non_constant_list_element_test.dart' as non_constant_list_element;
@@ -808,6 +809,7 @@ main() {
     undefined_prefixed_name.main();
     undefined_setter.main();
     undefined_shown_name.main();
+    non_constant_default_value.main();
     unnecessary_cast.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
