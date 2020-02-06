@@ -31,10 +31,6 @@ class DartdevRunner<int> extends CommandRunner {
     final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
     log = isVerbose ? Logger.verbose(ansi: ansi) : Logger.standard(ansi: ansi);
 
-    // TODO(jwren) override this super call so that the arguments on each
-    //  command aren't enforced. Example:
-    //  dart .../dartdev.dart format -w /path/to/file.dart
-    // fails becuase '-w' isn't known by the FormatCommand class.
     return await super.runCommand(results);
   }
 }

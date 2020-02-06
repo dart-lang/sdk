@@ -15,10 +15,12 @@ class TestProject {
 
   String get name => defaultProjectName;
 
+  String get relativeFilePath => 'lib/main.dart';
+
   TestProject({String mainSrc}) {
     dir = Directory.systemTemp.createTempSync('dartdev');
     if (mainSrc != null) {
-      file('lib/main.dart', mainSrc);
+      file(relativeFilePath, mainSrc);
     }
     file('pubspec.yaml', 'name: $name\ndev_dependencies:\n  test: any\n');
   }

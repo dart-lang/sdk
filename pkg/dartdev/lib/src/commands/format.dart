@@ -9,7 +9,27 @@ import '../sdk.dart';
 
 class FormatCommand extends DartdevCommand {
   FormatCommand({bool verbose = false})
-      : super('format', 'Format one or more Dart files.');
+      : super(
+          'format',
+          'Idiomatically formats Dart source code.',
+        ) {
+    // TODO(jwren) When https://github.com/dart-lang/dart_style/issues/889
+    //  is resolved, have dart_style provide the ArgParser, instead of creating
+    // one here.
+    argParser
+      ..addFlag('dry-run',
+          abbr: 'n',
+          help: 'Show which files would be modified but make no changes.')
+      ..addFlag('set-exit-if-changed',
+          help: 'Return exit code 1 if there are any formatting changes.')
+      ..addFlag('machine',
+          abbr: 'm', help: 'Produce machine-readable JSON output.')
+      ..addOption('line-length',
+          abbr: 'l',
+          help:
+              'Wrap lines longer than this length. Defaults to 80 characters.',
+          defaultsTo: '80');
+  }
 
   @override
   FutureOr<int> run() async {
@@ -21,19 +41,22 @@ class FormatCommand extends DartdevCommand {
       ..remove('-v')
       ..remove('--verbose');
 
+    // By printing and returning if there are no arguments, this changes the
+    // default unix-pipe behavior of dartfmt:
     if (args.isEmpty) {
-      args.add('--help');
+      printUsage();
+      return 0;
+    }
+
+    // By always adding '--overwrite', the default behavior of dartfmt by
+    // is changed to have the UX of 'flutter format *'.  The flag is not added
+    // if 'dry-run' has been passed as they are not compatible.
+    if (!argResults['dry-run']) {
+      args.add('--overwrite');
     }
 
     var process = await startProcess(sdk.dartfmt, args);
     routeToStdout(process);
     return process.exitCode;
-  }
-
-  @override
-  void printUsage() {
-    var processResult = runSync(sdk.dartfmt, ['--help']);
-    String result = processResult.stdout;
-    print(result);
   }
 }
