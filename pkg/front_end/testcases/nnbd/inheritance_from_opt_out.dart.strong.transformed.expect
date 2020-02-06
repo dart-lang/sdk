@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "inheritance_from_opt_out_lib.dart" as inh;
 import "dart:core" as core;
@@ -86,7 +86,7 @@ class LegacyClass5<T extends core::Object* = dynamic> extends inh::LegacyClass3<
     : super inh::LegacyClass3::•()
     ;
 }
-abstract class _LegacyClass6&Object&LegacyClass3<T extends core::Object* = dynamic> extends core::Object implements inh::LegacyClass3<inh::_LegacyClass6&Object&LegacyClass3::T*> {
+abstract class _LegacyClass6&Object&LegacyClass3<T extends core::Object* = dynamic> extends core::Object implements inh::LegacyClass3<inh::_LegacyClass6&Object&LegacyClass3::T*> /*isAnonymousMixin,isEliminatedMixin*/  {
   const synthetic constructor •() → inh::_LegacyClass6&Object&LegacyClass3<inh::_LegacyClass6&Object&LegacyClass3::T*>*
     : super core::Object::•()
     ;
@@ -101,7 +101,7 @@ class LegacyClass7<T extends core::Object* = dynamic> extends inh::LegacyClass3<
     : super inh::LegacyClass3::•()
     ;
 }
-abstract class _LegacyClass8&Object&LegacyClass3<T extends core::Object* = dynamic> extends core::Object implements inh::LegacyClass3<inh::_LegacyClass8&Object&LegacyClass3::T*> {
+abstract class _LegacyClass8&Object&LegacyClass3<T extends core::Object* = dynamic> extends core::Object implements inh::LegacyClass3<inh::_LegacyClass8&Object&LegacyClass3::T*> /*isAnonymousMixin,isEliminatedMixin*/  {
   const synthetic constructor •() → inh::_LegacyClass8&Object&LegacyClass3<inh::_LegacyClass8&Object&LegacyClass3::T*>*
     : super core::Object::•()
     ;

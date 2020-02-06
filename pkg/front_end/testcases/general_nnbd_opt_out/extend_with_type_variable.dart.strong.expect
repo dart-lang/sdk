@@ -22,9 +22,9 @@ class SuperClass extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class Mixin<T extends core::Object* = dynamic> extends core::Object {
+abstract class Mixin<T extends core::Object* = dynamic> extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class _Class1&S&Mixin<T extends core::Object* = dynamic, S extends self::SuperClass* = self::SuperClass*> = core::Object with self::Mixin<self::_Class1&S&Mixin::T*> {
+abstract class _Class1&S&Mixin<T extends core::Object* = dynamic, S extends self::SuperClass* = self::SuperClass*> = core::Object with self::Mixin<self::_Class1&S&Mixin::T*> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class1&S&Mixin<self::_Class1&S&Mixin::T*, self::_Class1&S&Mixin::S*>*
     : super core::Object::•()
     ;
@@ -34,7 +34,7 @@ class Class1<T extends core::Object* = dynamic, S extends self::SuperClass* = se
     : super self::_Class1&S&Mixin::•()
     ;
 }
-abstract class _Class2&SuperClass&M<T extends core::Object* = dynamic, M extends self::Mixin<self::_Class2&SuperClass&M::T*>* = self::Mixin<dynamic>*> extends self::SuperClass {
+abstract class _Class2&SuperClass&M<T extends core::Object* = dynamic, M extends self::Mixin<self::_Class2&SuperClass&M::T*>* = self::Mixin<dynamic>*> extends self::SuperClass /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Class2&SuperClass&M<self::_Class2&SuperClass&M::T*, self::_Class2&SuperClass&M::M*>*
     : super self::SuperClass::•()
     ;

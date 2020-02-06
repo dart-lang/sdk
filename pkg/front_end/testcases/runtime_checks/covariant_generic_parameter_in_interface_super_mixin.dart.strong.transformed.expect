@@ -19,7 +19,7 @@ class M extends core::Object {
     : super core::Object::•()
     ;
 }
-class C extends self::B implements self::I<core::int*>, self::M {
+class C extends self::B implements self::I<core::int*>, self::M /*isEliminatedMixin*/  {
   synthetic constructor •() → self::C*
     : super self::B::•()
     ;

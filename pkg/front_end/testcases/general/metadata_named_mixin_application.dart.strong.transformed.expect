@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 @#C1
-class C extends self::D implements self::E {
+class C extends self::D implements self::E /*isEliminatedMixin*/  {
   synthetic constructor •() → self::C*
     : super self::D::•()
     ;

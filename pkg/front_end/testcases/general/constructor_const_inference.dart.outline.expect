@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class _Y<T extends core::Object* = dynamic> extends core::Object {
+class _Y<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::_Y<self::_Y::T*>*
     : super core::Object::•()
     ;

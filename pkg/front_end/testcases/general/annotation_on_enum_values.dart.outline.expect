@@ -2,13 +2,13 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Fisk<T extends core::Object* = dynamic> extends core::Object {
+class Fisk<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field self::Fisk::T* x;
   const constructor fisk(self::Fisk::T* x) → self::Fisk<self::Fisk::T*>*
     : self::Fisk::x = x, super core::Object::•()
     ;
 }
-class Foo extends core::Object {
+class Foo extends core::Object /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::Foo*>* values = const <self::Foo*>[self::Foo::bar, self::Foo::baz, self::Foo::cafebabe];

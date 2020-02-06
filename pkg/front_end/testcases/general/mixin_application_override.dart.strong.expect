@@ -158,7 +158,7 @@ class A0 = self::S with self::M {
     ;
   abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
 }
-abstract class _A1&S&M1 = self::S with self::M1 {
+abstract class _A1&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A1&S&M1*
     : super self::S::•()
     ;
@@ -169,12 +169,12 @@ class A1 = self::_A1&S&M1 with self::M {
     ;
   abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
 }
-abstract class _A2&S&M1 = self::S with self::M1 {
+abstract class _A2&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A2&S&M1*
     : super self::S::•()
     ;
 }
-abstract class _A2&S&M1&M2 = self::_A2&S&M1 with self::M2 {
+abstract class _A2&S&M1&M2 = self::_A2&S&M1 with self::M2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A2&S&M1&M2*
     : super self::_A2&S&M1::•()
     ;
@@ -185,7 +185,7 @@ class A2 = self::_A2&S&M1&M2 with self::M {
     ;
   abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
 }
-abstract class _A0X&S&M = self::S with self::M {
+abstract class _A0X&S&M = self::S with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A0X&S&M*
     : super self::S::•()
     ;
@@ -196,12 +196,12 @@ class A0X = self::_A0X&S&M with self::MX {
     : super self::_A0X&S&M::•()
     ;
 }
-abstract class _A1X&S&M1 = self::S with self::M1 {
+abstract class _A1X&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A1X&S&M1*
     : super self::S::•()
     ;
 }
-abstract class _A1X&S&M1&M = self::_A1X&S&M1 with self::M {
+abstract class _A1X&S&M1&M = self::_A1X&S&M1 with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A1X&S&M1&M*
     : super self::_A1X&S&M1::•()
     ;
@@ -212,17 +212,17 @@ class A1X = self::_A1X&S&M1&M with self::MX {
     : super self::_A1X&S&M1&M::•()
     ;
 }
-abstract class _A2X&S&M1 = self::S with self::M1 {
+abstract class _A2X&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A2X&S&M1*
     : super self::S::•()
     ;
 }
-abstract class _A2X&S&M1&M2 = self::_A2X&S&M1 with self::M2 {
+abstract class _A2X&S&M1&M2 = self::_A2X&S&M1 with self::M2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A2X&S&M1&M2*
     : super self::_A2X&S&M1::•()
     ;
 }
-abstract class _A2X&S&M1&M2&M = self::_A2X&S&M1&M2 with self::M {
+abstract class _A2X&S&M1&M2&M = self::_A2X&S&M1&M2 with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A2X&S&M1&M2&M*
     : super self::_A2X&S&M1&M2::•()
     ;
@@ -233,7 +233,7 @@ class A2X = self::_A2X&S&M1&M2&M with self::MX {
     : super self::_A2X&S&M1&M2&M::•()
     ;
 }
-abstract class _B0&S&M = self::S with self::M {
+abstract class _B0&S&M = self::S with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B0&S&M*
     : super self::S::•()
     ;
@@ -244,12 +244,12 @@ class B0 extends self::_B0&S&M {
     : super self::_B0&S&M::•()
     ;
 }
-abstract class _B1&S&M1 = self::S with self::M1 {
+abstract class _B1&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B1&S&M1*
     : super self::S::•()
     ;
 }
-abstract class _B1&S&M1&M = self::_B1&S&M1 with self::M {
+abstract class _B1&S&M1&M = self::_B1&S&M1 with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B1&S&M1&M*
     : super self::_B1&S&M1::•()
     ;
@@ -260,17 +260,17 @@ class B1 extends self::_B1&S&M1&M {
     : super self::_B1&S&M1&M::•()
     ;
 }
-abstract class _B2&S&M1 = self::S with self::M1 {
+abstract class _B2&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B2&S&M1*
     : super self::S::•()
     ;
 }
-abstract class _B2&S&M1&M2 = self::_B2&S&M1 with self::M2 {
+abstract class _B2&S&M1&M2 = self::_B2&S&M1 with self::M2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B2&S&M1&M2*
     : super self::_B2&S&M1::•()
     ;
 }
-abstract class _B2&S&M1&M2&M = self::_B2&S&M1&M2 with self::M {
+abstract class _B2&S&M1&M2&M = self::_B2&S&M1&M2 with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B2&S&M1&M2&M*
     : super self::_B2&S&M1&M2::•()
     ;
@@ -281,13 +281,13 @@ class B2 extends self::_B2&S&M1&M2&M {
     : super self::_B2&S&M1&M2&M::•()
     ;
 }
-abstract class _B0X&S&M = self::S with self::M {
+abstract class _B0X&S&M = self::S with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B0X&S&M*
     : super self::S::•()
     ;
   abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
 }
-abstract class _B0X&S&M&MX = self::_B0X&S&M with self::MX {
+abstract class _B0X&S&M&MX = self::_B0X&S&M with self::MX /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B0X&S&M&MX*
     : super self::_B0X&S&M::•()
     ;
@@ -297,18 +297,18 @@ class B0X extends self::_B0X&S&M&MX {
     : super self::_B0X&S&M&MX::•()
     ;
 }
-abstract class _B1X&S&M1 = self::S with self::M1 {
+abstract class _B1X&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B1X&S&M1*
     : super self::S::•()
     ;
 }
-abstract class _B1X&S&M1&M = self::_B1X&S&M1 with self::M {
+abstract class _B1X&S&M1&M = self::_B1X&S&M1 with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B1X&S&M1&M*
     : super self::_B1X&S&M1::•()
     ;
   abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
 }
-abstract class _B1X&S&M1&M&MX = self::_B1X&S&M1&M with self::MX {
+abstract class _B1X&S&M1&M&MX = self::_B1X&S&M1&M with self::MX /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B1X&S&M1&M&MX*
     : super self::_B1X&S&M1&M::•()
     ;
@@ -318,23 +318,23 @@ class B1X extends self::_B1X&S&M1&M&MX {
     : super self::_B1X&S&M1&M&MX::•()
     ;
 }
-abstract class _B2X&S&M1 = self::S with self::M1 {
+abstract class _B2X&S&M1 = self::S with self::M1 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B2X&S&M1*
     : super self::S::•()
     ;
 }
-abstract class _B2X&S&M1&M2 = self::_B2X&S&M1 with self::M2 {
+abstract class _B2X&S&M1&M2 = self::_B2X&S&M1 with self::M2 /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B2X&S&M1&M2*
     : super self::_B2X&S&M1::•()
     ;
 }
-abstract class _B2X&S&M1&M2&M = self::_B2X&S&M1&M2 with self::M {
+abstract class _B2X&S&M1&M2&M = self::_B2X&S&M1&M2 with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B2X&S&M1&M2&M*
     : super self::_B2X&S&M1&M2::•()
     ;
   abstract forwarding-stub method foo([dynamic x = #C1]) → dynamic;
 }
-abstract class _B2X&S&M1&M2&M&MX = self::_B2X&S&M1&M2&M with self::MX {
+abstract class _B2X&S&M1&M2&M&MX = self::_B2X&S&M1&M2&M with self::MX /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_B2X&S&M1&M2&M&MX*
     : super self::_B2X&S&M1&M2&M::•()
     ;

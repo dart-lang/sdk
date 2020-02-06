@@ -109,11 +109,12 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
       this._tearOffReferenceFrom,
       [String nativeMethodName])
       : _procedure = new Procedure(null, kind, null,
-            fileUri: compilationUnit?.fileUri,
+            fileUri: compilationUnit.fileUri,
             reference: referenceFrom?.reference)
           ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
+          ..fileEndOffset = charEndOffset
+          ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 
@@ -453,7 +454,8 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
       _extensionTearOff ??= new Procedure(null, ProcedureKind.Method, null,
           isStatic: true,
           isExtensionMember: true,
-          reference: _tearOffReferenceFrom?.reference);
+          reference: _tearOffReferenceFrom?.reference)
+        ..isNonNullableByDefault = library.isNonNullableByDefault;
     }
     return _extensionTearOff;
   }

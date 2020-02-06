@@ -1,7 +1,7 @@
 main = <No Member>;
 library from "org-dartlang-test:///lib.dart" as lib {
 
-  class Foo extends dart.core::Object {
+  class Foo extends dart.core::Object /*hasConstConstructor*/  {
     const constructor •(dart.core::int* i) → lib::Foo*
       : assert(i.{dart.core::num::>}(0)), super dart.core::Object::•()
       ;

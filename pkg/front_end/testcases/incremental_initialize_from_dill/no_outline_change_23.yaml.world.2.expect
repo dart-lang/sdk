@@ -1,7 +1,7 @@
 main = <No Member>;
 library from "org-dartlang-test:///main.dart" as main {
 
-  abstract class _A&Object&B extends dart.core::Object implements main::B {
+  abstract class _A&Object&B extends dart.core::Object implements main::B /*isAnonymousMixin,isEliminatedMixin*/  {
     const synthetic constructor •() → main::_A&Object&B*
       : super dart.core::Object::•()
       ;

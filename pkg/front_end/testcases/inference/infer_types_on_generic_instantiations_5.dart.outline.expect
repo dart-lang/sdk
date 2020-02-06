@@ -7,7 +7,7 @@ abstract class I<E extends core::Object* = dynamic> extends core::Object {
     ;
   abstract method m(dynamic a, (dynamic, self::I::E*) →* core::String* f) → core::String*;
 }
-abstract class A<E extends core::Object* = dynamic> extends core::Object implements self::I<self::A::E*> {
+abstract class A<E extends core::Object* = dynamic> extends core::Object implements self::I<self::A::E*> /*hasConstConstructor*/  {
   const constructor •() → self::A<self::A::E*>*
     : super core::Object::•()
     ;
@@ -18,7 +18,7 @@ abstract class M extends core::Object {
   synthetic constructor •() → self::M*
     ;
 }
-class B<E extends core::Object* = dynamic> extends self::A<self::B::E*> implements self::M {
+class B<E extends core::Object* = dynamic> extends self::A<self::B::E*> implements self::M /*hasConstConstructor*/  {
   const constructor •() → self::B<self::B::E*>*
     : super self::A::•()
     ;

@@ -7,6 +7,6 @@ class A extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class B<invariant X extends core::Object* = dynamic, Y extends core::Object* = dynamic, contravariant Z extends core::Object* = dynamic> extends self::A {
+abstract class B<invariant X extends core::Object* = dynamic, Y extends core::Object* = dynamic, contravariant Z extends core::Object* = dynamic> extends self::A /*isMixinDeclaration*/  {
 }
 static method main() → dynamic {}

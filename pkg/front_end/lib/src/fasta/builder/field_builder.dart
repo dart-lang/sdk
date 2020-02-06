@@ -176,8 +176,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       assert(lateIsSetReferenceFrom == null);
       assert(getterReferenceFrom == null);
       assert(setterReferenceFrom == null);
-      _fieldEncoding = new RegularFieldEncoding(
-          fileUri, charOffset, charEndOffset, reference);
+      _fieldEncoding = new RegularFieldEncoding(fileUri, charOffset,
+          charEndOffset, reference, library.isNonNullableByDefault);
     }
   }
 
@@ -511,11 +511,12 @@ abstract class FieldEncoding {
 class RegularFieldEncoding implements FieldEncoding {
   Field _field;
 
-  RegularFieldEncoding(
-      Uri fileUri, int charOffset, int charEndOffset, Field reference) {
+  RegularFieldEncoding(Uri fileUri, int charOffset, int charEndOffset,
+      Field reference, bool isNonNullableByDefault) {
     _field = new Field(null, fileUri: fileUri, reference: reference?.reference)
       ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = isNonNullableByDefault;
   }
 
   @override
@@ -645,15 +646,18 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     _field =
         new Field(null, fileUri: fileUri, reference: referenceFrom?.reference)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset;
+          ..fileEndOffset = charEndOffset
+          ..isNonNullableByDefault = true;
     _lateIsSetField = new Field(null,
         fileUri: fileUri, reference: lateIsSetReferenceFrom?.reference)
       ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = true;
     _lateGetter = new Procedure(
         null, ProcedureKind.Getter, new FunctionNode(null),
         fileUri: fileUri, reference: getterReferenceFrom?.reference)
-      ..fileOffset = charOffset;
+      ..fileOffset = charOffset
+      ..isNonNullableByDefault = true;
     _lateSetter = _createSetter(name, fileUri, charOffset, setterReferenceFrom);
   }
 
@@ -751,7 +755,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
             positionalParameters: [parameter], returnType: const VoidType()),
         fileUri: fileUri,
         reference: referenceFrom?.reference)
-      ..fileOffset = charOffset;
+      ..fileOffset = charOffset
+      ..isNonNullableByDefault = true;
   }
 
   Statement _createSetterBody(

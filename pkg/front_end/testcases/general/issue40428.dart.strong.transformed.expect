@@ -30,12 +30,12 @@ class Mixin extends core::Object {
     : super core::Object::•()
     ;
 }
-class NamedMixin1 extends self::SuperClass1 implements self::Mixin {
+class NamedMixin1 extends self::SuperClass1 implements self::Mixin /*isEliminatedMixin*/  {
   synthetic constructor •(core::String* value) → self::NamedMixin1*
     : super self::SuperClass1::•(value)
     ;
 }
-class NamedMixin2 extends self::SuperClass2 implements self::Mixin {
+class NamedMixin2 extends self::SuperClass2 implements self::Mixin /*isEliminatedMixin*/  {
   synthetic constructor •(core::String* i) → self::NamedMixin2*
     : super self::SuperClass2::•(i)
     ;

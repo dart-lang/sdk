@@ -45,13 +45,13 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class M1 extends core::Object {
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
   get m() → core::int*
     return 1;
 }
-abstract class M2 extends core::Object {
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class M3 extends core::Object {
+abstract class M3 extends core::Object /*isMixinDeclaration*/  {
 }
 class C1 extends core::Object {
   synthetic constructor •() → self::C1*

@@ -244,7 +244,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         ],
         fileUri: node.fileUri,
         reference: referenceFrom?.reference)
-      ..fileOffset = node.fileOffset;
+      ..fileOffset = node.fileOffset
+      ..isNonNullableByDefault = node.enclosingLibrary.isNonNullableByDefault;
     _makeEntryPoint(ctor);
     node.addMember(ctor);
   }
@@ -348,7 +349,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         fileUri: field.fileUri,
         reference:
             indexedClass?.lookupProcedureNotSetter(pointerName.name)?.reference)
-      ..fileOffset = field.fileOffset;
+      ..fileOffset = field.fileOffset
+      ..isNonNullableByDefault = field.isNonNullableByDefault;
 
     // Sample output:
     // double get x => _xPtr.value;
@@ -369,7 +371,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         fileUri: field.fileUri,
         reference:
             indexedClass?.lookupProcedureNotSetter(field.name.name)?.reference)
-      ..fileOffset = field.fileOffset;
+      ..fileOffset = field.fileOffset
+      ..isNonNullableByDefault = field.isNonNullableByDefault;
 
     // Sample output:
     // set x(double v) { _xPtr.value = v; };
@@ -395,7 +398,8 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           fileUri: field.fileUri,
           reference:
               indexedClass?.lookupProcedureSetter(field.name.name)?.reference)
-        ..fileOffset = field.fileOffset;
+        ..fileOffset = field.fileOffset
+        ..isNonNullableByDefault = field.isNonNullableByDefault;
     }
 
     replacedGetters[field] = getter;

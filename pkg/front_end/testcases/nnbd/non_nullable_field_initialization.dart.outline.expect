@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -37,11 +37,11 @@ class B<X extends core::Object? = core::Object?, Y extends core::Object = core::
   constructor bar(self::B::X% fieldOfB, self::B::Y fieldOfB2) → self::B<self::B::X%, self::B::Y>
     ;
 }
-abstract class M extends core::Object {
+abstract class M extends core::Object /*isMixinDeclaration*/  {
   static field core::int staticFieldOfM;
   field core::int fieldOfM;
 }
-abstract class N<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+abstract class N<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object /*isMixinDeclaration*/  {
   generic-covariant-impl field self::N::X% fieldOfN;
   generic-covariant-impl field self::N::Y fieldOfN2;
 }
@@ -64,7 +64,7 @@ class C<X extends core::Object? = core::Object?, Y extends core::Object = core::
   constructor bar(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
     ;
 }
-abstract class L<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object {
+abstract class L<X extends core::Object? = core::Object?, Y extends core::Object = core::Object> extends core::Object /*isMixinDeclaration*/  {
   static field core::int? staticFieldOfL;
   static field core::int staticFieldOfLInitialized;
   generic-covariant-impl field self::L::X? fieldOfL;

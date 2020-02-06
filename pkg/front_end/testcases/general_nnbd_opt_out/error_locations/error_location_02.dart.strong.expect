@@ -39,7 +39,7 @@ library;
 import self as err;
 import "dart:core" as core;
 
-class Foo extends core::Object {
+class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::int* i) → err::Foo*
     : assert(i.{core::num::>}(0)), super core::Object::•()
     ;

@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
@@ -13,7 +13,7 @@ class Class extends core::Object {
   method nonNullableMethod() → self::A
     ;
 }
-class A extends core::Object {
+class A extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::A
     : super core::Object::•()
     ;

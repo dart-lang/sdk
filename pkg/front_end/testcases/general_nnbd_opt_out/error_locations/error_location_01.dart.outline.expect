@@ -11,7 +11,7 @@ library;
 import self as self2;
 import "dart:core" as core;
 
-class Foo extends core::Object {
+class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::int* i) → self2::Foo*
     : assert(i.{core::num::>}(0)), super core::Object::•()
     ;

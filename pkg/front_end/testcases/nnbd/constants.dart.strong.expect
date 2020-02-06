@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -99,7 +99,7 @@ import "dart:core" as core;
 
 typedef F1<invariant T extends core::Object* = dynamic> = (T*) →* T*;
 typedef F2 = <T extends core::Object* = dynamic>(T*) →* T*;
-class Class<T extends core::Object* = dynamic> extends core::Object {
+class Class<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field con::Class::T* field;
   const constructor •(con::Class::T* field) → con::Class<con::Class::T*>*
     : con::Class::field = field, super core::Object::•()

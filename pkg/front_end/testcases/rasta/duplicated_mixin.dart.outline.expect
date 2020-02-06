@@ -7,12 +7,12 @@ class Mixin extends core::Object {
   synthetic constructor •() → self::Mixin*
     ;
 }
-abstract class _A&Object&Mixin = core::Object with self::Mixin {
+abstract class _A&Object&Mixin = core::Object with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A&Object&Mixin*
     : super core::Object::•()
     ;
 }
-abstract class _A&Object&Mixin&Mixin = self::_A&Object&Mixin with self::Mixin {
+abstract class _A&Object&Mixin&Mixin = self::_A&Object&Mixin with self::Mixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_A&Object&Mixin&Mixin*
     : super self::_A&Object&Mixin::•()
     ;

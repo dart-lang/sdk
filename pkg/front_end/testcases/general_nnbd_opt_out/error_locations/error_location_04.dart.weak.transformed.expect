@@ -25,7 +25,7 @@ library;
 import self as err;
 import "dart:core" as core;
 
-class Foo extends core::Object {
+class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::int* i) → err::Foo*
     : assert(i.{core::num::>}(0)), super core::Object::•()
     ;
@@ -41,7 +41,7 @@ import "error_location_04_lib1.dart" as err;
 
 import "org-dartlang-testcase:///error_location_04_lib1.dart";
 
-class Bar extends core::Object {
+class Bar extends core::Object /*hasConstConstructor*/  {
   final field err::Foo* x;
   const constructor •() → err2::Bar*
     : err2::Bar::x = invalid-expression "This assertion failed.", super core::Object::•()

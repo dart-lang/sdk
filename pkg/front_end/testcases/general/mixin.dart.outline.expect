@@ -2,12 +2,12 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class _B&Object&M1 = core::Object with self::M1 {
+abstract class _B&Object&M1 = core::Object with self::M1 /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_B&Object&M1*
     : super core::Object::•()
     ;
 }
-abstract class _B&Object&M1&M2 = self::_B&Object&M1 with self::M2 {
+abstract class _B&Object&M1&M2 = self::_B&Object&M1 with self::M2 /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_B&Object&M1&M2*
     : super self::_B&Object&M1::•()
     ;
@@ -28,12 +28,12 @@ abstract class M2 extends core::Object {
   method m() → dynamic
     ;
 }
-abstract class _C&Object&M1 = core::Object with self::M1 {
+abstract class _C&Object&M1 = core::Object with self::M1 /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_C&Object&M1*
     : super core::Object::•()
     ;
 }
-abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 {
+abstract class _C&Object&M1&M2 = self::_C&Object&M1 with self::M2 /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_C&Object&M1&M2*
     : super self::_C&Object&M1::•()
     ;
@@ -48,7 +48,7 @@ abstract class G1<T extends core::Object* = dynamic> extends core::Object {
   method m() → dynamic
     ;
 }
-abstract class _D&Object&G1<S extends core::Object* = dynamic> = core::Object with self::G1<self::_D&Object&G1::S*> {
+abstract class _D&Object&G1<S extends core::Object* = dynamic> = core::Object with self::G1<self::_D&Object&G1::S*> /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_D&Object&G1<self::_D&Object&G1::S*>*
     : super core::Object::•()
     ;

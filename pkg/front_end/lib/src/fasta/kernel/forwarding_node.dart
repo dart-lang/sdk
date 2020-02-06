@@ -456,7 +456,9 @@ class ForwardingNode {
         reference: referenceFrom?.reference)
       ..startFileOffset = enclosingClass.fileOffset
       ..fileOffset = enclosingClass.fileOffset
-      ..parent = enclosingClass;
+      ..parent = enclosingClass
+      ..isNonNullableByDefault =
+          enclosingClass.enclosingLibrary.isNonNullableByDefault;
   }
 
   /// Returns the [i]th element of [_candidates], finalizing it if necessary.

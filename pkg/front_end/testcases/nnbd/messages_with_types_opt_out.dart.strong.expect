@@ -125,7 +125,7 @@ static method testOptOut() → dynamic {
               ^" in mes::nonNullableVar as{TypeError} core::String*;
 }
 
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //

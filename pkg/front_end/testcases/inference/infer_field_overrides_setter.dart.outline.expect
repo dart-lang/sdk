@@ -33,7 +33,7 @@ class F extends core::Object implements self::B {
   synthetic constructor •() → self::F*
     ;
 }
-abstract class _G&Object&B = core::Object with self::B {
+abstract class _G&Object&B = core::Object with self::B /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_G&Object&B*
     : super core::Object::•()
     ;

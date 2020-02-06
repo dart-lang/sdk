@@ -22,7 +22,7 @@ class M extends core::Object {
   synthetic constructor •() → self::M*
     ;
 }
-abstract class _MixinApplication&Super&M = self::Super with self::M {
+abstract class _MixinApplication&Super&M = self::Super with self::M /*isAnonymousMixin*/  {
   synthetic constructor _() → self::_MixinApplication&Super&M*
     : super self::Super::_()
     ;

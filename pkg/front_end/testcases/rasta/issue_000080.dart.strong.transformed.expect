@@ -10,7 +10,7 @@ class Mixin extends core::Object {
   method foo() → dynamic
     return 87;
 }
-abstract class _Foo&Object&Mixin extends core::Object implements self::Mixin {
+abstract class _Foo&Object&Mixin extends core::Object implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
   field dynamic field = null;
   synthetic constructor •() → self::_Foo&Object&Mixin*
     : super core::Object::•()

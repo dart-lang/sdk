@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -74,7 +74,7 @@ class A extends core::Object {
     ;
   method foo(core::int x) → dynamic {}
 }
-class B extends core::Object {
+class B extends core::Object /*hasConstConstructor*/  {
   late final field core::int x = 42;
   const constructor •() → self::B
     : super core::Object::•()

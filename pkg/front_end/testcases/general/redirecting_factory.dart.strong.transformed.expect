@@ -62,7 +62,7 @@ class Mixin<M extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class Mix<M extends core::Object* = dynamic> extends self::Base<self::Mix::M*> implements self::Mixin<self::Mix::M*> {
+class Mix<M extends core::Object* = dynamic> extends self::Base<self::Mix::M*> implements self::Mixin<self::Mix::M*> /*isEliminatedMixin*/  {
   synthetic constructor •() → self::Mix<self::Mix::M*>*
     : super self::Base::•()
     ;

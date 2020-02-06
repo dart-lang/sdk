@@ -1241,6 +1241,8 @@ nnbd/member_inheritance_from_opt_out: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/missing_required_named_parameter: TextSerializationFailure
+nnbd/mixin_from_opt_in: TextSerializationFailure
+nnbd/mixin_from_opt_out: TextSerializationFailure
 nnbd/never_receiver: TextSerializationFailure
 nnbd/nnbd_opt_out_language_version: TextSerializationFailure
 nnbd/nnbd_opt_out_language_version_try_to_trick: TextSerializationFailure

@@ -3,7 +3,7 @@ library from "org-dartlang-test:///libA.dart" as libA {
 
   import "org-dartlang-test:///main.dart";
 
-  abstract class _Bar&Object&Foo extends dart.core::Object implements main::Foo {
+  abstract class _Bar&Object&Foo extends dart.core::Object implements main::Foo /*isAnonymousMixin,isEliminatedMixin*/  {
     const synthetic constructor •() → libA::_Bar&Object&Foo*
       : super dart.core::Object::•()
       ;

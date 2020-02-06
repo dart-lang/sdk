@@ -33,5 +33,5 @@ Try correcting the name to the name of an existing method, or defining a method 
 }
 static method main() → dynamic {}
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;

@@ -62,7 +62,8 @@ class LoadLibraryBuilder extends BuilderImpl {
         isStatic: true,
         reference: referencesFrom?.reference)
       ..startFileOffset = charOffset
-      ..fileOffset = charOffset;
+      ..fileOffset = charOffset
+      ..isNonNullableByDefault = parent.isNonNullableByDefault;
     return tearoff;
   }
 

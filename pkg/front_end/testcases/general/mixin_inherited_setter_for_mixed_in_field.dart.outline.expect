@@ -17,7 +17,7 @@ class D extends self::C<self::B*> {
   synthetic constructor •() → self::D*
     ;
 }
-abstract class _Foo&Object&C = core::Object with self::C<self::B*> {
+abstract class _Foo&Object&C = core::Object with self::C<self::B*> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Foo&Object&C*
     : super core::Object::•()
     ;

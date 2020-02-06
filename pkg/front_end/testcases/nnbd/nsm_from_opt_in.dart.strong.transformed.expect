@@ -23,7 +23,7 @@ abstract class C2 extends core::Object {
 }
 static method main() → dynamic {}
 
-library;
+library /*isNonNullableByDefault*/;
 import self as nsm;
 import "dart:core" as core;
 

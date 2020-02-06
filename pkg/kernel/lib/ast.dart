@@ -913,6 +913,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   static const int FlagAnonymousMixin = 1 << 4;
   static const int FlagEliminatedMixin = 1 << 5;
   static const int FlagMixinDeclaration = 1 << 6;
+  static const int FlagHasConstConstructor = 1 << 7;
 
   int flags = 0;
 
@@ -969,6 +970,15 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     flags = value
         ? (flags | FlagMixinDeclaration)
         : (flags & ~FlagMixinDeclaration);
+  }
+
+  /// True if this class declares one or more constant constructors.
+  bool get hasConstConstructor => flags & FlagHasConstConstructor != 0;
+
+  void set hasConstConstructor(bool value) {
+    flags = value
+        ? (flags | FlagHasConstConstructor)
+        : (flags & ~FlagHasConstConstructor);
   }
 
   List<Supertype> superclassConstraints() {
@@ -1532,6 +1542,11 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   ///
   bool get isExtensionMember;
 
+  /// If `true` this member is defined in a library for which non-nullable by
+  /// default is enabled.
+  bool get isNonNullableByDefault;
+  void set isNonNullableByDefault(bool value);
+
   /// The body of the procedure or constructor, or `null` if this is a field.
   FunctionNode get function => null;
 
@@ -1599,6 +1614,7 @@ class Field extends Member {
   static const int FlagGenericCovariantImpl = 1 << 6;
   static const int FlagLate = 1 << 7;
   static const int FlagExtensionMember = 1 << 8;
+  static const int FlagNonNullableByDefault = 1 << 9;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariant => flags & FlagCovariant != 0;
@@ -1694,6 +1710,16 @@ class Field extends Member {
     if (value) throw 'Fields cannot be external';
   }
 
+  @override
+  bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
+
+  @override
+  void set isNonNullableByDefault(bool value) {
+    flags = value
+        ? (flags | FlagNonNullableByDefault)
+        : (flags & ~FlagNonNullableByDefault);
+  }
+
   R accept<R>(MemberVisitor<R> v) => v.visitField(this);
 
   acceptReference(MemberReferenceVisitor v) => v.visitFieldReference(this);
@@ -1766,6 +1792,7 @@ class Constructor extends Member {
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
   static const int FlagSynthetic = 1 << 2;
+  static const int FlagNonNullableByDefault = 1 << 3;
 
   bool get isConst => flags & FlagConst != 0;
   bool get isExternal => flags & FlagExternal != 0;
@@ -1792,6 +1819,16 @@ class Constructor extends Member {
 
   @override
   bool get isExtensionMember => false;
+
+  @override
+  bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
+
+  @override
+  void set isNonNullableByDefault(bool value) {
+    flags = value
+        ? (flags | FlagNonNullableByDefault)
+        : (flags & ~FlagNonNullableByDefault);
+  }
 
   R accept<R>(MemberVisitor<R> v) => v.visitConstructor(this);
 
@@ -1901,6 +1938,7 @@ class RedirectingFactoryConstructor extends Member {
 
   static const int FlagConst = 1 << 0; // Must match serialized bit positions.
   static const int FlagExternal = 1 << 1;
+  static const int FlagNonNullableByDefault = 1 << 2;
 
   bool get isConst => flags & FlagConst != 0;
   bool get isExternal => flags & FlagExternal != 0;
@@ -1921,6 +1959,16 @@ class RedirectingFactoryConstructor extends Member {
   bool get isExtensionMember => false;
 
   bool get isUnresolved => targetReference == null;
+
+  @override
+  bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
+
+  @override
+  void set isNonNullableByDefault(bool value) {
+    flags = value
+        ? (flags | FlagNonNullableByDefault)
+        : (flags & ~FlagNonNullableByDefault);
+  }
 
   Member get target => targetReference?.asMember;
 
@@ -2080,6 +2128,7 @@ class Procedure extends Member {
   static const int FlagNoSuchMethodForwarder = 1 << 7;
   static const int FlagExtensionMember = 1 << 8;
   static const int FlagMemberSignature = 1 << 9;
+  static const int FlagNonNullableByDefault = 1 << 10;
 
   bool get isStatic => flags & FlagStatic != 0;
   bool get isAbstract => flags & FlagAbstract != 0;
@@ -2184,6 +2233,16 @@ class Procedure extends Member {
   bool get hasGetter => kind != ProcedureKind.Setter;
   bool get hasSetter => kind == ProcedureKind.Setter;
   bool get isFactory => kind == ProcedureKind.Factory;
+
+  @override
+  bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
+
+  @override
+  void set isNonNullableByDefault(bool value) {
+    flags = value
+        ? (flags | FlagNonNullableByDefault)
+        : (flags & ~FlagNonNullableByDefault);
+  }
 
   Member get forwardingStubSuperTarget =>
       forwardingStubSuperTargetReference?.asMember;

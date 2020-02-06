@@ -20,7 +20,7 @@ class Super extends core::Object {
     : self::Super::field = field, super core::Object::•()
     ;
 }
-class Class extends self::Super implements self::Mixin {
+class Class extends self::Super implements self::Mixin /*isEliminatedMixin*/  {
   synthetic constructor •(core::int* field) → self::Class*
     : super self::Super::•(field)
     ;

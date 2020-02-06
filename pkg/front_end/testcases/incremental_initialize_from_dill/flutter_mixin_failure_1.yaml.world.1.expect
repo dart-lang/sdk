@@ -23,7 +23,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
       ;
     method hello(covariant lib::FooEntry* entry) → void {}
   }
-  abstract class MyMixin extends lib::Baz {
+  abstract class MyMixin extends lib::Baz /*isMixinDeclaration*/  {
   }
   abstract class Qux extends lib::Baz {
     synthetic constructor •() → lib::Qux*
@@ -31,7 +31,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
       ;
     method hello(covariant lib::BarEntry* entry) → void {}
   }
-  abstract class _Quux&Qux&MyMixin extends lib::Qux implements lib::MyMixin {
+  abstract class _Quux&Qux&MyMixin extends lib::Qux implements lib::MyMixin /*isAnonymousMixin,isEliminatedMixin*/  {
     synthetic constructor •() → lib::_Quux&Qux&MyMixin*
       : super lib::Qux::•()
       ;

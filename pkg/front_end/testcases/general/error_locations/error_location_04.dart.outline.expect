@@ -11,7 +11,7 @@ library;
 import self as self2;
 import "dart:core" as core;
 
-class Foo extends core::Object {
+class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::int* i) → self2::Foo*
     : assert(i.{core::num::>}(0)), super core::Object::•()
     ;
@@ -26,7 +26,7 @@ import "error_location_04_lib1.dart" as self2;
 
 import "org-dartlang-testcase:///error_location_04_lib1.dart";
 
-class Bar extends core::Object {
+class Bar extends core::Object /*hasConstConstructor*/  {
   final field self2::Foo* x;
   const constructor •() → self3::Bar*
     : self3::Bar::x = const self2::Foo::•(0), super core::Object::•()

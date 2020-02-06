@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -164,7 +164,7 @@ class Boo extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class _Coo&Boo&Aoo extends self::Boo implements self::Aoo {
+abstract class _Coo&Boo&Aoo extends self::Boo implements self::Aoo /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Coo&Boo&Aoo
     : super self::Boo::•()
     ;
@@ -184,7 +184,7 @@ class Eoo extends core::Object implements self::Boo {
     : super core::Object::•()
     ;
 }
-abstract class _Foo&Boo&Aoo extends self::Boo implements self::Aoo {
+abstract class _Foo&Boo&Aoo extends self::Boo implements self::Aoo /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Foo&Boo&Aoo
     : super self::Boo::•()
     ;
@@ -194,12 +194,12 @@ class Foo extends self::_Foo&Boo&Aoo {
     : super self::_Foo&Boo&Aoo::•()
     ;
 }
-class Goo extends self::Boo implements self::Aoo {
+class Goo extends self::Boo implements self::Aoo /*isEliminatedMixin*/  {
   synthetic constructor •() → self::Goo
     : super self::Boo::•()
     ;
 }
-abstract class _Hoo&Object&Aoo extends core::Object implements self::Aoo {
+abstract class _Hoo&Object&Aoo extends core::Object implements self::Aoo /*isAnonymousMixin,isEliminatedMixin*/  {
   const synthetic constructor •() → self::_Hoo&Object&Aoo
     : super core::Object::•()
     ;
@@ -209,12 +209,12 @@ class Hoo extends self::_Hoo&Object&Aoo implements self::Boo {
     : super self::_Hoo&Object&Aoo::•()
     ;
 }
-class Ioo extends core::Object implements self::Boo, self::Aoo {
+class Ioo extends core::Object implements self::Boo, self::Aoo /*isEliminatedMixin*/  {
   const synthetic constructor •() → self::Ioo
     : super core::Object::•()
     ;
 }
-abstract class _Joo&Boo&Never extends self::Boo {
+abstract class _Joo&Boo&Never extends self::Boo /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Joo&Boo&Never
     : super self::Boo::•()
     ;
@@ -234,43 +234,43 @@ class Loo extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class Moo1 extends self::Aoo implements self::Boo {
+abstract class Moo1 extends self::Aoo implements self::Boo /*isMixinDeclaration*/  {
 }
-abstract class _Moo2&Aoo&Boo extends core::Object implements self::Aoo, self::Boo {
+abstract class _Moo2&Aoo&Boo extends core::Object implements self::Aoo, self::Boo /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Moo2&Aoo&Boo
     : super core::Object::•()
     ;
 }
-abstract class Moo2 extends self::_Moo2&Aoo&Boo {
+abstract class Moo2 extends self::_Moo2&Aoo&Boo /*isMixinDeclaration*/  {
 }
-abstract class Moo3 extends core::Object implements self::Aoo, self::Boo {
+abstract class Moo3 extends core::Object implements self::Aoo, self::Boo /*isMixinDeclaration*/  {
 }
-abstract class Moo4 extends self::Aoo {
+abstract class Moo4 extends self::Aoo /*isMixinDeclaration*/  {
 }
-abstract class _Moo5&Aoo&Never extends core::Object implements self::Aoo {
+abstract class _Moo5&Aoo&Never extends core::Object implements self::Aoo /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Moo5&Aoo&Never
     : super core::Object::•()
     ;
 }
-abstract class Moo5 extends self::_Moo5&Aoo&Never {
+abstract class Moo5 extends self::_Moo5&Aoo&Never /*isMixinDeclaration*/  {
 }
-abstract class Moo6 extends core::Object {
+abstract class Moo6 extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class Moo7 extends core::Object implements self::Aoo {
+abstract class Moo7 extends core::Object implements self::Aoo /*isMixinDeclaration*/  {
 }
-abstract class Moo8 extends core::Object {
+abstract class Moo8 extends core::Object /*isMixinDeclaration*/  {
 }
-class Noo extends core::Object implements self::Aoo {
+class Noo extends core::Object implements self::Aoo /*isEliminatedMixin*/  {
   synthetic constructor •() → self::Noo
     : super core::Object::•()
     ;
 }
-class NooDynamic extends core::Object implements self::Aoo {
+class NooDynamic extends core::Object implements self::Aoo /*isEliminatedMixin*/  {
   synthetic constructor •() → self::NooDynamic
     : super core::Object::•()
     ;
 }
-class NooVoid extends core::Object implements self::Aoo {
+class NooVoid extends core::Object implements self::Aoo /*isEliminatedMixin*/  {
   synthetic constructor •() → self::NooVoid
     : super core::Object::•()
     ;

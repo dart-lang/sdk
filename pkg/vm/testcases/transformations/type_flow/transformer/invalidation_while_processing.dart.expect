@@ -17,7 +17,7 @@ class T2 extends core::Object implements self::I {
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method foo() → void {}
 }
-class Point extends core::Object {
+class Point extends core::Object /*hasConstConstructor*/  {
 [@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  final field self::I* x;
   const constructor •([@vm.inferred-type.metadata=!] self::I* x) → self::Point*
     : self::Point::x = x, super core::Object::•()
