@@ -184,7 +184,7 @@ Future<List<Map<String, dynamic>>> listFilesCallback(Uri dirPath) async {
 
 Uri? serverInformationCallback() => _lazyServerBoot().serverAddress;
 
-Future<Uri> webServerControlCallback(bool enable) async {
+Future<Uri?> webServerControlCallback(bool enable) async {
   final _server = _lazyServerBoot();
   if (_server.running != enable) {
     if (enable) {
@@ -193,7 +193,7 @@ Future<Uri> webServerControlCallback(bool enable) async {
       await _server.shutdown(true);
     }
   }
-  return _server.serverAddress!;
+  return _server.serverAddress;
 }
 
 void _clearFuture(_) {
