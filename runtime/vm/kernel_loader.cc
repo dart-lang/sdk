@@ -1917,8 +1917,8 @@ void KernelLoader::LoadProcedure(const Library& library,
                        script_class, procedure_helper.start_position_));
   function.set_has_pragma(has_pragma_annotation);
   function.set_end_token_pos(procedure_helper.end_position_);
-  function.set_is_no_such_method_forwarder(
-      procedure_helper.IsNoSuchMethodForwarder());
+  function.set_is_synthetic(procedure_helper.IsNoSuchMethodForwarder() ||
+                            procedure_helper.IsMemberSignature());
   if (register_function) {
     functions_.Add(&function);
   } else {

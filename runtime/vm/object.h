@@ -3395,7 +3395,7 @@ class Function : public Object {
   V(GeneratedBody, is_generated_body)                                          \
   V(PolymorphicTarget, is_polymorphic_target)                                  \
   V(HasPragma, has_pragma)                                                     \
-  V(IsNoSuchMethodForwarder, is_no_such_method_forwarder)                      \
+  V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)
 
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \

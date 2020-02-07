@@ -105,7 +105,7 @@ bool SourceReport::ShouldSkipFunction(const Function& func) {
       return true;
   }
   if (func.is_abstract() || func.IsImplicitConstructor() ||
-      func.IsRedirectingFactory() || func.is_no_such_method_forwarder()) {
+      func.IsRedirectingFactory() || func.is_synthetic()) {
     return true;
   }
   // Note that context_scope() remains null for closures declared in bytecode,

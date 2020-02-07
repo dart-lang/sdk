@@ -60,6 +60,7 @@
 library dart.mirrors;
 
 import 'dart:async' show Future;
+import "dart:_internal" show Since;
 
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of
@@ -109,6 +110,12 @@ abstract class MirrorSystem {
    * A mirror on the [:void:] type.
    */
   TypeMirror get voidType;
+
+  /**
+   * A mirror on the [:Never:] type.
+   */
+  @Since("2.8")
+  TypeMirror get neverType;
 
   /**
    * Returns the name of [symbol].

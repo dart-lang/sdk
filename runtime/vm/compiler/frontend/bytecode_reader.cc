@@ -2261,8 +2261,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     function.set_is_declared_in_bytecode(true);
     function.set_has_pragma(has_pragma);
     function.set_end_token_pos(end_position);
-    function.set_is_no_such_method_forwarder(
-        (flags & kIsNoSuchMethodForwarderFlag) != 0);
+    function.set_is_synthetic((flags & kIsNoSuchMethodForwarderFlag) != 0);
     function.set_is_reflectable((flags & kIsReflectableFlag) != 0);
     function.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
     function.set_is_extension_member(is_extension_member);

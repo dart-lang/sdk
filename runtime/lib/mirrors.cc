@@ -272,7 +272,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
                  << Mirrors::kFactoryCtor);
   kind_flags |=
       (static_cast<intptr_t>(func.is_external()) << Mirrors::kExternal);
-  bool is_synthetic = func.is_no_such_method_forwarder();
+  bool is_synthetic = func.is_synthetic();
   kind_flags |= (static_cast<intptr_t>(is_synthetic) << Mirrors::kSynthetic);
   kind_flags |= (static_cast<intptr_t>(func.is_extension_member())
                  << Mirrors::kExtensionMember);
@@ -311,7 +311,9 @@ static RawInstance* CreateClassMirror(const Class& cls,
     ASSERT(ref_type.IsCanonical());
     return CreateClassMirror(cls, ref_type, is_declaration, owner_mirror);
   }
-  ASSERT(!cls.IsDynamicClass() && !cls.IsVoidClass());
+  ASSERT(!cls.IsDynamicClass());
+  ASSERT(!cls.IsVoidClass());
+  ASSERT(!cls.IsNeverClass());
   ASSERT(!type.IsNull());
   ASSERT(type.IsFinalized());
 
@@ -625,6 +627,10 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
       Array& args = Array::Handle(Array::New(1));
       args.SetAt(0, Symbols::Dynamic());
       return CreateMirror(Symbols::_SpecialTypeMirror(), args);
+    } else if (cls.IsNeverClass()) {
+      Array& args = Array::Handle(Array::New(1));
+      args.SetAt(0, Symbols::Never());
+      return CreateMirror(Symbols::_SpecialTypeMirror(), args);
     }
     // TODO(regis): Until mirrors reflect nullability, force kLegacy, except for
     // Null type, which should remain nullable.
@@ -830,7 +836,8 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 0, 1) {
   ASSERT(type.HasTypeClass());
   const Class& cls = Class::Handle(type.type_class());
   ASSERT(!cls.IsNull());
-  if (cls.IsDynamicClass() || cls.IsVoidClass() || cls.IsTypedefClass()) {
+  if (cls.IsDynamicClass() || cls.IsVoidClass() || cls.IsNeverClass() ||
+      cls.IsTypedefClass()) {
     Exceptions::ThrowArgumentError(type);
     UNREACHABLE();
   }
@@ -1172,8 +1179,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 0, 2) {
     entry = entries.GetNext();
     if (entry.IsClass()) {
       const Class& klass = Class::Cast(entry);
-      // We filter out dynamic.
-      // TODO(12478): Should not need to filter out dynamic.
+      ASSERT(!klass.IsVoidClass() && !klass.IsNeverClass());
       if (!klass.IsDynamicClass()) {
         error = klass.EnsureIsFinalized(thread);
         if (!error.IsNull()) {
@@ -1700,6 +1706,8 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 0, 1) {
     ASSERT(!script.IsNull());
     const String& uri = String::Handle(zone, script.url());
     return CreateSourceLocation(uri, 1, 1);
+  } else {
+    FATAL1("Unexpected declaration type: %s", decl.ToCString());
   }
 
   ASSERT(!script.IsNull());

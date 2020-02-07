@@ -22,6 +22,10 @@ used (see Issue [39627][]).
   options. Previously setting a socket options would be ignored and getting a
   socket option would return `null`.
 
+#### `dart:mirrors`
+
+* Added `MirrorSystem.neverType`.
+
 ### Dart VM
 
 ### Tools

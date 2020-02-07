@@ -82,6 +82,7 @@ bool _subtypeTest(Type a, Type b) native 'TypeMirror_subtypeTest';
 class _MirrorSystem extends MirrorSystem {
   final TypeMirror dynamicType = new _SpecialTypeMirror._('dynamic');
   final TypeMirror voidType = new _SpecialTypeMirror._('void');
+  final TypeMirror neverType = new _SpecialTypeMirror._('Never');
 
   var _libraries;
   Map<Uri, LibraryMirror> get libraries {
@@ -682,13 +683,15 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
 
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     final otherReflectedType = (other as _TypeMirror)._reflectedType;
     return _subtypeTest(_reflectedType, otherReflectedType) ||
         _subtypeTest(otherReflectedType, _reflectedType);
@@ -890,13 +893,15 @@ class _TypeVariableMirror extends _DeclarationMirror
 
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     final otherReflectedType = (other as _TypeMirror)._reflectedType;
     return _subtypeTest(_reflectedType, otherReflectedType) ||
         _subtypeTest(otherReflectedType, _reflectedType);
@@ -992,13 +997,15 @@ class _TypedefMirror extends _DeclarationMirror
 
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     final otherReflectedType = (other as _TypeMirror)._reflectedType;
     return _subtypeTest(_reflectedType, otherReflectedType) ||
         _subtypeTest(otherReflectedType, _reflectedType);
