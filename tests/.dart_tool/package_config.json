@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "configVersion": 2,
   "comment": [
     "This file tells each Dart implementation to treat the test subdirectories",
     "as 'packages' so that we can set the default language version for each",
