@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:typed_data';
-import 'dart:io';
 
 import 'reader.dart';
 
@@ -489,75 +488,60 @@ class StringTable extends Section {
 }
 
 class Elf {
-  final Reader startingReader;
+  ElfHeader _header;
+  ProgramHeader _programHeader;
+  SectionHeader _sectionHeader;
+  Map<SectionHeaderEntry, Section> _sections;
 
-  ElfHeader header;
-  ProgramHeader programHeader;
-  SectionHeader sectionHeader;
+  Elf._(this._header, this._programHeader, this._sectionHeader, this._sections);
 
-  Map<SectionHeaderEntry, Section> sections;
-
-  Elf.fromReader(this.startingReader) {
-    _read();
+  /// Creates an [Elf] from the data pointed to by [reader].
+  ///
+  /// Returns null if the file does not start with the ELF magic number.
+  static Elf fromReader(Reader reader) {
+    final start = reader.offset;
+    if (!ElfHeader.startsWithMagicNumber(reader)) return null;
+    reader.seek(start, absolute: true);
+    return Elf._read(reader);
   }
 
-  /// Returns either an [Elf] object representing the ELF information in the
-  /// file at [path] or null if the file does not start with the ELF magic
-  /// number.
-  factory Elf.fromFile(String path) {
-    if (!startsWithMagicNumber(path)) return null;
-    return Elf.fromReader(Reader.fromTypedData(File(path).readAsBytesSync(),
-        // We provide null for the wordSize and endianness to ensure
-        // we don't accidentally call any methods that use them until
-        // we have gotten that information from the ELF header.
-        wordSize: null,
-        endian: null));
-  }
+  /// Creates an [Elf] from [bytes].
+  ///
+  /// Returns null if the file does not start with the ELF magic number.
+  static Elf fromBuffer(Uint8List bytes) =>
+      Elf.fromReader(Reader.fromTypedData(bytes));
 
-  /// Checks that the file at [path] starts with the ELF magic number.
-  static bool startsWithMagicNumber(String path) {
-    final file = File(path).openSync();
-    var ret = true;
-    for (int code in ElfHeader._ELFMAG.codeUnits) {
-      if (file.readByteSync() != code) {
-        ret = false;
-        break;
-      }
-    }
-    file.closeSync();
-    return ret;
-  }
+  /// Creates an [Elf] from the file at [path].
+  ///
+  /// Returns null if the file does not start with the ELF magic number.
+  static Elf fromFile(String path) => Elf.fromReader(Reader.fromFile(path));
 
-  /// Returns an iterable of [Section]s whose name matches [name].
+  /// The [Section]s whose names match [name].
   Iterable<Section> namedSection(String name) {
-    final ret = <Section>[];
-    for (var entry in sections.keys) {
-      if (entry.name == name) {
-        ret.add(sections[entry]);
-      }
-    }
+    final ret = _sections.keys
+        .where((entry) => entry.name == name)
+        .map((entry) => _sections[entry]);
     if (ret.isEmpty) {
       throw FormatException("No section named $name found in ELF file");
     }
     return ret;
   }
 
-  void _read() {
-    startingReader.reset();
-    header = ElfHeader.fromReader(startingReader.copy());
+  static Elf _read(Reader startingReader) {
+    final header = ElfHeader.fromReader(startingReader.copy());
     // Now use the word size and endianness information from the header.
     final reader = Reader.fromTypedData(startingReader.bdata,
         wordSize: header.wordSize, endian: header.endian);
-    programHeader = ProgramHeader.fromReader(
+    final programHeader = ProgramHeader.fromReader(
         reader.refocus(header.programHeaderOffset, header.programHeaderSize),
         entrySize: header.programHeaderEntrySize,
         entryCount: header.programHeaderCount);
-    sectionHeader = SectionHeader.fromReader(
+    final sectionHeader = SectionHeader.fromReader(
         reader.refocus(header.sectionHeaderOffset, header.sectionHeaderSize),
         entrySize: header.sectionHeaderEntrySize,
         entryCount: header.sectionHeaderCount,
         stringsIndex: header.sectionHeaderStringsIndex);
-    sections = <SectionHeaderEntry, Section>{};
+    final sections = <SectionHeaderEntry, Section>{};
     for (var i = 0; i < sectionHeader.length; i++) {
       final entry = sectionHeader[i];
       if (i == header.sectionHeaderStringsIndex) {
@@ -567,15 +551,16 @@ class Elf {
             entry, reader.refocus(entry.offset, entry.size));
       }
     }
+    return Elf._(header, programHeader, sectionHeader, sections);
   }
 
   @override
   String toString() {
     String accumulateSection(String acc, SectionHeaderEntry entry) =>
-        acc + "\nSection ${entry.name} is ${sections[entry]}";
-    return "Header information:\n\n${header}"
-        "\nProgram header information:\n\n${programHeader}"
-        "\nSection header information:\n\n${sectionHeader}"
-        "${sections.keys.fold("", accumulateSection)}";
+        acc + "\nSection ${entry.name} is ${_sections[entry]}";
+    return "Header information:\n\n${_header}"
+        "\nProgram header information:\n\n${_programHeader}"
+        "\nSection header information:\n\n${_sectionHeader}"
+        "${_sections.keys.fold("", accumulateSection)}";
   }
 }

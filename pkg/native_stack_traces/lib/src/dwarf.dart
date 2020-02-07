@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'elf.dart';
 import 'reader.dart';
@@ -403,7 +404,8 @@ class DebugInformationEntry {
 /// A class representing a DWARF compilation unit.
 class CompilationUnit {
   final Reader reader;
-  final Dwarf dwarf;
+  final Map<int, _AbbreviationsTable> _abbreviationsTables;
+  final LineNumberInfo _lineNumberInfo;
 
   int size;
   int version;
@@ -412,7 +414,8 @@ class CompilationUnit {
   List<DebugInformationEntry> contents;
   Map<int, DebugInformationEntry> referenceTable;
 
-  CompilationUnit.fromReader(this.reader, this.dwarf) {
+  CompilationUnit.fromReader(
+      this.reader, this._abbreviationsTables, this._lineNumberInfo) {
     _read();
   }
 
@@ -428,7 +431,7 @@ class CompilationUnit {
       throw FormatException("Expected DWARF version 2, got $version");
     }
     abbreviationOffset = reader.readBytes(4);
-    if (!dwarf.abbreviationTables.containsKey(abbreviationOffset)) {
+    if (!_abbreviationsTables.containsKey(abbreviationOffset)) {
       throw FormatException("No abbreviation table found for offset "
           "0x${paddedHex(abbreviationOffset, 4)}");
     }
@@ -450,7 +453,7 @@ class CompilationUnit {
   Iterable<CallInfo> callInfo(int address) {
     for (final unit in contents) {
       final lineNumberProgram =
-          dwarf.lineNumberInfo[unit[_AttributeName.statementList]];
+          _lineNumberInfo[unit[_AttributeName.statementList]];
       final callInfo = unit.callInfo(address, lineNumberProgram);
       if (callInfo != null) {
         return callInfo;
@@ -460,7 +463,7 @@ class CompilationUnit {
   }
 
   _AbbreviationsTable get abbreviations =>
-      dwarf.abbreviationTables[abbreviationOffset];
+      _abbreviationsTables[abbreviationOffset];
 
   @override
   String toString() =>
@@ -474,11 +477,13 @@ class CompilationUnit {
 /// A class representing a DWARF `.debug_info` section.
 class DebugInfo {
   final Reader reader;
-  final Dwarf dwarf;
+  final Map<int, _AbbreviationsTable> _abbreviationsTables;
+  final LineNumberInfo _lineNumberInfo;
 
   List<CompilationUnit> units;
 
-  DebugInfo.fromReader(this.reader, this.dwarf) {
+  DebugInfo.fromReader(
+      this.reader, this._abbreviationsTables, this._lineNumberInfo) {
     _read();
   }
 
@@ -486,8 +491,8 @@ class DebugInfo {
     reader.reset();
     units = <CompilationUnit>[];
     while (!reader.done) {
-      final unit =
-          CompilationUnit.fromReader(reader.shrink(reader.offset), dwarf);
+      final unit = CompilationUnit.fromReader(
+          reader.shrink(reader.offset), _abbreviationsTables, _lineNumberInfo);
       reader.seek(unit.reader.offset);
       if (unit.size == 0) {
         break;
@@ -1037,28 +1042,39 @@ class PCOffset {
 
 /// The DWARF debugging information for a Dart snapshot.
 class Dwarf {
-  final Elf elf;
-  Map<int, _AbbreviationsTable> abbreviationTables;
-  DebugInfo debugInfo;
-  LineNumberInfo lineNumberInfo;
-  int _vmStartAddress;
-  int _isolateStartAddress;
+  final Map<int, _AbbreviationsTable> _abbreviationTables;
+  final DebugInfo _debugInfo;
+  final LineNumberInfo _lineNumberInfo;
+  final int _vmStartAddress;
+  final int _isolateStartAddress;
 
-  Dwarf.fromElf(this.elf) {
-    _loadSections();
+  Dwarf._(this._abbreviationTables, this._debugInfo, this._lineNumberInfo,
+      this._vmStartAddress, this._isolateStartAddress);
+
+  /// Attempts to load the DWARF debugging information from the reader.
+  ///
+  /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
+  static Dwarf fromReader(Reader reader) {
+    // Currently, the only DWARF-containing format we recognize is ELF.
+    final elf = Elf.fromReader(reader);
+    if (elf == null) return null;
+    return Dwarf._loadSectionsFromElf(elf);
   }
+
+  /// Attempts to load the DWARF debugging information from the given bytes.
+  ///
+  /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
+  static Dwarf fromBytes(Uint8List bytes) =>
+      Dwarf.fromReader(Reader.fromTypedData(bytes));
 
   /// Attempts to load the DWARF debugging information from the file at [path].
+  ///
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
-  factory Dwarf.fromFile(String path) {
-    final elf = Elf.fromFile(path);
-    if (elf == null) return null;
-    return Dwarf.fromElf(elf);
-  }
+  static Dwarf fromFile(String path) => Dwarf.fromReader(Reader.fromFile(path));
 
-  void _loadSections() {
+  static Dwarf _loadSectionsFromElf(Elf elf) {
     final abbrevSection = elf.namedSection(".debug_abbrev").first;
-    abbreviationTables = <int, _AbbreviationsTable>{};
+    final abbreviationTables = <int, _AbbreviationsTable>{};
     var abbreviationOffset = 0;
     while (abbreviationOffset < abbrevSection.reader.length) {
       final table = _AbbreviationsTable.fromReader(
@@ -1069,10 +1085,11 @@ class Dwarf {
     assert(abbreviationOffset == abbrevSection.reader.length);
 
     final lineNumberSection = elf.namedSection(".debug_line").first;
-    lineNumberInfo = LineNumberInfo.fromReader(lineNumberSection.reader);
+    final lineNumberInfo = LineNumberInfo.fromReader(lineNumberSection.reader);
 
     final infoSection = elf.namedSection(".debug_info").first;
-    debugInfo = DebugInfo.fromReader(infoSection.reader, this);
+    final debugInfo = DebugInfo.fromReader(
+        infoSection.reader, abbreviationTables, lineNumberInfo);
 
     final textSegments = elf.namedSection(".text").toList();
     if (textSegments.length != 2) {
@@ -1080,8 +1097,11 @@ class Dwarf {
           "Expected two text segments for VM and isolate instructions");
     }
 
-    _vmStartAddress = textSegments[0].virtualAddress;
-    _isolateStartAddress = textSegments[1].virtualAddress;
+    final vmStartAddress = textSegments[0].virtualAddress;
+    final isolateStartAddress = textSegments[1].virtualAddress;
+
+    return Dwarf._(abbreviationTables, debugInfo, lineNumberInfo,
+        vmStartAddress, isolateStartAddress);
   }
 
   /// The call information for the given virtual address. There may be
@@ -1092,7 +1112,7 @@ class Dwarf {
   /// to user or library code is returned.
   Iterable<CallInfo> callInfoFor(int address,
       {bool includeInternalFrames = false}) {
-    final calls = debugInfo.callInfo(address);
+    final calls = _debugInfo.callInfo(address);
     if (calls != null && !includeInternalFrames) {
       return calls.where((CallInfo c) => c.line > 0);
     }
@@ -1114,10 +1134,10 @@ class Dwarf {
   @override
   String toString() =>
       "DWARF debugging information:\n\n" +
-      abbreviationTables
+      _abbreviationTables
           .map((int i, _AbbreviationsTable t) =>
               MapEntry(i, "(Offset ${paddedHex(i)}) $t"))
           .values
           .join() +
-      "\n$debugInfo\n$lineNumberInfo";
+      "\n$_debugInfo\n$_lineNumberInfo";
 }
