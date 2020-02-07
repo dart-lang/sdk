@@ -1,4 +1,11 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:10:10: Warning: Non-nullable variable 'x' is used before it's assigned.
+//   return x;
+//          ^
+//
 import self as self;
 import "dart:core" as core;
 

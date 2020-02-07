@@ -2339,7 +2339,9 @@ class InferenceVisitor
         typeContext,
         isExpressionInvocation: true);
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+      if (receiverType is! DynamicType &&
+          receiverType is! InvalidType &&
+          receiverType.isPotentiallyNullable) {
         if (inferrer.nnbdStrongMode) {
           return new ExpressionInferenceResult(
               invocationResult.inferredType,
@@ -3745,7 +3747,9 @@ class InferenceVisitor
       }
     }
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-      if (receiverType is! DynamicType && receiverType.isPotentiallyNullable) {
+      if (receiverType is! DynamicType &&
+          receiverType is! InvalidType &&
+          receiverType.isPotentiallyNullable) {
         if (inferrer.nnbdStrongMode) {
           return new ExpressionInferenceResult(
               readType,
@@ -3926,6 +3930,7 @@ class InferenceVisitor
     }
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
       if (receiverType is! DynamicType &&
+          receiverType is! InvalidType &&
           receiverType.isPotentiallyNullable &&
           !inferrer.matchesObjectMemberCall(
               propertyName, const [], const [], const [])) {
@@ -5472,6 +5477,30 @@ class InferenceVisitor
     bool isUnassigned = !inferrer.flowAnalysis.isAssigned(variable);
     if (isUnassigned) {
       inferrer.dataForTesting?.flowAnalysisResult?.unassignedNodes?.add(node);
+      if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+        // Synthetic variables aren't checked.
+        if (variable.name != null &&
+            !variable.isLocalFunction &&
+            variable.type is! InvalidType &&
+            variable.type.isPotentiallyNonNullable) {
+          if (inferrer.nnbdStrongMode) {
+            return new ExpressionInferenceResult(
+                new InvalidType(),
+                inferrer.helper.wrapInProblem(
+                    node,
+                    templateNonNullableNotAssignedError
+                        .withArguments(node.variable.name),
+                    node.variable.name.length));
+          } else {
+            inferrer.library.addProblem(
+                templateNonNullableNotAssignedWarning
+                    .withArguments(node.variable.name),
+                node.fileOffset,
+                node.variable.name.length,
+                inferrer.library.fileUri);
+          }
+        }
+      }
     }
 
     DartType promotedType;
@@ -5699,7 +5728,7 @@ class InferenceVisitor
   void reportNonNullableInNullAwareWarningIfNeeded(
       DartType operandType, String operationName, int offset) {
     if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-      if (operandType != InvalidType && !operandType.isPotentiallyNullable) {
+      if (operandType is! InvalidType && !operandType.isPotentiallyNullable) {
         inferrer.library.addProblem(
             templateNonNullableInNullAware.withArguments(
                 operationName, operandType, inferrer.isNonNullableByDefault),
