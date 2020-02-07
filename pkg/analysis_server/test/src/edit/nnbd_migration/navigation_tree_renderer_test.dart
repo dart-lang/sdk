@@ -134,16 +134,15 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
             isJsonMap.containing({
               'name': 'src',
               'subtree': [
-                isJsonMap.containing(
-                    {'href': convertPath('/project/lib/src/b.dart')})
+                isJsonMap.containing({'href': '/project/lib/src/b.dart'})
               ]
             }),
-            isJsonMap.containing({'href': convertPath('/project/lib/a.dart')})
+            isJsonMap.containing({'href': '/project/lib/a.dart'})
           ]
         }));
 
     var toolNode = response[1];
-    expect(toolNode['href'], convertPath('/project/tool.dart'));
+    expect(toolNode['href'], '/project/tool.dart');
   }
 
   Future<void> test_containsMultipleLinks_multipleDepths() async {
@@ -208,12 +207,12 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
             isJsonMap.containing({
               'name': 'a.dart',
               'path': convertPath('lib/a.dart'),
-              'href': convertPath('/project/lib/a.dart')
+              'href': '/project/lib/a.dart'
             }),
             isJsonMap.containing({
               'name': 'b.dart',
               'path': convertPath('lib/b.dart'),
-              'href': convertPath('/project/lib/b.dart')
+              'href': '/project/lib/b.dart'
             })
           ]
         }));
@@ -264,7 +263,7 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
                 isJsonMap.containing({
                   'name': 'a.dart',
                   'path': convertPath('lib/src/a.dart'),
-                  'href': convertPath('/project/lib/src/a.dart')
+                  'href': '/project/lib/src/a.dart'
                 })
               ]
             })
@@ -281,7 +280,7 @@ class NavigationTreeRendererTest extends NnbdMigrationTestBase {
     var aNode = response[0];
     expect(aNode['name'], 'a.dart');
     expect(aNode['path'], 'a.dart');
-    expect(aNode['href'], convertPath('/project/a.dart'));
+    expect(aNode['href'], '/project/a.dart');
   }
 }
 
