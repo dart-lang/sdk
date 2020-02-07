@@ -15413,7 +15413,7 @@ class Event extends Interceptor {
   }
 
   List<EventTarget> get path =>
-      JS('bool', '!!#.composedPath', this) == null ? composedPath() : [];
+      JS<bool>('bool', '!!#.composedPath', this) ? composedPath() : [];
 
   factory Event._(String type, [Map? eventInitDict]) {
     if (eventInitDict != null) {
