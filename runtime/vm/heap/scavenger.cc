@@ -421,12 +421,9 @@ void SemiSpace::WriteProtect(bool read_only) {
 // on the device's actual speed.
 static const intptr_t kConservativeInitialScavengeSpeed = 40;
 
-Scavenger::Scavenger(Heap* heap,
-                     intptr_t max_semi_capacity_in_words,
-                     uword object_alignment)
+Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
     : heap_(heap),
       max_semi_capacity_in_words_(max_semi_capacity_in_words),
-      object_alignment_(object_alignment),
       scavenging_(false),
       delayed_weak_properties_(NULL),
       gc_time_micros_(0),
@@ -1009,7 +1006,7 @@ uword Scavenger::TryAllocateNewTLAB(Thread* thread, intptr_t size) {
     return 0;
   }
   ASSERT(to_->Contains(result));
-  ASSERT((result & kObjectAlignmentMask) == object_alignment_);
+  ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
   top_ += size;
   ASSERT(to_->Contains(top_) || (top_ == to_->end()));
   ASSERT(result < top_);

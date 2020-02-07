@@ -37,7 +37,7 @@ Heap::Heap(Isolate* isolate,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words)
     : isolate_(isolate),
-      new_space_(this, max_new_gen_semi_words, kNewObjectAlignmentOffset),
+      new_space_(this, max_new_gen_semi_words),
       old_space_(this, max_old_gen_words),
       barrier_(),
       barrier_done_(),
