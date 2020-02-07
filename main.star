@@ -693,8 +693,7 @@ dart_ci_sandbox_builder(
 dart_ci_sandbox_builder(
     "dart2js-nnbd-linux-x64-chrome",
     category="dart2js|chrome|nn",
-    location_regexp=to_location_regexp(DART2JS_PATHS),
-    on_cq=True)
+    location_regexp=to_location_regexp(DART2JS_PATHS))
 dart_ci_sandbox_builder(
     "dart2js-strong-linux-x64-firefox", category="dart2js|firefox|l")
 dart_ci_sandbox_builder(
