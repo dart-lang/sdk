@@ -7,71 +7,71 @@
   "vm": {
     "libraries": {
       "_builtin": {
-        "uri": "../../sdk/lib/_internal/vm/bin/builtin.dart"
+        "uri": "_internal/vm/bin/builtin.dart"
       },
       "_internal": {
-        "uri": "../../sdk/lib/internal/internal.dart",
+        "uri": "internal/internal.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/internal_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/class_id_fasta.dart",
-          "../../sdk/lib/_internal/vm/lib/print_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/symbol_patch.dart",
-          "../../sdk/lib/internal/patch.dart"
+          "_internal/vm/lib/internal_patch.dart",
+          "_internal/vm/lib/class_id_fasta.dart",
+          "_internal/vm/lib/print_patch.dart",
+          "_internal/vm/lib/symbol_patch.dart",
+          "internal/patch.dart"
         ]
       },
       "async": {
-        "uri": "../../sdk/lib/async/async.dart",
+        "uri": "async/async.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/async_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/deferred_load_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/schedule_microtask_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/timer_patch.dart"
+          "_internal/vm/lib/async_patch.dart",
+          "_internal/vm/lib/deferred_load_patch.dart",
+          "_internal/vm/lib/schedule_microtask_patch.dart",
+          "_internal/vm/lib/timer_patch.dart"
         ]
       },
       "collection": {
-        "uri": "../../sdk/lib/collection/collection.dart",
+        "uri": "collection/collection.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/collection_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/compact_hash.dart"
+          "_internal/vm/lib/collection_patch.dart",
+          "_internal/vm/lib/compact_hash.dart"
         ]
       },
       "convert": {
-        "uri": "../../sdk/lib/convert/convert.dart",
-        "patches": "../../sdk/lib/_internal/vm/lib/convert_patch.dart"
+        "uri": "convert/convert.dart",
+        "patches": "_internal/vm/lib/convert_patch.dart"
       },
       "core": {
-        "uri": "../../sdk/lib/core/core.dart",
+        "uri": "core/core.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/lib/core_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/array.dart",
-          "../../sdk/lib/_internal/vm/lib/array_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/bigint_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/bool_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/date_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/double.dart",
-          "../../sdk/lib/_internal/vm/lib/double_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/errors_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/expando_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/function.dart",
-          "../../sdk/lib/_internal/vm/lib/function_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/growable_array.dart",
-          "../../sdk/lib/_internal/vm/lib/identical_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/immutable_map.dart",
-          "../../sdk/lib/_internal/vm/lib/integers.dart",
-          "../../sdk/lib/_internal/vm/lib/integers_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/invocation_mirror_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/lib_prefix.dart",
-          "../../sdk/lib/_internal/vm/lib/map_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/null_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/object_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/regexp_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/stacktrace.dart",
-          "../../sdk/lib/_internal/vm/lib/stopwatch_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/string_buffer_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/string_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/type_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/uri_patch.dart",
-          "../../sdk/lib/_internal/vm/lib/weak_property.dart"
+          "_internal/vm/lib/core_patch.dart",
+          "_internal/vm/lib/array.dart",
+          "_internal/vm/lib/array_patch.dart",
+          "_internal/vm/lib/bigint_patch.dart",
+          "_internal/vm/lib/bool_patch.dart",
+          "_internal/vm/lib/date_patch.dart",
+          "_internal/vm/lib/double.dart",
+          "_internal/vm/lib/double_patch.dart",
+          "_internal/vm/lib/errors_patch.dart",
+          "_internal/vm/lib/expando_patch.dart",
+          "_internal/vm/lib/function.dart",
+          "_internal/vm/lib/function_patch.dart",
+          "_internal/vm/lib/growable_array.dart",
+          "_internal/vm/lib/identical_patch.dart",
+          "_internal/vm/lib/immutable_map.dart",
+          "_internal/vm/lib/integers.dart",
+          "_internal/vm/lib/integers_patch.dart",
+          "_internal/vm/lib/invocation_mirror_patch.dart",
+          "_internal/vm/lib/lib_prefix.dart",
+          "_internal/vm/lib/map_patch.dart",
+          "_internal/vm/lib/null_patch.dart",
+          "_internal/vm/lib/object_patch.dart",
+          "_internal/vm/lib/regexp_patch.dart",
+          "_internal/vm/lib/stacktrace.dart",
+          "_internal/vm/lib/stopwatch_patch.dart",
+          "_internal/vm/lib/string_buffer_patch.dart",
+          "_internal/vm/lib/string_patch.dart",
+          "_internal/vm/lib/type_patch.dart",
+          "_internal/vm/lib/uri_patch.dart",
+          "_internal/vm/lib/weak_property.dart"
         ]
       },
       "developer": {
@@ -126,8 +126,8 @@
         ]
       },
       "math": {
-        "uri": "../../sdk/lib/math/math.dart",
-        "patches": "../../sdk/lib/_internal/vm/lib/math_patch.dart"
+        "uri": "math/math.dart",
+        "patches": "_internal/vm/lib/math_patch.dart"
       },
       "mirrors": {
         "uri": "mirrors/mirrors.dart",
@@ -147,8 +147,8 @@
         ]
       },
       "typed_data": {
-        "uri": "../../sdk/lib/typed_data/typed_data.dart",
-        "patches": "../../sdk/lib/_internal/vm/lib/typed_data_patch.dart"
+        "uri": "typed_data/typed_data.dart",
+        "patches": "_internal/vm/lib/typed_data_patch.dart"
       },
       "_vmservice": {
         "uri": "vmservice/vmservice.dart"
