@@ -36,6 +36,7 @@ general/expressions: RuntimeError
 general/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
 general/ignore_function: TypeCheckError
 general/incomplete_field_formal_parameter: RuntimeError
+general/infer_field_from_multiple: TypeCheckError
 general/invalid_type: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/invocations: RuntimeError

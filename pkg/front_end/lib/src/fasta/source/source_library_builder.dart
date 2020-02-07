@@ -262,7 +262,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
-  List<FieldBuilder> implicitlyTypedFields;
+  List<FieldBuilder> _implicitlyTypedFields;
 
   LanguageVersion _languageVersion = const ImplicitLanguageVersion();
 
@@ -1166,10 +1166,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     List<FieldBuilder> partImplicitlyTypedFields =
         part.takeImplicitlyTypedFields();
     if (partImplicitlyTypedFields != null) {
-      if (implicitlyTypedFields == null) {
-        implicitlyTypedFields = partImplicitlyTypedFields;
+      if (_implicitlyTypedFields == null) {
+        _implicitlyTypedFields = partImplicitlyTypedFields;
       } else {
-        implicitlyTypedFields.addAll(partImplicitlyTypedFields);
+        _implicitlyTypedFields.addAll(partImplicitlyTypedFields);
       }
     }
     return true;
@@ -2076,12 +2076,20 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     fieldBuilder.constInitializerToken = constInitializerToken;
     addBuilder(name, fieldBuilder, charOffset,
         reference: referenceFrom?.reference);
-    if (type == null && initializerToken != null && fieldBuilder.next == null) {
+    if (type == null && fieldBuilder.next == null) {
       // Only the first one (the last one in the linked list of next pointers)
       // are added to the tree, had parent pointers and can infer correctly.
-      fieldBuilder.fieldType =
-          new ImplicitFieldType(fieldBuilder, initializerToken);
-      (implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
+      if (initializerToken == null && fieldBuilder.isStatic) {
+        // A static field without type and initializer will always be inferred
+        // to have type `dynamic`.
+        fieldBuilder.fieldType = const DynamicType();
+      } else {
+        // A field with no type and initializer or an instance field without
+        // type and initializer need to have the type inferred.
+        fieldBuilder.fieldType =
+            new ImplicitFieldType(fieldBuilder, initializerToken);
+        registerImplicitlyTypedField(fieldBuilder);
+      }
     }
     loader.target.metadataCollector
         ?.setDocumentationComment(fieldBuilder.field, documentationComment);
@@ -3405,10 +3413,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     inferredTypes.clear();
   }
 
+  void registerImplicitlyTypedField(FieldBuilder fieldBuilder) {
+    (_implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
+  }
+
   @override
   List<FieldBuilder> takeImplicitlyTypedFields() {
-    List<FieldBuilder> result = implicitlyTypedFields;
-    implicitlyTypedFields = null;
+    List<FieldBuilder> result = _implicitlyTypedFields;
+    _implicitlyTypedFields = null;
     return result;
   }
 

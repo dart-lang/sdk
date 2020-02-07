@@ -191,6 +191,7 @@ foos
 forbidden
 forces
 foreign
+forrest
 fox
 fulfill
 func
@@ -255,6 +256,7 @@ le
 lengths
 lightly
 likewise
+lily
 linebreaks
 lints
 linux

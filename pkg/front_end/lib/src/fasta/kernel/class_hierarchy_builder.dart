@@ -915,6 +915,9 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
+  /// Infers the field type of [a] based on [b]. Returns `true` if the type of
+  /// [a] is known to be a valid override of [b], meaning that no additional
+  /// override checks are needed.
   bool inferFieldTypes(ClassMember a, ClassMember b) {
     debug?.log("Trying to infer field types for ${fullName(a)} "
         "based on ${fullName(b)}");
@@ -974,8 +977,13 @@ class ClassHierarchyNodeBuilder {
       debug?.log("${classBuilder.fullNameForErrors} -> "
           "${bClassBuilder.fullNameForErrors} $bSubstitution");
     }
-    if (bSubstitution != null && inheritedType is! ImplicitFieldType) {
-      inheritedType = bSubstitution.substituteType(inheritedType);
+    if (inheritedType is! ImplicitFieldType) {
+      if (bSubstitution != null) {
+        inheritedType = bSubstitution.substituteType(inheritedType);
+      }
+      if (!a.classBuilder.library.isNonNullableByDefault) {
+        inheritedType = legacyErasure(hierarchy.coreTypes, inheritedType);
+      }
     }
 
     Field aField = a.member;
@@ -985,26 +993,33 @@ class ClassHierarchyNodeBuilder {
     }
     if (declaredType == inheritedType) return true;
 
-    bool result = false;
+    bool isValidOverride = false;
     if (a is FieldBuilder) {
       if (a.parent == classBuilder && a.type == null) {
-        if (a.hadTypesInferred) {
-          reportCantInferFieldType(classBuilder, a);
-          inheritedType = const InvalidType();
+        DartType declaredType = a.fieldType;
+        if (declaredType is ImplicitFieldType) {
+          if (inheritedType is ImplicitFieldType) {
+            declaredType.addOverride(inheritedType);
+          } else {
+            // The concrete type has already been inferred.
+            a.hadTypesInferred = true;
+            a.fieldType = inheritedType;
+            isValidOverride = true;
+          }
+        } else if (a.hadTypesInferred) {
+          if (inheritedType is! ImplicitFieldType) {
+            // A different type has already been inferred.
+            reportCantInferFieldType(classBuilder, a);
+            a.fieldType = const InvalidType();
+          }
         } else {
-          result = true;
+          isValidOverride = true;
           a.hadTypesInferred = true;
-        }
-        if (inheritedType is ImplicitFieldType) {
-          SourceLibraryBuilder library = classBuilder.library;
-          (library.implicitlyTypedFields ??= <FieldBuilder>[]).add(a);
-          a.fieldType = inheritedType.createAlias(a);
-        } else {
           a.fieldType = inheritedType;
         }
       }
     }
-    return result;
+    return isValidOverride;
   }
 
   void copyParameterCovariance(Builder parent, VariableDeclaration aParameter,
@@ -2289,6 +2304,9 @@ class DelayedOverrideCheck {
                       b.member.enclosingClass,
                       classBuilder.library.library))
               .substituteType(type);
+          if (!a.classBuilder.library.isNonNullableByDefault) {
+            type = legacyErasure(hierarchy.coreTypes, type);
+          }
           if (type != a.fieldType) {
             if (a.hadTypesInferred) {
               if (b.isSetter &&

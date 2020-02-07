@@ -1,0 +1,69 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+class C extends core::Object {
+  static field dynamic _#s = null;
+  static field core::bool _#s#isSet = false;
+  field dynamic _#C#v = null;
+  field core::bool _#C#v#isSet = false;
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+  static get s() → dynamic
+    return self::C::_#s#isSet ?{dynamic} self::C::_#s : throw new _in::LateInitializationErrorImpl::•("Field 's' has not been initialized.");
+  static set s(dynamic #t1) → void
+    if(self::C::_#s#isSet)
+      throw new _in::LateInitializationErrorImpl::•("Field 's' has already been initialized.");
+    else {
+      self::C::_#s#isSet = true;
+      self::C::_#s = #t1;
+    }
+  get v() → dynamic
+    return this.{self::C::_#C#v#isSet} ?{dynamic} this.{self::C::_#C#v} : throw new _in::LateInitializationErrorImpl::•("Field 'v' has not been initialized.");
+  set v(dynamic #t2) → void
+    if(this.{self::C::_#C#v#isSet})
+      throw new _in::LateInitializationErrorImpl::•("Field 'v' has already been initialized.");
+    else {
+      this.{self::C::_#C#v#isSet} = true;
+      this.{self::C::_#C#v} = #t2;
+    }
+}
+static field dynamic _#g = null;
+static field core::bool _#g#isSet = false;
+static get g() → dynamic
+  return self::_#g#isSet ?{dynamic} self::_#g : throw new _in::LateInitializationErrorImpl::•("Field 'g' has not been initialized.");
+static set g(dynamic #t3) → void
+  if(self::_#g#isSet)
+    throw new _in::LateInitializationErrorImpl::•("Field 'g' has already been initialized.");
+  else {
+    self::_#g#isSet = true;
+    self::_#g = #t3;
+  }
+static method main() → dynamic {
+  final dynamic l;
+  core::bool #l#isSet = false;
+  function #l#get() → dynamic
+    return #l#isSet ?{dynamic} l : throw new _in::LateInitializationErrorImpl::•("Local 'l' has not been initialized.");
+  function #l#set(dynamic #t4) → dynamic
+    if(#l#isSet)
+      throw new _in::LateInitializationErrorImpl::•("Local 'l' has already been initialized.");
+    else {
+      #l#isSet = true;
+      return l = #t4;
+    }
+  self::g = "Lily";
+  self::C::s = "was";
+  self::C c = new self::C::•();
+  c.{self::C::v} = "here";
+  #l#set.call("Run, Forrest, run");
+  self::expect("Lily", self::g);
+  self::expect("was", self::C::s);
+  self::expect("here", c.{self::C::v});
+  self::expect("Run, Forrest, run", #l#get.call());
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!expected.{core::Object::==}(actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
