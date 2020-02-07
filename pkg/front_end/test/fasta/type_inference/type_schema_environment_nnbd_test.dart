@@ -257,7 +257,7 @@ class TypeSchemaEnvironmentTest {
     "Wn*": "Wn extends Tn, Tn extends Never",
 
     // Null.
-    "Null?": null,
+    "Null": null,
   };
 
   static String joinTypeParameters(
@@ -425,8 +425,8 @@ class TypeSchemaEnvironmentTest {
 
     testLower("<X extends dynamic>() -> void", "<Y extends Object?>() -> void",
         "<Z extends dynamic>() -> void");
-    testLower("<X extends Null?>() -> void", "<Y extends Never?>() -> void",
-        "<Z extends Null?>() -> void");
+    testLower("<X extends Null>() -> void", "<Y extends Never?>() -> void",
+        "<Z extends Null>() -> void");
     testLower(
         "<X extends FutureOr<dynamic>?>() -> void",
         "<Y extends FutureOr<Object?>>() -> void",
@@ -786,8 +786,8 @@ class TypeSchemaEnvironmentTest {
 
     testUpper("<X extends dynamic>() -> void", "<Y extends Object?>() -> void",
         "<Z extends dynamic>() -> void");
-    testUpper("<X extends Null?>() -> void", "<Y extends Never?>() -> void",
-        "<Z extends Null?>() -> void");
+    testUpper("<X extends Null>() -> void", "<Y extends Never?>() -> void",
+        "<Z extends Null>() -> void");
     testUpper(
         "<X extends FutureOr<dynamic>?>() -> void",
         "<Y extends FutureOr<Object?>>() -> void",
@@ -1077,7 +1077,7 @@ class TypeSchemaEnvironmentTest {
     expect(
         env.solveTypeConstraint(_makeConstraint(lower: toType("A<unknown>*")),
             grounded: true),
-        toType("A<Null?>*"));
+        toType("A<Null>*"));
 
     // Solve(? <: T <: A*) => A*
     expect(
@@ -1155,7 +1155,7 @@ class TypeSchemaEnvironmentTest {
             _makeConstraint(
                 lower: toType("B<unknown>*"), upper: toType("A<unknown>*")),
             grounded: true),
-        toType("B<Null?>*"));
+        toType("B<Null>*"));
   }
 
   void test_typeConstraint_default() {
