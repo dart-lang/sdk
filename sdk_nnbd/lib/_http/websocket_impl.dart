@@ -602,7 +602,9 @@ class _WebSocketPerMessageDeflate {
     final result = new BytesBuilder();
     List<int> out;
 
-    while ((out = decoder.processed()) != null) {
+    while (true) {
+      final out = decoder.processed();
+      if (out == null) break;
       result.add(out);
     }
 
@@ -633,8 +635,9 @@ class _WebSocketPerMessageDeflate {
 
     encoder.process(buffer, 0, buffer.length);
 
-    List<int> out;
-    while ((out = encoder.processed()) != null) {
+    while (true) {
+      final out = encoder.processed();
+      if (out == null) break;
       result.addAll(out);
     }
 

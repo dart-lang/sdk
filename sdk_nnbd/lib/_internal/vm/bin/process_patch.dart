@@ -571,11 +571,13 @@ Future<ProcessResult> _runNonInteractiveProcess(
     Future foldStream(Stream<List<int>> stream, Encoding? encoding) {
       if (encoding == null) {
         return stream
-            .fold(new BytesBuilder(), (builder, data) => builder..add(data))
+            .fold<BytesBuilder>(
+                new BytesBuilder(), (builder, data) => builder..add(data))
             .then((builder) => builder.takeBytes());
       } else {
-        return stream.transform(encoding.decoder).fold(new StringBuffer(),
-            (buf, data) {
+        return stream
+            .transform(encoding.decoder)
+            .fold<StringBuffer>(new StringBuffer(), (buf, data) {
           buf.write(data);
           return buf;
         }).then((sb) => sb.toString());

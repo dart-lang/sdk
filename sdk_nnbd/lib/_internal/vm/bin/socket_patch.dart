@@ -1311,7 +1311,7 @@ class _RawServerSocket extends Stream<RawSocket> implements RawServerSocket {
         controller.add(_RawSocket(socket));
         if (controller.isPaused) return;
       }
-    }), error: zone.bindBinaryCallbackGuarded((e, st) {
+    }), error: zone.bindBinaryCallbackGuarded((Object e, StackTrace st) {
       controller.addError(e, st);
       controller.close();
     }), destroyed: () {
@@ -1425,7 +1425,7 @@ class _RawSocket extends Stream<RawSocketEvent> implements RawSocket {
           _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
-        error: zone.bindBinaryCallbackGuarded((e, st) {
+        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace st) {
           _controller.addError(e, st);
           _socket.close();
         }));
@@ -1978,7 +1978,7 @@ class _RawDatagramSocket extends Stream<RawSocketEvent>
           _controller.add(RawSocketEvent.closed);
           _controller.close();
         },
-        error: zone.bindBinaryCallbackGuarded((e, st) {
+        error: zone.bindBinaryCallbackGuarded((Object e, StackTrace st) {
           _controller.addError(e, st);
           _socket.close();
         }));
