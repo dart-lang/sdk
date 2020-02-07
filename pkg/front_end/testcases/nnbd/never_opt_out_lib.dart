@@ -7,3 +7,15 @@ import 'never_opt_out.dart';
 Never throwing() => throw 'Never!';
 
 Never optInNever = optOutNever;
+
+class A {
+  Never neverField = throw "Should not reach here";
+  Never neverMethod(Never value) => value;
+  Never get neverProperty => throw "Should not reach here";
+  void set neverProperty(Never value) {}
+
+  Null nullField = null;
+  Null nullMethod(Null value) => value;
+  Null get nullProperty => Null;
+  void set nullProperty(Null value) {}
+}

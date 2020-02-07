@@ -171,6 +171,7 @@ instantiate_to_bound/non_simple_generic_function_in_bound_regress: RuntimeError 
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
+nnbd/never_opt_out: TypeCheckError
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

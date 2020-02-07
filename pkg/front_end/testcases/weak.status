@@ -66,3 +66,4 @@ general_nnbd_opt_out/warn_unresolved_sends: InstrumentationMismatch # Test assum
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
+nnbd/never_opt_out: TypeCheckError

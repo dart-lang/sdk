@@ -64,6 +64,30 @@ main() {
   throws(() => inferredLocalNever = throwing());
 }
 
+class B extends A {
+  Null neverField;
+  Null neverMethod(Null value) => value;
+  Null get neverProperty => null;
+  void set neverProperty(Null value) {}
+
+  Null nullField;
+  Null nullMethod(Null value) => value;
+  Null get nullProperty => null;
+  void set nullProperty(Null value) {}
+}
+
+class C extends A {
+  Never neverField;
+  Never neverMethod(Never value) => value;
+  Never get neverProperty => null;
+  void set neverProperty(Never value) {}
+
+  Never nullField;
+  Never nullMethod(Never value) => value;
+  Never get nullProperty => null;
+  void set nullProperty(Never value) {}
+}
+
 throws(void Function() f) {
   try {
     f();

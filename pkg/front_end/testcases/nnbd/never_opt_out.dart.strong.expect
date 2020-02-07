@@ -1,10 +1,44 @@
 library;
 import self as self;
-import "dart:core" as core;
 import "never_opt_out_lib.dart" as nev;
+import "dart:core" as core;
 
 import "org-dartlang-testcase:///never_opt_out_lib.dart";
 
+class B extends nev::A {
+  field core::Null? neverField = null;
+  field core::Null? nullField = null;
+  synthetic constructor •() → self::B*
+    : super nev::A::•()
+    ;
+  method neverMethod(core::Null? value) → core::Null?
+    return value;
+  get neverProperty() → core::Null?
+    return null;
+  set neverProperty(core::Null? value) → void {}
+  method nullMethod(core::Null? value) → core::Null?
+    return value;
+  get nullProperty() → core::Null?
+    return null;
+  set nullProperty(core::Null? value) → void {}
+}
+class C extends nev::A {
+  field Never* neverField = null;
+  field Never* nullField = null;
+  synthetic constructor •() → self::C*
+    : super nev::A::•()
+    ;
+  method neverMethod(Never* value) → Never*
+    return value;
+  get neverProperty() → Never*
+    return null;
+  set neverProperty(Never* value) → void {}
+  method nullMethod(Never* value) → Never*
+    return value;
+  get nullProperty() → Never*
+    return null;
+  set nullProperty(Never* value) → void {}
+}
 static field Never* optOutNever;
 static field core::Null? inferredOptOutNever = nev::optInNever;
 static method main() → dynamic {
@@ -65,11 +99,40 @@ static method throws(() →* void f) → dynamic {
 }
 
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be assigned to a variable of type 'Null?'.
+//  - 'Type' is from 'dart:core'.
+//   Null get nullProperty => Null;
+//                            ^
+//
 import self as nev;
+import "dart:core" as core;
 import "never_opt_out.dart" as self;
 
 import "org-dartlang-testcase:///never_opt_out.dart";
 
+class A extends core::Object {
+  field Never neverField = throw "Should not reach here";
+  field core::Null? nullField = null;
+  synthetic constructor •() → nev::A
+    : super core::Object::•()
+    ;
+  method neverMethod(Never value) → Never
+    return value;
+  get neverProperty() → Never
+    return throw "Should not reach here";
+  set neverProperty(Never value) → void {}
+  method nullMethod(core::Null? value) → core::Null?
+    return value;
+  get nullProperty() → core::Null?
+    return let final<BottomType> #t1 = invalid-expression "pkg/front_end/testcases/nnbd/never_opt_out_lib.dart:19:28: Error: A value of type 'Type' can't be assigned to a variable of type 'Null?'.
+ - 'Type' is from 'dart:core'.
+  Null get nullProperty => Null;
+                           ^" in core::Null? as{TypeError,ForNonNullableByDefault} core::Null?;
+  set nullProperty(core::Null? value) → void {}
+}
 static field Never optInNever = self::optOutNever;
 static method throwing() → Never
   return throw "Never!";
