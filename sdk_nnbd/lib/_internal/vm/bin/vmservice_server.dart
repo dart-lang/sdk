@@ -276,7 +276,7 @@ class Server {
       // PUT requests are forwarded to DevFS for processing.
 
       List fsNameList;
-      List fsPathList;
+      List? fsPathList;
       List? fsPathBase64List;
       List? fsUriBase64List;
       Object? fsName;
@@ -297,12 +297,12 @@ class Server {
 
         // Fallback to path encoding.
         if (fsUri == null) {
-          fsPathList = request.headers['dev_fs_path']!;
+          fsPathList = request.headers['dev_fs_path'];
           fsPathBase64List = request.headers['dev_fs_path_b64'];
           // If the 'dev_fs_path_b64' header field was sent, use that instead.
-          if ((fsPathBase64List != null) && (fsPathBase64List.length > 0)) {
+          if ((fsPathBase64List != null) && fsPathBase64List.isNotEmpty) {
             fsPath = utf8.decode(base64.decode(fsPathBase64List[0]));
-          } else {
+          } else if (fsPathList != null && fsPathList.isNotEmpty) {
             fsPath = fsPathList[0];
           }
         }
