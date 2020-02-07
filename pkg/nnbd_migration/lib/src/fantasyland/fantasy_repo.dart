@@ -16,8 +16,8 @@ final Map<String, FantasyRepoSettings> _repoTable = {
       'build_version', '$githubHost:kevmoo/build_version.git'),
   'csv': FantasyRepoSettings('csv', '$githubHost:close2/csv.git'),
   'git': FantasyRepoSettings('git', '$githubHost:kevmoo/git.git'),
-  'node_interop': FantasyRepoSettings(
-      'node_interop', '$githubHost:pulyaevskiy/node-interop.git'),
+  'node-interop': FantasyRepoSettings(
+      'node-interop', '$githubHost:pulyaevskiy/node-interop.git'),
   'node_preamble': FantasyRepoSettings(
       'package_config', '$githubHost:mbullington/node_preamble.dart.git'),
   'package_config': FantasyRepoSettings('package_config',

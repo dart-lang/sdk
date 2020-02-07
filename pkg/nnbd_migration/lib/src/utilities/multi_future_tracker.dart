@@ -7,6 +7,26 @@ import 'dart:async';
 /// This library helps run parallel thread-like closures asynchronously.
 /// Borrowed from dartdoc:src/io_utils.dart.
 
+Future<T> retryClosure<T>(Future<T> Function() closure,
+    {Duration baseInterval = const Duration(milliseconds: 200),
+    double factor = 2,
+    int retries = 5}) async {
+  Future<T> handleError(Object _) async {
+    return await Future.delayed(
+        baseInterval,
+        () => retryClosure(closure,
+            baseInterval: baseInterval * factor,
+            factor: factor,
+            retries: retries - 1));
+  }
+
+  if (retries > 0) {
+    return await Future.sync(closure).catchError(handleError);
+  } else {
+    return await Future.sync(closure);
+  }
+}
+
 // TODO(jcollins-g): like SubprocessLauncher, merge with io_utils in dartdoc
 // before cut-and-paste gets out of hand.
 class MultiFutureTracker {

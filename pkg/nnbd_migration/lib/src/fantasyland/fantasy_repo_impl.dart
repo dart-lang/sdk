@@ -73,9 +73,7 @@ class FantasyRepoGitImpl extends FantasyRepo {
   /// initializing.
   Future<void> _clone(SubprocessLauncher launcher) async {
     assert(_isInitialized == false);
-    if (!repoRoot.parent.exists) {
-      await repoRoot.parent.create();
-    }
+    repoRoot.parent.create();
     await launcher.runStreamed('git', ['init', repoRoot.path]);
     await launcher.runStreamed(
         'git',
@@ -111,34 +109,17 @@ class FantasyRepoGitImpl extends FantasyRepo {
       '!**/pubspec.lock\n',
       '!**/.dart_tool/package_config.json\n'
     ].join());
-    try {
-      await _update(launcher);
-    } catch (e) {
-      if (e is FantasyRepoUpdateException) {
-        throw FantasyRepoCloneException(
-            'Unable to initialize clone for: $repoSettings');
-      }
-      // Other kinds of exceptions are not expected, so rethrow.
-      rethrow;
-    }
+    await launcher.runStreamed(
+        'git', ['pull', '--depth=1', '--rebase', 'originHTTP'],
+        workingDirectory: repoRoot.path, retries: 5);
   }
 
   Future<void> _update(SubprocessLauncher launcher) async {
     assert(_isInitialized == false);
     try {
-      List<String> args;
-      if (repoSettings.branch == 'master') {
-        args = [
-          'pull',
-          '--depth=1',
-          '--rebase',
-          'originHTTP',
-          repoSettings.revision
-        ];
-      } else {
-        args = ['pull', '--rebase', 'originHTTP', repoSettings.revision];
-      }
-      await launcher.runStreamed('git', args, workingDirectory: repoRoot.path);
+      await launcher.runStreamed(
+          'git', ['pull', '--rebase', 'originHTTP', repoSettings.revision],
+          workingDirectory: repoRoot.path, retries: 5);
     } catch (e) {
       if (e is ProcessException) {
         throw FantasyRepoUpdateException(

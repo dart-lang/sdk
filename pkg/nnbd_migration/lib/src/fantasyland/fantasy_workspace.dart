@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(jcollins-g): finish port away from io
-import 'dart:io' show Directory;
-
 import 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
 
@@ -12,10 +9,16 @@ export 'package:nnbd_migration/src/fantasyland/fantasy_sub_package.dart';
 
 /// Represent a single [FantasyWorkspace].
 abstract class FantasyWorkspace {
-  Directory get workspaceRoot;
+  String get workspaceRootPath;
 
   /// Fully initialized subpackages.
-  Map<String, FantasySubPackage> subPackages;
+  Map<FantasySubPackageSettings, FantasySubPackage> subPackages;
+
+  /// Add a package to the workspace, given [packageSettings].
+  ///
+  /// Completes when the repository and subPackage is added.
+  Future<FantasySubPackage> addPackageToWorkspace(
+      FantasySubPackageSettings packageSettings);
 }
 
 /// Build a "fantasyland"-style repository structure suitable for applying
