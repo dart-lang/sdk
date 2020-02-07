@@ -1378,9 +1378,6 @@ void Precompiler::CollectDynamicFunctionNames() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
@@ -1458,10 +1455,6 @@ void Precompiler::TraceForRetainedFunctions() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-
       functions = cls.functions();
       for (intptr_t j = 0; j < functions.Length(); j++) {
         function ^= functions.At(j);
@@ -1517,10 +1510,6 @@ void Precompiler::DropFunctions() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-
       functions = cls.functions();
       retained_functions = GrowableObjectArray::New();
       for (intptr_t j = 0; j < functions.Length(); j++) {
@@ -1581,10 +1570,6 @@ void Precompiler::DropFields() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
-
       fields = cls.fields();
       retained_fields = GrowableObjectArray::New();
       for (intptr_t j = 0; j < fields.Length(); j++) {
@@ -1780,9 +1765,6 @@ void Precompiler::TraceTypesFromRetainedClasses() {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
 
       // The subclasses/implementors array is only needed for CHA.
       cls.ClearDirectSubclasses();

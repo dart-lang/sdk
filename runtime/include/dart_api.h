@@ -1488,6 +1488,11 @@ DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size);
 DART_EXPORT Dart_Handle Dart_Null();
 
 /**
+ * Is this object null?
+ */
+DART_EXPORT bool Dart_IsNull(Dart_Handle object);
+
+/**
  * Returns the empty string object.
  *
  * \return A handle to the empty string object.
@@ -1495,9 +1500,14 @@ DART_EXPORT Dart_Handle Dart_Null();
 DART_EXPORT Dart_Handle Dart_EmptyString();
 
 /**
- * Is this object null?
+ * Returns types that are not classes, and which therefore cannot be looked up
+ * as library members by Dart_GetType.
+ *
+ * \return A handle to the dynamic, void or Never type.
  */
-DART_EXPORT bool Dart_IsNull(Dart_Handle object);
+DART_EXPORT Dart_Handle Dart_TypeDynamic();
+DART_EXPORT Dart_Handle Dart_TypeVoid();
+DART_EXPORT Dart_Handle Dart_TypeNever();
 
 /**
  * Checks if the two objects are equal.

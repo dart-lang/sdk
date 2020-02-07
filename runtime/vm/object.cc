@@ -11832,12 +11832,6 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   core_lib.Register(thread);
   isolate->object_store()->set_bootstrap_library(ObjectStore::kCore, core_lib);
   isolate->object_store()->set_root_library(Library::Handle());
-
-  // Hook up predefined classes without setting their library pointers. These
-  // classes are coming from the VM isolate, and are shared between multiple
-  // isolates so setting their library pointers would be wrong.
-  const Class& cls = Class::Handle(zone, Object::dynamic_class());
-  core_lib.AddObject(cls, String::Handle(zone, cls.Name()));
 }
 
 // Invoke the function, or noSuchMethod if it is null.
@@ -19210,7 +19204,9 @@ bool Type::CheckIsCanonical(Thread* thread) const {
 #endif  // DEBUG
 
 void Type::EnumerateURIs(URIs* uris) const {
-  if (IsDynamicType() || IsVoidType()) {
+  // N.B. Not all types with kNeverCid answer true to IsNeverType, but none of
+  // them have a URI.
+  if (IsDynamicType() || IsVoidType() || (type_class_id() == kNeverCid)) {
     return;
   }
   Thread* thread = Thread::Current();
@@ -19451,7 +19447,8 @@ void TypeRef::EnumerateURIs(URIs* uris) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const AbstractType& ref_type = AbstractType::Handle(zone, type());
-  ASSERT(!ref_type.IsDynamicType() && !ref_type.IsVoidType());
+  ASSERT(!ref_type.IsDynamicType() && !ref_type.IsVoidType() &&
+         !ref_type.IsNeverType());
   const Class& cls = Class::Handle(zone, ref_type.type_class());
   const String& name = String::Handle(zone, cls.UserVisibleName());
   const Library& library = Library::Handle(zone, cls.library());

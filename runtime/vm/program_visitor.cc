@@ -29,9 +29,6 @@ void ProgramVisitor::VisitClasses(ClassVisitor* visitor) {
     ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
     while (it.HasNext()) {
       cls = it.GetNextClass();
-      if (cls.IsDynamicClass()) {
-        continue;  // class 'dynamic' is in the read-only VM isolate.
-      }
       visitor->Visit(cls);
     }
     patches = lib.used_scripts();
@@ -55,10 +52,6 @@ class ClassFunctionVisitor : public ClassVisitor {
         field_(Field::Handle(zone)) {}
 
   void Visit(const Class& cls) {
-    if (cls.IsDynamicClass()) {
-      return;  // class 'dynamic' is in the read-only VM isolate.
-    }
-
     functions_ = cls.functions();
     for (intptr_t j = 0; j < functions_.Length(); j++) {
       function_ ^= functions_.At(j);

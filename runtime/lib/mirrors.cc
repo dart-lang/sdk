@@ -1179,18 +1179,18 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_members, 0, 2) {
     entry = entries.GetNext();
     if (entry.IsClass()) {
       const Class& klass = Class::Cast(entry);
-      ASSERT(!klass.IsVoidClass() && !klass.IsNeverClass());
-      if (!klass.IsDynamicClass()) {
-        error = klass.EnsureIsFinalized(thread);
-        if (!error.IsNull()) {
-          Exceptions::PropagateError(error);
-        }
-        type = klass.DeclarationType();
-        member_mirror = CreateClassMirror(klass, type,
-                                          Bool::True(),  // is_declaration
-                                          owner_mirror);
-        member_mirrors.Add(member_mirror);
+      ASSERT(!klass.IsDynamicClass());
+      ASSERT(!klass.IsVoidClass());
+      ASSERT(!klass.IsNeverClass());
+      error = klass.EnsureIsFinalized(thread);
+      if (!error.IsNull()) {
+        Exceptions::PropagateError(error);
       }
+      type = klass.DeclarationType();
+      member_mirror = CreateClassMirror(klass, type,
+                                        Bool::True(),  // is_declaration
+                                        owner_mirror);
+      member_mirrors.Add(member_mirror);
     } else if (entry.IsField()) {
       const Field& field = Field::Cast(entry);
       if (field.is_reflectable()) {

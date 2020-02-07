@@ -1981,14 +1981,35 @@ DART_EXPORT Dart_Handle Dart_Null() {
   return Api::Null();
 }
 
+DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
+  TransitionNativeToVM transition(Thread::Current());
+  return Api::UnwrapHandle(object) == Object::null();
+}
+
 DART_EXPORT Dart_Handle Dart_EmptyString() {
   ASSERT(Isolate::Current() != NULL);
   return Api::EmptyString();
 }
 
-DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
-  TransitionNativeToVM transition(Thread::Current());
-  return Api::UnwrapHandle(object) == Object::null();
+DART_EXPORT Dart_Handle Dart_TypeDynamic() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, Type::DynamicType());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeVoid() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, Type::VoidType());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeNever() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, Type::NeverType());
 }
 
 DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1,
@@ -2268,7 +2289,8 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
 #if defined(DEBUG)
     const Library& lib = Library::Handle(Z, owner.library());
     if (lib.IsNull()) {
-      ASSERT(owner.IsDynamicClass() || owner.IsVoidClass());
+      ASSERT(owner.IsDynamicClass() || owner.IsVoidClass() ||
+             owner.IsNeverClass());
     }
 #endif
     return Api::NewHandle(T, owner.library());

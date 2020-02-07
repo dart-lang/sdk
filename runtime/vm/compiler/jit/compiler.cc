@@ -1016,12 +1016,6 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   Object& result = Object::Handle(zone);
   Array& functions = Array::Handle(zone, cls.functions());
   Function& func = Function::Handle(zone);
-  // Class dynamic lives in the vm isolate. Its array fields cannot be set to
-  // an empty array.
-  if (functions.IsNull()) {
-    ASSERT(cls.IsDynamicClass());
-    return Error::null();
-  }
   // Compile all the regular functions.
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
@@ -1046,12 +1040,6 @@ RawError* Compiler::ReadAllBytecode(const Class& cls) {
   ASSERT(error.IsNull());
   Array& functions = Array::Handle(zone, cls.functions());
   Function& func = Function::Handle(zone);
-  // Class dynamic lives in the vm isolate. Its array fields cannot be set to
-  // an empty array.
-  if (functions.IsNull()) {
-    ASSERT(cls.IsDynamicClass());
-    return Error::null();
-  }
   // Compile all the regular functions.
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);

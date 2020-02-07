@@ -28,6 +28,9 @@ used (see Issue [39627][]).
 
 ### Dart VM
 
+* Added `Dart_TypeDynamic`, `Dart_TypeVoid` and `Dart_TypeNever`. Type dynamic
+  can no longer by reached by `Dart_GetType(dart:core, dynamic)`.
+
 ### Tools
 
 #### Dart Dev Compiler (DDC)
