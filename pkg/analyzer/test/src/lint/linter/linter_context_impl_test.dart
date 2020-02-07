@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -17,6 +18,7 @@ main() {
     defineReflectiveTests(CanBeConstConstructorTest);
     defineReflectiveTests(CanBeConstTest);
     defineReflectiveTests(EvaluateExpressionTest);
+    defineReflectiveTests(PubDependencyTest);
   });
 }
 
@@ -287,5 +289,34 @@ var x = 42;
   LinterConstantEvaluationResult _evaluateX() {
     var node = findNode.topVariableDeclarationByName('x').initializer;
     return context.evaluateConstant(node);
+  }
+}
+
+@reflectiveTest
+class PubDependencyTest extends AbstractLinterContextTest {
+  test_dependencies() async {
+    newFile('/test/pubspec.yaml', content: '''
+name: test
+
+dependencies:
+  args: '>=0.12.1 <2.0.0'
+  charcode: ^1.1.0
+''');
+    await resolve(r'''
+/// Dummy class.
+class C { }
+''');
+
+    expect(context.package, TypeMatcher<PubWorkspacePackage>());
+    final pubPackage = context.package as PubWorkspacePackage;
+    final pubspec = pubPackage.pubspec;
+
+    final argsDep = pubspec.dependencies
+        .singleWhere((element) => element.name.text == 'args');
+    expect(argsDep.version.value.text, '>=0.12.1 <2.0.0');
+
+    final charCodeDep = pubspec.dependencies
+        .singleWhere((element) => element.name.text == 'charcode');
+    expect(charCodeDep.version.value.text, '^1.1.0');
   }
 }
