@@ -845,6 +845,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
   do {                                                                         \
     buffer.AddString(value ? (" " #name) : (" no-" #name));                    \
   } while (0);
+#define ADD_P(name, T, DV, C) ADD_FLAG(name, FLAG_##name)
+#define ADD_R(name, PV, T, DV, C) ADD_FLAG(name, FLAG_##name)
+#define ADD_C(name, PCV, PV, T, DV, C) ADD_FLAG(name, FLAG_##name)
+#define ADD_D(name, T, DV, C) ADD_FLAG(name, FLAG_##name)
 
 #define ADD_ISOLATE_FLAG(name, isolate_flag, flag)                             \
   do {                                                                         \
@@ -853,7 +857,7 @@ const char* Dart::FeaturesString(Isolate* isolate,
   } while (0);
 
   if (Snapshot::IncludesCode(kind)) {
-    VM_GLOBAL_FLAG_LIST(ADD_FLAG);
+    VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
 
     // enabling assertions affects deopt ids.
     ADD_ISOLATE_FLAG(asserts, enable_asserts, FLAG_enable_asserts);
@@ -901,6 +905,10 @@ const char* Dart::FeaturesString(Isolate* isolate,
     buffer.AddString(" nnbd-experiment");
   }
 #undef ADD_ISOLATE_FLAG
+#undef ADD_D
+#undef ADD_C
+#undef ADD_R
+#undef ADD_P
 #undef ADD_FLAG
 
   return buffer.Steal();

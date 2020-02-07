@@ -5842,19 +5842,72 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
     if (end == nullptr) {
       end = features + features_length;
     }
-#define CHECK_FLAG(name, flag)                                                 \
+
+#define SET_FLAG(name)                                                         \
   if (strncmp(cursor, #name, end - cursor) == 0) {                             \
-    flag = true;                                                               \
+    FLAG_##name = true;                                                        \
     cursor = end;                                                              \
     continue;                                                                  \
   }                                                                            \
   if (strncmp(cursor, "no-" #name, end - cursor) == 0) {                       \
-    flag = false;                                                              \
+    FLAG_##name = false;                                                       \
     cursor = end;                                                              \
     continue;                                                                  \
   }
-    VM_GLOBAL_FLAG_LIST(CHECK_FLAG)
+
+#define CHECK_FLAG(name, mode)                                                 \
+  if (strncmp(cursor, #name, end - cursor) == 0) {                             \
+    if (!FLAG_##name) {                                                        \
+      return header_reader.BuildError("Flag " #name                            \
+                                      " is true in snapshot, "                 \
+                                      "but " #name                             \
+                                      " is always false in " mode);            \
+    }                                                                          \
+    cursor = end;                                                              \
+    continue;                                                                  \
+  }                                                                            \
+  if (strncmp(cursor, "no-" #name, end - cursor) == 0) {                       \
+    if (FLAG_##name) {                                                         \
+      return header_reader.BuildError("Flag " #name                            \
+                                      " is false in snapshot, "                \
+                                      "but " #name                             \
+                                      " is always true in " mode);             \
+    }                                                                          \
+    cursor = end;                                                              \
+    continue;                                                                  \
+  }
+
+#define SET_P(name, T, DV, C) SET_FLAG(name)
+
+#if defined(PRODUCT)
+#define SET_OR_CHECK_R(name, PV, T, DV, C) CHECK_FLAG(name, "product mode")
+#else
+#define SET_OR_CHECK_R(name, PV, T, DV, C) SET_FLAG(name)
+#endif
+
+#if defined(PRODUCT)
+#define SET_OR_CHECK_C(name, PCV, PV, T, DV, C) CHECK_FLAG(name, "product mode")
+#elif defined(DART_PRECOMPILED_RUNTIME)
+#define SET_OR_CHECK_C(name, PCV, PV, T, DV, C)                                \
+  CHECK_FLAG(name, "the precompiled runtime")
+#else
+#define SET_OR_CHECK_C(name, PV, T, DV, C) SET_FLAG(name)
+#endif
+
+#if !defined(DEBUG)
+#define SET_OR_CHECK_D(name, T, DV, C) CHECK_FLAG(name, "non-debug mode")
+#else
+#define SET_OR_CHECK_D(name, T, DV, C) SET_FLAG(name)
+#endif
+
+    VM_GLOBAL_FLAG_LIST(SET_P, SET_OR_CHECK_R, SET_OR_CHECK_C, SET_OR_CHECK_D)
+
+#undef SET_OR_CHECK_D
+#undef SET_OR_CHECK_C
+#undef SET_OR_CHECK_R
+#undef SET_P
 #undef CHECK_FLAG
+#undef SET_FLAG
 
     cursor = end;
   }

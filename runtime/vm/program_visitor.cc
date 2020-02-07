@@ -1125,14 +1125,14 @@ void ProgramVisitor::Dedup() {
   DedupCodeSourceMaps();
   DedupLists();
 
-#if defined(PRODUCT)
   // Reduces binary size but obfuscates profiler results.
-  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
-    DedupInstructionsWithSameMetadata();
-  } else {
-    DedupInstructions();
+  if (FLAG_dedup_instructions) {
+    if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+      DedupInstructionsWithSameMetadata();
+    } else {
+      DedupInstructions();
+    }
   }
-#endif
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 

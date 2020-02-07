@@ -1601,12 +1601,6 @@ static RawUnlinkedCall* LoadUnlinkedCall(Zone* zone,
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
-#if defined(PRODUCT)
-const bool kInstructionsCanBeDeduped = true;
-#else
-const bool kInstructionsCanBeDeduped = false;
-#endif  // defined(PRODUCT)
-
 // Handle the first use of an instance call
 //   Arg2: UnlinkedCall.
 //   Arg1: Receiver.
@@ -1661,7 +1655,7 @@ DEFINE_RUNTIME_ENTRY(UnlinkedCall, 3) {
   //
   // See [MonomorphicMiss]
   const bool need_saved_unlinked_call =
-      (FLAG_use_bare_instructions && kInstructionsCanBeDeduped);
+      (FLAG_use_bare_instructions && FLAG_dedup_instructions);
 
   // We transition from an unlinked call to a monomorphic call. This transition
   // will cause us to loose the argument descriptor information on the call
@@ -1777,7 +1771,7 @@ DEFINE_RUNTIME_ENTRY(MonomorphicMiss, 2) {
 
   String& name = String::Handle(zone);
   Array& descriptor = Array::Handle(zone);
-  if (FLAG_use_bare_instructions && kInstructionsCanBeDeduped) {
+  if (FLAG_use_bare_instructions && FLAG_dedup_instructions) {
     const auto& unlinked_call = UnlinkedCall::Handle(
         zone, LoadUnlinkedCall(zone, isolate, caller_frame->pc()));
     name = unlinked_call.target_name();
