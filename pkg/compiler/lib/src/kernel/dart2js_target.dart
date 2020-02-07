@@ -183,7 +183,6 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:io',
     'dart:js',
     'dart:js_util',
-    'dart:mirrors',
     'dart:svg',
     'dart:web_audio',
     'dart:web_gl',
@@ -202,7 +201,6 @@ const _requiredLibraries = const <String, List<String>>{
     'dart:io',
     'dart:js',
     'dart:js_util',
-    'dart:mirrors',
   ]
 };
 
