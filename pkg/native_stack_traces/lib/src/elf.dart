@@ -47,6 +47,11 @@ int _readElfXword(Reader reader) {
   }
 }
 
+// Reads an Elf{32,64}_Section.
+int _readElfSection(Reader reader) {
+  return _readElfBytes(reader, 2, 2);
+}
+
 // Used in cases where the value read for a given field is Elf32_Word on 32-bit
 // and Elf64_Xword on 64-bit.
 int _readElfNative(Reader reader) {
@@ -451,6 +456,10 @@ class Section {
     switch (entry.type) {
       case SectionHeaderEntry._SHT_STRTAB:
         return StringTable(entry, reader);
+      case SectionHeaderEntry._SHT_SYMTAB:
+        return SymbolTable(entry, reader);
+      case SectionHeaderEntry._SHT_DYNSYM:
+        return SymbolTable(entry, reader);
       default:
         return Section(entry, reader);
     }
@@ -472,6 +481,7 @@ class StringTable extends Section {
   }
 
   String operator [](int index) => _entries[index];
+  bool containsKey(int index) => _entries.containsKey(index);
 
   @override
   String toString() {
@@ -482,6 +492,127 @@ class StringTable extends Section {
         ..write(key)
         ..write(" => ")
         ..writeln(_entries[key]);
+    }
+    return buffer.toString();
+  }
+}
+
+enum SymbolBinding {
+  STB_LOCAL,
+  STB_GLOBAL,
+}
+
+enum SymbolType {
+  STT_NOTYPE,
+  STT_OBJECT,
+  STT_FUNC,
+}
+
+enum SymbolVisibility {
+  STV_DEFAULT,
+  STV_INTERNAL,
+  STV_HIDDEN,
+  STV_PROTECTED,
+}
+
+class Symbol {
+  final int nameIndex;
+  final int info;
+  final int other;
+  final int sectionIndex;
+  final int value;
+  final int size;
+
+  final int _wordSize;
+
+  String name;
+
+  Symbol._(this.nameIndex, this.info, this.other, this.sectionIndex, this.value,
+      this.size, this._wordSize);
+
+  static Symbol fromReader(Reader reader) {
+    final nameIndex = _readElfWord(reader);
+    int info;
+    int other;
+    int sectionIndex;
+    if (reader.wordSize == 8) {
+      info = reader.readByte();
+      other = reader.readByte();
+      sectionIndex = _readElfSection(reader);
+    }
+    final value = _readElfAddress(reader);
+    final size = _readElfNative(reader);
+    if (reader.wordSize == 4) {
+      info = reader.readByte();
+      other = reader.readByte();
+      sectionIndex = _readElfSection(reader);
+    }
+    return Symbol._(
+        nameIndex, info, other, sectionIndex, value, size, reader.wordSize);
+  }
+
+  void _cacheNameFromStringTable(StringTable table) {
+    if (!table.containsKey(nameIndex)) {
+      throw FormatException("Index $nameIndex not found in string table");
+    }
+    name = table[nameIndex];
+  }
+
+  SymbolBinding get bind => SymbolBinding.values[info >> 4];
+  SymbolType get type => SymbolType.values[info & 0x0f];
+  SymbolVisibility get visibility => SymbolVisibility.values[other & 0x03];
+
+  @override
+  String toString() {
+    final buffer = StringBuffer("symbol ");
+    if (name != null) {
+      buffer..write('"')..write(name)..write('" ');
+    }
+    buffer
+      ..write("(")
+      ..write(nameIndex)
+      ..write("): ")
+      ..write(paddedHex(value, _wordSize))
+      ..write(" ")
+      ..write(size)
+      ..write(" sec ")
+      ..write(sectionIndex)
+      ..write(" ")
+      ..write(bind)
+      ..write(" ")
+      ..write(type)
+      ..write(" ")
+      ..write(visibility);
+    return buffer.toString();
+  }
+}
+
+class SymbolTable extends Section {
+  final Iterable<Symbol> _entries;
+  final _nameCache = Map<String, Symbol>();
+
+  SymbolTable(SectionHeaderEntry entry, Reader reader)
+      : _entries = reader.readRepeated(Symbol.fromReader),
+        super(entry, reader);
+
+  void _cacheNames(StringTable stringTable) {
+    _nameCache.clear();
+    for (final symbol in _entries) {
+      symbol._cacheNameFromStringTable(stringTable);
+      _nameCache[symbol.name] = symbol;
+    }
+  }
+
+  Symbol operator [](String name) => _nameCache[name];
+  bool containsKey(String name) => _nameCache.containsKey(name);
+
+  @override
+  String toString() {
+    var buffer = StringBuffer("a symbol table:\n");
+    for (var symbol in _entries) {
+      buffer
+        ..write(" ")
+        ..writeln(symbol);
     }
     return buffer.toString();
   }
@@ -516,15 +647,23 @@ class Elf {
   /// Returns null if the file does not start with the ELF magic number.
   static Elf fromFile(String path) => Elf.fromReader(Reader.fromFile(path));
 
+  /// The virtual address value of the dynamic symbol named [name].
+  ///
+  /// Returns -1 if there is no dynamic symbol with that name.
+  int namedAddress(String name) {
+    for (final SymbolTable dynsym in namedSections(".dynsym")) {
+      if (dynsym.containsKey(name)) {
+        return dynsym[name].value;
+      }
+    }
+    return -1;
+  }
+
   /// The [Section]s whose names match [name].
-  Iterable<Section> namedSection(String name) {
-    final ret = _sections.keys
+  Iterable<Section> namedSections(String name) {
+    return _sections.keys
         .where((entry) => entry.name == name)
         .map((entry) => _sections[entry]);
-    if (ret.isEmpty) {
-      throw FormatException("No section named $name found in ELF file");
-    }
-    return ret;
   }
 
   static Elf _read(Reader startingReader) {
@@ -542,15 +681,38 @@ class Elf {
         entryCount: header.sectionHeaderCount,
         stringsIndex: header.sectionHeaderStringsIndex);
     final sections = <SectionHeaderEntry, Section>{};
+    final dynsyms = Map<SectionHeaderEntry, SymbolTable>();
+    final dynstrs = Map<SectionHeaderEntry, StringTable>();
     for (var i = 0; i < sectionHeader.length; i++) {
       final entry = sectionHeader[i];
       if (i == header.sectionHeaderStringsIndex) {
         sections[entry] = sectionHeader.nameTable;
-      } else {
-        sections[entry] = Section.fromEntryAndReader(
-            entry, reader.refocus(entry.offset, entry.size));
+        continue;
       }
+      final section = Section.fromEntryAndReader(
+          entry, reader.refocus(entry.offset, entry.size));
+      // Store the dynamic symbol tables and dynamic string tables so we can
+      // cache the symbol names afterwards.
+      switch (entry.name) {
+        case ".dynsym":
+          dynsyms[entry] = section;
+          break;
+        case ".dynstr":
+          dynstrs[entry] = section;
+          break;
+        default:
+          break;
+      }
+      sections[entry] = section;
     }
+    dynsyms.forEach((entry, dynsym) {
+      final linkEntry = sectionHeader[entry.link];
+      if (!dynstrs.containsKey(linkEntry)) {
+        throw FormatException(
+            "String table not found at section header entry ${entry.link}");
+      }
+      dynsym._cacheNames(dynstrs[linkEntry]);
+    });
     return Elf._(header, programHeader, sectionHeader, sections);
   }
 

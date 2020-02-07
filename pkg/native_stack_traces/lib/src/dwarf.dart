@@ -1072,8 +1072,11 @@ class Dwarf {
   /// Returns a [Dwarf] object if the load succeeds, otherwise returns null.
   static Dwarf fromFile(String path) => Dwarf.fromReader(Reader.fromFile(path));
 
+  static const String _vmSymbol = "_kDartVmSnapshotInstructions";
+  static const String _isolateSymbol = "_kDartIsolateSnapshotInstructions";
+
   static Dwarf _loadSectionsFromElf(Elf elf) {
-    final abbrevSection = elf.namedSection(".debug_abbrev").first;
+    final abbrevSection = elf.namedSections(".debug_abbrev").single;
     final abbreviationTables = <int, _AbbreviationsTable>{};
     var abbreviationOffset = 0;
     while (abbreviationOffset < abbrevSection.reader.length) {
@@ -1084,21 +1087,22 @@ class Dwarf {
     }
     assert(abbreviationOffset == abbrevSection.reader.length);
 
-    final lineNumberSection = elf.namedSection(".debug_line").first;
+    final lineNumberSection = elf.namedSections(".debug_line").single;
     final lineNumberInfo = LineNumberInfo.fromReader(lineNumberSection.reader);
 
-    final infoSection = elf.namedSection(".debug_info").first;
+    final infoSection = elf.namedSections(".debug_info").single;
     final debugInfo = DebugInfo.fromReader(
         infoSection.reader, abbreviationTables, lineNumberInfo);
 
-    final textSegments = elf.namedSection(".text").toList();
-    if (textSegments.length != 2) {
-      throw FormatException(
-          "Expected two text segments for VM and isolate instructions");
+    final vmStartAddress = elf.namedAddress(_vmSymbol);
+    if (vmStartAddress == -1) {
+      throw FormatException("Expected a dynamic symbol with name ${_vmSymbol}");
     }
-
-    final vmStartAddress = textSegments[0].virtualAddress;
-    final isolateStartAddress = textSegments[1].virtualAddress;
+    final isolateStartAddress = elf.namedAddress(_isolateSymbol);
+    if (isolateStartAddress == -1) {
+      throw FormatException(
+          "Expected a dynamic symbol with name ${_isolateSymbol}");
+    }
 
     return Dwarf._(abbreviationTables, debugInfo, lineNumberInfo,
         vmStartAddress, isolateStartAddress);

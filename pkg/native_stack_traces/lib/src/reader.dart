@@ -123,6 +123,12 @@ class Reader {
     return ret;
   }
 
+  Iterable<S> readRepeated<S>(S Function(Reader) callback) sync* {
+    while (!done) {
+      yield callback(this);
+    }
+  }
+
   String dumpCurrentReaderPosition({int maxSize = 0, int bytesPerLine = 16}) {
     var baseData = ByteData.view(bdata.buffer, 0, bdata.buffer.lengthInBytes);
     var startOffset = 0;
