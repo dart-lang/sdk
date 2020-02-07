@@ -242,8 +242,11 @@ bool isntHashBlockTerminator(line) => !isSectioningCommand(line);
 extractHashLabel(line) {
   var startMatch = hashLabelStartRE.firstMatch(line);
   var endMatch = hashLabelEndRE.firstMatch(line);
-  assert(startMatch != null && endMatch != null);
-  return line.substring(startMatch.end, endMatch.start);
+  if (startMatch != null && endMatch != null) {
+    return line.substring(startMatch.end, endMatch.start);
+  } else {
+    throw "Assertion failure (so this file is both valid nnbd and not)";
+  }
 }
 
 // Event classes: Keep track of relevant information about the LaTeX
