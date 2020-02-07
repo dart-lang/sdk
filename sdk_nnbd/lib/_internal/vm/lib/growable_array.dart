@@ -116,10 +116,8 @@ class _GrowableList<T> extends ListBase<T> {
     int old_capacity = _capacity;
     int new_capacity = new_length;
     if (new_capacity > old_capacity) {
-      if (null is! T) {
-        throw UnsupportedError(
-            "Cannot grow array with non-nullable element type");
-      }
+      // Verify that element type is nullable.
+      null as T;
       _grow(new_capacity);
       _setLength(new_length);
       return;
