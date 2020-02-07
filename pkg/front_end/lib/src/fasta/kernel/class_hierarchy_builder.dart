@@ -16,6 +16,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/src/future_or.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
+import 'package:kernel/src/norm.dart';
 
 import '../../testing/id_testing_utils.dart' show typeToText;
 
@@ -1536,7 +1537,10 @@ class ClassHierarchyNodeBuilder {
           superclass.classNode == type.classNode) {
         // This is a potential conflict.
         if (classBuilder.library.isNonNullableByDefault) {
-          superclass = nnbdTopMerge(hierarchy.coreTypes, superclass, type);
+          superclass = nnbdTopMerge(
+              hierarchy.coreTypes,
+              norm(hierarchy.coreTypes, superclass),
+              norm(hierarchy.coreTypes, type));
           if (superclass == null) {
             // This is a conflict.
             // TODO(johnniwinther): Report errors here instead of through
@@ -1556,7 +1560,10 @@ class ClassHierarchyNodeBuilder {
               interface.classNode == type.classNode) {
             // This is a potential conflict.
             if (classBuilder.library.isNonNullableByDefault) {
-              interface = nnbdTopMerge(hierarchy.coreTypes, interface, type);
+              interface = nnbdTopMerge(
+                  hierarchy.coreTypes,
+                  norm(hierarchy.coreTypes, interface),
+                  norm(hierarchy.coreTypes, type));
               if (interface == null) {
                 // This is a conflict.
                 // TODO(johnniwinther): Report errors here instead of through

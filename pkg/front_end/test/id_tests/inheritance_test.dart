@@ -28,8 +28,7 @@ main(List<String> args) async {
             experimentalFlags: const {ExperimentalFlag.nonNullable: true},
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             compileSdk: true),
-        new TestConfig(
-            cfeFromBuilderMarker, 'cfe from builder',
+        new TestConfig(cfeFromBuilderMarker, 'cfe from builder',
             experimentalFlags: const {ExperimentalFlag.nonNullable: true},
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             compileSdk: true)

@@ -13,6 +13,21 @@ DartType norm(CoreTypes coreTypes, DartType type) {
   return type.accept(new _Norm(coreTypes)) ?? type;
 }
 
+Supertype normSupertype(CoreTypes coreTypes, Supertype supertype) {
+  if (supertype.typeArguments.isEmpty) return supertype;
+  _Norm normVisitor = new _Norm(coreTypes);
+  List<DartType> typeArguments = null;
+  for (int i = 0; i < supertype.typeArguments.length; ++i) {
+    DartType typeArgument = supertype.typeArguments[i].accept(normVisitor);
+    if (typeArgument != null) {
+      typeArguments ??= supertype.typeArguments.toList();
+      typeArguments[i] = typeArgument;
+    }
+  }
+  if (typeArguments == null) return supertype;
+  return new Supertype(supertype.classNode, typeArguments);
+}
+
 /// Visitor implementing the NORM algorithm.
 ///
 /// Visitor's methods return null if the type is unchanged by the NORM
