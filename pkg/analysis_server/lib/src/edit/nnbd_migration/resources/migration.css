@@ -16,6 +16,7 @@ body {
   left: 0;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
 header {
@@ -51,6 +52,10 @@ footer {
   padding: 8px 24px;
 }
 
+footer .wide {
+  flex: 1;
+}
+
 .horizontal {
   display: flex;
 }
@@ -81,7 +86,6 @@ footer {
 }
 
 .nav-inner {
-  background-color: #282b2e;
   padding: 0 0 7px 7px;
 }
 
@@ -161,6 +165,7 @@ footer {
 
 .content {
   flex: 4 300px;
+  background: #282b2e;
   font-family: monospace;
   margin: 0 6px;
   position: relative;
@@ -169,9 +174,10 @@ footer {
 }
 
 .code {
-  min-height: 600px;
-  padding-left: 62px;
-  position: inherit;
+  padding: 0.5em;
+  position: absolute;
+  left: 0;
+  top: 0;
 }
 
 .hljs {
@@ -203,10 +209,10 @@ footer {
 }
 
 .regions {
-  padding: 0;
+  padding: 0.5em;
   position: absolute;
-  left: 0.5em;
-  top: 0.5em;
+  left: 0;
+  top: 0;
 }
 
 .regions table {

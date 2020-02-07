@@ -47,10 +47,7 @@ class MigrationInfo {
   /// The filesystem root used to create relative paths for each unit.
   final String includedRoot;
 
-  final String migrationDate;
-
-  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot)
-      : migrationDate = DateTime.now().toString();
+  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot);
 
   /// The path to the highlight.pack.js script, relative to [unitInfo].
   String get highlightJsPath => PreviewSite.highlightJsPath;
@@ -63,7 +60,6 @@ class MigrationInfo {
   String computeName(UnitInfo unit) =>
       pathContext.relative(unit.path, from: includedRoot);
 
-  /// Generate mustache context for unit links.
   List<UnitLink> unitLinks() {
     List<UnitLink> links = [];
     for (UnitInfo unit in units) {

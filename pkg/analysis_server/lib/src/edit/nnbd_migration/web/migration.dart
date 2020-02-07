@@ -218,6 +218,10 @@ void loadFile(
   VoidCallback callback,
 }) {
   // Navigating to another file; request it, then do work with the response.
+
+  // TODO(devoncarew): path might be a url; if it is, then use url manipulation
+  // to add additional args.
+
   HttpRequest.request(
     path.contains('?') ? '$path&inline=true' : '$path?inline=true',
     requestHeaders: {'Content-Type': 'application/json; charset=UTF-8'},
@@ -226,7 +230,9 @@ void loadFile(
       var response = jsonDecode(xhr.responseText);
       writeCodeAndRegions(response);
       maybeScrollToAndHighlight(offset, lineNumber);
-      updatePage(path, offset);
+      String filePathPart =
+          path.contains('?') ? path.substring(0, path.indexOf('?')) : path;
+      updatePage(filePathPart, offset);
       if (callback != null) {
         callback();
       }
@@ -236,11 +242,14 @@ void loadFile(
   }).catchError((e, st) {
     logError('loadFile: $e', st);
 
-    window.alert('Could not load $path; preview server might be disconnected.');
+    window.alert('Could not load $path ($e).');
   });
 }
 
 void pushState(String path, int offset, int lineNumber) {
+  // TODO(devoncarew): Path might be a url; if it is, then use url manipulation
+  // to add additional args.
+
   var newLocation = window.location.origin + path + '?';
   if (offset != null) {
     newLocation = newLocation + 'offset=$offset&';
@@ -333,7 +342,7 @@ void handlePostLinkClick(MouseEvent event) {
   }).catchError((e, st) {
     logError('handlePostLinkClick: $e', st);
 
-    window.alert('Could not load $path; preview server might be disconnected.');
+    window.alert('Could not load $path ($e).');
   });
 }
 
@@ -412,7 +421,7 @@ void loadNavigationTree() {
   }).catchError((e, st) {
     logError('loadNavigationTree: $e', st);
 
-    window.alert('Could not load $path; preview server might be disconnected.');
+    window.alert('Could not load $path ($e).');
   });
 }
 
@@ -497,7 +506,7 @@ void loadRegionExplanation(Element region) {
   }).catchError((e, st) {
     logError('loadRegionExplanation: $e', st);
 
-    window.alert('Could not load $path; preview server might be disconnected.');
+    window.alert('Could not load $path ($e).');
   });
 }
 
