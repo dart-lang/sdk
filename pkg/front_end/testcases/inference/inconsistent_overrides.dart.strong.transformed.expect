@@ -1,0 +1,66 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:16:3: Error: Can't infer a return type for 'f' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   f(x, {y}) {}
+//   ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:16:5: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   f(x, {y}) {}
+//     ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:16:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   f(x, {y}) {}
+//         ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:18:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   h(x, {y}) {}
+//         ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:17:5: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   g(x, {y}) {}
+//     ^
+//
+// pkg/front_end/testcases/inference/inconsistent_overrides.dart:17:9: Error: Can't infer a type for 'y' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   g(x, {y}) {}
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  method f(self::A* x, {self::A* y = #C1}) → self::A* {}
+  method g(self::A* x, {self::A* y = #C1}) → self::A* {}
+  method h(self::A* x, {self::A* y = #C1}) → self::A* {}
+}
+class B extends self::A implements self::I {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+  method f(invalid-type x, {invalid-type y = #C1}) → invalid-type {}
+  method g(invalid-type x, {invalid-type y = #C1}) → self::A* {}
+  method h(self::A* x, {invalid-type y = #C1}) → self::A* {}
+}
+class I extends core::Object {
+  synthetic constructor •() → self::I*
+    : super core::Object::•()
+    ;
+  method f(self::I* x, {self::I* y = #C1}) → self::I* {}
+  method g(self::I* x, {self::I* y = #C1}) → self::A* {}
+  method h(self::A* x, {self::I* y = #C1}) → self::A* {}
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

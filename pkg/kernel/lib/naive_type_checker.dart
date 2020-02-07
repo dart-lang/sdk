@@ -92,8 +92,7 @@ ${ownType} is not a subtype of ${superType}
       } else {
         final DartType ownType = getterType(host, ownMember);
         final DartType superType = getterType(host, superMember);
-        if (!environment.isSubtypeOf(
-            ownType, superType, SubtypeCheckMode.ignoringNullabilities)) {
+        if (!_isSubtypeOf(ownType, superType)) {
           return failures.reportInvalidOverride(ownMember, superMember, '''
 ${ownType} is not a subtype of ${superType}
 ''');
@@ -109,8 +108,13 @@ ${ownType} is not a subtype of ${superType}
 
   /// Check if [subtype] is subtype of [supertype] after applying
   /// type parameter [substitution].
-  bool _isSubtypeOf(DartType subtype, DartType supertype) => environment
-      .isSubtypeOf(subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
+  bool _isSubtypeOf(DartType subtype, DartType supertype) {
+    if (subtype is InvalidType || supertype is InvalidType) {
+      return true;
+    }
+    return environment.isSubtypeOf(
+        subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
+  }
 
   Substitution _makeSubstitutionForMember(Class host, Member member) {
     final hostType =
@@ -235,11 +239,7 @@ super method declares ${superParameter.type}
   @override
   void checkAssignable(TreeNode where, DartType from, DartType to) {
     // Note: we permit implicit downcasts.
-    if (from != to &&
-        !environment.isSubtypeOf(
-            from, to, SubtypeCheckMode.ignoringNullabilities) &&
-        !environment.isSubtypeOf(
-            to, from, SubtypeCheckMode.ignoringNullabilities)) {
+    if (from != to && !_isSubtypeOf(from, to) && !_isSubtypeOf(to, from)) {
       failures.reportNotAssignable(where, from, to);
     }
   }

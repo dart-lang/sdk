@@ -1,0 +1,31 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference_new/infer_field_override_getter_overrides_setter.dart:19:7: Error: Can't infer a type for 'x' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   var x;
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract set x(core::num* value) → void;
+}
+abstract class B extends self::A {
+  synthetic constructor •() → self::B*
+    : super self::A::•()
+    ;
+  abstract get x() → core::int*;
+}
+class C extends self::B {
+  field invalid-type x = null;
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+}
+static method main() → dynamic {}
