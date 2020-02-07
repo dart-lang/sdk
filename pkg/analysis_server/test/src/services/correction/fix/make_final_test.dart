@@ -26,12 +26,14 @@ class MakeFinalTest extends FixProcessorLintTest {
   Future<void> test_field_type() async {
     await resolveTestUnit('''
 class C {
-  int /*LINT*/f = 2;
+  int _f = 2;
+  int get g => _f;
 }
 ''');
     await assertHasFix('''
 class C {
-  final int f = 2;
+  final int _f = 2;
+  int get g => _f;
 }
 ''');
   }
@@ -39,70 +41,15 @@ class C {
   Future<void> test_field_var() async {
     await resolveTestUnit('''
 class C {
-  var /*LINT*/f = 2;
+  var _f = 2;
+  int get g => _f;
 }
 ''');
     await assertHasFix('''
 class C {
-  final f = 2;
+  final _f = 2;
+  int get g => _f;
 }
-''');
-  }
-
-  Future<void> test_local_type() async {
-    await resolveTestUnit('''
-bad() {
-  int /*LINT*/x = 2;
-}
-''');
-    await assertHasFix('''
-bad() {
-  final int x = 2;
-}
-''');
-  }
-
-  Future<void> test_local_var() async {
-    await resolveTestUnit('''
-bad() {
-  var /*LINT*/x = 2;
-}
-''');
-    await assertHasFix('''
-bad() {
-  final x = 2;
-}
-''');
-  }
-
-  Future<void> test_noKeyword() async {
-    await resolveTestUnit('''
-class C {
-  /*LINT*/f = 2;
-}
-''');
-    await assertHasFix('''
-class C {
-  final f = 2;
-}
-''');
-  }
-
-  Future<void> test_topLevel_type() async {
-    await resolveTestUnit('''
-int /*LINT*/x = 2;
-''');
-    await assertHasFix('''
-final int x = 2;
-''');
-  }
-
-  Future<void> test_topLevel_var() async {
-    await resolveTestUnit('''
-var /*LINT*/x = 2;
-''');
-    await assertHasFix('''
-final x = 2;
 ''');
   }
 }

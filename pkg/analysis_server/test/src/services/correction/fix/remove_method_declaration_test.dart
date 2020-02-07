@@ -134,7 +134,9 @@ class A {
 ''');
   }
 
+  @failingTest
   Future<void> test_setter() async {
+    // The lint doesn't catch unnecessary setters.
     await resolveTestUnit('''
 class A {
   int foo;
@@ -142,7 +144,7 @@ class A {
 
 class B extends A {
   @override
-  set /*LINT*/foo(int value) {
+  set foo(int value) {
     super.foo = value;
   }
 }
