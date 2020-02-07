@@ -67,7 +67,7 @@ class SecureServerSocket extends Stream<SecureSocket> {
    * isolates this way.
    */
   static Future<SecureServerSocket> bind(
-      address, int port, SecurityContext context,
+      address, int port, SecurityContext? context,
       {int backlog: 0,
       bool v6Only: false,
       bool requestClientCertificate: false,
@@ -124,7 +124,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   final RawServerSocket _socket;
   late StreamController<RawSecureSocket> _controller;
   StreamSubscription<RawSocket>? _subscription;
-  final SecurityContext _context;
+  final SecurityContext? _context;
   final bool requestClientCertificate;
   final bool requireClientCertificate;
   final List<String>? supportedProtocols;
@@ -195,7 +195,7 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
    * multiple isolates this way.
    */
   static Future<RawSecureServerSocket> bind(
-      address, int port, SecurityContext context,
+      address, int port, SecurityContext? context,
       {int backlog: 0,
       bool v6Only: false,
       bool requestClientCertificate: false,
