@@ -31004,7 +31004,7 @@ class Window extends EventTarget
   @Returns('Window|=Object')
   final dynamic _get_opener;
 
-  set opener(Window value) {
+  set opener(WindowBase value) {
     JS("void", "#.opener = #", this, value);
   }
 

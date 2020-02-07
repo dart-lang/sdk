@@ -248,15 +248,15 @@ class Cursor extends Interceptor {
 
   @_annotation_Creates_IDBKey
   @_annotation_Returns_IDBKey
-  Object get key => JS("Object", "#.key", this);
+  Object? get key => JS("Object", "#.key", this);
 
   @_annotation_Creates_IDBKey
   @_annotation_Returns_IDBKey
-  Object get primaryKey => JS("Object", "#.primaryKey", this);
+  Object? get primaryKey => JS("Object", "#.primaryKey", this);
 
   @Creates('Null')
   @Returns('ObjectStore|Index|Null')
-  Object get source => JS("Object", "#.source", this);
+  Object? get source => JS("Object", "#.source", this);
 
   void advance(int count) native;
 
@@ -285,11 +285,11 @@ class CursorWithValue extends Cursor {
     throw new UnsupportedError("Not supported");
   }
 
-  dynamic get value => _convertNativeToDart_IDBAny(this._get_value);
+  dynamic? get value => _convertNativeToDart_IDBAny(this._get_value);
   @JSName('value')
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _get_value;
+  dynamic get _get_value => JS("", "#.value", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -402,7 +402,7 @@ class Database extends EventTarget {
 
   String get name => JS("String", "#.name", this);
 
-  @Returns('DomStringList|Null')
+  @Returns('DomStringList')
   @Creates('DomStringList')
   List<String> get objectStoreNames =>
       JS("DomStringList", "#.objectStoreNames", this);
@@ -655,7 +655,7 @@ class Index extends Interceptor {
   }
 
   @annotation_Creates_SerializedScriptValue
-  Object get keyPath => JS("Object", "#.keyPath", this);
+  Object? get keyPath => JS("Object", "#.keyPath", this);
 
   bool get multiEntry => JS("bool", "#.multiEntry", this);
 
@@ -728,12 +728,12 @@ class KeyRange extends Interceptor {
   }
 
   @annotation_Creates_SerializedScriptValue
-  Object get lower => JS("Object", "#.lower", this);
+  Object? get lower => JS("Object", "#.lower", this);
 
   bool get lowerOpen => JS("bool", "#.lowerOpen", this);
 
   @annotation_Creates_SerializedScriptValue
-  Object get upper => JS("Object", "#.upper", this);
+  Object? get upper => JS("Object", "#.upper", this);
 
   bool get upperOpen => JS("bool", "#.upperOpen", this);
 
@@ -884,12 +884,12 @@ class ObjectStore extends Interceptor {
 
   bool get autoIncrement => JS("bool", "#.autoIncrement", this);
 
-  @Returns('DomStringList|Null')
+  @Returns('DomStringList')
   @Creates('DomStringList')
   List<String> get indexNames => JS("DomStringList", "#.indexNames", this);
 
   @annotation_Creates_SerializedScriptValue
-  Object get keyPath => JS("Object", "#.keyPath", this);
+  Object? get keyPath => JS("Object", "#.keyPath", this);
 
   String get name => JS("String", "#.name", this);
 
@@ -1031,11 +1031,11 @@ class Observation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Object get key => JS("Object", "#.key", this);
+  Object? get key => JS("Object", "#.key", this);
 
   String get type => JS("String", "#.type", this);
 
-  Object get value => JS("Object", "#.value", this);
+  Object? get value => JS("Object", "#.value", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1079,7 +1079,7 @@ class ObserverChanges extends Interceptor {
 
   Database get database => JS("Database", "#.database", this);
 
-  Object get records => JS("Object", "#.records", this);
+  Object? get records => JS("Object", "#.records", this);
 
   Transaction get transaction => JS("Transaction", "#.transaction", this);
 }
@@ -1154,13 +1154,13 @@ class Request extends EventTarget {
 
   String get readyState => JS("String", "#.readyState", this);
 
-  dynamic get result => _convertNativeToDart_IDBAny(this._get_result);
+  dynamic? get result => _convertNativeToDart_IDBAny(this._get_result);
   @JSName('result')
   @Creates('Null')
-  final dynamic _get_result;
+  dynamic get _get_result => JS("", "#.result", this);
 
   @Creates('Null')
-  Object get source => JS("Object", "#.source", this);
+  Object? get source => JS("Object", "#.source", this);
 
   Transaction get transaction => JS("Transaction", "#.transaction", this);
 
@@ -1243,7 +1243,7 @@ class Transaction extends EventTarget {
 
   String get mode => JS("String", "#.mode", this);
 
-  @Returns('DomStringList|Null')
+  @Returns('DomStringList')
   @Creates('DomStringList')
   List<String> get objectStoreNames =>
       JS("DomStringList", "#.objectStoreNames", this);
@@ -1294,7 +1294,7 @@ class VersionChangeEvent extends Event {
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final int? newVersion;
+  int? get newVersion => JS("int", "#.newVersion", this);
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')

@@ -230,7 +230,7 @@ $!MEMBERS
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
-  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
+  Iterable<CssStyleDeclaration>$NULLABLE _elementCssStyleDeclarationSetIterable;
 
   _CssStyleDeclarationSet(this._elementIterable) {
     _elementCssStyleDeclarationSetIterable = new List.from(
@@ -238,12 +238,12 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   }
 
   String getPropertyValue(String propertyName) =>
-      _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
+      _elementCssStyleDeclarationSetIterable$NULLASSERT.first.getPropertyValue(
           propertyName);
 
   void setProperty(String propertyName, String value,
       [String$NULLABLE priority]) {
-    _elementCssStyleDeclarationSetIterable.forEach((e) =>
+    _elementCssStyleDeclarationSetIterable$NULLASSERT.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
 

@@ -194,7 +194,7 @@ class AudioContext extends BaseAudioContext {
   Future close() => promiseToFuture(JS("", "#.close()", this));
 
   Map getOutputTimestamp() {
-    return convertNativeToDart_Dictionary(_getOutputTimestamp_1());
+    return convertNativeToDart_Dictionary(_getOutputTimestamp_1())!;
   }
 
   @JSName('getOutputTimestamp')
@@ -536,7 +536,7 @@ class AudioTrack extends Interceptor {
 
   String get language => JS("String", "#.language", this);
 
-  final SourceBuffer? sourceBuffer;
+  SourceBuffer? get sourceBuffer => JS("SourceBuffer", "#.sourceBuffer", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -556,7 +556,7 @@ class AudioTrackList extends EventTarget {
 
   AudioTrack __getter__(int index) native;
 
-  AudioTrack getTrackById(String id) native;
+  AudioTrack? getTrackById(String id) native;
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }

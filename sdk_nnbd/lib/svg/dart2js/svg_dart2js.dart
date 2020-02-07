@@ -1839,15 +1839,15 @@ abstract class FilterPrimitiveStandardAttributes extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final AnimatedLength height;
+  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
 
-  final AnimatedString result;
+  AnimatedString get result => JS("AnimatedString", "#.result", this);
 
-  final AnimatedLength width;
+  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
 
-  final AnimatedLength x;
+  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
 
-  final AnimatedLength y;
+  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1860,9 +1860,10 @@ abstract class FitToViewBox extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final AnimatedPreserveAspectRatio preserveAspectRatio;
+  AnimatedPreserveAspectRatio get preserveAspectRatio =>
+      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
 
-  final AnimatedRect viewBox;
+  AnimatedRect get viewBox => JS("AnimatedRect", "#.viewBox", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3054,7 +3055,7 @@ class StyleElement extends SvgElement {
     JS("void", "#.media = #", this, value);
   }
 
-  final StyleSheet? sheet;
+  StyleSheet? get sheet => JS("StyleSheet", "#.sheet", this);
 
   // Use implementation from Element.
   // final String title;
@@ -3396,7 +3397,8 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   AnimatedString get _svgClassName => JS("AnimatedString", "#.className", this);
 
   @JSName('ownerSVGElement')
-  final SvgSvgElement? ownerSvgElement;
+  SvgSvgElement? get ownerSvgElement =>
+      JS("SvgSvgElement", "#.ownerSVGElement", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
@@ -3404,7 +3406,8 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   // Use implementation from Element.
   // final int tabIndex;
 
-  final SvgElement? viewportElement;
+  SvgElement? get viewportElement =>
+      JS("SvgElement", "#.viewportElement", this);
 
   void blur() native;
 
@@ -3622,11 +3625,11 @@ class SvgSvgElement extends GraphicsElement
 
   Element getElementById(String elementId) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getEnclosureList(Rect rect, SvgElement? referenceElement) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getIntersectionList(Rect rect, SvgElement? referenceElement)
       native;
@@ -3741,9 +3744,10 @@ abstract class Tests extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final StringList requiredExtensions;
+  StringList get requiredExtensions =>
+      JS("StringList", "#.requiredExtensions", this);
 
-  final StringList systemLanguage;
+  StringList get systemLanguage => JS("StringList", "#.systemLanguage", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4014,7 +4018,7 @@ class TransformList extends Interceptor
 
   void clear() native;
 
-  Transform consolidate() native;
+  Transform? consolidate() native;
 
   @JSName('createSVGTransformFromMatrix')
   Transform createSvgTransformFromMatrix(Matrix matrix) native;
@@ -4058,7 +4062,7 @@ abstract class UriReference extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final AnimatedString href;
+  AnimatedString get href => JS("AnimatedString", "#.href", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
