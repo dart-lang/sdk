@@ -5007,6 +5007,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
   AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
   AddBaseObject(Object::void_type().raw(), "Type", "<void type>");
+  AddBaseObject(Object::never_type().raw(), "Type", "<never type>");
   AddBaseObject(Object::empty_type_arguments().raw(), "TypeArguments", "[]");
   AddBaseObject(Bool::True().raw(), "bool", "true");
   AddBaseObject(Bool::False().raw(), "bool", "false");
@@ -5498,6 +5499,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());
   AddBaseObject(Object::void_type().raw());
+  AddBaseObject(Object::never_type().raw());
   AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Bool::True().raw());
   AddBaseObject(Bool::False().raw());
