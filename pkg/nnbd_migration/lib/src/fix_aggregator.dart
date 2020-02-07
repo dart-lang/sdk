@@ -397,6 +397,28 @@ class NodeChangeForPropertyAccess
   }
 }
 
+/// Implementation of [NodeChange] specialized for operating on
+/// [SimpleFormalParameter] nodes.
+class NodeChangeForSimpleFormalParameter
+    extends NodeChange<SimpleFormalParameter> {
+  /// If not `null`, an explicit type annotation that should be added to the
+  /// parameter.
+  DartType addExplicitType;
+
+  NodeChangeForSimpleFormalParameter() : super._();
+
+  @override
+  EditPlan _apply(SimpleFormalParameter node, FixAggregator aggregator) {
+    var innerPlan = aggregator.innerPlanForNode(node);
+    if (addExplicitType == null) return innerPlan;
+    return aggregator.planner.surround(innerPlan, prefix: [
+      AtomicEdit.insert(
+          addExplicitType.getDisplayString(withNullability: true)),
+      AtomicEdit.insert(' ')
+    ]);
+  }
+}
+
 /// Implementation of [NodeChange] specialized for operating on [TypeAnnotation]
 /// nodes.
 class NodeChangeForTypeAnnotation extends NodeChange<TypeAnnotation> {
@@ -490,6 +512,10 @@ class _NodeChangeVisitor extends GeneralizingAstVisitor<NodeChange<AstNode>> {
   @override
   NodeChange visitPropertyAccess(PropertyAccess node) =>
       NodeChangeForPropertyAccess();
+
+  @override
+  NodeChange visitSimpleFormalParameter(SimpleFormalParameter node) =>
+      NodeChangeForSimpleFormalParameter();
 
   @override
   NodeChange visitTypeName(TypeName node) => NodeChangeForTypeAnnotation();

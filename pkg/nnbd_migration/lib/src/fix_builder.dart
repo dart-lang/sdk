@@ -93,6 +93,10 @@ class FixBuilder {
 
   final MigrationResolutionHooksImpl migrationResolutionHooks;
 
+  /// Parameter elements for which an explicit type should be added, and what
+  /// that type should be.
+  final Map<ParameterElement, DartType> _addedParameterTypes = {};
+
   factory FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
@@ -402,6 +406,18 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       });
 
   @override
+  DartType modifyInferredParameterType(
+      ParameterElement parameter, DartType type) {
+    var postMigrationType = parameter.type;
+    if (postMigrationType != type) {
+      // TODO(paulberry): make sure we test all kinds of parameters
+      _fixBuilder._addedParameterTypes[parameter] = postMigrationType;
+      return postMigrationType;
+    }
+    return type;
+  }
+
+  @override
   void setFlowAnalysis(
       FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
           flowAnalysis) {
@@ -561,6 +577,17 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
             node, _fixBuilder._typeSystem)) {
       (_fixBuilder._getChange(node) as NodeChangeForAsExpression).removeAs =
           true;
+    }
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    if (node.type == null) {
+      var typeToAdd = _fixBuilder._addedParameterTypes[node.declaredElement];
+      if (typeToAdd != null) {
+        (_fixBuilder._getChange(node) as NodeChangeForSimpleFormalParameter)
+            .addExplicitType = typeToAdd;
+      }
     }
   }
 

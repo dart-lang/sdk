@@ -94,6 +94,101 @@ abstract class _ProvisionalApiTestBase extends AbstractContextTest {
 
 /// Mixin containing test cases for the provisional API.
 mixin _ProvisionalApiTestCases on _ProvisionalApiTestBase {
+  Future<void> test_add_explicit_parameter_type() async {
+    var content = '''
+abstract class C {
+  void m<T>(T Function(T) callback);
+}
+void test(C c) {
+  c.m((value) => value + 1);
+}
+''';
+    // Under the new NNBD rules, `value` gets an inferred type of `Object?`.  We
+    // need to change this to `dynamic` to avoid an "undefined operator +"
+    // error.
+    var expected = '''
+abstract class C {
+  void m<T>(T Function(T) callback);
+}
+void test(C c) {
+  c.m((dynamic value) => value + 1);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40476')
+  Future<void> test_add_explicit_parameter_type_interpolation() async {
+    var content = r'''
+abstract class C {
+  void m<T>(T Function(T) callback);
+}
+void test(C c) {
+  c.m((value) => '$value';
+}
+''';
+    // Under the new NNBD rules, `value` gets an inferred type of `Object?`,
+    // whereas it previously had a type of `dynamic`.  But we don't need to fix
+    // it because `Object?` supports `toString`.
+    var expected = r'''
+abstract class C {
+  void m<T>(T Function(T) callback);
+}
+void test(C c) {
+  c.m((value) => '$value';
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40476')
+  Future<void> test_add_explicit_parameter_type_object_method() async {
+    var content = '''
+abstract class C {
+  void m<T>(T Function(T) callback);
+}
+void test(C c) {
+  c.m((value) => value.toString());
+}
+''';
+    // Under the new NNBD rules, `value` gets an inferred type of `Object?`,
+    // whereas it previously had a type of `dynamic`.  But we don't need to fix
+    // it because `Object?` supports `toString`.
+    var expected = '''
+abstract class C {
+  void m<T>(T Function(T) callback);
+}
+void test(C c) {
+  c.m((value) => value.toString());
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40476')
+  Future<void> test_add_explicit_parameter_type_unused() async {
+    var content = '''
+abstract class C {
+  void m<T>(T Function(T) callback);
+}
+void test(C c) {
+  c.m((value) => 0);
+}
+''';
+    // Under the new NNBD rules, `value` gets an inferred type of `Object?`,
+    // whereas it previously had a type of `dynamic`.  But we don't need to fix
+    // it because it's unused.
+    var expected = '''
+abstract class C {
+  void m<T>(T Function(T) callback);
+}
+void test(C c) {
+  c.m((value) => 0);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_add_required() async {
     var content = '''
 int f({String s}) => s.length;

@@ -164,6 +164,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           if (inferredType.isDartCoreNull) {
             inferredType = _typeProvider.objectType;
           }
+          if (_migrationResolutionHooks != null) {
+            inferredType = _migrationResolutionHooks
+                .modifyInferredParameterType(p, inferredType);
+          }
           if (!inferredType.isDynamic) {
             p.type = inferredType;
             inferred = true;
