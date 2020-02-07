@@ -115,8 +115,8 @@ class GetterSetterTypesVerifier {
 
   bool _match(DartType getterType, DartType setterType) {
     return _isNonNullableByDefault
-        ? _typeSystem.isSubtypeOf(getterType, setterType)
-        : _typeSystem.isAssignableTo(getterType, setterType);
+        ? _typeSystem.isSubtypeOf2(getterType, setterType)
+        : _typeSystem.isAssignableTo2(getterType, setterType);
   }
 
   /// Return the return type of the [getter].

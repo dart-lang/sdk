@@ -292,7 +292,7 @@ class SubtypeTest extends _SubtypingTestBase {
   }) {
     assertExpectedString(T0, strT0);
     assertExpectedString(T1, strT1);
-    expect(typeSystem.isSubtypeOf(T0, T1), isFalse);
+    expect(typeSystem.isSubtypeOf2(T0, T1), isFalse);
   }
 
   void isNotSubtype2(
@@ -301,7 +301,7 @@ class SubtypeTest extends _SubtypingTestBase {
   ) {
     var T0 = _getTypeByStr(strT0);
     var T1 = _getTypeByStr(strT1);
-    expect(typeSystem.isSubtypeOf(T0, T1), isFalse);
+    expect(typeSystem.isSubtypeOf2(T0, T1), isFalse);
   }
 
   void isNotSubtype3({
@@ -319,7 +319,7 @@ class SubtypeTest extends _SubtypingTestBase {
   }) {
     assertExpectedString(T0, strT0);
     assertExpectedString(T1, strT1);
-    expect(typeSystem.isSubtypeOf(T0, T1), isTrue);
+    expect(typeSystem.isSubtypeOf2(T0, T1), isTrue);
   }
 
   void isSubtype2(
@@ -328,7 +328,7 @@ class SubtypeTest extends _SubtypingTestBase {
   ) {
     var T0 = _getTypeByStr(strT0);
     var T1 = _getTypeByStr(strT1);
-    expect(typeSystem.isSubtypeOf(T0, T1), isTrue);
+    expect(typeSystem.isSubtypeOf2(T0, T1), isTrue);
   }
 
   @override
@@ -6086,7 +6086,7 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   void _checkIsNotSubtypeOf(DartType type1, DartType type2) {
     var strType1 = _typeStr(type1);
     var strType2 = _typeStr(type2);
-    expect(typeSystem.isSubtypeOf(type1, type2), false,
+    expect(typeSystem.isSubtypeOf2(type1, type2), false,
         reason: '$strType1 was not supposed to be a subtype of $strType2');
   }
 
@@ -6098,7 +6098,7 @@ class _SubtypingCompoundTestBase extends _SubtypingTestBase {
   void _checkIsSubtypeOf(DartType type1, DartType type2) {
     var strType1 = _typeStr(type1);
     var strType2 = _typeStr(type2);
-    expect(typeSystem.isSubtypeOf(type1, type2), true,
+    expect(typeSystem.isSubtypeOf2(type1, type2), true,
         reason: '$strType1 is not a subtype of $strType2');
   }
 

@@ -38,7 +38,7 @@ class CorrectOverrideHelper {
     @required ExecutableElement superMember,
   }) {
     var superType = superMember.type;
-    if (!_typeSystem.isSubtypeOf(_thisTypeForSubtype, superType)) {
+    if (!_typeSystem.isSubtypeOf2(_thisTypeForSubtype, superType)) {
       return false;
     }
 
@@ -71,8 +71,10 @@ class CorrectOverrideHelper {
             );
           }
 
-          if (!_typeSystem.isSubtypeOf(superParameterType, thisParameterType) &&
-              !_typeSystem.isSubtypeOf(thisParameterType, superParameterType)) {
+          if (!_typeSystem.isSubtypeOf2(
+                  superParameterType, thisParameterType) &&
+              !_typeSystem.isSubtypeOf2(
+                  thisParameterType, superParameterType)) {
             return false;
           }
         }

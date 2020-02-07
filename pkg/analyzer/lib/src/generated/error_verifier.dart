@@ -1485,14 +1485,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     // Report specific problem when return type is incompatible
     FunctionType constructorType = declaration.declaredElement.type;
     DartType constructorReturnType = constructorType.returnType;
-    if (!_typeSystem.isAssignableTo(
+    if (!_typeSystem.isAssignableTo2(
         redirectedReturnType, constructorReturnType)) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.REDIRECT_TO_INVALID_RETURN_TYPE,
           redirectedConstructor,
           [redirectedReturnType, constructorReturnType]);
       return;
-    } else if (!_typeSystem.isSubtypeOf(redirectedType, constructorType)) {
+    } else if (!_typeSystem.isSubtypeOf2(redirectedType, constructorType)) {
       // Check parameters.
       _errorReporter.reportErrorForNode(
           StaticWarningCode.REDIRECT_TO_INVALID_FUNCTION_TYPE,
@@ -1702,7 +1702,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       DartType actualStaticType,
       DartType expectedStaticType,
       ErrorCode errorCode) {
-    if (!_typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
+    if (!_typeSystem.isAssignableTo2(actualStaticType, expectedStaticType)) {
       _errorReporter.reportErrorForNode(
           errorCode, expression, [actualStaticType, expectedStaticType]);
       return false;
@@ -2448,7 +2448,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
           node.iterable,
           [iterableType, loopTypeName]);
-    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType)) {
+    } else if (!_typeSystem.isAssignableTo2(bestIterableType, variableType)) {
       _errorReporter.reportErrorForNode(
           StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
           node.iterable,
@@ -2666,7 +2666,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (staticType == null) {
       return;
     }
-    if (_typeSystem.isAssignableTo(staticType, fieldType)) {
+    if (_typeSystem.isAssignableTo2(staticType, fieldType)) {
       return;
     }
     // report problem
@@ -2881,7 +2881,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       typeArguments: [NeverTypeImpl.instance],
       nullabilitySuffix: NullabilitySuffix.star,
     );
-    if (!_typeSystem.isSubtypeOf(lowerBound, returnType)) {
+    if (!_typeSystem.isSubtypeOf2(lowerBound, returnType)) {
       _errorReporter.reportErrorForNode(errorCode, returnTypeName);
     }
   }
@@ -3522,11 +3522,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
         superType = superType.withNullability(NullabilitySuffix.none);
       }
 
-      bool isSatisfied = _typeSystem.isSubtypeOf(superType, constraint);
+      bool isSatisfied = _typeSystem.isSubtypeOf2(superType, constraint);
       if (!isSatisfied) {
         for (int i = 0; i < mixinIndex && !isSatisfied; i++) {
           isSatisfied =
-              _typeSystem.isSubtypeOf(_enclosingClass.mixins[i], constraint);
+              _typeSystem.isSubtypeOf2(_enclosingClass.mixins[i], constraint);
         }
       }
       if (!isSatisfied) {
@@ -4375,7 +4375,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     if (!expectedType.isVoid && !fromType.isVoid) {
       var checkWithType =
           !_inAsync ? fromType : _typeProvider.futureType2(fromType);
-      if (_typeSystem.isAssignableTo(checkWithType, expectedType)) {
+      if (_typeSystem.isAssignableTo2(checkWithType, expectedType)) {
         return;
       }
     }
@@ -4480,7 +4480,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     DartType caseType = getStaticType(caseExpression);
 
     // check types
-    if (!_typeSystem.isAssignableTo(expressionType, caseType)) {
+    if (!_typeSystem.isAssignableTo2(expressionType, caseType)) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
           expression,
@@ -4779,7 +4779,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
                 [parameter.identifier.name]);
           } else if (declaredType != null &&
               fieldType != null &&
-              !_typeSystem.isAssignableTo(declaredType, fieldType)) {
+              !_typeSystem.isAssignableTo2(declaredType, fieldType)) {
             _errorReporter.reportErrorForNode(
                 StaticWarningCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
                 parameter,
@@ -5075,7 +5075,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       } else {
         requiredReturnType = _typeProvider.iterableDynamicType;
       }
-      if (!_typeSystem.isAssignableTo(impliedReturnType, requiredReturnType)) {
+      if (!_typeSystem.isAssignableTo2(impliedReturnType, requiredReturnType)) {
         _errorReporter.reportErrorForNode(
             StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
             yieldExpression,

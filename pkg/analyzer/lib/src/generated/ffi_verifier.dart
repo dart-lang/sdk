@@ -6,9 +6,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/generated/type_system.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -32,7 +32,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   ];
 
   /// The type system used to check types.
-  final TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   /// The error reporter used to report errors.
   final ErrorReporter _errorReporter;
@@ -441,8 +441,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return dartType.isVoid;
     } else if (dartType is InterfaceType && nativeType is InterfaceType) {
       return checkCovariance
-          ? typeSystem.isSubtypeOf(dartType, nativeType)
-          : typeSystem.isSubtypeOf(nativeType, dartType);
+          ? typeSystem.isSubtypeOf2(dartType, nativeType)
+          : typeSystem.isSubtypeOf2(nativeType, dartType);
     } else {
       // If the [nativeType] is not a primitive int/double type then it has to
       // be a Pointer type atm.

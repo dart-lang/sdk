@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/element/member.dart';
@@ -20,13 +21,15 @@ main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script
       .resolve('../../../_fe_analyzer_shared/test/flow_analysis/type_promotion/'
           'data'));
-  await runTests<DartType>(dataDir,
-      args: args,
-      supportedMarkers: sharedMarkers,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const _TypePromotionDataComputer(), [analyzerNnbdConfig]));
+  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+    return runTests<DartType>(dataDir,
+        args: args,
+        supportedMarkers: sharedMarkers,
+        createUriForFileName: createUriForFileName,
+        onFailure: onFailure,
+        runTest: runTestFor(
+            const _TypePromotionDataComputer(), [analyzerNnbdConfig]));
+  });
 }
 
 class _TypePromotionDataComputer extends DataComputer<DartType> {

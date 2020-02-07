@@ -67,7 +67,7 @@ class ConstantEvaluationEngine {
 
   /// The type system.  This is used to guess the types of constants when their
   /// exact value is unknown.
-  final TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   /// The helper for evaluating variables declared on the command line
   /// using '-D', and represented as [DeclaredVariables].
@@ -109,7 +109,7 @@ class ConstantEvaluationEngine {
   }
 
   bool get _isNonNullableByDefault {
-    return (typeSystem as TypeSystemImpl).isNonNullableByDefault;
+    return typeSystem.isNonNullableByDefault;
   }
 
   DartObjectImpl get _nullObject {
@@ -937,7 +937,7 @@ class ConstantEvaluationEngine {
       return true;
     }
     var objType = obj.type;
-    return typeSystem.isSubtypeOf(objType, type);
+    return typeSystem.isSubtypeOf2(objType, type);
   }
 
   /// Determine whether the given string is a valid name for a public symbol
@@ -1039,7 +1039,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   ExperimentStatus get experimentStatus => evaluationEngine.experimentStatus;
 
   /// Convenience getter to gain access to the [evaluationEngine]'s type system.
-  TypeSystem get typeSystem => evaluationEngine.typeSystem;
+  TypeSystemImpl get typeSystem => evaluationEngine.typeSystem;
 
   /// Convenience getter to gain access to the [evaluationEngine]'s type
   /// provider.
@@ -1211,7 +1211,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     ParameterizedType elseType = elseResult.type;
     return DartObjectImpl.validWithUnknownValue(
       typeSystem,
-      typeSystem.leastUpperBound(thenType, elseType) as ParameterizedType,
+      typeSystem.getLeastUpperBound(thenType, elseType) as ParameterizedType,
     );
   }
 
@@ -1672,7 +1672,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         // TODO(brianwilkerson) Figure out why the static type is sometimes null.
         DartType staticType = condition.staticType;
         if (staticType == null ||
-            typeSystem.isAssignableTo(staticType, _typeProvider.boolType)) {
+            typeSystem.isAssignableTo2(staticType, _typeProvider.boolType)) {
           // If the static type is not assignable, then we will have already
           // reported this error.
           // TODO(mfairhurst) get the FeatureSet to suppress this for nnbd too.

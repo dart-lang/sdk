@@ -384,11 +384,11 @@ class AssignabilityTest extends AbstractTypeSystemTest {
   }
 
   void _checkIsAssignableTo(DartType type1, DartType type2) {
-    expect(typeSystem.isAssignableTo(type1, type2), true);
+    expect(typeSystem.isAssignableTo2(type1, type2), true);
   }
 
   void _checkIsNotAssignableTo(DartType type1, DartType type2) {
-    expect(typeSystem.isAssignableTo(type1, type2), false);
+    expect(typeSystem.isAssignableTo2(type1, type2), false);
   }
 
   void _checkIsStrictAssignableTo(DartType type1, DartType type2) {

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -1216,6 +1217,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       {bool withUnit = false,
       bool asIsIfPartWithoutLibrary = false,
       bool skipIfSameSignature = false}) {
+    return NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+      return _computeAnalysisResult2(
+        path,
+        withUnit: withUnit,
+        asIsIfPartWithoutLibrary: asIsIfPartWithoutLibrary,
+        skipIfSameSignature: skipIfSameSignature,
+      );
+    });
+  }
+
+  /// Unwrapped implementation of [_computeAnalysisResult].
+  AnalysisResult _computeAnalysisResult2(String path,
+      {bool withUnit = false,
+      bool asIsIfPartWithoutLibrary = false,
+      bool skipIfSameSignature = false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1476,21 +1492,24 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    if (_libraryContext == null) {
-      _libraryContext = LibraryContext(
-        session: currentSession,
-        logger: _logger,
-        fsState: fsState,
-        byteStore: _byteStore,
-        analysisOptions: _analysisOptions,
-        declaredVariables: declaredVariables,
-        sourceFactory: _sourceFactory,
-        externalSummaries: _externalSummaries,
-        targetLibrary: library,
-      );
-    } else {
-      _libraryContext.load2(library);
-    }
+    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+      if (_libraryContext == null) {
+        _libraryContext = LibraryContext(
+          session: currentSession,
+          logger: _logger,
+          fsState: fsState,
+          byteStore: _byteStore,
+          analysisOptions: _analysisOptions,
+          declaredVariables: declaredVariables,
+          sourceFactory: _sourceFactory,
+          externalSummaries: _externalSummaries,
+          targetLibrary: library,
+        );
+      } else {
+        _libraryContext.load2(library);
+      }
+    });
+
     return _libraryContext;
   }
 

@@ -49,7 +49,7 @@ class BoolExpressionVerifier {
       {@required ErrorCode errorCode, List<Object> arguments}) {
     var type = expression.staticType;
     if (!_checkForUseOfVoidResult(expression) &&
-        !_typeSystem.isAssignableTo(type, _boolType)) {
+        !_typeSystem.isAssignableTo2(type, _boolType)) {
       if (type.element == _boolElement) {
         _nullableDereferenceVerifier.report(expression, type);
       } else {

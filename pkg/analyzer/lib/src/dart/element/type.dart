@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -241,9 +242,19 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   List<TypeParameterElement> get typeParameters => const [] /*TODO(paulberry)*/;
 
   @override
-  bool operator ==(Object object) {
-    if (object is FunctionTypeImpl) {
-      if (typeFormals.length != object.typeFormals.length) {
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
+      return true;
+    }
+
+    if (other is FunctionTypeImpl) {
+      if (NullSafetyUnderstandingFlag.isEnabled) {
+        if (other.nullabilitySuffix != nullabilitySuffix) {
+          return false;
+        }
+      }
+
+      if (other.typeFormals.length != typeFormals.length) {
         return false;
       }
       // `<T>T -> T` should be equal to `<U>U -> U`
@@ -251,17 +262,15 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // variables, and see if the result is equal.
       if (typeFormals.isNotEmpty) {
         List<DartType> freshVariables = FunctionTypeImpl.relateTypeFormals(
-            this, object, (t, s, _, __) => t == s);
+            this, other, (t, s, _, __) => t == s);
         if (freshVariables == null) {
           return false;
         }
-        return instantiate(freshVariables) ==
-            object.instantiate(freshVariables);
+        return instantiate(freshVariables) == other.instantiate(freshVariables);
       }
 
-      return returnType == object.returnType &&
-          _equalParameters(parameters, object.parameters) &&
-          nullabilitySuffix == object.nullabilitySuffix;
+      return other.returnType == returnType &&
+          _equalParameters(other.parameters, parameters);
     }
     return false;
   }
@@ -930,14 +939,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       (element.library.session as AnalysisSessionImpl).inheritanceManager;
 
   @override
-  bool operator ==(Object object) {
-    if (identical(object, this)) {
+  bool operator ==(Object other) {
+    if (identical(other, this)) {
       return true;
     }
-    if (object is InterfaceTypeImpl) {
-      return element == object.element &&
-          TypeImpl.equalArrays(typeArguments, object.typeArguments) &&
-          nullabilitySuffix == object.nullabilitySuffix;
+    if (other is InterfaceTypeImpl) {
+      if (NullSafetyUnderstandingFlag.isEnabled) {
+        if (other.nullabilitySuffix != nullabilitySuffix) {
+          return false;
+        }
+      }
+      return other.element == element &&
+          TypeImpl.equalArrays(other.typeArguments, typeArguments);
     }
     return false;
   }
@@ -1553,7 +1566,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     for (DartType type in types) {
       // If any existing type in the bucket is more specific than this type,
       // then we can ignore this type.
-      if (bucket.any((DartType t) => typeSystem.isSubtypeOf(t, type))) {
+      if (bucket.any((DartType t) => typeSystem.isSubtypeOf2(t, type))) {
         continue;
       }
       // Otherwise, we need to add this type to the bucket and remove any types
@@ -1561,7 +1574,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       bool added = false;
       int i = 0;
       while (i < bucket.length) {
-        if (typeSystem.isSubtypeOf(type, bucket[i])) {
+        if (typeSystem.isSubtypeOf2(type, bucket[i])) {
           if (added) {
             if (i < bucket.length - 1) {
               bucket[i] = bucket.removeLast();
@@ -2057,9 +2070,13 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       return true;
     }
 
-    if (other is TypeParameterTypeImpl &&
-        other.nullabilitySuffix == nullabilitySuffix &&
-        other.element == element) {
+    if (other is TypeParameterTypeImpl && other.element == element) {
+      if (NullSafetyUnderstandingFlag.isEnabled) {
+        if (other.nullabilitySuffix != nullabilitySuffix) {
+          return false;
+        }
+      }
+
       // If the same declaration, or the same promoted element.
       if (identical(other.element, element)) {
         return true;

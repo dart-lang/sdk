@@ -71,7 +71,7 @@ class PrefixExpressionResolver {
   void _checkForInvalidAssignmentIncDec(
       AstNode node, Expression operand, DartType type) {
     var operandWriteType = _getStaticType(operand);
-    if (!_typeSystem.isAssignableTo(type, operandWriteType)) {
+    if (!_typeSystem.isAssignableTo2(type, operandWriteType)) {
       _resolver.errorReporter.reportErrorForNode(
         StaticTypeWarningCode.INVALID_ASSIGNMENT,
         node,

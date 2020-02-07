@@ -153,7 +153,7 @@ class ExtensionMemberResolver {
     if (receiverType.isVoid) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.USE_OF_VOID_RESULT, receiverExpression);
-    } else if (!_typeSystem.isAssignableTo(receiverType, node.extendedType)) {
+    } else if (!_typeSystem.isAssignableTo2(receiverType, node.extendedType)) {
       _errorReporter.reportErrorForNode(
         CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
         receiverExpression,
@@ -212,7 +212,7 @@ class ExtensionMemberResolver {
         var boundType = typeParameters[i].bound;
         if (boundType != null) {
           boundType = substitution.substituteType(boundType);
-          if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+          if (!_typeSystem.isSubtypeOf2(argType, boundType)) {
             _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList.arguments[i],
@@ -429,7 +429,7 @@ class ExtensionMemberResolver {
 
   /// Ask the type system for a subtype check.
   bool _isSubtypeOf(DartType type1, DartType type2) =>
-      _typeSystem.isSubtypeOf(type1, type2);
+      _typeSystem.isSubtypeOf2(type1, type2);
 
   List<DartType> _listOfDynamic(List<TypeParameterElement> parameters) {
     return List<DartType>.filled(parameters.length, _dynamicType);

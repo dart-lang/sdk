@@ -403,8 +403,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var context = InferenceContext.getContext(
         (node as IntegerLiteralImpl).immediatelyNegated ? node.parent : node);
     if (context == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, context) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context)) {
+        _typeSystem.isAssignableTo2(_typeProvider.intType, context) ||
+        !_typeSystem.isAssignableTo2(_typeProvider.doubleType, context)) {
       _recordStaticType(node, _nonNullable(_typeProvider.intType));
     } else {
       _recordStaticType(node, _nonNullable(_typeProvider.doubleType));

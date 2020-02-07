@@ -1374,6 +1374,14 @@ abstract class LibraryElement implements Element {
   /// Return the class defined in this library that has the given [name], or
   /// `null` if this library does not define a class with the given name.
   ClassElement getType(String className);
+
+  /// If a legacy library, return the legacy view on the [element].
+  /// Otherwise, return the original element.
+  T toLegacyElementIfOptOut<T extends Element>(T element);
+
+  /// If a legacy library, return the legacy version of the [type].
+  /// Otherwise, return the original type.
+  DartType toLegacyTypeIfOptOut(DartType type);
 }
 
 /// An element that can be (but is not required to be) defined within a method

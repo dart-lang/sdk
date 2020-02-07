@@ -228,12 +228,12 @@ class TypeArgumentsVerifier {
               .substituteType(boundType);
         }
 
-        if (!_typeSystem.isSubtypeOf(argType, boundType)) {
+        if (!_typeSystem.isSubtypeOf2(argType, boundType)) {
           if (_shouldAllowSuperBoundedTypes(typeName)) {
             var replacedType =
                 (argType as TypeImpl).replaceTopAndBottom(_typeProvider);
             if (!identical(replacedType, argType) &&
-                _typeSystem.isSubtypeOf(replacedType, boundType)) {
+                _typeSystem.isSubtypeOf2(replacedType, boundType)) {
               // Bound is satisfied under super-bounded rules, so we're ok.
               continue;
             }
@@ -329,7 +329,7 @@ class TypeArgumentsVerifier {
 
         var substitution = Substitution.fromPairs(fnTypeParams, typeArgs);
         var bound = substitution.substituteType(rawBound);
-        if (!_typeSystem.isSubtypeOf(argType, bound)) {
+        if (!_typeSystem.isSubtypeOf2(argType, bound)) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
               typeArgumentList[i],
