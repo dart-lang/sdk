@@ -1,1 +1,2 @@
-
+ERROR|STATIC_WARNING|UNCHECKED_USE_OF_NULLABLE_VALUE|lib/_http/http.dart|7638|7|11|The expression is nullable and must be null-checked before it can be used.
+ERROR|STATIC_WARNING|UNCHECKED_USE_OF_NULLABLE_VALUE|lib/_http/http.dart|8726|5|24|The expression is nullable and must be null-checked before it can be used.
