@@ -1041,13 +1041,7 @@ void Object::Init(Isolate* isolate) {
   void_type_->SetCanonical();
 
   cls = never_class_;
-  *never_type_ =
-      Type::New(cls, Object::null_type_arguments(), TokenPosition::kNoSource,
-                Dart::non_nullable_flag() ? Nullability::kNonNullable
-                                          : Nullability::kLegacy);
-  never_type_->SetIsFinalized();
-  never_type_->ComputeHash();
-  never_type_->SetCanonical();
+  *never_type_ = Type::NewNonParameterizedType(cls);
 
   // Since TypeArguments objects are passed as function arguments, make them
   // behave as Dart instances, although they are just VM objects.
