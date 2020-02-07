@@ -4458,6 +4458,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
    * See [StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE].
    */
   void _checkForSwitchExpressionNotAssignable(SwitchStatement statement) {
+    // For NNBD we verify runtime types of values, and subtyping.
+    if (_isNonNullableByDefault) {
+      return;
+    }
+
     Expression expression = statement.expression;
     if (_checkForUseOfVoidResult(expression)) {
       return;

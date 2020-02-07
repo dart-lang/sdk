@@ -33,6 +33,8 @@ import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
 import 'case_expression_type_implements_equals_test.dart'
     as case_expression_type_implements_equals;
+import 'case_expression_type_is_not_switch_expression_subtype_test.dart'
+    as case_expression_type_is_not_switch_expression_subtype;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'concrete_class_with_abstract_member_test.dart'
     as concrete_class_with_abstract_member;
@@ -519,6 +521,7 @@ main() {
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();
     case_expression_type_implements_equals.main();
+    case_expression_type_is_not_switch_expression_subtype.main();
     cast_to_non_type.main();
     concrete_class_with_abstract_member.main();
     conflicting_generic_interfaces.main();

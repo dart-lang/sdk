@@ -611,6 +611,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The switch case expression type '{0}' can't override the == "
               "operator.");
 
+  /// Given a switch statement which switches over an expression `e` of type
+  /// `T`, where the cases are dispatched based on expressions `e0` ... `ek`:
+  ///
+  /// It is an error if any of the `ei` evaluate to a value whose static type
+  /// is not a subtype of `T`.
+  static const CompileTimeErrorCode
+      CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE =
+      CompileTimeErrorCode(
+          'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
+          "The switch case expression type '{0}' must be a subtype of the "
+              "switch expression type '{1}'.");
+
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
    * error if `C` declares a constructor named `C.n`, and a static member with

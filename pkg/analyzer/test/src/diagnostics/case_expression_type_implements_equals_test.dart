@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CaseExpressionTypeImplementsEqualsTest);
+    defineReflectiveTests(CaseExpressionTypeImplementsEqualsWithNnbdTest);
   });
 }
 
@@ -17,24 +20,24 @@ main() {
 class CaseExpressionTypeImplementsEqualsTest extends DriverResolutionTest {
   test_declares() async {
     await assertNoErrorsInCode(r'''
-print(p) {}
+abstract class A {
+  final int value;
 
-abstract class B {
-  final id;
-  const B(this.id);
-  String toString() => 'C($id)';
-  /** Equality is identity equality, the id isn't used. */
+  const A(this.value);
+
   bool operator==(Object other);
-  }
-
-class C extends B {
-  const C(id) : super(id);
 }
 
-void doSwitch(c) {
-  switch (c) {
-  case const C(0): print('Switch: 0'); break;
-  case const C(1): print('Switch: 1'); break;
+class B extends A {
+  const B(int value) : super(value);
+}
+
+void f(e) {
+  switch (e) {
+    case const B(0):
+      break;
+    case const B(1):
+      break;
   }
 }
 ''');
@@ -42,33 +45,34 @@ void doSwitch(c) {
 
   test_implements() async {
     await assertErrorsInCode(r'''
-class IntWrapper {
+class A {
   final int value;
-  const IntWrapper(this.value);
-  bool operator ==(Object x) {
-    return x is IntWrapper && x.value == value;
+
+  const A(this.value);
+
+  bool operator ==(Object other) {
+    return false;
   }
-  get hashCode => value;
 }
 
-f(var a) {
-  switch(a) {
-    case(const IntWrapper(1)) : return 1;
-    default: return 0;
+void f(e) {
+  switch (e) {
+    case A(0):
+      break;
   }
 }
 ''', [
       error(
-          CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, 194, 6),
+          CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, 128, 6),
     ]);
   }
 
   test_int() async {
     await assertNoErrorsInCode(r'''
-f(int i) {
-  switch(i) {
-    case(1) : return 1;
-    default: return 0;
+void f(e) {
+  switch (e) {
+    case 0:
+      break;
   }
 }
 ''');
@@ -76,15 +80,15 @@ f(int i) {
 
   test_Object() async {
     await assertNoErrorsInCode(r'''
-class IntWrapper {
+class A {
   final int value;
-  const IntWrapper(this.value);
+  const A(this.value);
 }
 
-f(IntWrapper intWrapper) {
-  switch(intWrapper) {
-    case(const IntWrapper(1)) : return 1;
-    default: return 0;
+void f(e) {
+  switch (e) {
+    case A(0):
+      break;
   }
 }
 ''');
@@ -92,10 +96,106 @@ f(IntWrapper intWrapper) {
 
   test_String() async {
     await assertNoErrorsInCode(r'''
-f(String s) {
-  switch(s) {
-    case('1') : return 1;
-    default: return 0;
+void f(e) {
+  switch (e) {
+    case '0':
+      break;
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class CaseExpressionTypeImplementsEqualsWithNnbdTest
+    extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.forTesting(
+        sdkVersion: '2.7.0', additionalFeatures: [Feature.non_nullable]);
+
+  test_declares() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  final int value;
+
+  const A(this.value);
+
+  bool operator==(Object other);
+}
+
+class B extends A {
+  const B(int value) : super(value);
+}
+
+void f(e) {
+  switch (e) {
+    case const B(0):
+      break;
+    case const B(1):
+      break;
+  }
+}
+''');
+  }
+
+  test_implements() async {
+    await assertErrorsInCode(r'''
+class A {
+  final int value;
+
+  const A(this.value);
+
+  bool operator ==(Object other) {
+    return false;
+  }
+}
+
+void f(e) {
+  switch (e) {
+    case A(0):
+      break;
+  }
+}
+''', [
+      error(
+          CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS, 150, 4),
+    ]);
+  }
+
+  test_int() async {
+    await assertNoErrorsInCode(r'''
+void f(e) {
+  switch (e) {
+    case 0:
+      break;
+  }
+}
+''');
+  }
+
+  test_Object() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int value;
+  const A(this.value);
+}
+
+void f(e) {
+  switch (e) {
+    case A(0):
+      break;
+  }
+}
+''');
+  }
+
+  test_String() async {
+    await assertNoErrorsInCode(r'''
+void f(e) {
+  switch (e) {
+    case '0':
+      break;
   }
 }
 ''');
