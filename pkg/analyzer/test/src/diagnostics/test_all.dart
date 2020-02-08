@@ -253,7 +253,8 @@ import 'missing_annotation_on_struct_field_test.dart'
     as missing_annotation_on_struct_field;
 import 'missing_default_value_for_parameter_test.dart'
     as missing_default_value_for_parameter;
-import 'missing_enum_value_in_switch_test.dart' as missing_enum_value_in_switch;
+import 'missing_enum_constant_in_switch_test.dart'
+    as missing_enum_constant_in_switch;
 import 'missing_exception_value_test.dart' as missing_exception_value;
 import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
@@ -665,7 +666,7 @@ main() {
     mismatched_annotation_on_struct_field.main();
     missing_annotation_on_struct_field.main();
     missing_default_value_for_parameter.main();
-    missing_enum_value_in_switch.main();
+    missing_enum_constant_in_switch.main();
     missing_exception_value.main();
     missing_field_type_in_struct.main();
     missing_js_lib_annotation.main();

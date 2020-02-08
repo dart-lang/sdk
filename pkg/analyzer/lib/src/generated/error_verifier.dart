@@ -3393,49 +3393,53 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
   void _checkForMissingEnumConstantInSwitch(SwitchStatement statement) {
     // TODO(brianwilkerson) This needs to be checked after constant values have
     // been computed.
-    Expression expression = statement.expression;
-    DartType expressionType = getStaticType(expression);
-    if (expressionType == null) {
-      return;
-    }
-    Element expressionElement = expressionType.element;
-    if (expressionElement is ClassElement) {
-      if (!expressionElement.isEnum) {
-        return;
-      }
-      List<String> constantNames = <String>[];
-      List<FieldElement> fields = expressionElement.fields;
-      int fieldCount = fields.length;
-      for (int i = 0; i < fieldCount; i++) {
-        FieldElement field = fields[i];
-        if (field.isStatic && !field.isSynthetic) {
-          constantNames.add(field.name);
+    var expressionType = getStaticType(statement.expression);
+
+    var hasCaseNull = false;
+    if (expressionType is InterfaceType) {
+      var enumElement = expressionType.element;
+      if (enumElement.isEnum) {
+        var constantNames = enumElement.fields
+            .where((field) => field.isStatic && !field.isSynthetic)
+            .map((field) => field.name)
+            .toSet();
+
+        for (var member in statement.members) {
+          if (member is SwitchCase) {
+            var expression = member.expression;
+            if (expression is NullLiteral) {
+              hasCaseNull = true;
+            } else {
+              var constantName = _getConstantName(expression);
+              constantNames.remove(constantName);
+            }
+          }
+          if (member is SwitchDefault) {
+            return;
+          }
         }
-      }
-      NodeList<SwitchMember> members = statement.members;
-      int memberCount = members.length;
-      for (int i = 0; i < memberCount; i++) {
-        SwitchMember member = members[i];
-        if (member is SwitchDefault) {
-          return;
-        }
-        String constantName =
-            _getConstantName((member as SwitchCase).expression);
-        if (constantName != null) {
-          constantNames.remove(constantName);
-        }
-      }
-      if (constantNames.isEmpty) {
-        return;
-      }
-      for (int i = 0; i < constantNames.length; i++) {
-        int offset = statement.offset;
-        int end = statement.rightParenthesis.end;
-        _errorReporter.reportErrorForOffset(
+
+        for (var constantName in constantNames) {
+          int offset = statement.offset;
+          int end = statement.rightParenthesis.end;
+          _errorReporter.reportErrorForOffset(
             StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
             offset,
             end - offset,
-            [constantNames[i]]);
+            [constantName],
+          );
+        }
+
+        if (_typeSystem.isNullable(expressionType) && !hasCaseNull) {
+          int offset = statement.offset;
+          int end = statement.rightParenthesis.end;
+          _errorReporter.reportErrorForOffset(
+            StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+            offset,
+            end - offset,
+            ['null'],
+          );
+        }
       }
     }
   }
