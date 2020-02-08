@@ -1323,8 +1323,7 @@ visitCompilationUnit(CompilationUnitElement unit, Set<InterfaceType> allTypes) {
           (classElement.name == 'Comparable') ||
           (classElement.name == 'BidirectionalIterator') ||
           (classElement.name == 'Iterator') ||
-          (classElement.name == 'Stopwatch') ||
-          (classElement.name == 'OutOfMemoryError')) {
+          (classElement.name == 'Stopwatch')) {
         continue;
       }
       allTypes.add(classElement.thisType);
