@@ -2288,7 +2288,7 @@
         {
           "name": "dart2js nnbd weak tests",
           "arguments": [
-            "-ndart2js-hostasserts-weak-linux-x64-d8",
+            "-ndart2js-weak-linux-x64-d8",
             "--dart2js-batch",
             "language_2",
             "corelib_2",
@@ -2296,7 +2296,7 @@
             "dart2js_native"
           ],
           "shards": 6,
-          "fileset": "dart2js_hostasserts_nnbd"
+          "fileset": "dart2js_nnbd"
         }
       ]
     },
