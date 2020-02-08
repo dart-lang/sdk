@@ -469,11 +469,11 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
     Fragment initialize(is_uninitialized);
     if (is_static) {
       initialize += StaticCall(position, init_function,
-                               /* argument_count = */ 0, ICData::kStatic);
+                               /* argument_count = */ 0, ICData::kNoRebind);
     } else {
       initialize += LoadLocal(instance);
       initialize += StaticCall(position, init_function,
-                               /* argument_count = */ 1, ICData::kStatic);
+                               /* argument_count = */ 1, ICData::kNoRebind);
     }
     initialize += StoreLocal(position, temp);
     initialize += Drop();
