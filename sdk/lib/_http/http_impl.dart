@@ -2126,6 +2126,8 @@ class _ConnectionTarget {
 typedef bool BadCertificateCallback(X509Certificate cr, String host, int port);
 
 class _HttpClient implements HttpClient {
+  static const bool _isHttpAllowedByDefault = true;
+
   bool _closing = false;
   bool _closingForcefully = false;
   final Map<String, _ConnectionTarget> _connectionTargets =
@@ -2136,6 +2138,7 @@ class _HttpClient implements HttpClient {
   Function _authenticate;
   Function _authenticateProxy;
   Function _findProxy = HttpClient.findProxyFromEnvironment;
+  bool _isHttpAllowed = HttpClient.isHttpAllowed;
   Duration _idleTimeout = const Duration(seconds: 15);
   BadCertificateCallback _badCertificateCallback;
 
@@ -2285,6 +2288,11 @@ class _HttpClient implements HttpClient {
     }
 
     bool isSecure = (uri.scheme == "https");
+    bool isMobileClient = Platform.isAndroid || Platform.isIOS;
+    if (isMobileClient && !_isHttpAllowed && !isSecure) {
+      throw new ArgumentError("HTTP traffic is not supported in this client. Please use HTTPS.");
+    }
+
     int port = uri.port;
     if (port == 0) {
       port =

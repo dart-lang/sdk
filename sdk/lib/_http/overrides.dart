@@ -52,10 +52,11 @@ abstract class HttpOverrides {
       {HttpClient Function(SecurityContext) createHttpClient,
       String Function(Uri uri, Map<String, String> environment)
           findProxyFromEnvironment,
+      bool allowHttp,
       ZoneSpecification zoneSpecification,
       Function onError}) {
     HttpOverrides overrides =
-        new _HttpOverridesScope(createHttpClient, findProxyFromEnvironment);
+        new _HttpOverridesScope(createHttpClient, findProxyFromEnvironment, allowHttp);
     return _asyncRunZoned<R>(body,
         zoneValues: {_httpOverridesToken: overrides},
         zoneSpecification: zoneSpecification,
@@ -89,6 +90,11 @@ abstract class HttpOverrides {
   String findProxyFromEnvironment(Uri url, Map<String, String> environment) {
     return _HttpClient._findProxyFromEnvironment(url, environment);
   }
+
+  /// Specifies whether HTTP communication in cleartext is allowed.
+  bool isHttpAllowed() {
+    return _HttpClient._isHttpAllowedByDefault;
+  }
 }
 
 class _HttpOverridesScope extends HttpOverrides {
@@ -97,8 +103,16 @@ class _HttpOverridesScope extends HttpOverrides {
   final HttpClient Function(SecurityContext) _createHttpClient;
   final String Function(Uri uri, Map<String, String> environment)
       _findProxyFromEnvironment;
+  final bool _allowHttp;
 
-  _HttpOverridesScope(this._createHttpClient, this._findProxyFromEnvironment);
+  _HttpOverridesScope(this._createHttpClient, this._findProxyFromEnvironment, this._allowHttp);
+
+  @override
+  bool isHttpAllowed() {
+    if (_allowHttp != null) return _allowHttp;
+    if (_previous != null) return _previous.isHttpAllowed();
+    return super.isHttpAllowed();
+  }
 
   @override
   HttpClient createHttpClient(SecurityContext context) {

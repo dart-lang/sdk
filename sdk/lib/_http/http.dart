@@ -1763,6 +1763,14 @@ abstract class HttpClient {
     return overrides.findProxyFromEnvironment(url, environment);
   }
 
+  static bool get isHttpAllowed {
+    HttpOverrides overrides = HttpOverrides.current;
+    if (overrides == null) {
+      return _HttpClient._isHttpAllowedByDefault;
+    }
+    return overrides.isHttpAllowed();
+  }
+
   /**
    * Sets the function to be called when a proxy is requesting
    * authentication. Information on the proxy in use and the security
