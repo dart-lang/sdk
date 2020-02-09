@@ -7060,15 +7060,29 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // is used and type arguments are provided, but the number of type arguments
   // isn't the same as the number of type parameters.
   //
+  // The analyzer also produces this diagnostic when a constructor is invoked
+  // and the number of type arguments doesn't match the number of type
+  // parameters declared for the class.
+  //
   // #### Examples
   //
   // The following code produces this diagnostic because `C` has one type
-  // parameter but two type arguments are provided:
+  // parameter but two type arguments are provided when it is used as a type
+  // annotation:
   //
   // ```dart
   // class C<E> {}
   //
   // void f([!C<int, int>!] x) {}
+  // ```
+  //
+  // The following code produces this diagnostic because `C` declares one type
+  // parameter, but two type arguments are provided when creating an instance:
+  //
+  // ```dart
+  // class C<E> {}
+  //
+  // var c = [!C<int, int>!]();
   // ```
   //
   // #### Common fixes
