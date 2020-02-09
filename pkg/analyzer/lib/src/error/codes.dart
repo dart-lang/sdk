@@ -8323,6 +8323,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'MISSING_ENUM_CONSTANT_IN_SWITCH', "Missing case clause for '{0}'.",
           correction: "Try adding a case clause for the missing constant, or "
               "adding a default clause.",
+          errorSeverity: ErrorSeverity.WARNING,
           hasPublishedDocs: true);
 
   @Deprecated('No longer an error in the spec and no longer generated')
