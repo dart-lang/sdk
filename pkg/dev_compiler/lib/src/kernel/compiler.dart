@@ -2735,7 +2735,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         : namedTypes.add(param));
     var allNamedTypes = type.namedParameters;
 
-    var returnType = _emitType(type.returnType);
+    var returnType = _emitNullabilityWrapper(
+        _emitType(type.returnType), type.returnType.nullability);
     var requiredArgs = _emitTypeNames(requiredTypes, requiredParams, member);
 
     List<js_ast.Expression> typeParts;
