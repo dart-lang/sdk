@@ -233,8 +233,10 @@ class CallingConventions {
   // Whether 1 or 2 byte-sized arguments or return values are passed extended
   // to 4 bytes.
 #if defined(TARGET_OS_MACOS_IOS)
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kExtendedTo4;
   static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
 #else
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kNotExtended;
   static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
 #endif
   static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;

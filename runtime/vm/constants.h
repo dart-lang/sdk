@@ -27,7 +27,7 @@ enum ExtensionStrategy {
   kNotExtended,
   // Values smaller than 4 bytes are passed around zero- or signextended to
   // 4 bytes.
-  kExtendedTo4
+  kExtendedTo4,
 };
 
 }  // namespace dart

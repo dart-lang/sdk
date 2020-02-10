@@ -186,6 +186,21 @@ DART_EXPORT int64_t Regress39044(int64_t a, int8_t b) {
   return retval;
 }
 
+DART_EXPORT intptr_t Regress40537(uint8_t x) {
+  std::cout << "Regress40537(" << static_cast<int>(x) << ")\n";
+  return x == 249 ? 1 : 0;
+}
+
+DART_EXPORT intptr_t Regress40537Variant2(uint8_t x) {
+  std::cout << "Regress40537Variant2(" << static_cast<int>(x) << ")\n";
+  return x;
+}
+
+DART_EXPORT uint8_t Regress40537Variant3(intptr_t x) {
+  std::cout << "Regress40537Variant3(" << static_cast<int>(x) << ")\n";
+  return x;
+}
+
 // Performs some computation on various sized unsigned ints.
 // Used for testing value ranges for unsigned ints.
 DART_EXPORT int64_t UintComputation(uint8_t a,

@@ -244,7 +244,7 @@ static NativeLocation& ResultLocation(const NativeType& payload_type,
                                       Zone* zone) {
   const auto& payload_type_converted = ConvertIfSoftFp(payload_type, zone);
   const auto& container_type =
-      CallingConventions::kArgumentRegisterExtension == kExtendedTo4
+      CallingConventions::kReturnRegisterExtension == kExtendedTo4
           ? payload_type_converted.WidenTo4Bytes(zone)
           : payload_type_converted;
   if (container_type.IsFloat()) {
