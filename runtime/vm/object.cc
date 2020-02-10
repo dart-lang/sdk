@@ -8565,7 +8565,7 @@ void Function::PrintQualifiedName(NameVisibility name_visibility,
 }
 
 RawString* Function::GetSource() const {
-  if (IsImplicitConstructor() || IsSignatureFunction()) {
+  if (IsImplicitConstructor() || IsSignatureFunction() || is_synthetic()) {
     // We may need to handle more cases when the restrictions on mixins are
     // relaxed. In particular we might start associating some source with the
     // forwarding constructors when it becomes possible to specify a particular

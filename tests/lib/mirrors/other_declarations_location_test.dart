@@ -42,7 +42,7 @@ main() {
   expectLocation(reflectClass(C).declarations[#c]!, mainSuffix, 17, 14);
   expectLocation(reflectClass(C).declarations[#d]!, mainSuffix, 18, 16);
   expectLocation(reflectClass(C).declarations[#e]!, mainSuffix, 20, 7);
-  expectLocation(reflectClass(C).declarations[#f]!, mainSuffix, 21, 11);
+  expectLocation(reflectClass(C).declarations[#f]!, mainSuffix, 21, 16);
 
   // Type variables.
   expectLocation(reflectClass(C).declarations[#S]!, mainSuffix, 14, 9);
