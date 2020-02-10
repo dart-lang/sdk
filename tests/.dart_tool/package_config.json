@@ -10,158 +10,158 @@
     {
       "name": "co19_2",
       "rootUri": "../co19_2/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.7"
     },
     {
       "name": "corelib_2",
       "rootUri": "../corelib_2/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.7"
     },
     {
       "name": "ffi_2",
       "rootUri": "../ffi_2/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.7"
     },
     {
       "name": "language_2",
       "rootUri": "../language_2/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.7"
     },
     {
       "name": "lib_2",
       "rootUri": "../lib_2/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.7"
     },
     {
       "name": "standalone_2",
       "rootUri": "../standalone_2/",
-      "languageVersion": "2.6"
+      "languageVersion": "2.7"
     },
 
     {
       "name": "_fe_analyzer_shared",
       "rootUri": "../../pkg/_fe_analyzer_shared/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "args",
       "rootUri": "../../third_party/pkg/args/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "async_helper",
       "rootUri": "../../pkg/async_helper/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "collection",
       "rootUri": "../../third_party/pkg/collection/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "compiler",
       "rootUri": "../../pkg/compiler/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "convert",
       "rootUri": "../../third_party/pkg/convert/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "crypto",
       "rootUri": "../../third_party/pkg/crypto/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "dart2js_info",
       "rootUri": "../../third_party/pkg/dart2js_info/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "dart2js_tools",
       "rootUri": "../../pkg/dart2js_tools/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "dart_internal",
       "rootUri": "../../pkg/dart_internal/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "expect",
       "rootUri": "../../pkg/expect/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "ffi",
       "rootUri": "../../third_party/pkg/ffi/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "front_end",
       "rootUri": "../../pkg/front_end/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "http",
       "rootUri": "../../third_party/pkg/http/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "js",
       "rootUri": "../../pkg/js/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "js_ast",
       "rootUri": "../../pkg/js_ast/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "kernel",
       "rootUri": "../../pkg/kernel/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "meta",
       "rootUri": "../../pkg/meta/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "native_stack_traces",
       "rootUri": "../../pkg/native_stack_traces/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "path",
       "rootUri": "../../third_party/pkg/path/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "source_maps",
       "rootUri": "../../third_party/pkg/source_maps/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "sourcemap_testing",
       "rootUri": "../../pkg/sourcemap_testing/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "test",
       "rootUri": "../../third_party/pkg/test/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "testing",
       "rootUri": "../../pkg/testing/lib",
-      "language": "2.6"
+      "language": "2.7"
     },
     {
       "name": "unittest",
       "rootUri": "../../pkg/unittest/lib",
-      "language": "2.6"
+      "language": "2.7"
     }
   ]
 }
