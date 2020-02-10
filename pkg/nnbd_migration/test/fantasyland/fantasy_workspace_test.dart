@@ -37,7 +37,9 @@ class FantasyWorkspaceIntegrationTest extends FilesystemTestBase {
   /// Verify connection between workspace and buildGitRepoFrom.
   test_fantasyWorkspaceDevDepsImplIntegration() async {
     workspace = await FantasyWorkspaceTopLevelDevDepsImpl.buildFor(
-        'test_package', ['extra_package_1', 'extra_package_2'], '/fantasyland',
+        'test_package',
+        ['extra_package_1', 'extra_package_2'],
+        convertPath('/fantasyland'),
         workspaceDependencies: workspaceDependencies);
     expect(getFolder('/fantasyland').exists, isTrue);
     for (var n in ['test_package', 'extra_package_1', 'extra_package_2']) {
