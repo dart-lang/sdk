@@ -425,6 +425,10 @@ Type _canonicalizeNormalizedTypeObject(type) {
   // type term.
   Object normalizeHelper(a) => unwrapType(wrapType(a));
 
+  // GenericFunctionTypeIdentifiers are implicitly normalized.
+  if (type is GenericFunctionTypeIdentifier) {
+    return wrapType(type, isNormalized: true);
+  }
   if (type is FunctionType) {
     var normReturnType = normalizeHelper(type.returnType);
     var normArgs = type.args.map(normalizeHelper).toList();
@@ -446,6 +450,19 @@ Type _canonicalizeNormalizedTypeObject(type) {
     var normType =
         fnType(normReturnType, normArgs, normNamed, normRequiredNamed);
     return wrapType(normType, isNormalized: true);
+  }
+  if (type is GenericFunctionType) {
+    var formals = _getCanonicalTypeFormals(type.typeFormals.length);
+    var normBounds =
+        type.instantiateTypeBounds(formals).map(normalizeHelper).toList();
+    var normFunc = normalizeHelper(type.instantiate(formals)) as FunctionType;
+    // Create a comparison key for structural identity.
+    var typeObjectIdKey = JS('', '[]');
+    JS('', '#.push(...#)', typeObjectIdKey, normBounds);
+    JS('', '#.push(#)', typeObjectIdKey, normFunc);
+    var memoizedId = _memoizeArray(_gFnTypeTypeMap, typeObjectIdKey,
+        () => GenericFunctionTypeIdentifier(formals, normBounds, normFunc));
+    return wrapType(memoizedId, isNormalized: true);
   }
   var args = getGenericArgs(type);
   var normType;
@@ -505,6 +522,38 @@ final _fnTypeTypeMap = JS('', 'new Map()');
 /// argument types themselves.  The element reached via this
 /// index path (if present) is the canonical function type.
 final List _fnTypeSmallMap = JS('', '[new Map(), new Map(), new Map()]');
+
+/// Memo table for generic function types. The index path consists of the
+/// type parameters' bounds and the underlying function instantiated to its
+/// bounds, subject to the same restrictions mentioned in _fnTypeTypeMap.
+final _gFnTypeTypeMap = JS('', 'new Map()');
+
+/// Pre-initialized type variables used to ensure that generic functions with
+/// the same generic relationship structure but different names canonicalize
+/// correctly.
+final _typeVariablePool = <TypeVariable>[];
+
+/// Returns a canonicalized sequence of type variables of size [count].
+List<TypeVariable> _getCanonicalTypeFormals(int count) {
+  while (count > _typeVariablePool.length) {
+    _fillTypeVariable();
+  }
+  return _typeVariablePool.sublist(0, count);
+}
+
+/// Inserts a new type variable into _typeVariablePool according to a
+/// pre-determined pattern.
+///
+/// The first 26 generics are alphanumerics; the remainder are represented as
+/// T$N, where N increments from 0.
+void _fillTypeVariable() {
+  if (_typeVariablePool.length < 26) {
+    _typeVariablePool
+        .add(TypeVariable(String.fromCharCode(65 + _typeVariablePool.length)));
+  } else {
+    _typeVariablePool.add(TypeVariable('T${_typeVariablePool.length - 26}'));
+  }
+}
 
 @NoReifyGeneric()
 T _memoizeArray<T>(map, arr, T create()) => JS('', '''(() => {
@@ -761,6 +810,43 @@ class Variance {
   static const int covariant = 1;
   static const int contravariant = 2;
   static const int invariant = 3;
+}
+
+/// Uniquely identifies the runtime type object of a generic function.
+///
+/// We require that all objects stored in this object not have legacy
+/// nullability wrappers.
+class GenericFunctionTypeIdentifier extends AbstractFunctionType {
+  final typeFormals;
+  final typeBounds;
+  final FunctionType function;
+  String? _stringValue;
+
+  GenericFunctionTypeIdentifier(
+      this.typeFormals, this.typeBounds, this.function);
+
+  /// Returns the string-representation of the first generic function
+  /// with this runtime type object canonicalization.
+  ///
+  /// Type formal names may not correspond to those of the originating type.
+  /// We should consider auto-generating these to avoid confusion.
+  toString() {
+    if (_stringValue != null) return _stringValue!;
+    String s = "<";
+    var typeFormals = this.typeFormals;
+    var typeBounds = this.typeBounds;
+    for (int i = 0, n = typeFormals.length; i < n; i++) {
+      if (i != 0) s += ", ";
+      s += JS<String>('!', '#[#].name', typeFormals, i);
+      var bound = typeBounds[i];
+      if (JS(
+          '!', '# !== # && # !== #', bound, dynamic, bound, nullable(Object))) {
+        s += " extends $bound";
+      }
+    }
+    s += ">" + this.function.toString();
+    return this._stringValue = s;
+  }
 }
 
 class GenericFunctionType extends AbstractFunctionType {
