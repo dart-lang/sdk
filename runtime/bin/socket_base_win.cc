@@ -153,7 +153,7 @@ int SocketBase::GetType(intptr_t fd) {
     case FILE_TYPE_DISK:
       return File::kFile;
     default:
-      return GetLastError == NO_ERROR ? File::kOther : -1;
+      return GetLastError() == NO_ERROR ? File::kOther : -1;
   }
 }
 

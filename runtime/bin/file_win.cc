@@ -171,7 +171,7 @@ int64_t File::Write(const void* buffer, int64_t num_bytes) {
                         written);
     int buffer_len =
         WideCharToMultiByte(cp, 0, wide, written, NULL, 0, NULL, NULL);
-    delete wide;
+    delete[] wide;
     bytes_written = buffer_len;
   }
   return bytes_written;
@@ -402,8 +402,8 @@ typedef struct _REPARSE_DATA_BUFFER {
   };
 } REPARSE_DATA_BUFFER, *PREPARSE_DATA_BUFFER;
 
-static const int kReparseDataHeaderSize = sizeof ULONG + 2 * sizeof USHORT;
-static const int kMountPointHeaderSize = 4 * sizeof USHORT;
+static const int kReparseDataHeaderSize = sizeof(ULONG) + 2 * sizeof(USHORT);
+static const int kMountPointHeaderSize = 4 * sizeof(USHORT);
 
 // Note: CreateLink used to create junctions on Windows instead of true
 // symbolic links. All File::*Link methods now support handling links created
@@ -542,7 +542,7 @@ const char* File::LinkTarget(Namespace* namespc,
   }
 
   int buffer_size =
-      sizeof REPARSE_DATA_BUFFER + 2 * (MAX_PATH + 1) * sizeof WCHAR;
+      sizeof(REPARSE_DATA_BUFFER) + 2 * (MAX_PATH + 1) * sizeof(WCHAR);
   REPARSE_DATA_BUFFER* buffer =
       reinterpret_cast<REPARSE_DATA_BUFFER*>(Dart_ScopeAllocate(buffer_size));
   DWORD received_bytes;  // Value is not used.

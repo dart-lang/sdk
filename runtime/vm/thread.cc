@@ -146,12 +146,12 @@ static const double double_nan_constant = NAN;
 static const struct ALIGN16 {
   uint64_t a;
   uint64_t b;
-} double_negate_constant = {0x8000000000000000LL, 0x8000000000000000LL};
+} double_negate_constant = {0x8000000000000000ULL, 0x8000000000000000ULL};
 
 static const struct ALIGN16 {
   uint64_t a;
   uint64_t b;
-} double_abs_constant = {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
+} double_abs_constant = {0x7FFFFFFFFFFFFFFFULL, 0x7FFFFFFFFFFFFFFFULL};
 
 static const struct ALIGN16 {
   uint32_t a;
