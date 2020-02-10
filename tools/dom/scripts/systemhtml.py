@@ -1462,16 +1462,15 @@ class Dart2JSBackend(HtmlDartGenerator):
         metadata = self._Metadata(attribute.type.id, attribute.id, output_type,
             attribute.type.nullable)
 
-        if self._nnbd and not attribute.type.nullable:
-          self._AddAttributeUsingProperties(attribute, html_name, read_only,
-                                            rename, metadata)
-          return
-
         input_type = self._NarrowInputType(attribute.type.id)
         if self._nnbd and attribute.type.nullable:
             input_type += '?'
         static_attribute = 'static' if attribute.is_static else ''
         if not read_only:
+            if self._nnbd and not attribute.type.nullable:
+              self._AddAttributeUsingProperties(attribute, html_name, read_only,
+                                                rename, metadata)
+              return
             if attribute.type.id == 'Promise':
                 _logger.warn('R/W member is a Promise: %s.%s' %
                              (self._interface.id, html_name))

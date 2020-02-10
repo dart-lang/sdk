@@ -603,7 +603,8 @@ class Animation extends EventTarget {
 
   AnimationEffectReadOnly? effect;
 
-  Future get finished => JS("Future", "#.finished", this);
+  Future<Animation> get finished =>
+      promiseToFuture<Animation>(JS("", "#.finished", this));
 
   String get id => JS("String", "#.id", this);
 
@@ -619,7 +620,8 @@ class Animation extends EventTarget {
     JS("void", "#.playbackRate = #", this, value);
   }
 
-  Future get ready => JS("Future", "#.ready", this);
+  Future<Animation> get ready =>
+      promiseToFuture<Animation>(JS("", "#.ready", this));
 
   num? startTime;
 
@@ -1548,7 +1550,8 @@ class BeforeInstallPromptEvent extends Event {
 
   List<String> get platforms => JS("List<String>", "#.platforms", this);
 
-  Future get userChoice => JS("Future", "#.userChoice", this);
+  Future<Map<String, dynamic>?> get userChoice =>
+      promiseToFutureAsMap(JS("", "#.userChoice", this));
 
   Future prompt() => promiseToFuture(JS("", "#.prompt()", this));
 }
@@ -15855,7 +15858,8 @@ class FetchEvent extends ExtendableEvent {
 
   bool get isReload => JS("bool", "#.isReload", this);
 
-  Future get preloadResponse => JS("Future", "#.preloadResponse", this);
+  Future get preloadResponse =>
+      promiseToFuture(JS("", "#.preloadResponse", this));
 
   _Request get request => JS("_Request", "#.request", this);
 
@@ -16388,7 +16392,8 @@ class FontFace extends Interceptor {
     JS("void", "#.featureSettings = #", this, value);
   }
 
-  Future get loaded => JS("Future", "#.loaded", this);
+  Future<FontFace> get loaded =>
+      promiseToFuture<FontFace>(JS("", "#.loaded", this));
 
   String get status => JS("String", "#.status", this);
 
@@ -20882,7 +20887,7 @@ class MediaKeySession extends EventTarget {
   static const EventStreamProvider<MessageEvent> messageEvent =
       const EventStreamProvider<MessageEvent>('message');
 
-  Future get closed => JS("Future", "#.closed", this);
+  Future<void> get closed => promiseToFuture<void>(JS("", "#.closed", this));
 
   num get expiration => JS("num", "#.expiration", this);
 
@@ -26156,7 +26161,9 @@ class PresentationReceiver extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future get connectionList => JS("Future", "#.connectionList", this);
+  Future<PresentationConnectionList> get connectionList =>
+      promiseToFuture<PresentationConnectionList>(
+          JS("", "#.connectionList", this));
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26307,7 +26314,7 @@ class PromiseRejectionEvent extends Event {
       type,
       eventInitDict);
 
-  Future get promise => JS("Future", "#.promise", this);
+  Future get promise => promiseToFuture(JS("", "#.promise", this));
 
   Object? get reason => JS("Object", "#.reason", this);
 }
@@ -28061,7 +28068,8 @@ class ServiceWorkerContainer extends EventTarget {
 
   ServiceWorker? get controller => JS("ServiceWorker", "#.controller", this);
 
-  Future get ready => JS("Future", "#.ready", this);
+  Future<ServiceWorkerRegistration> get ready =>
+      promiseToFuture<ServiceWorkerRegistration>(JS("", "#.ready", this));
 
   Future<ServiceWorkerRegistration> getRegistration([String? documentURL]) =>
       promiseToFuture<ServiceWorkerRegistration>(
