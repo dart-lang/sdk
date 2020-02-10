@@ -45,21 +45,20 @@ const bool kDontAssertNoSafepointScope = false;
  */
 class MutexLocker : public ValueObject {
  public:
-  explicit MutexLocker(Mutex* mutex, bool no_safepoint_scope = true)
+  explicit MutexLocker(Mutex* mutex)
       :
 #if defined(DEBUG)
-        no_safepoint_scope_(no_safepoint_scope),
+        no_safepoint_scope_(true),
 #endif
         mutex_(mutex) {
-    ASSERT(mutex != NULL);
+    ASSERT(mutex != nullptr);
 #if defined(DEBUG)
-    if (no_safepoint_scope_) {
-      Thread* thread = Thread::Current();
-      if (thread != NULL) {
-        thread->IncrementNoSafepointScopeDepth();
-      } else {
-        no_safepoint_scope_ = false;
-      }
+    Thread* thread = Thread::Current();
+    if ((thread != nullptr) &&
+        (thread->execution_state() != Thread::kThreadInNative)) {
+      thread->IncrementNoSafepointScopeDepth();
+    } else {
+      no_safepoint_scope_ = false;
     }
 #endif
     mutex_->Lock();
