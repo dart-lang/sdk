@@ -3914,7 +3914,8 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   }
 
   AbstractType& parameter_type = AbstractType::Handle(zone);
-  NNBDMode mode = nnbd_mode();
+  AbstractType& argument_type =
+      AbstractType::Handle(zone, value.GetType(Heap::kOld));
 
   if (field.IsNull()) {
     const Function& setter =
@@ -3932,9 +3933,14 @@ RawObject* Class::InvokeSetter(const String& setter_name,
                                InvocationMirror::kSetter);
     }
     parameter_type = setter.ParameterTypeAt(0);
-    if (!value.RuntimeTypeIsSubtypeOf(mode, parameter_type,
-                                      Object::null_type_arguments(),
-                                      Object::null_type_arguments())) {
+    if (nnbd_mode() != NNBDMode::kLegacyLib) {
+      // TODO(regis): Make type check nullability aware.
+      UNIMPLEMENTED();
+    }
+    if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
+        !value.IsInstanceOf(nnbd_mode(), parameter_type,
+                            Object::null_type_arguments(),
+                            Object::null_type_arguments())) {
       const String& argument_name =
           String::Handle(zone, setter.ParameterNameAt(0));
       return ThrowTypeError(setter.token_pos(), value, parameter_type,
@@ -3955,9 +3961,14 @@ RawObject* Class::InvokeSetter(const String& setter_name,
   }
 
   parameter_type = field.type();
-  if (!value.RuntimeTypeIsSubtypeOf(mode, parameter_type,
-                                    Object::null_type_arguments(),
-                                    Object::null_type_arguments())) {
+  if (nnbd_mode() != NNBDMode::kLegacyLib) {
+    // TODO(regis): Make type check nullability aware.
+    UNIMPLEMENTED();
+  }
+  if (!argument_type.IsNullType() && !parameter_type.IsDynamicType() &&
+      !value.IsInstanceOf(nnbd_mode(), parameter_type,
+                          Object::null_type_arguments(),
+                          Object::null_type_arguments())) {
     const String& argument_name = String::Handle(zone, field.name());
     return ThrowTypeError(field.token_pos(), value, parameter_type,
                           argument_name);
@@ -17416,6 +17427,8 @@ bool Instance::IsInstanceOf(
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
+  // Note that Object::sentinel() has Null class, but !IsNull().
+  ASSERT(raw() != Object::sentinel().raw());
   if (IsNull()) {
     if (mode == NNBDMode::kOptedInLib) {
       // Compute NNBD_SUBTYPE(Null, other), either in weak or strong mode.
@@ -17447,6 +17460,8 @@ bool Instance::IsAssignableTo(
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
+  // Note that Object::sentinel() has Null class, but !IsNull().
+  ASSERT(raw() != Object::sentinel().raw());
   // In weak mode type casts, whether in legacy or opted-in libraries, the null
   // instance is detected and handled in inlined code and therefore cannot be
   // encountered here as a Dart null receiver.
@@ -17530,8 +17545,6 @@ bool Instance::RuntimeTypeIsSubtypeOf(
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
   ASSERT(!other.IsTypeRef());  // Must be dereferenced at compile time.
-  // Note that Object::sentinel() has Null class, but !IsNull().
-  ASSERT(raw() != Object::sentinel().raw());
   // Instance may not have runtimeType dynamic, void, or Never.
   if (other.IsTopType(mode)) {
     return true;
