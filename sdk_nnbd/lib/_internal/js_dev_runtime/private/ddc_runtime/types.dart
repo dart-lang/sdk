@@ -524,8 +524,6 @@ List _canonicalizeArray(List array, map) =>
 
 // TODO(leafp): This only canonicalizes if the names are emitted
 // in a consistent order.
-// TODO(markzipan): Update this to differentiate named
-// from required named parameters.
 _canonicalizeNamed(named, map) => JS('', '''(() => {
   let key = [];
   let names = $getOwnPropertyNames($named);
@@ -701,7 +699,7 @@ class FunctionType extends AbstractFunctionType {
         var typeNameString = typeName(JS('', '#[#[#]]', named, names, i));
         buffer += '$typeNameString ${JS('', '#[#]', names, i)}';
       }
-      if (JS('!', '#.length > 0', requiredNamed)) buffer += ', ';
+      if (JS('!', 'Object.keys(#).length > 0', requiredNamed)) buffer += ', ';
       names = getOwnPropertyNames(requiredNamed);
       JS('', '#.sort()', names);
       for (var i = 0; JS<bool>('!', '# < #.length', i, names); i++) {
