@@ -2,7 +2,7 @@
 
 **Owner**: eernst@
 
-**Status**: Implemented.
+**Status**: Background material, normative language now in dartLangSpec.tex.
 
 **Version**: 0.2 (2018-05-22)
 
