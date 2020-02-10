@@ -18,31 +18,31 @@ ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dar
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|15319|3|15|All final variables must be initialized, but 'elements', 'form', and 4 others are not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|15992|3|11|All final variables must be initialized, but 'length' is not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|1760|3|13|All final variables must be initialized, but 'form', 'labels', and 3 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|17992|3|13|All final variables must be initialized, but '_get_contentWindow' and 'sandbox' are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|18182|3|12|All final variables must be initialized, but 'complete', 'currentSrc', and 2 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|18291|3|12|All final variables must be initialized, but '_get_valueAsDate', 'entries', and 6 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19242|3|12|All final variables must be initialized, but 'control' and 'form' are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19271|3|13|All final variables must be initialized, but 'form' is not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19321|3|11|All final variables must be initialized, but 'import', 'relList', and 2 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19452|3|10|All final variables must be initialized, but 'areas' is not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19556|3|12|All final variables must be initialized, but 'audioDecodedByteCount', 'audioTracks', and 18 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|20670|3|12|All final variables must be initialized, but 'labels' is not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|22072|3|4|All final variables must be initialized, but 'baseUri', 'childNodes', and 11 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|22796|3|13|All final variables must be initialized, but '_get_contentWindow', 'form', and 3 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|23182|3|13|All final variables must be initialized, but 'form' and 'index' are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|23233|3|13|All final variables must be initialized, but 'form', 'htmlFor', and 5 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|24743|3|15|All final variables must be initialized, but 'labels' and 'position' are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|26232|3|13|All final variables must be initialized, but 'form', 'labels', and 4 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|27798|3|12|All final variables must be initialized, but 'sheet' is not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|27968|3|16|All final variables must be initialized, but 'cellIndex' is not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28067|3|12|All final variables must be initialized, but '_rows' and '_tBodies' are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28153|3|15|All final variables must be initialized, but '_cells', 'rowIndex', and 1 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28209|3|19|All final variables must be initialized, but '_rows' is not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28263|3|15|All final variables must be initialized, but 'content' is not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28336|3|15|All final variables must be initialized, but 'form', 'labels', and 5 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|29067|3|12|All final variables must be initialized, but 'readyState' and 'track' are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|29873|3|12|All final variables must be initialized, but 'decodedFrameCount', 'droppedFrameCount', and 2 others are not.
-ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|38877|3|8|All final variables must be initialized, but 'sourceCapabilities' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|17990|3|13|All final variables must be initialized, but '_get_contentWindow' and 'sandbox' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|18180|3|12|All final variables must be initialized, but 'complete', 'currentSrc', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|18289|3|12|All final variables must be initialized, but '_get_valueAsDate', 'entries', and 6 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19240|3|12|All final variables must be initialized, but 'control' and 'form' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19269|3|13|All final variables must be initialized, but 'form' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19319|3|11|All final variables must be initialized, but 'import', 'relList', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19450|3|10|All final variables must be initialized, but 'areas' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|19554|3|12|All final variables must be initialized, but 'audioDecodedByteCount', 'audioTracks', and 18 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|20668|3|12|All final variables must be initialized, but 'labels' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|22070|3|4|All final variables must be initialized, but 'baseUri', 'childNodes', and 11 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|22794|3|13|All final variables must be initialized, but '_get_contentWindow', 'form', and 3 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|23180|3|13|All final variables must be initialized, but 'form' and 'index' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|23231|3|13|All final variables must be initialized, but 'form', 'htmlFor', and 5 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|24741|3|15|All final variables must be initialized, but 'labels' and 'position' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|26230|3|13|All final variables must be initialized, but 'form', 'labels', and 4 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|27796|3|12|All final variables must be initialized, but 'sheet' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|27966|3|16|All final variables must be initialized, but 'cellIndex' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28065|3|12|All final variables must be initialized, but '_rows' and '_tBodies' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28151|3|15|All final variables must be initialized, but '_cells', 'rowIndex', and 1 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28207|3|19|All final variables must be initialized, but '_rows' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28261|3|15|All final variables must be initialized, but 'content' is not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|28334|3|15|All final variables must be initialized, but 'form', 'labels', and 5 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|29065|3|12|All final variables must be initialized, but 'readyState' and 'track' are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|29871|3|12|All final variables must be initialized, but 'decodedFrameCount', 'droppedFrameCount', and 2 others are not.
+ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|38875|3|8|All final variables must be initialized, but 'sourceCapabilities' is not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|453|3|13|All final variables must be initialized, but 'origin' is not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|8511|3|15|All final variables must be initialized, but 'options' is not.
 ERROR|STATIC_WARNING|FINAL_NOT_INITIALIZED_CONSTRUCTOR|lib/html/dart2js/html_dart2js.dart|972|3|11|All final variables must be initialized, but 'origin' is not.

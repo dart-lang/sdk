@@ -2180,7 +2180,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   Object? _getContext_2(contextId) native;
 
   @JSName('toDataURL')
-  String _toDataUrl(String type, [arguments_OR_quality]) native;
+  String _toDataUrl(String? type, [arguments_OR_quality]) native;
 
   OffscreenCanvas transferControlToOffscreen() native;
 
@@ -2712,7 +2712,7 @@ class CanvasRenderingContext2D extends Interceptor
 
   @JSName('arc')
   void _arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool anticlockwise) native;
+      bool? anticlockwise) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
@@ -2722,7 +2722,7 @@ class CanvasRenderingContext2D extends Interceptor
   void closePath() native;
 
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool anticlockwise) native;
+      num startAngle, num endAngle, bool? anticlockwise) native;
 
   void lineTo(num x, num y) native;
 
@@ -3228,10 +3228,7 @@ class CompositionEvent extends UIEvent {
       JS('void', '#.initCompositionEvent(#, #, #, #, #, #)', e, type, canBubble,
           cancelable, view, data, locale);
     } else {
-      // IDL dictates that some of these must be not null. While the signature
-      // of this function should ideally change, for compatibility, this opts to
-      // instead potentially throw a null assertion error with null-safety.
-      e._initCompositionEvent(type, canBubble, cancelable, view, data!);
+      e._initCompositionEvent(type, canBubble, cancelable, view, data);
     }
 
     return e;
@@ -3252,8 +3249,8 @@ class CompositionEvent extends UIEvent {
   String get data => JS("String", "#.data", this);
 
   @JSName('initCompositionEvent')
-  void _initCompositionEvent(String type, bool bubbles, bool cancelable,
-      Window? view, String data) native;
+  void _initCompositionEvent(String? type, bool? bubbles, bool? cancelable,
+      Window? view, String? data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8548,13 +8545,13 @@ class CssStyleSheet extends StyleSheet {
   @Creates('_CssRuleList')
   List<CssRule> get rules => JS("_CssRuleList", "#.rules", this);
 
-  int addRule(String selector, String style, [int? index]) native;
+  int addRule(String? selector, String? style, [int? index]) native;
 
   void deleteRule(int index) native;
 
   int insertRule(String rule, [int? index]) native;
 
-  void removeRule(int index) native;
+  void removeRule(int? index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9847,7 +9844,7 @@ class Document extends Node {
   Node adoptNode(Node node) native;
 
   @JSName('caretRangeFromPoint')
-  Range _caretRangeFromPoint(int x, int y) native;
+  Range _caretRangeFromPoint(int? x, int? y) native;
 
   DocumentFragment createDocumentFragment() native;
 
@@ -16666,7 +16663,7 @@ class FormElement extends HtmlElement {
 
   bool reportValidity() native;
 
-  void requestAutocomplete(Map details) {
+  void requestAutocomplete(Map? details) {
     var details_1 = convertDartToNative_Dictionary(details);
     _requestAutocomplete_1(details_1);
     return;
@@ -17607,7 +17604,7 @@ class HtmlCollection extends Interceptor
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
-  Node? item(int index) native;
+  Node? item(int? index) native;
 
   Object? namedItem(String name) native;
 }
@@ -17780,8 +17777,6 @@ class HtmlFormControlsCollection extends HtmlCollection {
   factory HtmlFormControlsCollection._() {
     throw new UnsupportedError("Not supported");
   }
-
-  Node item(int index) native;
 
   Object? namedItem(String name) native;
 }
@@ -20459,7 +20454,7 @@ class Location extends Interceptor implements LocationBase {
 
   void reload() native;
 
-  void replace(String url) native;
+  void replace(String? url) native;
 
   String get origin {
     if (JS('bool', '("origin" in #)', this)) {
@@ -20778,7 +20773,7 @@ class MediaElement extends HtmlElement {
   TextTrack addTextTrack(String kind, [String? label, String? language]) native;
 
   @Unstable()
-  String canPlayType(String type, [String? keySystem]) native;
+  String canPlayType(String? type, [String? keySystem]) native;
 
   MediaStream captureStream() native;
 
@@ -21632,11 +21627,8 @@ class MessageEvent extends Event {
           messagePorts);
     }
     MessageEvent event = document._createEvent("MessageEvent") as MessageEvent;
-    // IDL dictates that all of these must be not null. While the signature of
-    // this function should ideally change, for compatibility, this opts to
-    // instead potentially throw a null assertion error with null-safety.
-    event._initMessageEvent(type, canBubble, cancelable, data!, origin!,
-        lastEventId!, source, messagePorts);
+    event._initMessageEvent(type, canBubble, cancelable, data, origin,
+        lastEventId, source, messagePorts);
     return event;
   }
 
@@ -21680,14 +21672,14 @@ class MessageEvent extends Event {
   String get suborigin => JS("String", "#.suborigin", this);
 
   void _initMessageEvent(
-      String typeArg,
-      bool canBubbleArg,
-      bool cancelableArg,
-      Object dataArg,
-      String originArg,
-      String lastEventIdArg,
-      EventTarget sourceArg,
-      List<MessagePort> portsArg) {
+      String? typeArg,
+      bool? canBubbleArg,
+      bool? cancelableArg,
+      Object? dataArg,
+      String? originArg,
+      String? lastEventIdArg,
+      EventTarget? sourceArg,
+      List<MessagePort>? portsArg) {
     var sourceArg_1 = _convertDartToNative_EventTarget(sourceArg);
     _initMessageEvent_1(typeArg, canBubbleArg, cancelableArg, dataArg,
         originArg, lastEventIdArg, sourceArg_1, portsArg);
@@ -21696,7 +21688,7 @@ class MessageEvent extends Event {
 
   @JSName('initMessageEvent')
   void _initMessageEvent_1(typeArg, canBubbleArg, cancelableArg, dataArg,
-      originArg, lastEventIdArg, sourceArg, List<MessagePort> portsArg) native;
+      originArg, lastEventIdArg, sourceArg, List<MessagePort>? portsArg) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22411,20 +22403,20 @@ class MouseEvent extends UIEvent {
   bool getModifierState(String keyArg) native;
 
   void _initMouseEvent(
-      String type,
-      bool bubbles,
-      bool cancelable,
+      String? type,
+      bool? bubbles,
+      bool? cancelable,
       Window? view,
-      int detail,
-      int screenX,
-      int screenY,
-      int clientX,
-      int clientY,
-      bool ctrlKey,
-      bool altKey,
-      bool shiftKey,
-      bool metaKey,
-      int button,
+      int? detail,
+      int? screenX,
+      int? screenY,
+      int? clientX,
+      int? clientY,
+      bool? ctrlKey,
+      bool? altKey,
+      bool? shiftKey,
+      bool? metaKey,
+      int? button,
       EventTarget? relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
     _initMouseEvent_1(
@@ -22539,14 +22531,14 @@ class MutationEvent extends Event {
   Node? get relatedNode => JS("Node", "#.relatedNode", this);
 
   void initMutationEvent(
-      String type,
-      bool bubbles,
-      bool cancelable,
+      String? type,
+      bool? bubbles,
+      bool? cancelable,
       Node? relatedNode,
-      String prevValue,
-      String newValue,
-      String attrName,
-      int attrChange) native;
+      String? prevValue,
+      String? newValue,
+      String? attrName,
+      int? attrChange) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23589,7 +23581,7 @@ class Node extends EventTarget {
    * * [Node.cloneNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode)
    *   from MDN.
    */
-  Node clone(bool deep) native;
+  Node clone(bool? deep) native;
 
   /**
    * Returns true if this node contains the specified node.
@@ -24440,7 +24432,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   // From CanvasPath
 
   void arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool anticlockwise) native;
+      bool? anticlockwise) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
@@ -24450,7 +24442,7 @@ class OffscreenCanvasRenderingContext2D extends Interceptor
   void closePath() native;
 
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool anticlockwise) native;
+      num startAngle, num endAngle, bool? anticlockwise) native;
 
   void lineTo(num x, num y) native;
 
@@ -24877,7 +24869,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
   // From CanvasPath
 
   void arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool anticlockwise) native;
+      bool? anticlockwise) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
@@ -24887,7 +24879,7 @@ class PaintRenderingContext2D extends Interceptor implements _CanvasPath {
   void closePath() native;
 
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool anticlockwise) native;
+      num startAngle, num endAngle, bool? anticlockwise) native;
 
   void lineTo(num x, num y) native;
 
@@ -25091,7 +25083,7 @@ class Path2D extends Interceptor implements _CanvasPath {
   // From CanvasPath
 
   void arc(num x, num y, num radius, num startAngle, num endAngle,
-      bool anticlockwise) native;
+      bool? anticlockwise) native;
 
   void arcTo(num x1, num y1, num x2, num y2, num radius) native;
 
@@ -25101,7 +25093,7 @@ class Path2D extends Interceptor implements _CanvasPath {
   void closePath() native;
 
   void ellipse(num x, num y, num radiusX, num radiusY, num rotation,
-      num startAngle, num endAngle, bool anticlockwise) native;
+      num startAngle, num endAngle, bool? anticlockwise) native;
 
   void lineTo(num x, num y) native;
 
@@ -25373,21 +25365,22 @@ class Performance extends EventTarget {
 
   PerformanceTiming get timing => JS("PerformanceTiming", "#.timing", this);
 
-  void clearMarks(String markName) native;
+  void clearMarks(String? markName) native;
 
-  void clearMeasures(String measureName) native;
+  void clearMeasures(String? measureName) native;
 
   void clearResourceTimings() native;
 
   List<PerformanceEntry> getEntries() native;
 
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+  List<PerformanceEntry> getEntriesByName(String name, String? entryType)
+      native;
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
   void mark(String markName) native;
 
-  void measure(String measureName, String startMark, String endMark) native;
+  void measure(String measureName, String? startMark, String? endMark) native;
 
   double now() native;
 
@@ -25555,7 +25548,8 @@ class PerformanceObserverEntryList extends Interceptor {
 
   List<PerformanceEntry> getEntries() native;
 
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+  List<PerformanceEntry> getEntriesByName(String name, String? entryType)
+      native;
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 }
@@ -25865,7 +25859,7 @@ class PluginArray extends Interceptor
 
   Plugin? namedItem(String name) native;
 
-  void refresh(bool reload) native;
+  void refresh(bool? reload) native;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26555,7 +26549,7 @@ class Range extends Interceptor {
 
   void detach() native;
 
-  void expand(String unit) native;
+  void expand(String? unit) native;
 
   DocumentFragment extractContents() native;
 
@@ -27480,7 +27474,7 @@ class RtcStatsResponse extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  RtcLegacyStatsReport namedItem(String name) native;
+  RtcLegacyStatsReport namedItem(String? name) native;
 
   List<RtcLegacyStatsReport> result() native;
 }
@@ -27956,7 +27950,7 @@ class Selection extends Interceptor {
 
   Range getRangeAt(int index) native;
 
-  void modify(String alter, String direction, String granularity) native;
+  void modify(String? alter, String? direction, String? granularity) native;
 
   void removeAllRanges() native;
 
@@ -29419,11 +29413,8 @@ class StorageEvent extends Event {
       String? url,
       Storage? storageArea}) {
     StorageEvent e = document._createEvent("StorageEvent") as StorageEvent;
-    // IDL dictates that some of these must be not null. While the signature of
-    // this function should ideally change, for compatibility, this opts to
-    // instead potentially throw a null assertion error with null-safety.
-    e._initStorageEvent(type, canBubble, cancelable, key!, oldValue, newValue,
-        url!, storageArea!);
+    e._initStorageEvent(
+        type, canBubble, cancelable, key, oldValue, newValue, url, storageArea);
     return e;
   }
 
@@ -29451,14 +29442,14 @@ class StorageEvent extends Event {
 
   @JSName('initStorageEvent')
   void _initStorageEvent(
-      String typeArg,
-      bool canBubbleArg,
-      bool cancelableArg,
-      String keyArg,
+      String? typeArg,
+      bool? canBubbleArg,
+      bool? cancelableArg,
+      String? keyArg,
       String? oldValueArg,
       String? newValueArg,
-      String urlArg,
-      Storage storageAreaArg) native;
+      String? urlArg,
+      Storage? storageAreaArg) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29550,7 +29541,7 @@ class StyleMedia extends Interceptor {
 
   String get type => JS("String", "#.type", this);
 
-  bool matchMedium(String mediaquery) native;
+  bool matchMedium(String? mediaquery) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30265,10 +30256,7 @@ class TextEvent extends UIEvent {
       view = window;
     }
     TextEvent e = document._createEvent("TextEvent") as TextEvent;
-    // IDL dictates that some of these must be not null. While the signature of
-    // this function should ideally change, for compatibility, this opts to
-    // instead potentially throw a null assertion error with null-safety.
-    e._initTextEvent(type, canBubble, cancelable, view, data!);
+    e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }
   // To suppress missing implicit constructor warnings.
@@ -30279,8 +30267,8 @@ class TextEvent extends UIEvent {
   String get data => JS("String", "#.data", this);
 
   @JSName('initTextEvent')
-  void _initTextEvent(String type, bool bubbles, bool cancelable, Window? view,
-      String data) native;
+  void _initTextEvent(String? type, bool? bubbles, bool? cancelable,
+      Window? view, String? data) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31201,7 +31189,7 @@ class UnderlyingSourceBase extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Future cancel(Object reason) =>
+  Future cancel(Object? reason) =>
       promiseToFuture(JS("", "#.cancel(#)", this, reason));
 
   void notifyLockAcquired() native;
@@ -33398,8 +33386,8 @@ class Window extends EventTarget
    * * [Window.find](https://developer.mozilla.org/en-US/docs/Web/API/Window.find)
    *   from MDN.
    */
-  bool find(String string, bool caseSensitive, bool backwards, bool wrap,
-      bool wholeWord, bool searchInFrames, bool showDialog) native;
+  bool find(String? string, bool? caseSensitive, bool? backwards, bool? wrap,
+      bool? wholeWord, bool? searchInFrames, bool? showDialog) native;
 
   @JSName('getComputedStyle')
   CssStyleDeclaration _getComputedStyle(Element elt, [String? pseudoElt])
@@ -33414,7 +33402,7 @@ class Window extends EventTarget
    */
   @Returns('_CssRuleList')
   @Creates('_CssRuleList')
-  List<CssRule> getMatchedCssRules(Element element, String? pseudoElement)
+  List<CssRule> getMatchedCssRules(Element? element, String? pseudoElement)
       native;
 
   /**
@@ -34510,21 +34498,22 @@ class WorkerPerformance extends EventTarget {
 
   num get timeOrigin => JS("num", "#.timeOrigin", this);
 
-  void clearMarks(String markName) native;
+  void clearMarks(String? markName) native;
 
-  void clearMeasures(String measureName) native;
+  void clearMeasures(String? measureName) native;
 
   void clearResourceTimings() native;
 
   List<PerformanceEntry> getEntries() native;
 
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+  List<PerformanceEntry> getEntriesByName(String name, String? entryType)
+      native;
 
   List<PerformanceEntry> getEntriesByType(String entryType) native;
 
   void mark(String markName) native;
 
-  void measure(String measureName, String startMark, String endMark) native;
+  void measure(String measureName, String? startMark, String? endMark) native;
 
   double now() native;
 
@@ -34629,7 +34618,7 @@ class XPathNSResolver extends Interceptor {
   }
 
   @JSName('lookupNamespaceURI')
-  String? lookupNamespaceUri(String prefix) native;
+  String? lookupNamespaceUri(String? prefix) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35331,7 +35320,7 @@ class _GamepadList extends Interceptor
   Gamepad? elementAt(int index) => this[index];
   // -- end List<Gamepad?> mixins.
 
-  Gamepad item(int index) native;
+  Gamepad item(int? index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35347,7 +35336,7 @@ abstract class _HTMLAllCollection extends Interceptor {
   }
 
   @JSName('item')
-  Element _item(int index) native;
+  Element _item(int? index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

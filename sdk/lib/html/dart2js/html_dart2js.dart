@@ -17118,8 +17118,6 @@ class HtmlFormControlsCollection extends HtmlCollection {
     throw new UnsupportedError("Not supported");
   }
 
-  Node item(int index) native;
-
   Object namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

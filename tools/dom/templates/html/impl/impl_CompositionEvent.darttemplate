@@ -21,12 +21,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       JS('void', '#.initCompositionEvent(#, #, #, #, #, #)',
           e, type, canBubble, cancelable, view, data, locale);
     } else {
-$if NNBD
-      // IDL dictates that some of these must be not null. While the signature
-      // of this function should ideally change, for compatibility, this opts to
-      // instead potentially throw a null assertion error with null-safety.
-$endif
-      e._initCompositionEvent(type, canBubble, cancelable, view, data$NULLASSERT);
+      e._initCompositionEvent(type, canBubble, cancelable, view, data);
     }
 
     return e;

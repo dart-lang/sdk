@@ -670,7 +670,7 @@ class Index extends Interceptor {
   bool get unique => JS("bool", "#.unique", this);
 
   @JSName('count')
-  Request _count(Object key) native;
+  Request _count(Object? key) native;
 
   @JSName('get')
   @Returns('Request')
@@ -678,9 +678,9 @@ class Index extends Interceptor {
   @annotation_Creates_SerializedScriptValue
   Request _get(Object key) native;
 
-  Request getAll(Object query, [int? count]) native;
+  Request getAll(Object? query, [int? count]) native;
 
-  Request getAllKeys(Object query, [int? count]) native;
+  Request getAllKeys(Object? query, [int? count]) native;
 
   @JSName('getKey')
   @Returns('Request')
@@ -693,13 +693,13 @@ class Index extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object range, [String? direction]) native;
+  Request _openCursor(Object? range, [String? direction]) native;
 
   @JSName('openKeyCursor')
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openKeyCursor(Object range, [String? direction]) native;
+  Request _openKeyCursor(Object? range, [String? direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -927,7 +927,7 @@ class ObjectStore extends Interceptor {
   Request _clear() native;
 
   @JSName('count')
-  Request _count(Object key) native;
+  Request _count(Object? key) native;
 
   Index _createIndex(String name, Object keyPath, [Map? options]) {
     if (options != null) {
@@ -953,9 +953,9 @@ class ObjectStore extends Interceptor {
   @annotation_Creates_SerializedScriptValue
   Request _get(Object key) native;
 
-  Request getAll(Object query, [int? count]) native;
+  Request getAll(Object? query, [int? count]) native;
 
-  Request getAllKeys(Object query, [int? count]) native;
+  Request getAllKeys(Object? query, [int? count]) native;
 
   Request getKey(Object key) native;
 
@@ -965,9 +965,9 @@ class ObjectStore extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object range, [String? direction]) native;
+  Request _openCursor(Object? range, [String? direction]) native;
 
-  Request openKeyCursor(Object range, [String? direction]) native;
+  Request openKeyCursor(Object? range, [String? direction]) native;
 
   @Returns('Request')
   @Creates('Request')

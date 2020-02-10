@@ -13,13 +13,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     Storage$NULLABLE storageArea}) {
 
     StorageEvent e = document._createEvent("StorageEvent") $#NULLSAFECAST(as StorageEvent);
-$if NNBD
-    // IDL dictates that some of these must be not null. While the signature of
-    // this function should ideally change, for compatibility, this opts to
-    // instead potentially throw a null assertion error with null-safety.
-$endif
-    e._initStorageEvent(type, canBubble, cancelable, key$NULLASSERT, oldValue,
-        newValue, url$NULLASSERT, storageArea$NULLASSERT);
+    e._initStorageEvent(type, canBubble, cancelable, key, oldValue, newValue,
+        url, storageArea);
     return e;
   }
 $!MEMBERS

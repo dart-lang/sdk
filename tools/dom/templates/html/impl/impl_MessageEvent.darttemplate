@@ -22,13 +22,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
           messagePorts);
     }
     MessageEvent event = document._createEvent("MessageEvent") $#NULLSAFECAST(as MessageEvent);
-$if NNBD
-    // IDL dictates that all of these must be not null. While the signature of
-    // this function should ideally change, for compatibility, this opts to
-    // instead potentially throw a null assertion error with null-safety.
-$endif
-    event._initMessageEvent(type, canBubble, cancelable, data$NULLASSERT,
-        origin$NULLASSERT, lastEventId$NULLASSERT, source, messagePorts);
+    event._initMessageEvent(type, canBubble, cancelable, data, origin,
+        lastEventId, source, messagePorts);
     return event;
   }
 

@@ -459,13 +459,17 @@ def GetCallbackInfo(interface):
 # Given a list of overloaded arguments, render dart arguments.
 def _BuildArguments(args, interface, constructor=False):
 
+    # TODO(srujzs): Determine if this should really be turning false instead of
+    # argument.optional as the default. For NNBD, we'll derive parameter
+    # nullability from argument.optional but leave optionality otherwise alone.
     def IsOptional(argument):
         if 'Callback' in argument.ext_attrs:
-            # Optional callbacks arguments are treated as optional arguments.
+            # Optional callbacks arguments are treated as optional
+            # arguments.
             return argument.optional
         if constructor:
-            # FIXME: Optional constructors arguments should not be treated as
-            # optional arguments.
+            # FIXME: Optional constructors arguments should not be treated
+            # as optional arguments.
             return argument.optional
         if 'DartForceOptional' in argument.ext_attrs:
             return True
@@ -505,6 +509,7 @@ def _BuildArguments(args, interface, constructor=False):
     result = []
 
     is_optional = False
+
     # Process overloaded arguments across a set of overloaded operations.
     # Each tuple in args corresponds to overloaded arguments with the same name.
     for arg_tuple in map(lambda *x: x, *args):
@@ -514,10 +519,20 @@ def _BuildArguments(args, interface, constructor=False):
         filtered = filter(None, arg_tuple)
         (type_id, is_nullable) = OverloadedType(filtered)
         name = OverloadedName(filtered)
-        default = OverloadedDefault(filtered)
+        (default_value, default_value_is_null) = OverloadedDefault(filtered)
+
+        # For nullability determination, we'll use the arguments' optionality
+        # instead of the IsOptional method above.
+        optional_argument = any(arg is None or arg.optional or
+            'DartForceOptional' in arg.ext_attrs for arg in arg_tuple)
+
+        if optional_argument and (default_value == 'Undefined' or
+                default_value == None or default_value_is_null):
+            is_nullable = True
+
         result.append(
-            ParamInfo(name, type_id, is_optional, is_nullable, default[0],
-                      default[1]))
+            ParamInfo(name, type_id, is_optional, is_nullable, default_value,
+                      default_value_is_null))
 
     return result
 

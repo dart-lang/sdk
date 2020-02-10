@@ -14,12 +14,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
       view = window;
     }
     TextEvent e = document._createEvent("TextEvent") $#NULLSAFECAST(as TextEvent);
-$if NNBD
-    // IDL dictates that some of these must be not null. While the signature of
-    // this function should ideally change, for compatibility, this opts to
-    // instead potentially throw a null assertion error with null-safety.
-$endif
-    e._initTextEvent(type, canBubble, cancelable, view, data$NULLASSERT);
+    e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }
 $!MEMBERS
