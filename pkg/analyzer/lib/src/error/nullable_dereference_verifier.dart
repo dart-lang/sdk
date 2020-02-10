@@ -21,12 +21,13 @@ class NullableDereferenceVerifier {
   })  : _typeSystem = typeSystem,
         _errorReporter = errorReporter;
 
-  bool expression(Expression expression) {
+  bool expression(Expression expression, {DartType type}) {
     if (!_typeSystem.isNonNullableByDefault) {
       return false;
     }
 
-    return _check(expression, expression.staticType);
+    type ??= expression.staticType;
+    return _check(expression, type);
   }
 
   void report(AstNode errorNode, DartType receiverType) {
