@@ -150,6 +150,8 @@ RawClass* Object::kernel_program_info_class_ =
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::bytecode_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::instructions_section_class_ =
+    reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_source_map_class_ =
@@ -793,6 +795,9 @@ void Object::Init(Isolate* isolate) {
   cls = Class::New<Instructions, RTN::Instructions>(isolate);
   instructions_class_ = cls.raw();
 
+  cls = Class::New<InstructionsSection, RTN::InstructionsSection>(isolate);
+  instructions_section_class_ = cls.raw();
+
   cls = Class::New<ObjectPool, RTN::ObjectPool>(isolate);
   object_pool_class_ = cls.raw();
 
@@ -1221,6 +1226,7 @@ void Object::Cleanup() {
   code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   bytecode_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+  instructions_section_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
   code_source_map_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -1323,6 +1329,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(bytecode, Bytecode);
   SET_CLASS_NAME(instructions, Instructions);
+  SET_CLASS_NAME(instructions_section, InstructionsSection);
   SET_CLASS_NAME(object_pool, ObjectPool);
   SET_CLASS_NAME(code_source_map, CodeSourceMap);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);
@@ -4536,6 +4543,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::Bytecode().ToCString();
     case kInstructionsCid:
       return Symbols::Instructions().ToCString();
+    case kInstructionsSectionCid:
+      return Symbols::InstructionsSection().ToCString();
     case kObjectPoolCid:
       return Symbols::ObjectPool().ToCString();
     case kCodeSourceMapCid:
@@ -13104,7 +13113,7 @@ void Library::CheckFunctionFingerprints() {
 }
 #endif  // defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME).
 
-RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
+RawInstructions* Instructions::New(intptr_t size, bool has_monomorphic_entry) {
   ASSERT(size >= 0);
   ASSERT(Object::instructions_class() != Class::null());
   if (size < 0 || size > kMaxElements) {
@@ -13119,7 +13128,7 @@ RawInstructions* Instructions::New(intptr_t size, bool has_single_entry_point) {
     NoSafepointScope no_safepoint;
     result ^= raw;
     result.SetSize(size);
-    result.SetHasSingleEntryPoint(has_single_entry_point);
+    result.SetHasMonomorphicEntry(has_monomorphic_entry);
     result.set_stats(nullptr);
   }
   return result.raw();
@@ -13142,6 +13151,10 @@ void Instructions::set_stats(CodeStatistics* stats) const {
 #if defined(DART_PRECOMPILER)
   Thread::Current()->heap()->SetPeer(raw(), stats);
 #endif
+}
+
+const char* InstructionsSection::ToCString() const {
+  return "InstructionsSection";
 }
 
 // Encode integer |value| in SLEB128 format and store into |data|.
@@ -15321,12 +15334,11 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
   if (!FLAG_support_disassembler) {
     return;
   }
-  const Instructions& instr = Instructions::Handle(instructions());
-  uword start = instr.PayloadStart();
+  const uword start = PayloadStart();
   if (formatter == NULL) {
-    Disassembler::Disassemble(start, start + instr.Size(), *this);
+    Disassembler::Disassemble(start, start + Size(), *this);
   } else {
-    Disassembler::Disassemble(start, start + instr.Size(), formatter, *this);
+    Disassembler::Disassemble(start, start + Size(), formatter, *this);
   }
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 }
@@ -15466,7 +15478,7 @@ RawCode* Code::FinalizeCode(FlowGraphCompiler* compiler,
   assembler->GetSelfHandle() = code.raw();
 #endif
   Instructions& instrs = Instructions::ZoneHandle(Instructions::New(
-      assembler->CodeSize(), assembler->has_single_entry_point()));
+      assembler->CodeSize(), assembler->has_monomorphic_entry()));
 
   {
     // Important: if GC is triggerred at any point between Instructions::New
@@ -15867,11 +15879,10 @@ void Code::DumpSourcePositions(bool relative_addresses) const {
 
 bool Code::VerifyBSSRelocations() const {
   const auto& descriptors = PcDescriptors::Handle(pc_descriptors());
-  const auto& insns = Instructions::Handle(instructions());
   PcDescriptors::Iterator iterator(descriptors,
                                    RawPcDescriptors::kBSSRelocation);
   while (iterator.MoveNext()) {
-    const uword reloc = insns.PayloadStart() + iterator.PcOffset();
+    const uword reloc = PayloadStart() + iterator.PcOffset();
     const word target = *reinterpret_cast<word*>(reloc);
     // The relocation is in its original unpatched form -- the addend
     // representing the target symbol itself.

@@ -126,7 +126,7 @@ bool StackFrame::IsBareInstructionsDartFrame() const {
   if (auto isolate = IsolateOfBareInstructionsFrame()) {
     Code code;
     auto rct = isolate->reverse_pc_lookup_cache();
-    code = rct->Lookup(pc());
+    code = rct->Lookup(pc(), /*is_return_address=*/true);
 
     const intptr_t cid = code.owner()->GetClassId();
     ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
@@ -141,7 +141,7 @@ bool StackFrame::IsBareInstructionsStubFrame() const {
   if (auto isolate = IsolateOfBareInstructionsFrame()) {
     Code code;
     auto rct = isolate->reverse_pc_lookup_cache();
-    code = rct->Lookup(pc());
+    code = rct->Lookup(pc(), /*is_return_address=*/true);
 
     const intptr_t cid = code.owner()->GetClassId();
     ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
@@ -253,7 +253,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   Code code;
 
   if (auto isolate = IsolateOfBareInstructionsFrame()) {
-    code = isolate->reverse_pc_lookup_cache()->Lookup(pc());
+    auto const rct = isolate->reverse_pc_lookup_cache();
+    code = rct->Lookup(pc(), /*is_return_address=*/true);
   } else {
     RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
         fp() + ((is_interpreted() ? kKBCPcMarkerSlotFromFp
@@ -387,7 +388,8 @@ RawCode* StackFrame::LookupDartCode() const {
   NoSafepointScope no_safepoint;
 #endif
   if (auto isolate = IsolateOfBareInstructionsFrame()) {
-    return isolate->reverse_pc_lookup_cache()->Lookup(pc());
+    auto const rct = isolate->reverse_pc_lookup_cache();
+    return rct->Lookup(pc(), /*is_return_address=*/true);
   }
 
   RawCode* code = GetCodeObject();
@@ -401,7 +403,8 @@ RawCode* StackFrame::LookupDartCode() const {
 RawCode* StackFrame::GetCodeObject() const {
   ASSERT(!is_interpreted());
   if (auto isolate = IsolateOfBareInstructionsFrame()) {
-    return isolate->reverse_pc_lookup_cache()->Lookup(pc());
+    auto const rct = isolate->reverse_pc_lookup_cache();
+    return rct->Lookup(pc(), /*is_return_address=*/true);
   } else {
     RawObject* pc_marker = *(reinterpret_cast<RawObject**>(
         fp() + runtime_frame_layout.code_from_fp * kWordSize));

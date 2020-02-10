@@ -517,6 +517,11 @@ const word StoreBufferBlock::kSize = dart::StoreBufferBlock::kSize;
 
 const word MarkingStackBlock::kSize = dart::MarkingStackBlock::kSize;
 
+word InstructionsSection::HeaderSize() {
+  return Utils::RoundUp(InstructionsSection::UnalignedHeaderSize(),
+                        target::kWordSize);
+}
+
 word Instructions::HeaderSize() {
   return Utils::RoundUp(Instructions::UnalignedHeaderSize(), target::kWordSize);
 }
@@ -912,6 +917,10 @@ word Number::NextFieldOffset() {
 }
 
 word MonomorphicSmiableCall::NextFieldOffset() {
+  return -kWordSize;
+}
+
+word InstructionsSection::NextFieldOffset() {
   return -kWordSize;
 }
 

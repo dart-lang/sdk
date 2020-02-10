@@ -3426,7 +3426,7 @@ void Assembler::LeaveStubFrame() {
 // R0 receiver, R9 ICData entries array
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntryJIT() {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
 #if defined(TESTING) || defined(DEBUG)
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
@@ -3462,7 +3462,7 @@ void Assembler::MonomorphicCheckedEntryJIT() {
 // R0 receiver, R9 guarded cid as Smi.
 // Preserve R4 (ARGS_DESC_REG), not required today, but maybe later.
 void Assembler::MonomorphicCheckedEntryAOT() {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
 #if defined(TESTING) || defined(DEBUG)
   bool saved_use_far_branches = use_far_branches();
   set_use_far_branches(false);
@@ -3487,7 +3487,7 @@ void Assembler::MonomorphicCheckedEntryAOT() {
 }
 
 void Assembler::BranchOnMonomorphicCheckedEntryJIT(Label* label) {
-  has_single_entry_point_ = false;
+  has_monomorphic_entry_ = true;
   while (CodeSize() < target::Instructions::kMonomorphicEntryOffsetJIT) {
     bkpt(0);
   }

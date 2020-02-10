@@ -1408,8 +1408,11 @@ class RawKernelProgramInfo : public RawObject {
 class RawCode : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
-  // When in the precompiled runtime, there is no active_instructions_ field
-  // and the entry point caches should contain entry points for instructions_.
+  // When in the precompiled runtime, there is no disabling of Code objects
+  // and thus no active_instructions_ field. Thus, the entry point caches are
+  // only set once during deserialization. If not using bare instructions,
+  // the caches should match the entry points for instructions_.
+  //
   // Otherwise, they should contain entry points for active_instructions_.
 
   uword entry_point_;  // Accessed from generated code.
@@ -1497,12 +1500,14 @@ class RawCode : public RawObject {
   // Caches the unchecked entry point offset for instructions_, in case we need
   // to reset the active_instructions_ to instructions_.
   NOT_IN_PRECOMPILED(uint32_t unchecked_offset_);
+  // Stores the instructions length when not using RawInstructions objects.
+  ONLY_IN_PRECOMPILED(uint32_t instructions_length_);
 
   // Variable length data follows here.
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
   const int32_t* data() const { OPEN_ARRAY_START(int32_t, int32_t); }
 
-  static bool ContainsPC(RawObject* raw_obj, uword pc);
+  static bool ContainsPC(const RawObject* raw_obj, uword pc);
 
   friend class Function;
   template <bool>
@@ -1584,7 +1589,7 @@ class RawInstructions : public RawObject {
   // Private helper function used while visiting stack frames. The
   // code which iterates over dart frames is also called during GC and
   // is not allowed to create handles.
-  static bool ContainsPC(RawInstructions* raw_instr, uword pc);
+  static bool ContainsPC(const RawInstructions* raw_instr, uword pc);
 
   friend class RawCode;
   friend class RawFunction;
@@ -1597,6 +1602,19 @@ class RawInstructions : public RawObject {
   friend class ImageWriter;
   friend class AssemblyImageWriter;
   friend class BlobImageWriter;
+};
+
+// Used only to provide memory accounting for the bare instruction payloads
+// we serialize, since they are no longer part of RawInstructions objects.
+class RawInstructionsSection : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(InstructionsSection);
+  VISIT_NOTHING();
+
+  // Instructions section payload length in bytes.
+  uword payload_length_;
+
+  // Variable length data follows here.
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
 };
 
 class RawPcDescriptors : public RawObject {
@@ -2975,8 +2993,9 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          RawObject::IsTwoByteStringClassId(index) ||
          RawObject::IsTypedDataClassId(index) || (index == kContextCid) ||
          (index == kTypeArgumentsCid) || (index == kInstructionsCid) ||
-         (index == kObjectPoolCid) || (index == kPcDescriptorsCid) ||
-         (index == kCodeSourceMapCid) || (index == kCompressedStackMapsCid) ||
+         (index == kInstructionsSectionCid) || (index == kObjectPoolCid) ||
+         (index == kPcDescriptorsCid) || (index == kCodeSourceMapCid) ||
+         (index == kCompressedStackMapsCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) || (index == kCodeCid) ||
          (index == kContextScopeCid) || (index == kInstanceCid) ||

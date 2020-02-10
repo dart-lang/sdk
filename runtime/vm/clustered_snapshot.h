@@ -358,7 +358,10 @@ class Serializer : public ThreadStackResource {
     Write<int32_t>(cid);
   }
 
-  void WriteInstructions(RawInstructions* instr, RawCode* code);
+  void WriteInstructions(RawInstructions* instr,
+                         uint32_t unchecked_offset,
+                         RawCode* code,
+                         intptr_t index);
   uint32_t GetDataOffset(RawObject* object) const;
   void TraceDataOffset(uint32_t offset);
   intptr_t GetDataSize() const;
@@ -401,6 +404,10 @@ class Serializer : public ThreadStackResource {
 #if defined(SNAPSHOT_BACKTRACE)
   RawObject* current_parent_;
   GrowableArray<Object*> parent_pairs_;
+#endif
+
+#if defined(DART_PRECOMPILER)
+  IntMap<intptr_t> deduped_instructions_sources_;
 #endif
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(Serializer);
@@ -559,7 +566,7 @@ class Deserializer : public ThreadStackResource {
     return Read<int32_t>();
   }
 
-  RawInstructions* ReadInstructions();
+  void ReadInstructions(RawCode* code, intptr_t index, intptr_t start_index);
   RawObject* GetObjectAt(uint32_t offset) const;
 
   void SkipHeader() { stream_.SetPosition(Snapshot::kHeaderSize); }
