@@ -96,7 +96,7 @@ HtmlDocument get document =>
 /// On a successful result the native JS result will be converted to a Dart Map.
 /// See [convertNativeToDart_Dictionary]. On a rejected promise the error is
 /// forwarded without change.
-Future<Map<String, dynamic>> promiseToFutureAsMap(jsPromise) =>
+Future<Map<String, dynamic>?> promiseToFutureAsMap(jsPromise) =>
     promiseToFuture(jsPromise).then(convertNativeToDart_Dictionary);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
@@ -21971,7 +21971,7 @@ class MidiInputMap extends Interceptor with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  Map _getItem(String key) =>
+  Map? _getItem(String key) =>
       convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
 
   void addAll(Map<String, dynamic> other) {
@@ -21982,7 +21982,7 @@ class MidiInputMap extends Interceptor with MapMixin<String, dynamic> {
 
   bool containsKey(dynamic key) => _getItem(key) != null;
 
-  Map operator [](dynamic key) => _getItem(key);
+  Map? operator [](dynamic key) => _getItem(key);
 
   void forEach(void f(String key, dynamic value)) {
     var entries = JS('', '#.entries()', this);
@@ -22077,7 +22077,7 @@ class MidiOutputMap extends Interceptor with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  Map _getItem(String key) =>
+  Map? _getItem(String key) =>
       convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
 
   void addAll(Map<String, dynamic> other) {
@@ -22088,7 +22088,7 @@ class MidiOutputMap extends Interceptor with MapMixin<String, dynamic> {
 
   bool containsKey(dynamic key) => _getItem(key) != null;
 
-  Map operator [](dynamic key) => _getItem(key);
+  Map? operator [](dynamic key) => _getItem(key);
 
   void forEach(void f(String key, dynamic value)) {
     var entries = JS('', '#.entries()', this);
@@ -27412,7 +27412,7 @@ class RtcStatsReport extends Interceptor with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  Map _getItem(String key) =>
+  Map? _getItem(String key) =>
       convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
 
   void addAll(Map<String, dynamic> other) {
@@ -27423,7 +27423,7 @@ class RtcStatsReport extends Interceptor with MapMixin<String, dynamic> {
 
   bool containsKey(dynamic key) => _getItem(key) != null;
 
-  Map operator [](dynamic key) => _getItem(key);
+  Map? operator [](dynamic key) => _getItem(key);
 
   void forEach(void f(String key, dynamic value)) {
     var entries = JS('', '#.entries()', this);

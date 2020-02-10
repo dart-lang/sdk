@@ -406,7 +406,7 @@ class AudioParamMap extends Interceptor with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  Map _getItem(String key) =>
+  Map? _getItem(String key) =>
       convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
 
   void addAll(Map<String, dynamic> other) {
@@ -417,7 +417,7 @@ class AudioParamMap extends Interceptor with MapMixin<String, dynamic> {
 
   bool containsKey(dynamic key) => _getItem(key) != null;
 
-  Map operator [](dynamic key) => _getItem(key);
+  Map? operator [](dynamic key) => _getItem(key);
 
   void forEach(void f(String key, dynamic value)) {
     var entries = JS('', '#.entries()', this);
