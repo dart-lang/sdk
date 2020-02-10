@@ -371,12 +371,7 @@ abstract class ListMixin<E> implements List<E> {
     if (end == null) throw "!"; // TODO(38493): The `??=` should promote.
 
     RangeError.checkValidRange(start, end, listLength);
-    int length = end - start;
-    List<E> result = <E>[]..length = length;
-    for (int i = 0; i < length; i++) {
-      result[i] = this[start + i];
-    }
-    return result;
+    return List.from(getRange(start, end));
   }
 
   Iterable<E> getRange(int start, int end) {
