@@ -8,6 +8,7 @@
     <style>{{ dartPageStyle }}</style>
 </head>
 <body>
+<p class="root">{{ root }}</p>
 <header class="elevation-z4">
     <h1>Proposed null safety changes</h1>
     <h2 id="unit-name">&nbsp;</h2>
@@ -15,8 +16,7 @@
 <div class="panels horizontal">
     <div class="nav-panel">
         <div class="nav-inner">
-            <div class="panel-heading">Navigation</div>
-            <p class="root">{{ root }}</p>
+            <div class="panel-heading">Project Files</div>
             <div class="nav-tree"></div>
         </div><!-- /nav-inner -->
     </div><!-- /nav -->
@@ -34,21 +34,16 @@
         </div><!-- /regions -->
     </div><!-- /content -->
     <div class="info-panel">
-        <div class="panel-container">
-            <div class="edit-panel">
-                <div class="panel-heading">Edit info</div>
-                <div class="panel-content">
-                    <p>
-                        Click a modified region of code to see why the migration tool chose
-                        to make the edit.
-                    </p>
-                </div><!-- /panel-content -->
-            </div><!-- /edit-panel -->
-            <div class="edit-list">
-                <div class="panel-heading">Edits</div>
-                <div class="panel-content"></div>
-            </div><!-- /edit-list -->
-        </div><!-- /panel-container -->
+        <div class="edit-list">
+            <div class="panel-heading">Proposed Edits</div>
+            <div class="panel-content"></div>
+        </div><!-- /edit-list -->
+        <div class="edit-panel">
+            <div class="panel-heading">Edit Details</div>
+            <div class="panel-content">
+                <p>See details about a proposed edit.</p>
+            </div><!-- /panel-content -->
+        </div><!-- /edit-panel -->
     </div><!-- /info-panel -->
 </div><!-- /panels -->
 <footer>

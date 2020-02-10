@@ -156,8 +156,6 @@ class UnitRenderer {
       Iterator<String> lineIterator = LineSplitter.split(lines).iterator;
       lineIterator.moveNext();
 
-      // TODO(devoncarew): We're writing one too many lines.
-
       while (true) {
         regions.write(perLineOpeningTag);
         regions.write(_htmlEscape.convert(lineIterator.current));
@@ -173,6 +171,7 @@ class UnitRenderer {
           break;
         }
       }
+
       if (lines.endsWith('\n')) {
         lineNumber++;
         regions.write('</td></tr>'

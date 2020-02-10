@@ -94,40 +94,31 @@ void writeEditList(dynamic editListData) {
   var editList = document.querySelector('.edit-list .panel-content');
   editList.innerHtml = '';
   var p = editList.append(document.createElement('p'));
-  var countElement = p.append(document.createElement('strong'));
   int editCount = editListData['editCount'];
-  countElement.append(Text(editCount.toString()));
-  if (editCount == 1) {
-    p.append(
-        Text(" edit was made to this file. Click the edit's checkbox to toggle "
-            'its reviewed state.'));
+  if (editCount == 0) {
+    p.append(Text('$editCount proposed edits'));
   } else {
-    p.append(Text(
-        " edits were made to this file. Click an edit's checkbox to toggle "
-        'its reviewed state.'));
+    p.append(Text('$editCount proposed ${pluralize(editCount, 'edit')}:'));
   }
 
+  Element list = editList.append(document.createElement('ul'));
   for (var edit in editListData['edits']) {
-    ParagraphElement editP = editList.append(document.createElement('p'));
-    editP.classes.add('edit');
-    Element checkbox = editP.append(document.createElement('input'));
-    checkbox.setAttribute('type', 'checkbox');
-    checkbox.setAttribute('title', 'Click to mark reviewed');
-    checkbox.setAttribute('disabled', 'disabled');
-    editP.append(Text('line ${edit["line"]}: ${edit["explanation"]}.'));
-    AnchorElement a = editP.append(document.createElement('a'));
-    a.classes.add('edit-link');
+    Element item = list.append(document.createElement('li'));
+    item.classes.add('edit');
+    AnchorElement anchor = item.append(document.createElement('a'));
+    anchor.classes.add('edit-link');
     int offset = edit['offset'];
-    a.dataset['offset'] = '$offset';
+    anchor.dataset['offset'] = '$offset';
     int line = edit['line'];
-    a.dataset['line'] = '$line';
-    a.append(Text(' [view]'));
-    a.onClick.listen((MouseEvent event) {
+    anchor.dataset['line'] = '$line';
+    anchor.append(Text('line $line'));
+    anchor.onClick.listen((MouseEvent event) {
       navigate(window.location.pathname, offset, line, callback: () {
         pushState(window.location.pathname, offset, line);
       });
-      loadRegionExplanation(a);
+      loadRegionExplanation(anchor);
     });
+    item.append(Text(': ${edit['explanation']}'));
   }
 }
 
@@ -135,8 +126,10 @@ void writeEditList(dynamic editListData) {
 void writeCodeAndRegions(dynamic data) {
   var regions = document.querySelector('.regions');
   var code = document.querySelector('.code');
+
   _PermissiveNodeValidator.setInnerHtml(regions, data['regions']);
   _PermissiveNodeValidator.setInnerHtml(code, data['navContent']);
+
   writeEditList(data['editList']);
   highlightAllCode();
   addClickHandlers('.code');
@@ -196,7 +189,7 @@ void maybeScrollToAndHighlight(int offset, int lineNumber) {
     } else if (line != null) {
       // If the target doesn't exist, but the line does, scroll that into view
       // instead.
-      maybeScrollIntoView(line);
+      maybeScrollIntoView(line.parent);
     }
     if (line != null) {
       (line.parentNode as Element).classes.add('highlight');
@@ -346,29 +339,30 @@ void handlePostLinkClick(MouseEvent event) {
   });
 }
 
-void addClickHandlers(String parentSelector) {
-  Element parentElement = document.querySelector(parentSelector);
+void addClickHandlers(String selector) {
+  Element parentElement = document.querySelector(selector);
 
-  var navLinks = parentElement.querySelectorAll('.nav-link');
+  List<Element> navLinks = parentElement.querySelectorAll('.nav-link');
   navLinks.forEach((link) {
     link.onClick.listen(handleNavLinkClick);
   });
 
-  var regions = parentElement.querySelectorAll('.region');
-  regions.forEach((Element region) {
-    region.onClick.listen((event) {
-      loadRegionExplanation(region);
+  // TODO(devoncarew): Move this code to where the elements are defined.
+  List<Element> regions = parentElement.querySelectorAll('.region');
+  regions.forEach((Element anchor) {
+    anchor.onClick.listen((event) {
+      loadRegionExplanation(anchor);
     });
   });
 
-  var postLinks = parentElement.querySelectorAll('.post-link');
+  List<Element> postLinks = parentElement.querySelectorAll('.post-link');
   postLinks.forEach((link) {
     link.onClick.listen(handlePostLinkClick);
   });
 }
 
 void writeNavigationSubtree(Element parentElement, dynamic tree) {
-  var ul = parentElement.append(document.createElement('ul'));
+  Element ul = parentElement.append(document.createElement('ul'));
   for (var entity in tree) {
     Element li = ul.append(document.createElement('li'));
     if (entity['type'] == 'directory') {
@@ -393,8 +387,8 @@ void writeNavigationSubtree(Element parentElement, dynamic tree) {
       if (editCount > 0) {
         Element editsBadge = li.append(document.createElement('span'));
         editsBadge.classes.add('edit-count');
-        var edits = editCount == 1 ? 'edit' : 'edits';
-        editsBadge.setAttribute('title', '$editCount $edits');
+        editsBadge.setAttribute(
+            'title', '$editCount ${pluralize(editCount, 'edit')}');
         editsBadge.append(Text(editCount.toString()));
       }
     }
@@ -433,37 +427,33 @@ void logError(e, st) {
 void writeRegionExplanation(dynamic response) {
   var editPanel = document.querySelector('.edit-panel .panel-content');
   editPanel.innerHtml = '';
-  var regionLocation = document.createElement('p');
-  regionLocation.classes.add('region-location');
 
   String filePath = response['path'];
   String parentDirectory = _p.dirname(filePath);
 
-  regionLocation.append(Text('$filePath '));
-  Element regionLine = regionLocation.append(document.createElement('span'));
-  regionLine.append(Text('line ${response['line']}'));
-  regionLine.classes.add('nowrap');
-  editPanel.append(regionLocation);
-  var explanation = editPanel.append(document.createElement('p'));
-  explanation.append(Text(response['explanation']));
-  var detailCount = response['details'].length;
+  // 'Changed ... at foo.dart:12.'
+  String explanationMessage = response['explanation'];
+  String relPath = _p.relative(filePath, from: rootPath);
+  int line = response['line'];
+  Element explanation = editPanel.append(document.createElement('p'));
+  explanation.append(Text('$explanationMessage at $relPath:$line.'));
+  int detailCount = response['details'].length;
   if (detailCount == 0) {
     // Having 0 details is not necessarily an expected possibility, but handling
     // the possibility prevents awkward text, "for 0 reasons:".
-    explanation.append(Text('.'));
   } else {
-    explanation.append(Text(detailCount == 1
-        ? ' for $detailCount reason:'
-        : ' for $detailCount reasons:'));
+    editPanel.append(ParagraphElement()..text = 'Edit rationale:');
 
-    var detailList = editPanel.append(document.createElement('ol'));
+    Element detailList = editPanel.append(document.createElement('ul'));
     for (var detail in response['details']) {
       var detailItem = detailList.append(document.createElement('li'));
       detailItem.append(Text(detail['description']));
       if (detail['link'] != null) {
+        int targetLine = detail['link']['line'];
+
         detailItem.append(Text(' ('));
         AnchorElement a = detailItem.append(document.createElement('a'));
-        a.append(Text(detail['link']['text']));
+        a.append(Text("${detail['link']['text']}:$targetLine"));
 
         String relLink = detail['link']['href'];
         String fullPath = _p.normalize(_p.join(parentDirectory, relLink));
@@ -487,9 +477,9 @@ void writeRegionExplanation(dynamic response) {
 }
 
 /// Load the explanation for [region], into the ".panel-content" div.
-void loadRegionExplanation(Element region) {
+void loadRegionExplanation(AnchorElement anchor) {
   String path = window.location.pathname;
-  String offset = region.dataset['offset'];
+  String offset = anchor.dataset['offset'];
 
   // Request the region, then do work with the response.
   HttpRequest.request(
@@ -526,4 +516,8 @@ class _PermissiveNodeValidator implements NodeValidator {
   bool allowsElement(Element element) {
     return true;
   }
+}
+
+String pluralize(int count, String single, {String multiple}) {
+  return count == 1 ? single : (multiple ?? '${single}s');
 }

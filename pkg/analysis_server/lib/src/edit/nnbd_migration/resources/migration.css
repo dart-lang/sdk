@@ -4,7 +4,7 @@
 
 body {
   background-color: #12202f;
-  color: #fff;
+  color: #ccc;
   font-family: "Roboto", sans-serif;
   font-size: 14px;
   display: flex;
@@ -24,7 +24,6 @@ header {
   height: 48px;
   padding-left: 24px;
   align-items: center;
-  user-select: none;
   z-index: 4;
 }
 
@@ -37,7 +36,7 @@ header h2 {
 }
 
 h1 {
-  font-size: 16pt;
+  font-size: 1.5em;
 }
 
 header h2 {
@@ -45,6 +44,7 @@ header h2 {
 }
 
 footer {
+  color: #ccc;
   background-color: #27323a;
   display: flex;
   flex-direction: row;
@@ -94,25 +94,22 @@ footer .wide {
   top: 0;
 }
 
-.nav-inner .root {
+.root {
   margin: 0;
+  display: none;
+}
+
+.nav-tree > ul {
+  padding-left: 6px;
 }
 
 .nav-inner ul {
   padding-left: 12px;
-}
-
-.nav-inner>ul {
-  padding-left: 0;
-  margin-top: 0;
+  margin: 0;
 }
 
 .nav-inner li {
   list-style-type: none;
-}
-
-.nav-inner li.dir {
-  margin-left: 5px;
 }
 
 .nav-inner li:not(.dir) {
@@ -178,6 +175,7 @@ footer .wide {
   position: absolute;
   left: 0;
   top: 0;
+  margin-left: 56px;
 }
 
 .hljs {
@@ -217,7 +215,7 @@ footer .wide {
 
 .regions table {
   border-spacing: 0;
-  font-size: 14px;
+  font-size: inherit;
 }
 
 .regions td {
@@ -241,15 +239,15 @@ footer .wide {
 .regions td.line-no {
   border-right: solid #282b2e 2px;
   color: #999999;
-  display: none;
   padding-right: 4px;
   text-align: right;
   visibility: visible;
   width: 50px;
+  display: inline-block;
 }
 
 .regions tr.highlight td.line-no {
-  border-right: solid #cccccc 2px;
+  border-right: solid #ccc 2px;
 }
 
 .region {
@@ -271,7 +269,7 @@ footer .wide {
 
 .region.unchanged-region {
   background-color: rgba(0, 0, 0, 0.3);
-  border-bottom: solid 2px #cccccc;
+  border-bottom: solid 2px #ccc;
   /* Invisible text; use underlying highlighting. */
   color: rgba(0, 0, 0, 0);
   /* Reduce line height to make room for border. */
@@ -288,17 +286,14 @@ footer .wide {
 .info-panel {
   flex: 1 200px;
   margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .info-panel .edit-panel {
   background-color: #282b2e;
   overflow: auto;
-}
-
-.info-panel .panel-container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 .info-panel .panel-content {
@@ -309,11 +304,6 @@ footer .wide {
   margin-top: 0;
 }
 
-.info-panel .region-location {
-  padding-left: 12px;
-  text-indent: -12px;
-}
-
 .info-panel .nowrap {
   white-space: nowrap;
 }
@@ -321,6 +311,10 @@ footer .wide {
 .info-panel ul,
 .info-panel ol {
   padding-left: 20px;
+}
+
+.info-panel li {
+  margin: 0 0 5px 0;
 }
 
 .info-panel a {
@@ -333,18 +327,16 @@ footer .wide {
 }
 
 .edit-panel {
+  margin-top: 6px;
   flex: 1 100px;
 }
 
 .edit-list {
   flex: 2 100px;
-  margin-top: 6px;
 }
 
 .edit-list .edit {
   margin: 3px 0;
-  padding-left: 21px;
-  text-indent: -21px;
 }
 
 .edit-list .edit-link {
