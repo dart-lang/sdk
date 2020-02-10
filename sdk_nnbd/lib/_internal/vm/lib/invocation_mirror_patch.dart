@@ -60,7 +60,9 @@ class _InvocationMirror implements Invocation {
 
   Symbol _setMemberNameAndType() {
     final funcName = _functionName!;
-    _type = _METHOD;
+    if (_type == _UNINITIALIZED) {
+      _type = 0;
+    }
     if (funcName.startsWith("get:")) {
       _type |= _GETTER;
       _memberName = new internal.Symbol.unvalidated(funcName.substring(4));
