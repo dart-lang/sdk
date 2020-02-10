@@ -264,7 +264,7 @@ class _ClassVerifier {
     AstNode node,
     Uri libraryUri,
     ExecutableElement member, {
-    List<AstNode> methodParameterNodes,
+    List<FormalParameter> methodParameterNodes,
   }) {
     if (member == null) return;
     if (member.isStatic) return;
@@ -293,7 +293,9 @@ class _ClassVerifier {
         errorNode: node,
       );
 
-      if (methodParameterNodes != null) {
+      if (superMember is MethodElement &&
+          member is MethodElement &&
+          methodParameterNodes != null) {
         _checkForOptionalParametersDifferentDefaultValues(
           superMember,
           member,
@@ -385,11 +387,12 @@ class _ClassVerifier {
   }
 
   void _checkForOptionalParametersDifferentDefaultValues(
-    ExecutableElement baseExecutable,
-    ExecutableElement derivedExecutable,
-    List<AstNode> derivedParameterNodes,
+    MethodElement baseExecutable,
+    MethodElement derivedExecutable,
+    List<FormalParameter> derivedParameterNodes,
   ) {
-    var derivedOptionalNodes = <AstNode>[];
+    var derivedIsAbstract = derivedExecutable.isAbstract;
+    var derivedOptionalNodes = <FormalParameter>[];
     var derivedOptionalElements = <ParameterElementImpl>[];
     var derivedParameterElements = derivedExecutable.parameters;
     for (var i = 0; i < derivedParameterElements.length; i++) {
@@ -417,6 +420,11 @@ class _ClassVerifier {
     if (derivedOptionalElements[0].isNamed) {
       for (int i = 0; i < derivedOptionalElements.length; i++) {
         var derivedElement = derivedOptionalElements[i];
+        if (_isNonNullableByDefault &&
+            derivedIsAbstract &&
+            derivedElement.initializer == null) {
+          continue;
+        }
         var name = derivedElement.name;
         for (var j = 0; j < baseOptionalElements.length; j++) {
           var baseParameter = baseOptionalElements[j];
@@ -442,10 +450,16 @@ class _ClassVerifier {
       for (var i = 0;
           i < derivedOptionalElements.length && i < baseOptionalElements.length;
           i++) {
+        var derivedElement = derivedOptionalElements[i];
+        if (_isNonNullableByDefault &&
+            derivedIsAbstract &&
+            derivedElement.initializer == null) {
+          continue;
+        }
         var baseElement = baseOptionalElements[i];
         if (baseElement.initializer != null) {
           var baseValue = baseElement.computeConstantValue();
-          var derivedResult = derivedOptionalElements[i].evaluationResult;
+          var derivedResult = derivedElement.evaluationResult;
           if (!_constantValuesEqual(derivedResult.value, baseValue)) {
             reporter.reportErrorForNode(
               StaticWarningCode
@@ -602,7 +616,7 @@ class _ClassVerifier {
       var candidatesStr = conflict.candidates.map((candidate) {
         var className = candidate.enclosingElement.name;
         var typeStr = candidate.type.getDisplayString(
-          withNullability: typeSystem.isNonNullableByDefault,
+          withNullability: _isNonNullableByDefault,
         );
         return '$className.${name.name} ($typeStr)';
       }).join(', ');
@@ -614,6 +628,8 @@ class _ClassVerifier {
       );
     }
   }
+
+  bool get _isNonNullableByDefault => typeSystem.isNonNullableByDefault;
 
   void _reportInheritedAbstractMembers(List<ExecutableElement> elements) {
     if (elements == null) {
