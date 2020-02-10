@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/driver_resolution.dart';
@@ -10,6 +12,7 @@ import '../dart/resolution/driver_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidOverrideTest);
+    defineReflectiveTests(InvalidOverrideWithNnbdTest);
   });
 }
 
@@ -485,6 +488,48 @@ class B implements I<int>, J<String> {
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1),
+    ]);
+  }
+}
+
+@reflectiveTest
+class InvalidOverrideWithNnbdTest extends DriverResolutionTest {
+  @override
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..enabledExperiments = [EnableString.non_nullable]
+    ..implicitCasts = false;
+
+  @override
+  bool get typeToStringWithNullability => true;
+
+  test_method_viaLegacy_returnType_notSubtype() async {
+    newFile('/test/lib/a.dart', content: r'''
+class Nullable {
+  int? foo() => 0;
+}
+
+class NonNullable {
+  int foo() => 0;
+}
+''');
+
+    newFile('/test/lib/b.dart', content: r'''
+// @dart=2.6
+import 'a.dart';
+
+class A extends Nullable implements NonNullable {}
+''');
+
+    await assertErrorsInCode('''
+import 'b.dart';
+
+class B extends A {}
+
+class C extends A {   
+  int? foo() => 0;
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_OVERRIDE, 70, 3),
     ]);
   }
 }
