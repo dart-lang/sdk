@@ -286,6 +286,9 @@ class _Double implements double {
   String toStringAsPrecision(int precision) {
     // See ECMAScript-262, 15.7.4.7 for details.
 
+    if (precision == null) {
+      throw new ArgumentError.notNull("precision");
+    }
     // The EcmaScript specification checks for NaN and Infinity before looking
     // at the fractionDigits. In Dart we are consistent with toStringAsFixed and
     // look at the fractionDigits first.
