@@ -1067,7 +1067,6 @@ class DartLib {
     DartLib('toString', [DartType.MAPENTRY_INT_STRING, DartType.VOID], true),
     DartLib('toString', [DartType.NULL, DartType.VOID], true),
     DartLib('toString', [DartType.NULLTHROWNERROR, DartType.VOID], true),
-    DartLib('toString', [DartType.OUTOFMEMORYERROR, DartType.VOID], true),
     DartLib('toString', [DartType.STACKOVERFLOWERROR, DartType.VOID], true),
     DartLib('toString', [DartType.STATEERROR, DartType.VOID], true),
     DartLib('toString', [DartType.STRINGBUFFER, DartType.VOID], true),
