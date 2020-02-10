@@ -290,7 +290,6 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
     assert(!_addsNullCheck);
     assert(_introducesAsType == null);
     assert(type != null);
-    assert(info != null);
     _introducesAsType = type;
     _introduceAsInfo = info;
   }
