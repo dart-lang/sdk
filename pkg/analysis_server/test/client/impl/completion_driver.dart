@@ -39,7 +39,6 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
 
   Map<String, Completer<void>> receivedSuggestionsCompleters = {};
   List<CompletionSuggestion> suggestions = [];
-  bool suggestionsDone = false;
   Map<String, List<CompletionSuggestion>> allSuggestions = {};
 
   final Map<int, AvailableSuggestionSet> idToSetMap = {};
@@ -101,21 +100,6 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
     completionId = result.id;
     assertValidId(completionId);
     await _getResultsCompleter(completionId).future;
-    expect(suggestionsDone, isTrue);
-
-    if (supportsAvailableSuggestions) {
-      // todo(pq): limit set(s)
-      for (var suggestionSet in idToSetMap.values) {
-        for (var suggestion in suggestionSet.items) {
-          var completionSuggestion =
-              _createCompletionSuggestionFromAvailableSuggestion(suggestion
-                  //, includedSet.getRelevance(), includedRelevanceTags
-                  );
-          suggestions.add(completionSuggestion);
-        }
-      }
-    }
-
     return suggestions;
   }
 
@@ -136,11 +120,25 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       idToSuggestions[id] = params;
       replacementOffset = params.replacementOffset;
       replacementLength = params.replacementLength;
-      suggestionsDone = params.isLast;
-      expect(suggestionsDone, isNotNull);
       suggestions = params.results;
       expect(allSuggestions.containsKey(id), isFalse);
       allSuggestions[id] = params.results;
+
+      for (var set in params.includedSuggestionSets) {
+        var id = set.id;
+        while (!idToSetMap.containsKey(id)) {
+          await Future.delayed(const Duration(milliseconds: 1));
+        }
+        var suggestionSet = idToSetMap[id];
+        for (var suggestion in suggestionSet.items) {
+          var completionSuggestion =
+              _createCompletionSuggestionFromAvailableSuggestion(suggestion
+                  //, includedSet.getRelevance(), includedRelevanceTags
+                  );
+          suggestions.add(completionSuggestion);
+        }
+      }
+
       _getResultsCompleter(id).complete(null);
     } else if (notification.event ==
         COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS) {
