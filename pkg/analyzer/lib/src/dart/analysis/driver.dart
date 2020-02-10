@@ -817,11 +817,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// The [path] must be absolute and normalized.
   Future<SourceKind> getSourceKind(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _throwIfNotAbsolutePath(path);
     if (AnalysisEngine.isDartFileName(path)) {
-      FileState file = _fsState.getFileForPath(path);
+      FileState file = _fileTracker.verifyApiSignature(path);
       return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
     }
     return null;

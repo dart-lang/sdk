@@ -1813,6 +1813,24 @@ var A2 = B1;
     expect(result1.unit, isNotNull);
   }
 
+  test_getSourceKind_changeFile() async {
+    var path = convertPath('/test/lib/test.dart');
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
+
+    newFile(path, content: 'part of foo;');
+    driver.changeFile(path);
+    expect(await driver.getSourceKind(path), SourceKind.PART);
+
+    newFile(path, content: '');
+    driver.changeFile(path);
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
+  }
+
+  test_getSourceKind_doesNotExist() async {
+    var path = convertPath('/test/lib/test.dart');
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
+  }
+
   test_getSourceKind_library() async {
     var path = convertPath('/test/lib/test.dart');
     newFile(path, content: 'class A {}');
