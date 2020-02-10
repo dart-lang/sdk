@@ -275,7 +275,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     _typeSystem = _currentLibrary.typeSystem;
     _options = _currentLibrary.context.analysisOptions;
     _typeArgumentsVerifier =
-        TypeArgumentsVerifier(_options, _typeSystem, _errorReporter);
+        TypeArgumentsVerifier(_options, _currentLibrary, _errorReporter);
     _constructorFieldsVerifier = ConstructorFieldsVerifier(
       typeSystem: _typeSystem,
       errorReporter: _errorReporter,

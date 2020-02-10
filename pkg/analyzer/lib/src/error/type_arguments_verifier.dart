@@ -18,12 +18,18 @@ import 'package:analyzer/src/generated/resolver.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptionsImpl _options;
-  final TypeSystemImpl _typeSystem;
+  final LibraryElement _libraryElement;
   final ErrorReporter _errorReporter;
 
-  TypeArgumentsVerifier(this._options, this._typeSystem, this._errorReporter);
+  TypeArgumentsVerifier(
+    this._options,
+    this._libraryElement,
+    this._errorReporter,
+  );
 
-  TypeProvider get _typeProvider => _typeSystem.typeProvider;
+  TypeProvider get _typeProvider => _libraryElement.typeProvider;
+
+  TypeSystemImpl get _typeSystem => _libraryElement.typeSystem;
 
   void checkFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkTypeArguments(node);
@@ -223,6 +229,7 @@ class TypeArgumentsVerifier {
       }
       DartType boundType = typeParameters[i].bound;
       if (argType != null && boundType != null) {
+        boundType = _libraryElement.toLegacyTypeIfOptOut(boundType);
         if (shouldSubstitute) {
           boundType = Substitution.fromPairs(typeParameters, typeArguments)
               .substituteType(boundType);
