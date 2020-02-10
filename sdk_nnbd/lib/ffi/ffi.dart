@@ -28,7 +28,7 @@ external int sizeOf<T extends NativeType>();
 
 /// Represents a pointer into the native C memory corresponding to "NULL", e.g.
 /// a pointer with address 0.
-final Pointer<Null> nullptr = Pointer.fromAddress(0);
+final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 /// Represents a pointer into the native C memory. Cannot be extended.
 @pragma("vm:entry-point")
