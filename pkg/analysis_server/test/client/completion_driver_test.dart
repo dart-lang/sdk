@@ -23,11 +23,14 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   Map<String, String> packageRoots;
   List<CompletionSuggestion> suggestions;
 
+  String get projectPath => '/project';
+
   bool get supportsAvailableSuggestions;
+
+  String get testFilePath => '$projectPath/bin/test.dart';
 
   String addTestFile(String content, {int offset}) =>
       driver.addTestFile(content, offset: offset);
-
   Future<List<CompletionSuggestion>> getSuggestions() async {
     suggestions = await driver.getSuggestions();
     return suggestions;
@@ -37,6 +40,8 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   void setUp() {
     driver = CompletionDriver(
         supportsAvailableSuggestions: supportsAvailableSuggestions,
+        projectPath: projectPath,
+        testFilePath: testFilePath,
         resourceProvider: resourceProvider);
     driver.createProject(packageRoots: packageRoots);
   }
@@ -109,7 +114,7 @@ class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest {
   @override
   bool get supportsAvailableSuggestions => true;
 
-  Future<void> test_sanity() async {
+  Future<void> test_sdk_lib_suggestions() async {
     addTestFile('''
 void main() {
   ^

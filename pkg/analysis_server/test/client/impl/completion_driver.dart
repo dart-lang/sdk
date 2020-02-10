@@ -55,11 +55,12 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   CompletionDriver({
     @required this.supportsAvailableSuggestions,
     @required MemoryResourceProvider resourceProvider,
+    @required String projectPath,
+    @required String testFilePath,
   })  : _resourceProvider = resourceProvider,
         super(
-            projectPath: resourceProvider.convertPath('/project'),
-            testFolder: resourceProvider.convertPath('/project/bin'),
-            testFile: resourceProvider.convertPath('/project/bin/test.dart'),
+            projectPath: projectPath,
+            testFilePath: testFilePath,
             sdkPath: resourceProvider.convertPath('/sdk'));
 
   @override
@@ -93,7 +94,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   Future<List<CompletionSuggestion>> getSuggestions() async {
     await waitForTasksFinished();
 
-    var request = CompletionGetSuggestionsParams(testFile, completionOffset)
+    var request = CompletionGetSuggestionsParams(testFilePath, completionOffset)
         .toRequest('0');
     var response = await waitResponse(request);
     var result = CompletionGetSuggestionsResult.fromResponse(response);
@@ -132,6 +133,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       var params = CompletionResultsParams.fromNotification(notification);
       var id = params.id;
       assertValidId(id);
+      idToSuggestions[id] = params;
       replacementOffset = params.replacementOffset;
       replacementLength = params.replacementLength;
       suggestionsDone = params.isLast;
@@ -160,6 +162,16 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       fileToExistingImports[params.file] = params.imports;
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       throw Exception('server error: ${notification.toJson()}');
+    }
+  }
+
+  Future<AvailableSuggestionSet> waitForSetWithUri(String uri) async {
+    while (true) {
+      var result = uriToSetMap[uri];
+      if (result != null) {
+        return result;
+      }
+      await Future.delayed(const Duration(milliseconds: 1));
     }
   }
 

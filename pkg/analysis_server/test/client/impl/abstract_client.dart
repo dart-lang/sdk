@@ -32,14 +32,12 @@ abstract class AbstractClient {
   final Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
   final String projectPath;
-  final String testFolder;
-  final String testFile;
+  final String testFilePath;
   String testCode;
 
   AbstractClient({
     @required this.projectPath,
-    @required this.testFolder,
-    @required this.testFile,
+    @required this.testFilePath,
     @required String sdkPath,
   })  : serverChannel = MockServerChannel(),
         pluginManager = TestPluginManager() {
@@ -56,11 +54,11 @@ abstract class AbstractClient {
   CompletionDomainHandler get completionHandler =>
       server.handlers.whereType<CompletionDomainHandler>().single;
 
-  AnalysisOptions get analysisOptions => testDiver.analysisOptions;
+  AnalysisOptions get analysisOptions => testDriver.analysisOptions;
 
   ResourceProvider get resourceProvider;
 
-  AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
+  AnalysisDriver get testDriver => server.getAnalysisDriver(testFilePath);
 
   void addAnalysisOptionsFile(String content) {
     newFile(
@@ -90,9 +88,9 @@ abstract class AbstractClient {
   }
 
   String addTestFile(String content) {
-    newFile(testFile, content);
+    newFile(testFilePath, content);
     testCode = content;
-    return testFile;
+    return testFilePath;
   }
 
   void assertValidId(String id) {
