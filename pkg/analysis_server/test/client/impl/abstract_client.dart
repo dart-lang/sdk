@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -51,6 +52,9 @@ abstract class AbstractClient {
 
   AnalysisDomainHandler get analysisHandler => server.handlers
       .singleWhere((handler) => handler is AnalysisDomainHandler);
+
+  CompletionDomainHandler get completionHandler =>
+      server.handlers.whereType<CompletionDomainHandler>().single;
 
   AnalysisOptions get analysisOptions => testDiver.analysisOptions;
 
@@ -105,6 +109,7 @@ abstract class AbstractClient {
   }
 
   /// Create a project at [projectPath].
+  @mustCallSuper
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
     var request = AnalysisSetAnalysisRootsParams([projectPath], [],

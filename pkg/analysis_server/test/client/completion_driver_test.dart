@@ -2,12 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 
 import '../services/completion/dart/completion_contributor_util.dart';
 import 'impl/completion_driver.dart';
@@ -15,17 +14,16 @@ import 'impl/completion_driver.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(BasicCompletionTest);
+    defineReflectiveTests(CompletionWithSuggestionsTest);
   });
 }
 
 abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   CompletionDriver driver;
-
   Map<String, String> packageRoots;
-
   List<CompletionSuggestion> suggestions;
 
-  bool get supportsAvailableDeclarations;
+  bool get supportsAvailableSuggestions;
 
   String addTestFile(String content, {int offset}) =>
       driver.addTestFile(content, offset: offset);
@@ -38,7 +36,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   @mustCallSuper
   void setUp() {
     driver = CompletionDriver(
-        supportsAvailableDeclarations: supportsAvailableDeclarations,
+        supportsAvailableSuggestions: supportsAvailableSuggestions,
         resourceProvider: resourceProvider);
     driver.createProject(packageRoots: packageRoots);
   }
@@ -74,9 +72,9 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
 @reflectiveTest
 class BasicCompletionTest extends AbstractCompletionDriverTest {
   @override
-  bool get supportsAvailableDeclarations => false;
+  bool get supportsAvailableSuggestions => false;
 
-  /// Duplicates (and potentially replaces DeprecatedMemberRelevanceTest.
+  /// Duplicates (and potentially replaces DeprecatedMemberRelevanceTest).
   Future<void> test_deprecated_member_relevance() async {
     addTestFile('''
 class A {
@@ -103,5 +101,28 @@ void main() {
                 element: ElementKind.METHOD,
                 kind: CompletionSuggestionKind.INVOCATION)
             .relevance));
+  }
+}
+
+@reflectiveTest
+class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest {
+  @override
+  bool get supportsAvailableSuggestions => true;
+
+  Future<void> test_sanity() async {
+    addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    await getSuggestions();
+
+    // todo (pq): replace with a "real test"; this just proves we're getting end to end.
+    expect(
+        // from dart:math
+        suggestionWith(
+            completion: 'tan', kind: CompletionSuggestionKind.INVOCATION),
+        isNotNull);
   }
 }

@@ -18,8 +18,23 @@ import '../../constants.dart';
 import 'abstract_client.dart';
 import 'expect_mixin.dart';
 
+CompletionSuggestion _createCompletionSuggestionFromAvailableSuggestion(
+    AvailableSuggestion suggestion) {
+  // todo (pq): IMPLEMENT
+  // com.jetbrains.lang.dart.ide.completion.DartServerCompletionContributor#createCompletionSuggestionFromAvailableSuggestion
+  return CompletionSuggestion(
+      // todo (pq): in IDEA, this is "UNKNOWN" but here we need a value; figure out what's up.
+      CompletionSuggestionKind.INVOCATION,
+      0,
+      suggestion.label,
+      0,
+      0,
+      suggestion.element.isDeprecated,
+      false);
+}
+
 class CompletionDriver extends AbstractClient with ExpectMixin {
-  final bool supportsAvailableDeclarations;
+  final bool supportsAvailableSuggestions;
   final MemoryResourceProvider _resourceProvider;
 
   Map<String, Completer<void>> receivedSuggestionsCompleters = {};
@@ -27,13 +42,18 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   bool suggestionsDone = false;
   Map<String, List<CompletionSuggestion>> allSuggestions = {};
 
+  final Map<int, AvailableSuggestionSet> idToSetMap = {};
+  final Map<String, AvailableSuggestionSet> uriToSetMap = {};
+  final Map<String, CompletionResultsParams> idToSuggestions = {};
+  final Map<String, ExistingImports> fileToExistingImports = {};
+
   String completionId;
   int completionOffset;
   int replacementOffset;
   int replacementLength;
 
   CompletionDriver({
-    @required this.supportsAvailableDeclarations,
+    @required this.supportsAvailableSuggestions,
     @required MemoryResourceProvider resourceProvider,
   })  : _resourceProvider = resourceProvider,
         super(
@@ -60,6 +80,16 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
         content.substring(completionOffset + 1));
   }
 
+  @override
+  void createProject({Map<String, String> packageRoots}) {
+    super.createProject(packageRoots: packageRoots);
+    if (supportsAvailableSuggestions) {
+      var request = CompletionSetSubscriptionsParams(
+          [CompletionService.AVAILABLE_SUGGESTION_SETS]).toRequest('0');
+      handleSuccessfulRequest(request, handler: completionHandler);
+    }
+  }
+
   Future<List<CompletionSuggestion>> getSuggestions() async {
     await waitForTasksFinished();
 
@@ -71,6 +101,20 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
     assertValidId(completionId);
     await _getResultsCompleter(completionId).future;
     expect(suggestionsDone, isTrue);
+
+    if (supportsAvailableSuggestions) {
+      // todo(pq): limit set(s)
+      for (var suggestionSet in idToSetMap.values) {
+        for (var suggestion in suggestionSet.items) {
+          var completionSuggestion =
+              _createCompletionSuggestionFromAvailableSuggestion(suggestion
+                  //, includedSet.getRelevance(), includedRelevanceTags
+                  );
+          suggestions.add(completionSuggestion);
+        }
+      }
+    }
+
     return suggestions;
   }
 
@@ -82,6 +126,7 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   Folder newFolder(String path) => resourceProvider.newFolder(path);
 
   @override
+  @mustCallSuper
   Future<void> processNotification(Notification notification) async {
     if (notification.event == COMPLETION_RESULTS) {
       var params = CompletionResultsParams.fromNotification(notification);
@@ -95,6 +140,24 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       expect(allSuggestions.containsKey(id), isFalse);
       allSuggestions[id] = params.results;
       _getResultsCompleter(id).complete(null);
+    } else if (notification.event ==
+        COMPLETION_NOTIFICATION_AVAILABLE_SUGGESTIONS) {
+      var params = CompletionAvailableSuggestionsParams.fromNotification(
+        notification,
+      );
+      for (var set in params.changedLibraries) {
+        idToSetMap[set.id] = set;
+        uriToSetMap[set.uri] = set;
+      }
+      for (var id in params.removedLibraries) {
+        var set = idToSetMap.remove(id);
+        uriToSetMap.remove(set?.uri);
+      }
+    } else if (notification.event == COMPLETION_NOTIFICATION_EXISTING_IMPORTS) {
+      var params = CompletionExistingImportsParams.fromNotification(
+        notification,
+      );
+      fileToExistingImports[params.file] = params.imports;
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       throw Exception('server error: ${notification.toJson()}');
     }
