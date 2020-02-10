@@ -1361,11 +1361,20 @@ void g(x) => E(x).f();
 ''');
   }
 
+  Future<void> test_precedence_functionExpression_ifNotNull() async {
+    await checkPrecedence('f(b, c) => ((a) => b) ?? c;');
+  }
+
   Future<void> test_precedence_functionExpressionInvocation() async {
     await checkPrecedence('''
 f(g) => g[0](1);
 h(x) => (x + 2)(3);
 ''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40536')
+  Future<void> test_precedence_ifNotNull_functionExpression() async {
+    await checkPrecedence('f(a, c) => a ?? (b) => c;');
   }
 
   Future<void> test_precedence_is() async {

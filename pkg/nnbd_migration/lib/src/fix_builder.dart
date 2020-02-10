@@ -432,8 +432,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-      ..introduceAsType = contextType.getDisplayString(withNullability: true)
-      ..introduceAsInfo = info;
+        .introduceAs(contextType.getDisplayString(withNullability: true), info);
     _flowAnalysis.asExpression_end(node, contextType);
     return contextType;
   }
@@ -446,8 +445,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-      ..addNullCheck = true
-      ..addNullCheckInfo = info;
+        .addNullCheck(info);
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }

@@ -263,22 +263,37 @@ class NodeChangeForDefaultFormalParameter
 /// Implementation of [NodeChange] specialized for operating on [Expression]
 /// nodes.
 class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
-  /// Indicates whether the expression should be null checked.
-  bool addNullCheck = false;
+  bool _addsNullCheck = false;
 
-  /// If [addNullCheck] is `true`, the information that should be contained in
-  /// the edit that adds the null check.
-  AtomicEditInfo addNullCheckInfo;
+  AtomicEditInfo _addNullCheckInfo;
 
-  /// Indicates whether the expression should be cast to a different type using
-  /// `as`.
-  String introduceAsType;
+  String _introducesAsType;
 
-  /// If [introduceAsType] is not `null`, the information that should be
-  /// contained in the edit that introduces the cast.
-  AtomicEditInfo introduceAsInfo;
+  AtomicEditInfo _introduceAsInfo;
 
   NodeChangeForExpression() : super._();
+
+  /// Indicates whether [addNullCheck] has been called.
+  bool get addsNullCheck => _addsNullCheck;
+
+  /// Causes a null check to be added to this expression, with the given [info].
+  void addNullCheck(AtomicEditInfo info) {
+    assert(!_addsNullCheck);
+    assert(_introducesAsType == null);
+    _addsNullCheck = true;
+    _addNullCheckInfo = info;
+  }
+
+  /// Causes a cast to the given [type] to be added to this expression, with
+  /// the given [info].
+  void introduceAs(String type, AtomicEditInfo info) {
+    assert(!_addsNullCheck);
+    assert(_introducesAsType == null);
+    assert(type != null);
+    assert(info != null);
+    _introducesAsType = type;
+    _introduceAsInfo = info;
+  }
 
   @override
   EditPlan _apply(N node, FixAggregator aggregator) {
@@ -291,14 +306,13 @@ class NodeChangeForExpression<N extends Expression> extends NodeChange<N> {
   /// Otherwise returns [innerPlan] unchanged.
   NodeProducingEditPlan _applyExpression(
       FixAggregator aggregator, NodeProducingEditPlan innerPlan) {
-    assert((introduceAsType == null) == (introduceAsInfo == null));
-    if (addNullCheck) {
-      assert(introduceAsInfo == null);
+    if (_addsNullCheck) {
       return aggregator.planner
-          .addUnaryPostfix(innerPlan, TokenType.BANG, info: addNullCheckInfo);
-    } else if (introduceAsInfo != null) {
-      return aggregator.planner
-          .addBinaryPostfix(innerPlan, TokenType.AS, introduceAsType);
+          .addUnaryPostfix(innerPlan, TokenType.BANG, info: _addNullCheckInfo);
+    } else if (_introducesAsType != null) {
+      return aggregator.planner.addBinaryPostfix(
+          innerPlan, TokenType.AS, _introducesAsType,
+          info: _introduceAsInfo);
     } else {
       return innerPlan;
     }

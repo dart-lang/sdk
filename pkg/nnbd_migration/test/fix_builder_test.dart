@@ -47,7 +47,7 @@ class FixBuilderTest extends EdgeBuilderTestBase {
       .having((c) => c.makeNullable, 'makeNullable', isNotNull);
 
   static final isNullCheck = TypeMatcher<NodeChangeForExpression>()
-      .having((c) => c.addNullCheck, 'addNullCheck', true);
+      .having((c) => c.addsNullCheck, 'addsNullCheck', true);
 
   static final isRemoveNullAwareness =
       TypeMatcher<NodeChangeForPropertyAccess>()
@@ -2292,7 +2292,7 @@ int/*!*/ f(C/*!*/ c) => c?.i;
     var propertyAccess = findNode.propertyAccess('?.');
     visitSubexpression(propertyAccess, 'int', changes: {
       propertyAccess: TypeMatcher<NodeChangeForPropertyAccess>()
-          .having((c) => c.addNullCheck, 'addNullCheck', true)
+          .having((c) => c.addsNullCheck, 'addsNullCheck', true)
           .having((c) => c.removeNullAwareness, 'removeNullAwareness', true)
     });
   }

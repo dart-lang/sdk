@@ -1116,6 +1116,8 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
     if (node is FunctionExpression && node.body is ExpressionFunctionBody) {
       // To avoid ambiguities when adding `as Type` after a function expression,
       // assume assignment precedence.
+      // TODO(paulberry): this is a hack - see
+      // https://github.com/dart-lang/sdk/issues/40536
       precedence = Precedence.assignment;
     } else if (node is Expression) {
       precedence = node.precedence;
@@ -1306,10 +1308,17 @@ class _PassThroughBuilderImpl implements PassThroughBuilder {
 
   static bool _checkParenLogic(EditPlan innerPlan, bool parensNeeded) {
     if (innerPlan is _SimpleEditPlan && innerPlan._innerChanges == null) {
-      assert(
-          !parensNeeded,
-          "Code prior to fixes didn't need parens here, "
-          "shouldn't need parens now.");
+      if (innerPlan.sourceNode is FunctionExpression) {
+        // Skip parentheses check for function expressions; it produces false
+        // failures when examining an expression like `x ?? (y) => z`, due to
+        // https://github.com/dart-lang/sdk/issues/40536.
+        // TODO(paulberry): fix this.
+      } else {
+        assert(
+            !parensNeeded,
+            "Code prior to fixes didn't need parens here, "
+            "shouldn't need parens now.");
+      }
     }
     return true;
   }
