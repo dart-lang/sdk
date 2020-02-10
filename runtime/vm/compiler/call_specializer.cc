@@ -858,7 +858,7 @@ bool CallSpecializer::TryInlineInstanceSetter(InstanceCallInstr* instr) {
 
   // Build an AssertAssignable if necessary.
   const AbstractType& dst_type = AbstractType::ZoneHandle(zone(), field.type());
-  if (I->argument_type_checks() && !dst_type.IsTopType(target.nnbd_mode())) {
+  if (I->argument_type_checks() && !dst_type.IsTopType()) {
     // Compute if we need to type check the value. Always type check if
     // at a dynamic invocation.
     bool needs_check = true;
@@ -1101,24 +1101,15 @@ RawBool* CallSpecializer::InstanceOfAsBool(
     }
     bool is_subtype = false;
     if (cls.IsNullClass()) {
-      // 'null' is an instance of Null, Object*, Object?, void, and dynamic.
-      // In addition, 'null' is an instance of Never and Object with legacy
-      // testing, or of any nullable or legacy type with nnbd testing.
+      // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
+      // In addition, 'null' is an instance of any nullable type.
       // It is also an instance of FutureOr<T> if it is an instance of T.
-      if (mode == NNBDMode::kLegacyLib) {
-        // Using legacy testing.
-        ASSERT(type.IsInstantiated());
-        AbstractType& type_arg = AbstractType::Handle(type.raw());
-        while (type_arg.IsFutureOr(&type_arg)) {
-        }
-        is_subtype = type_arg.IsNullType() || type_arg.Legacy_IsTopType();
-      } else {
-        ASSERT(mode == NNBDMode::kOptedInLib);
-        // Using nnbd testing.
-        ASSERT(!type.IsUndetermined());
-        is_subtype =
-            type.IsNullable() || type.IsLegacy() || type.NNBD_IsTopType();
-      }
+      const AbstractType& unwrapped_type =
+          AbstractType::Handle(type.UnwrapFutureOr());
+      ASSERT(unwrapped_type.IsInstantiated() &&
+             !unwrapped_type.IsUndetermined());
+      is_subtype = unwrapped_type.IsTopType() || unwrapped_type.IsNullable() ||
+                   (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType());
     } else {
       is_subtype = Class::IsSubtypeOf(mode, cls, Object::null_type_arguments(),
                                       type_class, Object::null_type_arguments(),
@@ -1186,9 +1177,9 @@ bool CallSpecializer::TypeCheckAsClassEquality(NNBDMode mode,
       return false;
     }
   }
-  if (mode == NNBDMode::kOptedInLib && !type.IsNonNullable()) {
+  if (type.IsNullable() || type.IsTopType() || type.IsNeverType()) {
     // A class id check is not sufficient, since a null instance also satisfies
-    // the test against a nullable or legacy type.
+    // the test against a nullable type.
     // TODO(regis): Add a null check in addition to the class id check?
     return false;
   }
@@ -1211,22 +1202,20 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
 
   // The goal is to emit code that will determine the result of 'x is type'
   // depending solely on the fact that x == null or not.
-  // 'null' is an instance of Null, Object*, Object?, void, and dynamic.
-  // In addition, 'null' is an instance of Never and Object with legacy testing,
-  // or of any nullable or legacy type with nnbd testing.
+  // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
+  // In addition, 'null' is an instance of any nullable type.
   // It is also an instance of FutureOr<T> if it is an instance of T.
-  if (mode == NNBDMode::kLegacyLib) {
-    // Using legacy testing of null instance.
-    if (type.Legacy_IsTopType() || !type.IsInstantiated()) {
-      return false;  // Always true or cannot tell.
-    }
-  } else {
-    ASSERT(mode == NNBDMode::kOptedInLib);
-    // Checking whether the receiver is null cannot help in an opted-in library.
-    // Indeed, its static type would have to be nullable to legally hold null.
-    // For the static type to be a subtype of the tested type, the tested type
-    // has to be nullable as well, in which case it makes no difference if the
-    // receiver is null or not.
+  const AbstractType& unwrapped_type =
+      AbstractType::Handle(type.UnwrapFutureOr());
+  if (unwrapped_type.IsTopType() || !unwrapped_type.IsInstantiated()) {
+    return false;  // Always true or cannot tell.
+  }
+
+  // Checking whether the receiver is null can only help if the tested type is
+  // legacy (including Never*) or the Null type.
+  if (!unwrapped_type.IsLegacy() && !unwrapped_type.IsNullType()) {
+    // TODO(regis): We should optimize this into a constant if the type
+    // is nullable or non-nullable.
     return false;
   }
 
@@ -1239,7 +1228,9 @@ bool CallSpecializer::TryOptimizeInstanceOfUsingStaticTypes(
   if (left_value->Type()->IsSubtypeOf(mode, type)) {
     Definition* replacement = new (Z) StrictCompareInstr(
         call->token_pos(),
-        type.IsNullType() ? Token::kEQ_STRICT : Token::kNE_STRICT,
+        (unwrapped_type.IsNullType() || unwrapped_type.IsNeverType())
+            ? Token::kEQ_STRICT
+            : Token::kNE_STRICT,
         left_value->CopyWithType(Z),
         new (Z) Value(flow_graph()->constant_null()),
         /* number_check = */ false, DeoptId::kNone);

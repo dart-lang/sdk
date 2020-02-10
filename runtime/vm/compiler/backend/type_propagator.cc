@@ -801,13 +801,20 @@ bool CompileType::IsNotSmi() {
   return !smi.IsSubtypeOf(NNBDMode::kLegacyLib, *type, Heap::Space::kNew);
 }
 
-bool CompileType::CanComputeIsInstanceOf(NNBDMode mode,
-                                         const AbstractType& type,
-                                         bool is_nullable,
-                                         bool* is_instance) {
-  ASSERT(is_instance != NULL);
-  if (type.IsTopType(mode)) {
-    *is_instance = true;
+bool CompileType::IsSubtypeOf(NNBDMode mode, const AbstractType& other) {
+  if (other.IsTopType()) {
+    return true;
+  }
+
+  if (IsNone()) {
+    return false;
+  }
+
+  return ToAbstractType()->IsSubtypeOf(mode, other, Heap::kOld);
+}
+
+bool CompileType::IsAssignableTo(NNBDMode mode, const AbstractType& other) {
+  if (other.IsTopType()) {
     return true;
   }
 
@@ -818,51 +825,20 @@ bool CompileType::CanComputeIsInstanceOf(NNBDMode mode,
   // Consider the compile type of the value.
   const AbstractType& compile_type = *ToAbstractType();
 
-  // 'null' is an instance of Null, Object*, Object?, void, and dynamic.
-  // In addition, 'null' is an instance of Never and Object with legacy testing,
-  // or of any nullable or legacy type with nnbd testing.
-  // It is also an instance of FutureOr<T> if it is an instance of T.
-  // Functions that do not explicitly return a value, implicitly return null,
-  // except generative constructors, which return the object being constructed.
-  // It is therefore acceptable for void functions to return null.
   if (compile_type.IsNullType()) {
-    if (mode == NNBDMode::kLegacyLib) {
-      // Using legacy testing.
-      if (!type.IsInstantiated()) {
-        return false;
-      }
-      AbstractType& type_arg = AbstractType::Handle(type.raw());
-      while (type_arg.IsFutureOr(&type_arg)) {
-      }
-      *is_instance =
-          is_nullable || type_arg.IsNullType() || type_arg.Legacy_IsTopType();
-    } else {
-      ASSERT(mode == NNBDMode::kOptedInLib);
-      // Using nnbd testing.
-      if (type.IsUndetermined()) {
-        return false;
-      }
-      *is_instance = is_nullable || type.IsNullable() || type.IsLegacy();
+    if (!FLAG_strong_non_nullable_type_checks) {
+      // In weak mode, 'null' is assignable to any type.
+      return true;
     }
-    return true;
+    // In strong mode, 'null' is assignable to any nullable or legacy type.
+    // It is also assignable to FutureOr<T> if it is assignable to T.
+    const AbstractType& unwrapped_other =
+        AbstractType::Handle(other.UnwrapFutureOr());
+    // A nullable or legacy type parameter will still be either nullable or
+    // legacy after instantiation.
+    return unwrapped_other.IsNullable() || unwrapped_other.IsLegacy();
   }
-
-  // If the value can be null then we can't eliminate the
-  // check unless null is allowed.
-  if (is_nullable_ && !is_nullable) {
-    return false;
-  }
-
-  *is_instance = compile_type.IsSubtypeOf(mode, type, Heap::kOld);
-  return *is_instance;
-}
-
-bool CompileType::IsSubtypeOf(NNBDMode mode, const AbstractType& other) {
-  if (IsNone()) {
-    return false;
-  }
-
-  return ToAbstractType()->IsSubtypeOf(mode, other, Heap::kOld);
+  return compile_type.IsSubtypeOf(mode, other, Heap::kOld);
 }
 
 bool CompileType::Specialize(GrowableArray<intptr_t>* class_ids) {

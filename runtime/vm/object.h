@@ -6927,18 +6927,9 @@ class Instance : public Object {
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments) const;
 
-  // Return true if the null instance is an instance of other type according to
-  // legacy semantics (independently of the current value of the strong flag).
-  // It only makes sense in a legacy library.
-  static bool Legacy_NullIsInstanceOf(
-      const AbstractType& other,
-      const TypeArguments& other_instantiator_type_arguments,
-      const TypeArguments& other_function_type_arguments);
-
-  // Return true if the null instance is an instance of other type according to
-  // NNBD semantics (independently of the current value of the strong flag).
-  // It only makes sense in an opted-in library.
-  static bool NNBD_NullIsInstanceOf(
+  // Return true if the null instance is an instance of other type.
+  static bool NullIsInstanceOf(
+      NNBDMode mode,
       const AbstractType& other,
       const TypeArguments& other_instantiator_type_arguments,
       const TypeArguments& other_function_type_arguments);
@@ -7090,7 +7081,7 @@ class TypeArguments : public Instance {
   // Check if the subvector of length 'len' starting at 'from_index' of this
   // type argument vector consists solely of DynamicType, (nullable) ObjectType,
   // or VoidType.
-  bool IsTopTypes(NNBDMode mode, intptr_t from_index, intptr_t len) const;
+  bool IsTopTypes(intptr_t from_index, intptr_t len) const;
 
   // Check the subtype relationship, considering only a subvector of length
   // 'len' starting at 'from_index'.
@@ -7286,8 +7277,7 @@ class AbstractType : public Instance {
   virtual bool IsLegacy() const {
     return nullability() == Nullability::kLegacy;
   }
-  virtual RawAbstractType* CheckInstantiatedNullability(
-      NNBDMode mode,
+  virtual RawAbstractType* SetInstantiatedNullability(
       const TypeParameter& type_param,
       Heap::Space space) const;
 
@@ -7326,6 +7316,7 @@ class AbstractType : public Instance {
   // must remain uninstantiated, because only T is a free variable in this type.
   //
   // Return a new type, or return 'this' if it is already instantiated.
+  // TODO(regis): mode is not needed anymore. Remove it here and in all callers.
   virtual RawAbstractType* InstantiateFrom(
       NNBDMode mode,
       const TypeArguments& instantiator_type_arguments,
@@ -7415,17 +7406,7 @@ class AbstractType : public Instance {
   bool IsObjectType() const { return type_class_id() == kInstanceCid; }
 
   // Check if this type represents a top type.
-  bool IsTopType(NNBDMode mode) const;
-
-  // Check if this type represents a top type according to legacy
-  // semantics (independently of the current value of the strong flag or of the
-  // nnbd mode).
-  bool Legacy_IsTopType() const;
-
-  // Check if this type represents a top type according to NNBD
-  // semantics (independently of the current value of the strong flag or of the
-  // nnbd mode).
-  bool NNBD_IsTopType() const;
+  bool IsTopType() const;
 
   // Check if this type represents the 'bool' type.
   bool IsBoolType() const { return type_class_id() == kBoolCid; }
@@ -7463,9 +7444,9 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Pointer' type from "dart:ffi".
   bool IsFfiPointerType() const;
 
-  // Returns true if this type has the form FutureOr<T> and sets type_arg to T.
-  // Returns false otherwise.
-  bool IsFutureOr(AbstractType* type_arg) const;
+  // Returns the type argument of this (possibly nested) 'FutureOr' type.
+  // Returns unmodified type if this type is not a 'FutureOr' type.
+  RawAbstractType* UnwrapFutureOr() const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(NNBDMode mode,

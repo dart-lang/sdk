@@ -84,11 +84,7 @@ class CompileType : public ZoneAllocated {
 
   // Return true if value of this type is assignable to a location of the
   // given type.
-  bool IsAssignableTo(NNBDMode mode, const AbstractType& type) {
-    bool is_instance;
-    return CanComputeIsInstanceOf(mode, type, kNullable, &is_instance) &&
-           is_instance;
-  }
+  bool IsAssignableTo(NNBDMode mode, const AbstractType& type);
 
   // Create a new CompileType representing given combination of class id and
   // abstract type. The pair is assumed to be coherent.
@@ -257,11 +253,6 @@ class CompileType : public ZoneAllocated {
   Definition* owner() const { return owner_; }
 
  private:
-  bool CanComputeIsInstanceOf(NNBDMode mode,
-                              const AbstractType& type,
-                              bool is_nullable,
-                              bool* is_instance);
-
   bool is_nullable_;
   classid_t cid_;
   const AbstractType* type_;

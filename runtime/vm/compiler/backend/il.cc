@@ -3241,13 +3241,13 @@ static bool MayBeNumber(CompileType* type) {
   if (type->IsNone()) {
     return false;
   }
-  auto& compile_type = AbstractType::Handle(type->ToAbstractType()->raw());
-  while (compile_type.IsFutureOr(&compile_type)) {
-  }
+  const AbstractType& unwrapped_type =
+      AbstractType::Handle(type->ToAbstractType()->UnwrapFutureOr());
   // Note that type 'Number' is a subtype of itself.
-  return compile_type.Legacy_IsTopType() || compile_type.IsTypeParameter() ||
-         compile_type.IsSubtypeOf(NNBDMode::kLegacyLib,
-                                  Type::Handle(Type::Number()), Heap::kOld);
+  return unwrapped_type.IsTopType() || unwrapped_type.IsObjectType() ||
+         unwrapped_type.IsTypeParameter() ||
+         unwrapped_type.IsSubtypeOf(NNBDMode::kLegacyLib,
+                                    Type::Handle(Type::Number()), Heap::kOld);
 }
 
 // Returns a replacement for a strict comparison and signals if the result has

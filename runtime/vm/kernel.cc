@@ -750,14 +750,13 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
 
   const auto& type_params =
       TypeArguments::Handle(zone, function.type_parameters());
-  const NNBDMode nnbd_mode = function.nnbd_mode();
   if (!type_params.IsNull()) {
     auto& type_param = TypeParameter::Handle(zone);
     auto& bound = AbstractType::Handle(zone);
     for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
       type_param ^= type_params.TypeAt(i);
       bound = type_param.bound();
-      if (!bound.IsTopType(nnbd_mode) && !type_param.IsGenericCovariantImpl()) {
+      if (!bound.IsTopType() && !type_param.IsGenericCovariantImpl()) {
         return true;
       }
     }
@@ -771,7 +770,7 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
   auto& type = AbstractType::Handle(zone);
   for (intptr_t i = function.NumImplicitParameters(); i < num_params; ++i) {
     type = function.ParameterTypeAt(i);
-    if (!type.IsTopType(nnbd_mode) && !is_generic_covariant_impl.Contains(i) &&
+    if (!type.IsTopType() && !is_generic_covariant_impl.Contains(i) &&
         !is_covariant.Contains(i)) {
       return true;
     }

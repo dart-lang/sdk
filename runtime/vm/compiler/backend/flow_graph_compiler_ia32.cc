@@ -598,7 +598,7 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            NNBDMode mode,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsTopType(mode));  // Already checked.
+  ASSERT(!type.IsTopType());  // Already checked.
 
   __ pushl(EDX);  // Store instantiator type arguments.
   __ pushl(ECX);  // Store function type arguments.
@@ -606,30 +606,19 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
   const compiler::Immediate& raw_null =
       compiler::Immediate(reinterpret_cast<intptr_t>(Object::null()));
   compiler::Label is_instance, is_not_instance;
-  // 'null' is an instance of Null, Object*, Object?, void, and dynamic.
-  // In addition, 'null' is an instance of Never and Object with legacy testing,
-  // or of any nullable or legacy type with nnbd testing.
+  // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
+  // In addition, 'null' is an instance of any nullable type.
   // It is also an instance of FutureOr<T> if it is an instance of T.
-  if (mode == NNBDMode::kLegacyLib) {
-    // See Legacy_NullIsInstanceOf().
-    if (type.IsInstantiated()) {
-      AbstractType& type_arg = AbstractType::Handle(type.raw());
-      while (type_arg.IsFutureOr(&type_arg)) {
-      }
-      __ cmpl(EAX, raw_null);
-      __ j(EQUAL, (type_arg.IsNullType() || type_arg.Legacy_IsTopType())
-                      ? &is_instance
-                      : &is_not_instance);
-    }
-  } else {
-    ASSERT(mode == NNBDMode::kOptedInLib);
-    // Test is valid on uninstantiated type, unless nullability is undetermined.
-    // See NNBD_NullIsInstanceOf().
-    if (!type.IsUndetermined()) {
-      __ cmpl(EAX, raw_null);
-      __ j(EQUAL, (type.IsNullable() || type.IsLegacy()) ? &is_instance
-                                                         : &is_not_instance);
-    }
+  const AbstractType& unwrapped_type =
+      AbstractType::Handle(type.UnwrapFutureOr());
+  if (!unwrapped_type.IsTypeParameter() || unwrapped_type.IsNullable()) {
+    // Only nullable type parameter remains nullable after instantiation.
+    // See NullIsInstanceOf().
+    __ cmpl(EAX, raw_null);
+    __ j(EQUAL, (unwrapped_type.IsNullable() ||
+                 (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType()))
+                    ? &is_instance
+                    : &is_not_instance);
   }
 
   // Generate inline instanceof test.
