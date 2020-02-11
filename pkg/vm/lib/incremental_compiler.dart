@@ -24,7 +24,6 @@ class IncrementalCompiler {
   // Component that reflect the state that was most recently accepted by the
   // client. Is [null], if no compilation results were accepted by the client.
   Component _lastKnownGood;
-
   List<Component> _pendingDeltas;
   CompilerOptions _compilerOptions;
   bool initialized = false;
@@ -33,6 +32,7 @@ class IncrementalCompiler {
   Uri _entryPoint;
 
   Uri get entryPoint => _entryPoint;
+  IncrementalKernelGenerator get generator => _generator;
 
   IncrementalCompiler(this._compilerOptions, this._entryPoint,
       {this.initializeFromDillUri, bool incrementalSerialization: true}) {

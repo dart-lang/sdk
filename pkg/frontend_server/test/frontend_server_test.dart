@@ -532,6 +532,116 @@ void main() async {
       });
 
       expect(await result, 0);
+      expect(count, 3);
+    });
+
+    test('mixed compile expression commands with non-web target', () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {}\n");
+      var dillFile = File('${tempDir.path}/app.dill');
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}'
+      ];
+
+      var library = 'package:hello/foo.dart';
+      var module = '/packages/hello/foo.dart';
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile ${file.path}\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        if (count == 0) {
+          // First request is to 'compile', which results in full kernel file.
+          expect(result.errorsCount, equals(0));
+          expect(dillFile.existsSync(), equals(true));
+          expect(result.filename, dillFile.path);
+          streamController.add('accept\n'.codeUnits);
+
+          // 'compile-expression <boundarykey>
+          // expression
+          // definitions (one per line)
+          // ...
+          // <boundarykey>
+          // type-defintions (one per line)
+          // ...
+          // <boundarykey>
+          // <libraryUri: String>
+          // <klass: String>
+          // <isStatic: true|false>
+          outputParser.expectSources = false;
+          streamController.add('compile-expression abc\n'
+                  '2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 1) {
+          expect(result.errorsCount, equals(0));
+          // Second request is to 'compile-expression', which results in
+          // kernel file with a function that wraps compiled expression.
+          File outputFile = File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          // 'compile-expression-to-js <boundarykey>
+          // libraryUri
+          // line
+          // column
+          // jsModules (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // jsFrameValues (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // moduleName
+          // expression
+          outputParser.expectSources = false;
+          streamController.add('compile-expression-to-js abc\n'
+                  '$library\n1\n1\nabc\nabc\n$module\n\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 2) {
+          // Third request is to 'compile-expression-to-js' that fails
+          // due to non-web target
+          expect(result.errorsCount, isNull);
+          expect(compiledResult.status, isNull);
+
+          outputParser.expectSources = false;
+          streamController.add('compile-expression abc\n'
+                  '2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 3) {
+          expect(result.errorsCount, equals(0));
+          // Fourth request is to 'compile-expression', which results in
+          // kernel file with a function that wraps compiled expression.
+          File outputFile = File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          streamController.add('quit\n'.codeUnits);
+        }
+      });
+
+      expect(await result, 0);
+      expect(count, 3);
     });
 
     test('compiler reports correct sources added', () async {
@@ -1350,6 +1460,237 @@ true
       ];
 
       expect(await starter(args), 0);
+    });
+
+    test('compile expression to Javascript', () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {\n\n}\n");
+      File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("hello:${tempDir.uri}\n");
+
+      var library = 'package:hello/foo.dart';
+      var module = '/packages/hello/foo.dart';
+
+      var dillFile = File('${tempDir.path}/foo.dart.dill');
+      var sourceFile = File('${dillFile.path}.sources');
+      var manifestFile = File('${dillFile.path}.json');
+      var sourceMapsFile = File('${dillFile.path}.map');
+
+      expect(dillFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${tempDir.path}/.packages',
+      ];
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile $library\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        if (count == 0) {
+          // First request is to 'compile', which results in full JavaScript
+          expect(result.errorsCount, equals(0));
+          expect(sourceFile.existsSync(), equals(true));
+          expect(manifestFile.existsSync(), equals(true));
+          expect(sourceMapsFile.existsSync(), equals(true));
+          expect(result.filename, dillFile.path);
+          streamController.add('accept\n'.codeUnits);
+
+          // 'compile-expression-to-js <boundarykey>
+          // libraryUri
+          // line
+          // column
+          // jsModules (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // jsFrameValues (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // moduleName
+          // expression
+          outputParser.expectSources = false;
+          streamController.add('compile-expression-to-js abc\n'
+                  '$library\n1\n1\nabc\nabc\n$module\n\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 1) {
+          // Second request is to 'compile-expression-to-js' that fails
+          // due to incorrect input - empty expression
+          expect(result.errorsCount, 1);
+          expect(compiledResult.status, (String status) {
+            return status.endsWith(' 1');
+          });
+
+          outputParser.expectSources = false;
+          streamController.add('compile-expression-to-js abc\n'
+                  '$library\n1\n1\nabc\nabc\n$module\n2+2\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 2) {
+          expect(result.errorsCount, equals(0));
+          // Third request is to 'compile-expression-to-js', which results in
+          // js file with a function that wraps compiled expression.
+          File outputFile = File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          streamController.add('compile foo.bar\n'.codeUnits);
+          count += 1;
+        } else {
+          expect(count, 3);
+          // Fourth request is to 'compile' non-existent file, that should fail.
+          expect(result.errorsCount, greaterThan(0));
+
+          streamController.add('quit\n'.codeUnits);
+        }
+      });
+
+      expect(await result, 0);
+      expect(count, 3);
+    });
+
+    test('mixed compile expression commands with web target', () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {\n\n}\n");
+      File('${tempDir.path}/.packages')
+        ..createSync()
+        ..writeAsStringSync("hello:${tempDir.uri}\n");
+
+      var library = 'package:hello/foo.dart';
+      var module = '/packages/hello/foo.dart';
+
+      var dillFile = File('${tempDir.path}/foo.dart.dill');
+      var sourceFile = File('${dillFile.path}.sources');
+      var manifestFile = File('${dillFile.path}.json');
+      var sourceMapsFile = File('${dillFile.path}.map');
+
+      expect(dillFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--target=dartdevc',
+        '--packages=${tempDir.path}/.packages',
+      ];
+
+      final StreamController<List<int>> streamController =
+          StreamController<List<int>>();
+      final StreamController<List<int>> stdoutStreamController =
+          StreamController<List<int>>();
+      final IOSink ioSink = IOSink(stdoutStreamController.sink);
+      StreamController<Result> receivedResults = StreamController<Result>();
+      final outputParser = OutputParser(receivedResults);
+      stdoutStreamController.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .listen(outputParser.listener);
+
+      Future<int> result =
+          starter(args, input: streamController.stream, output: ioSink);
+      streamController.add('compile $library\n'.codeUnits);
+      int count = 0;
+      receivedResults.stream.listen((Result compiledResult) {
+        CompilationResult result =
+            CompilationResult.parse(compiledResult.status);
+        if (count == 0) {
+          // First request is to 'compile', which results in full JavaScript
+          expect(result.errorsCount, equals(0));
+          expect(sourceFile.existsSync(), equals(true));
+          expect(manifestFile.existsSync(), equals(true));
+          expect(sourceMapsFile.existsSync(), equals(true));
+          expect(result.filename, dillFile.path);
+          streamController.add('accept\n'.codeUnits);
+
+          // 'compile-expression-to-js <boundarykey>
+          // libraryUri
+          // line
+          // column
+          // jsModules (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // jsFrameValues (one k-v pair per line)
+          // ...
+          // <boundarykey>
+          // moduleName
+          // expression
+          outputParser.expectSources = false;
+          streamController.add('compile-expression-to-js abc\n'
+                  '$library\n1\n1\nabc\nabc\n$module\n2+2\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 1) {
+          expect(result.errorsCount, equals(0));
+          // Second request is to 'compile-expression-to-js', which results in
+          // js file with a function that wraps compiled expression.
+          File outputFile = File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          // 'compile-expression <boundarykey>
+          // expression
+          // definitions (one per line)
+          // ...
+          // <boundarykey>
+          // type-defintions (one per line)
+          // ...
+          // <boundarykey>
+          // <libraryUri: String>
+          // <klass: String>
+          // <isStatic: true|false>
+          outputParser.expectSources = false;
+          streamController.add('compile-expression abc\n'
+                  '2+2\nabc\nabc\n${file.uri}\n\nfalse\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 2) {
+          expect(result.errorsCount, equals(0));
+          // Third request is to 'compile-expression', which results in
+          // kernel file with a function that wraps compiled expression.
+          File outputFile = File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          outputParser.expectSources = false;
+          streamController.add('compile-expression-to-js abc\n'
+                  '$library\n1\n1\nabc\nabc\n$module\n2+2\n'
+              .codeUnits);
+          count += 1;
+        } else if (count == 3) {
+          expect(result.errorsCount, equals(0));
+          // Fourth request is to 'compile-expression-to-js', which results in
+          // js file with a function that wraps compiled expression.
+          File outputFile = File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          streamController.add('quit\n'.codeUnits);
+        }
+      });
+
+      expect(await result, 0);
+      expect(count, 3);
     });
 
     test('compile with bytecode', () async {

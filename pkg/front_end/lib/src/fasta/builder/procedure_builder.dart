@@ -326,6 +326,7 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
     _extensionTearOffParameterMap = {};
 
     int fileOffset = _procedure.fileOffset;
+    int fileEndOffset = _procedure.fileEndOffset;
 
     int extensionTypeParameterCount =
         extensionBuilder.typeParameters?.length ?? 0;
@@ -434,7 +435,8 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
           requiredParameterCount: 1,
           returnType: closure.function.computeFunctionType(library.nonNullable))
       ..fileUri = fileUri
-      ..fileOffset = fileOffset;
+      ..fileOffset = fileOffset
+      ..fileEndOffset = fileEndOffset;
     _extensionTearOff.function.parent = _extensionTearOff;
   }
 
