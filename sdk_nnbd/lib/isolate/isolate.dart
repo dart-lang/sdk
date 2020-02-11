@@ -337,7 +337,7 @@ class Isolate {
       bool? checked,
       Map<String, String>? environment,
       @Deprecated('The packages/ dir is not supported in Dart 2')
-          Uri packageRoot,
+          Uri? packageRoot,
       Uri? packageConfig,
       bool automaticPackageResolution = false,
       @Since("2.3")
@@ -522,7 +522,7 @@ class Isolate {
    *     are completed.
    */
   external void ping(SendPort responsePort,
-      {Object response, int priority = immediate});
+      {Object? response, int priority = immediate});
 
   /**
    * Requests that uncaught errors of the isolate are sent back to [port].
