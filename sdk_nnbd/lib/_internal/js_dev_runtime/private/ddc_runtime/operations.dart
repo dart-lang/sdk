@@ -92,12 +92,12 @@ gbind(f, @rest List typeArgs) {
   return fn(result, type.instantiate(typeArgs));
 }
 
-dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field), false);
+dloadRepl(obj, field) => dload(obj, replNameLookup(obj, field));
 
 // Warning: dload, dput, and dsend assume they are never called on methods
 // implemented by the Object base class as those methods can always be
 // statically resolved.
-dload(obj, field, [@undefined mirrors]) {
+dload(obj, field) {
   if (JS('!', 'typeof # == "function" && # == "call"', obj, field)) {
     return obj;
   }
@@ -111,15 +111,10 @@ dload(obj, field, [@undefined mirrors]) {
     if (hasMethod(type, f)) return bind(obj, f, null);
 
     // Always allow for JS interop objects.
-    if (!JS<bool>('!', '#', mirrors) && isJsInterop(obj)) {
-      return JS('', '#[#]', obj, f);
-    }
+    if (isJsInterop(obj)) return JS('', '#[#]', obj, f);
   }
   return noSuchMethod(obj, InvocationImpl(field, JS('', '[]'), isGetter: true));
 }
-
-// Version of dload that matches legacy mirrors behavior for JS types.
-dloadMirror(obj, field) => dload(obj, field, true);
 
 _stripGenericArguments(type) {
   var genericClass = getGenericClass(type);
@@ -127,29 +122,18 @@ _stripGenericArguments(type) {
   return type;
 }
 
-// Version of dput that matches legacy Dart 1 type check rules and mirrors
-// behavior for JS types.
-// TODO(jacobr): remove the type checking rules workaround when mirrors based
-// PageLoader code can generate the correct reified generic types.
-dputMirror(obj, field, value) => dput(obj, field, value, true);
+dputRepl(obj, field, value) => dput(obj, replNameLookup(obj, field), value);
 
-dputRepl(obj, field, value) =>
-    dput(obj, replNameLookup(obj, field), value, false);
-
-dput(obj, field, value, [@undefined mirrors]) {
+dput(obj, field, value) {
   var f = _canonicalMember(obj, field);
   trackCall(obj);
   if (f != null) {
     var setterType = getSetterType(getType(obj), f);
     if (setterType != null) {
-      if (JS('!', '#', mirrors))
-        setterType = _stripGenericArguments(setterType);
       return JS('', '#[#] = #._check(#)', obj, f, setterType, value);
     }
     // Always allow for JS interop objects.
-    if (!JS<bool>('!', '#', mirrors) && isJsInterop(obj)) {
-      return JS('', '#[#] = #', obj, f, value);
-    }
+    if (isJsInterop(obj)) return JS('', '#[#] = #', obj, f, value);
   }
   noSuchMethod(
       obj, InvocationImpl(field, JS('', '[#]', value), isSetter: true));
