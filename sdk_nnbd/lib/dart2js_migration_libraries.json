@@ -41,8 +41,8 @@
         "supported": false
       },
       "isolate": {
-        "uri": "../../sdk/lib/isolate/isolate.dart",
-        "patches": "../../sdk/lib/_internal/js_runtime/lib/isolate_patch.dart",
+        "uri": "isolate/isolate.dart",
+        "patches": "_internal/js_runtime/lib/isolate_patch.dart",
         "supported": false
       },
       "js": {
