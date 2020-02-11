@@ -412,25 +412,29 @@ class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// The entry object of the first element in the queue.
   ///
   /// Each element of the queue has an associated [DoubleLinkedQueueEntry].
-  /// Returns the entry object corresponding to the first element of the queue.
+  ///
+  /// Returns the entry object corresponding to the first element of the queue,
+  /// or `null` if the queue is empty.
   ///
   /// The entry objects can also be accessed using [lastEntry],
-  /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry()] and
-  /// [DoubleLinkedQueueEntry.previousEntry()].
-  DoubleLinkedQueueEntry<E> firstEntry() {
-    return _sentinel.nextEntry()!;
+  /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry] and
+  /// [DoubleLinkedQueueEntry.previousEntry].
+  DoubleLinkedQueueEntry<E>? firstEntry() {
+    return _sentinel.nextEntry();
   }
 
   /// The entry object of the last element in the queue.
   ///
   /// Each element of the queue has an associated [DoubleLinkedQueueEntry].
-  /// Returns the entry object corresponding to the last element of the queue.
+  ///
+  /// Returns the entry object corresponding to the last element of the queue,
+  /// or `null` if the queue is empty.
   ///
   /// The entry objects can also be accessed using [firstEntry],
-  /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry()] and
-  /// [DoubleLinkedQueueEntry.previousEntry()].
-  DoubleLinkedQueueEntry<E> lastEntry() {
-    return _sentinel.previousEntry()!;
+  /// and they can be iterated using [DoubleLinkedQueueEntry.nextEntry] and
+  /// [DoubleLinkedQueueEntry.previousEntry].
+  DoubleLinkedQueueEntry<E>? lastEntry() {
+    return _sentinel.previousEntry();
   }
 
   bool get isEmpty {
