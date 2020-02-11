@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
@@ -19,18 +20,39 @@ import 'abstract_client.dart';
 import 'expect_mixin.dart';
 
 CompletionSuggestion _createCompletionSuggestionFromAvailableSuggestion(
-    AvailableSuggestion suggestion) {
-  // todo (pq): IMPLEMENT
-  // com.jetbrains.lang.dart.ide.completion.DartServerCompletionContributor#createCompletionSuggestionFromAvailableSuggestion
+    AvailableSuggestion suggestion,
+    int suggestionSetRelevance,
+    Map<String, IncludedSuggestionRelevanceTag>
+        includedSuggestionRelevanceTags) {
+  // https://github.com/JetBrains/intellij-plugins/blob/59018828753973324ea0500fa4bae93563f1aacf/Dart/src/com/jetbrains/lang/dart/ide/completion/DartServerCompletionContributor.java#L568
+  // https://github.com/Dart-Code/Dart-Code/blob/d4e98d2ca2636be5da7334760d73face12414e70/src/extension/providers/dart_completion_item_provider.ts#L187
+
+  var relevanceBoost = 0;
+  var relevanceTags = suggestion.relevanceTags;
+  if (relevanceTags != null) {
+    for (var tag in relevanceTags) {
+      var relevanceTag = includedSuggestionRelevanceTags[tag];
+      if (relevanceTag != null) {
+        relevanceBoost = math.max(relevanceBoost, relevanceTag.relevanceBoost);
+      }
+    }
+  }
+
   return CompletionSuggestion(
-      // todo (pq): in IDEA, this is "UNKNOWN" but here we need a value; figure out what's up.
-      CompletionSuggestionKind.INVOCATION,
-      0,
-      suggestion.label,
-      0,
-      0,
-      suggestion.element.isDeprecated,
-      false);
+    // todo (pq): in IDEA, this is "UNKNOWN" but here we need a value; figure out what's up.
+    CompletionSuggestionKind.INVOCATION,
+    suggestionSetRelevance + relevanceBoost,
+    suggestion.label,
+    0,
+    0,
+    suggestion.element.isDeprecated,
+    false,
+    element: suggestion.element,
+    returnType: suggestion.element.returnType,
+    defaultArgumentListString: suggestion.defaultArgumentListString,
+    defaultArgumentListTextRanges: suggestion.defaultArgumentListTextRanges,
+    parameterNames: suggestion.parameterNames,
+  );
 }
 
 class CompletionDriver extends AbstractClient with ExpectMixin {
@@ -123,6 +145,18 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       suggestions = params.results;
       expect(allSuggestions.containsKey(id), isFalse);
       allSuggestions[id] = params.results;
+      var includedKinds = params.includedElementKinds;
+
+      // https://github.com/JetBrains/intellij-plugins/blob/59018828753973324ea0500fa4bae93563f1aacf/Dart/src/com/jetbrains/lang/dart/analyzer/DartAnalysisServerService.java#L467
+      var includedRelevanceTags = <String, IncludedSuggestionRelevanceTag>{};
+      var includedSuggestionRelevanceTags =
+          params.includedSuggestionRelevanceTags;
+      if (includedSuggestionRelevanceTags != null) {
+        for (var includedRelevanceTag in includedSuggestionRelevanceTags) {
+          includedRelevanceTags[includedRelevanceTag.tag] =
+              includedRelevanceTag;
+        }
+      }
 
       for (var set in params.includedSuggestionSets) {
         var id = set.id;
@@ -131,10 +165,14 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
         }
         var suggestionSet = idToSetMap[id];
         for (var suggestion in suggestionSet.items) {
+          var kind = suggestion.element.kind;
+          if (!includedKinds.contains(kind)) {
+            continue;
+          }
+
           var completionSuggestion =
-              _createCompletionSuggestionFromAvailableSuggestion(suggestion
-                  //, includedSet.getRelevance(), includedRelevanceTags
-                  );
+              _createCompletionSuggestionFromAvailableSuggestion(
+                  suggestion, set.relevance, includedRelevanceTags);
           suggestions.add(completionSuggestion);
         }
       }

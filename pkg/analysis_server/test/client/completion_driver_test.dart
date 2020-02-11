@@ -46,6 +46,38 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     await getSuggestions();
   }
 
+  void expectSuggestion({
+    @required String completion,
+    ElementKind element,
+    CompletionSuggestionKind kind,
+    String file,
+  }) {
+    expect(
+        suggestionWith(
+          completion: completion,
+          element: element,
+          kind: kind,
+          file: file,
+        ),
+        isNotNull);
+  }
+
+  void expectNoSuggestion({
+    @required String completion,
+    ElementKind element,
+    CompletionSuggestionKind kind,
+    String file,
+  }) {
+    expect(
+        suggestionsWith(
+          completion: completion,
+          element: element,
+          kind: kind,
+          file: file,
+        ),
+        isEmpty);
+  }
+
   Future<List<CompletionSuggestion>> getSuggestions() async {
     if (supportsAvailableSuggestions) {
       // todo (pq): consider moving
@@ -91,36 +123,45 @@ project:${toUri('$projectPath/lib')}
     // todo (pq): add logic (possibly to driver) that waits for SDK suggestions
   }
 
-  SuggestionMatcher suggestionHas(
-          {@required String completion,
-          ElementKind element,
-          CompletionSuggestionKind kind}) =>
+  SuggestionMatcher suggestionHas({
+    @required String completion,
+    ElementKind element,
+    CompletionSuggestionKind kind,
+    String file,
+  }) =>
       (CompletionSuggestion s) {
-        if (s.completion == completion) {
-          if (element != null && s.element?.kind != element) {
-            return false;
-          }
-          if (kind != null && s.kind != kind) {
-            return false;
-          }
-          return true;
+        if (s.completion != completion) {
+          return false;
         }
-        return false;
+        if (element != null && s.element?.kind != element) {
+          return false;
+        }
+        if (kind != null && s.kind != kind) {
+          return false;
+        }
+        if (file != null && s.element?.location?.file != file) {
+          return false;
+        }
+        return true;
       };
 
-  Iterable<CompletionSuggestion> suggestionsWith(
-          {@required String completion,
-          ElementKind element,
-          CompletionSuggestionKind kind}) =>
-      suggestions.where(
-          suggestionHas(completion: completion, element: element, kind: kind));
+  Iterable<CompletionSuggestion> suggestionsWith({
+    @required String completion,
+    ElementKind element,
+    CompletionSuggestionKind kind,
+    String file,
+  }) =>
+      suggestions.where(suggestionHas(
+          completion: completion, element: element, kind: kind, file: file));
 
-  CompletionSuggestion suggestionWith(
-      {@required String completion,
-      ElementKind element,
-      CompletionSuggestionKind kind}) {
-    final matches =
-        suggestionsWith(completion: completion, element: element, kind: kind);
+  CompletionSuggestion suggestionWith({
+    @required String completion,
+    ElementKind element,
+    CompletionSuggestionKind kind,
+    String file,
+  }) {
+    final matches = suggestionsWith(
+        completion: completion, element: element, kind: kind, file: file);
     expect(matches, hasLength(1));
     return matches.first;
   }
@@ -168,9 +209,14 @@ class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest {
   @override
   String get testFilePath => '$projectPath/lib/test.dart';
 
-  Future<void> test_basic() async {
+  Future<void> test_project_lib() async {
     await addProjectFile('lib/a.dart', r'''
 class A {}
+enum E {}
+extension Ex on A {}
+mixin M { }
+typedef T = Function(Object);
+int v;
 ''');
 
     await addTestFile('''
@@ -179,10 +225,53 @@ void main() {
 }
 ''');
 
-    var suggestions = suggestionsWith(
-        completion: 'A', kind: CompletionSuggestionKind.INVOCATION);
-    // todo (pq): seems like this should be 1; investigate duplication.
-    expect(suggestions, hasLength(2));
+    expectSuggestion(
+        completion: 'A',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION);
+    expectSuggestion(
+        completion: 'A',
+        element: ElementKind.CLASS,
+        kind: CompletionSuggestionKind.INVOCATION);
+    expectSuggestion(
+        completion: 'E',
+        element: ElementKind.ENUM,
+        kind: CompletionSuggestionKind.INVOCATION);
+    expectSuggestion(
+        completion: 'Ex',
+        element: ElementKind.EXTENSION,
+        kind: CompletionSuggestionKind.INVOCATION);
+    expectSuggestion(
+        completion: 'M',
+        element: ElementKind.MIXIN,
+        kind: CompletionSuggestionKind.INVOCATION);
+    expectSuggestion(
+        completion: 'T',
+        element: ElementKind.FUNCTION_TYPE_ALIAS,
+        kind: CompletionSuggestionKind.INVOCATION);
+    expectSuggestion(
+        completion: 'v',
+        element: ElementKind.TOP_LEVEL_VARIABLE,
+        kind: CompletionSuggestionKind.INVOCATION);
+
+    // todo (pq): getters/setters?
+  }
+
+  @failingTest
+  Future<void> test_sdk_lib_future_isNotDuplicated() async {
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    expect(
+        suggestionsWith(
+            completion: 'Future.value',
+            file: '/sdk/lib/async/async.dart',
+            element: ElementKind.CONSTRUCTOR,
+            kind: CompletionSuggestionKind.INVOCATION),
+        hasLength(1));
   }
 
   Future<void> test_sdk_lib_suggestions() async {
@@ -192,30 +281,48 @@ void main() {
 }
 ''');
 
-    // A set of SDK suggestions.
-    expect(
-        // from dart:async (StreamSubscription)
-        suggestionWith(
-            completion: 'asFuture', kind: CompletionSuggestionKind.INVOCATION),
-        isNotNull);
+    // A kind-filtered set of SDK suggestions.
 
-    expect(
-        // from dart:core
-        suggestionWith(
-            completion: 'print', kind: CompletionSuggestionKind.INVOCATION),
-        isNotNull);
+    // Constructors should be visible.
+    expectSuggestion(
+        completion: 'Timer',
+        file: '/sdk/lib/async/async.dart',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION);
 
-    expect(
-        // from dart:collection (ListMixin)
-        suggestionWith(
-            completion: 'firstWhere',
-            kind: CompletionSuggestionKind.INVOCATION),
-        isNotNull);
+    // But not methods.
+    expectNoSuggestion(
+        // dart:async (StreamSubscription)
+        completion: 'asFuture',
+        element: ElementKind.METHOD,
+        kind: CompletionSuggestionKind.INVOCATION);
 
-    expect(
-        // from dart:math
-        suggestionWith(
-            completion: 'tan', kind: CompletionSuggestionKind.INVOCATION),
-        isNotNull);
+    // +  Functions.
+    expectSuggestion(
+        completion: 'print',
+        file: '/sdk/lib/core/core.dart',
+        element: ElementKind.FUNCTION,
+        kind: CompletionSuggestionKind.INVOCATION);
+    expectSuggestion(
+        completion: 'tan',
+        file: '/sdk/lib/math/math.dart',
+        element: ElementKind.FUNCTION,
+        kind: CompletionSuggestionKind.INVOCATION);
+
+    // + Classes.
+    expectSuggestion(
+        completion: 'HashMap',
+        file: '/sdk/lib/collection/collection.dart',
+        element: ElementKind.CLASS,
+        kind: CompletionSuggestionKind.INVOCATION);
+
+    // + Top level variables.
+    expectSuggestion(
+        completion: 'PI',
+        file: '/sdk/lib/math/math.dart',
+        element: ElementKind.TOP_LEVEL_VARIABLE,
+        kind: CompletionSuggestionKind.INVOCATION);
+
+    // (No typedefs, enums, extensions defined in the Mock SDK.)
   }
 }
