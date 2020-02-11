@@ -97,25 +97,25 @@
         ]
       },
       "_http": {
-        "uri": "../../sdk/lib/_http/http.dart"
+        "uri": "_http/http.dart"
       },
       "io": {
-        "uri": "../../sdk/lib/io/io.dart",
+        "uri": "io/io.dart",
         "patches": [
-          "../../sdk/lib/_internal/vm/bin/common_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/directory_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/eventhandler_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/file_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/file_system_entity_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/filter_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/io_service_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/namespace_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/platform_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/process_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/socket_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/stdio_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/secure_socket_patch.dart",
-          "../../sdk/lib/_internal/vm/bin/sync_socket_patch.dart"
+          "_internal/vm/bin/common_patch.dart",
+          "_internal/vm/bin/directory_patch.dart",
+          "_internal/vm/bin/eventhandler_patch.dart",
+          "_internal/vm/bin/file_patch.dart",
+          "_internal/vm/bin/file_system_entity_patch.dart",
+          "_internal/vm/bin/filter_patch.dart",
+          "_internal/vm/bin/io_service_patch.dart",
+          "_internal/vm/bin/namespace_patch.dart",
+          "_internal/vm/bin/platform_patch.dart",
+          "_internal/vm/bin/process_patch.dart",
+          "_internal/vm/bin/socket_patch.dart",
+          "_internal/vm/bin/stdio_patch.dart",
+          "_internal/vm/bin/secure_socket_patch.dart",
+          "_internal/vm/bin/sync_socket_patch.dart"
         ]
       },
       "isolate": {
