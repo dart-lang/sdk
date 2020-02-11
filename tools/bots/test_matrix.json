@@ -1453,6 +1453,16 @@
             "lib/mirrors",
             "standalone/io"
           ]
+        },
+	{
+          "name": "vm weak legacy tests with asserts",
+          "arguments": [
+            "-ndartk-weak-asserts-${system}-${mode}-${arch}",
+            "language_2",
+            "corelib_2",
+            "lib_2",
+            "ffi_2"
+          ]
         }
       ]
     },
