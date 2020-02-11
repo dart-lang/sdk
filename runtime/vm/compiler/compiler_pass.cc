@@ -19,6 +19,7 @@
 #include "vm/compiler/backend/redundancy_elimination.h"
 #include "vm/compiler/backend/type_propagator.h"
 #include "vm/compiler/call_specializer.h"
+#include "vm/compiler/write_barrier_elimination.h"
 #if defined(DART_PRECOMPILER)
 #include "vm/compiler/aot/aot_call_specializer.h"
 #include "vm/compiler/aot/precompiler.h"
@@ -528,36 +529,6 @@ COMPILER_PASS(ReorderBlocks, {
     BlockScheduler::ReorderBlocks(flow_graph);
   }
 });
-
-static void WriteBarrierElimination(FlowGraph* flow_graph) {
-  for (BlockIterator block_it = flow_graph->reverse_postorder_iterator();
-       !block_it.Done(); block_it.Advance()) {
-    BlockEntryInstr* block = block_it.Current();
-    Definition* last_allocated = nullptr;
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
-      Instruction* current = it.Current();
-      if (!current->CanTriggerGC()) {
-        if (StoreInstanceFieldInstr* instr = current->AsStoreInstanceField()) {
-          if (instr->instance()->definition() == last_allocated) {
-            instr->set_emit_store_barrier(kNoStoreBarrier);
-          }
-          continue;
-        }
-      }
-
-      if (AllocationInstr* alloc = current->AsAllocation()) {
-        if (alloc->WillAllocateNewOrRemembered()) {
-          last_allocated = alloc;
-          continue;
-        }
-      }
-
-      if (current->CanTriggerGC()) {
-        last_allocated = nullptr;
-      }
-    }
-  }
-}
 
 COMPILER_PASS(WriteBarrierElimination,
               { WriteBarrierElimination(flow_graph); });

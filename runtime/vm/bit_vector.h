@@ -70,6 +70,8 @@ class BitVector : public ZoneAllocated {
     data_[i / kBitsPerWord] &= ~(static_cast<uword>(1) << (i % kBitsPerWord));
   }
 
+  void Set(intptr_t i, bool value) { value ? Add(i) : Remove(i); }
+
   bool Equals(const BitVector& other) const;
 
   // Add all elements that are in the bitvector from.
@@ -90,6 +92,14 @@ class BitVector : public ZoneAllocated {
     ASSERT(i >= 0 && i < length());
     uword block = data_[i / kBitsPerWord];
     return (block & (static_cast<uword>(1) << (i % kBitsPerWord))) != 0;
+  }
+
+  bool SubsetOf(const BitVector& other) {
+    ASSERT(length_ == other.length_);
+    for (intptr_t i = 0; i < data_length_; ++i) {
+      if ((data_[i] & other.data_[i]) != data_[i]) return false;
+    }
+    return true;
   }
 
   void Clear() {

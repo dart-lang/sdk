@@ -1118,6 +1118,15 @@ class FlowGraphCompiler : public ValueObject {
   // is amenable to a peephole optimization.
   bool IsPeephole(Instruction* instr) const;
 
+#ifdef DEBUG
+  bool CanCallDart() const {
+    return current_instruction_ == nullptr ||
+           current_instruction_->CanCallDart();
+  }
+#else
+  bool CanCallDart() const { return true; }
+#endif
+
   // This struct contains either function or code, the other one being NULL.
   class StaticCallsStruct : public ZoneAllocated {
    public:
@@ -1209,6 +1218,10 @@ class FlowGraphCompiler : public ValueObject {
 
   ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data_;
   Array& edge_counters_array_;
+
+  // Instruction current running EmitNativeCode(). Useful for asserts.
+  // Does not include Phis and BlockEntrys.
+  DEBUG_ONLY(Instruction* current_instruction_ = nullptr);
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
 };

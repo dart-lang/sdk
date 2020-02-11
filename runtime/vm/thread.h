@@ -819,6 +819,8 @@ class Thread : public ThreadState {
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor,
                            ValidationPolicy validate_frames);
+  void RememberLiveTemporaries();
+  void DeferredMarkLiveTemporaries();
 
   bool IsValidHandle(Dart_Handle object) const;
   bool IsValidLocalHandle(Dart_Handle object) const;
@@ -848,6 +850,13 @@ class Thread : public ThreadState {
  private:
   template <class T>
   T* AllocateReusableHandle();
+
+  enum class HandleLiveTemporariesOp {
+    kAddToRememberedSet,
+    kAddToDeferredMarkingStack
+  };
+  friend class HandleLiveTemporariesVisitor;
+  void HandleLiveTemporaries(HandleLiveTemporariesOp op);
 
   // Set the current compiler state and return the previous compiler state.
   CompilerState* SetCompilerState(CompilerState* state) {
