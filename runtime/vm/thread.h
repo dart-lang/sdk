@@ -998,6 +998,9 @@ class Thread : public ThreadState {
   void ExitSafepointUsingLock();
   void BlockForSafepoint();
 
+  void FinishEntering(TaskKind kind);
+  void PrepareLeaving();
+
   static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 
   void DeferOOBMessageInterrupts();

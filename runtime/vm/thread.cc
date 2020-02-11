@@ -313,13 +313,9 @@ bool Thread::EnterIsolate(Isolate* isolate) {
   Thread* thread = isolate->ScheduleThread(kIsMutatorThread);
   if (thread != NULL) {
     ASSERT(thread->store_buffer_block_ == NULL);
-    thread->task_kind_ = kMutatorTask;
-    thread->StoreBufferAcquire();
-    if (isolate->marking_stack() != NULL) {
-      // Concurrent mark in progress. Enable barrier for this thread.
-      thread->MarkingStackAcquire();
-      thread->DeferredMarkingStackAcquire();
-    }
+    ASSERT(thread->isolate() == isolate);
+    ASSERT(thread->isolate_group() == isolate->group());
+    thread->FinishEntering(kMutatorTask);
     return true;
   }
   return false;
@@ -327,22 +323,17 @@ bool Thread::EnterIsolate(Isolate* isolate) {
 
 void Thread::ExitIsolate() {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL && thread->IsMutatorThread());
+  ASSERT(thread != nullptr);
+  ASSERT(thread->IsMutatorThread());
+  ASSERT(thread->isolate() != nullptr);
+  ASSERT(thread->isolate_group() != nullptr);
   DEBUG_ASSERT(!thread->IsAnyReusableHandleScopeActive());
-  thread->task_kind_ = kUnknownTask;
+
+  thread->PrepareLeaving();
+
   Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
-  ASSERT(thread->execution_state() == Thread::kThreadInVM);
-  if (thread->is_marking()) {
-    thread->MarkingStackRelease();
-    thread->DeferredMarkingStackRelease();
-  }
-  thread->StoreBufferRelease();
-  if (isolate->is_runnable()) {
-    thread->set_vm_tag(VMTag::kIdleTagId);
-  } else {
-    thread->set_vm_tag(VMTag::kLoadWaitTagId);
-  }
+  thread->set_vm_tag(isolate->is_runnable() ? VMTag::kIdleTagId
+                                            : VMTag::kLoadWaitTagId);
   const bool kIsMutatorThread = true;
   isolate->UnscheduleThread(thread, kIsMutatorThread);
 }
@@ -356,18 +347,10 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
       isolate->ScheduleThread(kIsNotMutatorThread, bypass_safepoint);
   if (thread != NULL) {
     ASSERT(thread->store_buffer_block_ == NULL);
-    // TODO(koda): Use StoreBufferAcquire once we properly flush
-    // before Scavenge.
-    thread->store_buffer_block_ =
-        thread->isolate()->store_buffer()->PopEmptyBlock();
-    if (isolate->marking_stack() != NULL) {
-      // Concurrent mark in progress. Enable barrier for this thread.
-      thread->MarkingStackAcquire();
-      thread->DeferredMarkingStackAcquire();
-    }
-    // This thread should not be the main mutator.
-    thread->task_kind_ = kind;
     ASSERT(!thread->IsMutatorThread());
+    ASSERT(thread->isolate() == isolate);
+    ASSERT(thread->isolate_group() == isolate->group());
+    thread->FinishEntering(kind);
     return true;
   }
   return false;
@@ -375,15 +358,13 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate,
 
 void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
+  ASSERT(thread != nullptr);
   ASSERT(!thread->IsMutatorThread());
-  ASSERT(thread->execution_state() == Thread::kThreadInVM);
-  thread->task_kind_ = kUnknownTask;
-  if (thread->is_marking()) {
-    thread->MarkingStackRelease();
-    thread->DeferredMarkingStackRelease();
-  }
-  thread->StoreBufferRelease();
+  ASSERT(thread->isolate() != nullptr);
+  ASSERT(thread->isolate_group() != nullptr);
+
+  thread->PrepareLeaving();
+
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   const bool kIsNotMutatorThread = false;
@@ -922,6 +903,37 @@ void Thread::ExitSafepointUsingLock() {
 
 void Thread::BlockForSafepoint() {
   isolate()->safepoint_handler()->BlockForSafepoint(this);
+}
+
+void Thread::FinishEntering(TaskKind kind) {
+  ASSERT(store_buffer_block_ == nullptr);
+
+  task_kind_ = kind;
+  if (isolate()->marking_stack() != NULL) {
+    // Concurrent mark in progress. Enable barrier for this thread.
+    MarkingStackAcquire();
+    DeferredMarkingStackAcquire();
+  }
+
+  // TODO(koda): Use StoreBufferAcquire once we properly flush
+  // before Scavenge.
+  if (kind == kMutatorTask) {
+    StoreBufferAcquire();
+  } else {
+    store_buffer_block_ = isolate()->store_buffer()->PopEmptyBlock();
+  }
+}
+
+void Thread::PrepareLeaving() {
+  ASSERT(store_buffer_block_ != nullptr);
+  ASSERT(execution_state() == Thread::kThreadInVM);
+
+  task_kind_ = kUnknownTask;
+  if (is_marking()) {
+    MarkingStackRelease();
+    DeferredMarkingStackRelease();
+  }
+  StoreBufferRelease();
 }
 
 DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
