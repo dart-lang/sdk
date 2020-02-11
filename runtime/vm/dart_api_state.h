@@ -689,92 +689,115 @@ class ApiState {
         acquired_error_(NULL) {}
   ~ApiState() {
     if (null_ != NULL) {
-      persistent_handles().FreeHandle(null_);
+      persistent_handles_.FreeHandle(null_);
       null_ = NULL;
     }
     if (true_ != NULL) {
-      persistent_handles().FreeHandle(true_);
+      persistent_handles_.FreeHandle(true_);
       true_ = NULL;
     }
     if (false_ != NULL) {
-      persistent_handles().FreeHandle(false_);
+      persistent_handles_.FreeHandle(false_);
       false_ = NULL;
     }
     if (acquired_error_ != NULL) {
-      persistent_handles().FreeHandle(acquired_error_);
+      persistent_handles_.FreeHandle(acquired_error_);
       acquired_error_ = NULL;
     }
   }
 
-  // Accessors.
-  PersistentHandles& persistent_handles() { return persistent_handles_; }
-
-  FinalizablePersistentHandles& weak_persistent_handles() {
-    return weak_persistent_handles_;
-  }
-
-  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
-    persistent_handles().VisitObjectPointers(visitor);
+  void VisitObjectPointersUnlocked(ObjectPointerVisitor* visitor) {
+    persistent_handles_.VisitObjectPointers(visitor);
     if (visitor->visit_weak_persistent_handles()) {
-      weak_persistent_handles().VisitObjectPointers(visitor);
+      weak_persistent_handles_.VisitObjectPointers(visitor);
     }
   }
 
-  void VisitWeakHandles(HandleVisitor* visitor) {
-    weak_persistent_handles().VisitHandles(visitor);
+  void VisitWeakHandlesUnlocked(HandleVisitor* visitor) {
+    weak_persistent_handles_.VisitHandles(visitor);
   }
 
-  bool IsValidPersistentHandle(Dart_PersistentHandle object) const {
+  PersistentHandle* AllocatePersistentHandle() {
+    MutexLocker ml(&mutex_);
+    return persistent_handles_.AllocateHandle();
+  }
+  void FreePersistentHandle(PersistentHandle* ref) {
+    MutexLocker ml(&mutex_);
+    persistent_handles_.FreeHandle(ref);
+  }
+
+  FinalizablePersistentHandle* AllocateWeakPersistentHandle() {
+    MutexLocker ml(&mutex_);
+    return weak_persistent_handles_.AllocateHandle();
+  }
+  void FreeWeakPersistentHandle(FinalizablePersistentHandle* weak_ref) {
+    MutexLocker ml(&mutex_);
+    weak_persistent_handles_.FreeHandle(weak_ref);
+  }
+
+  bool IsValidPersistentHandle(Dart_PersistentHandle object) {
+    MutexLocker ml(&mutex_);
     return persistent_handles_.IsValidHandle(object);
   }
 
-  bool IsFreePersistentHandle(Dart_PersistentHandle object) const {
-    return persistent_handles_.IsFreeHandle(object);
+  bool IsActivePersistentHandle(Dart_PersistentHandle object) {
+    MutexLocker ml(&mutex_);
+    return persistent_handles_.IsValidHandle(object) &&
+           !persistent_handles_.IsFreeHandle(object);
   }
 
-  bool IsActivePersistentHandle(Dart_PersistentHandle object) const {
-    return IsValidPersistentHandle(object) && !IsFreePersistentHandle(object);
-  }
-
-  bool IsValidWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
+  bool IsValidWeakPersistentHandle(Dart_WeakPersistentHandle object) {
+    MutexLocker ml(&mutex_);
     return weak_persistent_handles_.IsValidHandle(object);
   }
 
-  bool IsFreeWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
-    return weak_persistent_handles_.IsFreeHandle(object);
+  bool IsActiveWeakPersistentHandle(Dart_WeakPersistentHandle object) {
+    MutexLocker ml(&mutex_);
+    return weak_persistent_handles_.IsValidHandle(object) &&
+           !weak_persistent_handles_.IsFreeHandle(object);
   }
 
-  bool IsActiveWeakPersistentHandle(Dart_WeakPersistentHandle object) const {
-    return IsValidWeakPersistentHandle(object) &&
-           !IsFreeWeakPersistentHandle(object);
-  }
-
-  bool IsProtectedHandle(PersistentHandle* object) const {
+  bool IsProtectedHandle(PersistentHandle* object) {
+    MutexLocker ml(&mutex_);
     if (object == NULL) return false;
     return object == null_ || object == true_ || object == false_;
   }
 
-  int CountPersistentHandles() const {
+  int CountPersistentHandles() {
+    MutexLocker ml(&mutex_);
     return persistent_handles_.CountHandles();
   }
 
-  void SetupAcquiredError() {
-    ASSERT(acquired_error_ == NULL);
-    const String& msg = String::Handle(
-        String::New("Internal Dart data pointers have been acquired, "
-                    "please release them using Dart_TypedDataReleaseData."));
-    acquired_error_ = persistent_handles().AllocateHandle();
-    acquired_error_->set_raw(ApiError::New(msg));
+  PersistentHandle* AcquiredError() {
+    // The ApiError pre-allocated in the "vm-isolate" since we will not be able
+    // to allocate it when the error actually occurs.
+    // When the error occurs there will be outstanding acquires to internal
+    // data pointers making it unsafe to allocate objects on the dart heap.
+    MutexLocker ml(&mutex_);
+    if (acquired_error_ == nullptr) {
+      acquired_error_ = persistent_handles_.AllocateHandle();
+      acquired_error_->set_raw(ApiError::typed_data_acquire_error());
+    }
+    return acquired_error_;
   }
 
-  PersistentHandle* AcquiredError() const {
-    ASSERT(acquired_error_ != NULL);
-    return acquired_error_;
+  void RunWithLockedPersistentHandles(
+      std::function<void(PersistentHandles&)> fun) {
+    MutexLocker ml(&mutex_);
+    fun(persistent_handles_);
+  }
+
+  void RunWithLockedWeakPersistentHandles(
+      std::function<void(FinalizablePersistentHandles&)> fun) {
+    MutexLocker ml(&mutex_);
+    fun(weak_persistent_handles_);
   }
 
   WeakTable* acquired_table() { return &acquired_table_; }
 
  private:
+  Mutex mutex_;
+
   PersistentHandles persistent_handles_;
   FinalizablePersistentHandles weak_persistent_handles_;
   WeakTable acquired_table_;
@@ -796,8 +819,7 @@ inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
     intptr_t external_size) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  FinalizablePersistentHandle* ref =
-      state->weak_persistent_handles().AllocateHandle();
+  FinalizablePersistentHandle* ref = state->AllocateWeakPersistentHandle();
   ref->set_raw(object);
   ref->set_peer(peer);
   ref->set_callback(callback);

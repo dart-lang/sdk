@@ -439,6 +439,7 @@ class Object {
   V(Bool, bool_false)                                                          \
   V(Smi, smi_illegal_cid)                                                      \
   V(Smi, smi_zero)                                                             \
+  V(ApiError, typed_data_acquire_error)                                        \
   V(LanguageError, snapshot_writer_error)                                      \
   V(LanguageError, branch_offset_error)                                        \
   V(LanguageError, speculative_inlining_error)                                 \

@@ -4170,19 +4170,22 @@ static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
     // Persistent handles.
     {
       JSONArray persistent_handles(&obj, "persistentHandles");
-      PersistentHandles& handles = api_state->persistent_handles();
-      PersistentHandleVisitor<PersistentHandle> visitor(thread,
-                                                        &persistent_handles);
-      handles.Visit(&visitor);
+      api_state->RunWithLockedPersistentHandles(
+          [&](PersistentHandles& handles) {
+            PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+                thread, &persistent_handles);
+            handles.Visit(&visitor);
+          });
     }
     // Weak persistent handles.
     {
       JSONArray weak_persistent_handles(&obj, "weakPersistentHandles");
-      FinalizablePersistentHandles& handles =
-          api_state->weak_persistent_handles();
-      PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
-          thread, &weak_persistent_handles);
-      handles.VisitHandles(&visitor);
+      api_state->RunWithLockedWeakPersistentHandles(
+          [&](FinalizablePersistentHandles& handles) {
+            PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+                thread, &weak_persistent_handles);
+            handles.VisitHandles(&visitor);
+          });
     }
   }
 

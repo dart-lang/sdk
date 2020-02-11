@@ -463,13 +463,6 @@ Dart_Handle Api::NewArgumentError(const char* format, ...) {
   return Api::NewHandle(T, error.raw());
 }
 
-void Api::SetupAcquiredError(Isolate* isolate) {
-  ASSERT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  state->SetupAcquiredError();
-}
-
 Dart_Handle Api::AcquiredError(Isolate* isolate) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -707,7 +700,7 @@ void FinalizablePersistentHandle::Finalize(
   (*callback)(isolate->init_callback_data(), object, peer);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  state->weak_persistent_handles().FreeHandle(handle);
+  state->FreeWeakPersistentHandle(handle);
 }
 
 // --- Handles ---
@@ -929,7 +922,7 @@ DART_EXPORT Dart_PersistentHandle Dart_NewPersistentHandle(Dart_Handle object) {
   ApiState* state = I->api_state();
   ASSERT(state != NULL);
   const Object& old_ref = Object::Handle(Z, Api::UnwrapHandle(object));
-  PersistentHandle* new_ref = state->persistent_handles().AllocateHandle();
+  PersistentHandle* new_ref = state->AllocatePersistentHandle();
   new_ref->set_raw(old_ref);
   return new_ref->apiHandle();
 }
@@ -998,7 +991,7 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   PersistentHandle* ref = PersistentHandle::Cast(object);
   ASSERT(!state->IsProtectedHandle(ref));
   if (!state->IsProtectedHandle(ref)) {
-    state->persistent_handles().FreeHandle(ref);
+    state->FreePersistentHandle(ref);
   }
 }
 
@@ -1011,10 +1004,9 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
   ASSERT(isolate == Isolate::Current());
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  FinalizablePersistentHandle* weak_ref =
-      FinalizablePersistentHandle::Cast(object);
+  auto weak_ref = FinalizablePersistentHandle::Cast(object);
   weak_ref->EnsureFreeExternal(isolate);
-  state->weak_persistent_handles().FreeHandle(weak_ref);
+  state->FreeWeakPersistentHandle(weak_ref);
 }
 
 // --- Initialization and Globals ---

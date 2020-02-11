@@ -1067,6 +1067,11 @@ void Object::Init(Isolate* isolate) {
   *smi_zero_ = Smi::New(0);
 
   String& error_str = String::Handle();
+  error_str = String::New(
+      "Internal Dart data pointers have been acquired, please release them "
+      "using Dart_TypedDataReleaseData.",
+      Heap::kOld);
+  *typed_data_acquire_error_ = ApiError::New(error_str, Heap::kOld);
   error_str = String::New("SnapshotWriter Error", Heap::kOld);
   *snapshot_writer_error_ =
       LanguageError::New(error_str, Report::kError, Heap::kOld);
@@ -1157,6 +1162,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(bool_false_->IsBool());
   ASSERT(smi_illegal_cid_->IsSmi());
   ASSERT(smi_zero_->IsSmi());
+  ASSERT(!typed_data_acquire_error_->IsSmi());
+  ASSERT(typed_data_acquire_error_->IsApiError());
   ASSERT(!snapshot_writer_error_->IsSmi());
   ASSERT(snapshot_writer_error_->IsLanguageError());
   ASSERT(!branch_offset_error_->IsSmi());
