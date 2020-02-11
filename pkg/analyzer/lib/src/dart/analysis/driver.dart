@@ -17,6 +17,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -130,6 +131,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// The analysis options to analyze with.
   AnalysisOptionsImpl _analysisOptions;
+
+  /// The [Packages] object with packages and their language versions.
+  Packages _packages;
 
   /// The [SourceFactory] is used to resolve URIs to paths and restore URIs
   /// from file paths.
@@ -286,11 +290,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {this.disableChangesAndCacheAllResults = false,
+      {@required Packages packages,
+      this.disableChangesAndCacheAllResults = false,
       this.enableIndex = false,
       SummaryDataStore externalSummaries,
       bool retainDataForTesting = false})
       : _logger = logger,
+        _packages = packages ?? Packages.empty,
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         testingData = retainDataForTesting ? TestingData() : null {
@@ -488,10 +494,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// At least one of the optional parameters should be provided, but only those
   /// that represent state that has actually changed need be provided.
-  void configure(
-      {AnalysisOptions analysisOptions, SourceFactory sourceFactory}) {
+  void configure({
+    AnalysisOptions analysisOptions,
+    Packages packages,
+    SourceFactory sourceFactory,
+  }) {
     if (analysisOptions != null) {
       _analysisOptions = analysisOptions;
+    }
+    if (packages != null) {
+      _packages = packages;
     }
     if (sourceFactory != null) {
       _sourceFactory = sourceFactory;
@@ -1460,7 +1472,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     var featureSetProvider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
-      contextRoot: contextRoot,
+      packages: _packages,
       sourceFactory: _sourceFactory,
       defaultFeatureSet: _analysisOptions.contextFeatures,
     );

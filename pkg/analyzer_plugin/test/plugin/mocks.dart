@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart'
@@ -34,7 +35,8 @@ class MockAnalysisDriver extends AnalysisDriver {
             FileContentOverlay(),
             null,
             SourceFactory([]),
-            AnalysisOptionsImpl());
+            AnalysisOptionsImpl(),
+            packages: Packages.empty);
 
   @override
   bool get hasFilesToAnalyze => false;

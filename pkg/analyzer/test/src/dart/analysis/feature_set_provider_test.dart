@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
@@ -128,11 +127,7 @@ test:lib/
   void _buildProvider(List<String> enabledExperiments) {
     provider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
-      contextRoot: ContextRoot(
-        convertPath('/test'),
-        [],
-        pathContext: resourceProvider.pathContext,
-      ),
+      packages: findPackagesFrom(resourceProvider, getFolder('/test')),
       sourceFactory: sourceFactory,
       defaultFeatureSet: FeatureSet.fromEnableFlags(enabledExperiments),
     );

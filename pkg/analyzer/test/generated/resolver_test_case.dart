@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -600,7 +601,8 @@ class ResolverTestCase with ResourceProviderMixin {
     PerformanceLog log = PerformanceLog(_logBuffer);
     AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
     driver = AnalysisDriver(scheduler, log, resourceProvider, MemoryByteStore(),
-        fileContentOverlay, null, sourceFactory, options);
+        fileContentOverlay, null, sourceFactory, options,
+        packages: Packages.empty);
     scheduler.start();
   }
 

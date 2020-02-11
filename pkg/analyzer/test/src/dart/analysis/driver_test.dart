@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -78,7 +79,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
         SourceFactory(
           [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
         ),
-        AnalysisOptionsImpl());
+        AnalysisOptionsImpl(),
+        packages: Packages.empty);
     driver.results.forEach(allResults.add);
     return driver;
   }

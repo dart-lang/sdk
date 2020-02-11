@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/context/context_root.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:meta/meta.dart';
@@ -51,7 +50,7 @@ class FeatureSetProvider {
 
   static FeatureSetProvider build({
     @required ResourceProvider resourceProvider,
-    @required ContextRoot contextRoot,
+    @required Packages packages,
     @required SourceFactory sourceFactory,
     @required FeatureSet defaultFeatureSet,
   }) {
@@ -60,8 +59,6 @@ class FeatureSetProvider {
       sourceFactory,
       defaultFeatureSet,
     );
-
-    var packages = _findPackages(resourceProvider, contextRoot);
 
     return FeatureSetProvider._(
       sdkFeatureSet: sdkFeatureSet,
@@ -96,17 +93,5 @@ class FeatureSetProvider {
     } catch (_) {}
 
     return defaultFeatureSet;
-  }
-
-  static Packages _findPackages(
-    ResourceProvider resourceProvider,
-    ContextRoot contextRoot,
-  ) {
-    if (contextRoot == null) {
-      return Packages(const {});
-    }
-
-    var rootFolder = resourceProvider.getFolder(contextRoot.root);
-    return findPackagesFrom(resourceProvider, rootFolder);
   }
 }

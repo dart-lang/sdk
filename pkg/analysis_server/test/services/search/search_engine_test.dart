@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -489,7 +490,7 @@ class B extends A {}
 
     return AnalysisDriver(scheduler, logger, resourceProvider, byteStore,
         contentOverlay, null, SourceFactory(resolvers), AnalysisOptionsImpl(),
-        enableIndex: true);
+        packages: Packages.empty, enableIndex: true);
   }
 
   static void _assertContainsClass(Set<ClassElement> subtypes, String name) {
