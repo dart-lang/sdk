@@ -394,7 +394,7 @@ class ContextsPage extends DiagnosticPageWithNav {
     b.write(writeOption('Strong mode', options.strongMode));
     b.write(writeOption('Implicit dynamic', options.implicitDynamic));
     b.write(writeOption('Implicit casts', options.implicitCasts));
-    b.write(writeOption('Experiments', options.enabledExperiments.join(', ')));
+    b.write(writeOption('Feature set', options.contextFeatures.toString()));
     b.write('<br>');
 
     b.write(

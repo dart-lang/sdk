@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -85,8 +86,10 @@ f() {
 class PostfixExpressionResolutionWithNnbdTest
     extends PostfixExpressionResolutionTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
 
   @override
   bool get typeToStringWithNullability => true;

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -82,6 +83,13 @@ class ContextCacheEntry {
   /// the analysis_options.yaml was defined.
   String get analysisRoot => _analysisRoot ??= _getAnalysisRoot();
 
+  FeatureSet _buildContextFeatureSet() {
+    var featureSet = FeatureSet.fromEnableFlags(
+      clOptions.enabledExperiments,
+    );
+    return featureSet;
+  }
+
   /// The actual calculation to get the [AnalysisOptionsImpl], with no caching.
   /// This should not be used except behind the getter which caches this result
   /// automatically.
@@ -93,7 +101,7 @@ class ContextCacheEntry {
 
     contextOptions.trackCacheDependencies = false;
     contextOptions.disableCacheFlushing = clOptions.disableCacheFlushing;
-    contextOptions.enabledExperiments = clOptions.enabledExperiments;
+    contextOptions.contextFeatures = _buildContextFeatureSet();
     contextOptions.hint = !clOptions.disableHints;
     contextOptions.generateImplicitErrors = clOptions.showPackageWarnings;
     contextOptions.generateSdkErrors = clOptions.showSdkWarnings;

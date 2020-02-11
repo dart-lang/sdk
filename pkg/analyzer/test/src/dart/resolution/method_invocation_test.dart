@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -1696,8 +1697,10 @@ main() {
 @reflectiveTest
 class MethodInvocationResolutionWithNnbdTest extends DriverResolutionTest {
   @override
-  AnalysisOptionsImpl get analysisOptions =>
-      AnalysisOptionsImpl()..enabledExperiments = [EnableString.non_nullable];
+  AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    );
 
   test_hasReceiver_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
     newFile('/test/lib/a.dart', content: r'''

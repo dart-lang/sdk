@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -231,10 +232,9 @@ class ConstantVisitorWithConstantUpdate2018Test
     extends ConstantVisitorTestSupport {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [
-      EnableString.constant_update_2018,
-      EnableString.triple_shift
-    ];
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.constant_update_2018, EnableString.triple_shift],
+    );
 
   test_visitAsExpression_instanceOfSameClass() async {
     await resolveTestCode('''

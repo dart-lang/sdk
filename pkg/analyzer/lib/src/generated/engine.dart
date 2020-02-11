@@ -270,13 +270,6 @@ abstract class AnalysisOptions {
   @deprecated
   bool get enableConditionalDirectives;
 
-  /// Return a list containing the names of the experiments that are enabled in
-  /// the context associated with these options.
-  ///
-  /// The process around these experiments is described in this
-  /// [doc](https://github.com/dart-lang/sdk/blob/master/docs/process/experimental-flags.md).
-  List<String> get enabledExperiments;
-
   /// Return a list of the names of the packages for which, if they define a
   /// plugin, the plugin should be enabled.
   List<String> get enabledPluginNames;
@@ -433,8 +426,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   bool dart2jsHint = false;
 
-  List<String> _enabledExperiments = const <String>[];
-
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
   @override
@@ -524,7 +515,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   AnalysisOptionsImpl.from(AnalysisOptions options) {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     dart2jsHint = options.dart2jsHint;
-    enabledExperiments = options.enabledExperiments;
+    contextFeatures = options.contextFeatures;
     enabledPluginNames = options.enabledPluginNames;
     enableLazyAssignmentOperators = options.enableLazyAssignmentOperators;
     enableTiming = options.enableTiming;
@@ -584,7 +575,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   set contextFeatures(FeatureSet featureSet) {
     _contextFeatures = featureSet;
-    _enabledExperiments = _contextFeatures.toStringList();
   }
 
   @deprecated
@@ -615,11 +605,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   set enableConditionalDirectives(_) {}
 
-  @override
-  List<String> get enabledExperiments => _enabledExperiments;
-
+  @deprecated
   set enabledExperiments(List<String> enabledExperiments) {
-    _enabledExperiments = enabledExperiments;
     _contextFeatures = ExperimentStatus.fromStrings(enabledExperiments);
   }
 
@@ -717,10 +704,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(strictRawTypes);
       buffer.addBool(useFastaParser);
 
-      // Append enabled experiments.
-      buffer.addInt(enabledExperiments.length);
-      for (String experimentName in enabledExperiments) {
-        buffer.addString(experimentName);
+      // Append features.
+      buffer.addInt(ExperimentStatus.knownFeatures.length);
+      for (var feature in ExperimentStatus.knownFeatures.values) {
+        buffer.addBool(contextFeatures.isEnabled(feature));
       }
 
       // Append error processors.
@@ -767,10 +754,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       buffer.addBool(enableLazyAssignmentOperators);
       buffer.addBool(useFastaParser);
 
-      // Append enabled experiments.
-      buffer.addInt(enabledExperiments.length);
-      for (String experimentName in enabledExperiments) {
-        buffer.addString(experimentName);
+      // Append features.
+      buffer.addInt(ExperimentStatus.knownFeatures.length);
+      for (var feature in ExperimentStatus.knownFeatures.values) {
+        buffer.addBool(contextFeatures.isEnabled(feature));
       }
 
       // Hash and convert to Uint32List.
@@ -787,9 +774,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   @override
   void resetToDefaults() {
+    contextFeatures = ExperimentStatus();
     dart2jsHint = false;
     disableCacheFlushing = false;
-    enabledExperiments = const <String>[];
     enabledPluginNames = const <String>[];
     enableLazyAssignmentOperators = false;
     enableTiming = false;

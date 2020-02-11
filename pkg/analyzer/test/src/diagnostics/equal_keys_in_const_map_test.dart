@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -167,5 +168,7 @@ var c = {1: null, 2: null, 1: null};
 class EqualKeysInConstMapWithConstantsTest extends EqualKeysInConstMapTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.constant_update_2018];
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.constant_update_2018],
+    );
 }

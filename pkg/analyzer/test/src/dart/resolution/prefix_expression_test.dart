@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -177,7 +178,9 @@ class PrefixExpressionResolutionWithNnbdTest
     extends PrefixExpressionResolutionTest {
   @override
   AnalysisOptionsImpl get analysisOptions => AnalysisOptionsImpl()
-    ..enabledExperiments = [EnableString.non_nullable]
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.non_nullable],
+    )
     ..implicitCasts = false;
 
   @override

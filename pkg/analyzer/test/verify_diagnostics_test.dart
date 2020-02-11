@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -380,7 +381,9 @@ class _SnippetTest extends DriverResolutionTest with PackageMixin {
 
   /// Initialize a newly created test to test the given [snippet].
   _SnippetTest(this.snippet) {
-    analysisOptions.enabledExperiments = ['extension-methods'];
+    analysisOptions.contextFeatures = FeatureSet.fromEnableFlags(
+      ['extension-methods'],
+    );
     String pubspecContent = snippet.auxiliaryFiles['pubspec.yaml'];
     if (pubspecContent != null) {
       for (String line in pubspecContent.split('\n')) {

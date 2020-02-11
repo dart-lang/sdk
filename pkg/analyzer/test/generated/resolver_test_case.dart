@@ -575,7 +575,8 @@ class ResolverTestCase with ResourceProviderMixin {
     options ??= defaultAnalysisOptions;
     List<String> experiments = enabledExperiments;
     if (experiments != null) {
-      (options as AnalysisOptionsImpl).enabledExperiments = experiments;
+      (options as AnalysisOptionsImpl).contextFeatures =
+          FeatureSet.fromEnableFlags(experiments);
     }
     DartSdk sdk = MockSdk(
       resourceProvider: resourceProvider,

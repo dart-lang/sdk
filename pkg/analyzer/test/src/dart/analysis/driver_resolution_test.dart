@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -8606,7 +8607,9 @@ main() {
 class DriverResolutionWithExperimentsTest extends BaseAnalysisDriverTest {
   @override
   AnalysisOptionsImpl createAnalysisOptions() => super.createAnalysisOptions()
-    ..enabledExperiments = _computeActiveExperimentNames();
+    ..contextFeatures = FeatureSet.fromEnableFlags(
+      [EnableString.triple_shift],
+    );
 
   test_binaryExpression_gtGtGt() async {
     addTestFile('''
@@ -8631,15 +8634,5 @@ f(A a) {
     BinaryExpression binary = statement.expression;
     expect(binary.operator.type, TokenType.GT_GT_GT);
     expect(binary.staticElement, operatorElement);
-  }
-
-  List<String> _computeActiveExperimentNames() {
-    var result = <String>[];
-    for (var feature in ExperimentStatus.knownFeatures.values) {
-      if (!feature.isExpired) {
-        result.add(feature.enableString);
-      }
-    }
-    return result;
   }
 }

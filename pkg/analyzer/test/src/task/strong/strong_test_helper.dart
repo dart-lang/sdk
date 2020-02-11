@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -278,7 +279,9 @@ class AbstractStrongTest with ResourceProviderMixin {
     analysisOptions.implicitDynamic = implicitDynamic;
     analysisOptions.strictInference = strictInference;
     analysisOptions.strictRawTypes = strictRawTypes;
-    analysisOptions.enabledExperiments = enabledExperiments;
+    analysisOptions.contextFeatures = FeatureSet.fromEnableFlags(
+      enabledExperiments,
+    );
 
     var mockSdk = MockSdk(
       resourceProvider: resourceProvider,

@@ -44,12 +44,6 @@ abstract class DartCompletionRequest extends CompletionRequest {
   Expression get dotTarget;
 
   /**
-   * Return a list containing the names of the experiments that have been
-   * enabled.
-   */
-  List<String> get enabledExperiments;
-
-  /**
    * Return the feature set that was used to analyze the compilation unit in
    * which suggestions are being made.
    */
