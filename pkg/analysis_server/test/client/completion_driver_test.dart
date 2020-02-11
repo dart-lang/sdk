@@ -46,22 +46,6 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     await getSuggestions();
   }
 
-  void expectSuggestion({
-    @required String completion,
-    ElementKind element,
-    CompletionSuggestionKind kind,
-    String file,
-  }) {
-    expect(
-        suggestionWith(
-          completion: completion,
-          element: element,
-          kind: kind,
-          file: file,
-        ),
-        isNotNull);
-  }
-
   void expectNoSuggestion({
     @required String completion,
     ElementKind element,
@@ -76,6 +60,22 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
           file: file,
         ),
         isEmpty);
+  }
+
+  void expectSuggestion({
+    @required String completion,
+    ElementKind element,
+    CompletionSuggestionKind kind,
+    String file,
+  }) {
+    expect(
+        suggestionWith(
+          completion: completion,
+          element: element,
+          kind: kind,
+          file: file,
+        ),
+        isNotNull);
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
@@ -139,7 +139,8 @@ project:${toUri('$projectPath/lib')}
         if (kind != null && s.kind != kind) {
           return false;
         }
-        if (file != null && s.element?.location?.file != file) {
+
+        if (file != null && s.element?.location?.file != convertPath(file)) {
           return false;
         }
         return true;

@@ -80,8 +80,8 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
     @required String testFilePath,
   })  : _resourceProvider = resourceProvider,
         super(
-            projectPath: projectPath,
-            testFilePath: testFilePath,
+            projectPath: resourceProvider.convertPath(projectPath),
+            testFilePath: resourceProvider.convertPath(testFilePath),
             sdkPath: resourceProvider.convertPath('/sdk'));
 
   @override
@@ -126,11 +126,12 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   }
 
   @override
-  File newFile(String path, String content, [int stamp]) =>
-      resourceProvider.newFile(path, content, stamp);
+  File newFile(String path, String content, [int stamp]) => resourceProvider
+      .newFile(resourceProvider.convertPath(path), content, stamp);
 
   @override
-  Folder newFolder(String path) => resourceProvider.newFolder(path);
+  Folder newFolder(String path) =>
+      resourceProvider.newFolder(resourceProvider.convertPath(path));
 
   @override
   @mustCallSuper
