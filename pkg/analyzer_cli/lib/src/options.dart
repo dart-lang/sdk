@@ -69,6 +69,10 @@ class CommandLineOptions {
   /// The path to the dart SDK summary file.
   final String dartSdkSummaryPath;
 
+  /// The default language version for files that are not in a package.
+  /// (Or null if no default language version to force.)
+  final String defaultLanguageVersion;
+
   /// Whether to disable cache flushing. This option can improve analysis
   /// speed at the expense of memory usage. It may also be useful for working
   /// around bugs.
@@ -161,6 +165,7 @@ class CommandLineOptions {
         contextBuilderOptions = createContextBuilderOptions(args),
         dartSdkPath = cast(args['dart-sdk']),
         dartSdkSummaryPath = cast(args['dart-sdk-summary']),
+        defaultLanguageVersion = cast(args['default-language-version']),
         disableCacheFlushing = cast(args['disable-cache-flushing']),
         disableHints = cast(args['no-hints']),
         displayVersion = cast(args['version']),
@@ -392,6 +397,10 @@ class CommandLineOptions {
           defaultsTo: false,
           negatable: false,
           hide: hide)
+      ..addOption('default-language-version',
+          help: 'The default language version when it is not specified via '
+              'other ways (internal, tests only).',
+          hide: false)
       ..addFlag('disable-cache-flushing', defaultsTo: false, hide: hide)
       ..addOption('x-perf-report',
           help: 'Writes a performance report to the given file (experimental).',

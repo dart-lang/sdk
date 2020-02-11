@@ -1474,7 +1474,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       resourceProvider: resourceProvider,
       packages: _packages,
       sourceFactory: _sourceFactory,
-      defaultFeatureSet: _analysisOptions.contextFeatures,
+      packageDefaultFeatureSet: _analysisOptions.contextFeatures,
+      nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
     );
 
     _fsState = FileSystemState(

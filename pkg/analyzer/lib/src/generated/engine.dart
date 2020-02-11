@@ -428,6 +428,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 
+  /// The set of features to use for libraries that are not in a package.
+  ///
+  /// If a library is in a package, this feature set is *not* used, even if the
+  /// package does not specify the language version. Instead [contextFeatures]
+  /// is used.
+  FeatureSet nonPackageFeatureSet = ExperimentStatus();
+
   @override
   List<String> enabledPluginNames = const <String>[];
 
@@ -575,6 +582,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   set contextFeatures(FeatureSet featureSet) {
     _contextFeatures = featureSet;
+    nonPackageFeatureSet = featureSet;
   }
 
   @deprecated

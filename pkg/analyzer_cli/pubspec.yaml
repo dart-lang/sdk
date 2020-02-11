@@ -9,6 +9,7 @@ dependencies:
   linter: ^0.1.16
   package_config: '>=0.1.5 <2.0.0'
   protobuf: ^0.13.0
+  pub_semver: ^1.4.2
   yaml: ^2.1.2
 dev_dependencies:
   test_reflective_loader: ^0.1.8

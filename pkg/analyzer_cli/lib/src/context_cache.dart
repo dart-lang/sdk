@@ -8,6 +8,7 @@ import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart';
 
 /// Cache of [AnalysisOptionsImpl] objects that correspond to directories
 /// with analyzed files, used to reduce searching for `analysis_options.yaml`
@@ -83,11 +84,18 @@ class ContextCacheEntry {
   /// the analysis_options.yaml was defined.
   String get analysisRoot => _analysisRoot ??= _getAnalysisRoot();
 
-  FeatureSet _buildContextFeatureSet() {
+  void _buildContextFeatureSet(AnalysisOptionsImpl analysisOptions) {
     var featureSet = FeatureSet.fromEnableFlags(
       clOptions.enabledExperiments,
     );
-    return featureSet;
+
+    analysisOptions.contextFeatures = featureSet;
+
+    if (clOptions.defaultLanguageVersion != null) {
+      analysisOptions.nonPackageFeatureSet = featureSet.restrictToVersion(
+        Version.parse(clOptions.defaultLanguageVersion + '.0'),
+      );
+    }
   }
 
   /// The actual calculation to get the [AnalysisOptionsImpl], with no caching.
@@ -101,7 +109,7 @@ class ContextCacheEntry {
 
     contextOptions.trackCacheDependencies = false;
     contextOptions.disableCacheFlushing = clOptions.disableCacheFlushing;
-    contextOptions.contextFeatures = _buildContextFeatureSet();
+    _buildContextFeatureSet(contextOptions);
     contextOptions.hint = !clOptions.disableHints;
     contextOptions.generateImplicitErrors = clOptions.showPackageWarnings;
     contextOptions.generateSdkErrors = clOptions.showSdkWarnings;
