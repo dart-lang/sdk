@@ -34,8 +34,13 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  var computer = RelevanceMetricsComputer(rootPath);
-  await computer.compute();
+  var computer = RelevanceMetricsComputer();
+  var stopwatch = Stopwatch();
+  stopwatch.start();
+  await computer.compute(rootPath);
+  stopwatch.stop();
+  var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
+  print('Metrics computed in $duration');
   computer.printMetrics();
   io.exit(0);
 }
@@ -110,22 +115,19 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitAnnotation(Annotation node) {
-    // After the `@`.
-    _recordElementKind('Annotation', node.name);
+    _recordElementKindAndTokenType('Annotation (name)', node.name);
     super.visitAnnotation(node);
   }
 
   @override
   void visitArgumentList(ArgumentList node) {
     for (var argument in node.arguments) {
-      // At the start of each argument.
       if (argument is NamedExpression) {
-        _recordElementKind('ArgumentList (named)', argument.expression);
-        // The invocation.
+        _recordElementKindAndTokenType(
+            'ArgumentList (named)', argument.expression);
         _recordTypeMatch(argument.expression);
       } else {
-        _recordElementKind('ArgumentList (unnamed)', argument);
-        // The invocation.
+        _recordElementKindAndTokenType('ArgumentList (unnamed)', argument);
         _recordTypeMatch(argument);
       }
     }
@@ -134,34 +136,30 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitAsExpression(AsExpression node) {
-    // After the `as`.
-    _recordElementKind('AsExpression', node.type);
+    _recordElementKindAndTokenType('AsExpression (type)', node.type);
     super.visitAsExpression(node);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
-    // At the start of the condition.
-    _recordElementKind('AssertInitializer (condition)', node.condition);
-    // At the start of the message.
-    _recordElementKind('AssertInitializer (message)', node.message);
+    _recordElementKindAndTokenType(
+        'AssertInitializer (condition)', node.condition);
+    _recordElementKindAndTokenType('AssertInitializer (message)', node.message);
     super.visitAssertInitializer(node);
   }
 
   @override
   void visitAssertStatement(AssertStatement node) {
-    // At the start of the condition.
-    _recordElementKind('AssertStatement (condition)', node.condition);
-    // At the start of the message.
-    _recordElementKind('AssertStatement (message)', node.message);
+    _recordElementKindAndTokenType(
+        'AssertStatement (condition)', node.condition);
+    _recordElementKindAndTokenType('AssertStatement (message)', node.message);
     super.visitAssertStatement(node);
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    // At the start of the right-hand side.
-    _recordElementKind('AssignmentExpression', node.rightHandSide);
-    // The invocation.
+    _recordElementKindAndTokenType(
+        'AssignmentExpression (rhs)', node.rightHandSide);
     var operatorType = node.operator.type;
     if (operatorType != TokenType.EQ &&
         operatorType != TokenType.QUESTION_QUESTION_EQ) {
@@ -172,17 +170,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitAwaitExpression(AwaitExpression node) {
-    // After the `await`.
-    _recordElementKind('AwaitExpression', node.expression);
+    _recordElementKindAndTokenType(
+        'AwaitExpression (expression)', node.expression);
     super.visitAwaitExpression(node);
   }
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    // After the operator.
     var operator = node.operator.lexeme;
-    _recordElementKind('BinaryExpression ($operator)', node.rightOperand);
-    // The invocation.
+    _recordElementKindAndTokenType(
+        'BinaryExpression ($operator)', node.rightOperand);
     if (node.operator.isUserDefinableOperator) {
       _recordTypeMatch(node.rightOperand);
     }
@@ -191,23 +188,21 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    // At the start of each statement.
     for (var statement in node.statements) {
-      _recordElementKind('Block', statement);
-      _recordTokenType('Block', statement);
+      _recordElementKindAndTokenType('Block (statement)', statement);
     }
     super.visitBlock(node);
   }
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
-    _recordTokenType('BlockFunctionBody', node);
+    _recordTokenType('BlockFunctionBody (start)', node);
     super.visitBlockFunctionBody(node);
   }
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
-    _recordTokenType('BooleanLiteral', node);
+    _recordTokenType('BooleanLiteral (start)', node);
     super.visitBooleanLiteral(node);
   }
 
@@ -219,18 +214,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    // After each `..`.
     for (var cascade in node.cascadeSections) {
-      _recordElementKind('CascadeExpression', cascade);
-      _recordTokenType('CascadeExpression', cascade);
+      _recordElementKindAndTokenType('CascadeExpression (section)', cascade);
     }
     super.visitCascadeExpression(node);
   }
 
   @override
   void visitCatchClause(CatchClause node) {
-    // After the `on`.
-    _recordElementKind('CatchClause', node.exceptionType);
+    _recordElementKind('CatchClause (on)', node.exceptionType);
     super.visitCatchClause(node);
   }
 
@@ -253,16 +245,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
     // At the start of each member.
     for (var member in node.members) {
-      _recordElementKind('ClassDeclaration (member)', member);
-      _recordTokenType('ClassDeclaration (member)', member);
+      _recordElementKindAndTokenType('ClassDeclaration (member)', member);
     }
     super.visitClassDeclaration(node);
   }
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    // After the `=`.
-    _recordElementKind('ClassTypeAlias (=)', node.superclass);
+    _recordElementKind('ClassTypeAlias (superclass)', node.superclass);
     if (node.withClause != null) {
       _recordTokenType('ClassDeclaration (superclass)', node.withClause);
       _recordTokenType('ClassDeclaration (with)', node.implementsClause);
@@ -280,8 +270,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitCommentReference(CommentReference node) {
-    // After the `[`.
-    _recordElementKind('CommentReference', node.identifier);
+    _recordElementKind('CommentReference (name)', node.identifier);
     super.visitCommentReference(node);
   }
 
@@ -290,13 +279,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     enclosingLibrary = node.declaredElement.library;
     typeSystem = enclosingLibrary.typeSystem;
 
-    // At the start of each directive.
     for (var member in node.directives) {
-      _recordTokenType('CompilationUnit (directives)', member);
+      _recordTokenType('CompilationUnit (directive)', member);
     }
     for (var member in node.declarations) {
-      _recordElementKind('CompilationUnit (declarations)', member);
-      _recordTokenType('CompilationUnit (declarations)', member);
+      _recordElementKindAndTokenType('CompilationUnit (declaration)', member);
     }
     super.visitCompilationUnit(node);
 
@@ -306,10 +293,10 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    // After the `?`.
-    _recordElementKind('ConditionalExpression (?)', node.thenExpression);
-    // After the `:`.
-    _recordElementKind('ConditionalExpression (:)', node.elseExpression);
+    _recordElementKindAndTokenType(
+        'ConditionalExpression (then)', node.thenExpression);
+    _recordElementKindAndTokenType(
+        'ConditionalExpression (else)', node.elseExpression);
     super.visitConditionalExpression(node);
   }
 
@@ -321,7 +308,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    // At the beginning of each initializer.
     for (var initializer in node.initializers) {
       _recordTokenType('ConstructorDeclaration (initializer)', initializer);
     }
@@ -330,8 +316,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    // After the `=`.
-    _recordElementKind('ConstructorFieldInitializer', node.expression);
+    _recordElementKindAndTokenType(
+        'ConstructorFieldInitializer (expression)', node.expression);
     super.visitConstructorFieldInitializer(node);
   }
 
@@ -355,19 +341,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    // After the `=`.
-    _recordElementKind('DefaultFormalParameter', node.defaultValue);
+    _recordElementKindAndTokenType(
+        'DefaultFormalParameter (defaultValue)', node.defaultValue);
     super.visitDefaultFormalParameter(node);
   }
 
   @override
   void visitDoStatement(DoStatement node) {
-    // At the start of the body, unless it's a block.
-    if (node.body is! Block) {
-      _recordElementKind('DoStatement (body)', node.body);
-    }
-    // At the start of the condition.
-    _recordElementKind('DoStatement (condition)', node.condition);
+    _recordElementKindAndTokenType('DoStatement (body)', node.body);
+    _recordElementKindAndTokenType('DoStatement (condition)', node.condition);
     super.visitDoStatement(node);
   }
 
@@ -409,46 +391,43 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    // After the URI.
     if (node.configurations.isNotEmpty) {
-      _recordTokenType('ImportDirective', node.configurations[0]);
+      _recordTokenType('ImportDirective (uri)', node.configurations[0]);
     } else if (node.combinators.isNotEmpty) {
-      _recordTokenType('ImportDirective', node.combinators[0]);
+      _recordTokenType('ImportDirective (uri)', node.combinators[0]);
+    }
+    for (var combinator in node.combinators) {
+      _recordTokenType('ImportDirective (combinator)', combinator);
     }
     super.visitExportDirective(node);
   }
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    // At the start of the expression.
-    _recordElementKind('ExpressionFunctionBody', node.expression);
-    _recordTokenType('ExpressionFunctionBody', node.expression);
+    _recordTokenType('ExpressionFunctionBody (start)', node);
+    _recordElementKindAndTokenType(
+        'ExpressionFunctionBody (expression)', node.expression);
     super.visitExpressionFunctionBody(node);
   }
 
   @override
   void visitExpressionStatement(ExpressionStatement node) {
-    // At the start of the expression.
-    _recordElementKind('ExpressionStatement', node.expression);
-    _recordTokenType('ExpressionStatement', node.expression);
+    _recordElementKindAndTokenType(
+        'ExpressionStatement (start)', node.expression);
     super.visitExpressionStatement(node);
   }
 
   @override
   void visitExtendsClause(ExtendsClause node) {
-    // After the `extends`.
-    _recordElementKind('ExtendsClause', node.superclass);
+    _recordElementKind('ExtendsClause (type)', node.superclass);
     super.visitExtendsClause(node);
   }
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    // After the `on`.
-    _recordElementKind('ExtensionDeclaration', node.extendedType);
-    // At the start of each member.
+    _recordElementKind('ExtensionDeclaration (type)', node.extendedType);
     for (var member in node.members) {
-      _recordElementKind('ExtensionDeclaration (member)', member);
-      _recordTokenType('ExtensionDeclaration (member)', member);
+      _recordElementKindAndTokenType('ExtensionDeclaration (member)', member);
     }
     super.visitExtensionDeclaration(node);
   }
@@ -473,67 +452,62 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
-    // After the `in`.
-    _recordElementKind('ForEachPartsWithIdentifier', node.iterable);
+    _recordElementKindAndTokenType(
+        'ForEachPartsWithDeclaration (declaration)', node.loopVariable);
+    _recordElementKindAndTokenType(
+        'ForEachPartsWithDeclaration (in)', node.iterable);
     super.visitForEachPartsWithDeclaration(node);
   }
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    // After the `in`.
-    _recordElementKind('ForEachPartsWithIdentifier', node.iterable);
+    _recordElementKindAndTokenType(
+        'ForEachPartsWithIdentifier (in)', node.iterable);
     super.visitForEachPartsWithIdentifier(node);
   }
 
   @override
   void visitForElement(ForElement node) {
-    // After the `(`.
     _recordTokenType('ForElement (parts)', node.forLoopParts);
-    // After the `)`.
-    _recordElementKind('ForElement (body)', node.body);
-    _recordTokenType('ForElement (body)', node.body);
+    _recordElementKindAndTokenType('ForElement (body)', node.body);
     super.visitForElement(node);
   }
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    // At the start of each parameter.
     for (var parameter in node.parameters) {
-      _recordElementKind('FormalParameterList', parameter);
-      _recordTokenType('FormalParameterList', parameter);
+      _recordElementKindAndTokenType(
+          'FormalParameterList (parameter)', parameter);
     }
     super.visitFormalParameterList(node);
   }
 
   @override
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
-    // After the first `;`.
-    _recordElementKind('ForPartsWithDeclarations (condition)', node.condition);
-    // After the second `;`.
+    _recordElementKindAndTokenType(
+        'ForPartsWithDeclarations (condition)', node.condition);
     for (var updater in node.updaters) {
-      _recordElementKind('ForPartsWithDeclarations (updater)', updater);
+      _recordElementKindAndTokenType(
+          'ForPartsWithDeclarations (updater)', updater);
     }
     super.visitForPartsWithDeclarations(node);
   }
 
   @override
   void visitForPartsWithExpression(ForPartsWithExpression node) {
-    // After the first `;`.
-    _recordElementKind('ForPartsWithDeclarations (condition)', node.condition);
-    // After the second `;`.
+    _recordElementKindAndTokenType(
+        'ForPartsWithDeclarations (condition)', node.condition);
     for (var updater in node.updaters) {
-      _recordElementKind('ForPartsWithDeclarations (updater)', updater);
+      _recordElementKindAndTokenType(
+          'ForPartsWithDeclarations (updater)', updater);
     }
     super.visitForPartsWithExpression(node);
   }
 
   @override
   void visitForStatement(ForStatement node) {
-    // After the `(`.
     _recordTokenType('ForElement (parts)', node.forLoopParts);
-    // After the `)`.
-    _recordElementKind('ForElement (body)', node.body);
-    _recordTokenType('ForElement (body)', node.body);
+    _recordElementKindAndTokenType('ForElement (body)', node.body);
     super.visitForStatement(node);
   }
 
@@ -581,45 +555,32 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    // After the `=`.
-    _recordElementKind('GenericTypeAlias', node.functionType);
+    _recordElementKindAndTokenType(
+        'GenericTypeAlias (functionType)', node.functionType);
     super.visitGenericTypeAlias(node);
   }
 
   @override
   void visitHideCombinator(HideCombinator node) {
-    // At the start of each name.
     for (var name in node.hiddenNames) {
-      _recordElementKind('HideCombinator', name);
+      _recordElementKind('HideCombinator (name)', name);
     }
     super.visitHideCombinator(node);
   }
 
   @override
   void visitIfElement(IfElement node) {
-    // At the start of the condition.
-    _recordElementKind('IfElement (condition)', node.condition);
-    // At the start of the then element.
-    _recordElementKind('IfElement (then)', node.thenElement);
-    _recordTokenType('IfElement (then)', node.thenElement);
-    // At the start of the else element.
-    _recordElementKind('IfElement (else)', node.elseElement);
-    _recordTokenType('IfElement (else)', node.elseElement);
+    _recordElementKindAndTokenType('IfElement (condition)', node.condition);
+    _recordElementKindAndTokenType('IfElement (then)', node.thenElement);
+    _recordElementKindAndTokenType('IfElement (else)', node.elseElement);
     super.visitIfElement(node);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
-    // At the start of the condition.
-    _recordElementKind('IfStatement (condition)', node.condition);
-    // At the start of the then statement, unless it's a block.
-    if (node.thenStatement is! Block) {
-      _recordElementKind('IfStatement (then)', node.thenStatement);
-    }
-    // At the start of the else statement, unless it's a block.
-    if (node.elseStatement is! Block) {
-      _recordElementKind('IfStatement (else)', node.elseStatement);
-    }
+    _recordElementKindAndTokenType('IfStatement (condition)', node.condition);
+    _recordElementKindAndTokenType('IfStatement (then)', node.thenStatement);
+    _recordElementKindAndTokenType('IfStatement (else)', node.elseStatement);
     super.visitIfStatement(node);
   }
 
@@ -627,38 +588,38 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitImplementsClause(ImplementsClause node) {
     // At the start of each type name.
     for (var typeName in node.interfaces) {
-      _recordElementKind('ImplementsClause', typeName);
+      _recordElementKind('ImplementsClause (type)', typeName);
     }
     super.visitImplementsClause(node);
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
-    // After the URI.
     if (node.deferredKeyword != null) {
-      data.recordTokenType('ImportDirective', node.deferredKeyword.type);
+      data.recordTokenType('ImportDirective (uri)', node.deferredKeyword.type);
     } else if (node.asKeyword != null) {
-      data.recordTokenType('ImportDirective', node.asKeyword.type);
+      data.recordTokenType('ImportDirective (uri)', node.asKeyword.type);
     } else if (node.configurations.isNotEmpty) {
-      _recordTokenType('ImportDirective', node.configurations[0]);
+      _recordTokenType('ImportDirective (uri)', node.configurations[0]);
     } else if (node.combinators.isNotEmpty) {
-      _recordTokenType('ImportDirective', node.combinators[0]);
+      _recordTokenType('ImportDirective (uri)', node.combinators[0]);
+    }
+    for (var combinator in node.combinators) {
+      _recordTokenType('ImportDirective (combinator)', combinator);
     }
     super.visitImportDirective(node);
   }
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    // After the `[`.
-    _recordElementKind('IndexExpression', node.index);
-    _recordTokenType('IndexExpression', node.index);
-    // The invocation.
+    _recordElementKindAndTokenType('IndexExpression (index)', node.index);
     _recordTypeMatch(node.index);
     super.visitIndexExpression(node);
   }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    // There are no completions.
     super.visitInstanceCreationExpression(node);
   }
 
@@ -670,8 +631,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    // At the start of the expression.
-    _recordElementKind('InterpolationExpression', node.expression);
+    _recordElementKindAndTokenType(
+        'InterpolationExpression (expression)', node.expression);
     super.visitInterpolationExpression(node);
   }
 
@@ -683,8 +644,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitIsExpression(IsExpression node) {
-    // After the `is`.
-    _recordElementKind('IsExpression', node.type);
+    _recordElementKind('IsExpression (type)', node.type);
     super.visitIsExpression(node);
   }
 
@@ -696,8 +656,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    _recordElementKind('LabeledStatement', node.statement);
-    _recordTokenType('LabeledStatement', node.statement);
+    _recordElementKindAndTokenType(
+        'LabeledStatement (statement)', node.statement);
     super.visitLabeledStatement(node);
   }
 
@@ -715,18 +675,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitListLiteral(ListLiteral node) {
-    // At the start of each element.
     for (var element in node.elements) {
-      _recordElementKind('ListLiteral', element);
-      _recordTokenType('ListLiteral', element);
+      _recordElementKindAndTokenType('ListLiteral (element)', element);
     }
     super.visitListLiteral(node);
   }
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
-    // After the `:`.
-    _recordElementKind('MapLiteralEntry', node.value);
+    _recordElementKindAndTokenType('MapLiteralEntry (value)', node.value);
     super.visitMapLiteralEntry(node);
   }
 
@@ -738,7 +695,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitMethodInvocation(MethodInvocation node) {
-    // There are no completions.
+    _recordMemberDepth(node.target?.staticType, node.methodName.staticElement);
     super.visitMethodInvocation(node);
   }
 
@@ -753,15 +710,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
     // At the start of each member.
     for (var member in node.members) {
-      _recordElementKind('MixinDeclaration (member)', member);
-      _recordTokenType('MixinDeclaration (member)', member);
+      _recordElementKindAndTokenType('MixinDeclaration (member)', member);
     }
     super.visitMixinDeclaration(node);
   }
 
   @override
   void visitNamedExpression(NamedExpression node) {
-    // Named expressions only occur in parameter lists and are handled there.
+    // Named expressions only occur in argument lists and are handled there.
     super.visitNamedExpression(node);
   }
 
@@ -785,17 +741,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitOnClause(OnClause node) {
-    // At the start of each type name.
     for (var constraint in node.superclassConstraints) {
-      _recordElementKind('OnClause', constraint);
+      _recordElementKind('OnClause (type)', constraint);
     }
     super.visitOnClause(node);
   }
 
   @override
   void visitParenthesizedExpression(ParenthesizedExpression node) {
-    // After the `(`.
-    _recordElementKind('ParenthesizedExpression', node.expression);
+    _recordElementKindAndTokenType(
+        'ParenthesizedExpression (expression)', node.expression);
     super.visitParenthesizedExpression(node);
   }
 
@@ -813,7 +768,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
-    // The invocation.
     _recordTypeMatch(node.operand);
     super.visitPostfixExpression(node);
   }
@@ -826,16 +780,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
-    // After the operator.
-    _recordElementKind('PrefixExpression', node.operand);
-    // The invocation.
+    _recordElementKindAndTokenType(
+        'PrefixExpression (${node.operator})', node.operand);
     _recordTypeMatch(node.operand);
     super.visitPrefixExpression(node);
   }
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    // There are no completions.
+    _recordMemberDepth(
+        node.target?.staticType, node.propertyName.staticElement);
     super.visitPropertyAccess(node);
   }
 
@@ -854,12 +808,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    // After the `return`.
-    _recordElementKind('ReturnStatement', node.expression);
+    _recordElementKind('ReturnStatement (expression)', node.expression);
     if (node.expression == null) {
-      data.recordTokenType('ReturnStatement', node.semicolon.type);
+      data.recordTokenType('ReturnStatement (expression)', node.semicolon.type);
     } else {
-      _recordTokenType('ReturnStatement', node.expression);
+      _recordTokenType('ReturnStatement (expression)', node.expression);
     }
     super.visitReturnStatement(node);
   }
@@ -872,19 +825,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    // At the start of each element.
     for (var element in node.elements) {
-      _recordElementKind('SetOrMapLiteral', element);
-      _recordTokenType('SetOrMapLiteral', element);
+      _recordElementKindAndTokenType('SetOrMapLiteral (element)', element);
     }
     super.visitSetOrMapLiteral(node);
   }
 
   @override
   void visitShowCombinator(ShowCombinator node) {
-    // At the start of each name.
     for (var name in node.shownNames) {
-      _recordElementKind('ShowCombinator', name);
+      _recordElementKind('ShowCombinator (name)', name);
     }
     super.visitShowCombinator(node);
   }
@@ -922,8 +872,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSpreadElement(SpreadElement node) {
-    // After the `...` or `...?`.
-    _recordElementKind('SpreadElement', node.expression);
+    _recordElementKindAndTokenType(
+        'SpreadElement (expression)', node.expression);
     super.visitSpreadElement(node);
   }
 
@@ -947,30 +897,25 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchCase(SwitchCase node) {
-    // At the start of the value.
-    _recordElementKind('SwitchCase', node.expression);
-    // At the start of each statement.
+    _recordElementKindAndTokenType('SwitchCase (expression)', node.expression);
     for (var statement in node.statements) {
-      _recordElementKind('SwitchCase', statement);
-      _recordTokenType('SwitchCase', statement);
+      _recordElementKindAndTokenType('SwitchCase (statement)', statement);
     }
     super.visitSwitchCase(node);
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
-    // At the start of each statement.
     for (var statement in node.statements) {
-      _recordElementKind('SwitchDefault', statement);
-      _recordTokenType('SwitchDefault', statement);
+      _recordElementKindAndTokenType('SwitchDefault (statement)', statement);
     }
     super.visitSwitchDefault(node);
   }
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    // At the start of the condition.
-    _recordElementKind('SwitchStatement', node.expression);
+    _recordElementKindAndTokenType(
+        'SwitchStatement (expression)', node.expression);
     super.visitSwitchStatement(node);
   }
 
@@ -988,9 +933,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitThrowExpression(ThrowExpression node) {
-    // After the `throw`.
-    _recordElementKind('ThrowExpression', node.expression);
-    _recordTokenType('ThrowExpression', node.expression);
+    _recordElementKindAndTokenType(
+        'ThrowExpression (expression)', node.expression);
     super.visitThrowExpression(node);
   }
 
@@ -1002,12 +946,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitTryStatement(TryStatement node) {
-    // At the beginning of each clause.
     for (var clause in node.catchClauses) {
-      _recordTokenType('TryStatement', clause);
+      _recordTokenType('TryStatement (clause)', clause);
     }
     if (node.finallyKeyword != null) {
-      data.recordTokenType('TryStatement', node.finallyKeyword.type);
+      data.recordTokenType('TryStatement (clause)', node.finallyKeyword.type);
     }
     super.visitTryStatement(node);
   }
@@ -1015,7 +958,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     for (var typeArgument in node.arguments) {
-      _recordElementKind('TypeArgumentList', typeArgument);
+      _recordElementKind('TypeArgumentList (argument)', typeArgument);
     }
     super.visitTypeArgumentList(node);
   }
@@ -1028,9 +971,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitTypeParameter(TypeParameter node) {
-    // After the `extends`.
     if (node.bound != null) {
-      _recordElementKind('TypeParameter', node.bound);
+      _recordElementKind('TypeParameter (bound)', node.bound);
     }
     super.visitTypeParameter(node);
   }
@@ -1043,8 +985,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    // After the `=`.
-    _recordElementKind('VariableDeclaration', node.initializer);
+    _recordElementKindAndTokenType(
+        'VariableDeclaration (initializer)', node.initializer);
     super.visitVariableDeclaration(node);
   }
 
@@ -1062,28 +1004,24 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    // At the start of the condition.
-    _recordElementKind('WhileStatement', node.condition);
-    // At the start of the body, unless it's a block.
-    if (node.body is! Block) {
-      _recordElementKind('WhileStatement', node.body);
-    }
+    _recordElementKindAndTokenType(
+        'WhileStatement (condition)', node.condition);
+    _recordElementKindAndTokenType('WhileStatement (body)', node.body);
     super.visitWhileStatement(node);
   }
 
   @override
   void visitWithClause(WithClause node) {
-    // At the start of each type name.
     for (var typeName in node.mixinTypes) {
-      _recordElementKind('WithClause', typeName);
+      _recordElementKind('WithClause (type)', typeName);
     }
     super.visitWithClause(node);
   }
 
   @override
   void visitYieldStatement(YieldStatement node) {
-    // After the `yield` and optional `*`.
-    _recordElementKind('YieldStatement', node.expression);
+    _recordElementKindAndTokenType(
+        'YieldStatement (expression)', node.expression);
     super.visitYieldStatement(node);
   }
 
@@ -1179,6 +1117,35 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Record both the element kind and token type for the given [context] based
+  /// on the given [node].
+  void _recordElementKindAndTokenType(String context, AstNode node) {
+    _recordElementKind(context, node);
+    _recordTokenType(context, node);
+  }
+
+  /// Record the distance between the static type of the target (the
+  /// [targetType]) and the [element] to which the member reference was
+  /// resolved.
+  void _recordMemberDepth(DartType targetType, Element element) {
+    if (targetType is InterfaceType) {
+      var subclass = targetType.element;
+      var superclass = element.thisOrAncestorOfType<ClassElement>();
+      if (superclass != null) {
+        var depth = 0;
+        while (subclass != null && subclass != superclass) {
+          depth++;
+          subclass = subclass.supertype?.element;
+        }
+        // TODO(brianwilkerson) Handle the case where the member is defined in
+        //  an interface not on the superclass chain.
+        if (subclass != null) {
+          _recordDistance('member', depth);
+        }
+      }
+    }
+  }
+
   /// Record the token type of the left-most token that is a child of the
   /// [node].
   void _recordTokenType(String context, AstNode node) {
@@ -1235,18 +1202,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
 /// An object used to compute metrics for a single file or directory.
 class RelevanceMetricsComputer {
-  /// The absolute and normalized path to the analysis context root.
-  final String rootPath;
-
   /// The metrics data that was computed.
   final RelevanceData data = RelevanceData();
 
-  /// Initialize a newly created metrics computer to compute the metrics in the
-  /// [rootPath].
-  RelevanceMetricsComputer(this.rootPath);
+  /// Initialize a newly created metrics computer that can compute the metrics
+  /// in one or more files and directories.
+  RelevanceMetricsComputer();
 
   /// Compute the metrics for the file(s) in the [rootPath].
-  void compute() async {
+  void compute(String rootPath) async {
     final collection = AnalysisContextCollection(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
