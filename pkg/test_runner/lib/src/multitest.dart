@@ -72,7 +72,6 @@
 import "dart:io";
 
 import "path.dart";
-import "repository.dart";
 import "test_file.dart";
 import "utils.dart";
 
@@ -343,47 +342,5 @@ Path _createMultitestDirectory(
       .append(_suiteNameFromPath(suiteDir))
       .join(relative);
   TestUtils.mkdirRecursive(Path.workingDirectory, path);
-
-  _createPackageConfig(outputDir);
-
   return Path(File(path.toNativePath()).absolute.path);
-}
-
-/// Copies "tests/.dart_tool/package_config.json" to the multitest directory so
-/// that multitests have the right language version.
-///
-/// Also fixes relative paths in that file.
-void _createPackageConfig(String outputDir) {
-  var configDir =
-      Path(outputDir).append('generated_tests').append('.dart_tool');
-  TestUtils.mkdirRecursive(Path.workingDirectory, configDir);
-
-  var configFileSource = Repository.dir
-      .append('tests')
-      .append('.dart_tool')
-      .append('package_config.json');
-  var configFileDest = configDir.append('package_config.json');
-
-  var config = File(configFileSource.toNativePath()).readAsStringSync();
-
-  // The relative paths to the test "packages" ("language", "lib", etc.) are
-  // correct because they are also in the "generated_tests" directory. But the
-  // relative paths to the packages used by the tests ("expect",
-  // "async_helper") are now wrong because we need to walk farther out to get
-  // back to the repo's root directory.
-  //
-  // Was:
-  //
-  // <sdk>/tests/.dart_tool/package_config.json
-  // (2 levels from <sdk>)
-  //
-  // Now:
-  //
-  // <sdk>/build/ReleaseX64/generated_tests/.dart_tool/package_config.json
-  // (4 levels from <sdk>)
-  //
-  // TODO(rnystrom): This is a very hacky way to edit this file.
-  config = config.replaceAll('"../../', '"../../../../');
-
-  _writeFile(configFileDest.toNativePath(), config);
 }
