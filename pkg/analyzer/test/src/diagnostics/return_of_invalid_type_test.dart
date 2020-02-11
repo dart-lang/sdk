@@ -39,13 +39,18 @@ Future<String> f() async {
   }
 
   test_async_future_int_mismatches_int() async {
+    // TODO(brianwilkerson) Stop producing RETURN_OF_INVALID_TYPE_FROM_FUNCTION.
     await assertErrorsInCode('''
 int f() async {
   return 5;
 }
 ''', [
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
-      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1),
+      error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1,
+          contextMessages: [
+            message('/sdk/lib/core/core.dart', 1954, 3),
+            message('/sdk/lib/core/core.dart', 1954, 3)
+          ]),
     ]);
   }
 
