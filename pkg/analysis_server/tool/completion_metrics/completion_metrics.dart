@@ -22,34 +22,28 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/services/available_declarations.dart';
 
 import 'metrics_util.dart';
-import 'relevance_analyzers.dart';
 import 'visitors.dart';
 
 Future<void> main(List<String> args) async {
   if (args.isEmpty) {
     print('Usage: a single absolute file path to analyze.');
     io.exit(1);
-  } else {
-    if (args.length > 1 && args[1] == '--relevance-analyzers') {
-      await RelevanceAnalyzerMetrics(args[0], [RHSOfAsExpression()]).compute();
-    } else {
-      await CompletionCoverageMetrics(args[0]).compute();
-    }
-    io.exit(0);
   }
+  await CompletionCoverageMetrics(args[0]).compute();
+  io.exit(0);
 }
 
 /// This is the main metrics computer class for code completions. After the
 /// object is constructed, [computeCompletionMetrics] is executed to do analysis
 /// and print a summary of the metrics gathered from the completion tests.
 abstract class AbstractCompletionMetricsComputer {
+  // TODO(brianwilkerson) Consider merging this class into the single concrete
+  //  subclass.
   final String _rootPath;
 
   String _currentFilePath;
 
   ResolvedUnitResult _resolvedUnitResult;
-
-  final CompletionPerformance _performance = CompletionPerformance();
 
   AbstractCompletionMetricsComputer(this._rootPath);
 
@@ -283,40 +277,5 @@ class CompletionCoverageMetrics extends AbstractCompletionMetricsComputer {
     completionKindCounter.clear();
     completionElementKindCounter.clear();
     mRRComputer.clear();
-  }
-}
-
-class RelevanceAnalyzerMetrics extends AbstractCompletionMetricsComputer {
-  /// A non-null list of [RelevanceAnalyzer]s to execute when computing the
-  /// completion metrics.
-  final List<RelevanceAnalyzer> _relevanceAnalyzers;
-
-  RelevanceAnalyzerMetrics(String rootPath, this._relevanceAnalyzers)
-      : assert(_relevanceAnalyzers.isNotEmpty),
-        super(rootPath);
-
-  @override
-  bool get doComputeCompletionsFromAnalysisServer => false;
-
-  List<RelevanceAnalyzer> get relevanceAnalyzers => _relevanceAnalyzers;
-
-  @override
-  void forEachExpectedCompletion(ExpectedCompletion expectedCompletion,
-      List<CompletionSuggestion> suggestions) async {
-    assert(suggestions == null);
-    var dartCompletionRequest = await DartCompletionRequestImpl.from(
-        CompletionRequestImpl(
-            resolvedUnitResult, expectedCompletion.offset, _performance));
-
-    _relevanceAnalyzers.forEach((analyzer) =>
-        analyzer.report(expectedCompletion, dartCompletionRequest));
-  }
-
-  @override
-  void printAndClearComputers() {
-    print('\nRelevance Analysis (count: ${_relevanceAnalyzers.length}):');
-    _relevanceAnalyzers.forEach((analyzer) => analyzer
-      ..printData()
-      ..clear());
   }
 }
