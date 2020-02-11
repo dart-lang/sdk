@@ -322,7 +322,7 @@ $endif
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
-  DateTime$NULLABLE valueAsDate;
+  DateTime valueAsDate;
 
   bool readOnly;
 
@@ -343,7 +343,7 @@ abstract class DateInputElement implements RangeInputElementBase {
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
-  DateTime$NULLABLE valueAsDate;
+  DateTime valueAsDate;
 
   bool readOnly;
 
@@ -364,7 +364,7 @@ abstract class MonthInputElement implements RangeInputElementBase {
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
-  DateTime$NULLABLE valueAsDate;
+  DateTime valueAsDate;
 
   bool readOnly;
 
@@ -385,7 +385,7 @@ abstract class WeekInputElement implements RangeInputElementBase {
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
-  DateTime$NULLABLE valueAsDate;
+  DateTime valueAsDate;
 
   bool readOnly;
 

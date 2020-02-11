@@ -8859,11 +8859,11 @@ class CustomEvent extends Event {
   static CustomEvent _create_2(type) =>
       JS('CustomEvent', 'new CustomEvent(#)', type);
 
-  dynamic? get _detail =>
+  dynamic get _detail =>
       convertNativeToDart_SerializedScriptValue(this._get__detail);
   @JSName('detail')
   @Creates('Null')
-  dynamic get _get__detail => JS("", "#._detail", this);
+  dynamic get _get__detail => JS("", "#.detail", this);
 
   @JSName('initCustomEvent')
   void _initCustomEvent(String type,
@@ -9764,7 +9764,7 @@ class Document extends Node {
   @Returns('Window|=Object')
   @Creates('Window|=Object|Null')
   @Returns('Window|=Object|Null')
-  dynamic get _get_window => JS("", "#.window", this);
+  dynamic get _get_window => JS("", "#.defaultView", this);
 
   Element? get documentElement => JS("Element", "#.documentElement", this);
 
@@ -17499,7 +17499,7 @@ class History extends Interceptor implements HistoryBase {
     JS("void", "#.scrollRestoration = #", this, value);
   }
 
-  dynamic? get state =>
+  dynamic get state =>
       convertNativeToDart_SerializedScriptValue(this._get_state);
   @JSName('state')
   @annotation_Creates_SerializedScriptValue
@@ -18375,8 +18375,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  dynamic? get response =>
-      _convertNativeToDart_XHR_Response(this._get_response);
+  dynamic get response => _convertNativeToDart_XHR_Response(this._get_response);
   @JSName('response')
   /**
    * The data received as a reponse from the request.
@@ -19319,7 +19318,7 @@ class InputElement extends HtmlElement
     JS("void", "#.value = #", this, value);
   }
 
-  DateTime? get valueAsDate =>
+  DateTime get valueAsDate =>
       convertNativeToDart_DateTime(this._get_valueAsDate);
   @JSName('valueAsDate')
   @Creates('Null')
@@ -19618,7 +19617,7 @@ abstract class RangeInputElementBase implements InputElementBase {
 abstract class DateInputElement implements RangeInputElementBase {
   factory DateInputElement() => new InputElement(type: 'date');
 
-  DateTime? valueAsDate;
+  DateTime valueAsDate;
 
   bool readOnly;
 
@@ -19639,7 +19638,7 @@ abstract class DateInputElement implements RangeInputElementBase {
 abstract class MonthInputElement implements RangeInputElementBase {
   factory MonthInputElement() => new InputElement(type: 'month');
 
-  DateTime? valueAsDate;
+  DateTime valueAsDate;
 
   bool readOnly;
 
@@ -19660,7 +19659,7 @@ abstract class MonthInputElement implements RangeInputElementBase {
 abstract class WeekInputElement implements RangeInputElementBase {
   factory WeekInputElement() => new InputElement(type: 'week');
 
-  DateTime? valueAsDate;
+  DateTime valueAsDate;
 
   bool readOnly;
 
@@ -19681,7 +19680,7 @@ abstract class WeekInputElement implements RangeInputElementBase {
 abstract class TimeInputElement implements RangeInputElementBase {
   factory TimeInputElement() => new InputElement(type: 'time');
 
-  DateTime? valueAsDate;
+  DateTime valueAsDate;
 
   bool readOnly;
 
@@ -25946,7 +25945,7 @@ class PopStateEvent extends Event {
   static PopStateEvent _create_2(type) =>
       JS('PopStateEvent', 'new PopStateEvent(#)', type);
 
-  dynamic? get state =>
+  dynamic get state =>
       convertNativeToDart_SerializedScriptValue(this._get_state);
   @JSName('state')
   @annotation_Creates_SerializedScriptValue

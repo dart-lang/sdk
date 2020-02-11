@@ -1609,11 +1609,15 @@ class Dart2JSBackend(HtmlDartGenerator):
         if self._nnbd:
             # TODO(srujzs): Should the inline call have the value type or should
             # it be inferred?
-            getter = '\n  $(JS_METADATA)$NATIVE_TYPE get _get_$HTML_NAME => JS("", "#.$HTML_NAME", this);'
-        nullable = conversion.nullable_output or attr.type.nullable
+            getter = '\n  $(JS_METADATA)$NATIVE_TYPE$NULLABLE_IN get _get_$HTML_NAME => JS("", "#.$NAME", this);'
+        nullable_out = conversion.nullable_output and \
+            not conversion.output_type == 'dynamic'
+        # If the attribute is nullable, the getter should be nullable.
+        nullable_in = attr.type.nullable and \
+            not conversion.input_type == 'dynamic'
         self._members_emitter.Emit(
-            '\n  $(METADATA)$RETURN_TYPE$NULLABLE get $HTML_NAME => '
-            '$CONVERT(this._get_$(HTML_NAME));'
+            '\n  $(METADATA)$RETURN_TYPE$NULLABLE_OUT get $HTML_NAME => '
+            '$CONVERT(this._get_$(HTML_NAME)$NULLASSERT);'
             "\n  @JSName('$NAME')" +
             getter +
             '\n',
@@ -1626,16 +1630,24 @@ class Dart2JSBackend(HtmlDartGenerator):
             HTML_NAME=html_name,
             NAME=attr.id,
             RETURN_TYPE=conversion.output_type,
-            NULLABLE='?' if nullable and self._nnbd else '',
-            NATIVE_TYPE=conversion.input_type)
+            NULLABLE_OUT='?' if nullable_out and self._nnbd else '',
+            NATIVE_TYPE=conversion.input_type,
+            NULLABLE_IN='?' if nullable_in and self._nnbd else '',
+            NULLASSERT='!' if nullable_in and \
+                not conversion.nullable_input and self._nnbd else '')
 
     def _AddConvertingSetter(self, attr, html_name, conversion):
+        # If the attribute is nullable, the setter should be nullable.
+        nullable_in = attr.type.nullable and \
+            not conversion.input_type == 'dynamic'
+        nullable_out = conversion.nullable_output and \
+            not conversion.output_type == 'dynamic'
         self._members_emitter.Emit(
             # TODO(sra): Use metadata to provide native name.
-            '\n  set $HTML_NAME($INPUT_TYPE$NULLABLE value) {'
+            '\n  set $HTML_NAME($INPUT_TYPE$NULLABLE_IN value) {'
             '\n    this._set_$HTML_NAME = $CONVERT(value$NULLASSERT);'
             '\n  }'
-            '\n  set _set_$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
+            '\n  set _set_$HTML_NAME(/*$NATIVE_TYPE$NULLABLE_OUT*/ value) {'
             '\n    JS("void", "#.$NAME = #", this, value);'
             '\n  }'
             '\n',
@@ -1643,10 +1655,11 @@ class Dart2JSBackend(HtmlDartGenerator):
             HTML_NAME=html_name,
             NAME=attr.id,
             INPUT_TYPE=conversion.input_type,
-            NULLABLE='?' if attr.type.nullable and self._nnbd else '',
-            NULLASSERT='!' if attr.type.nullable and \
-                not conversion.nullable_input and self._nnbd else '',
-            NATIVE_TYPE=conversion.output_type)
+            NULLABLE_IN='?' if nullable_in and self._nnbd else '',
+            NATIVE_TYPE=conversion.output_type,
+            NULLABLE_OUT='?' if nullable_out and self._nnbd else '',
+            NULLASSERT='!' if nullable_in and \
+                not conversion.nullable_input and self._nnbd else '')
 
     def AmendIndexer(self, element_type):
         pass

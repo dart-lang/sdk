@@ -285,7 +285,7 @@ class CursorWithValue extends Cursor {
     throw new UnsupportedError("Not supported");
   }
 
-  dynamic? get value => _convertNativeToDart_IDBAny(this._get_value);
+  dynamic get value => _convertNativeToDart_IDBAny(this._get_value);
   @JSName('value')
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
@@ -1154,7 +1154,7 @@ class Request extends EventTarget {
 
   String get readyState => JS("String", "#.readyState", this);
 
-  dynamic? get result => _convertNativeToDart_IDBAny(this._get_result);
+  dynamic get result => _convertNativeToDart_IDBAny(this._get_result);
   @JSName('result')
   @Creates('Null')
   dynamic get _get_result => JS("", "#.result", this);
