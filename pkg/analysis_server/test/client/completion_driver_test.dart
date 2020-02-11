@@ -47,6 +47,21 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
+    if (supportsAvailableSuggestions) {
+      // todo (pq): consider moving
+      const internalLibs = [
+        'dart:async2',
+        'dart:_interceptors',
+        'dart:_internal',
+      ];
+      for (var lib in driver.sdk.sdkLibraries) {
+        var uri = lib.shortName;
+        if (!internalLibs.contains(uri)) {
+          await driver.waitForSetWithUri(uri);
+        }
+      }
+    }
+
     suggestions = await driver.getSuggestions();
     return suggestions;
   }
@@ -177,7 +192,26 @@ void main() {
 }
 ''');
 
-    // todo (pq): replace with a "real test"; this just proves we're getting end to end.
+    // A set of SDK suggestions.
+    expect(
+        // from dart:async (StreamSubscription)
+        suggestionWith(
+            completion: 'asFuture', kind: CompletionSuggestionKind.INVOCATION),
+        isNotNull);
+
+    expect(
+        // from dart:core
+        suggestionWith(
+            completion: 'print', kind: CompletionSuggestionKind.INVOCATION),
+        isNotNull);
+
+    expect(
+        // from dart:collection (ListMixin)
+        suggestionWith(
+            completion: 'firstWhere',
+            kind: CompletionSuggestionKind.INVOCATION),
+        isNotNull);
+
     expect(
         // from dart:math
         suggestionWith(

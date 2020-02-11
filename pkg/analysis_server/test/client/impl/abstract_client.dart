@@ -35,6 +35,8 @@ abstract class AbstractClient {
   final String testFilePath;
   String testCode;
 
+  MockSdk sdk;
+
   AbstractClient({
     @required this.projectPath,
     @required this.testFilePath,
@@ -100,7 +102,7 @@ abstract class AbstractClient {
 
   /// Create an analysis server with the given [sdkPath].
   AnalysisServer createAnalysisServer(String sdkPath) {
-    MockSdk(resourceProvider: resourceProvider);
+    sdk = MockSdk(resourceProvider: resourceProvider);
     var options = AnalysisServerOptions();
     return AnalysisServer(serverChannel, resourceProvider, options,
         DartSdkManager(sdkPath, true), InstrumentationService.NULL_SERVICE);
