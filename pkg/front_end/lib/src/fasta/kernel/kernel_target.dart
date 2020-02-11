@@ -961,7 +961,7 @@ class KernelTarget extends TargetImplementation {
                             library.isNonNullableByDefault),
                     field.fileOffset,
                     field.name.name.length,
-                    library.fileUri);
+                    field.fileUri);
               }
             }
           }

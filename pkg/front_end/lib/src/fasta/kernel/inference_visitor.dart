@@ -5497,7 +5497,7 @@ class InferenceVisitor
                     .withArguments(node.variable.name),
                 node.fileOffset,
                 node.variable.name.length,
-                inferrer.library.fileUri);
+                inferrer.helper.uri);
           }
         }
       }
@@ -5734,7 +5734,7 @@ class InferenceVisitor
                 operationName, operandType, inferrer.isNonNullableByDefault),
             offset,
             noLength,
-            inferrer.library.fileUri);
+            inferrer.helper.uri);
       }
     }
   }
