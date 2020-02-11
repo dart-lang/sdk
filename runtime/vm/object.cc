@@ -1781,6 +1781,8 @@ RawError* Object::Init(Isolate* isolate,
     object_store->set_legacy_object_type(type);
     type = type.ToNullability(Nullability::kNonNullable, Heap::kOld);
     object_store->set_non_nullable_object_type(type);
+    type = type.ToNullability(Nullability::kNullable, Heap::kOld);
+    object_store->set_nullable_object_type(type);
 
     cls = Class::New<Bool, RTN::Bool>(isolate);
     object_store->set_bool_class(cls);
@@ -8108,12 +8110,10 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
     Type& object_type = Type::Handle(zone, Type::ObjectType());
     if (Dart::non_nullable_flag()) {
-      // TODO(regis): Add nullable_object_type() to object store in addition to
-      // existing legacy_object_type() and remove this ToNullability call.
-      object_type = object_type.ToNullability(
-          nnbd_mode() == NNBDMode::kOptedInLib ? Nullability::kNullable
-                                               : Nullability::kLegacy,
-          Heap::kOld);
+      ObjectStore* object_store = Isolate::Current()->object_store();
+      object_type = nnbd_mode() == NNBDMode::kOptedInLib
+                        ? object_store->nullable_object_type()
+                        : object_store->legacy_object_type();
     }
     for (intptr_t i = kClosure; i < num_params; ++i) {
       const intptr_t original_param_index = has_receiver - kClosure + i;
@@ -18307,17 +18307,21 @@ bool AbstractType::IsSubtypeOf(NNBDMode mode,
                                Heap::Space space) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
-  if (other.IsTopType() || (FLAG_strong_non_nullable_type_checks &&
-                            IsNeverType() && !IsNullable())) {
+  // Right top type or left bottom type.
+  // Any form of Never in weak mode maps to Null and Null is a bottom type in
+  // weak mode. In strong mode, Never and Never* are bottom types. Therefore,
+  // Never and Never* are bottom types regardless of weak/strong mode.
+  if (other.IsTopType() || (IsNeverType() && !IsNullable())) {
     return true;
   }
   if (IsDynamicType() || IsVoidType()) {
     return false;
   }
-  if (IsNullType() ||
-      (IsNeverType() &&
-       (!FLAG_strong_non_nullable_type_checks || IsNullable()))) {
-    // In weak testing mode, Null type is a subtype of any type.
+  // Left Null type, including left Never type mapped to Null.
+  // Note that we already handled Never and Never* above.
+  // Only Never? remains, which maps to Null regardless of weak/strong mode.
+  if (IsNullType() || IsNeverType()) {
+    // In weak mode, Null is a bottom type.
     if (!FLAG_strong_non_nullable_type_checks) {
       return true;
     }

@@ -80,6 +80,8 @@ static RawObject* GetType(ObjectStore* object_store, intptr_t index) {
   switch (index) {
     case kLegacyObjectType:
       return object_store->legacy_object_type();
+    case kNullableObjectType:
+      return object_store->nullable_object_type();
     case kNullType:
       return object_store->null_type();
     case kLegacyFunctionType:

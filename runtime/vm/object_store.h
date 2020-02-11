@@ -39,6 +39,7 @@ class ObjectPointerVisitor;
   RW(Type, object_type)                                                        \
   RW(Type, legacy_object_type)                                                 \
   RW(Type, non_nullable_object_type)                                           \
+  RW(Type, nullable_object_type)                                               \
   RW(Class, null_class)                                                        \
   RW(Type, null_type)                                                          \
   RW(Type, function_type)                                                      \

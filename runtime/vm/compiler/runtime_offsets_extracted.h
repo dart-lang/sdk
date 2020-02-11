@@ -166,10 +166,10 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     12;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    112;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 56;
+    116;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 60;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    136;
+    140;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word Pointer_c_memory_address_offset =
     8;
@@ -627,10 +627,10 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    224;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 112;
+    232;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 120;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    272;
+    280;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word Pointer_c_memory_address_offset =
     16;
@@ -1089,10 +1089,10 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     12;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    112;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 56;
+    116;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 60;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    136;
+    140;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word Pointer_c_memory_address_offset =
     8;
@@ -1546,10 +1546,10 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    224;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 112;
+    232;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 120;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    272;
+    280;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word Pointer_c_memory_address_offset =
     16;
@@ -2008,10 +2008,10 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     12;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    112;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 56;
+    116;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 60;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    136;
+    140;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word Pointer_c_memory_address_offset =
     8;
@@ -2463,10 +2463,10 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    224;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 112;
+    232;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 120;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    272;
+    280;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word Pointer_c_memory_address_offset =
     16;
@@ -2919,10 +2919,10 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     12;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    112;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 56;
+    116;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 60;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    136;
+    140;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word Pointer_c_memory_address_offset =
     8;
@@ -3370,10 +3370,10 @@ static constexpr dart::compiler::target::word NativeArguments_retval_offset =
     24;
 static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
-    224;
-static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 112;
+    232;
+static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 120;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
-    272;
+    280;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word Pointer_c_memory_address_offset =
     16;
@@ -3840,11 +3840,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 112;
+    AOT_ObjectStore_double_type_offset = 116;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    56;
+    60;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 136;
+    AOT_ObjectStore_string_type_offset = 140;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -4344,11 +4344,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 224;
+    AOT_ObjectStore_double_type_offset = 232;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    112;
+    120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 272;
+    AOT_ObjectStore_string_type_offset = 280;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -4853,11 +4853,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 224;
+    AOT_ObjectStore_double_type_offset = 232;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    112;
+    120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 272;
+    AOT_ObjectStore_string_type_offset = 280;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -5358,11 +5358,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 112;
+    AOT_ObjectStore_double_type_offset = 116;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    56;
+    60;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 136;
+    AOT_ObjectStore_string_type_offset = 140;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -5855,11 +5855,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 224;
+    AOT_ObjectStore_double_type_offset = 232;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    112;
+    120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 272;
+    AOT_ObjectStore_string_type_offset = 280;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -6357,11 +6357,11 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_double_type_offset = 224;
+    AOT_ObjectStore_double_type_offset = 232;
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
-    112;
+    120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_string_type_offset = 272;
+    AOT_ObjectStore_string_type_offset = 280;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word

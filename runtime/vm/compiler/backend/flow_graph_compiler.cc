@@ -2259,13 +2259,14 @@ bool FlowGraphCompiler::ShouldUseTypeTestingStubFor(bool optimizing,
 FlowGraphCompiler::TypeTestStubKind
 FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
     const TypeParameter& type_param) {
-  // TODO(regis): Revisit the bound check taking NNBD into consideration.
   // If it's guaranteed, by type-parameter bound, that the type parameter will
   // never have a value of a function type, then we can safely do a 4-type
   // test instead of a 6-type test.
-  const AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
-  return !bound.IsTopType() && !bound.IsFunctionType() &&
-                 !bound.IsDartFunctionType() && bound.IsType()
+  AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
+  bound = bound.UnwrapFutureOr();
+  return !bound.IsTopType() && !bound.IsObjectType() &&
+                 !bound.IsFunctionType() && !bound.IsDartFunctionType() &&
+                 bound.IsType()
              ? kTestTypeFourArgs
              : kTestTypeSixArgs;
 }
