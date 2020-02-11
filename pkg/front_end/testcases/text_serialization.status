@@ -1243,6 +1243,7 @@ nnbd/member_inheritance_from_opt_out: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/missing_required_named_parameter: TextSerializationFailure
+nnbd/mixed_mode_hierarchy_generic_methods: TextSerializationFailure
 nnbd/mixin_from_opt_in: TextSerializationFailure
 nnbd/mixin_from_opt_out: TextSerializationFailure
 nnbd/never_opt_out: TypeCheckError

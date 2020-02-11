@@ -678,7 +678,9 @@ class ClassHierarchyNodeBuilder {
       for (int i = 0; i < typeParameterCount; i++) {
         DartType aBound = aTypeParameters[i].bound;
         DartType bBound = substitution.substituteType(bTypeParameters[i].bound);
-        if (aBound != bBound) {
+        if (!hierarchy.types
+            .isSameTypeKernel(aBound, bBound)
+            .isSubtypeWhenUsingNullabilities()) {
           debug?.log("Giving up 3");
           return false;
         }
