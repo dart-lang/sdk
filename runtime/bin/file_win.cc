@@ -146,8 +146,7 @@ int64_t File::Read(void* buffer, int64_t num_bytes) {
 
 int64_t File::Write(const void* buffer, int64_t num_bytes) {
   int fd = handle_->fd();
-  // Avoid narrowing conversion
-  ASSERT(fd >= 0 && num_bytes <= MAXDWORD && num_bytes >= 0);
+  ASSERT(fd >= 0);
   HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(fd));
   DWORD written = 0;
   BOOL result = WriteFile(handle, buffer, num_bytes, &written, NULL);
