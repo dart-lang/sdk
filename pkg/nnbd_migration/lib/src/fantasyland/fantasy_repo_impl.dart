@@ -55,12 +55,12 @@ class FantasyRepoGitImpl extends FantasyRepo {
   ///
   /// May throw [FantasyRepoException] in the event of problems and does
   /// not clean up filesystem state.
-  Future<void> init() async {
+  Future<void> init([bool allowUpdate = true]) async {
     assert(_isInitialized == false);
-    if (repoRoot.exists) {
+    if (repoRoot.exists && allowUpdate) {
       await _update(_external.launcher);
       // TODO(jcollins-g): handle "update" of pinned revision edge case
-    } else {
+    } else if (!repoRoot.exists) {
       await _clone(_external.launcher);
     }
     _isInitialized = true;

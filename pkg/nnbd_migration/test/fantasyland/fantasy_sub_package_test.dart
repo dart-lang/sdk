@@ -69,6 +69,7 @@ class FantasySubPackageTest extends FilesystemTestBase {
   FantasySubPackage fantasySubPackage;
   Folder repoRoot;
   File pubspecYaml;
+  File analysisOptionsYaml;
 
   setUp() {
     super.setUp();
@@ -85,6 +86,8 @@ class FantasySubPackageTest extends FilesystemTestBase {
     // the pubspecYaml.
     pubspecYaml = resourceProvider
         .getFile(join(repoRootPath, 'unreal_package_dir', 'pubspec.yaml'));
+    analysisOptionsYaml = resourceProvider.getFile(
+        join(repoRootPath, 'unreal_package_dir', 'analysis_options.yaml'));
   }
 
   test_recognizeAllDependencies() async {
@@ -148,5 +151,19 @@ class FantasySubPackageTest extends FilesystemTestBase {
           path: ../incorrectly/enclosed
     ''');
     await fantasySubPackage.getPackageAllDependencies();
+  }
+
+  test_analysisOptionsCreate() async {
+    pubspecYaml.writeAsStringSync('''
+      name: unreal_package
+    ''');
+    await fantasySubPackage.enableExperimentHack();
+    expect(analysisOptionsYaml.exists, isTrue);
+    expect(
+        analysisOptionsYaml.readAsStringSync(),
+        'analyzer:\n'
+        '  enable-experiment:\n'
+        '    - non-nullable\n'
+        '\n');
   }
 }

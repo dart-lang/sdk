@@ -2,12 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/lint/pub.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_repo.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
 import 'package:path/path.dart' as path;
+import 'package:source_span/source_span.dart';
+import 'package:yaml/yaml.dart';
 
 final Map<String, FantasySubPackageSettings> _subPackageTable = {
   '_fe_analyzer_shared': FantasySubPackageSettings(
@@ -277,5 +282,121 @@ class FantasySubPackage {
         (d) => FantasySubPackageSettings.fromDependency(this, d));
     await _acceptPubspecVisitor(visitor);
     return visitor.results;
+  }
+
+  /// Delete any `pub get` output that interferes with a workspace.
+  Future<void> cleanUp() async {
+    File pubspecLock = packageRoot.getChildAssumingFile('pubspec.lock');
+    File dotPackages = packageRoot.getChildAssumingFile('.packages');
+    Folder dartTool = packageRoot.getChildAssumingFolder('.dart_tool');
+    File packageConfigJson =
+        dartTool.getChildAssumingFile('package_config.json');
+    for (File f in [pubspecLock, dotPackages, packageConfigJson]) {
+      if (f.exists) f.delete();
+    }
+  }
+
+  void processYamlException(String operation, path, exception) {
+    // TODO(jcollins-g): implement
+  }
+
+  /// Modify all analysis_options.yaml file to include the nullability
+  /// experiment.
+  Future<void> enableExperimentHack() async {
+    // This is completely bonkers, cut and paste from non_nullable_fix.dart.
+    // But it is temporary, right?
+    // TODO(jcollins-g): Remove this hack once no longer needed.
+    File optionsFile =
+        packageRoot.getChildAssumingFile('analysis_options.yaml');
+    SourceChange sourceChange = SourceChange('fantasy_sub_package-$name');
+    String optionsContent;
+    YamlNode optionsMap;
+    if (optionsFile.exists) {
+      try {
+        optionsContent = optionsFile.readAsStringSync();
+      } on FileSystemException catch (e) {
+        processYamlException('read', optionsFile.path, e);
+        return;
+      }
+      try {
+        optionsMap = loadYaml(optionsContent) as YamlNode;
+      } on YamlException catch (e) {
+        processYamlException('parse', optionsFile.path, e);
+        return;
+      }
+    }
+
+    SourceSpan parentSpan;
+    String content;
+    YamlNode analyzerOptions;
+    if (optionsMap is YamlMap) {
+      analyzerOptions = optionsMap.nodes[AnalyzerOptions.analyzer];
+    }
+    if (analyzerOptions == null) {
+      var start = SourceLocation(0, line: 0, column: 0);
+      parentSpan = SourceSpan(start, start, '');
+      content = '''
+analyzer:
+  enable-experiment:
+    - non-nullable
+
+''';
+    } else if (analyzerOptions is YamlMap) {
+      YamlNode experiments =
+          analyzerOptions.nodes[AnalyzerOptions.enableExperiment];
+      if (experiments == null) {
+        parentSpan = analyzerOptions.span;
+        content = '''
+
+  enable-experiment:
+    - non-nullable''';
+      } else if (experiments is YamlList) {
+        experiments.nodes.firstWhere(
+          (node) => node.span.text == EnableString.non_nullable,
+          orElse: () {
+            parentSpan = experiments.span;
+            content = '''
+
+    - non-nullable''';
+            return null;
+          },
+        );
+      }
+    }
+
+    if (parentSpan != null) {
+      final space = ' '.codeUnitAt(0);
+      final cr = '\r'.codeUnitAt(0);
+      final lf = '\n'.codeUnitAt(0);
+
+      int offset = parentSpan.end.offset;
+      while (offset > 0) {
+        int ch = optionsContent.codeUnitAt(offset - 1);
+        if (ch == space || ch == cr) {
+          --offset;
+        } else if (ch == lf) {
+          --offset;
+        } else {
+          break;
+        }
+      }
+      SourceFileEdit fileEdit = SourceFileEdit(optionsFile.path, 0,
+          edits: [SourceEdit(offset, 0, content)]);
+      for (SourceEdit sourceEdit in fileEdit.edits) {
+        sourceChange.addEdit(fileEdit.file, fileEdit.fileStamp, sourceEdit);
+      }
+    }
+    _applyEdits(sourceChange);
+  }
+
+  void _applyEdits(SourceChange sourceChange) {
+    for (var fileEdit in sourceChange.edits) {
+      File toEdit = packageRoot.getChildAssumingFile(fileEdit.file);
+      String contents = toEdit.exists ? toEdit.readAsStringSync() : '';
+      for (SourceEdit edit in fileEdit.edits) {
+        contents = edit.apply(contents);
+      }
+      toEdit.writeAsStringSync(contents);
+    }
   }
 }

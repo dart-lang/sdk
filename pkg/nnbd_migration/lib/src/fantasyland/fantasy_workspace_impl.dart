@@ -22,7 +22,7 @@ class FantasyWorkspaceError extends Error {
 
 // TODO(jcollins-g): consider refactor that makes resourceProvider required.
 class FantasyWorkspaceDependencies {
-  final Future<FantasyRepo> Function(FantasyRepoSettings, String,
+  final Future<FantasyRepo> Function(FantasyRepoSettings, String, bool,
       {FantasyRepoDependencies fantasyRepoDependencies}) buildGitRepoFrom;
   final ResourceProvider resourceProvider;
   final SubprocessLauncher launcher;
@@ -30,7 +30,7 @@ class FantasyWorkspaceDependencies {
   FantasyWorkspaceDependencies(
       {ResourceProvider resourceProvider,
       SubprocessLauncher launcher,
-      Future<FantasyRepo> Function(FantasyRepoSettings, String,
+      Future<FantasyRepo> Function(FantasyRepoSettings, String, bool,
               {FantasyRepoDependencies fantasyRepoDependencies})
           buildGitRepoFrom})
       : resourceProvider =
@@ -85,16 +85,17 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
   /// dependencies.
   ///
   /// Which dependencies are automatically added is implementation dependent.
-  Future<void> addPackageNameToWorkspace(String packageName);
+  Future<void> addPackageNameToWorkspace(String packageName, bool allowUpdate);
 
   Future<FantasySubPackage> addPackageToWorkspace(
-      FantasySubPackageSettings packageSettings) async {
+      FantasySubPackageSettings packageSettings, bool allowUpdate) async {
     FantasyRepo containingRepo =
-        await addRepoToWorkspace(packageSettings.repoSettings);
+        await addRepoToWorkspace(packageSettings.repoSettings, allowUpdate);
     FantasySubPackage fantasySubPackage =
         FantasySubPackage(packageSettings, containingRepo);
     // TODO(jcollins-g): throw if double add
     subPackages[packageSettings] = fantasySubPackage;
+    fantasySubPackage.cleanUp();
     return fantasySubPackage;
   }
 
@@ -102,15 +103,19 @@ abstract class FantasyWorkspaceBase extends FantasyWorkspace {
 
   /// Add one repository to the workspace.
   ///
+  /// If allowUpdate is true, the repository will be pulled before being
+  /// synced.
+  ///
   /// The returned [Future] completes when the repository is synced and cloned.
-  Future<FantasyRepo> addRepoToWorkspace(FantasyRepoSettings repoSettings) {
+  Future<FantasyRepo> addRepoToWorkspace(
+      FantasyRepoSettings repoSettings, bool allowUpdate) {
     if (_repos.containsKey(repoSettings.name)) return _repos[repoSettings.name];
     Folder repoRoot = _external.resourceProvider.getFolder(_external
         .resourceProvider.pathContext
         .canonicalize(_external.resourceProvider.pathContext
             .join(workspaceRootPath, _repoSubDir, repoSettings.name)));
     _repos[repoSettings.name] = _external.buildGitRepoFrom(
-        repoSettings, repoRoot.path,
+        repoSettings, repoRoot.path, allowUpdate,
         fantasyRepoDependencies:
             FantasyRepoDependencies.fromWorkspaceDependencies(_external));
     return _repos[repoSettings.name];
@@ -152,41 +157,46 @@ class FantasyWorkspaceTopLevelDevDepsImpl extends FantasyWorkspaceBase {
       : super._(workspaceRootPath,
             workspaceDependencies: workspaceDependencies);
 
-  static Future<FantasyWorkspace> buildFor(String topLevelPackage,
-      List<String> extraPackageNames, String workspaceRootPath,
+  static Future<FantasyWorkspace> buildFor(
+      String topLevelPackage,
+      List<String> extraPackageNames,
+      String workspaceRootPath,
+      bool allowUpdate,
       {FantasyWorkspaceDependencies workspaceDependencies}) async {
     var workspace = FantasyWorkspaceTopLevelDevDepsImpl._(
         topLevelPackage, workspaceRootPath,
         workspaceDependencies: workspaceDependencies);
     await Future.wait([
       for (var n in [topLevelPackage, ...extraPackageNames])
-        workspace.addPackageNameToWorkspace(n)
+        workspace.addPackageNameToWorkspace(n, allowUpdate)
     ]);
     return workspace;
   }
 
   Future<FantasySubPackage> addPackageNameToWorkspace(
-      String packageName) async {
+      String packageName, bool allowUpdate) async {
     FantasySubPackageSettings packageSettings =
         FantasySubPackageSettings.fromName(packageName);
-    return await addPackageToWorkspace(packageSettings);
+    return await addPackageToWorkspace(packageSettings, allowUpdate);
   }
 
   @override
   Future<FantasySubPackage> addPackageToWorkspace(
-      FantasySubPackageSettings packageSettings,
+      FantasySubPackageSettings packageSettings, bool allowUpdate,
       {Set<FantasySubPackageSettings> seenPackages}) async {
     seenPackages ??= {};
     if (seenPackages.contains(packageSettings)) return null;
     seenPackages.add(packageSettings);
-    await _addPackageToWorkspace(packageSettings, seenPackages);
+    return await _addPackageToWorkspace(
+        packageSettings, allowUpdate, seenPackages);
   }
 
   Future<FantasySubPackage> _addPackageToWorkspace(
       FantasySubPackageSettings packageSettings,
+      bool allowUpdate,
       Set<FantasySubPackageSettings> seenPackages) async {
     FantasySubPackage fantasySubPackage =
-        await super.addPackageToWorkspace(packageSettings);
+        await super.addPackageToWorkspace(packageSettings, allowUpdate);
     String packageName = packageSettings.name;
 
     await rewritePackageConfigWith(fantasySubPackage);
@@ -200,7 +210,8 @@ class FantasyWorkspaceTopLevelDevDepsImpl extends FantasyWorkspaceBase {
 
     await Future.wait([
       for (var subPackageSettings in dependencies)
-        addPackageToWorkspace(subPackageSettings, seenPackages: seenPackages)
+        addPackageToWorkspace(subPackageSettings, allowUpdate,
+            seenPackages: seenPackages)
     ]);
     return fantasySubPackage;
   }

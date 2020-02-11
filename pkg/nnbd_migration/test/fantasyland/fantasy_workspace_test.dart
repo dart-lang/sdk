@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:mockito/mockito.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace.dart';
 import 'package:nnbd_migration/src/fantasyland/fantasy_workspace_impl.dart';
@@ -40,6 +38,7 @@ class FantasyWorkspaceIntegrationTest extends FilesystemTestBase {
         'test_package',
         ['extra_package_1', 'extra_package_2'],
         convertPath('/fantasyland'),
+        true,
         workspaceDependencies: workspaceDependencies);
     expect(getFolder('/fantasyland').exists, isTrue);
     for (var n in ['test_package', 'extra_package_1', 'extra_package_2']) {

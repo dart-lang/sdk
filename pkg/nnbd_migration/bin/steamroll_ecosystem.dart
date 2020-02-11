@@ -14,6 +14,7 @@ import 'package:args/args.dart';
 final parser = ArgParser()
   ..addMultiOption('extra-packages', abbr: 'e', splitCommas: true)
   ..addOption('package-name', abbr: 'p')
+  ..addFlag('allow-update', defaultsTo: false, negatable: true)
   ..addFlag('analysis-options-hack', defaultsTo: true, negatable: true)
   ..addFlag('strip-sdk-constraint-hack', defaultsTo: true, negatable: true)
   ..addFlag('force-migrate-deps', defaultsTo: true, negatable: true)
@@ -45,11 +46,17 @@ Future<void> main(List<String> args) async {
   assert(extraPackages != null);
 
   FantasyWorkspace workspace = await buildFantasyLand(
-      packageName, extraPackages, path.canonicalize(results.rest.first));
+      packageName,
+      extraPackages,
+      path.canonicalize(results.rest.first),
+      results['allow-update'] as bool);
   workspace.makeAllSymlinks();
 
   if (results['analysis-options-hack'] as bool) {
-    stderr.writeln('warning: analysis options hack not implemented');
+    await Future.wait([
+      for (FantasySubPackage p in workspace.subPackages.values)
+        p.enableExperimentHack()
+    ]);
   }
 
   if (results['strip-sdk-constraint-hack'] as bool) {

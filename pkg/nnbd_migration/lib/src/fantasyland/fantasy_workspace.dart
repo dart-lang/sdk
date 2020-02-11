@@ -17,14 +17,16 @@ abstract class FantasyWorkspace {
   /// Add a package to the workspace, given [packageSettings].
   ///
   /// Completes when the repository and subPackage is added.
+  /// If allowUpdate is true, the repository may be updated to the latest
+  /// version.
   Future<FantasySubPackage> addPackageToWorkspace(
-      FantasySubPackageSettings packageSettings);
+      FantasySubPackageSettings packageSettings, bool allowUpdate);
 }
 
 /// Build a "fantasyland"-style repository structure suitable for applying
 /// a migration to.
-Future<FantasyWorkspace> buildFantasyLand(
-    String topLevelPackage, List<String> extraPackages, String fantasyLandDir) {
+Future<FantasyWorkspace> buildFantasyLand(String topLevelPackage,
+    List<String> extraPackages, String fantasyLandDir, bool allowUpdate) {
   return FantasyWorkspaceTopLevelDevDepsImpl.buildFor(
-      topLevelPackage, extraPackages, fantasyLandDir);
+      topLevelPackage, extraPackages, fantasyLandDir, allowUpdate);
 }
