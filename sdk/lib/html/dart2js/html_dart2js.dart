@@ -2053,9 +2053,9 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
       _toDataUrl(type, quality);
 
   @JSName('toBlob')
-  void _toBlob(BlobCallback callback, String type, [Object arguments]) native;
+  void _toBlob(BlobCallback callback, [String type, Object arguments]) native;
 
-  Future<Blob> toBlob(String type, [Object arguments]) {
+  Future<Blob> toBlob([String type, Object arguments]) {
     var completer = new Completer<Blob>();
     _toBlob((value) {
       completer.complete(value);

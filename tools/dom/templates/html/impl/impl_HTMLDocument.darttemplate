@@ -13,7 +13,7 @@ $!MEMBERS
 
   /// UNSTABLE: Chrome-only - create a Range from the given point.
   @Unstable()
-  Range caretRangeFromPoint(int x, int y) {
+  Range caretRangeFromPoint(int$NULLABLE x, int$NULLABLE y) {
     return _caretRangeFromPoint(x, y);
   }
 
