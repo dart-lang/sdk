@@ -13,6 +13,10 @@ class ConvertToNullAware extends CorrectionProducer {
   @override
   Future<void> compute(DartChangeBuilder builder) async {
     AstNode node = this.node;
+    if (node.parent is BinaryExpression &&
+        node.parent.parent is ConditionalExpression) {
+      node = node.parent.parent;
+    }
     if (node is! ConditionalExpression) {
       return;
     }

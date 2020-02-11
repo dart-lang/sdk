@@ -16,6 +16,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/src/future_or.dart';
 import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/src/nnbd_top_merge.dart';
+import 'package:kernel/src/norm.dart';
 
 import '../../testing/id_testing_utils.dart' show typeToText;
 
@@ -551,8 +552,10 @@ class ClassHierarchyNodeBuilder {
           debug?.log("supertypes: checkValidOverride("
               "${classBuilder.fullNameForErrors}, "
               "${fullName(a)}, ${fullName(b)})");
-          checkValidOverride(a, b);
-          if (a is DelayedMember && !a.isInheritableConflict) {
+          if (a is! DelayedMember) {
+            checkValidOverride(a, b);
+          }
+          if (a is DelayedMember) {
             if (b is DelayedMember) {
               b.addAllDeclarationsTo(a.declarations);
             } else {
@@ -913,6 +916,9 @@ class ClassHierarchyNodeBuilder {
     }
   }
 
+  /// Infers the field type of [a] based on [b]. Returns `true` if the type of
+  /// [a] is known to be a valid override of [b], meaning that no additional
+  /// override checks are needed.
   bool inferFieldTypes(ClassMember a, ClassMember b) {
     debug?.log("Trying to infer field types for ${fullName(a)} "
         "based on ${fullName(b)}");
@@ -972,8 +978,13 @@ class ClassHierarchyNodeBuilder {
       debug?.log("${classBuilder.fullNameForErrors} -> "
           "${bClassBuilder.fullNameForErrors} $bSubstitution");
     }
-    if (bSubstitution != null && inheritedType is! ImplicitFieldType) {
-      inheritedType = bSubstitution.substituteType(inheritedType);
+    if (inheritedType is! ImplicitFieldType) {
+      if (bSubstitution != null) {
+        inheritedType = bSubstitution.substituteType(inheritedType);
+      }
+      if (!a.classBuilder.library.isNonNullableByDefault) {
+        inheritedType = legacyErasure(hierarchy.coreTypes, inheritedType);
+      }
     }
 
     Field aField = a.member;
@@ -983,26 +994,33 @@ class ClassHierarchyNodeBuilder {
     }
     if (declaredType == inheritedType) return true;
 
-    bool result = false;
+    bool isValidOverride = false;
     if (a is FieldBuilder) {
       if (a.parent == classBuilder && a.type == null) {
-        if (a.hadTypesInferred) {
-          reportCantInferFieldType(classBuilder, a);
-          inheritedType = const InvalidType();
+        DartType declaredType = a.fieldType;
+        if (declaredType is ImplicitFieldType) {
+          if (inheritedType is ImplicitFieldType) {
+            declaredType.addOverride(inheritedType);
+          } else {
+            // The concrete type has already been inferred.
+            a.hadTypesInferred = true;
+            a.fieldType = inheritedType;
+            isValidOverride = true;
+          }
+        } else if (a.hadTypesInferred) {
+          if (inheritedType is! ImplicitFieldType) {
+            // A different type has already been inferred.
+            reportCantInferFieldType(classBuilder, a);
+            a.fieldType = const InvalidType();
+          }
         } else {
-          result = true;
+          isValidOverride = true;
           a.hadTypesInferred = true;
-        }
-        if (inheritedType is ImplicitFieldType) {
-          SourceLibraryBuilder library = classBuilder.library;
-          (library.implicitlyTypedFields ??= <FieldBuilder>[]).add(a);
-          a.fieldType = inheritedType.createAlias(a);
-        } else {
           a.fieldType = inheritedType;
         }
       }
     }
-    return result;
+    return isValidOverride;
   }
 
   void copyParameterCovariance(Builder parent, VariableDeclaration aParameter,
@@ -1519,7 +1537,10 @@ class ClassHierarchyNodeBuilder {
           superclass.classNode == type.classNode) {
         // This is a potential conflict.
         if (classBuilder.library.isNonNullableByDefault) {
-          superclass = nnbdTopMerge(hierarchy.coreTypes, superclass, type);
+          superclass = nnbdTopMerge(
+              hierarchy.coreTypes,
+              norm(hierarchy.coreTypes, superclass),
+              norm(hierarchy.coreTypes, type));
           if (superclass == null) {
             // This is a conflict.
             // TODO(johnniwinther): Report errors here instead of through
@@ -1539,7 +1560,10 @@ class ClassHierarchyNodeBuilder {
               interface.classNode == type.classNode) {
             // This is a potential conflict.
             if (classBuilder.library.isNonNullableByDefault) {
-              interface = nnbdTopMerge(hierarchy.coreTypes, interface, type);
+              interface = nnbdTopMerge(
+                  hierarchy.coreTypes,
+                  norm(hierarchy.coreTypes, interface),
+                  norm(hierarchy.coreTypes, type));
               if (interface == null) {
                 // This is a conflict.
                 // TODO(johnniwinther): Report errors here instead of through
@@ -2125,47 +2149,19 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
       : super.subclassing(typeParameters, currentLibrary);
 
   @override
+  CoreTypes get coreTypes => hierarchy.coreTypes;
+
+  @override
   Class get objectClass => hierarchy.objectClass;
 
   @override
   Class get functionClass => hierarchy.functionClass;
 
   @override
-  Class get futureClass => hierarchy.futureClass;
-
-  @override
   Class get futureOrClass => hierarchy.futureOrClass;
 
   @override
   Class get nullClass => hierarchy.nullClass;
-
-  @override
-  InterfaceType get nullType => hierarchy.coreTypes.nullType;
-
-  @override
-  InterfaceType get objectLegacyRawType {
-    return hierarchy.coreTypes.objectLegacyRawType;
-  }
-
-  @override
-  InterfaceType get objectNonNullableRawType {
-    return hierarchy.coreTypes.objectNonNullableRawType;
-  }
-
-  @override
-  InterfaceType objectRawType(Nullability nullability) {
-    return hierarchy.coreTypes.objectRawType(nullability);
-  }
-
-  @override
-  InterfaceType get functionLegacyRawType {
-    return hierarchy.coreTypes.functionLegacyRawType;
-  }
-
-  @override
-  InterfaceType functionRawType(Nullability nullability) {
-    return hierarchy.coreTypes.functionRawType(nullability);
-  }
 
   @override
   void addLowerBound(
@@ -2315,6 +2311,9 @@ class DelayedOverrideCheck {
                       b.member.enclosingClass,
                       classBuilder.library.library))
               .substituteType(type);
+          if (!a.classBuilder.library.isNonNullableByDefault) {
+            type = legacyErasure(hierarchy.coreTypes, type);
+          }
           if (type != a.fieldType) {
             if (a.hadTypesInferred) {
               if (b.isSetter &&
@@ -2432,7 +2431,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
     return parent == this.classBuilder
         ? this
         : new InheritedImplementationInterfaceConflict(
-            parent, declarations, isSetter, modifyKernel);
+            parent, declarations.toList(), isSetter, modifyKernel);
   }
 
   static ClassMember combined(
@@ -2497,9 +2496,13 @@ class InterfaceConflict extends DelayedMember {
       unhandled("${member.runtimeType}", "$member", classBuilder.charOffset,
           classBuilder.fileUri);
     }
-    return Substitution.fromInterfaceType(hierarchy.getKernelTypeAsInstanceOf(
-            thisType, member.enclosingClass, classBuilder.library.library))
-        .substituteType(type);
+    InterfaceType instance = hierarchy.getKernelTypeAsInstanceOf(
+        thisType, member.enclosingClass, classBuilder.library.library);
+    assert(
+        instance != null,
+        "No instance of $thisType as ${member.enclosingClass} found for "
+        "$member.");
+    return Substitution.fromInterfaceType(instance).substituteType(type);
   }
 
   bool isMoreSpecific(ClassHierarchyBuilder hierarchy, DartType a, DartType b) {
@@ -2628,7 +2631,8 @@ class InterfaceConflict extends DelayedMember {
   DelayedMember withParent(ClassBuilder parent) {
     return parent == this.classBuilder
         ? this
-        : new InterfaceConflict(parent, declarations, isSetter, modifyKernel);
+        : new InterfaceConflict(
+            parent, declarations.toList(), isSetter, modifyKernel);
   }
 
   static ClassMember combined(ClassBuilder parent, ClassMember a, ClassMember b,

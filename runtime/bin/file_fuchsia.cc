@@ -262,6 +262,10 @@ File* File::OpenUri(Namespace* namespc, const char* uri, FileOpenMode mode) {
   return File::Open(namespc, path.get(), mode);
 }
 
+File* File::OpenStdio(int fd) {
+  return new File(new FileHandle(fd));
+}
+
 bool File::Exists(Namespace* namespc, const char* name) {
   NamespaceScope ns(namespc, name);
   struct stat st;

@@ -266,7 +266,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType visitAsExpression(AsExpression node) {
-    if (BestPracticesVerifier.isUnnecessaryCast(node, _typeSystem)) {
+    if (BestPracticesVerifier.isUnnecessaryCast(
+        node, _typeSystem as TypeSystemImpl)) {
       _variables.recordUnnecessaryCast(source, node);
     }
     node.type.accept(this);

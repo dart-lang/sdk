@@ -33,6 +33,7 @@ auth
 authority
 auto
 autobianchi
+automatic
 b0x
 b1x
 b2x
@@ -121,6 +122,7 @@ deleting
 depended
 depfile
 desc
+detector
 deviation
 dfast
 dictionaries
@@ -137,6 +139,7 @@ disallowed
 disconnect
 discovering
 dispatcher
+dispose
 dist
 doctype
 doesnt
@@ -184,9 +187,11 @@ finder
 fisk
 five
 floor
+foos
 forbidden
 forces
 foreign
+forrest
 fox
 fulfill
 func
@@ -251,6 +256,7 @@ le
 lengths
 lightly
 likewise
+lily
 linebreaks
 lints
 linux
@@ -380,6 +386,7 @@ splay
 splitting
 sqrt
 sssp
+stats
 std
 stdio
 strip

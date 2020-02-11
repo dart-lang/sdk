@@ -468,14 +468,15 @@ class NoSuchMethodError {
     bool argsMismatch = _existingArgumentNames != null;
     String argsMessage = argsMismatch ? " with matching arguments" : "";
 
-    assert(type >= 0 && type < 5);
-    final String typeStr = (const [
-      "method",
-      "getter",
-      "setter",
-      "getter or setter",
-      "variable"
-    ])[type];
+    final String typeStr = (type >= 0 && type < 5)
+        ? (const [
+            "method",
+            "getter",
+            "setter",
+            "getter or setter",
+            "variable"
+          ])[type]
+        : "";
 
     StringBuffer msgBuf = new StringBuffer("NoSuchMethodError: ");
     bool isTypeCall = false;

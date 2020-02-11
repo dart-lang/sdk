@@ -1971,7 +1971,7 @@ bool IntConverterInstr::ComputeCanDeoptimize() const {
 }
 
 bool UnboxInt32Instr::ComputeCanDeoptimize() const {
-  if (speculative_mode() == kNotSpeculative) {
+  if (SpeculativeModeOfInputs() == kNotSpeculative) {
     return false;
   }
   const intptr_t value_cid = value()->Type()->ToCid();
@@ -1995,7 +1995,7 @@ bool UnboxInt32Instr::ComputeCanDeoptimize() const {
 
 bool UnboxUint32Instr::ComputeCanDeoptimize() const {
   ASSERT(is_truncating());
-  if (speculative_mode() == kNotSpeculative) {
+  if (SpeculativeModeOfInputs() == kNotSpeculative) {
     return false;
   }
   if ((value()->Type()->ToCid() == kSmiCid) ||
@@ -2433,7 +2433,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         BinaryIntegerOpInstr* shift = BinaryIntegerOpInstr::Make(
             representation(), Token::kSHL, left()->CopyWithType(),
             new Value(constant_1), GetDeoptId(), can_overflow(),
-            is_truncating(), range(), speculative_mode());
+            is_truncating(), range(), SpeculativeModeOfInputs());
         if (shift != nullptr) {
           // Assign a range to the shift factor, just in case range
           // analysis no longer runs after this rewriting.
@@ -3024,7 +3024,7 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 
   // For all x, box(unbox(x)) = x.
   if (auto unbox = value()->definition()->AsUnboxInt64()) {
-    if (unbox->speculative_mode() == kNotSpeculative) {
+    if (unbox->SpeculativeModeOfInputs() == kNotSpeculative) {
       return unbox->value()->definition();
     }
   } else if (auto unbox = value()->definition()->AsUnboxedConstant()) {
@@ -3241,13 +3241,13 @@ static bool MayBeNumber(CompileType* type) {
   if (type->IsNone()) {
     return false;
   }
-  auto& compile_type = AbstractType::Handle(type->ToAbstractType()->raw());
-  while (compile_type.IsFutureOr(&compile_type)) {
-  }
+  const AbstractType& unwrapped_type =
+      AbstractType::Handle(type->ToAbstractType()->UnwrapFutureOr());
   // Note that type 'Number' is a subtype of itself.
-  return compile_type.Legacy_IsTopType() || compile_type.IsTypeParameter() ||
-         compile_type.IsSubtypeOf(NNBDMode::kLegacyLib,
-                                  Type::Handle(Type::Number()), Heap::kOld);
+  return unwrapped_type.IsTopType() || unwrapped_type.IsObjectType() ||
+         unwrapped_type.IsTypeParameter() ||
+         unwrapped_type.IsSubtypeOf(NNBDMode::kLegacyLib,
+                                    Type::Handle(Type::Number()), Heap::kOld);
 }
 
 // Returns a replacement for a strict comparison and signals if the result has
@@ -4900,7 +4900,7 @@ void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
 }
 
 void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (speculative_mode() == kNotSpeculative) {
+  if (SpeculativeModeOfInputs() == kNotSpeculative) {
     switch (representation()) {
       case kUnboxedDouble:
       case kUnboxedFloat:
@@ -4929,7 +4929,7 @@ void UnboxInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         break;
     }
   } else {
-    ASSERT(speculative_mode() == kGuardInputs);
+    ASSERT(SpeculativeModeOfInputs() == kGuardInputs);
     const intptr_t value_cid = value()->Type()->ToCid();
     const intptr_t box_cid = BoxCid();
 
@@ -5055,7 +5055,8 @@ ComparisonInstr* EqualityCompareInstr::CopyWithNewOperands(Value* new_left,
 ComparisonInstr* RelationalOpInstr::CopyWithNewOperands(Value* new_left,
                                                         Value* new_right) {
   return new RelationalOpInstr(token_pos(), kind(), new_left, new_right,
-                               operation_cid(), deopt_id(), speculative_mode());
+                               operation_cid(), deopt_id(),
+                               SpeculativeModeOfInputs());
 }
 
 ComparisonInstr* StrictCompareInstr::CopyWithNewOperands(Value* new_left,

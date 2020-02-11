@@ -114,9 +114,7 @@ class ScavengeStats {
 
 class Scavenger {
  public:
-  Scavenger(Heap* heap,
-            intptr_t max_semi_capacity_in_words,
-            uword object_alignment);
+  Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words);
   ~Scavenger();
 
   // Check whether this Scavenger contains this address.
@@ -140,7 +138,7 @@ class Scavenger {
     // the new to_ space. It must succeed.
     ASSERT(size <= remaining);
     ASSERT(to_->Contains(result));
-    ASSERT((result & kObjectAlignmentMask) == object_alignment_);
+    ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
     top_ += size;
     ASSERT((to_->Contains(top_)) || (top_ == to_->end()));
     return result;
@@ -157,7 +155,7 @@ class Scavenger {
       return 0;
     }
     ASSERT(to_->Contains(result));
-    ASSERT((result & kObjectAlignmentMask) == object_alignment_);
+    ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
     top += size;
     ASSERT((to_->Contains(top)) || (top == to_->end()));
     thread->set_top(top);
@@ -237,7 +235,9 @@ class Scavenger {
     kToKBAfterStoreBuffer = 3
   };
 
-  uword FirstObjectStart() const { return to_->start() | object_alignment_; }
+  uword FirstObjectStart() const {
+    return to_->start() + kNewObjectAlignmentOffset;
+  }
   SemiSpace* Prologue(Isolate* isolate);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
@@ -297,9 +297,6 @@ class Scavenger {
   uword survivor_end_;
 
   intptr_t max_semi_capacity_in_words_;
-
-  // All object are aligned to this value.
-  uword object_alignment_;
 
   // Keep track whether a scavenge is currently running.
   bool scavenging_;

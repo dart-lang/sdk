@@ -1305,7 +1305,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   ///
   /// Returns `true` if and only if an unnecessary cast hint should be generated
   /// on [node].  See [HintCode.UNNECESSARY_CAST].
-  static bool isUnnecessaryCast(AsExpression node, TypeSystem typeSystem) {
+  static bool isUnnecessaryCast(AsExpression node, TypeSystemImpl typeSystem) {
     // TODO(jwren) After dartbug.com/13732, revisit this, we should be able to
     // remove the (x is! TypeParameterType) checks.
     AstNode parent = node.parent;
@@ -1329,8 +1329,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           elseType != null &&
           !thenType.isDynamic &&
           !elseType.isDynamic &&
-          !typeSystem.isSubtypeOf(thenType, elseType) &&
-          !typeSystem.isSubtypeOf(elseType, thenType)) {
+          !typeSystem.isSubtypeOf2(thenType, elseType) &&
+          !typeSystem.isSubtypeOf2(elseType, thenType)) {
         return false;
       }
     }
@@ -1340,7 +1340,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         rhsType != null &&
         !lhsType.isDynamic &&
         !rhsType.isDynamic &&
-        typeSystem.isSubtypeOf(lhsType, rhsType)) {
+        typeSystem.isSubtypeOf2(lhsType, rhsType)) {
       return true;
     }
     return false;

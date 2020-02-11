@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:path/path.dart' as path;
-
 /// Information about a link to a compilation unit.
 class UnitLink {
   /// The relative URL of this compilation unit on the preview server.
@@ -18,8 +16,6 @@ class UnitLink {
 
   UnitLink(this.url, this.pathParts, this.editCount)
       : depth = pathParts.length - 1;
-
-  String get relativePath => path.joinAll(pathParts);
 
   String get fileName => pathParts.last;
 }

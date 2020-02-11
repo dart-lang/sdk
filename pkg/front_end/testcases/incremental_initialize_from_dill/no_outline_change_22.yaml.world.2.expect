@@ -3,7 +3,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   import "dart:collection";
 
-  abstract class _WithListMixin&Object&ListMixin extends dart.core::Object implements dart.collection::ListMixin<dart.core::int*> {
+  abstract class _WithListMixin&Object&ListMixin extends dart.core::Object implements dart.collection::ListMixin<dart.core::int*> /*isAnonymousMixin,isEliminatedMixin*/  {
     const synthetic constructor •() → main::_WithListMixin&Object&ListMixin*
       : super dart.core::Object::•()
       ;

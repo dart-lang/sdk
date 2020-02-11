@@ -32,7 +32,7 @@ abstract class D extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class _E&D&C extends self::D implements self::C {
+abstract class _E&D&C extends self::D implements self::C /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_E&D&C*
     : super self::D::•()
     ;

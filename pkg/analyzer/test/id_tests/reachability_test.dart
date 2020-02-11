@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
@@ -18,13 +19,15 @@ import '../util/id_testing_helper.dart';
 main(List<String> args) async {
   Directory dataDir = Directory.fromUri(Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/reachability/data'));
-  await runTests<Set<_ReachabilityAssertion>>(dataDir,
-      args: args,
-      supportedMarkers: cfeAnalyzerMarkers,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const _ReachabilityDataComputer(), [analyzerNnbdConfig]));
+  await NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+    return runTests<Set<_ReachabilityAssertion>>(dataDir,
+        args: args,
+        supportedMarkers: cfeAnalyzerMarkers,
+        createUriForFileName: createUriForFileName,
+        onFailure: onFailure,
+        runTest: runTestFor(
+            const _ReachabilityDataComputer(), [analyzerNnbdConfig]));
+  });
 }
 
 class FlowTestBase {

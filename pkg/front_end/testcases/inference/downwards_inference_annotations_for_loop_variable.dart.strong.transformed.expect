@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
-class Foo extends core::Object {
+class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::List<core::String*>* l) → self::Foo*
     : super core::Object::•()
     ;

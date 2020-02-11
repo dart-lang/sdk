@@ -40,6 +40,7 @@ import 'package:kernel/ast.dart'
         LibraryDependency,
         Nullability,
         ProcedureKind,
+        Reference,
         Supertype,
         TreeNode;
 
@@ -151,6 +152,11 @@ class SourceLoader extends Loader {
   /// Used when building directly to kernel.
   ClassHierarchy hierarchy;
   CoreTypes _coreTypes;
+
+  /// For builders created with a reference, this maps from that reference to
+  /// that builder. This is used for looking up source builders when finalizing
+  /// exports in dill builders.
+  Map<Reference, Builder> buildersCreatedWithReferences = {};
 
   /// Used when checking whether a return type of an async function is valid.
   ///

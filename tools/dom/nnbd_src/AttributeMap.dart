@@ -100,7 +100,7 @@ class _ElementAttributeMap extends _AttributeMap {
   }
 
   String? operator [](Object? key) {
-    return _element.getAttribute(key as String?);
+    return _element.getAttribute(key as String);
   }
 
   void operator []=(String key, String value) {
@@ -148,7 +148,7 @@ class _NamespacedAttributeMap extends _AttributeMap {
   }
 
   String? operator [](Object? key) {
-    return _element.getAttributeNS(_namespace, key as String?);
+    return _element.getAttributeNS(_namespace, key as String);
   }
 
   void operator []=(String key, String value) {

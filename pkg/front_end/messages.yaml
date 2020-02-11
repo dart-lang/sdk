@@ -3906,3 +3906,14 @@ DefaultListConstructorWarning:
   template: "Using the default List constructor."
   tip: "Try using List.filled instead."
   severity: WARNING
+
+NonNullableInNullAware:
+  template: "Operand of null-aware operation '#name' has type '#type' which excludes null."
+  severity: WARNING
+
+NonNullableNotAssignedError:
+  template: "Non-nullable variable '#name' must be assigned before it can be used."
+
+NonNullableNotAssignedWarning:
+  template: "Non-nullable variable '#name' is used before it's assigned."
+  severity: WARNING

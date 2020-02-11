@@ -15,6 +15,7 @@ import 'type_algebra.dart';
 import 'src/future_or.dart';
 import 'src/heap.dart';
 import 'src/legacy_erasure.dart';
+import 'src/norm.dart';
 
 typedef HandleAmbiguousSupertypes = void Function(Class, Supertype, Supertype);
 
@@ -1581,7 +1582,10 @@ class _ClassInfo {
       genericSuperTypes[cls].add(type);
 
       if (classNode.enclosingLibrary.isNonNullableByDefault) {
-        Supertype result = nnbdTopMergeSupertype(coreTypes, type, canonical);
+        Supertype result = nnbdTopMergeSupertype(
+            coreTypes,
+            normSupertype(coreTypes, type),
+            normSupertype(coreTypes, canonical));
         if (result == null) {
           onAmbiguousSupertypes(classNode, canonical, type);
         } else {

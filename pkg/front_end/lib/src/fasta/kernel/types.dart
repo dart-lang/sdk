@@ -886,7 +886,8 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
 
   IsSubtypeOf isInterfaceRelated(InterfaceType s, NeverType t, Types types) {
     if (s.classNode == types.hierarchy.nullClass) {
-      if (t.nullability == Nullability.nullable) {
+      if (t.nullability == Nullability.nullable ||
+          t.nullability == Nullability.legacy) {
         return const IsSubtypeOf.always();
       }
       if (t.nullability == Nullability.nonNullable) {

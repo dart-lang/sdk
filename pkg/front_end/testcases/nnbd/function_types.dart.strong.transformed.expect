@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
@@ -27,7 +27,7 @@ static method fisk() → () →? void
 static method foobar(() →? dynamic x) → () →? dynamic
   return null;
 static method main() → dynamic {
-  () → void g;
+  () → void g = () → core::Null? {};
   () →? void f = g;
   () → void fBar = self::bar();
   () →? void fBaz = self::baz();

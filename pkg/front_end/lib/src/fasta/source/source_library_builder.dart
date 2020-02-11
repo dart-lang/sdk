@@ -39,13 +39,14 @@ import 'package:kernel/ast.dart'
         Nullability,
         Procedure,
         ProcedureKind,
+        Reference,
         SetLiteral,
         StaticInvocation,
         StringLiteral,
         Supertype,
-        Typedef,
         TypeParameter,
         TypeParameterType,
+        Typedef,
         VariableDeclaration,
         VoidType;
 
@@ -261,7 +262,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   /// the error message is the corresponding value in the map.
   Map<String, String> unserializableExports;
 
-  List<FieldBuilder> implicitlyTypedFields;
+  List<FieldBuilder> _implicitlyTypedFields;
 
   LanguageVersion _languageVersion = const ImplicitLanguageVersion();
 
@@ -774,12 +775,17 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  Builder addBuilder(String name, Builder declaration, int charOffset) {
+  @override
+  Builder addBuilder(String name, Builder declaration, int charOffset,
+      {Reference reference}) {
     // TODO(ahe): Set the parent correctly here. Could then change the
     // implementation of MemberBuilder.isTopLevel to test explicitly for a
     // LibraryBuilder.
     if (name == null) {
       unhandled("null", "name", charOffset, fileUri);
+    }
+    if (reference != null) {
+      loader.buildersCreatedWithReferences[reference] = declaration;
     }
     if (currentTypeParameterScopeBuilder == libraryDeclaration) {
       if (declaration is MemberBuilder) {
@@ -1134,9 +1140,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // DietListener can find them.
         for (int i = duplicated.length; i > 0; i--) {
           Builder declaration = duplicated[i - 1];
+          // No reference: There should be no duplicates when using references.
           addBuilder(name, declaration, declaration.charOffset);
         }
       } else {
+        // No reference: The part is in the same loader so the reference
+        // - if needed - was already added.
         addBuilder(name, declaration, declaration.charOffset);
       }
     }
@@ -1157,10 +1166,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     List<FieldBuilder> partImplicitlyTypedFields =
         part.takeImplicitlyTypedFields();
     if (partImplicitlyTypedFields != null) {
-      if (implicitlyTypedFields == null) {
-        implicitlyTypedFields = partImplicitlyTypedFields;
+      if (_implicitlyTypedFields == null) {
+        _implicitlyTypedFields = partImplicitlyTypedFields;
       } else {
-        implicitlyTypedFields.addAll(partImplicitlyTypedFields);
+        _implicitlyTypedFields.addAll(partImplicitlyTypedFields);
       }
     }
     return true;
@@ -1553,7 +1562,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(className, classBuilder, nameOffset);
+    addBuilder(className, classBuilder, nameOffset,
+        reference: referencesFromClass?.reference);
   }
 
   Map<String, TypeVariableBuilder> checkTypeVariables(
@@ -1668,7 +1678,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(extensionName, extensionBuilder, nameOffset);
+    addBuilder(extensionName, extensionBuilder, nameOffset,
+        reference: referenceFrom?.reference);
   }
 
   TypeBuilder applyMixins(TypeBuilder type, int startCharOffset, int charOffset,
@@ -1906,7 +1917,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
         application.cls.isAnonymousMixin = !isNamedMixinApplication;
-        addBuilder(fullname, application, charOffset);
+        addBuilder(fullname, application, charOffset,
+            reference: referencesFromClass?.reference);
         supertype = addNamedType(fullname, const NullabilityBuilder.omitted(),
             applicationTypeArguments, charOffset);
       }
@@ -2062,13 +2074,22 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         getterReferenceFrom,
         setterReferenceFrom);
     fieldBuilder.constInitializerToken = constInitializerToken;
-    addBuilder(name, fieldBuilder, charOffset);
-    if (type == null && initializerToken != null && fieldBuilder.next == null) {
+    addBuilder(name, fieldBuilder, charOffset,
+        reference: referenceFrom?.reference);
+    if (type == null && fieldBuilder.next == null) {
       // Only the first one (the last one in the linked list of next pointers)
       // are added to the tree, had parent pointers and can infer correctly.
-      fieldBuilder.fieldType =
-          new ImplicitFieldType(fieldBuilder, initializerToken);
-      (implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
+      if (initializerToken == null && fieldBuilder.isStatic) {
+        // A static field without type and initializer will always be inferred
+        // to have type `dynamic`.
+        fieldBuilder.fieldType = const DynamicType();
+      } else {
+        // A field with no type and initializer or an instance field without
+        // type and initializer need to have the type inferred.
+        fieldBuilder.fieldType =
+            new ImplicitFieldType(fieldBuilder, initializerToken);
+        registerImplicitlyTypedField(fieldBuilder);
+      }
     }
     loader.target.metadataCollector
         ?.setDocumentationComment(fieldBuilder.field, documentationComment);
@@ -2114,7 +2135,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     metadataCollector?.setConstructorNameOffset(
         constructorBuilder.constructor, name);
     checkTypeVariables(typeVariables, constructorBuilder);
-    addBuilder(constructorName, constructorBuilder, charOffset);
+    addBuilder(constructorName, constructorBuilder, charOffset,
+        reference: referenceFrom?.reference);
     if (nativeMethodName != null) {
       addNativeMethod(constructorBuilder);
     }
@@ -2219,7 +2241,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     metadataCollector?.setDocumentationComment(
         procedureBuilder.procedure, documentationComment);
     checkTypeVariables(typeVariables, procedureBuilder);
-    addBuilder(name, procedureBuilder, charOffset);
+    addBuilder(name, procedureBuilder, charOffset,
+        reference: referenceFrom?.reference);
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
@@ -2319,7 +2342,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     currentTypeParameterScopeBuilder = savedDeclaration;
 
     factoryDeclaration.resolveTypes(procedureBuilder.typeVariables, this);
-    addBuilder(procedureName, procedureBuilder, charOffset);
+    addBuilder(procedureName, procedureBuilder, charOffset,
+        reference: referenceFrom?.reference);
     if (nativeMethodName != null) {
       addNativeMethod(procedureBuilder);
     }
@@ -2352,7 +2376,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         charEndOffset,
         referencesFromClass,
         referencesFromIndexedClass);
-    addBuilder(name, builder, charOffset);
+    addBuilder(name, builder, charOffset,
+        reference: referencesFromClass?.reference);
     metadataCollector?.setDocumentationComment(
         builder.cls, documentationComment);
   }
@@ -2379,7 +2404,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // Nested declaration began in `OutlineBuilder.beginFunctionTypeAlias`.
     endNestedDeclaration(TypeParameterScopeKind.typedef, "#typedef")
         .resolveTypes(typeVariables, this);
-    addBuilder(name, typedefBuilder, charOffset);
+    addBuilder(name, typedefBuilder, charOffset,
+        reference: referenceFrom?.reference);
   }
 
   FunctionTypeBuilder addFunctionType(
@@ -3387,10 +3413,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     inferredTypes.clear();
   }
 
+  void registerImplicitlyTypedField(FieldBuilder fieldBuilder) {
+    (_implicitlyTypedFields ??= <FieldBuilder>[]).add(fieldBuilder);
+  }
+
   @override
   List<FieldBuilder> takeImplicitlyTypedFields() {
-    List<FieldBuilder> result = implicitlyTypedFields;
-    implicitlyTypedFields = null;
+    List<FieldBuilder> result = _implicitlyTypedFields;
+    _implicitlyTypedFields = null;
     return result;
   }
 

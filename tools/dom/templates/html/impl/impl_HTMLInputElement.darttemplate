@@ -28,7 +28,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements
     ButtonInputElement {
 
   factory InputElement({String$NULLABLE type}) {
-    InputElement e = document.createElement("input");
+    InputElement e = document.createElement("input") $#NULLSAFECAST(as InputElement);
     if (type != null) {
       try {
         // IE throws an exception for unknown types.
@@ -50,6 +50,27 @@ $!MEMBERS
  * Exposes the functionality common between all InputElement types.
  */
 abstract class InputElementBase implements Element {
+$if NNBD
+  // These fields here and below are overridden by generated code and therefore
+  // can't be nullable. Opted to translate these fields to getters/setters.
+  bool get autofocus;
+  set autofocus(bool value);
+
+  bool get disabled;
+  set disabled(bool value);
+
+  bool get incremental;
+  set incremental(bool value);
+
+  bool get indeterminate;
+  set indeterminate(bool value);
+
+  String get name;
+  set name(String value);
+
+  String get value;
+  set value(String value);
+$else
   bool autofocus;
 
   bool disabled;
@@ -58,15 +79,16 @@ abstract class InputElementBase implements Element {
 
   bool indeterminate;
 
-  List<Node> get labels;
-
   String name;
+
+  String value;
+$endif
+
+  List<Node> get labels;
 
   String get validationMessage;
 
   ValidityState get validity;
-
-  String value;
 
   bool get willValidate;
 
@@ -87,6 +109,28 @@ abstract class HiddenInputElement implements InputElementBase {
  * Base interface for all inputs which involve text editing.
  */
 abstract class TextInputElementBase implements InputElementBase {
+$if NNBD
+  String get autocomplete;
+  set autocomplete(String value);
+
+  int get maxLength;
+  set maxLength(int value);
+
+  String get pattern;
+  set pattern(String value);
+
+  String get placeholder;
+  set placeholder(String value);
+
+  bool get readOnly;
+  set readOnly(bool value);
+
+  bool get required;
+  set required(bool value);
+
+  int get size;
+  set size(int value);
+$else
   String autocomplete;
 
   int maxLength;
@@ -100,16 +144,17 @@ abstract class TextInputElementBase implements InputElementBase {
   bool required;
 
   int size;
+$endif
 
   void select();
 
-  String selectionDirection;
+  String$NULLABLE selectionDirection;
 
-  int selectionEnd;
+  int$NULLABLE selectionEnd;
 
-  int selectionStart;
+  int$NULLABLE selectionStart;
 
-  void setSelectionRange(int start, int end, [String direction]);
+  void setSelectionRange(int start, int end, [String$NULLABLE direction]);
 }
 
 /**
@@ -241,6 +286,19 @@ abstract class RangeInputElementBase implements InputElementBase {
 
   Element$NULLABLE get list;
 
+$if NNBD
+  String get max;
+  set max(String value);
+
+  String get min;
+  set min(String value);
+
+  String get step;
+  set step(String value);
+
+  num get valueAsNumber;
+  set valueAsNumber(num value);
+$else
   String max;
 
   String min;
@@ -248,10 +306,11 @@ abstract class RangeInputElementBase implements InputElementBase {
   String step;
 
   num valueAsNumber;
+$endif
 
-  void stepDown([int n]);
+  void stepDown([int$NULLABLE n]);
 
-  void stepUp([int n]);
+  void stepUp([int$NULLABLE n]);
 }
 
 /**
@@ -443,7 +502,7 @@ abstract class FileUploadInputElement implements InputElementBase {
 
   bool required;
 
-  List<File> files;
+  List<File>$NULLABLE files;
 }
 
 /**

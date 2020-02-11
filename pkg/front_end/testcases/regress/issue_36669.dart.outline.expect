@@ -10,7 +10,7 @@ class MixMeIn extends core::Object {
   synthetic constructor •() → self::MixMeIn*
     ;
 }
-abstract class _Foo&NoUnnamedConstuctor&MixMeIn = self::NoUnnamedConstuctor with self::MixMeIn {
+abstract class _Foo&NoUnnamedConstuctor&MixMeIn = self::NoUnnamedConstuctor with self::MixMeIn /*isAnonymousMixin*/  {
   synthetic constructor _() → self::_Foo&NoUnnamedConstuctor&MixMeIn*
     : super self::NoUnnamedConstuctor::_()
     ;

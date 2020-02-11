@@ -119,11 +119,12 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
       Constructor referenceFrom,
       [String nativeMethodName])
       : _constructor = new Constructor(null,
-            fileUri: compilationUnit?.fileUri,
+            fileUri: compilationUnit.fileUri,
             reference: referenceFrom?.reference)
           ..startFileOffset = startCharOffset
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset,
+          ..fileEndOffset = charEndOffset
+          ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault,
         super(metadata, modifiers, returnType, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName);
 

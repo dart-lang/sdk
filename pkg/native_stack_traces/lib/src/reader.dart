@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math';
 
@@ -16,9 +17,16 @@ class Reader {
 
   int _offset = 0;
 
-  Reader.fromTypedData(TypedData data, {this.wordSize, this.endian})
+  /// Unless provided, [wordSize] and [endian] are initialized to values that
+  /// ensure no reads are made that depend on their value (e.g., readBytes).
+  Reader.fromTypedData(TypedData data, {this.wordSize = -1, this.endian})
       : bdata =
             ByteData.view(data.buffer, data.offsetInBytes, data.lengthInBytes);
+
+  Reader.fromFile(String path, {this.wordSize, this.endian})
+      // TODO(sstrickl): Once Dart > 2.7.1 has been released, rewrite
+      // ByteData.view(<x>.buffer) => ByteData.sublistView(<x>).
+      : bdata = ByteData.view(File(path).readAsBytesSync().buffer);
 
   Reader copy() =>
       Reader.fromTypedData(bdata, wordSize: wordSize, endian: endian);
@@ -113,6 +121,12 @@ class Reader {
       }
     }
     return ret;
+  }
+
+  Iterable<S> readRepeated<S>(S Function(Reader) callback) sync* {
+    while (!done) {
+      yield callback(this);
+    }
   }
 
   String dumpCurrentReaderPosition({int maxSize = 0, int bytesPerLine = 16}) {

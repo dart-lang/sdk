@@ -82,6 +82,7 @@ bool _subtypeTest(Type a, Type b) native 'TypeMirror_subtypeTest';
 class _MirrorSystem extends MirrorSystem {
   final TypeMirror dynamicType = new _SpecialTypeMirror._('dynamic');
   final TypeMirror voidType = new _SpecialTypeMirror._('void');
+  final TypeMirror neverType = new _SpecialTypeMirror._('Never');
 
   var _libraries;
   Map<Uri, LibraryMirror> get libraries {
@@ -226,9 +227,9 @@ abstract class _ObjectMirror extends Mirror implements ObjectMirror {
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List.filled(numArguments, null);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List.filled(numNamedArguments, null);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -316,10 +317,10 @@ class _InstanceMirror extends _ObjectMirror implements InstanceMirror {
     int numPositionalArguments = positionalArguments.length + 1; // Receiver.
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List.filled(numArguments, null);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments[0] = _reflectee; // Receiver.
     arguments.setRange(1, numPositionalArguments, positionalArguments);
-    List names = new List.filled(numNamedArguments, null);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -651,9 +652,9 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     int numPositionalArguments = positionalArguments.length;
     int numNamedArguments = namedArguments.length;
     int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List.filled(numArguments, null);
+    List arguments = new List<dynamic>.filled(numArguments, null);
     arguments.setRange(0, numPositionalArguments, positionalArguments);
-    List names = new List.filled(numNamedArguments, null);
+    List names = new List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
@@ -682,13 +683,15 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
 
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     final otherReflectedType = (other as _TypeMirror)._reflectedType;
     return _subtypeTest(_reflectedType, otherReflectedType) ||
         _subtypeTest(otherReflectedType, _reflectedType);
@@ -890,13 +893,15 @@ class _TypeVariableMirror extends _DeclarationMirror
 
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     final otherReflectedType = (other as _TypeMirror)._reflectedType;
     return _subtypeTest(_reflectedType, otherReflectedType) ||
         _subtypeTest(otherReflectedType, _reflectedType);
@@ -992,13 +997,15 @@ class _TypedefMirror extends _DeclarationMirror
 
   bool isSubtypeOf(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     return _subtypeTest(_reflectedType, (other as _TypeMirror)._reflectedType);
   }
 
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
-    if (other == currentMirrorSystem().voidType) return false;
+    if (other == currentMirrorSystem().voidType) return true;
+    if (other == currentMirrorSystem().neverType) return false;
     final otherReflectedType = (other as _TypeMirror)._reflectedType;
     return _subtypeTest(_reflectedType, otherReflectedType) ||
         _subtypeTest(otherReflectedType, _reflectedType);

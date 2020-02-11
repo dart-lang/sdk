@@ -84,7 +84,6 @@ const mapIntStringEncoding = 'DartType.MAP_INT_STRING';
 const nullEncoding = 'DartType.NULL';
 const nullThrownErrorEncoding = 'DartType.NULLTHROWNERROR';
 const numEncoding = 'DartType.NUM';
-const outOfMemoryErrorEncoding = 'DartType.OUTOFMEMORYERROR';
 const provisionalEncoding = 'DartType.PROVISIONAL';
 const rangeErrorEncoding = 'DartType.RANGEERROR';
 const regExpEncoding = 'DartType.REGEXP';
@@ -146,7 +145,6 @@ final mapLibs = 'mapLibs';
 final nullLibs = 'nullLibs';
 final nullThrownErrorLibs = 'nullThrownErrorLibs';
 final numLibs = 'numLibs';
-final outOfMemoryErrorLibs = 'outOfMemoryErrorLibs';
 final provisionalLibs = 'provisionalLibs';
 final rangeErrorLibs = 'rangeErrorLibs';
 final regExpLibs = 'regExpLibs';
@@ -208,7 +206,6 @@ final Map<String, String> typeToLibraryMethodsListName = {
   nullEncoding: nullLibs,
   nullThrownErrorEncoding: nullThrownErrorLibs,
   numEncoding: numLibs,
-  outOfMemoryErrorEncoding: outOfMemoryErrorLibs,
   provisionalEncoding: provisionalLibs,
   rangeErrorEncoding: rangeErrorLibs,
   regExpEncoding: regExpLibs,
@@ -273,7 +270,6 @@ final Map<String, List<DartLib>> typeToLibraryMethodsList = {
   nullEncoding: <DartLib>[],
   nullThrownErrorEncoding: <DartLib>[],
   numEncoding: <DartLib>[],
-  outOfMemoryErrorEncoding: <DartLib>[],
   provisionalEncoding: <DartLib>[],
   rangeErrorEncoding: <DartLib>[],
   regExpEncoding: <DartLib>[],
@@ -538,8 +534,6 @@ String typeString(DartType type) {
       return nullEncoding;
     case 'NullThrownError':
       return nullThrownErrorEncoding;
-    case 'OutOfMemoryError':
-      return outOfMemoryErrorEncoding;
     case 'Provisional':
       return provisionalEncoding;
     case 'RangeError':

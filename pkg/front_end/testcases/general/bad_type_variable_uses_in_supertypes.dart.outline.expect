@@ -174,7 +174,7 @@ class Ei<T extends core::Object* = dynamic> = core::Object with self::Empty {
   synthetic constructor •() → self::Ei<self::Ei::T*>*
     ;
 }
-abstract class _F&Object&A<T extends core::Object* = dynamic> extends core::Object {
+abstract class _F&Object&A<T extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_F&Object&A<self::_F&Object&A::T*>*
     : super core::Object::•()
     ;
@@ -183,7 +183,7 @@ class F<T extends core::Object* = dynamic> extends self::_F&Object&A<self::F::T*
   synthetic constructor •() → self::F<self::F::T*>*
     ;
 }
-abstract class _Fc&Object&A<T extends core::Object* = dynamic> extends core::Object {
+abstract class _Fc&Object&A<T extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_Fc&Object&A<self::_Fc&Object&A::T*>*
     : super core::Object::•()
     ;
@@ -192,7 +192,7 @@ class Fc<T extends core::Object* = dynamic> extends self::_Fc&Object&A<self::Fc:
   synthetic constructor •() → self::Fc<self::Fc::T*>*
     ;
 }
-abstract class _Fi&Object&A<T extends core::Object* = dynamic> extends core::Object {
+abstract class _Fi&Object&A<T extends core::Object* = dynamic> extends core::Object /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_Fi&Object&A<self::_Fi&Object&A::T*>*
     : super core::Object::•()
     ;
@@ -201,7 +201,7 @@ class Fi<T extends core::Object* = dynamic> extends self::_Fi&Object&A<self::Fi:
   synthetic constructor •() → self::Fi<self::Fi::T*>*
     ;
 }
-abstract class _G&A&Empty<T extends core::Object* = dynamic> = core::Object with self::Empty {
+abstract class _G&A&Empty<T extends core::Object* = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_G&A&Empty<self::_G&A&Empty::T*>*
     ;
 }
@@ -209,7 +209,7 @@ class G<T extends core::Object* = dynamic> extends self::_G&A&Empty<self::G::T*>
   synthetic constructor •() → self::G<self::G::T*>*
     ;
 }
-abstract class _Gc&A&Empty<T extends core::Object* = dynamic> = core::Object with self::Empty {
+abstract class _Gc&A&Empty<T extends core::Object* = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Gc&A&Empty<self::_Gc&A&Empty::T*>*
     ;
 }
@@ -217,7 +217,7 @@ class Gc<T extends core::Object* = dynamic> extends self::_Gc&A&Empty<self::Gc::
   synthetic constructor •() → self::Gc<self::Gc::T*>*
     ;
 }
-abstract class _Gi&A&Empty<T extends core::Object* = dynamic> = core::Object with self::Empty {
+abstract class _Gi&A&Empty<T extends core::Object* = dynamic> = core::Object with self::Empty /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Gi&A&Empty<self::_Gi&A&Empty::T*>*
     ;
 }

@@ -170,7 +170,9 @@ class SourceClassBuilder extends ClassBuilderImpl
         referencesFrom = referencesFrom,
         referencesFromIndexed = referencesFromIndexed,
         super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            onTypes, scope, constructors, parent, nameOffset);
+            onTypes, scope, constructors, parent, nameOffset) {
+    actualCls.hasConstConstructor = hasConstConstructor;
+  }
 
   @override
   Class get cls => origin.actualCls;
@@ -450,7 +452,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             returnType: substitution.substituteType(field.type)),
         fileUri: field.fileUri,
         reference: referenceFrom?.reference)
-      ..fileOffset = field.fileOffset;
+      ..fileOffset = field.fileOffset
+      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
     transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, getter);
     cls.procedures.add(getter);
     getter.parent = cls;
@@ -482,7 +485,8 @@ class SourceClassBuilder extends ClassBuilderImpl
             returnType: const VoidType()),
         fileUri: field.fileUri,
         reference: referenceFrom?.reference)
-      ..fileOffset = field.fileOffset;
+      ..fileOffset = field.fileOffset
+      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
     transformProcedureToNoSuchMethodForwarder(noSuchMethod, target, setter);
     cls.procedures.add(setter);
     setter.parent = cls;

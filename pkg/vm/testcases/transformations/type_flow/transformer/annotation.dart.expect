@@ -4,17 +4,17 @@ import "dart:core" as core;
 
 @#C5
 typedef SomeType<contravariant T extends core::Object* = dynamic> = (core::List<T*>*) →* void;
-abstract class ClassAnnotation2 extends core::Object {
+abstract class ClassAnnotation2 extends core::Object /*hasConstConstructor*/  {
 }
-abstract class MethodAnnotation extends core::Object {
+abstract class MethodAnnotation extends core::Object /*hasConstConstructor*/  {
 [@vm.unreachable.metadata=] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  final field core::int* x;
 }
-abstract class TypedefAnnotation extends core::Object {
+abstract class TypedefAnnotation extends core::Object /*hasConstConstructor*/  {
 [@vm.unreachable.metadata=] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  final field core::List<core::int*>* list;
 }
-abstract class VarAnnotation extends core::Object {
+abstract class VarAnnotation extends core::Object /*hasConstConstructor*/  {
 }
-abstract class ParametrizedAnnotation<T extends core::Object* = dynamic> extends core::Object {
+abstract class ParametrizedAnnotation<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
 [@vm.unreachable.metadata=] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  final field self::ParametrizedAnnotation::T* foo;
 }
 abstract class A extends core::Object {

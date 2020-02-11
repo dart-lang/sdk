@@ -6,8 +6,8 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
-  factory $CLASSNAME(String title, {String dir: null, String body: null,
-      String lang: null, String tag: null, String icon: null}) {
+  factory $CLASSNAME(String title, {String$NULLABLE dir, String$NULLABLE body,
+      String$NULLABLE lang, String$NULLABLE tag, String$NULLABLE icon}) {
 
     var parsedOptions = {};
     if (dir != null) parsedOptions['dir'] = dir;

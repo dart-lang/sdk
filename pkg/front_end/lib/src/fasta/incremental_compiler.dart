@@ -129,7 +129,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   List<LibraryBuilder> platformBuilders;
   Map<Uri, LibraryBuilder> userBuilders;
   final Uri initializeFromDillUri;
-  final Component componentToInitializeFrom;
+  Component componentToInitializeFrom;
   bool initializedFromDill = false;
   bool initializedIncrementalSerializer = false;
   Uri previousPackagesUri;
@@ -213,13 +213,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       KernelTarget userCodeOld = userCode;
       setupNewUserCode(c, uriTranslator, hierarchy, reusedLibraries,
           experimentalInvalidation, entryPoints.first);
-      Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap =
+      Map<LibraryBuilder, List<LibraryBuilder>> rebuildBodiesMap =
           experimentalInvalidationCreateRebuildBodiesBuilders(
               experimentalInvalidation, uriTranslator);
       entryPoints = userCode.setEntryPoints(entryPoints);
       await userCode.loader.buildOutlines();
       experimentalInvalidationPatchUpScopes(
           experimentalInvalidation, rebuildBodiesMap);
+      rebuildBodiesMap = null;
 
       // Checkpoint: Build the actual outline.
       // Note that the [Component] is not the "full" component.
@@ -277,9 +278,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (componentWithDill == null) {
         userCode.loader.builders.clear();
         userCode = userCodeOld;
+        dillLoadedData.loader.currentSourceLoader = userCode.loader;
       } else {
-        previousSourceBuilders = await convertSourceLibraryBuildersToDill();
+        previousSourceBuilders =
+            await convertSourceLibraryBuildersToDill(experimentalInvalidation);
       }
+
+      experimentalInvalidation = null;
 
       // Output result.
       Procedure mainMethod = componentWithDill == null
@@ -295,11 +300,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Convert every SourceLibraryBuilder to a DillLibraryBuilder.
   /// As we always do this, this will only be the new ones.
   ///
+  /// If doing experimental invalidation that means that some of the old dill
+  /// library builders might have links (via export scopes) to the
+  /// source builders and they will thus be patched up here too.
+  ///
   /// Returns the set of Libraries that now has new (dill) builders.
-  Future<Set<Library>> convertSourceLibraryBuildersToDill() async {
+  Future<Set<Library>> convertSourceLibraryBuildersToDill(
+      ExperimentalInvalidation experimentalInvalidation) async {
     bool changed = false;
     Set<Library> newDillLibraryBuilders = new Set<Library>();
     userBuilders ??= <Uri, LibraryBuilder>{};
+    Map<LibraryBuilder, List<LibraryBuilder>> convertedLibraries;
     for (MapEntry<Uri, LibraryBuilder> entry
         in userCode.loader.builders.entries) {
       if (entry.value is SourceLibraryBuilder) {
@@ -309,14 +320,53 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         userCode.loader.builders[entry.key] = dillBuilder;
         userBuilders[entry.key] = dillBuilder;
         newDillLibraryBuilders.add(builder.library);
+        if (userCode.loader.first == builder) {
+          userCode.loader.first = dillBuilder;
+        }
         changed = true;
+        if (experimentalInvalidation != null) {
+          convertedLibraries ??=
+              new Map<LibraryBuilder, List<LibraryBuilder>>();
+          convertedLibraries[builder] = [dillBuilder];
+        }
       }
     }
     if (changed) {
       // We suppress finalization errors because they have already been
       // reported.
       await dillLoadedData.buildOutlines(suppressFinalizationErrors: true);
+
+      if (experimentalInvalidation != null) {
+        /// If doing experimental invalidation that means that some of the old
+        /// dill library builders might have links (via export scopes) to the
+        /// source builders. Patch that up.
+
+        // Maps from old library builder to map of new content.
+        Map<LibraryBuilder, Map<String, Builder>> replacementMap = {};
+
+        // Maps from old library builder to map of new content.
+        Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap = {};
+
+        experimentalInvalidationFillReplacementMaps(
+            convertedLibraries, replacementMap, replacementSettersMap);
+
+        for (LibraryBuilder builder
+            in experimentalInvalidation.originalNotReusedLibraries) {
+          DillLibraryBuilder dillBuilder = builder;
+          if (dillBuilder.isBuilt) {
+            dillBuilder.exportScope
+                .patchUpScope(replacementMap, replacementSettersMap);
+          }
+        }
+        replacementMap = null;
+        replacementSettersMap = null;
+      }
     }
+    userCode.loader.buildersCreatedWithReferences.clear();
+    userCode.loader.builderHierarchy.nodes.clear();
+    userCode.loader.referenceFromIndex = null;
+    convertedLibraries = null;
+    experimentalInvalidation = null;
     if (userBuilders.isEmpty) userBuilders = null;
     return newDillLibraryBuilders;
   }
@@ -415,17 +465,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// Fill in the replacement maps that describe the replacements that need to
   /// happen because of experimental invalidation.
   void experimentalInvalidationFillReplacementMaps(
-      Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap,
+      Map<LibraryBuilder, List<LibraryBuilder>> rebuildBodiesMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementMap,
       Map<LibraryBuilder, Map<String, Builder>> replacementSettersMap) {
-    for (MapEntry<LibraryBuilder, List<SourceLibraryBuilder>> entry
+    for (MapEntry<LibraryBuilder, List<LibraryBuilder>> entry
         in rebuildBodiesMap.entries) {
       Map<String, Builder> childReplacementMap = {};
       Map<String, Builder> childReplacementSettersMap = {};
-      List<SourceLibraryBuilder> builders = rebuildBodiesMap[entry.key];
+      List<LibraryBuilder> builders = rebuildBodiesMap[entry.key];
       replacementMap[entry.key] = childReplacementMap;
       replacementSettersMap[entry.key] = childReplacementSettersMap;
-      for (SourceLibraryBuilder builder in builders) {
+      for (LibraryBuilder builder in builders) {
         NameIterator iterator = builder.nameIterator;
         while (iterator.moveNext()) {
           Builder childBuilder = iterator.current;
@@ -450,22 +500,22 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// When doing experimental invalidation, we have some builders that needs to
   /// be rebuild special, namely they have to be [userCode.loader.read] with
   /// references from the original [Library] for things to work.
-  Map<LibraryBuilder, List<SourceLibraryBuilder>>
+  Map<LibraryBuilder, List<LibraryBuilder>>
       experimentalInvalidationCreateRebuildBodiesBuilders(
           ExperimentalInvalidation experimentalInvalidation,
           UriTranslator uriTranslator) {
     // Any builder(s) in [rebuildBodies] should be semi-reused: Create source
     // builders based on the underlying libraries.
     // Maps from old library builder to list of new library builder(s).
-    Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap =
-        new Map<LibraryBuilder, List<SourceLibraryBuilder>>.identity();
+    Map<LibraryBuilder, List<LibraryBuilder>> rebuildBodiesMap =
+        new Map<LibraryBuilder, List<LibraryBuilder>>.identity();
     if (experimentalInvalidation != null) {
       for (LibraryBuilder library in experimentalInvalidation.rebuildBodies) {
         LibraryBuilder newBuilder = userCode.loader.read(library.importUri, -1,
             accessor: userCode.loader.first,
             fileUri: library.fileUri,
             referencesFrom: library.library);
-        List<SourceLibraryBuilder> builders = [newBuilder];
+        List<LibraryBuilder> builders = [newBuilder];
         rebuildBodiesMap[library] = builders;
         for (LibraryPart part in library.library.parts) {
           // We need to pass the reference to make any class, procedure etc
@@ -492,7 +542,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   /// didn't do anything special.
   void experimentalInvalidationPatchUpScopes(
       ExperimentalInvalidation experimentalInvalidation,
-      Map<LibraryBuilder, List<SourceLibraryBuilder>> rebuildBodiesMap) {
+      Map<LibraryBuilder, List<LibraryBuilder>> rebuildBodiesMap) {
     if (experimentalInvalidation != null) {
       // Maps from old library builder to map of new content.
       Map<LibraryBuilder, Map<String, Builder>> replacementMap = {};
@@ -557,8 +607,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               }
             }
           }
+        } else if (builder is DillLibraryBuilder) {
+          DillLibraryBuilder dillBuilder = builder;
+          // There's only something to patch up if it was build already.
+          if (dillBuilder.isBuilt) {
+            dillBuilder.exportScope
+                .patchUpScope(replacementMap, replacementSettersMap);
+          }
         } else {
-          throw "Currently unsupported";
+          throw new StateError(
+              "Unexpected builder: $builder (${builder.runtimeType})");
         }
       }
     }
@@ -581,6 +639,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         dillLoadedData,
         uriTranslator);
     userCode.loader.hierarchy = hierarchy;
+    dillLoadedData.loader.currentSourceLoader = userCode.loader;
 
     // Re-use the libraries we've deemed re-usable.
     for (LibraryBuilder library in reusedLibraries) {
@@ -754,6 +813,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // rebuild the bodies.
     for (int i = 0; i < reusedResult.directlyInvalidated.length; i++) {
       LibraryBuilder builder = reusedResult.directlyInvalidated[i];
+      if (builder.library.problemsAsJson != null) {
+        assert(builder.library.problemsAsJson.isNotEmpty);
+        return null;
+      }
       Iterator<Builder> iterator = builder.iterator;
       while (iterator.moveNext()) {
         Builder childBuilder = iterator.current;
@@ -866,6 +929,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         // If initializing from a component it has to include the sdk,
         // so we explicitly don't load it here.
         initializeFromComponent(uriTranslator, c, data);
+        componentToInitializeFrom = null;
       } else {
         List<int> summaryBytes = await c.options.loadSdkSummaryBytes();
         bytesLength = prepareSummary(summaryBytes, uriTranslator, c, data);
@@ -1518,7 +1582,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       Procedure procedure = new Procedure(
           new Name(syntheticProcedureName), ProcedureKind.Method, parameters,
-          isStatic: isStatic);
+          isStatic: isStatic)
+        ..isNonNullableByDefault = debugLibrary.isNonNullableByDefault;
 
       parameters.body = new ReturnStatement(compiledExpression)
         ..parent = parameters;

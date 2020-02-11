@@ -115,7 +115,7 @@ HtmlDocument get document =>
 /// On a successful result the native JS result will be converted to a Dart Map.
 /// See [convertNativeToDart_Dictionary]. On a rejected promise the error is
 /// forwarded without change.
-Future<Map<String, dynamic>> promiseToFutureAsMap(jsPromise) =>
+Future<Map<String, dynamic>$NULLABLE> promiseToFutureAsMap(jsPromise) =>
   promiseToFuture(jsPromise).then(convertNativeToDart_Dictionary);
 
 // Workaround for tags like <cite> that lack their own Element subclass --
@@ -132,7 +132,16 @@ class HtmlElement extends Element implements NoncedElement {
   HtmlElement.created() : super.created();
 
   // From NoncedElement
+$if NNBD
+  String get nonce => JS("String", "#.nonce", this);
+
+  set nonce(String value) {
+    JS("void", "#.nonce = #", this, value);
+  }
+$else
   String nonce;
+$endif
+
 }
 
 /**

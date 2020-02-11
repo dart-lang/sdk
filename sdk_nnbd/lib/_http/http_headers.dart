@@ -624,12 +624,12 @@ class _HttpHeaders implements HttpHeaders {
 
 class _HeaderValue implements HeaderValue {
   String _value;
-  Map<String, String?>? _parameters;
-  Map<String, String?>? _unmodifiableParameters;
+  Map<String, String>? _parameters;
+  Map<String, String>? _unmodifiableParameters;
 
-  _HeaderValue([this._value = "", Map<String, String?>? parameters]) {
+  _HeaderValue([this._value = "", Map<String, String>? parameters]) {
     if (parameters != null) {
-      _parameters = new HashMap<String, String?>.from(parameters);
+      _parameters = new HashMap<String, String>.from(parameters);
     }
   }
 
@@ -645,10 +645,10 @@ class _HeaderValue implements HeaderValue {
 
   String get value => _value;
 
-  Map<String, String?> _ensureParameters() =>
-      _parameters ??= HashMap<String, String?>();
+  Map<String, String> _ensureParameters() =>
+      _parameters ??= HashMap<String, String>();
 
-  Map<String, String?> get parameters =>
+  Map<String, String> get parameters =>
       _unmodifiableParameters ??= UnmodifiableMapView(_ensureParameters());
 
   String toString() {
@@ -656,8 +656,12 @@ class _HeaderValue implements HeaderValue {
     sb.write(_value);
     var parameters = this._parameters;
     if (parameters != null && parameters.length > 0) {
-      parameters.forEach((String name, String? value) {
-        sb..write("; ")..write(name)..write("=")..write(value ?? "");
+      parameters.forEach((String name, String value) {
+        sb
+          ..write("; ")
+          ..write(name)
+          ..write("=")
+          ..write(value == "" ? '""' : value);
       });
     }
     return sb.toString();
@@ -717,7 +721,7 @@ class _HeaderValue implements HeaderValue {
         return s.substring(start, index).toLowerCase();
       }
 
-      String? parseParameterValue() {
+      String parseParameterValue() {
         if (!done() && s[index] == "\"") {
           // Parse quoted value.
           StringBuffer sb = new StringBuffer();
@@ -742,8 +746,7 @@ class _HeaderValue implements HeaderValue {
           return sb.toString();
         } else {
           // Parse non-quoted value.
-          var val = parseValue();
-          return val == "" ? null : val;
+          return parseValue();
         }
       }
 
@@ -753,17 +756,17 @@ class _HeaderValue implements HeaderValue {
         String name = parseParameterName();
         skipWS();
         if (done()) {
-          parameters[name] = null;
+          parameters[name] = "";
           return;
         }
         maybeExpect("=");
         skipWS();
         if (done()) {
-          parameters[name] = null;
+          parameters[name] = "";
           return;
         }
-        String? value = parseParameterValue();
-        if (name == 'charset' && this is _ContentType && value != null) {
+        String value = parseParameterValue();
+        if (name == 'charset' && this is _ContentType) {
           // Charset parameter of ContentTypes are always lower-case.
           value = value.toLowerCase();
         }
@@ -790,17 +793,17 @@ class _ContentType extends _HeaderValue implements ContentType {
   String _subType = "";
 
   _ContentType(String primaryType, String subType, String? charset,
-      Map<String, String?>? parameters)
+      Map<String, String>? parameters)
       : _primaryType = primaryType,
         _subType = subType,
         super("") {
     _value = "$_primaryType/$_subType";
     if (parameters != null) {
       var parameterMap = _ensureParameters();
-      parameters.forEach((String key, String? value) {
+      parameters.forEach((String key, String value) {
         String lowerCaseKey = key.toLowerCase();
         if (lowerCaseKey == "charset") {
-          value = value?.toLowerCase();
+          value = value.toLowerCase();
         }
         parameterMap[lowerCaseKey] = value;
       });

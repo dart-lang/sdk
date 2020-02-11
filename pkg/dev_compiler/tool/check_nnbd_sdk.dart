@@ -46,11 +46,60 @@ void main(List<String> argv) {
     '--nnbd',
   ]);
 
-  var emptyProgramUri = baseUri.resolve('empty_program.dart');
-  File.fromUri(emptyProgramUri).writeAsStringSync('''
+  var isWeb = false;
+  var isNative = false;
+  switch (target) {
+    case 'dartdevc':
+    case 'dart2js':
+      isWeb = true;
+      break;
+    case 'flutter':
+    case 'vm':
+      isNative = true;
+      break;
+  }
+
+  var core = '''
+import 'dart:async';
+import 'dart:collection';
+import 'dart:convert';
+import 'dart:core';
+import 'dart:developer';
+import 'dart:math';
+import 'dart:typed_data';
+''';
+
+  var web = !isWeb
+      ? ''
+      : '''
 import 'dart:js';
 import 'dart:js_util';
+import 'dart:indexed_db';
 import 'dart:html';
+import 'dart:html_common';
+import 'dart:svg';
+import 'dart:web_audio';
+import 'dart:web_gl';
+import 'dart:web_sql';
+''';
+
+  var native = !isNative
+      ? '''
+import 'dart:io';
+import 'dart:isolate';
+'''
+      : '''
+import 'dart:ffi';
+import 'dart:io';
+import 'dart:isolate';
+import 'dart:mirrors';
+''';
+
+  var emptyProgramUri = baseUri.resolve('empty_program.dart');
+  File.fromUri(emptyProgramUri).writeAsStringSync('''
+$core
+$web
+$native
 
 main() {}
 ''');

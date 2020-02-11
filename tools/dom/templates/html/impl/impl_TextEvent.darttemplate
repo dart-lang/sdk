@@ -8,11 +8,12 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
-    {bool canBubble: false, bool cancelable: false, Window view, String data}) {
+    {bool canBubble: false, bool cancelable: false, Window$NULLABLE view,
+     String$NULLABLE data}) {
     if (view == null) {
       view = window;
     }
-    TextEvent e = document._createEvent("TextEvent");
+    TextEvent e = document._createEvent("TextEvent") $#NULLSAFECAST(as TextEvent);
     e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }

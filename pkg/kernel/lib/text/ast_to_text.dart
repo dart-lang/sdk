@@ -409,6 +409,9 @@ class Printer extends Visitor<Null> {
     if (library.name != null) {
       writeWord(library.name);
     }
+    if (library.isNonNullableByDefault) {
+      writeWord("/*isNonNullableByDefault*/");
+    }
     endLine(';');
 
     LibraryImportTable imports = new LibraryImportTable(library);
@@ -1071,11 +1074,23 @@ class Printer extends Visitor<Null> {
       writeSpaced('=');
       writeExpression(node.initializer);
     }
+    List<String> features = <String>[];
+    if (node.enclosingLibrary.isNonNullableByDefault !=
+        node.isNonNullableByDefault) {
+      if (node.isNonNullableByDefault) {
+        features.add("isNonNullableByDefault");
+      } else {
+        features.add("isNullableByDefault");
+      }
+    }
     if ((node.enclosingClass == null &&
             node.enclosingLibrary.fileUri != node.fileUri) ||
         (node.enclosingClass != null &&
             node.enclosingClass.fileUri != node.fileUri)) {
-      writeWord("/* from ${node.fileUri} */");
+      features.add(" from ${node.fileUri} ");
+    }
+    if (features.isNotEmpty) {
+      writeWord("/*${features.join(',')}*/");
     }
     endLine(';');
   }
@@ -1091,11 +1106,23 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isMemberSignature, 'member-signature');
     writeModifier(node.isNoSuchMethodForwarder, 'no-such-method-forwarder');
     writeWord(procedureKindToString(node.kind));
+    List<String> features = <String>[];
+    if (node.enclosingLibrary.isNonNullableByDefault !=
+        node.isNonNullableByDefault) {
+      if (node.isNonNullableByDefault) {
+        features.add("isNonNullableByDefault");
+      } else {
+        features.add("isNullableByDefault");
+      }
+    }
     if ((node.enclosingClass == null &&
             node.enclosingLibrary.fileUri != node.fileUri) ||
         (node.enclosingClass != null &&
             node.enclosingClass.fileUri != node.fileUri)) {
-      writeWord("/* from ${node.fileUri} */");
+      features.add(" from ${node.fileUri} ");
+    }
+    if (features.isNotEmpty) {
+      writeWord("/*${features.join(',')}*/");
     }
     writeFunction(node.function, name: getMemberName(node));
   }
@@ -1107,6 +1134,18 @@ class Printer extends Visitor<Null> {
     writeModifier(node.isConst, 'const');
     writeModifier(node.isSynthetic, 'synthetic');
     writeWord('constructor');
+    List<String> features = <String>[];
+    if (node.enclosingLibrary.isNonNullableByDefault !=
+        node.isNonNullableByDefault) {
+      if (node.isNonNullableByDefault) {
+        features.add("isNonNullableByDefault");
+      } else {
+        features.add("isNullableByDefault");
+      }
+    }
+    if (features.isNotEmpty) {
+      writeWord("/*${features.join(',')}*/");
+    }
     writeFunction(node.function,
         name: node.name, initializers: node.initializers);
   }
@@ -1131,6 +1170,18 @@ class Printer extends Visitor<Null> {
       writeList(node.typeArguments, writeType);
       writeSymbol('>');
     }
+    List<String> features = <String>[];
+    if (node.enclosingLibrary.isNonNullableByDefault !=
+        node.isNonNullableByDefault) {
+      if (node.isNonNullableByDefault) {
+        features.add("isNonNullableByDefault");
+      } else {
+        features.add("isNullableByDefault");
+      }
+    }
+    if (features.isNotEmpty) {
+      writeWord("/*${features.join(',')}*/");
+    }
     endLine(';');
   }
 
@@ -1153,6 +1204,25 @@ class Printer extends Visitor<Null> {
     if (node.implementedTypes.isNotEmpty) {
       writeSpaced('implements');
       writeList(node.implementedTypes, visitSupertype);
+    }
+    List<String> features = <String>[];
+    if (node.isEnum) {
+      features.add('isEnum');
+    }
+    if (node.isAnonymousMixin) {
+      features.add('isAnonymousMixin');
+    }
+    if (node.isEliminatedMixin) {
+      features.add('isEliminatedMixin');
+    }
+    if (node.isMixinDeclaration) {
+      features.add('isMixinDeclaration');
+    }
+    if (node.hasConstConstructor) {
+      features.add('hasConstConstructor');
+    }
+    if (features.isNotEmpty) {
+      writeSpaced('/*${features.join(',')}*/');
     }
     var endLineString = ' {';
     if (node.enclosingLibrary.fileUri != node.fileUri) {
@@ -2108,7 +2178,7 @@ class Printer extends Visitor<Null> {
   }
 
   visitNeverType(NeverType node) {
-    write('Never');
+    writeWord('Never');
     writeNullability(node.nullability);
   }
 

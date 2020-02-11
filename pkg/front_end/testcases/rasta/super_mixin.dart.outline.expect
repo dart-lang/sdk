@@ -13,7 +13,7 @@ class Super<S extends core::Object* = dynamic> extends core::Object {
   method f() → dynamic
     ;
 }
-abstract class _C&Super&Mixin<V extends core::Object* = dynamic> = self::Super<self::_C&Super&Mixin::V*> with mix::Mixin<self::_C&Super&Mixin::V*> {
+abstract class _C&Super&Mixin<V extends core::Object* = dynamic> = self::Super<self::_C&Super&Mixin::V*> with mix::Mixin<self::_C&Super&Mixin::V*> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C&Super&Mixin<self::_C&Super&Mixin::V*>*
     : super self::Super::•()
     ;
@@ -22,7 +22,7 @@ class C<V extends core::Object* = dynamic> extends self::_C&Super&Mixin<self::C:
   synthetic constructor •() → self::C<self::C::V*>*
     ;
 }
-abstract class _D&Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> {
+abstract class _D&Super&Mixin = self::Super<dynamic> with mix::Mixin<dynamic> /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_D&Super&Mixin*
     : super self::Super::•()
     ;

@@ -24,25 +24,11 @@ import '../../../../abstract_single_unit.dart';
 /// A base class defining support for writing fix processor tests that are
 /// specific to fixes associated with lints that use the FixKind.
 abstract class FixProcessorLintTest extends FixProcessorTest {
-  /// The marker used to indicate where the lint is expected to be found.
-  static const lintMarker = '/*LINT*/';
-
   /// The offset of the lint marker in the code being analyzed.
   int lintOffset = -1;
 
   /// Return the lint code being tested.
   String get lintCode;
-
-  @override
-  Future<void> resolveTestUnit(String code) async {
-    lintOffset = code.indexOf(lintMarker);
-    if (lintOffset < 0) {
-      return super.resolveTestUnit(code);
-    }
-    var endOffset = lintOffset + lintMarker.length;
-    code = code.substring(0, lintOffset) + code.substring(endOffset);
-    return super.resolveTestUnit(code);
-  }
 
   @override
   void setUp() {

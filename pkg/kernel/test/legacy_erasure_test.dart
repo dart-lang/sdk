@@ -9,9 +9,9 @@ import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/testing/type_parser_environment.dart';
 
 const Map<String, String> data = {
-  'Null?': 'Null?',
-  'Never': 'Null?',
-  'Never?': 'Null?',
+  'Null': 'Null',
+  'Never': 'Null',
+  'Never?': 'Null',
   'void': 'void',
   'dynamic': 'dynamic',
   'bool': 'bool*',

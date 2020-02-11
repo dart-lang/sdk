@@ -23,63 +23,41 @@ class ReplaceNullWithClosureTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.null_closures;
 
-  /// Currently failing since the LINT annotation is tagging the ArgumentList
-  /// where the fix (and lint) expect a NullLiteral.
-  @failingTest
-  Future<void> test_null_closure_literal() async {
+  Future<void> test_named() async {
     await resolveTestUnit('''
-void f(dynamic x) { }
-main() {
-  f(null/*LINT*/);
+void f(List<int> l) {
+  l.firstWhere((e) => e.isEven, orElse: null);
 }
 ''');
     await assertHasFix('''
-void f(dynamic x) { }
-main() {
-  f(() => null);
+void f(List<int> l) {
+  l.firstWhere((e) => e.isEven, orElse: () => null);
 }
 ''');
   }
 
-  Future<void> test_null_closure_named_expression() async {
+  Future<void> test_named_withArgs() async {
     await resolveTestUnit('''
-main() {
-  [1, 3, 5].firstWhere((e) => e.isEven, orElse: null);
+void f(String s) {
+  s.splitMapJoin('', onNonMatch: null);
 }
 ''');
     await assertHasFix('''
-main() {
-  [1, 3, 5].firstWhere((e) => e.isEven, orElse: () => null);
+void f(String s) {
+  s.splitMapJoin('', onNonMatch: (String nonMatch) => null);
 }
 ''');
   }
 
-  Future<void> test_null_closure_named_expression_with_args() async {
+  Future<void> test_required() async {
     await resolveTestUnit('''
-void f({int closure(x, y)}) { }
-main() {
-  f(closure: /*LINT*/null);
+void f(List<int> l) {
+  l.firstWhere(null);
 }
 ''');
     await assertHasFix('''
-void f({int closure(x, y)}) { }
-main() {
-  f(closure: (x, y) => null);
-}
-''');
-  }
-
-  Future<void> test_null_closure_named_expression_with_args_2() async {
-    await resolveTestUnit('''
-void f({int closure(x, y, {z})}) { }
-main() {
-  f(closure: /*LINT*/null);
-}
-''');
-    await assertHasFix('''
-void f({int closure(x, y, {z})}) { }
-main() {
-  f(closure: (x, y, {z}) => null);
+void f(List<int> l) {
+  l.firstWhere(() => null);
 }
 ''');
   }

@@ -832,7 +832,7 @@ class _RandomAccessFile implements RandomAccessFile {
       return new Future.error(e);
     }
 
-    List request = new List.filled(4, null);
+    List request = new List<dynamic>.filled(4, null);
     request[0] = null;
     request[1] = result.buffer;
     request[2] = result.start;

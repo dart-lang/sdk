@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -78,7 +79,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
         SourceFactory(
           [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
         ),
-        AnalysisOptionsImpl());
+        AnalysisOptionsImpl(),
+        packages: Packages.empty);
     driver.results.forEach(allResults.add);
     return driver;
   }
@@ -1811,6 +1813,24 @@ var A2 = B1;
     expect(result2, same(result1));
     expect(result1.path, testFile);
     expect(result1.unit, isNotNull);
+  }
+
+  test_getSourceKind_changeFile() async {
+    var path = convertPath('/test/lib/test.dart');
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
+
+    newFile(path, content: 'part of foo;');
+    driver.changeFile(path);
+    expect(await driver.getSourceKind(path), SourceKind.PART);
+
+    newFile(path, content: '');
+    driver.changeFile(path);
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
+  }
+
+  test_getSourceKind_doesNotExist() async {
+    var path = convertPath('/test/lib/test.dart');
+    expect(await driver.getSourceKind(path), SourceKind.LIBRARY);
   }
 
   test_getSourceKind_library() async {

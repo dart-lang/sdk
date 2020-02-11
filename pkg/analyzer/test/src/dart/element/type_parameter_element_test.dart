@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:test/test.dart';
@@ -146,11 +148,11 @@ class TypeParameterTypeTest extends _TypeParameterElementBase {
     _setEnclosingElement(T1);
     _setEnclosingElement(T2);
 
-    expect(typeParameterTypeNone(T1) == typeParameterTypeNone(T2), isTrue);
-    expect(typeParameterTypeNone(T2) == typeParameterTypeNone(T1), isTrue);
+    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T2), isTrue);
+    _assertEqual(typeParameterTypeNone(T2), typeParameterTypeNone(T1), isTrue);
 
-    expect(typeParameterTypeNone(T1) == typeParameterTypeStar(T2), isFalse);
-    expect(typeParameterTypeStar(T1) == typeParameterTypeNone(T2), isFalse);
+    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeStar(T2), isFalse);
+    _assertEqual(typeParameterTypeStar(T1), typeParameterTypeNone(T2), isFalse);
   }
 
   test_equal_equalElements_withRecursiveBounds() {
@@ -169,11 +171,11 @@ class TypeParameterTypeTest extends _TypeParameterElementBase {
     _setEnclosingElement(T1);
     _setEnclosingElement(T2);
 
-    expect(typeParameterTypeNone(T1) == typeParameterTypeNone(T2), isTrue);
-    expect(typeParameterTypeNone(T2) == typeParameterTypeNone(T1), isTrue);
+    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T2), isTrue);
+    _assertEqual(typeParameterTypeNone(T2), typeParameterTypeNone(T1), isTrue);
 
-    expect(typeParameterTypeNone(T1) == typeParameterTypeStar(T2), isFalse);
-    expect(typeParameterTypeStar(T1) == typeParameterTypeNone(T2), isFalse);
+    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeStar(T2), isFalse);
+    _assertEqual(typeParameterTypeStar(T1), typeParameterTypeNone(T2), isFalse);
   }
 
   test_equal_sameElement_differentBounds() {
@@ -183,38 +185,55 @@ class TypeParameterTypeTest extends _TypeParameterElementBase {
     var T1 = TypeParameterMember(T, null, typeProvider.intType);
     var T2 = TypeParameterMember(T, null, typeProvider.doubleType);
 
-    expect(typeParameterTypeNone(T1) == typeParameterTypeNone(T1), isTrue);
+    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T1), isTrue);
 
-    expect(typeParameterTypeNone(T1) == typeParameterTypeNone(T2), isFalse);
-    expect(typeParameterTypeNone(T2) == typeParameterTypeNone(T1), isFalse);
+    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T2), isFalse);
+    _assertEqual(typeParameterTypeNone(T2), typeParameterTypeNone(T1), isFalse);
 
-    expect(typeParameterTypeNone(T1) == typeParameterTypeNone(T), isFalse);
-    expect(typeParameterTypeNone(T) == typeParameterTypeNone(T1), isFalse);
+    _assertEqual(typeParameterTypeNone(T1), typeParameterTypeNone(T), isFalse);
+    _assertEqual(typeParameterTypeNone(T), typeParameterTypeNone(T1), isFalse);
   }
 
   test_equal_sameElements() {
     var T = typeParameter('T');
 
-    expect(typeParameterTypeNone(T) == typeParameterTypeNone(T), isTrue);
-    expect(typeParameterTypeNone(T) == typeParameterTypeStar(T), isFalse);
-    expect(typeParameterTypeNone(T) == typeParameterTypeQuestion(T), isFalse);
-
-    expect(typeParameterTypeStar(T) == typeParameterTypeNone(T), isFalse);
-    expect(typeParameterTypeStar(T) == typeParameterTypeStar(T), isTrue);
-    expect(typeParameterTypeNone(T) == typeParameterTypeQuestion(T), isFalse);
-
-    expect(
-      typeParameterTypeQuestion(T) == typeParameterTypeNone(T),
+    _assertEqual(typeParameterTypeNone(T), typeParameterTypeNone(T), isTrue);
+    _assertEqual(typeParameterTypeNone(T), typeParameterTypeStar(T), isFalse);
+    _assertEqual(
+      typeParameterTypeNone(T),
+      typeParameterTypeQuestion(T),
       isFalse,
     );
-    expect(
-      typeParameterTypeQuestion(T) == typeParameterTypeStar(T),
+
+    _assertEqual(typeParameterTypeStar(T), typeParameterTypeNone(T), isFalse);
+    _assertEqual(typeParameterTypeStar(T), typeParameterTypeStar(T), isTrue);
+    _assertEqual(
+      typeParameterTypeNone(T),
+      typeParameterTypeQuestion(T),
       isFalse,
     );
-    expect(
-      typeParameterTypeQuestion(T) == typeParameterTypeQuestion(T),
+
+    _assertEqual(
+      typeParameterTypeQuestion(T),
+      typeParameterTypeNone(T),
+      isFalse,
+    );
+    _assertEqual(
+      typeParameterTypeQuestion(T),
+      typeParameterTypeStar(T),
+      isFalse,
+    );
+    _assertEqual(
+      typeParameterTypeQuestion(T),
+      typeParameterTypeQuestion(T),
       isTrue,
     );
+  }
+
+  void _assertEqual(DartType T1, DartType T2, matcher) {
+    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() async {
+      expect(T1 == T2, matcher);
+    });
   }
 }
 

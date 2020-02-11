@@ -13,14 +13,14 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
+class A extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::A*
     : this self::A::bad()
     ;
   constructor bad() → self::A*
     : super core::Object::•() {}
 }
-class B extends self::A {
+class B extends self::A /*hasConstConstructor*/  {
   const constructor •() → self::B*
     : super self::A::bad()
     ;

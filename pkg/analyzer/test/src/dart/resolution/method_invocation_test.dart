@@ -1725,6 +1725,40 @@ main() {
     );
   }
 
+  test_hasReceiver_interfaceQ_Function_call_checked() async {
+    await assertNoErrorsInCode(r'''
+void main(Function? foo) {
+  foo?.call();
+}
+''');
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('foo?.call()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
+  test_hasReceiver_interfaceQ_Function_call_unchecked() async {
+    await assertErrorsInCode(r'''
+void main(Function? foo) {
+  foo.call();
+}
+''', [
+      error(StaticWarningCode.UNCHECKED_USE_OF_NULLABLE_VALUE, 29, 3),
+    ]);
+
+    assertMethodInvocation2(
+      findNode.methodInvocation('foo.call()'),
+      element: null,
+      typeArgumentTypes: [],
+      invokeType: 'dynamic',
+      type: 'dynamic',
+    );
+  }
+
   test_hasReceiver_interfaceTypeQ_defined() async {
     await assertErrorsInCode(r'''
 class A {

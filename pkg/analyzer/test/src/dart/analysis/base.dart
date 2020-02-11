@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -99,6 +100,7 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
           ResourceUriResolver(resourceProvider)
         ]),
         createAnalysisOptions(),
+        packages: Packages.empty,
         disableChangesAndCacheAllResults: disableChangesAndCacheAllResults,
         enableIndex: true,
         externalSummaries: externalSummaries);

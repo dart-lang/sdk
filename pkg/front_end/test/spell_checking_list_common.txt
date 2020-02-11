@@ -1028,6 +1028,7 @@ exceptions
 exclamation
 exclude
 excluded
+excludes
 excluding
 exclusive
 executable
@@ -3150,6 +3151,7 @@ visit
 visited
 visiting
 visitor
+visitor's
 visual
 vm
 void

@@ -84,11 +84,7 @@ class CompileType : public ZoneAllocated {
 
   // Return true if value of this type is assignable to a location of the
   // given type.
-  bool IsAssignableTo(NNBDMode mode, const AbstractType& type) {
-    bool is_instance;
-    return CanComputeIsInstanceOf(mode, type, kNullable, &is_instance) &&
-           is_instance;
-  }
+  bool IsAssignableTo(NNBDMode mode, const AbstractType& type);
 
   // Create a new CompileType representing given combination of class id and
   // abstract type. The pair is assumed to be coherent.
@@ -188,6 +184,9 @@ class CompileType : public ZoneAllocated {
   // Return true if value of this type is a non-nullable double.
   bool IsDouble() { return !is_nullable() && IsNullableDouble(); }
 
+  // Return true if value of this type is a non-nullable double.
+  bool IsBool() { return !is_nullable() && IsNullableBool(); }
+
   // Return true if value of this type is either int or null.
   bool IsNullableInt() {
     if (cid_ == kSmiCid || cid_ == kMintCid) {
@@ -222,6 +221,17 @@ class CompileType : public ZoneAllocated {
     return false;
   }
 
+  // Return true if value of this type is either double or null.
+  bool IsNullableBool() {
+    if (cid_ == kBoolCid) {
+      return true;
+    }
+    if ((cid_ == kIllegalCid) || (cid_ == kDynamicCid)) {
+      return type_ != nullptr && compiler::IsBoolType(*type_);
+    }
+    return false;
+  }
+
   bool Specialize(GrowableArray<intptr_t>* class_ids);
 
   bool IsNotSmi();
@@ -243,11 +253,6 @@ class CompileType : public ZoneAllocated {
   Definition* owner() const { return owner_; }
 
  private:
-  bool CanComputeIsInstanceOf(NNBDMode mode,
-                              const AbstractType& type,
-                              bool is_nullable,
-                              bool* is_instance);
-
   bool is_nullable_;
   classid_t cid_;
   const AbstractType* type_;

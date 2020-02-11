@@ -115,6 +115,11 @@ class Env {
   DartType parseType(String text) {
     return _libraryEnvironment.parseType(text);
   }
+
+  void extendWithTypeParameters(String typeParameters) {
+    _libraryEnvironment =
+        _libraryEnvironment.extendWithTypeParameters(typeParameters);
+  }
 }
 
 class TypeParserEnvironment {
@@ -229,11 +234,15 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
           arguments[i].accept<Node, TypeParserEnvironment>(this, environment);
     }
     if (declaration is Class) {
+      Nullability nullability =
+          interpretParsedNullability(node.parsedNullability);
       if (declaration.name == 'Null' &&
           declaration.enclosingLibrary.importUri.scheme == 'dart' &&
-          declaration.enclosingLibrary.importUri.path == 'core' &&
-          node.parsedNullability != ParsedNullability.nullable) {
-        throw "Null type must be written as 'Null?'";
+          declaration.enclosingLibrary.importUri.path == 'core') {
+        if (node.parsedNullability != ParsedNullability.omitted) {
+          throw "Null type must be written without explicit nullability";
+        }
+        nullability = Nullability.nullable;
       }
       List<TypeParameter> typeVariables = declaration.typeParameters;
       if (kernelArguments.isEmpty && typeVariables.isNotEmpty) {
@@ -244,8 +253,7 @@ class _KernelFromParsedType implements Visitor<Node, TypeParserEnvironment> {
       } else if (kernelArguments.length != typeVariables.length) {
         throw "Expected ${typeVariables.length} type arguments: $node";
       }
-      return new InterfaceType(declaration,
-          interpretParsedNullability(node.parsedNullability), kernelArguments);
+      return new InterfaceType(declaration, nullability, kernelArguments);
     } else if (declaration is TypeParameter) {
       if (arguments.isNotEmpty) {
         throw "Type variable can't have arguments (${node.name})";

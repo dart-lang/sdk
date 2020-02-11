@@ -1262,4 +1262,109 @@ class CoreTypes {
     }
     return result;
   }
+
+  /// Checks if [type] satisfies the TOP predicate.
+  ///
+  /// For the definition of TOP see the following:
+  /// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
+  bool isTop(DartType type) {
+    if (type is InvalidType) return false;
+
+    // TOP(dynamic) is true.
+    if (type is DynamicType) return true;
+
+    // TOP(void) is true.
+    if (type is VoidType) return true;
+
+    // TOP(T?) is true iff TOP(T) or OBJECT(T).
+    // TOP(T*) is true iff TOP(T) or OBJECT(T).
+    if (type.nullability == Nullability.nullable ||
+        type.nullability == Nullability.legacy) {
+      DartType nonNullableType = type.withNullability(Nullability.nonNullable);
+      assert(type != nonNullableType);
+      return isTop(nonNullableType) || isObject(nonNullableType);
+    }
+
+    // TOP(FutureOr<T>) is TOP(T).
+    if (type is InterfaceType && type.classNode == futureOrClass) {
+      return isTop(type.typeArguments.single);
+    }
+
+    return false;
+  }
+
+  /// Checks if [type] satisfies the OBJECT predicate.
+  ///
+  /// For the definition of OBJECT see the following:
+  /// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
+  bool isObject(DartType type) {
+    if (type is InvalidType) return false;
+
+    // OBJECT(Object) is true.
+    if (type is InterfaceType &&
+        type.classNode == objectClass &&
+        type.nullability == Nullability.nonNullable) {
+      return true;
+    }
+
+    // OBJECT(FutureOr<T>) is OBJECT(T).
+    if (type is InterfaceType &&
+        type.classNode == futureOrClass &&
+        type.nullability == Nullability.nonNullable) {
+      return isObject(type.typeArguments.single);
+    }
+
+    return false;
+  }
+
+  /// Checks if [type] satisfies the BOTTOM predicate.
+  ///
+  /// For the definition of BOTTOM see the following:
+  /// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
+  bool isBottom(DartType type) {
+    if (type is InvalidType) return false;
+
+    // BOTTOM(Never) is true.
+    if (type is NeverType && type.nullability == Nullability.nonNullable) {
+      return true;
+    }
+
+    // BOTTOM(X&T) is true iff BOTTOM(T).
+    if (type is TypeParameterType &&
+        type.promotedBound != null &&
+        type.isPotentiallyNonNullable) {
+      return isBottom(type.promotedBound);
+    }
+
+    // BOTTOM(X extends T) is true iff BOTTOM(T).
+    if (type is TypeParameterType && type.isPotentiallyNonNullable) {
+      assert(type.promotedBound == null);
+      return isBottom(type.parameter.bound);
+    }
+
+    if (type is BottomType) return true;
+
+    return false;
+  }
+
+  /// Checks if [type] satisfies the NULL predicate.
+  ///
+  /// For the definition of NULL see the following:
+  /// https://github.com/dart-lang/language/blob/master/resources/type-system/upper-lower-bounds.md#helper-predicates
+  bool isNull(DartType type) {
+    if (type is InvalidType) return false;
+
+    // NULL(Null) is true.
+    if (type == nullType) return true;
+
+    // NULL(T?) is true iff NULL(T) or BOTTOM(T).
+    // NULL(T*) is true iff NULL(T) or BOTTOM(T).
+    if (type.nullability == Nullability.nullable ||
+        type.nullability == Nullability.legacy) {
+      DartType nonNullableType = type.withNullability(Nullability.nonNullable);
+      return isBottom(nonNullableType);
+    }
+
+    return false;
+  }
 }

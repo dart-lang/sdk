@@ -163,10 +163,10 @@ typedef Future<List<Map<String, dynamic>>> ListFilesCallback(Uri path);
 typedef Future<Uri> ServerInformamessage_routertionCallback();
 
 /// Called when we need information about the server.
-typedef Future<Uri> ServerInformationCallback();
+typedef Uri? ServerInformationCallback();
 
 /// Called when we want to [enable] or disable the web server.
-typedef Future<Uri> WebServerControlCallback(bool enable);
+typedef Future<Uri?> WebServerControlCallback(bool enable);
 
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {

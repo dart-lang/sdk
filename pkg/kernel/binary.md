@@ -143,7 +143,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 38;
+  UInt32 formatVersion = 39;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
   UriSource sourceMap;
@@ -317,7 +317,8 @@ type Class extends Node {
   FileOffset fileOffset; // Offset of the name of the class.
   FileOffset fileEndOffset;
   Byte flags (levelBit0, levelBit1, isAbstract, isEnum, isAnonymousMixin,
-              isEliminatedMixin, isMixinDeclaration); // Where level is index into ClassLevel
+              isEliminatedMixin, isMixinDeclaration, 
+              hasConstConstructor); // Where level is index into ClassLevel
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
@@ -367,7 +368,8 @@ type Field extends Member {
   FileOffset fileOffset;
   FileOffset fileEndOffset;
   UInt flags (isFinal, isConst, isStatic, hasImplicitGetter, hasImplicitSetter,
-                isCovariant, isGenericCovariantImpl, isLate, isExtensionMember);
+                isCovariant, isGenericCovariantImpl, isLate, isExtensionMember,
+                isNonNullableByDefault);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -381,7 +383,7 @@ type Constructor extends Member {
   FileOffset startFileOffset; // Offset of the start of the constructor including any annotations.
   FileOffset fileOffset; // Offset of the constructor name.
   FileOffset fileEndOffset;
-  Byte flags (isConst, isExternal, isSynthetic);
+  Byte flags (isConst, isExternal, isSynthetic, isNonNullableByDefault);
   Name name;
   List<Expression> annotations;
   FunctionNode function;
@@ -409,7 +411,8 @@ type Procedure extends Member {
   Byte kind; // Index into the ProcedureKind enum above.
   UInt flags (isStatic, isAbstract, isExternal, isConst, isForwardingStub,
               isForwardingSemiStub, isRedirectingFactoryConstructor,
-              isNoSuchMethodForwarder, isExtensionMember, isMemberSignature);
+              isNoSuchMethodForwarder, isExtensionMember, isMemberSignature,
+              isNonNullableByDefault);
   Name name;
   List<Expression> annotations;
   // Only present if the 'isForwardingStub' flag is set.

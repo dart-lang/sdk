@@ -5,7 +5,7 @@
 part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$MIXINS$IMPLEMENTS {
-  factory Comment([String data]) {
+  factory Comment([String$NULLABLE data]) {
     return JS('returns:Comment;depends:none;effects:none;new:true',
         '#.createComment(#)', document, data == null ? "" : data);
   }

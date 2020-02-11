@@ -469,11 +469,11 @@ Fragment FlowGraphBuilder::LoadLateField(const Field& field,
     Fragment initialize(is_uninitialized);
     if (is_static) {
       initialize += StaticCall(position, init_function,
-                               /* argument_count = */ 0, ICData::kStatic);
+                               /* argument_count = */ 0, ICData::kNoRebind);
     } else {
       initialize += LoadLocal(instance);
       initialize += StaticCall(position, init_function,
-                               /* argument_count = */ 1, ICData::kStatic);
+                               /* argument_count = */ 1, ICData::kNoRebind);
     }
     initialize += StoreLocal(position, temp);
     initialize += Drop();
@@ -1706,14 +1706,11 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
   String& name = String::Handle(Z);
   AbstractType& bound = AbstractType::Handle(Z);
   Fragment check_bounds;
-  const NNBDMode nnbd_mode = forwarding_target != nullptr
-                                 ? forwarding_target->nnbd_mode()
-                                 : dart_function.nnbd_mode();
   for (intptr_t i = 0; i < num_type_params; ++i) {
     type_param ^= type_parameters.TypeAt(i);
 
     bound = type_param.bound();
-    if (bound.IsTopType(nnbd_mode)) {
+    if (bound.IsTopType()) {
       continue;
     }
 
@@ -1770,7 +1767,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
           &AbstractType::ZoneHandle(Z, forwarding_target->ParameterTypeAt(i));
     }
 
-    if (target_type->IsTopType(nnbd_mode)) continue;
+    if (target_type->IsTopType()) continue;
 
     const bool is_covariant = param->is_explicit_covariant_parameter();
     Fragment* checks = is_covariant ? explicit_checks : implicit_checks;

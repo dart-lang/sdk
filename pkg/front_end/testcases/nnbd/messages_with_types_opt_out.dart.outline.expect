@@ -80,7 +80,7 @@ static field core::String* legacyVar;
 static method testOptOut() → dynamic
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //

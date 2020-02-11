@@ -36,9 +36,10 @@ class FixAggregatorTest extends FixAggregatorTestBase {
     var aRef = findNode.simple('a +');
     var bRef = findNode.simple('b;');
     var previewInfo = run({
-      aRef: NodeChangeForExpression()..addNullCheck = true,
-      bRef: NodeChangeForExpression()..addNullCheck = true,
-      findNode.binary('a + b'): NodeChangeForExpression()..addNullCheck = true
+      aRef: NodeChangeForExpression()..addNullCheck(_MockInfo()),
+      bRef: NodeChangeForExpression()..addNullCheck(_MockInfo()),
+      findNode.binary('a + b'): NodeChangeForExpression()
+        ..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(a, b) => (a! + b!)!;');
   }
@@ -53,7 +54,7 @@ f(int i, int/*?*/ j) {
       findNode.statement('if'): NodeChangeForIfStatement()
         ..conditionValue = true,
       findNode.simple('j.isEven'): NodeChangeForExpression()
-        ..addNullCheck = true
+        ..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), '''
 f(int i, int/*?*/ j) {
@@ -74,7 +75,7 @@ f(int i, int/*?*/ j) {
       findNode.statement('if'): NodeChangeForIfStatement()
         ..conditionValue = true,
       findNode.simple('j.isEven'): NodeChangeForExpression()
-        ..addNullCheck = true
+        ..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), '''
 f(int i, int/*?*/ j) {
@@ -327,11 +328,8 @@ void f(int i, String callback()) {
     // leave them.
     await analyze('f(a, c) => a..b = (throw c..d);');
     var cd = findNode.cascade('c..d');
-    var previewInfo = run({
-      cd: NodeChangeForExpression()
-        ..introduceAsType = 'int'
-        ..introduceAsInfo = _MockInfo()
-    });
+    var previewInfo =
+        run({cd: NodeChangeForExpression()..introduceAs('int', _MockInfo())});
     expect(
         previewInfo.applyTo(code), 'f(a, c) => a..b = (throw (c..d) as int);');
   }
@@ -339,22 +337,16 @@ void f(int i, String callback()) {
   Future<void> test_introduceAs_no_parens() async {
     await analyze('f(a, b) => a | b;');
     var expr = findNode.binary('a | b');
-    var previewInfo = run({
-      expr: NodeChangeForExpression()
-        ..introduceAsType = 'int'
-        ..introduceAsInfo = _MockInfo()
-    });
+    var previewInfo =
+        run({expr: NodeChangeForExpression()..introduceAs('int', _MockInfo())});
     expect(previewInfo.applyTo(code), 'f(a, b) => a | b as int;');
   }
 
   Future<void> test_introduceAs_parens() async {
     await analyze('f(a, b) => a < b;');
     var expr = findNode.binary('a < b');
-    var previewInfo = run({
-      expr: NodeChangeForExpression()
-        ..introduceAsType = 'bool'
-        ..introduceAsInfo = _MockInfo()
-    });
+    var previewInfo = run(
+        {expr: NodeChangeForExpression()..introduceAs('bool', _MockInfo())});
     expect(previewInfo.applyTo(code), 'f(a, b) => (a < b) as bool;');
   }
 
@@ -380,7 +372,7 @@ void f(int i, String callback()) {
     await analyze('f(a) => a++;');
     var expr = findNode.postfix('a++');
     var previewInfo =
-        run({expr: NodeChangeForExpression()..addNullCheck = true});
+        run({expr: NodeChangeForExpression()..addNullCheck(_MockInfo())});
     expect(previewInfo.applyTo(code), 'f(a) => a++!;');
   }
 
@@ -388,7 +380,7 @@ void f(int i, String callback()) {
     await analyze('f(a) => -a;');
     var expr = findNode.prefix('-a');
     var previewInfo =
-        run({expr: NodeChangeForExpression()..addNullCheck = true});
+        run({expr: NodeChangeForExpression()..addNullCheck(_MockInfo())});
     expect(previewInfo.applyTo(code), 'f(a) => (-a)!;');
   }
 
@@ -524,7 +516,7 @@ void f(int i, String callback()) {
     var previewInfo = run({
       methodInvocation: NodeChangeForMethodInvocation()
         ..removeNullAwareness = true,
-      argument: NodeChangeForExpression()..addNullCheck = true
+      argument: NodeChangeForExpression()..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), 'f(x) => x.m(x!);');
   }
@@ -658,7 +650,7 @@ f({required int x}) {}
             ..addExplicitType =
                 MockDartType(toStringValueWithNullability: 'int'),
       findNode.integerLiteral('0'): NodeChangeForExpression()
-        ..addNullCheck = true
+        ..addNullCheck(_MockInfo())
     });
     expect(previewInfo.applyTo(code), 'int x = 0!;');
   }

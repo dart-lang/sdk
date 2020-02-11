@@ -13,5 +13,5 @@ static method test() → dynamic
 static method main() → dynamic
   ;
 
-library;
+library /*isNonNullableByDefault*/;
 import self as self2;

@@ -20,7 +20,7 @@ class C extends core::Object {
     ;
   method foo(core::num* x) → void {}
 }
-abstract class _D&A&B extends self::A implements self::B {
+abstract class _D&A&B extends self::A implements self::B /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_D&A&B*
     : super self::A::•()
     ;

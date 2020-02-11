@@ -26,11 +26,23 @@ main(List<String> args) async {
             ["_extension"]),
         new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Extension",
             ["name", "fileUri"]),
+        new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library",
+            ["fileUri", "_libraryIdString"]),
       ],
       true);
+
+  // heapHelper.start([
+  //   "--enable-asserts",
+  //   Platform.script.resolve("incremental_dart2js_tester.dart").toString(),
+  //   "--addDebugBreaks",
+  //   "--fast",
+  //   "--experimental",
+  // ]);
   heapHelper.start([
-    Platform.script.resolve("incremental_dart2js_tester.dart").toString(),
-    "--fast",
-    "--addDebugBreaks",
+    "--enable-asserts",
+    Platform.script.resolve("incremental_load_from_dill_suite.dart").toString(),
+    "-DaddDebugBreaks=true",
+    // "--",
+    // "incremental_load_from_dill/no_outline_change_...",
   ]);
 }

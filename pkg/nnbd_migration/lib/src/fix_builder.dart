@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -92,6 +93,10 @@ class FixBuilder {
 
   final MigrationResolutionHooksImpl migrationResolutionHooks;
 
+  /// Parameter elements for which an explicit type should be added, and what
+  /// that type should be.
+  final Map<ParameterElement, DartType> _addedParameterTypes = {};
+
   factory FixBuilder(
       Source source,
       DecoratedClassHierarchy decoratedClassHierarchy,
@@ -153,10 +158,12 @@ class FixBuilder {
   /// makes note of changes that need to be made.
   void visitAll() {
     try {
-      ElementTypeProvider.current = migrationResolutionHooks;
-      unit.accept(_FixBuilderPreVisitor(this));
-      unit.accept(_resolver);
-      unit.accept(_FixBuilderPostVisitor(this));
+      NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+        ElementTypeProvider.current = migrationResolutionHooks;
+        unit.accept(_FixBuilderPreVisitor(this));
+        unit.accept(_resolver);
+        unit.accept(_FixBuilderPostVisitor(this));
+      });
     } catch (exception, stackTrace) {
       if (listener != null) {
         listener.reportException(source, unit, exception, stackTrace);
@@ -399,6 +406,18 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
       });
 
   @override
+  DartType modifyInferredParameterType(
+      ParameterElement parameter, DartType type) {
+    var postMigrationType = parameter.type;
+    if (postMigrationType != type) {
+      // TODO(paulberry): make sure we test all kinds of parameters
+      _fixBuilder._addedParameterTypes[parameter] = postMigrationType;
+      return postMigrationType;
+    }
+    return type;
+  }
+
+  @override
   void setFlowAnalysis(
       FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
           flowAnalysis) {
@@ -413,8 +432,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-      ..introduceAsType = contextType.getDisplayString(withNullability: true)
-      ..introduceAsInfo = info;
+        .introduceAs(contextType.getDisplayString(withNullability: true), info);
     _flowAnalysis.asExpression_end(node, contextType);
     return contextType;
   }
@@ -427,8 +445,7 @@ class MigrationResolutionHooksImpl implements MigrationResolutionHooks {
             NullabilityFixDescription.checkExpression, checks.edges)
         : null;
     (_fixBuilder._getChange(node) as NodeChangeForExpression)
-      ..addNullCheck = true
-      ..addNullCheckInfo = info;
+        .addNullCheck(info);
     _flowAnalysis.nonNullAssert_end(node);
     return _fixBuilder._typeSystem.promoteToNonNull(type as TypeImpl);
   }
@@ -558,6 +575,17 @@ class _FixBuilderPostVisitor extends GeneralizingAstVisitor<void>
             node, _fixBuilder._typeSystem)) {
       (_fixBuilder._getChange(node) as NodeChangeForAsExpression).removeAs =
           true;
+    }
+  }
+
+  @override
+  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    if (node.type == null) {
+      var typeToAdd = _fixBuilder._addedParameterTypes[node.declaredElement];
+      if (typeToAdd != null) {
+        (_fixBuilder._getChange(node) as NodeChangeForSimpleFormalParameter)
+            .addExplicitType = typeToAdd;
+      }
     }
   }
 

@@ -1839,15 +1839,15 @@ abstract class FilterPrimitiveStandardAttributes extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final AnimatedLength height;
+  AnimatedLength get height => JS("AnimatedLength", "#.height", this);
 
-  final AnimatedString result;
+  AnimatedString get result => JS("AnimatedString", "#.result", this);
 
-  final AnimatedLength width;
+  AnimatedLength get width => JS("AnimatedLength", "#.width", this);
 
-  final AnimatedLength x;
+  AnimatedLength get x => JS("AnimatedLength", "#.x", this);
 
-  final AnimatedLength y;
+  AnimatedLength get y => JS("AnimatedLength", "#.y", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1860,9 +1860,10 @@ abstract class FitToViewBox extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final AnimatedPreserveAspectRatio preserveAspectRatio;
+  AnimatedPreserveAspectRatio get preserveAspectRatio =>
+      JS("AnimatedPreserveAspectRatio", "#.preserveAspectRatio", this);
 
-  final AnimatedRect viewBox;
+  AnimatedRect get viewBox => JS("AnimatedRect", "#.viewBox", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3054,7 +3055,7 @@ class StyleElement extends SvgElement {
     JS("void", "#.media = #", this, value);
   }
 
-  final StyleSheet? sheet;
+  StyleSheet? get sheet => JS("StyleSheet", "#.sheet", this);
 
   // Use implementation from Element.
   // final String title;
@@ -3104,16 +3105,16 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   static final _START_TAG_REGEXP = new RegExp('<(\\w+)');
 
   factory SvgElement.tag(String tag) =>
-      document.createElementNS("http://www.w3.org/2000/svg", tag);
+      document.createElementNS("http://www.w3.org/2000/svg", tag) as SvgElement;
   factory SvgElement.svg(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (validator == null && treeSanitizer == null) {
       validator = new NodeValidatorBuilder.common()..allowSvg();
     }
 
     final match = _START_TAG_REGEXP.firstMatch(svg);
     var parentElement;
-    if (match != null && match.group(1).toLowerCase() == 'svg') {
+    if (match != null && match.group(1)!.toLowerCase() == 'svg') {
       parentElement = document.body;
     } else {
       parentElement = new SvgSvgElement();
@@ -3135,14 +3136,14 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
 
   String get outerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.add(cloned);
     return container.innerHtml;
   }
 
   String get innerHtml {
     final container = new DivElement();
-    final SvgElement cloned = this.clone(true);
+    final SvgElement cloned = this.clone(true) as SvgElement;
     container.children.addAll(cloned.children);
     return container.innerHtml;
   }
@@ -3152,7 +3153,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   }
 
   DocumentFragment createFragment(String svg,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     if (treeSanitizer == null) {
       if (validator == null) {
         validator = new NodeValidatorBuilder.common()..allowSvg();
@@ -3169,7 +3170,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
     // The root is the <svg/> element, need to pull out the contents.
     var root = fragment.nodes.single;
     while (root.firstChild != null) {
-      svgFragment.append(root.firstChild);
+      svgFragment.append(root.firstChild!);
     }
     return svgFragment;
   }
@@ -3181,7 +3182,7 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   }
 
   void insertAdjacentHtml(String where, String text,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator? validator, NodeTreeSanitizer? treeSanitizer}) {
     throw new UnsupportedError("Cannot invoke insertAdjacentHtml on SVG.");
   }
 
@@ -3396,7 +3397,8 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   AnimatedString get _svgClassName => JS("AnimatedString", "#.className", this);
 
   @JSName('ownerSVGElement')
-  final SvgSvgElement? ownerSvgElement;
+  SvgSvgElement? get ownerSvgElement =>
+      JS("SvgSvgElement", "#.ownerSVGElement", this);
 
   // Use implementation from Element.
   // final CssStyleDeclaration style;
@@ -3404,7 +3406,8 @@ class SvgElement extends Element implements GlobalEventHandlers, NoncedElement {
   // Use implementation from Element.
   // final int tabIndex;
 
-  final SvgElement? viewportElement;
+  SvgElement? get viewportElement =>
+      JS("SvgElement", "#.viewportElement", this);
 
   void blur() native;
 
@@ -3554,7 +3557,7 @@ class SvgSvgElement extends GraphicsElement
     final el = new SvgElement.tag("svg");
     // The SVG spec requires the version attribute to match the spec version
     el.attributes['version'] = "1.1";
-    return el;
+    return el as SvgSvgElement;
   }
 
   // To suppress missing implicit constructor warnings.
@@ -3622,11 +3625,11 @@ class SvgSvgElement extends GraphicsElement
 
   Element getElementById(String elementId) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getEnclosureList(Rect rect, SvgElement? referenceElement) native;
 
-  @Returns('NodeList|Null')
+  @Returns('NodeList')
   @Creates('NodeList')
   List<Node> getIntersectionList(Rect rect, SvgElement? referenceElement)
       native;
@@ -3741,9 +3744,10 @@ abstract class Tests extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final StringList requiredExtensions;
+  StringList get requiredExtensions =>
+      JS("StringList", "#.requiredExtensions", this);
 
-  final StringList systemLanguage;
+  StringList get systemLanguage => JS("StringList", "#.systemLanguage", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4014,7 +4018,7 @@ class TransformList extends Interceptor
 
   void clear() native;
 
-  Transform consolidate() native;
+  Transform? consolidate() native;
 
   @JSName('createSVGTransformFromMatrix')
   Transform createSvgTransformFromMatrix(Matrix matrix) native;
@@ -4058,7 +4062,7 @@ abstract class UriReference extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  final AnimatedString href;
+  AnimatedString get href => JS("AnimatedString", "#.href", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

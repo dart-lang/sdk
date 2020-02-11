@@ -51,6 +51,23 @@ constexpr bool kDartUseBackgroundCompilation = true;
   R(support_disassembler, false, bool, true, "Support the disassembler.")
 #endif
 
+// List of VM-global (i.e. non-isolate specific) flags.
+//
+// The value used for those flags at snapshot generation time needs to be the
+// same as during runtime. Currently, only boolean flags are supported.
+//
+// The syntax used is the same as that for FLAG_LIST below, as these flags are
+// automatically included in FLAG_LIST.
+#define VM_GLOBAL_FLAG_LIST(P, R, C, D)                                        \
+  P(dwarf_stack_traces, bool, false,                                           \
+    "Emit DWARF line number and inlining info"                                 \
+    "in dylib snapshots and don't symbolize stack traces.")                    \
+  P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
+  P(lazy_async_stacks, bool, false, "Reconstruct async stacks from listeners") \
+  P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
+  R(dedup_instructions, true, bool, false,                                     \
+    "Canonicalize instructions when precompiling.")
+
 // List of all flags in the VM.
 // Flags can be one of four categories:
 // * P roduct flags: Can be set in any of the deployment modes, including in
@@ -67,6 +84,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
 //   C(name, precompiled_value, product_value, type, default_value, comment)
 //   D(name, type, default_value, comment)
 #define FLAG_LIST(P, R, C, D)                                                  \
+  VM_GLOBAL_FLAG_LIST(P, R, C, D)                                              \
+  DISASSEMBLE_FLAGS(P, R, C, D)                                                \
   P(experimental_unsafe_mode_use_at_your_own_risk, bool, false,                \
     "Omit runtime strong mode type checks and disable optimizations based on " \
     "types.")                                                                  \
@@ -76,7 +95,8 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Debugger support async functions.")                                       \
   P(background_compilation, bool, kDartUseBackgroundCompilation,               \
     "Run optimizing compilation in background")                                \
-  P(causal_async_stacks, bool, !USING_PRODUCT, "Improved async stacks")        \
+  R(code_comments, false, bool, false,                                         \
+    "Include comments into code and disassembly.")                             \
   P(collect_code, bool, false, "Attempt to GC infrequently used code.")        \
   P(collect_dynamic_function_names, bool, true,                                \
     "Collects all dynamic function names to identify unique targets")          \
@@ -87,22 +107,14 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "-1 means never")                                                          \
   P(concurrent_mark, bool, true, "Concurrent mark for old generation.")        \
   P(concurrent_sweep, bool, true, "Concurrent sweep for old generation.")      \
-  R(dedup_instructions, true, bool, false,                                     \
-    "Canonicalize instructions when precompiling.")                            \
   C(deoptimize_alot, false, false, bool, false,                                \
     "Deoptimizes we are about to return to Dart code from native entries.")    \
   C(deoptimize_every, 0, 0, int, 0,                                            \
     "Deoptimize on every N stack overflow checks")                             \
   R(disable_alloc_stubs_after_gc, false, bool, false, "Stress testing flag.")  \
-  DISASSEMBLE_FLAGS(P, R, C, D)                                                \
-  R(code_comments, false, bool, false,                                         \
-    "Include comments into code and disassembly.")                             \
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \
-  P(dwarf_stack_traces, bool, false,                                           \
-    "Emit DWARF line number and inlining info"                                 \
-    "in dylib snapshots and don't symbolize stack traces.")                    \
   R(enable_asserts, false, bool, false, "Enable assert statements.")           \
   P(enable_kernel_expression_compilation, bool, true,                          \
     "Compile expressions with the Kernel front-end.")                          \
@@ -124,7 +136,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(idle_duration_micros, int, 500 * kMicrosecondsPerMillisecond,              \
     "Allow idle tasks to run for this long.")                                  \
   P(interpret_irregexp, bool, false, "Use irregexp bytecode interpreter")      \
-  P(lazy_async_stacks, bool, false, "Reconstruct async stacks from listeners") \
   P(lazy_dispatchers, bool, true, "Generate dispatchers lazily")               \
   P(link_natives_lazily, bool, false, "Link native calls lazily")              \
   R(log_marker_tasks, false, bool, false,                                      \
@@ -177,7 +188,6 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Stress test async stack traces")                                          \
   P(strong_non_nullable_type_checks, bool, false,                              \
     "Enable strong non-nullable type checking mode.")                          \
-  P(use_bare_instructions, bool, true, "Enable bare instructions mode.")       \
   P(use_table_dispatch, bool, true, "Enable dispatch table based calls.")      \
   P(enable_isolate_groups, bool, false, "Enable isolate group support.")       \
   P(show_invisible_frames, bool, false,                                        \
@@ -238,18 +248,5 @@ constexpr bool kDartUseBackgroundCompilation = true;
   P(verify_entry_points, bool, false,                                          \
     "Throw API error on invalid member access throuh native API. See "         \
     "entry_point_pragma.md")
-
-// List of VM-global (i.e. non-isolate specific) flags.
-//
-// The value used for those flags at snapshot generation time needs to be the
-// same as during runtime. Currently only boolean flags are supported.
-//
-// Usage:
-//   V(name, command-line-flag-name)
-#define VM_GLOBAL_FLAG_LIST(V)                                                 \
-  V(dwarf_stack_traces, FLAG_dwarf_stack_traces)                               \
-  V(causal_async_stacks, FLAG_causal_async_stacks)                             \
-  V(lazy_async_stacks, FLAG_lazy_async_stacks)                                 \
-  V(use_bare_instructions, FLAG_use_bare_instructions)
 
 #endif  // RUNTIME_VM_FLAG_LIST_H_

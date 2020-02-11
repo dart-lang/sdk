@@ -3575,9 +3575,8 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
                     ? NNBDMode::kOptedInLib
                     : NNBDMode::kLegacyLib;
   } else {
-    nnbd_mode = parsed_function()->function().nnbd_mode();
+    nnbd_mode = NNBDMode::kLegacyLib;
   }
-  ASSERT(nnbd_mode == parsed_function()->function().nnbd_mode());
 
   Fragment instructions = BuildExpression();  // read operand.
 
@@ -3585,7 +3584,7 @@ Fragment StreamingFlowGraphBuilder::BuildIsExpression(TokenPosition* p) {
 
   // The VM does not like an instanceOf call with a dynamic type. We need to
   // special case this situation by detecting a top type.
-  if (type.IsTopType(nnbd_mode)) {
+  if (type.IsTopType()) {
     // Evaluate the expression on the left but ignore its result.
     instructions += Drop();
 
@@ -3630,16 +3629,11 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
 
   const uint8_t flags = ReadFlags();  // read flags.
   const bool is_type_error = (flags & kAsExpressionFlagTypeError) != 0;
-  const NNBDMode nnbd_mode =
-      ((flags & kAsExpressionFlagForNonNullableByDefault) != 0)
-          ? NNBDMode::kOptedInLib
-          : NNBDMode::kLegacyLib;
-  ASSERT(nnbd_mode == parsed_function()->function().nnbd_mode());
 
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
-  if (type.IsInstantiated() && type.IsTopType(nnbd_mode)) {
+  if (type.IsInstantiated() && type.IsTopType()) {
     // We already evaluated the operand on the left and just leave it there as
     // the result of the `obj as dynamic` expression.
   } else {

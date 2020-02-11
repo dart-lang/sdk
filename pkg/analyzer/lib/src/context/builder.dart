@@ -129,6 +129,7 @@ class ContextBuilder {
         contextRoot,
         sf,
         options,
+        packages: createPackageMap(path),
         enableIndex: enableIndex,
         externalSummaries: summaryData);
 

@@ -236,8 +236,8 @@ class TopMergeHelper {
       if (R_isCovariant) {
         var T1 = T_parameter.type;
         var T2 = S_parameter.type;
-        var T1_isSubtype = typeSystem.isSubtypeOf(T1, T2);
-        var T2_isSubtype = typeSystem.isSubtypeOf(T2, T1);
+        var T1_isSubtype = typeSystem.isSubtypeOf2(T1, T2);
+        var T2_isSubtype = typeSystem.isSubtypeOf2(T2, T1);
         if (T1_isSubtype && T2_isSubtype) {
           // if `T1 <: T2` and `T2 <: T1`, then the result is
           // `NNBD_TOP_MERGE(T1, T2)`, and it is covariant.

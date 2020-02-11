@@ -66,13 +66,16 @@ class SubprocessLauncher {
       {String workingDirectory,
       Map<String, String> environment,
       bool includeParentEnvironment = true,
-      void Function(String) perLine}) async {
+      void Function(String) perLine,
+      int retries = 0}) async {
     return maxParallel.runFutureFromClosure(() async {
-      return runStreamedImmediate(executable, arguments,
-          workingDirectory: workingDirectory,
-          environment: environment,
-          includeParentEnvironment: includeParentEnvironment,
-          perLine: perLine);
+      return retryClosure(
+          () async => await runStreamedImmediate(executable, arguments,
+              workingDirectory: workingDirectory,
+              environment: environment,
+              includeParentEnvironment: includeParentEnvironment,
+              perLine: perLine),
+          retries: retries);
     });
   }
 

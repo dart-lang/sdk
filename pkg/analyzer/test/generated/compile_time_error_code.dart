@@ -1189,65 +1189,6 @@ A a;
     ]);
   }
 
-  test_inconsistentCaseExpressionTypes() async {
-    await assertErrorsInCode(r'''
-f(var p) {
-  switch (p) {
-    case 1:
-      break;
-    case 'a':
-      break;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, 60, 3),
-    ]);
-  }
-
-  test_inconsistentCaseExpressionTypes_dynamic() async {
-    // Even though A.S and S have a static type of "dynamic", we should see
-    // that they fail to match 3, because they are constant strings.
-    await assertErrorsInCode(r'''
-class A {
-  static const S = 'A.S';
-}
-
-const S = 'S';
-
-foo(var p) {
-  switch (p) {
-    case 3:
-      break;
-    case S:
-      break;
-    case A.S:
-      break;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, 117, 1),
-      error(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, 142, 3),
-    ]);
-  }
-
-  test_inconsistentCaseExpressionTypes_repeated() async {
-    await assertErrorsInCode(r'''
-f(var p) {
-  switch (p) {
-    case 1:
-      break;
-    case 'a':
-      break;
-    case 'b':
-      break;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, 60, 3),
-      error(CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES, 87, 3),
-    ]);
-  }
-
   test_initializerForNonExistent_const() async {
     // Check that the absence of a matching field doesn't cause a
     // crash during constant evaluation.
@@ -1810,65 +1751,6 @@ f({x : a.V + 1}) {}
       error(
           CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
           55,
-          7),
-    ]);
-  }
-
-  test_nonConstCaseExpression() async {
-    await assertErrorsInCode(r'''
-f(int p, int q) {
-  switch (p) {
-    case 3 + q:
-      break;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION, 46, 1),
-    ]);
-  }
-
-  test_nonConstCaseExpressionFromDeferredLibrary() async {
-    newFile('/test/lib/lib1.dart', content: '''
-library lib1;
-const int c = 1;
-''');
-    await assertErrorsInCode('''
-library root;
-import 'lib1.dart' deferred as a;
-main (int p) {
-  switch (p) {
-    case a.c:
-      break;
-  }
-}
-''', [
-      error(
-          CompileTimeErrorCode
-              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
-          87,
-          3),
-    ]);
-  }
-
-  test_nonConstCaseExpressionFromDeferredLibrary_nested() async {
-    newFile('/test/lib/lib1.dart', content: '''
-library lib1;
-const int c = 1;
-''');
-    await assertErrorsInCode('''
-library root;
-import 'lib1.dart' deferred as a;
-main (int p) {
-  switch (p) {
-    case a.c + 1:
-      break;
-  }
-}
-''', [
-      error(
-          CompileTimeErrorCode
-              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
-          87,
           7),
     ]);
   }

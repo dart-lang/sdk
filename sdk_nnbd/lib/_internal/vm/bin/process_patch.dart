@@ -507,12 +507,12 @@ class _ProcessImpl extends _ProcessImplNativeWrapper implements Process {
       _NativeSocket exitHandler) native "Process_Wait";
 
   Stream<List<int>> get stdout =>
-      _stdout ?? (throw StateError("Process is detached"));
+      _stdout ?? (throw StateError("stdio is not connected"));
 
   Stream<List<int>> get stderr =>
-      _stdout ?? (throw StateError("Process is detached"));
+      _stderr ?? (throw StateError("stdio is not connected"));
 
-  IOSink get stdin => _stdin ?? (throw StateError("Process is detached"));
+  IOSink get stdin => _stdin ?? (throw StateError("stdio is not connected"));
 
   Future<int> get exitCode =>
       _exitCode?.future ?? (throw StateError("Process is detached"));
@@ -571,11 +571,13 @@ Future<ProcessResult> _runNonInteractiveProcess(
     Future foldStream(Stream<List<int>> stream, Encoding? encoding) {
       if (encoding == null) {
         return stream
-            .fold(new BytesBuilder(), (builder, data) => builder..add(data))
+            .fold<BytesBuilder>(
+                new BytesBuilder(), (builder, data) => builder..add(data))
             .then((builder) => builder.takeBytes());
       } else {
-        return stream.transform(encoding.decoder).fold(new StringBuffer(),
-            (buf, data) {
+        return stream
+            .transform(encoding.decoder)
+            .fold<StringBuffer>(new StringBuffer(), (buf, data) {
           buf.write(data);
           return buf;
         }).then((sb) => sb.toString());

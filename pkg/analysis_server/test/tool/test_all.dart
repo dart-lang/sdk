@@ -5,9 +5,11 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'lsp_spec/test_all.dart' as lsp_spec;
+import 'completion_metrics/test_all.dart' as completion_metrics;
 
 void main() {
   defineReflectiveSuite(() {
+    completion_metrics.main();
     lsp_spec.main();
   }, name: 'tool');
 }

@@ -42,7 +42,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
       if (!identical(otherList._this, _this)) {
         // Optimized route for copying between nodes.
         for (var i = 0, len = otherList.length; i < len; ++i) {
-          _this.append(otherList._this.firstChild);
+          _this.append(otherList._this.firstChild$NULLASSERT);
         }
       }
       return;
@@ -104,9 +104,9 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
     // time.
-    Node child = _this.firstChild;
+    Node$NULLABLE child = _this.firstChild;
     while (child != null) {
-      Node nextChild = child.nextNode;
+      Node$NULLABLE nextChild = child.nextNode;
       if (test(child) == removeMatching) {
         _this._removeChild(child);
       }
@@ -203,8 +203,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     // TODO(jacobr): should we throw an exception if parent is already null?
     // TODO(vsm): Use the native remove when available.
     if (this.parentNode != null) {
-      final Node parent = this.parentNode;
-      parentNode._removeChild(this);
+      final Node parent = this.parentNode$NULLASSERT;
+      parent._removeChild(this);
     }
   }
 
@@ -213,11 +213,9 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    */
   Node replaceWith(Node otherNode) {
     try {
-      final Node parent = this.parentNode;
+      final Node parent = this.parentNode$NULLASSERT;
       parent._replaceChild(otherNode, this);
-    } catch (e) {
-
-    };
+    } catch (e) {}
     return this;
   }
 
@@ -237,7 +235,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
       // Optimized route for copying between nodes.
       for (var i = 0, len = otherList.length; i < len; ++i) {
-        this.insertBefore(otherList._this.firstChild, refChild);
+        this.insertBefore(otherList._this.firstChild$NULLASSERT, refChild);
       }
     } else {
       for (var node in newNodes) {
@@ -248,7 +246,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   void _clearChildren() {
     while (firstChild != null) {
-      _removeChild(firstChild);
+      _removeChild(firstChild$NULLASSERT);
     }
   }
 
@@ -256,7 +254,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * Print out a String representation of this Node.
    */
   String toString() {
-    String value = nodeValue;  // Fetch DOM Node property once.
+    String$NULLABLE value = nodeValue;  // Fetch DOM Node property once.
     return value == null ? super.toString() : value;
   }
 
@@ -270,7 +268,11 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    */
   @Returns('NodeList')
   @Creates('NodeList')
+$if NNBD
+  List<Node> get childNodes => JS("NodeList", "#.childNodes", this);
+$else
   final List<Node> childNodes;
+$endif
 
 $!MEMBERS
 }

@@ -168,7 +168,7 @@ class TypedLiteralResolver {
       }
 
       var elseType = _computeElementType(elseElement);
-      return _typeSystem.leastUpperBound(thenType, elseType);
+      return _typeSystem.getLeastUpperBound(thenType, elseType);
     } else if (element is MapLiteralEntry) {
       // This error will be reported elsewhere.
       return _typeProvider.dynamicType;
@@ -271,9 +271,9 @@ class TypedLiteralResolver {
       DartType unwrappedContextType = unwrap(contextType);
       // TODO(brianwilkerson) Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
-      bool isIterable = _typeSystem.isSubtypeOf(
+      bool isIterable = _typeSystem.isSubtypeOf2(
           unwrappedContextType, _typeProvider.iterableForSetMapDisambiguation);
-      bool isMap = _typeSystem.isSubtypeOf(
+      bool isMap = _typeSystem.isSubtypeOf2(
           unwrappedContextType, _typeProvider.mapForSetMapDisambiguation);
       if (isIterable && !isMap) {
         return _LiteralResolution(
@@ -332,7 +332,7 @@ class TypedLiteralResolver {
       DartType expressionType = element.expression.staticType;
       bool isNull = expressionType.isDartCoreNull;
       if (!isNull && expressionType is InterfaceType) {
-        if (_typeSystem.isSubtypeOf(
+        if (_typeSystem.isSubtypeOf2(
             expressionType, _typeProvider.iterableForSetMapDisambiguation)) {
           InterfaceType iterableType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.iterableElement);
@@ -340,7 +340,7 @@ class TypedLiteralResolver {
               elementType: iterableType.typeArguments[0],
               keyType: null,
               valueType: null);
-        } else if (_typeSystem.isSubtypeOf(
+        } else if (_typeSystem.isSubtypeOf2(
             expressionType, _typeProvider.mapForSetMapDisambiguation)) {
           InterfaceType mapType = (expressionType as InterfaceTypeImpl)
               .asInstanceOf(_typeProvider.mapElement);
@@ -475,10 +475,10 @@ class TypedLiteralResolver {
     bool contextProvidesAmbiguityResolutionClues =
         contextType != null && contextType is! UnknownInferredType;
     bool contextIsIterable = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(
+        _typeSystem.isSubtypeOf2(
             contextType, _typeProvider.iterableForSetMapDisambiguation);
     bool contextIsMap = contextProvidesAmbiguityResolutionClues &&
-        _typeSystem.isSubtypeOf(
+        _typeSystem.isSubtypeOf2(
             contextType, _typeProvider.mapForSetMapDisambiguation);
     if (contextIsIterable && !contextIsMap) {
       return _toSetType(literal, contextType, inferredTypes);
@@ -830,7 +830,7 @@ class _InferredCollectionElementTypeInformation {
     } else if (second == null) {
       return first;
     } else {
-      return typeSystem.leastUpperBound(first, second);
+      return typeSystem.getLeastUpperBound(first, second);
     }
   }
 }

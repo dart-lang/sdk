@@ -47,7 +47,7 @@ class NavigationTreeRenderer {
         {
           'type': 'file',
           'name': link.fileName,
-          'path': link.relativePath,
+          'path': pathContext.joinAll(link.pathParts),
           'href': link.url,
           'editCount': link.editCount,
         },

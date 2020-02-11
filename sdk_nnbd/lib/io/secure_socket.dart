@@ -1019,7 +1019,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   Future<_FilterStatus> _pushAllFilterStages() {
     bool wasInHandshake = _status != connectedStatus;
-    List args = new List.filled(2 + bufferCount * 2, null);
+    List args = new List<dynamic>.filled(2 + bufferCount * 2, null);
     args[0] = _secureFilter!._pointer();
     args[1] = wasInHandshake;
     var bufs = _secureFilter!.buffers!;

@@ -44,7 +44,7 @@ class N = core::Object with self::M {
     : super core::Object::•()
     ;
 }
-abstract class _C&Object&N = core::Object with self::N {
+abstract class _C&Object&N = core::Object with self::N /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_C&Object&N*
     : super core::Object::•()
     ;
@@ -69,7 +69,7 @@ abstract class N3 = core::Object with self::M2 {
     : super core::Object::•()
     ;
 }
-abstract class _C2&Object&M2 = core::Object with self::M2 {
+abstract class _C2&Object&M2 = core::Object with self::M2 /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_C2&Object&M2*
     : super core::Object::•()
     ;
@@ -78,7 +78,7 @@ class C2 extends self::_C2&Object&M2 {
   synthetic constructor •() → self::C2*
     ;
 }
-abstract class _C3&Object&M2 = core::Object with self::M2 {
+abstract class _C3&Object&M2 = core::Object with self::M2 /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_C3&Object&M2*
     : super core::Object::•()
     ;

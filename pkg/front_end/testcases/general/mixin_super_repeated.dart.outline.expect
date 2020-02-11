@@ -19,12 +19,12 @@ class S extends core::Object {
   synthetic constructor •() → self::S*
     ;
 }
-abstract class _Named&S&M = self::S with self::M {
+abstract class _Named&S&M = self::S with self::M /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Named&S&M*
     : super self::S::•()
     ;
 }
-abstract class _Named&S&M&N = self::_Named&S&M with self::N {
+abstract class _Named&S&M&N = self::_Named&S&M with self::N /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Named&S&M&N*
     : super self::_Named&S&M::•()
     ;

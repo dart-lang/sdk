@@ -354,7 +354,7 @@ class CodeChecker extends RecursiveAstVisitor {
       var fieldElement =
           node.identifier.staticElement as FieldFormalParameterElement;
       var fieldType = _elementType(fieldElement.field);
-      if (!rules.isSubtypeOf(type, fieldType)) {
+      if (!rules.isSubtypeOf2(type, fieldType)) {
         _recordMessage(node, StrongModeCode.INVALID_PARAMETER_DECLARATION,
             [node, fieldType]);
       }
@@ -682,13 +682,13 @@ class CodeChecker extends RecursiveAstVisitor {
       return null; // unrelated
     }
 
-    if (rules.isSubtypeOf(from, to)) {
+    if (rules.isSubtypeOf2(from, to)) {
       // Sound subtype.
       // However we may still need cast if we have a call tearoff.
       return callTearoff;
     }
 
-    if (rules.isSubtypeOf(to, from)) {
+    if (rules.isSubtypeOf2(to, from)) {
       // Assignable, but needs cast.
       return true;
     }
@@ -878,12 +878,12 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     // fromT <: toT, no coercion needed.
-    if (rules.isSubtypeOf(from, to)) {
+    if (rules.isSubtypeOf2(from, to)) {
       return false;
     }
 
     // Down cast or legal sideways cast, coercion needed.
-    if (rules.isAssignableTo(from, to)) {
+    if (rules.isAssignableTo2(from, to)) {
       return true;
     }
 
@@ -916,7 +916,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // want to warn if it's a legal subtype.
     if (from is InterfaceType && rules.acceptsFunctionType(to)) {
       var type = rules.getCallMethodType(from);
-      if (type != null && rules.isSubtypeOf(type, to)) {
+      if (type != null && rules.isSubtypeOf2(type, to)) {
         return;
       }
     }
@@ -1038,7 +1038,7 @@ class CodeChecker extends RecursiveAstVisitor {
         nullabilitySuffix: _noneOrStarSuffix,
       );
 
-      if (rules.isSubtypeOf(sequenceType, iterableType)) {
+      if (rules.isSubtypeOf2(sequenceType, iterableType)) {
         _recordImplicitCast(node.iterable, sequenceType, from: iterableType);
         elementType = DynamicTypeImpl.instance;
       }

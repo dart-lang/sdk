@@ -258,8 +258,7 @@ void Disassembler::DisassembleCodeHelper(const char* function_fullname,
       PcDescriptors::Handle(zone, code.pc_descriptors());
   THR_Print("%s}\n", descriptors.ToCString());
 
-  const auto& instructions = Instructions::Handle(code.instructions());
-  const uword start = instructions.PayloadStart();
+  const uword start = code.PayloadStart();
   const uword base = FLAG_disassemble_relative ? 0 : start;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

@@ -1509,15 +1509,16 @@ class CodeSerializationCluster : public SerializationCluster {
         s->UnexpectedObject(code, "Disabled code");
       }
 
-      s->WriteInstructions(code->ptr()->instructions_, code);
-      s->WriteUnsigned(code->ptr()->unchecked_offset_);
+      s->WriteInstructions(code->ptr()->instructions_,
+                           code->ptr()->unchecked_offset_, code, i);
       if (kind == Snapshot::kFullJIT) {
         // TODO(rmacnak): Fix references to disabled code before serializing.
         // For now, we may write the FixCallersTarget or equivalent stub. This
         // will cause a fixup if this code is called.
-        s->WriteInstructions(code->ptr()->active_instructions_, code);
-        s->WriteUnsigned(code->ptr()->unchecked_entry_point_ -
-                         code->ptr()->entry_point_);
+        const uint32_t active_unchecked_offset =
+            code->ptr()->unchecked_entry_point_ - code->ptr()->entry_point_;
+        s->WriteInstructions(code->ptr()->active_instructions_,
+                             active_unchecked_offset, code, i);
       }
 
       WriteField(code, object_pool_);
@@ -1598,24 +1599,10 @@ class CodeDeserializationCluster : public DeserializationCluster {
 
   void ReadFill(Deserializer* d) {
     for (intptr_t id = start_index_; id < stop_index_; id++) {
-      RawCode* code = reinterpret_cast<RawCode*>(d->Ref(id));
+      auto const code = reinterpret_cast<RawCode*>(d->Ref(id));
       Deserializer::InitializeHeader(code, kCodeCid, Code::InstanceSize(0));
 
-      RawInstructions* instr = d->ReadInstructions();
-      uint32_t unchecked_offset = d->ReadUnsigned();
-
-      code->ptr()->instructions_ = instr;
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      code->ptr()->unchecked_offset_ = unchecked_offset;
-      if (d->kind() == Snapshot::kFullJIT) {
-        instr = d->ReadInstructions();
-        unchecked_offset = d->ReadUnsigned();
-      }
-      code->ptr()->active_instructions_ = instr;
-#endif  // !DART_PRECOMPILED_RUNTIME
-
-      Code::InitializeCachedEntryPointsFrom(code, instr, unchecked_offset);
+      d->ReadInstructions(code, id, start_index_);
 
       code->ptr()->object_pool_ =
           reinterpret_cast<RawObjectPool*>(d->ReadRef());
@@ -4485,6 +4472,10 @@ Serializer::Serializer(Thread* thread,
       current_parent_(Object::null()),
       parent_pairs_()
 #endif
+#if defined(DART_PRECOMPILER)
+      ,
+      deduped_instructions_sources_(zone_)
+#endif
 {
   num_cids_ = thread->isolate()->class_table()->NumCids();
   clusters_by_cid_ = new SerializationCluster*[num_cids_];
@@ -4675,7 +4666,10 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid) {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
+void Serializer::WriteInstructions(RawInstructions* instr,
+                                   uint32_t unchecked_offset,
+                                   RawCode* code,
+                                   intptr_t index) {
   ASSERT(code != Code::null());
 
   const intptr_t offset = image_writer_->GetTextOffsetFor(instr, code);
@@ -4683,7 +4677,6 @@ void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
     // Code should have been removed by DropCodeWithoutReusableInstructions.
     UnexpectedObject(code, "Expected instructions to reuse");
   }
-  Write<uint32_t>(offset);
 
   // If offset < 0, it's pointing to a shared instruction. We don't profile
   // references to shared text/data (since they don't consume any space). Of
@@ -4701,6 +4694,41 @@ void Serializer::WriteInstructions(RawInstructions* instr, RawCode* code) {
         from_object, {to_object, V8SnapshotProfileWriter::Reference::kProperty,
                       profile_writer_->EnsureString("<instructions>")});
   }
+
+#if defined(DART_PRECOMPILER)
+  if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
+    static_assert(
+        ImageWriter::kBareInstructionsAlignment > 1,
+        "Bare instruction payloads are not aligned on even byte boundaries");
+    ASSERT((offset & 0x1) == 0);
+    // Since instructions are aligned on even byte boundaries, we can use the
+    // low bit as a flag for whether the first uint32_t read is an offset
+    // followed by the unchecked_offset + mono entry bit (when 0) or a reference
+    // to another code object (when 1).
+    if (deduped_instructions_sources_.HasKey(offset)) {
+      ASSERT(FLAG_dedup_instructions);
+      Write<uint32_t>(deduped_instructions_sources_.LookupValue(offset));
+      return;
+    }
+    Write<uint32_t>(offset);
+    // When writing only instruction payloads, we also need to serialize
+    // whether there was a single entry. We append this as the low order bit
+    // in the unchecked_offset.
+    ASSERT(Utils::IsUint(31, unchecked_offset));
+    const uint32_t payload_info =
+        (unchecked_offset << 1) | (Code::HasMonomorphicEntry(code) ? 0x1 : 0x0);
+    WriteUnsigned(payload_info);
+    // Store the index with an added set low bit (e.g., the form it should take
+    // if used in serializing later Code objects). This also avoids storing a 0
+    // in the IntMap when sharing instructions with the first code object (as
+    // that is IntMap's current kNoValue).
+    ASSERT(Utils::IsUint(31, index));
+    deduped_instructions_sources_.Insert(offset, (index << 1) | 0x1);
+    return;
+  }
+#endif
+  Write<uint32_t>(offset);
+  WriteUnsigned(unchecked_offset);
 }
 
 void Serializer::TraceDataOffset(uint32_t offset) {
@@ -5007,6 +5035,7 @@ void Serializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw(), "Array", "<zero_array>");
   AddBaseObject(Object::dynamic_type().raw(), "Type", "<dynamic type>");
   AddBaseObject(Object::void_type().raw(), "Type", "<void type>");
+  AddBaseObject(Object::never_type().raw(), "Type", "<never type>");
   AddBaseObject(Object::empty_type_arguments().raw(), "TypeArguments", "[]");
   AddBaseObject(Bool::True().raw(), "bool", "true");
   AddBaseObject(Bool::False().raw(), "bool", "false");
@@ -5423,9 +5452,96 @@ RawApiError* FullSnapshotReader::ConvertToApiError(char* message) {
   return ApiError::New(msg, Heap::kOld);
 }
 
-RawInstructions* Deserializer::ReadInstructions() {
-  uint32_t offset = Read<uint32_t>();
-  return image_reader_->GetInstructionsAt(offset);
+void Deserializer::ReadInstructions(RawCode* code,
+                                    intptr_t index,
+                                    intptr_t start_index) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (FLAG_use_bare_instructions) {
+    // There are no serialized RawInstructions objects in this mode.
+    code->ptr()->instructions_ = Instructions::null();
+
+    const uint32_t bare_offset = Read<uint32_t>();
+    if ((bare_offset & 0x1) == 0x1) {
+      // The low bit being set marks this as a reference to an earlier Code
+      // object in the cluster that shared the same deduplicated Instructions
+      // object. Thus, retrieve the instructions-related information from there.
+      ASSERT((index - start_index) >= code_order_length());
+      const uint32_t source_id = (bare_offset >> 1) + start_index;
+      auto const source = reinterpret_cast<RawCode*>(Ref(source_id));
+      code->ptr()->entry_point_ = source->ptr()->entry_point_;
+      code->ptr()->unchecked_entry_point_ =
+          source->ptr()->unchecked_entry_point_;
+      code->ptr()->monomorphic_entry_point_ =
+          source->ptr()->monomorphic_entry_point_;
+      code->ptr()->monomorphic_unchecked_entry_point_ =
+          source->ptr()->monomorphic_unchecked_entry_point_;
+      code->ptr()->instructions_length_ = source->ptr()->instructions_length_;
+      return;
+    }
+    const uword payload_start =
+        image_reader_->GetBareInstructionsAt(bare_offset);
+    const uint32_t payload_info = ReadUnsigned();
+    const uint32_t unchecked_offset = payload_info >> 1;
+    const bool has_monomorphic_entrypoint = (payload_info & 0x1) == 0x1;
+
+    const uword entry_offset = has_monomorphic_entrypoint
+                                   ? Instructions::kPolymorphicEntryOffsetAOT
+                                   : 0;
+    const uword monomorphic_entry_offset =
+        has_monomorphic_entrypoint ? Instructions::kMonomorphicEntryOffsetAOT
+                                   : 0;
+
+    const uword entry_point = payload_start + entry_offset;
+    const uword monomorphic_entry_point =
+        payload_start + monomorphic_entry_offset;
+
+    code->ptr()->entry_point_ = entry_point;
+    code->ptr()->unchecked_entry_point_ = entry_point + unchecked_offset;
+    code->ptr()->monomorphic_entry_point_ = monomorphic_entry_point;
+    code->ptr()->monomorphic_unchecked_entry_point_ =
+        monomorphic_entry_point + unchecked_offset;
+
+    // We don't serialize the length of the instructions payload. Instead, we
+    // calculate an approximate length (may include padding) by subtracting the
+    // payload start of the next Code object (if any) from the start for this
+    // one. Thus, here we patch the instructions length for the previous Code
+    // object, if any.
+    ASSERT((index - start_index) < code_order_length());
+    const uword curr_payload_start = Code::PayloadStartOf(code);
+    if (index > start_index) {
+      auto const prev = reinterpret_cast<RawCode*>(Ref(index - 1));
+      const uword prev_payload_start = Code::PayloadStartOf(prev);
+      prev->ptr()->instructions_length_ =
+          curr_payload_start - prev_payload_start;
+    }
+    // For the last Code object whose Instructions were written to the
+    // instructions image, assume its payload extends to the image's end.
+    if ((index - start_index) == code_order_length() - 1) {
+      code->ptr()->instructions_length_ =
+          image_reader_->GetBareInstructionsEnd() - curr_payload_start;
+    }
+
+    return;
+  }
+#endif
+
+  const uint32_t offset = Read<uint32_t>();
+  RawInstructions* instr = image_reader_->GetInstructionsAt(offset);
+  uint32_t unchecked_offset = ReadUnsigned();
+
+  code->ptr()->instructions_ = instr;
+#if defined(DART_PRECOMPILED_RUNTIME)
+  code->ptr()->instructions_length_ = Instructions::Size(instr);
+#else
+  code->ptr()->unchecked_offset_ = unchecked_offset;
+  if (kind() == Snapshot::kFullJIT) {
+    const uint32_t active_offset = Read<uint32_t>();
+    instr = image_reader_->GetInstructionsAt(active_offset);
+    unchecked_offset = ReadUnsigned();
+  }
+  code->ptr()->active_instructions_ = instr;
+#endif
+  Code::InitializeCachedEntryPointsFrom(code, instr, unchecked_offset);
 }
 
 RawObject* Deserializer::GetObjectAt(uint32_t offset) const {
@@ -5498,6 +5614,7 @@ void Deserializer::AddVMIsolateBaseObjects() {
   AddBaseObject(Object::zero_array().raw());
   AddBaseObject(Object::dynamic_type().raw());
   AddBaseObject(Object::void_type().raw());
+  AddBaseObject(Object::never_type().raw());
   AddBaseObject(Object::empty_type_arguments().raw());
   AddBaseObject(Bool::True().raw());
   AddBaseObject(Bool::False().raw());
@@ -5842,19 +5959,72 @@ char* SnapshotHeaderReader::InitializeGlobalVMFlagsFromSnapshot(
     if (end == nullptr) {
       end = features + features_length;
     }
-#define CHECK_FLAG(name, flag)                                                 \
+
+#define SET_FLAG(name)                                                         \
   if (strncmp(cursor, #name, end - cursor) == 0) {                             \
-    flag = true;                                                               \
+    FLAG_##name = true;                                                        \
     cursor = end;                                                              \
     continue;                                                                  \
   }                                                                            \
   if (strncmp(cursor, "no-" #name, end - cursor) == 0) {                       \
-    flag = false;                                                              \
+    FLAG_##name = false;                                                       \
     cursor = end;                                                              \
     continue;                                                                  \
   }
-    VM_GLOBAL_FLAG_LIST(CHECK_FLAG)
+
+#define CHECK_FLAG(name, mode)                                                 \
+  if (strncmp(cursor, #name, end - cursor) == 0) {                             \
+    if (!FLAG_##name) {                                                        \
+      return header_reader.BuildError("Flag " #name                            \
+                                      " is true in snapshot, "                 \
+                                      "but " #name                             \
+                                      " is always false in " mode);            \
+    }                                                                          \
+    cursor = end;                                                              \
+    continue;                                                                  \
+  }                                                                            \
+  if (strncmp(cursor, "no-" #name, end - cursor) == 0) {                       \
+    if (FLAG_##name) {                                                         \
+      return header_reader.BuildError("Flag " #name                            \
+                                      " is false in snapshot, "                \
+                                      "but " #name                             \
+                                      " is always true in " mode);             \
+    }                                                                          \
+    cursor = end;                                                              \
+    continue;                                                                  \
+  }
+
+#define SET_P(name, T, DV, C) SET_FLAG(name)
+
+#if defined(PRODUCT)
+#define SET_OR_CHECK_R(name, PV, T, DV, C) CHECK_FLAG(name, "product mode")
+#else
+#define SET_OR_CHECK_R(name, PV, T, DV, C) SET_FLAG(name)
+#endif
+
+#if defined(PRODUCT)
+#define SET_OR_CHECK_C(name, PCV, PV, T, DV, C) CHECK_FLAG(name, "product mode")
+#elif defined(DART_PRECOMPILED_RUNTIME)
+#define SET_OR_CHECK_C(name, PCV, PV, T, DV, C)                                \
+  CHECK_FLAG(name, "the precompiled runtime")
+#else
+#define SET_OR_CHECK_C(name, PV, T, DV, C) SET_FLAG(name)
+#endif
+
+#if !defined(DEBUG)
+#define SET_OR_CHECK_D(name, T, DV, C) CHECK_FLAG(name, "non-debug mode")
+#else
+#define SET_OR_CHECK_D(name, T, DV, C) SET_FLAG(name)
+#endif
+
+    VM_GLOBAL_FLAG_LIST(SET_P, SET_OR_CHECK_R, SET_OR_CHECK_C, SET_OR_CHECK_D)
+
+#undef SET_OR_CHECK_D
+#undef SET_OR_CHECK_C
+#undef SET_OR_CHECK_R
+#undef SET_P
 #undef CHECK_FLAG
+#undef SET_FLAG
 
     cursor = end;
   }

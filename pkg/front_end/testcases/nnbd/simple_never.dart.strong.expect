@@ -1,7 +1,7 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
-static method foo() → Never{
+static method foo() → Never {
   while (true) {
   }
 }

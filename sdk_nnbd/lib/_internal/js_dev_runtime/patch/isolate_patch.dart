@@ -43,7 +43,7 @@ class Isolate {
           bool errorsAreFatal = true,
           bool? checked,
           Map<String, String>? environment,
-          Uri packageRoot,
+          Uri? packageRoot,
           Uri? packageConfig,
           bool automaticPackageResolution = false,
           String? debugName}) =>
@@ -69,7 +69,7 @@ class Isolate {
   void kill({int priority = beforeNextEvent}) => _unsupported();
   @patch
   void ping(SendPort responsePort,
-          {Object response, int priority = immediate}) =>
+          {Object? response, int priority = immediate}) =>
       _unsupported();
 
   @patch
@@ -101,7 +101,7 @@ class _ReceivePort extends Stream implements ReceivePort {
   StreamSubscription listen(void Function(dynamic)? onData,
           {Function? onError,
           void Function()? onDone,
-          bool cancelOnError = true}) =>
+          bool? cancelOnError = true}) =>
       _unsupported();
 }
 

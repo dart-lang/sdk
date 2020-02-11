@@ -9,6 +9,7 @@ import 'package:analysis_server/protocol/protocol_generated.dart'
     hide AnalysisOptions;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -31,14 +32,14 @@ abstract class AbstractClient {
   final Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
   final String projectPath;
-  final String testFolder;
-  final String testFile;
+  final String testFilePath;
   String testCode;
+
+  MockSdk sdk;
 
   AbstractClient({
     @required this.projectPath,
-    @required this.testFolder,
-    @required this.testFile,
+    @required this.testFilePath,
     @required String sdkPath,
   })  : serverChannel = MockServerChannel(),
         pluginManager = TestPluginManager() {
@@ -52,11 +53,14 @@ abstract class AbstractClient {
   AnalysisDomainHandler get analysisHandler => server.handlers
       .singleWhere((handler) => handler is AnalysisDomainHandler);
 
-  AnalysisOptions get analysisOptions => testDiver.analysisOptions;
+  CompletionDomainHandler get completionHandler =>
+      server.handlers.whereType<CompletionDomainHandler>().single;
+
+  AnalysisOptions get analysisOptions => testDriver.analysisOptions;
 
   ResourceProvider get resourceProvider;
 
-  AnalysisDriver get testDiver => server.getAnalysisDriver(testFile);
+  AnalysisDriver get testDriver => server.getAnalysisDriver(testFilePath);
 
   void addAnalysisOptionsFile(String content) {
     newFile(
@@ -86,9 +90,9 @@ abstract class AbstractClient {
   }
 
   String addTestFile(String content) {
-    newFile(testFile, content);
+    newFile(testFilePath, content);
     testCode = content;
-    return testFile;
+    return testFilePath;
   }
 
   void assertValidId(String id) {
@@ -98,13 +102,14 @@ abstract class AbstractClient {
 
   /// Create an analysis server with the given [sdkPath].
   AnalysisServer createAnalysisServer(String sdkPath) {
-    MockSdk(resourceProvider: resourceProvider);
+    sdk = MockSdk(resourceProvider: resourceProvider);
     var options = AnalysisServerOptions();
     return AnalysisServer(serverChannel, resourceProvider, options,
         DartSdkManager(sdkPath, true), InstrumentationService.NULL_SERVICE);
   }
 
   /// Create a project at [projectPath].
+  @mustCallSuper
   void createProject({Map<String, String> packageRoots}) {
     newFolder(projectPath);
     var request = AnalysisSetAnalysisRootsParams([projectPath], [],

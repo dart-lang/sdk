@@ -39,7 +39,7 @@ vars = {
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes. It requires access to the dart-build-access group, which EngProd
   # has.
-  "co19_rev": "5a3388d1f79cc3c61f9cdc1b3eaaa405bd62c882",
+  "co19_rev": "def1183bacc28f008db4fdd3d0442ed05f1889f8",
   "co19_2_rev": "368bfa9e877a2df003547f64bb17e30596af10c7",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -469,7 +469,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/benchmark_data",
-        "version": "sha1sum:4640fa0bff40726392748d1ad3147e5dd0324ea2",
+        "version": "sha1sum:5b6e6dfa33b85c733cab4e042bf46378984d1544",
       }
     ],
     "dep_type": "cipd",
@@ -479,7 +479,7 @@ deps = {
     "packages": [
       {
         "package": "dart/cfe/dart2js_dills",
-        "version": "binary_version:38",
+        "version": "binary_version:39",
       }
     ],
     "dep_type": "cipd",

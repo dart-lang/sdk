@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -422,6 +423,8 @@ class BuildMode with HasContextMixin {
       summaryDataStore.addBundle(null, sdkBundle);
     });
 
+    var packages = _findPackages(rootPath);
+
     sourceFactory = SourceFactory(<UriResolver>[
       DartUriResolver(sdk),
       TrackingInSummaryUriResolver(
@@ -435,15 +438,17 @@ class BuildMode with HasContextMixin {
 
     AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(logger);
     analysisDriver = AnalysisDriver(
-        scheduler,
-        logger,
-        resourceProvider,
-        MemoryByteStore(),
-        FileContentOverlay(),
-        null,
-        sourceFactory,
-        analysisOptions,
-        externalSummaries: summaryDataStore);
+      scheduler,
+      logger,
+      resourceProvider,
+      MemoryByteStore(),
+      FileContentOverlay(),
+      null,
+      sourceFactory,
+      analysisOptions,
+      externalSummaries: summaryDataStore,
+      packages: packages,
+    );
 
     declaredVariables = DeclaredVariables.fromMap(options.definedVariables);
     analysisDriver.declaredVariables = declaredVariables;
@@ -492,6 +497,14 @@ class BuildMode with HasContextMixin {
       uriToFileMap[uri] = resourceProvider.getFile(path);
     }
     return uriToFileMap;
+  }
+
+  Packages _findPackages(String path) {
+    if (path != null) {
+      return findPackagesFrom(resourceProvider, resourceProvider.getFile(path));
+    } else {
+      return Packages.empty;
+    }
   }
 
   /// Ensure that the parsed unit for [absoluteUri] is available.

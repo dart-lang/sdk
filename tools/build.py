@@ -16,10 +16,7 @@ HOST_OS = utils.GuessOS()
 HOST_CPUS = utils.GuessCpus()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
-AVAILABLE_ARCHS = [
-    'ia32', 'x64', 'simarm', 'arm', 'arm_x64', 'simarmv6', 'armv6', 'simarm64',
-    'arm64', 'simarm_x64'
-]
+AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
 
 usage = """\
 usage: %%prog [options] [targets]
@@ -107,8 +104,13 @@ def ProcessOptions(options, args):
         if not mode in ['debug', 'release', 'product']:
             print("Unknown mode %s" % mode)
             return False
-    for arch in options.arch:
+    for i, arch in enumerate(options.arch):
         if not arch in AVAILABLE_ARCHS:
+            # Normalise to lower case form to make it less case-picky.
+            arch_lower = arch.lower()
+            if arch_lower in AVAILABLE_ARCHS:
+                options.arch[i] = arch_lower
+                continue
             print("Unknown arch %s" % arch)
             return False
     options.os = [ProcessOsOption(os_name) for os_name in options.os]

@@ -12,10 +12,7 @@ import 'package:kernel/src/legacy_erasure.dart';
 
 import '../constant_context.dart' show ConstantContext;
 
-import '../fasta_codes.dart'
-    show
-        messageInternalProblemAlreadyInitialized,
-        templateCantInferTypeDueToCircularity;
+import '../fasta_codes.dart' show messageInternalProblemAlreadyInitialized;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/class_hierarchy_builder.dart' show ClassMember;
@@ -34,11 +31,6 @@ import '../source/source_loader.dart' show SourceLoader;
 
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
-
-import '../type_inference/type_inferrer.dart'
-    show ExpressionInferenceResult, TypeInferrerImpl;
-
-import '../type_inference/type_schema.dart' show UnknownType;
 
 import 'class_builder.dart';
 import 'extension_builder.dart';
@@ -176,8 +168,8 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       assert(lateIsSetReferenceFrom == null);
       assert(getterReferenceFrom == null);
       assert(setterReferenceFrom == null);
-      _fieldEncoding = new RegularFieldEncoding(
-          fileUri, charOffset, charEndOffset, reference);
+      _fieldEncoding = new RegularFieldEncoding(fileUri, charOffset,
+          charEndOffset, reference, library.isNonNullableByDefault);
     }
   }
 
@@ -337,41 +329,9 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
       // We have already inferred a type.
       return fieldType;
     }
-    ImplicitFieldType type = fieldType;
-    if (type.fieldBuilder != this) {
-      // The implicit type was inherited.
-      return fieldType = type.inferType();
-    }
-    if (type.isStarted) {
-      library.addProblem(
-          templateCantInferTypeDueToCircularity.withArguments(name),
-          charOffset,
-          name.length,
-          fileUri);
-      return fieldType = const InvalidType();
-    }
-    type.isStarted = true;
-    InterfaceType enclosingClassThisType = field.enclosingClass == null
-        ? null
-        : library.loader.typeInferenceEngine.coreTypes.thisInterfaceType(
-            field.enclosingClass, field.enclosingLibrary.nonNullable);
-    TypeInferrerImpl typeInferrer = library.loader.typeInferenceEngine
-        .createTopLevelTypeInferrer(fileUri, enclosingClassThisType, library,
-            dataForTesting?.inferenceData);
-    BodyBuilder bodyBuilder =
-        library.loader.createBodyBuilderForField(this, typeInferrer);
-    bodyBuilder.constantContext =
-        isConst ? ConstantContext.inferred : ConstantContext.none;
-    Expression initializer =
-        bodyBuilder.parseFieldInitializer(type.initializerToken);
-    type.initializerToken = null;
 
-    ExpressionInferenceResult result = typeInferrer.inferExpression(
-        initializer, const UnknownType(), true,
-        isVoidAllowed: true);
-    DartType inferredType =
-        typeInferrer.inferDeclarationType(result.inferredType);
-
+    ImplicitFieldType implicitFieldType = fieldType;
+    DartType inferredType = implicitFieldType.computeType();
     if (fieldType is ImplicitFieldType) {
       // `fieldType` may have changed if a circularity was detected when
       // [inferredType] was computed.
@@ -379,7 +339,7 @@ class SourceFieldBuilder extends MemberBuilderImpl implements FieldBuilder {
         inferredType = legacyErasure(
             library.loader.typeInferenceEngine.coreTypes, inferredType);
       }
-      fieldType = inferredType;
+      fieldType = implicitFieldType.checkInferred(inferredType);
 
       IncludesTypeParametersNonCovariantly needsCheckVisitor;
       if (parent is ClassBuilder) {
@@ -511,11 +471,12 @@ abstract class FieldEncoding {
 class RegularFieldEncoding implements FieldEncoding {
   Field _field;
 
-  RegularFieldEncoding(
-      Uri fileUri, int charOffset, int charEndOffset, Field reference) {
+  RegularFieldEncoding(Uri fileUri, int charOffset, int charEndOffset,
+      Field reference, bool isNonNullableByDefault) {
     _field = new Field(null, fileUri: fileUri, reference: reference?.reference)
       ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = isNonNullableByDefault;
   }
 
   @override
@@ -645,15 +606,18 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     _field =
         new Field(null, fileUri: fileUri, reference: referenceFrom?.reference)
           ..fileOffset = charOffset
-          ..fileEndOffset = charEndOffset;
+          ..fileEndOffset = charEndOffset
+          ..isNonNullableByDefault = true;
     _lateIsSetField = new Field(null,
         fileUri: fileUri, reference: lateIsSetReferenceFrom?.reference)
       ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset;
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = true;
     _lateGetter = new Procedure(
         null, ProcedureKind.Getter, new FunctionNode(null),
         fileUri: fileUri, reference: getterReferenceFrom?.reference)
-      ..fileOffset = charOffset;
+      ..fileOffset = charOffset
+      ..isNonNullableByDefault = true;
     _lateSetter = _createSetter(name, fileUri, charOffset, setterReferenceFrom);
   }
 
@@ -751,7 +715,8 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
             positionalParameters: [parameter], returnType: const VoidType()),
         fileUri: fileUri,
         reference: referenceFrom?.reference)
-      ..fileOffset = charOffset;
+      ..fileOffset = charOffset
+      ..isNonNullableByDefault = true;
   }
 
   Statement _createSetterBody(
@@ -762,17 +727,20 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   @override
   void set type(DartType value) {
-    assert(_type == null, "Type has already been computed for field $name.");
+    assert(_type == null || _type is ImplicitFieldType,
+        "Type has already been computed for field $name.");
     _type = value;
-    _field.type = value.withNullability(Nullability.nullable);
-    _lateGetter.function.returnType = value;
-    if (_lateSetter != null) {
-      _lateSetter.function.positionalParameters.single.type = value;
-    }
-    if (!_type.isPotentiallyNullable) {
-      // We only need the is-set field if the field is potentially nullable.
-      //  Otherwise we use `null` to signal that the field is uninitialized.
-      _lateIsSetField = null;
+    if (value is! ImplicitFieldType) {
+      _field.type = value.withNullability(Nullability.nullable);
+      _lateGetter.function.returnType = value;
+      if (_lateSetter != null) {
+        _lateSetter.function.positionalParameters.single.type = value;
+      }
+      if (!_type.isPotentiallyNullable) {
+        // We only need the is-set field if the field is potentially nullable.
+        //  Otherwise we use `null` to signal that the field is uninitialized.
+        _lateIsSetField = null;
+      }
     }
   }
 

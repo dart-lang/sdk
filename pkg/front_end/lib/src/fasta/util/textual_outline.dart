@@ -9,6 +9,9 @@ import 'dart:io' show File;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
 
+import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart'
+    show DeclarationKind;
+
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, LanguageVersionToken, Scanner;
 
@@ -47,9 +50,12 @@ String textualOutline(List<int> rawBytes, {bool makeMoreReadable: false}) {
     if (token is ErrorToken) {
       return null;
     }
-    if (printed && token.offset > endOfLast) {
+    if (addLinebreak) {
+      sb.write("\n");
+    } else if (printed && token.offset > endOfLast) {
       sb.write(" ");
     }
+    addLinebreak = false;
 
     sb.write(token.lexeme);
     printed = true;
@@ -58,19 +64,19 @@ String textualOutline(List<int> rawBytes, {bool makeMoreReadable: false}) {
       if (token.lexeme == ";") {
         addLinebreak = true;
       } else if (token.endGroup != null &&
-          listener.endOffsets.contains(token.endGroup.offset)) {
+          (listener.nonClassEndOffsets.contains(token.endGroup.offset) ||
+              listener.classEndOffsets.contains(token.endGroup.offset))) {
         addLinebreak = true;
-      } else if (listener.endOffsets.contains(token.offset)) {
+      } else if (listener.nonClassEndOffsets.contains(token.offset) ||
+          listener.classEndOffsets.contains(token.offset)) {
         addLinebreak = true;
       }
     }
 
-    if (addLinebreak) sb.write("\n");
-    addLinebreak = false;
     if (token.isEof) break;
 
     if (token.endGroup != null &&
-        listener.endOffsets.contains(token.endGroup.offset)) {
+        listener.nonClassEndOffsets.contains(token.endGroup.offset)) {
       token = token.endGroup;
     } else {
       token = token.next;
@@ -86,17 +92,30 @@ main(List<String> args) {
 }
 
 class EndOffsetListener extends DirectiveListener {
-  Set<int> endOffsets = new Set<int>();
+  Set<int> nonClassEndOffsets = new Set<int>();
+  Set<int> classEndOffsets = new Set<int>();
 
   @override
   void endClassMethod(Token getOrSet, Token beginToken, Token beginParam,
       Token beginInitializers, Token endToken) {
-    endOffsets.add(endToken.offset);
+    nonClassEndOffsets.add(endToken.offset);
   }
 
   @override
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
-    endOffsets.add(endToken.offset);
+    nonClassEndOffsets.add(endToken.offset);
+  }
+
+  @override
+  void endClassFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    nonClassEndOffsets.add(endToken.offset);
+  }
+
+  @override
+  void endClassOrMixinBody(
+      DeclarationKind kind, int memberCount, Token beginToken, Token endToken) {
+    classEndOffsets.add(endToken.offset);
   }
 
   @override

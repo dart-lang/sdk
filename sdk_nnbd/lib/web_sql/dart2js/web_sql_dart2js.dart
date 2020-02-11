@@ -30,7 +30,8 @@ import 'dart:_js_helper'
         Creates,
         JSName,
         Native,
-        JavaScriptIndexingBehavior;
+        JavaScriptIndexingBehavior,
+        Returns;
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -223,7 +224,7 @@ class SqlResultSetRowList extends Interceptor
   Map operator [](int index) {
     if (JS("bool", "# >>> 0 !== # || # >= #", index, index, index, length))
       throw new RangeError.index(index, this);
-    return this.item(index);
+    return this.item(index)!;
   }
 
   void operator []=(int index, Map value) {
@@ -263,7 +264,7 @@ class SqlResultSetRowList extends Interceptor
   Map elementAt(int index) => this[index];
   // -- end List<Map> mixins.
 
-  Map item(int index) {
+  Map? item(int index) {
     return convertNativeToDart_Dictionary(_item_1(index));
   }
 

@@ -166,7 +166,8 @@ def GenerateFromDatabase(common_database,
         template_loader = TemplateLoader(template_dir, template_paths, {
             'DARTIUM': False,
             'DART2JS': True,
-            'JSINTEROP': False
+            'JSINTEROP': False,
+            'NNBD': nnbd
         })
         backend_options = GeneratorOptions(template_loader, webkit_database,
                                            type_registry, renamer, metadata,

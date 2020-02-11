@@ -93,7 +93,7 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class D<T extends core::Object* = dynamic> extends core::Object {
+class D<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   const constructor foo() → self::D<self::D::T*>*
     : super core::Object::•()
     ;
@@ -134,7 +134,7 @@ class E<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-class F<T extends core::Object* = dynamic> extends core::Object {
+class F<T extends core::Object* = dynamic> extends core::Object /*hasConstConstructor*/  {
   const constructor foo() → iss::F<iss::F::T*>*
     : super core::Object::•()
     ;

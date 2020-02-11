@@ -2,7 +2,7 @@ main = <No Member>;
 library from "org-dartlang-test:///main.dart" as main {
 
   part myPart.dart;
-  class Foo extends dart.core::Object {
+  class Foo extends dart.core::Object /*hasConstConstructor*/  {
     const constructor •() → main::Foo*
       : super dart.core::Object::•()
       ;

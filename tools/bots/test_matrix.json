@@ -29,6 +29,7 @@
       "samples-dev/",
       "samples/",
       "sdk/",
+      "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
@@ -68,6 +69,7 @@
       "samples-dev/",
       "samples/",
       "sdk_nnbd/",
+      "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
@@ -113,6 +115,7 @@
       "samples-dev/",
       "samples/",
       "sdk/",
+      "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
@@ -154,6 +157,7 @@
       "samples/",
       "sdk/",
       "sdk_nnbd/",
+      "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
@@ -191,6 +195,7 @@
       "samples/",
       "sdk/",
       "sdk_nnbd/",
+      "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
@@ -292,6 +297,7 @@
       "third_party/pkg/",
       "third_party/pkg_tested/",
       "third_party/observatory_pub_packages/packages/",
+      "tests/.dart_tool/package_config.json",
       "tests/angular/",
       "tests/co19_2/co19_2-analyzer.status",
       "tests/co19_2/co19_2-co19.status",
@@ -2288,7 +2294,7 @@
         {
           "name": "dart2js nnbd weak tests",
           "arguments": [
-            "-ndart2js-hostasserts-weak-linux-x64-d8",
+            "-ndart2js-weak-linux-x64-d8",
             "--dart2js-batch",
             "language_2",
             "corelib_2",
@@ -2296,7 +2302,7 @@
             "dart2js_native"
           ],
           "shards": 6,
-          "fileset": "dart2js_hostasserts_nnbd"
+          "fileset": "dart2js_nnbd"
         }
       ]
     },

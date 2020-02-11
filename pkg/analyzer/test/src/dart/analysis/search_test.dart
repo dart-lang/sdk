@@ -1816,6 +1816,7 @@ main() {
   N1;
   N2();
   N3;
+  N4 = 0;
 }
 ''');
     ImportElement element = testLibraryElement.imports[0];
@@ -1825,7 +1826,7 @@ main() {
       _expectId(mainElement, kind, 'N1;', length: 0),
       _expectId(mainElement, kind, 'N2();', length: 0),
       _expectId(mainElement, kind, 'N3;', length: 0),
-//      _expectId(mainElement, kind, 'N4 =', length: 0),
+      _expectId(mainElement, kind, 'N4 =', length: 0),
     ];
     await _verifyReferences(element, expected);
   }
@@ -1846,6 +1847,7 @@ main() {
   a.N1;
   a.N2();
   a.N3;
+  a.N4 = 0;
 }
 ''');
     ImportElement element = testLibraryElement.imports[0];
@@ -1856,7 +1858,7 @@ main() {
       _expectId(mainElement, kind, 'a.N1;', length: length),
       _expectId(mainElement, kind, 'a.N2()', length: length),
       _expectId(mainElement, kind, 'a.N3', length: length),
-//      _expectId(mainElement, kind, 'a.N4', length: length),
+      _expectId(mainElement, kind, 'a.N4', length: length),
     ];
     await _verifyReferences(element, expected);
   }

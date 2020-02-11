@@ -8,14 +8,16 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   factory $CLASSNAME() => document.createDocumentFragment();
 
   factory $CLASSNAME.html(String html,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
     return document.body.createFragment(html,
       validator: validator, treeSanitizer: treeSanitizer);
   }
 
   factory $CLASSNAME.svg(String svgContent,
-      {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+      {NodeValidator$NULLABLE validator,
+       NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
     return new svg.SvgSvgElement().createFragment(svgContent,
         validator: validator, treeSanitizer: treeSanitizer);
@@ -69,7 +71,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   void setInnerHtml(String html,
-    {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+    {NodeValidator$NULLABLE validator,
+     NodeTreeSanitizer$NULLABLE treeSanitizer}) {
 
     this.nodes.clear();
     append(document.body.createFragment(
@@ -90,7 +93,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
    * last child of this document fragment.
    */
   void appendHtml(String text,
-        {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
+        {NodeValidator$NULLABLE validator,
+         NodeTreeSanitizer$NULLABLE treeSanitizer}) {
     this.append(new DocumentFragment.html(text, validator: validator,
         treeSanitizer: treeSanitizer));
   }

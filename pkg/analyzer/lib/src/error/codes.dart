@@ -611,6 +611,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           "The switch case expression type '{0}' can't override the == "
               "operator.");
 
+  /// Given a switch statement which switches over an expression `e` of type
+  /// `T`, where the cases are dispatched based on expressions `e0` ... `ek`:
+  ///
+  /// It is an error if any of the `ei` evaluate to a value whose static type
+  /// is not a subtype of `T`.
+  static const CompileTimeErrorCode
+      CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE =
+      CompileTimeErrorCode(
+          'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
+          "The switch case expression type '{0}' must be a subtype of the "
+              "switch expression type '{1}'.");
+
   /**
    * 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
    * error if `C` declares a constructor named `C.n`, and a static member with
@@ -7048,15 +7060,29 @@ class StaticTypeWarningCode extends AnalyzerErrorCode {
   // is used and type arguments are provided, but the number of type arguments
   // isn't the same as the number of type parameters.
   //
+  // The analyzer also produces this diagnostic when a constructor is invoked
+  // and the number of type arguments doesn't match the number of type
+  // parameters declared for the class.
+  //
   // #### Examples
   //
   // The following code produces this diagnostic because `C` has one type
-  // parameter but two type arguments are provided:
+  // parameter but two type arguments are provided when it is used as a type
+  // annotation:
   //
   // ```dart
   // class C<E> {}
   //
   // void f([!C<int, int>!] x) {}
+  // ```
+  //
+  // The following code produces this diagnostic because `C` declares one type
+  // parameter, but two type arguments are provided when creating an instance:
+  //
+  // ```dart
+  // class C<E> {}
+  //
+  // var c = [!C<int, int>!]();
   // ```
   //
   // #### Common fixes
@@ -8311,6 +8337,7 @@ class StaticWarningCode extends AnalyzerErrorCode {
           'MISSING_ENUM_CONSTANT_IN_SWITCH', "Missing case clause for '{0}'.",
           correction: "Try adding a case clause for the missing constant, or "
               "adding a default clause.",
+          errorSeverity: ErrorSeverity.WARNING,
           hasPublishedDocs: true);
 
   @Deprecated('No longer an error in the spec and no longer generated')

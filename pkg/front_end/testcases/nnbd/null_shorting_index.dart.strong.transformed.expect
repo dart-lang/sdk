@@ -1,4 +1,47 @@
-library;
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:33:5: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c1?.[0] ??= 1;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:34:5: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c1?.[0] ??= 1 + c1[1];
+//     ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:46:5: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c2?.[0] ??= 1;
+//     ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:47:5: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c2?.[0] ??= 1 + c2[1];
+//     ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:58:16: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   Extension(c2)?.[0] ??= 1;
+//                ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:59:16: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   Extension(c2)?.[0] ??= 1 + Extension(c2)[1];
+//                ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:70:12: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c1?.field?.[0] ??= 1;
+//            ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:71:12: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   c1?.field?.[0] ??= 1 + c1[1];
+//            ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:82:23: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   Extension(c1?.field)?.[0] ??= 1;
+//                       ^
+//
+// pkg/front_end/testcases/nnbd/null_shorting_index.dart:83:23: Warning: Operand of null-aware operation '??=' has type 'int' which excludes null.
+//   Extension(c1?.field)?.[0] ??= 1 + Extension(c2)?.[1]!;
+//                       ^
+//
 import self as self;
 import "dart:core" as core;
 

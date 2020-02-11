@@ -612,7 +612,8 @@ class KernelTarget extends TargetImplementation {
         initializers: <Initializer>[initializer],
         isSynthetic: true,
         isConst: constructor.isConst && mixin.fields.isEmpty,
-        reference: referenceFrom?.reference);
+        reference: referenceFrom?.reference)
+      ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
   }
 
   void finishClonedParameters() {
@@ -643,7 +644,9 @@ class KernelTarget extends TargetImplementation {
             returnType: makeConstructorReturnType(enclosingClass)),
         name: new Name(""),
         isSynthetic: true,
-        reference: referenceFrom?.reference);
+        reference: referenceFrom?.reference)
+      ..isNonNullableByDefault =
+          enclosingClass.enclosingLibrary.isNonNullableByDefault;
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {

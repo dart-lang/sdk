@@ -124,6 +124,9 @@ bool IsIntType(const AbstractType& type);
 // Returns true if [type] is the "double" type.
 bool IsDoubleType(const AbstractType& type);
 
+// Returns true if [type] is the "double" type.
+bool IsBoolType(const AbstractType& type);
+
 // Returns true if [type] is the "_Smi" type.
 bool IsSmiType(const AbstractType& type);
 
@@ -1061,6 +1064,14 @@ class ClassTable : public AllStatic {
   static word SizeOffsetFor(intptr_t cid, bool is_new);
 #endif  // !defined(PRODUCT)
   static const word kSizeOfClassPairLog2;
+};
+
+class InstructionsSection : public AllStatic {
+ public:
+  static word HeaderSize();
+  static word UnalignedHeaderSize();
+  static word InstanceSize();
+  static word NextFieldOffset();
 };
 
 class Instructions : public AllStatic {

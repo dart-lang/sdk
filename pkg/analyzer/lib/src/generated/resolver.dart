@@ -137,7 +137,7 @@ class InferenceContext {
       context ??= DynamicTypeImpl.instance;
       inferred ??= DynamicTypeImpl.instance;
 
-      if (_typeSystem.isSubtypeOf(inferred, context)) {
+      if (_typeSystem.isSubtypeOf2(inferred, context)) {
         setType(node, inferred);
       }
     } else {

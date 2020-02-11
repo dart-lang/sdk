@@ -178,6 +178,8 @@ class CodeRelocator : public StackResource {
   intptr_t FindDestinationInText(const RawInstructions* destination,
                                  intptr_t offset_into_target);
 
+  static intptr_t AdjustPayloadOffset(intptr_t payload_offset);
+
   bool IsTargetInRangeFor(UnresolvedCall* unresolved_call,
                           intptr_t target_text_offset);
 

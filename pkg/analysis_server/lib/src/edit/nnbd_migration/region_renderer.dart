@@ -36,13 +36,14 @@ class RegionRenderer {
   String render() {
     var unitDir = pathContext.dirname(pathMapper.map(unitInfo.path));
 
-    Map<String, String> linkForTarget(NavigationTarget target) {
+    Map<String, dynamic> linkForTarget(NavigationTarget target) {
       String relativePath = _relativePathToTarget(target, unitDir);
       String targetUri = _uriForRelativePath(relativePath, target);
-      // TODO(brianwilkerson) Add the line number to the link text. This
-      //  will require that either the contents of all navigation targets
-      //  have been set or that line information has been saved.
-      return {'text': relativePath, 'href': targetUri};
+      return {
+        'text': relativePath,
+        'href': targetUri,
+        'line': target.line,
+      };
     }
 
     Map<String, String> linkForEdit(EditDetail edit) => {

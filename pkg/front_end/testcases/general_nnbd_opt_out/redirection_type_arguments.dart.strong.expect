@@ -5,7 +5,7 @@ import "package:expect/expect.dart" as exp;
 
 import "package:expect/expect.dart";
 
-class A extends core::Object {
+class A extends core::Object /*hasConstConstructor*/  {
   static field dynamic _redirecting# = <dynamic>[self::A::•];
   const constructor empty() → self::A*
     : super core::Object::•()
@@ -13,7 +13,7 @@ class A extends core::Object {
   static factory •() → self::A*
     let dynamic #redirecting_factory = self::B::• in let core::String* #typeArg0 = null in invalid-expression;
 }
-class B<T extends core::Object* = dynamic> extends self::A {
+class B<T extends core::Object* = dynamic> extends self::A /*hasConstConstructor*/  {
   const constructor •() → self::B<self::B::T*>*
     : super self::A::empty()
     ;

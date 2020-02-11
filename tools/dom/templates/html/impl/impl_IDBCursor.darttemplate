@@ -22,7 +22,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
   }
 
   @JSName('continue')
-  void next([Object key]) {
+  void next([Object$NULLABLE key]) {
     if (key == null) {
       JS('void', '#.continue()', this);
     } else {

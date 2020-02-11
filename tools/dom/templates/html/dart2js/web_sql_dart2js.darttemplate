@@ -22,7 +22,7 @@ import 'dart:_internal' show FixedLengthListMixin;
 import 'dart:html';
 import 'dart:html_common';
 import 'dart:_js_helper' show applyExtension, convertDartClosureToJS, Creates,
-    JSName, Native, JavaScriptIndexingBehavior;
+    JSName, Native, JavaScriptIndexingBehavior, Returns;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show Interceptor;
 

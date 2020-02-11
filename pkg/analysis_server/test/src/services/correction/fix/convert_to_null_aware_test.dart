@@ -29,7 +29,7 @@ class ConvertToNullAwareTest extends FixProcessorLintTest {
 abstract class A {
   int m();
 }
-int f(A a) => null == a /*LINT*/? null : a.m();
+int f(A a) => null == a ? null : a.m();
 ''');
     await assertHasFix('''
 abstract class A {

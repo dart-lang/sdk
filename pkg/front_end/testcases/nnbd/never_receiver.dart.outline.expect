@@ -1,7 +1,7 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 
-static method foo(Neverx, Never? y) → dynamic
+static method foo(Never x, Never? y) → dynamic
   ;
 static method main() → dynamic
   ;

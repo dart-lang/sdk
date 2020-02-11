@@ -1680,8 +1680,9 @@ void FlowGraph::InsertConversion(Representation from,
     const intptr_t deopt_id = (deopt_target != NULL)
                                   ? deopt_target->DeoptimizationTarget()
                                   : DeoptId::kNone;
-    converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id,
-                                   use->instruction()->speculative_mode());
+    converted = UnboxInstr::Create(
+        to, use->CopyWithType(), deopt_id,
+        use->instruction()->SpeculativeModeOfInput(use->use_index()));
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
   } else {

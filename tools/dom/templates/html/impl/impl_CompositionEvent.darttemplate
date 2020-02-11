@@ -8,12 +8,13 @@ part of $LIBRARYNAME;
 
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   factory $CLASSNAME(String type,
-      {bool canBubble: false, bool cancelable: false, Window view,
-      String data, String locale}) {
+      {bool canBubble: false, bool cancelable: false, Window$NULLABLE view,
+      String$NULLABLE data, String$NULLABLE locale}) {
     if (view == null) {
       view = window;
     }
-    CompositionEvent e = document._createEvent("CompositionEvent");
+    CompositionEvent e =
+        document._createEvent("CompositionEvent") $#NULLSAFECAST(as CompositionEvent);
 
     if (Device.isFirefox) {
       // Firefox requires the locale parameter that isn't supported elsewhere.

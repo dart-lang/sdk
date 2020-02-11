@@ -36,7 +36,7 @@ $!MEMBERS
     if (context == null) {
       context = getContext('experimental-webgl', options);
     }
-    return context;
+    return context $#NULLSAFECAST(as gl.RenderingContext);
   }
 
   /**
@@ -80,7 +80,7 @@ $!MEMBERS
    *
    * * [toDataUrl](http://dev.w3.org/html5/spec/the-canvas-element.html#dom-canvas-todataurl) from W3C.
    */
-  String toDataUrl([String type = 'image/png', num quality]) =>
+  String toDataUrl([String type = 'image/png', num$NULLABLE quality]) =>
       _toDataUrl(type, quality);
 
   @JSName('toBlob')

@@ -72,6 +72,7 @@ import 'replace_conditional_with_if_else_test.dart'
 import 'replace_if_else_with_conditional_test.dart'
     as replace_if_else_with_conditional;
 import 'replace_with_var_test.dart' as replace_with_var;
+import 'shadow_field_test.dart' as shadow_field;
 import 'sort_child_property_last_test.dart' as sort_child_property_last;
 import 'split_and_condition_test.dart' as split_and_condition;
 import 'split_variable_declaration_test.dart' as split_variable_declaration;
@@ -146,6 +147,7 @@ void main() {
     replace_conditional_with_if_else.main();
     replace_if_else_with_conditional.main();
     replace_with_var.main();
+    shadow_field.main();
     sort_child_property_last.main();
     split_and_condition.main();
     split_variable_declaration.main();

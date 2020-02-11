@@ -932,7 +932,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
   void _releaseBuffer() {
     _buffer = null;
-    _index = null;
+    _index = -1;
   }
 
   static bool _isTokenChar(int byte) {
@@ -1075,7 +1075,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
   void _reportBodyError(error, [stackTrace]) {
     _socketSubscription?.cancel();
     _state = _State.FAILURE;
-    _bodyController.addError(error, stackTrace);
+    _bodyController?.addError(error, stackTrace);
     // In case of drain(), error event will close the stream.
     _bodyController?.close();
   }

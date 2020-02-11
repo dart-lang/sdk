@@ -459,13 +459,17 @@ def GetCallbackInfo(interface):
 # Given a list of overloaded arguments, render dart arguments.
 def _BuildArguments(args, interface, constructor=False):
 
+    # TODO(srujzs): Determine if this should really be turning false instead of
+    # argument.optional as the default. For NNBD, we'll derive parameter
+    # nullability from argument.optional but leave optionality otherwise alone.
     def IsOptional(argument):
         if 'Callback' in argument.ext_attrs:
-            # Optional callbacks arguments are treated as optional arguments.
+            # Optional callbacks arguments are treated as optional
+            # arguments.
             return argument.optional
         if constructor:
-            # FIXME: Optional constructors arguments should not be treated as
-            # optional arguments.
+            # FIXME: Optional constructors arguments should not be treated
+            # as optional arguments.
             return argument.optional
         if 'DartForceOptional' in argument.ext_attrs:
             return True
@@ -505,6 +509,7 @@ def _BuildArguments(args, interface, constructor=False):
     result = []
 
     is_optional = False
+
     # Process overloaded arguments across a set of overloaded operations.
     # Each tuple in args corresponds to overloaded arguments with the same name.
     for arg_tuple in map(lambda *x: x, *args):
@@ -514,10 +519,20 @@ def _BuildArguments(args, interface, constructor=False):
         filtered = filter(None, arg_tuple)
         (type_id, is_nullable) = OverloadedType(filtered)
         name = OverloadedName(filtered)
-        default = OverloadedDefault(filtered)
+        (default_value, default_value_is_null) = OverloadedDefault(filtered)
+
+        # For nullability determination, we'll use the arguments' optionality
+        # instead of the IsOptional method above.
+        optional_argument = any(arg is None or arg.optional or
+            'DartForceOptional' in arg.ext_attrs for arg in arg_tuple)
+
+        if optional_argument and (default_value == 'Undefined' or
+                default_value == None or default_value_is_null):
+            is_nullable = True
+
         result.append(
-            ParamInfo(name, type_id, is_optional, is_nullable, default[0],
-                      default[1]))
+            ParamInfo(name, type_id, is_optional, is_nullable, default_value,
+                      default_value_is_null))
 
     return result
 
@@ -535,6 +550,15 @@ def IsOptional(argument):
     return argument.optional and (not(HasSuppressedOptionalDefault(argument))) \
            or 'DartForceOptional' in argument.ext_attrs
 
+def OperationTypeIsNullable(operation):
+    if hasattr(operation.type, 'nullable'):
+        if operation.type.nullable:
+            return True
+    if operation.type.id == 'any':
+        # any is assumed to be nullable
+        return True
+
+    return False
 
 def AnalyzeOperation(interface, operations):
     """Makes operation calling convention decision for a set of overloads.
@@ -550,7 +574,6 @@ def AnalyzeOperation(interface, operations):
                 new_operation.arguments = new_operation.arguments[:i]
                 split_operations.append(new_operation)
         split_operations.append(operation)
-
     # Zip together arguments from each overload by position, then convert
     # to a dart argument.
     info = OperationInfo()
@@ -561,6 +584,7 @@ def AnalyzeOperation(interface, operations):
     info.constructor_name = None
     info.js_name = info.declared_name
     info.type_name = operations[0].type.id  # TODO: widen.
+    info.type_nullable = OperationTypeIsNullable(operations[0])
     info.param_infos = _BuildArguments(
         [op.arguments for op in split_operations], interface)
     full_name = '%s.%s' % (interface.id, info.declared_name)
@@ -692,6 +716,7 @@ class OperationInfo(object):
     constructor_name: A string, the name of the constructor iff the constructor
        is named, e.g. 'fromList' in  Int8Array.fromList(list).
     type_name: A string, the name of the return type of the operation.
+    type_nullable: Whether or not the return type is nullable.
     param_infos: A list of ParamInfo.
     factory_parameters: A list of parameters used for custom designed Factory
         calls.
@@ -699,6 +724,7 @@ class OperationInfo(object):
 
     def __init__(self):
         self.factory_parameters = None
+        self.type_nullable = False
 
     def ParametersAsDecVarLists(self, rename_type, force_optional=False):
         """ Returns a tuple (required, optional, named), where:
@@ -954,17 +980,17 @@ def TypeName(type_ids, interface):
 class Conversion(object):
     """Represents a way of converting between types."""
 
-    def __init__(self, name, input_type, output_type):
+    def __init__(self, name, input_type, output_type, nullable_input=False,
+                 nullable_output=False):
         # input_type is the type of the API input (and the argument type of the
         # conversion function)
         # output_type is the type of the API output (and the result type of the
         # conversion function)
-        # nullsafe_output flags whether the output_type has been converted yet
-        # to a null-safe type i.e. <type>? if nullable and <type> if not
         self.function_name = name
         self.input_type = input_type
         self.output_type = output_type
-        self.nullsafe_output = False
+        self.nullable_input = nullable_input or input_type == 'dynamic'
+        self.nullable_output = nullable_output or output_type == 'dynamic'
 
 
 #  "TYPE DIRECTION INTERFACE.MEMBER" -> conversion
@@ -995,24 +1021,28 @@ dart2js_conversions = monitored.Dict(
         # as well.  Note, there are no functions that take a non-local Window
         # as a parameter / setter.
         'Window get':
-        Conversion('_convertNativeToDart_Window', 'dynamic', 'WindowBase'),
+        Conversion('_convertNativeToDart_Window', 'dynamic', 'WindowBase',
+                   nullable_output=True),
         'EventTarget get':
         Conversion('_convertNativeToDart_EventTarget', 'dynamic',
-                   'EventTarget'),
+                   'EventTarget', nullable_output=True),
         'EventTarget set':
         Conversion('_convertDartToNative_EventTarget', 'EventTarget',
-                   'dynamic'),
+                   'dynamic', nullable_input=True),
         'WebGLContextAttributes get':
         Conversion('convertNativeToDart_ContextAttributes', 'dynamic',
                    'ContextAttributes'),
         'ImageData get':
         Conversion('convertNativeToDart_ImageData', 'dynamic', 'ImageData'),
         'ImageData set':
-        Conversion('convertDartToNative_ImageData', 'ImageData', 'dynamic'),
+        Conversion('convertDartToNative_ImageData', 'ImageData', 'dynamic',
+                   nullable_input=True),
         'Dictionary get':
-        Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map'),
+        Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map',
+                   nullable_output=True),
         'Dictionary set':
-        Conversion('convertDartToNative_Dictionary', 'Map', 'dynamic'),
+        Conversion('convertDartToNative_Dictionary', 'Map', 'dynamic',
+                   nullable_input=True),
         'sequence<DOMString> set':
         Conversion('convertDartToNative_StringArray', 'List<String>', 'List'),
         'any set IDBObjectStore.add':
@@ -1022,7 +1052,8 @@ dart2js_conversions = monitored.Dict(
         'any set IDBCursor.update':
         _serialize_SSV,
         'any get SQLResultSetRowList.item':
-        Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map'),
+        Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map',
+                   nullable_output=True),
 
         # postMessage
         'SerializedScriptValue set':

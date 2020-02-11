@@ -83,6 +83,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             _typeProvider, declaredVariables,
             typeSystem: _typeSystem, experimentStatus: featureSet);
 
+  bool get _isNonNullableByDefault => _currentLibrary.isNonNullableByDefault;
+
   @override
   void visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
@@ -230,40 +232,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitSwitchStatement(SwitchStatement node) {
-    // TODO(paulberry): to minimize error messages, it would be nice to
-    // compare all types with the most popular type rather than the first
-    // type.
-    NodeList<SwitchMember> switchMembers = node.members;
-    bool foundError = false;
-    DartType firstType;
-    for (SwitchMember switchMember in switchMembers) {
-      if (switchMember is SwitchCase) {
-        Expression expression = switchMember.expression;
-        DartObjectImpl caseResult = _validate(
-            expression, CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION);
-        if (caseResult != null) {
-          _reportErrorIfFromDeferredLibrary(
-              expression,
-              CompileTimeErrorCode
-                  .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY);
-          DartObject value = caseResult;
-          if (firstType == null) {
-            firstType = value.type;
-          } else {
-            DartType nType = value.type;
-            if (firstType != nType) {
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
-                  expression,
-                  [expression.toSource(), firstType]);
-              foundError = true;
-            }
-          }
-        }
-      }
-    }
-    if (!foundError) {
-      _checkForCaseExpressionTypeImplementsEquals(node, firstType);
+    if (_isNonNullableByDefault) {
+      _validateSwitchStatement_nullSafety(node);
+    } else {
+      _validateSwitchStatement_legacy(node);
     }
     super.visitSwitchStatement(node);
   }
@@ -294,27 +266,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode
               .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
-  }
-
-  /// This verifies that the passed switch statement does not have a case
-  /// expression with the operator '==' overridden.
-  ///
-  /// @param node the switch statement to evaluate
-  /// @param type the common type of all 'case' expressions
-  /// @return `true` if and only if an error code is generated on the passed
-  ///         node.
-  /// See [CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS].
-  bool _checkForCaseExpressionTypeImplementsEquals(
-      SwitchStatement node, DartType type) {
-    if (!_implementsEqualsWhenNotAllowed(type)) {
-      return false;
-    }
-    // report error
-    _errorReporter.reportErrorForToken(
-        CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
-        node.switchKeyword,
-        [type]);
-    return true;
   }
 
   /// Verify that the given [type] does not reference any type parameters.
@@ -575,6 +526,101 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                   [variableDeclaration.name.name]);
             }
           }
+        }
+      }
+    }
+  }
+
+  void _validateSwitchStatement_legacy(SwitchStatement node) {
+    // TODO(paulberry): to minimize error messages, it would be nice to
+    // compare all types with the most popular type rather than the first
+    // type.
+    bool foundError = false;
+    DartType firstType;
+    for (var switchMember in node.members) {
+      if (switchMember is SwitchCase) {
+        Expression expression = switchMember.expression;
+
+        DartObjectImpl expressionValue = _validate(
+          expression,
+          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+        );
+        if (expressionValue == null) {
+          continue;
+        }
+
+        _reportErrorIfFromDeferredLibrary(
+          expression,
+          CompileTimeErrorCode
+              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
+        );
+
+        if (firstType == null) {
+          firstType = expressionValue.type;
+        } else {
+          var expressionValueType = expressionValue.type;
+          if (firstType != expressionValueType) {
+            _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES,
+              expression,
+              [expression.toSource(), firstType],
+            );
+            foundError = true;
+          }
+        }
+      }
+    }
+
+    if (foundError) {
+      return;
+    }
+
+    if (_implementsEqualsWhenNotAllowed(firstType)) {
+      _errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+        node.switchKeyword,
+        [firstType],
+      );
+    }
+  }
+
+  void _validateSwitchStatement_nullSafety(SwitchStatement node) {
+    var switchType = node.expression.staticType;
+    for (var switchMember in node.members) {
+      if (switchMember is SwitchCase) {
+        Expression expression = switchMember.expression;
+
+        DartObjectImpl expressionValue = _validate(
+          expression,
+          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+        );
+        if (expressionValue == null) {
+          continue;
+        }
+
+        _reportErrorIfFromDeferredLibrary(
+          expression,
+          CompileTimeErrorCode
+              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
+        );
+
+        var expressionType = expressionValue.type;
+
+        if (_implementsEqualsWhenNotAllowed(expressionType)) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+            expression,
+            [expressionType],
+          );
+        }
+
+        if (!_typeSystem.isSubtypeOf(expressionType, switchType)) {
+          _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE,
+            expression,
+            [expressionType, switchType],
+          );
         }
       }
     }

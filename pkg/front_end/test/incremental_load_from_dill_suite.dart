@@ -166,7 +166,7 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           "forceLateLoweringForTesting",
           "incrementalSerialization"
         ]);
-        await newWorldTest(
+        await new NewWorldTest().newWorldTest(
           data,
           context,
           map["worlds"],
@@ -317,519 +317,542 @@ Future<Map<String, List<int>>> createModules(
   return moduleResult;
 }
 
-Future<Null> newWorldTest(
-    TestData data,
-    Context context,
-    List worlds,
-    Map modules,
-    bool omitPlatform,
-    String targetName,
-    bool forceLateLoweringForTesting,
-    bool incrementalSerialization) async {
-  final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
-  final Uri base = Uri.parse("org-dartlang-test:///");
-  final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
-  final Uri initializeFrom = base.resolve("initializeFrom.dill");
-  Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
-  final List<int> sdkSummaryData =
-      await new File.fromUri(platformUri).readAsBytes();
-
-  List<int> newestWholeComponentData;
+class NewWorldTest {
+  // These are fields in a class to make it easier to track down memory leaks
+  // via the leak detector test.
   Component newestWholeComponent;
-  MemoryFileSystem fs;
-  Map<String, String> sourceFiles;
-  CompilerOptions options;
-  TestIncrementalCompiler compiler;
-  IncrementalSerializer incrementalSerializer;
-
-  Map<String, List<int>> moduleData;
-  Map<String, Component> moduleComponents;
   Component sdk;
-  if (modules != null) {
-    moduleData = await createModules(
-        modules, sdkSummaryData, targetName, forceLateLoweringForTesting);
-    sdk = newestWholeComponent = new Component();
-    new BinaryBuilder(sdkSummaryData, filename: null, disableLazyReading: false)
-        .readComponent(newestWholeComponent);
-  }
+  Component component;
+  Component component2;
+  Component component3;
 
-  int worldNum = 0;
-  for (YamlMap world in worlds) {
-    worldNum++;
-    print("----------------");
-    print("World #$worldNum");
-    print("----------------");
-    List<Component> modulesToUse;
-    if (world["modules"] != null) {
-      moduleComponents ??= new Map<String, Component>();
+  Future<Null> newWorldTest(
+      TestData data,
+      Context context,
+      List worlds,
+      Map modules,
+      bool omitPlatform,
+      String targetName,
+      bool forceLateLoweringForTesting,
+      bool incrementalSerialization) async {
+    final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
+    final Uri base = Uri.parse("org-dartlang-test:///");
+    final Uri sdkSummary = base.resolve("vm_platform_strong.dill");
+    final Uri initializeFrom = base.resolve("initializeFrom.dill");
+    Uri platformUri = sdkRoot.resolve("vm_platform_strong.dill");
+    final List<int> sdkSummaryData =
+        await new File.fromUri(platformUri).readAsBytes();
 
-      sdk.adoptChildren();
-      for (Component c in moduleComponents.values) {
-        c.adoptChildren();
-      }
+    List<int> newestWholeComponentData;
+    MemoryFileSystem fs;
+    Map<String, String> sourceFiles;
+    CompilerOptions options;
+    TestIncrementalCompiler compiler;
+    IncrementalSerializer incrementalSerializer;
 
-      modulesToUse = new List<Component>();
-      for (String moduleName in world["modules"]) {
-        Component moduleComponent = moduleComponents[moduleName];
-        if (moduleComponent != null) {
-          modulesToUse.add(moduleComponent);
+    Map<String, List<int>> moduleData;
+    Map<String, Component> moduleComponents;
+
+    if (modules != null) {
+      moduleData = await createModules(
+          modules, sdkSummaryData, targetName, forceLateLoweringForTesting);
+      sdk = newestWholeComponent = new Component();
+      new BinaryBuilder(sdkSummaryData,
+              filename: null, disableLazyReading: false)
+          .readComponent(newestWholeComponent);
+    }
+
+    int worldNum = 0;
+    for (YamlMap world in worlds) {
+      worldNum++;
+      print("----------------");
+      print("World #$worldNum");
+      print("----------------");
+      List<Component> modulesToUse;
+      if (world["modules"] != null) {
+        moduleComponents ??= new Map<String, Component>();
+
+        sdk.adoptChildren();
+        for (Component c in moduleComponents.values) {
+          c.adoptChildren();
+        }
+
+        modulesToUse = new List<Component>();
+        for (String moduleName in world["modules"]) {
+          Component moduleComponent = moduleComponents[moduleName];
+          if (moduleComponent != null) {
+            modulesToUse.add(moduleComponent);
+          }
+        }
+        for (String moduleName in world["modules"]) {
+          Component moduleComponent = moduleComponents[moduleName];
+          if (moduleComponent == null) {
+            moduleComponent = new Component(nameRoot: sdk.root);
+            new BinaryBuilder(moduleData[moduleName],
+                    filename: null,
+                    disableLazyReading: false,
+                    alwaysCreateNewNamedNodes: true)
+                .readComponent(moduleComponent);
+            moduleComponents[moduleName] = moduleComponent;
+            modulesToUse.add(moduleComponent);
+          }
         }
       }
-      for (String moduleName in world["modules"]) {
-        Component moduleComponent = moduleComponents[moduleName];
-        if (moduleComponent == null) {
-          moduleComponent = new Component(nameRoot: sdk.root);
-          new BinaryBuilder(moduleData[moduleName],
-                  filename: null,
-                  disableLazyReading: false,
-                  alwaysCreateNewNamedNodes: true)
-              .readComponent(moduleComponent);
-          moduleComponents[moduleName] = moduleComponent;
-          modulesToUse.add(moduleComponent);
-        }
-      }
-    }
 
-    bool brandNewWorld = true;
-    if (world["worldType"] == "updated") {
-      brandNewWorld = false;
-    }
-    bool noFullComponent = false;
-    if (world["noFullComponent"] == true) {
-      noFullComponent = true;
-    }
+      bool brandNewWorld = true;
+      if (world["worldType"] == "updated") {
+        brandNewWorld = false;
+      }
+      bool noFullComponent = false;
+      if (world["noFullComponent"] == true) {
+        noFullComponent = true;
+      }
 
-    if (brandNewWorld) {
-      fs = new MemoryFileSystem(base);
-    }
-    fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
-    bool expectInitializeFromDill = false;
-    if (newestWholeComponentData != null &&
-        newestWholeComponentData.isNotEmpty) {
-      fs
-          .entityForUri(initializeFrom)
-          .writeAsBytesSync(newestWholeComponentData);
-      expectInitializeFromDill = true;
-    }
-    if (world["expectInitializeFromDill"] != null) {
-      expectInitializeFromDill = world["expectInitializeFromDill"];
-    }
-    if (brandNewWorld) {
-      sourceFiles = new Map<String, String>.from(world["sources"]);
-    } else {
-      sourceFiles.addAll(
-          new Map<String, String>.from(world["sources"] ?? <String, String>{}));
-    }
-    Uri packagesUri;
-    for (String filename in sourceFiles.keys) {
-      String data = sourceFiles[filename] ?? "";
-      Uri uri = base.resolve(filename);
-      if (filename == ".packages") {
-        packagesUri = uri;
+      if (brandNewWorld) {
+        fs = new MemoryFileSystem(base);
       }
-      fs.entityForUri(uri).writeAsStringSync(data);
-    }
-    if (world["dotPackagesFile"] != null) {
-      packagesUri = base.resolve(world["dotPackagesFile"]);
-    }
-
-    if (brandNewWorld) {
-      options = getOptions(
-          targetName: targetName,
-          forceLateLoweringForTesting: forceLateLoweringForTesting);
-      options.fileSystem = fs;
-      options.sdkRoot = null;
-      options.sdkSummary = sdkSummary;
-      options.omitPlatform = omitPlatform != false;
-      if (world["experiments"] != null) {
-        Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
-            parseExperimentalArguments([world["experiments"]]),
-            onError: (e) => throw "Error on parsing experiments flags: $e");
-        options.experimentalFlags = experimentalFlags;
+      fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
+      bool expectInitializeFromDill = false;
+      if (newestWholeComponentData != null &&
+          newestWholeComponentData.isNotEmpty) {
+        fs
+            .entityForUri(initializeFrom)
+            .writeAsBytesSync(newestWholeComponentData);
+        expectInitializeFromDill = true;
       }
-    }
-    if (packagesUri != null) {
-      options.packagesFileUri = packagesUri;
-    }
-    bool gotError = false;
-    final Set<String> formattedErrors = Set<String>();
-    bool gotWarning = false;
-    final Set<String> formattedWarnings = Set<String>();
-
-    options.onDiagnostic = (DiagnosticMessage message) {
-      String stringId = message.ansiFormatted.join("\n");
-      if (message is FormattedMessage) {
-        stringId = message.toJsonString();
-      } else if (message is DiagnosticMessageFromJson) {
-        stringId = message.toJsonString();
+      if (world["expectInitializeFromDill"] != null) {
+        expectInitializeFromDill = world["expectInitializeFromDill"];
       }
-      if (message.severity == Severity.error) {
-        gotError = true;
-        if (!formattedErrors.add(stringId)) {
-          Expect.fail("Got the same message twice: ${stringId}");
-        }
-      } else if (message.severity == Severity.warning) {
-        gotWarning = true;
-        if (!formattedWarnings.add(stringId)) {
-          Expect.fail("Got the same message twice: ${stringId}");
-        }
-      }
-    };
-
-    List<Uri> entries;
-    if (world["entry"] is String) {
-      entries = [base.resolve(world["entry"])];
-    } else {
-      entries = new List<Uri>();
-      List<dynamic> entryList = world["entry"];
-      for (String entry in entryList) {
-        entries.add(base.resolve(entry));
-      }
-    }
-    bool outlineOnly = world["outlineOnly"] == true;
-    bool skipOutlineBodyCheck = world["skipOutlineBodyCheck"] == true;
-    if (brandNewWorld) {
-      if (incrementalSerialization == true) {
-        incrementalSerializer = new IncrementalSerializer();
-      }
-      if (world["fromComponent"] == true) {
-        compiler = new TestIncrementalCompiler.fromComponent(
-            options,
-            entries.first,
-            (modulesToUse != null) ? sdk : newestWholeComponent,
-            outlineOnly,
-            incrementalSerializer);
+      if (brandNewWorld) {
+        sourceFiles = new Map<String, String>.from(world["sources"]);
       } else {
-        compiler = new TestIncrementalCompiler(options, entries.first,
-            initializeFrom, outlineOnly, incrementalSerializer);
+        sourceFiles.addAll(new Map<String, String>.from(
+            world["sources"] ?? <String, String>{}));
+      }
+      Uri packagesUri;
+      for (String filename in sourceFiles.keys) {
+        String data = sourceFiles[filename] ?? "";
+        Uri uri = base.resolve(filename);
+        if (filename == ".packages") {
+          packagesUri = uri;
+        }
+        fs.entityForUri(uri).writeAsStringSync(data);
+      }
+      if (world["dotPackagesFile"] != null) {
+        packagesUri = base.resolve(world["dotPackagesFile"]);
+      }
 
-        if (modulesToUse != null) {
-          throw "You probably shouldn't do this! "
-              "Any modules will have another sdk loaded!";
+      if (brandNewWorld) {
+        options = getOptions(
+            targetName: targetName,
+            forceLateLoweringForTesting: forceLateLoweringForTesting);
+        options.fileSystem = fs;
+        options.sdkRoot = null;
+        options.sdkSummary = sdkSummary;
+        options.omitPlatform = omitPlatform != false;
+        if (world["experiments"] != null) {
+          Map<ExperimentalFlag, bool> experimentalFlags =
+              parseExperimentalFlags(
+                  parseExperimentalArguments([world["experiments"]]),
+                  onError: (e) =>
+                      throw "Error on parsing experiments flags: $e");
+          options.experimentalFlags = experimentalFlags;
         }
       }
-    }
-
-    compiler.useExperimentalInvalidation = false;
-    if (world["useExperimentalInvalidation"] == true) {
-      compiler.useExperimentalInvalidation = true;
-    }
-
-    List<Uri> invalidated = new List<Uri>();
-    if (world["invalidate"] != null) {
-      for (String filename in world["invalidate"]) {
-        Uri uri = base.resolve(filename);
-        invalidated.add(uri);
-        compiler.invalidate(uri);
+      if (packagesUri != null) {
+        options.packagesFileUri = packagesUri;
       }
-    }
+      bool gotError = false;
+      final Set<String> formattedErrors = Set<String>();
+      bool gotWarning = false;
+      final Set<String> formattedWarnings = Set<String>();
 
-    if (modulesToUse != null) {
-      compiler.setModulesToLoadOnNextComputeDelta(modulesToUse);
-      compiler.invalidateAllSources();
-      compiler.trackNeededDillLibraries = true;
-    }
+      options.onDiagnostic = (DiagnosticMessage message) {
+        String stringId = message.ansiFormatted.join("\n");
+        if (message is FormattedMessage) {
+          stringId = message.toJsonString();
+        } else if (message is DiagnosticMessageFromJson) {
+          stringId = message.toJsonString();
+        }
+        if (message.severity == Severity.error) {
+          gotError = true;
+          if (!formattedErrors.add(stringId)) {
+            Expect.fail("Got the same message twice: ${stringId}");
+          }
+        } else if (message.severity == Severity.warning) {
+          gotWarning = true;
+          if (!formattedWarnings.add(stringId)) {
+            Expect.fail("Got the same message twice: ${stringId}");
+          }
+        }
+      };
 
-    Stopwatch stopwatch = new Stopwatch()..start();
-    Component component = await compiler.computeDelta(
-        entryPoints: entries,
-        fullComponent: brandNewWorld ? false : (noFullComponent ? false : true),
-        simulateTransformer: world["simulateTransformer"]);
-    if (outlineOnly && !skipOutlineBodyCheck) {
-      for (Library lib in component.libraries) {
-        for (Class c in lib.classes) {
-          for (Procedure p in c.procedures) {
+      List<Uri> entries;
+      if (world["entry"] is String) {
+        entries = [base.resolve(world["entry"])];
+      } else {
+        entries = new List<Uri>();
+        List<dynamic> entryList = world["entry"];
+        for (String entry in entryList) {
+          entries.add(base.resolve(entry));
+        }
+      }
+      bool outlineOnly = world["outlineOnly"] == true;
+      bool skipOutlineBodyCheck = world["skipOutlineBodyCheck"] == true;
+      if (brandNewWorld) {
+        if (incrementalSerialization == true) {
+          incrementalSerializer = new IncrementalSerializer();
+        }
+        if (world["fromComponent"] == true) {
+          compiler = new TestIncrementalCompiler.fromComponent(
+              options,
+              entries.first,
+              (modulesToUse != null) ? sdk : newestWholeComponent,
+              outlineOnly,
+              incrementalSerializer);
+        } else {
+          compiler = new TestIncrementalCompiler(options, entries.first,
+              initializeFrom, outlineOnly, incrementalSerializer);
+
+          if (modulesToUse != null) {
+            throw "You probably shouldn't do this! "
+                "Any modules will have another sdk loaded!";
+          }
+        }
+      }
+
+      compiler.useExperimentalInvalidation = false;
+      if (world["useExperimentalInvalidation"] == true) {
+        compiler.useExperimentalInvalidation = true;
+      }
+
+      List<Uri> invalidated = new List<Uri>();
+      if (world["invalidate"] != null) {
+        for (String filename in world["invalidate"]) {
+          Uri uri = base.resolve(filename);
+          invalidated.add(uri);
+          compiler.invalidate(uri);
+        }
+      }
+
+      if (modulesToUse != null) {
+        compiler.setModulesToLoadOnNextComputeDelta(modulesToUse);
+        compiler.invalidateAllSources();
+        compiler.trackNeededDillLibraries = true;
+      }
+
+      Stopwatch stopwatch = new Stopwatch()..start();
+      component = await compiler.computeDelta(
+          entryPoints: entries,
+          fullComponent:
+              brandNewWorld ? false : (noFullComponent ? false : true),
+          simulateTransformer: world["simulateTransformer"]);
+      if (outlineOnly && !skipOutlineBodyCheck) {
+        for (Library lib in component.libraries) {
+          for (Class c in lib.classes) {
+            for (Procedure p in c.procedures) {
+              if (p.function.body != null &&
+                  p.function.body is! EmptyStatement) {
+                throw "Got body (${p.function.body.runtimeType})";
+              }
+            }
+          }
+          for (Procedure p in lib.procedures) {
             if (p.function.body != null && p.function.body is! EmptyStatement) {
               throw "Got body (${p.function.body.runtimeType})";
             }
           }
         }
-        for (Procedure p in lib.procedures) {
-          if (p.function.body != null && p.function.body is! EmptyStatement) {
-            throw "Got body (${p.function.body.runtimeType})";
+      }
+      performErrorAndWarningCheck(
+          world, gotError, formattedErrors, gotWarning, formattedWarnings);
+      util.throwOnEmptyMixinBodies(component);
+      await util.throwOnInsufficientUriToSource(component,
+          fileSystem: gotError ? null : fs);
+      print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
+      checkExpectedContent(world, component);
+      checkNeededDillLibraries(world, compiler.neededDillLibraries, base);
+
+      if (!noFullComponent) {
+        Set<Library> allLibraries = new Set<Library>();
+        for (Library lib in component.libraries) {
+          computeAllReachableLibrariesFor(lib, allLibraries);
+        }
+        if (allLibraries.length != component.libraries.length) {
+          Expect.fail("Expected for the reachable stuff to be equal to "
+              "${component.libraries} but it was $allLibraries");
+        }
+        Set<Library> tooMany = allLibraries.toSet()
+          ..removeAll(component.libraries);
+        if (tooMany.isNotEmpty) {
+          Expect.fail("Expected for the reachable stuff to be equal to "
+              "${component.libraries} but these were there too: $tooMany "
+              "(and others were missing)");
+        }
+      }
+
+      newestWholeComponentData = util.postProcess(component);
+      newestWholeComponent = component;
+      String actualSerialized = componentToStringSdkFiltered(component);
+      print("*****\n\ncomponent:\n"
+          "${actualSerialized}\n\n\n");
+
+      if (world["uriToSourcesDoesntInclude"] != null) {
+        for (String filename in world["uriToSourcesDoesntInclude"]) {
+          Uri uri = base.resolve(filename);
+          if (component.uriToSource[uri] != null) {
+            throw "Expected no uriToSource for $uri but found "
+                "${component.uriToSource[uri]}";
           }
         }
       }
-    }
-    performErrorAndWarningCheck(
-        world, gotError, formattedErrors, gotWarning, formattedWarnings);
-    util.throwOnEmptyMixinBodies(component);
-    await util.throwOnInsufficientUriToSource(component,
-        fileSystem: gotError ? null : fs);
-    print("Compile took ${stopwatch.elapsedMilliseconds} ms");
-
-    checkExpectedContent(world, component);
-    checkNeededDillLibraries(world, compiler.neededDillLibraries, base);
-
-    if (!noFullComponent) {
-      Set<Library> allLibraries = new Set<Library>();
-      for (Library lib in component.libraries) {
-        computeAllReachableLibrariesFor(lib, allLibraries);
-      }
-      if (allLibraries.length != component.libraries.length) {
-        Expect.fail("Expected for the reachable stuff to be equal to "
-            "${component.libraries} but it was $allLibraries");
-      }
-      Set<Library> tooMany = allLibraries.toSet()
-        ..removeAll(component.libraries);
-      if (tooMany.isNotEmpty) {
-        Expect.fail("Expected for the reachable stuff to be equal to "
-            "${component.libraries} but these were there too: $tooMany "
-            "(and others were missing)");
-      }
-    }
-
-    newestWholeComponentData = util.postProcess(component);
-    newestWholeComponent = component;
-    String actualSerialized = componentToStringSdkFiltered(component);
-    print("*****\n\ncomponent:\n"
-        "${actualSerialized}\n\n\n");
-
-    if (world["uriToSourcesDoesntInclude"] != null) {
-      for (String filename in world["uriToSourcesDoesntInclude"]) {
-        Uri uri = base.resolve(filename);
-        if (component.uriToSource[uri] != null) {
-          throw "Expected no uriToSource for $uri but found "
-              "${component.uriToSource[uri]}";
+      if (world["uriToSourcesOnlyIncludes"] != null) {
+        Set<Uri> allowed = {};
+        for (String filename in world["uriToSourcesOnlyIncludes"]) {
+          Uri uri = base.resolve(filename);
+          allowed.add(uri);
+        }
+        for (Uri uri in component.uriToSource.keys) {
+          // null is always there, so allow it implicitly.
+          // Dart scheme uris too.
+          if (uri == null || uri.scheme == "org-dartlang-sdk") continue;
+          if (!allowed.contains(uri)) {
+            throw "Expected no uriToSource for $uri but found "
+                "${component.uriToSource[uri]}";
+          }
         }
       }
-    }
-    if (world["uriToSourcesOnlyIncludes"] != null) {
-      Set<Uri> allowed = {};
-      for (String filename in world["uriToSourcesOnlyIncludes"]) {
-        Uri uri = base.resolve(filename);
-        allowed.add(uri);
-      }
-      for (Uri uri in component.uriToSource.keys) {
-        // null is always there, so allow it implicitly.
-        // Dart scheme uris too.
-        if (uri == null || uri.scheme == "org-dartlang-sdk") continue;
-        if (!allowed.contains(uri)) {
-          throw "Expected no uriToSource for $uri but found "
-              "${component.uriToSource[uri]}";
-        }
-      }
-    }
 
-    checkExpectFile(data, worldNum, context, actualSerialized);
-    checkClassHierarchy(compiler, component, data, worldNum, context);
+      checkExpectFile(data, worldNum, context, actualSerialized);
+      checkClassHierarchy(compiler, component, data, worldNum, context);
 
-    int nonSyntheticLibraries = countNonSyntheticLibraries(component);
-    int nonSyntheticPlatformLibraries =
-        countNonSyntheticPlatformLibraries(component);
-    int syntheticLibraries = countSyntheticLibraries(component);
-    if (world["expectsPlatform"] == true) {
-      if (nonSyntheticPlatformLibraries < 5) {
-        throw "Expected to have at least 5 platform libraries "
-            "(actually, the entire sdk), "
-            "but got $nonSyntheticPlatformLibraries.";
-      }
-    } else {
-      if (nonSyntheticPlatformLibraries != 0) {
-        throw "Expected to have 0 platform libraries "
-            "but got $nonSyntheticPlatformLibraries.";
-      }
-    }
-    if (world["expectedLibraryCount"] != null) {
-      if (nonSyntheticLibraries - nonSyntheticPlatformLibraries !=
-          world["expectedLibraryCount"]) {
-        throw "Expected ${world["expectedLibraryCount"]} non-synthetic "
-            "libraries, got "
-            "${nonSyntheticLibraries - nonSyntheticPlatformLibraries} "
-            "(not counting platform libraries)";
-      }
-    }
-    if (world["expectedSyntheticLibraryCount"] != null) {
-      if (syntheticLibraries != world["expectedSyntheticLibraryCount"]) {
-        throw "Expected ${world["expectedSyntheticLibraryCount"]} synthetic "
-            "libraries, got ${syntheticLibraries}";
-      }
-    }
-
-    if (world["expectsRebuildBodiesOnly"] != null) {
-      bool didRebuildBodiesOnly = compiler.rebuildBodiesCount > 0;
-      Expect.equals(world["expectsRebuildBodiesOnly"], didRebuildBodiesOnly,
-          "Whether we expected to rebuild bodies only.");
-    }
-
-    if (!noFullComponent) {
-      List<Library> entryLib = component.libraries
-          .where((Library lib) =>
-              entries.contains(lib.importUri) || entries.contains(lib.fileUri))
-          .toList();
-      if (entryLib.length != entries.length) {
-        throw "Expected the entries to become libraries. "
-            "Got ${entryLib.length} libraries for the expected "
-            "${entries.length} entries.";
-      }
-    }
-    if (compiler.initializedFromDill != expectInitializeFromDill) {
-      throw "Expected that initializedFromDill would be "
-          "$expectInitializeFromDill but was ${compiler.initializedFromDill}";
-    }
-
-    if (incrementalSerialization == true && compiler.initializedFromDill) {
-      Expect.isTrue(compiler.initializedIncrementalSerializer);
-    } else {
-      Expect.isFalse(compiler.initializedIncrementalSerializer);
-    }
-
-    if (world["checkInvalidatedFiles"] != false) {
-      Set<Uri> filteredInvalidated =
-          compiler.getFilteredInvalidatedImportUrisForTesting(invalidated);
-      if (world["invalidate"] != null) {
-        Expect.equals(
-            world["invalidate"].length, filteredInvalidated?.length ?? 0);
-        List expectedInvalidatedUri = world["expectedInvalidatedUri"];
-        if (expectedInvalidatedUri != null) {
-          Expect.setEquals(expectedInvalidatedUri.map((s) => base.resolve(s)),
-              filteredInvalidated);
+      int nonSyntheticLibraries = countNonSyntheticLibraries(component);
+      int nonSyntheticPlatformLibraries =
+          countNonSyntheticPlatformLibraries(component);
+      int syntheticLibraries = countSyntheticLibraries(component);
+      if (world["expectsPlatform"] == true) {
+        if (nonSyntheticPlatformLibraries < 5) {
+          throw "Expected to have at least 5 platform libraries "
+              "(actually, the entire sdk), "
+              "but got $nonSyntheticPlatformLibraries.";
         }
       } else {
-        Expect.isNull(filteredInvalidated);
-        Expect.isNull(world["expectedInvalidatedUri"]);
-      }
-    }
-    List<int> incrementalSerializationBytes = checkIncrementalSerialization(
-        incrementalSerialization, component, incrementalSerializer, world);
-
-    Set<String> prevFormattedErrors = formattedErrors.toSet();
-    Set<String> prevFormattedWarnings = formattedWarnings.toSet();
-
-    clearPrevErrorsEtc() {
-      gotError = false;
-      formattedErrors.clear();
-      gotWarning = false;
-      formattedWarnings.clear();
-    }
-
-    if (!noFullComponent) {
-      clearPrevErrorsEtc();
-      Component component2 = await compiler.computeDelta(
-          entryPoints: entries,
-          fullComponent: true,
-          simulateTransformer: world["simulateTransformer"]);
-      performErrorAndWarningCheck(
-          world, gotError, formattedErrors, gotWarning, formattedWarnings);
-      List<int> thisWholeComponent = util.postProcess(component2);
-      print("*****\n\ncomponent2:\n"
-          "${componentToStringSdkFiltered(component2)}\n\n\n");
-      checkIsEqual(newestWholeComponentData, thisWholeComponent);
-      checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
-          prevFormattedWarnings, formattedWarnings);
-
-      List<int> incrementalSerializationBytes2 = checkIncrementalSerialization(
-          incrementalSerialization, component2, incrementalSerializer, world);
-
-      if ((incrementalSerializationBytes == null &&
-              incrementalSerializationBytes2 != null) ||
-          (incrementalSerializationBytes != null &&
-              incrementalSerializationBytes2 == null)) {
-        throw "Incremental serialization gave results in one instance, "
-            "but not another.";
-      }
-
-      if (incrementalSerializationBytes != null) {
-        checkIsEqual(
-            incrementalSerializationBytes, incrementalSerializationBytes2);
-      }
-    }
-
-    if (world["expressionCompilation"] != null) {
-      List compilations;
-      if (world["expressionCompilation"] is List) {
-        compilations = world["expressionCompilation"];
-      } else {
-        compilations = [world["expressionCompilation"]];
-      }
-      for (Map compilation in compilations) {
-        clearPrevErrorsEtc();
-        bool expectErrors = compilation["errors"] ?? false;
-        bool expectWarnings = compilation["warnings"] ?? false;
-        Uri uri = base.resolve(compilation["uri"]);
-        String expression = compilation["expression"];
-        await compiler.compileExpression(expression, {}, [], "debugExpr", uri);
-        if (gotError && !expectErrors) {
-          throw "Got error(s) on expression compilation: ${formattedErrors}.";
-        } else if (!gotError && expectErrors) {
-          throw "Didn't get any errors.";
-        }
-        if (gotWarning && !expectWarnings) {
-          throw "Got warning(s) on expression compilation: "
-              "${formattedWarnings}.";
-        } else if (!gotWarning && expectWarnings) {
-          throw "Didn't get any warnings.";
+        if (nonSyntheticPlatformLibraries != 0) {
+          throw "Expected to have 0 platform libraries "
+              "but got $nonSyntheticPlatformLibraries.";
         }
       }
-    }
-
-    if (!noFullComponent && incrementalSerialization == true) {
-      // Do compile from scratch and compare.
-      clearPrevErrorsEtc();
-      TestIncrementalCompiler compilerFromScratch;
-
-      IncrementalSerializer incrementalSerializer2;
-      if (incrementalSerialization == true) {
-        incrementalSerializer2 = new IncrementalSerializer();
+      if (world["expectedLibraryCount"] != null) {
+        if (nonSyntheticLibraries - nonSyntheticPlatformLibraries !=
+            world["expectedLibraryCount"]) {
+          throw "Expected ${world["expectedLibraryCount"]} non-synthetic "
+              "libraries, got "
+              "${nonSyntheticLibraries - nonSyntheticPlatformLibraries} "
+              "(not counting platform libraries)";
+        }
+      }
+      if (world["expectedSyntheticLibraryCount"] != null) {
+        if (syntheticLibraries != world["expectedSyntheticLibraryCount"]) {
+          throw "Expected ${world["expectedSyntheticLibraryCount"]} synthetic "
+              "libraries, got ${syntheticLibraries}";
+        }
       }
 
-      if (world["fromComponent"] == true || modulesToUse != null) {
-        compilerFromScratch = new TestIncrementalCompiler.fromComponent(
-            options, entries.first, sdk, outlineOnly, incrementalSerializer2);
+      if (world["expectsRebuildBodiesOnly"] != null) {
+        bool didRebuildBodiesOnly = compiler.rebuildBodiesCount > 0;
+        Expect.equals(world["expectsRebuildBodiesOnly"], didRebuildBodiesOnly,
+            "Whether we expected to rebuild bodies only.");
+      }
+
+      if (!noFullComponent) {
+        List<Library> entryLib = component.libraries
+            .where((Library lib) =>
+                entries.contains(lib.importUri) ||
+                entries.contains(lib.fileUri))
+            .toList();
+        if (entryLib.length != entries.length) {
+          throw "Expected the entries to become libraries. "
+              "Got ${entryLib.length} libraries for the expected "
+              "${entries.length} entries.";
+        }
+      }
+      if (compiler.initializedFromDill != expectInitializeFromDill) {
+        throw "Expected that initializedFromDill would be "
+            "$expectInitializeFromDill but was ${compiler.initializedFromDill}";
+      }
+
+      if (incrementalSerialization == true && compiler.initializedFromDill) {
+        Expect.isTrue(compiler.initializedIncrementalSerializer);
       } else {
-        compilerFromScratch = new TestIncrementalCompiler(
-            options, entries.first, null, outlineOnly, incrementalSerializer2);
+        Expect.isFalse(compiler.initializedIncrementalSerializer);
       }
 
-      if (modulesToUse != null) {
-        compilerFromScratch.setModulesToLoadOnNextComputeDelta(modulesToUse);
-        compilerFromScratch.invalidateAllSources();
-        compilerFromScratch.trackNeededDillLibraries = true;
-      }
-
-      Stopwatch stopwatch = new Stopwatch()..start();
-      Component component3 = await compilerFromScratch.computeDelta(
-          entryPoints: entries,
-          simulateTransformer: world["simulateTransformer"]);
-      compilerFromScratch = null;
-      performErrorAndWarningCheck(
-          world, gotError, formattedErrors, gotWarning, formattedWarnings);
-      util.throwOnEmptyMixinBodies(component3);
-      await util.throwOnInsufficientUriToSource(component3);
-      print("Compile took ${stopwatch.elapsedMilliseconds} ms");
-
-      util.postProcess(component3);
-      print("*****\n\ncomponent3:\n"
-          "${componentToStringSdkFiltered(component3)}\n\n\n");
-      checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
-          prevFormattedWarnings, formattedWarnings);
-
-      List<int> incrementalSerializationBytes3 = checkIncrementalSerialization(
-          incrementalSerialization, component3, incrementalSerializer2, world);
-
-      if ((incrementalSerializationBytes == null &&
-              incrementalSerializationBytes3 != null) ||
-          (incrementalSerializationBytes != null &&
-              incrementalSerializationBytes3 == null)) {
-        throw "Incremental serialization gave results in one instance, "
-            "but not another.";
-      }
-
-      if (incrementalSerializationBytes != null) {
-        if (world["brandNewIncrementalSerializationAllowDifferent"] == true) {
-          // Don't check for equality when we allow it to be different
-          // (e.g. when the old one contains more, and the new one doesn't).
+      if (world["checkInvalidatedFiles"] != false) {
+        Set<Uri> filteredInvalidated =
+            compiler.getFilteredInvalidatedImportUrisForTesting(invalidated);
+        if (world["invalidate"] != null) {
+          Expect.equals(
+              world["invalidate"].length, filteredInvalidated?.length ?? 0);
+          List expectedInvalidatedUri = world["expectedInvalidatedUri"];
+          if (expectedInvalidatedUri != null) {
+            Expect.setEquals(expectedInvalidatedUri.map((s) => base.resolve(s)),
+                filteredInvalidated);
+          }
         } else {
-          checkIsEqual(
-              incrementalSerializationBytes, incrementalSerializationBytes3);
+          Expect.isNull(filteredInvalidated);
+          Expect.isNull(world["expectedInvalidatedUri"]);
         }
-        newestWholeComponentData = incrementalSerializationBytes;
       }
-    }
+      List<int> incrementalSerializationBytes = checkIncrementalSerialization(
+          incrementalSerialization, component, incrementalSerializer, world);
 
-    if (context.breakBetween) {
-      debugger();
-      print("Continuing after debug break");
+      Set<String> prevFormattedErrors = formattedErrors.toSet();
+      Set<String> prevFormattedWarnings = formattedWarnings.toSet();
+
+      clearPrevErrorsEtc() {
+        gotError = false;
+        formattedErrors.clear();
+        gotWarning = false;
+        formattedWarnings.clear();
+      }
+
+      if (!noFullComponent) {
+        clearPrevErrorsEtc();
+        component2 = await compiler.computeDelta(
+            entryPoints: entries,
+            fullComponent: true,
+            simulateTransformer: world["simulateTransformer"]);
+        performErrorAndWarningCheck(
+            world, gotError, formattedErrors, gotWarning, formattedWarnings);
+        List<int> thisWholeComponent = util.postProcess(component2);
+        print("*****\n\ncomponent2:\n"
+            "${componentToStringSdkFiltered(component2)}\n\n\n");
+        checkIsEqual(newestWholeComponentData, thisWholeComponent);
+        checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
+            prevFormattedWarnings, formattedWarnings);
+        newestWholeComponent = component2;
+
+        List<int> incrementalSerializationBytes2 =
+            checkIncrementalSerialization(incrementalSerialization, component2,
+                incrementalSerializer, world);
+
+        if ((incrementalSerializationBytes == null &&
+                incrementalSerializationBytes2 != null) ||
+            (incrementalSerializationBytes != null &&
+                incrementalSerializationBytes2 == null)) {
+          throw "Incremental serialization gave results in one instance, "
+              "but not another.";
+        }
+
+        if (incrementalSerializationBytes != null) {
+          checkIsEqual(
+              incrementalSerializationBytes, incrementalSerializationBytes2);
+        }
+      }
+
+      if (world["expressionCompilation"] != null) {
+        List compilations;
+        if (world["expressionCompilation"] is List) {
+          compilations = world["expressionCompilation"];
+        } else {
+          compilations = [world["expressionCompilation"]];
+        }
+        for (Map compilation in compilations) {
+          clearPrevErrorsEtc();
+          bool expectErrors = compilation["errors"] ?? false;
+          bool expectWarnings = compilation["warnings"] ?? false;
+          Uri uri = base.resolve(compilation["uri"]);
+          String expression = compilation["expression"];
+          await compiler.compileExpression(
+              expression, {}, [], "debugExpr", uri);
+          if (gotError && !expectErrors) {
+            throw "Got error(s) on expression compilation: ${formattedErrors}.";
+          } else if (!gotError && expectErrors) {
+            throw "Didn't get any errors.";
+          }
+          if (gotWarning && !expectWarnings) {
+            throw "Got warning(s) on expression compilation: "
+                "${formattedWarnings}.";
+          } else if (!gotWarning && expectWarnings) {
+            throw "Didn't get any warnings.";
+          }
+        }
+      }
+
+      if (!noFullComponent && incrementalSerialization == true) {
+        // Do compile from scratch and compare.
+        clearPrevErrorsEtc();
+        TestIncrementalCompiler compilerFromScratch;
+
+        IncrementalSerializer incrementalSerializer2;
+        if (incrementalSerialization == true) {
+          incrementalSerializer2 = new IncrementalSerializer();
+        }
+
+        if (world["fromComponent"] == true || modulesToUse != null) {
+          compilerFromScratch = new TestIncrementalCompiler.fromComponent(
+              options, entries.first, sdk, outlineOnly, incrementalSerializer2);
+        } else {
+          compilerFromScratch = new TestIncrementalCompiler(options,
+              entries.first, null, outlineOnly, incrementalSerializer2);
+        }
+
+        if (modulesToUse != null) {
+          compilerFromScratch.setModulesToLoadOnNextComputeDelta(modulesToUse);
+          compilerFromScratch.invalidateAllSources();
+          compilerFromScratch.trackNeededDillLibraries = true;
+        }
+
+        Stopwatch stopwatch = new Stopwatch()..start();
+        component3 = await compilerFromScratch.computeDelta(
+            entryPoints: entries,
+            simulateTransformer: world["simulateTransformer"]);
+        compilerFromScratch = null;
+        performErrorAndWarningCheck(
+            world, gotError, formattedErrors, gotWarning, formattedWarnings);
+        util.throwOnEmptyMixinBodies(component3);
+        await util.throwOnInsufficientUriToSource(component3);
+        print("Compile took ${stopwatch.elapsedMilliseconds} ms");
+
+        util.postProcess(component3);
+        print("*****\n\ncomponent3:\n"
+            "${componentToStringSdkFiltered(component3)}\n\n\n");
+        checkErrorsAndWarnings(prevFormattedErrors, formattedErrors,
+            prevFormattedWarnings, formattedWarnings);
+
+        List<int> incrementalSerializationBytes3 =
+            checkIncrementalSerialization(incrementalSerialization, component3,
+                incrementalSerializer2, world);
+
+        if ((incrementalSerializationBytes == null &&
+                incrementalSerializationBytes3 != null) ||
+            (incrementalSerializationBytes != null &&
+                incrementalSerializationBytes3 == null)) {
+          throw "Incremental serialization gave results in one instance, "
+              "but not another.";
+        }
+
+        if (incrementalSerializationBytes != null) {
+          if (world["brandNewIncrementalSerializationAllowDifferent"] == true) {
+            // Don't check for equality when we allow it to be different
+            // (e.g. when the old one contains more, and the new one doesn't).
+          } else {
+            checkIsEqual(
+                incrementalSerializationBytes, incrementalSerializationBytes3);
+          }
+          newestWholeComponentData = incrementalSerializationBytes;
+        }
+      }
+
+      component = null;
+      component2 = null;
+      component3 = null;
+
+      if (context.breakBetween) {
+        debugger();
+        print("Continuing after debug break");
+      }
     }
   }
 }
@@ -1171,10 +1194,10 @@ Map<String, Set<String>> buildMapOfContent(Component component) {
       libContent.add("Class ${c.name}");
     }
     for (Procedure p in lib.procedures) {
-      libContent.add("Procedure ${p.name}");
+      libContent.add("Procedure ${p.name.name}");
     }
     for (Field f in lib.fields) {
-      libContent.add("Field ${f.name}");
+      libContent.add("Field ${f.name.name}");
     }
   }
   return actualContent;

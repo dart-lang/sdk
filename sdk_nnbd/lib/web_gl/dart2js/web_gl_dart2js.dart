@@ -340,7 +340,7 @@ class DebugShaders extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  String getTranslatedShaderSource(Shader shader) native;
+  String? getTranslatedShaderSource(Shader shader) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -463,10 +463,10 @@ class ExtDisjointTimerQuery extends Interceptor {
   void endQueryExt(int target) native;
 
   @JSName('getQueryEXT')
-  Object getQueryExt(int target, int pname) native;
+  Object? getQueryExt(int target, int pname) native;
 
   @JSName('getQueryObjectEXT')
-  Object getQueryObjectExt(TimerQueryExt query, int pname) native;
+  Object? getQueryObjectExt(TimerQueryExt query, int pname) native;
 
   @JSName('isQueryEXT')
   bool isQueryExt(TimerQueryExt? query) native;
@@ -852,16 +852,16 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   ActiveInfo getActiveUniform(Program program, int index) native;
 
-  List<Shader> getAttachedShaders(Program program) native;
+  List<Shader>? getAttachedShaders(Program program) native;
 
   int getAttribLocation(Program program, String name) native;
 
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getBufferParameter(int target, int pname) native;
+  Object? getBufferParameter(int target, int pname) native;
 
   @Creates('ContextAttributes|Null')
-  Map getContextAttributes() {
+  Map? getContextAttributes() {
     return convertNativeToDart_Dictionary(_getContextAttributes_1());
   }
 
@@ -871,57 +871,57 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
 
   int getError() native;
 
-  Object getExtension(String name) native;
+  Object? getExtension(String name) native;
 
   @Creates('int|Renderbuffer|Texture|Null')
   @Returns('int|Renderbuffer|Texture|Null')
-  Object getFramebufferAttachmentParameter(
+  Object? getFramebufferAttachmentParameter(
       int target, int attachment, int pname) native;
 
   @Creates(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
   @Returns(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List|Framebuffer|Renderbuffer|Texture')
-  Object getParameter(int pname) native;
+  Object? getParameter(int pname) native;
 
-  String getProgramInfoLog(Program program) native;
+  String? getProgramInfoLog(Program program) native;
 
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
-  Object getProgramParameter(Program program, int pname) native;
+  Object? getProgramParameter(Program program, int pname) native;
 
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getRenderbufferParameter(int target, int pname) native;
+  Object? getRenderbufferParameter(int target, int pname) native;
 
-  String getShaderInfoLog(Shader shader) native;
+  String? getShaderInfoLog(Shader shader) native;
 
   @Creates('int|bool|Null')
   @Returns('int|bool|Null')
-  Object getShaderParameter(Shader shader, int pname) native;
+  Object? getShaderParameter(Shader shader, int pname) native;
 
   ShaderPrecisionFormat getShaderPrecisionFormat(
       int shadertype, int precisiontype) native;
 
-  String getShaderSource(Shader shader) native;
+  String? getShaderSource(Shader shader) native;
 
-  List<String> getSupportedExtensions() native;
+  List<String>? getSupportedExtensions() native;
 
   @Creates('int|Null')
   @Returns('int|Null')
-  Object getTexParameter(int target, int pname) native;
+  Object? getTexParameter(int target, int pname) native;
 
   @Creates(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
   @Returns(
       'Null|num|String|bool|JSExtendableArray|NativeFloat32List|NativeInt32List|NativeUint32List')
-  Object getUniform(Program program, UniformLocation location) native;
+  Object? getUniform(Program program, UniformLocation location) native;
 
   UniformLocation getUniformLocation(Program program, String name) native;
 
   @Creates('Null|num|bool|NativeFloat32List|Buffer')
   @Returns('Null|num|bool|NativeFloat32List|Buffer')
-  Object getVertexAttrib(int index, int pname) native;
+  Object? getVertexAttrib(int index, int pname) native;
 
   int getVertexAttribOffset(int index, int pname) native;
 
@@ -1465,13 +1465,13 @@ class RenderingContext2 extends Interceptor
   void copyTexSubImage3D(int target, int level, int xoffset, int yoffset,
       int zoffset, int x, int y, int width, int height) native;
 
-  Query createQuery() native;
+  Query? createQuery() native;
 
-  Sampler createSampler() native;
+  Sampler? createSampler() native;
 
-  TransformFeedback createTransformFeedback() native;
+  TransformFeedback? createTransformFeedback() native;
 
-  VertexArrayObject createVertexArray() native;
+  VertexArrayObject? createVertexArray() native;
 
   void deleteQuery(Query? query) native;
 
@@ -1498,49 +1498,49 @@ class RenderingContext2 extends Interceptor
 
   void endTransformFeedback() native;
 
-  Sync fenceSync(int condition, int flags) native;
+  Sync? fenceSync(int condition, int flags) native;
 
   void framebufferTextureLayer(int target, int attachment, Texture? texture,
       int level, int layer) native;
 
-  String getActiveUniformBlockName(Program program, int uniformBlockIndex)
+  String? getActiveUniformBlockName(Program program, int uniformBlockIndex)
       native;
 
-  Object getActiveUniformBlockParameter(
+  Object? getActiveUniformBlockParameter(
       Program program, int uniformBlockIndex, int pname) native;
 
-  Object getActiveUniforms(Program program, List<int> uniformIndices, int pname)
-      native;
+  Object? getActiveUniforms(
+      Program program, List<int> uniformIndices, int pname) native;
 
   void getBufferSubData(int target, int srcByteOffset, TypedData dstData,
       [int? dstOffset, int? length]) native;
 
   int getFragDataLocation(Program program, String name) native;
 
-  Object getIndexedParameter(int target, int index) native;
+  Object? getIndexedParameter(int target, int index) native;
 
-  Object getInternalformatParameter(int target, int internalformat, int pname)
+  Object? getInternalformatParameter(int target, int internalformat, int pname)
       native;
 
-  Object getQuery(int target, int pname) native;
+  Object? getQuery(int target, int pname) native;
 
-  Object getQueryParameter(Query query, int pname) native;
+  Object? getQueryParameter(Query query, int pname) native;
 
-  Object getSamplerParameter(Sampler sampler, int pname) native;
+  Object? getSamplerParameter(Sampler sampler, int pname) native;
 
-  Object getSyncParameter(Sync sync, int pname) native;
+  Object? getSyncParameter(Sync sync, int pname) native;
 
-  ActiveInfo getTransformFeedbackVarying(Program program, int index) native;
+  ActiveInfo? getTransformFeedbackVarying(Program program, int index) native;
 
   int getUniformBlockIndex(Program program, String uniformBlockName) native;
 
-  List<int> getUniformIndices(Program program, List<String> uniformNames) {
+  List<int>? getUniformIndices(Program program, List<String> uniformNames) {
     List uniformNames_1 = convertDartToNative_StringArray(uniformNames);
     return _getUniformIndices_1(program, uniformNames_1);
   }
 
   @JSName('getUniformIndices')
-  List<int> _getUniformIndices_1(Program program, List uniformNames) native;
+  List<int>? _getUniformIndices_1(Program program, List uniformNames) native;
 
   void invalidateFramebuffer(int target, List<int> attachments) native;
 
@@ -2429,13 +2429,13 @@ class RenderingContext2 extends Interceptor
 
   ActiveInfo getActiveUniform(Program program, int index) native;
 
-  List<Shader> getAttachedShaders(Program program) native;
+  List<Shader>? getAttachedShaders(Program program) native;
 
   int getAttribLocation(Program program, String name) native;
 
-  Object getBufferParameter(int target, int pname) native;
+  Object? getBufferParameter(int target, int pname) native;
 
-  Map getContextAttributes() {
+  Map? getContextAttributes() {
     return convertNativeToDart_Dictionary(_getContextAttributes_1());
   }
 
@@ -2444,37 +2444,37 @@ class RenderingContext2 extends Interceptor
 
   int getError() native;
 
-  Object getExtension(String name) native;
+  Object? getExtension(String name) native;
 
-  Object getFramebufferAttachmentParameter(
+  Object? getFramebufferAttachmentParameter(
       int target, int attachment, int pname) native;
 
-  Object getParameter(int pname) native;
+  Object? getParameter(int pname) native;
 
-  String getProgramInfoLog(Program program) native;
+  String? getProgramInfoLog(Program program) native;
 
-  Object getProgramParameter(Program program, int pname) native;
+  Object? getProgramParameter(Program program, int pname) native;
 
-  Object getRenderbufferParameter(int target, int pname) native;
+  Object? getRenderbufferParameter(int target, int pname) native;
 
-  String getShaderInfoLog(Shader shader) native;
+  String? getShaderInfoLog(Shader shader) native;
 
-  Object getShaderParameter(Shader shader, int pname) native;
+  Object? getShaderParameter(Shader shader, int pname) native;
 
   ShaderPrecisionFormat getShaderPrecisionFormat(
       int shadertype, int precisiontype) native;
 
-  String getShaderSource(Shader shader) native;
+  String? getShaderSource(Shader shader) native;
 
-  List<String> getSupportedExtensions() native;
+  List<String>? getSupportedExtensions() native;
 
-  Object getTexParameter(int target, int pname) native;
+  Object? getTexParameter(int target, int pname) native;
 
-  Object getUniform(Program program, UniformLocation location) native;
+  Object? getUniform(Program program, UniformLocation location) native;
 
   UniformLocation getUniformLocation(Program program, String name) native;
 
-  Object getVertexAttrib(int index, int pname) native;
+  Object? getVertexAttrib(int index, int pname) native;
 
   int getVertexAttribOffset(int index, int pname) native;
 

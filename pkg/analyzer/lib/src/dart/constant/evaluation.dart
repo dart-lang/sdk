@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -66,7 +67,7 @@ class ConstantEvaluationEngine {
 
   /// The type system.  This is used to guess the types of constants when their
   /// exact value is unknown.
-  final TypeSystem typeSystem;
+  final TypeSystemImpl typeSystem;
 
   /// The helper for evaluating variables declared on the command line
   /// using '-D', and represented as [DeclaredVariables].
@@ -108,7 +109,7 @@ class ConstantEvaluationEngine {
   }
 
   bool get _isNonNullableByDefault {
-    return (typeSystem as TypeSystemImpl).isNonNullableByDefault;
+    return typeSystem.isNonNullableByDefault;
   }
 
   DartObjectImpl get _nullObject {
@@ -936,7 +937,7 @@ class ConstantEvaluationEngine {
       return true;
     }
     var objType = obj.type;
-    return typeSystem.isSubtypeOf(objType, type);
+    return typeSystem.isSubtypeOf2(objType, type);
   }
 
   /// Determine whether the given string is a valid name for a public symbol
@@ -1038,7 +1039,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
   ExperimentStatus get experimentStatus => evaluationEngine.experimentStatus;
 
   /// Convenience getter to gain access to the [evaluationEngine]'s type system.
-  TypeSystem get typeSystem => evaluationEngine.typeSystem;
+  TypeSystemImpl get typeSystem => evaluationEngine.typeSystem;
 
   /// Convenience getter to gain access to the [evaluationEngine]'s type
   /// provider.
@@ -1210,7 +1211,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     ParameterizedType elseType = elseResult.type;
     return DartObjectImpl.validWithUnknownValue(
       typeSystem,
-      typeSystem.leastUpperBound(thenType, elseType) as ParameterizedType,
+      typeSystem.getLeastUpperBound(thenType, elseType) as ParameterizedType,
     );
   }
 
@@ -1671,7 +1672,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         // TODO(brianwilkerson) Figure out why the static type is sometimes null.
         DartType staticType = condition.staticType;
         if (staticType == null ||
-            typeSystem.isAssignableTo(staticType, _typeProvider.boolType)) {
+            typeSystem.isAssignableTo2(staticType, _typeProvider.boolType)) {
           // If the static type is not assignable, then we will have already
           // reported this error.
           // TODO(mfairhurst) get the FeatureSet to suppress this for nnbd too.
@@ -1690,6 +1691,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     element = element?.declaration;
     Element variableElement =
         element is PropertyAccessorElement ? element.variable : element;
+
+    if (node is SimpleIdentifier &&
+        (node.tearOffTypeArgumentTypes?.any(_hasAppliedTypeParameters) ??
+            false)) {
+      _error(node, null);
+    }
+
     if (variableElement is VariableElementImpl) {
       // We access values of constant variables here in two cases: when we
       // compute values of other constant variables, or when we compute values
@@ -1755,6 +1763,13 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     return null;
   }
 
+  /// Check if any type parameters are referenced by [type], which is an error.
+  bool _hasAppliedTypeParameters(DartType type) {
+    final visitor = _ReferencesTypeParameterVisitor();
+    DartTypeVisitor.visit(type, visitor);
+    return visitor.result;
+  }
+
   /// Return `true` if the given [targetResult] represents a string and the
   /// [identifier] is "length".
   bool _isStringLength(
@@ -1799,6 +1814,27 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     return false;
   }
+}
+
+/// A visitor to find if a type contains any [TypeParameterType]s.
+///
+/// To find the result, check [result] on this instance after visiting the tree.
+/// The actual value returned by the visit methods is merely used so that
+/// [RecursiveTypeVisitor] stops visiting the type once the first type parameter
+/// type is found.
+class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
+  /// The result of whether any type parameters were found.
+  bool result = false;
+
+  @override
+  bool visitTypeParameterType(_) {
+    result = true;
+    // Stop visiting at this point.
+    return false;
+  }
+
+  @override
+  bool defaultDartType(_) => true; // Continue visiting in this case.
 }
 
 /// A utility class that contains methods for manipulating instances of a Dart

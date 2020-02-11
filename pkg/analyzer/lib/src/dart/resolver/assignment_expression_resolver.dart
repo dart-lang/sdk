@@ -293,7 +293,7 @@ class AssignmentExpressionResolver {
       _inferenceHelper.recordStaticType(node, type);
 
       var leftWriteType = _getStaticType2(node.leftHandSide);
-      if (!_typeSystem.isAssignableTo(type, leftWriteType)) {
+      if (!_typeSystem.isAssignableTo2(type, leftWriteType)) {
         _resolver.errorReporter.reportErrorForNode(
           StaticTypeWarningCode.INVALID_ASSIGNMENT,
           node.rightHandSide,

@@ -123,6 +123,9 @@ final Map<String, FantasySubPackageSettings> _subPackageTable = {
       subDir: path.join('pkg', 'vm_service')),
   'quiver': FantasySubPackageSettings(
       'quiver', FantasyRepoSettings.fromName('quiver-dart')),
+  'webkit_inspection_protocol': FantasySubPackageSettings(
+      'webkit_inspection_protocol',
+      FantasyRepoSettings.fromName('webkit_inspection_protocol.dart')),
 };
 
 /// Data class containing settings for a package within a [FantasyWorkspaceImpl].

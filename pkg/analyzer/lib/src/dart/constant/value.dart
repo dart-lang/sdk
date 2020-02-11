@@ -262,7 +262,7 @@ class DartObjectImpl implements DartObject {
     if (isNull) {
       return this;
     }
-    if (!typeSystem.isSubtypeOf(type, (castType._state as TypeState)._type)) {
+    if (!typeSystem.isSubtypeOf2(type, (castType._state as TypeState)._type)) {
       throw EvaluationException(
           CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }
@@ -478,7 +478,7 @@ class DartObjectImpl implements DartObject {
         state = BoolState.FALSE_STATE;
       }
     } else {
-      state = BoolState.from(typeSystem.isSubtypeOf(type, typeType));
+      state = BoolState.from(typeSystem.isSubtypeOf2(type, typeType));
     }
     return DartObjectImpl(typeSystem, typeSystem.typeProvider.boolType, state);
   }

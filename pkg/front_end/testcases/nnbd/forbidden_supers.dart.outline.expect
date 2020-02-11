@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -162,7 +162,7 @@ class Boo extends core::Object {
   synthetic constructor •() → self::Boo
     ;
 }
-abstract class _Coo&Boo&Aoo = self::Boo with self::Aoo {
+abstract class _Coo&Boo&Aoo = self::Boo with self::Aoo /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Coo&Boo&Aoo
     : super self::Boo::•()
     ;
@@ -179,7 +179,7 @@ class Eoo extends core::Object implements self::Boo {
   synthetic constructor •() → self::Eoo
     ;
 }
-abstract class _Foo&Boo&Aoo = self::Boo with self::Aoo {
+abstract class _Foo&Boo&Aoo = self::Boo with self::Aoo /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Foo&Boo&Aoo
     : super self::Boo::•()
     ;
@@ -193,7 +193,7 @@ class Goo = self::Boo with self::Aoo {
     : super self::Boo::•()
     ;
 }
-abstract class _Hoo&Object&Aoo = core::Object with self::Aoo {
+abstract class _Hoo&Object&Aoo = core::Object with self::Aoo /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_Hoo&Object&Aoo
     : super core::Object::•()
     ;
@@ -207,7 +207,7 @@ class Ioo = core::Object with self::Aoo implements self::Boo {
     : super core::Object::•()
     ;
 }
-abstract class _Joo&Boo&Never extends self::Boo {
+abstract class _Joo&Boo&Never extends self::Boo /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Joo&Boo&Never
     : super self::Boo::•()
     ;
@@ -224,29 +224,29 @@ class Loo extends core::Object {
   synthetic constructor •() → self::Loo
     ;
 }
-abstract class Moo1 extends self::Aoo implements self::Boo {
+abstract class Moo1 extends self::Aoo implements self::Boo /*isMixinDeclaration*/  {
 }
-abstract class _Moo2&Aoo&Boo extends core::Object implements self::Aoo, self::Boo {
+abstract class _Moo2&Aoo&Boo extends core::Object implements self::Aoo, self::Boo /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Moo2&Aoo&Boo
     ;
 }
-abstract class Moo2 extends self::_Moo2&Aoo&Boo {
+abstract class Moo2 extends self::_Moo2&Aoo&Boo /*isMixinDeclaration*/  {
 }
-abstract class Moo3 extends core::Object implements self::Aoo, self::Boo {
+abstract class Moo3 extends core::Object implements self::Aoo, self::Boo /*isMixinDeclaration*/  {
 }
-abstract class Moo4 extends self::Aoo {
+abstract class Moo4 extends self::Aoo /*isMixinDeclaration*/  {
 }
-abstract class _Moo5&Aoo&Never extends core::Object implements self::Aoo {
+abstract class _Moo5&Aoo&Never extends core::Object implements self::Aoo /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_Moo5&Aoo&Never
     ;
 }
-abstract class Moo5 extends self::_Moo5&Aoo&Never {
+abstract class Moo5 extends self::_Moo5&Aoo&Never /*isMixinDeclaration*/  {
 }
-abstract class Moo6 extends core::Object {
+abstract class Moo6 extends core::Object /*isMixinDeclaration*/  {
 }
-abstract class Moo7 extends core::Object implements self::Aoo {
+abstract class Moo7 extends core::Object implements self::Aoo /*isMixinDeclaration*/  {
 }
-abstract class Moo8 extends core::Object {
+abstract class Moo8 extends core::Object /*isMixinDeclaration*/  {
 }
 class Noo = core::Object with self::Aoo {
   synthetic constructor •() → self::Noo

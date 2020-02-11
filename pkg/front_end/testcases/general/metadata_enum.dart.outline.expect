@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 @self::a
-class E extends core::Object {
+class E extends core::Object /*isEnum*/  {
   final field core::int* index;
   final field core::String* _name;
   static const field core::List<self::E*>* values = const <self::E*>[self::E::E1, self::E::E2, self::E::E3];

@@ -41,6 +41,8 @@ Run with '--verify' to validate that the web resource have been regenerated.
   } else {
     await compileWebFrontEnd();
 
+    print('');
+
     createResourcesGDart();
   }
 }
@@ -55,7 +57,17 @@ final File dartSources = File(path.join('pkg', 'analysis_server', 'lib', 'src',
 final javascriptOutput = File(path.join('pkg', 'analysis_server', 'lib', 'src',
     'edit', 'nnbd_migration', 'resources', 'migration.js'));
 
-void verifyResourcesGDartGenerated() {
+final List<String> resourceTypes = [
+  '.css',
+  '.html',
+  '.js',
+];
+
+typedef VerificationFunction = void Function(String);
+
+void verifyResourcesGDartGenerated({
+  VerificationFunction failVerification = failGenerate,
+}) {
   print('Verifying that ${path.basename(resourcesFile.path)} is up-to-date...');
 
   // Find the hashes for the last generated version of resources.g.dart.
@@ -70,7 +82,7 @@ void verifyResourcesGDartGenerated() {
   // For all resources (modulo compiled JS ones), verify the hash.
   for (FileSystemEntity entity in resourceDir.listSync()) {
     String name = path.basename(entity.path);
-    if (!name.endsWith('.js') && !name.endsWith('.css')) {
+    if (!resourceTypes.contains(path.extension(name))) {
       continue;
     }
 
@@ -81,11 +93,11 @@ void verifyResourcesGDartGenerated() {
 
     String key = name.replaceAll('.', '_');
     if (!resourceHashes.containsKey(key)) {
-      failGenerate('No entry on resources.g.dart for $name');
+      failVerification('No entry on resources.g.dart for $name');
     } else {
       String hash = md5String((entity as File).readAsStringSync());
       if (hash != resourceHashes[key]) {
-        failGenerate('$name not up to date in resources.g.dart');
+        failVerification('$name not up to date in resources.g.dart');
       }
     }
   }
@@ -99,7 +111,7 @@ void verifyResourcesGDartGenerated() {
   }
   String hash = md5String(sourceCode.toString());
   if (hash != resourceHashes['migration_dart']) {
-    failGenerate('Compiled javascript not up to date in resources.g.dart');
+    failVerification('Compiled javascript not up to date in resources.g.dart');
   }
 
   print('Generated resources up to date.');
@@ -108,7 +120,7 @@ void verifyResourcesGDartGenerated() {
 void createResourcesGDart() {
   String content = generateResourceFile(resourceDir.listSync().where((entity) {
     String name = path.basename(entity.path);
-    return entity is File && (name.endsWith('.js') || name.endsWith('.css'));
+    return entity is File && resourceTypes.contains(path.extension(name));
   }).cast<File>());
 
   // write the content
@@ -132,6 +144,8 @@ import 'dart:convert' as convert;
 
   for (File resource in resources) {
     String name = path.basename(resource.path).replaceAll('.', '_');
+    print('adding $name...');
+
     buf.writeln();
     buf.writeln('String get $name {');
     buf.writeln('  return _$name ??= _decode(_${name}_base64);');
@@ -200,9 +214,16 @@ void compileWebFrontEnd() async {
   String sdkBinDir = path.dirname(Platform.resolvedExecutable);
   String dart2jsPath = path.join(sdkBinDir, 'dart2js');
 
+  const minified = true;
+
   // dart2js -m -o output source
-  Process process = await Process.start(
-      dart2jsPath, ['-m', '-o', javascriptOutput.path, dartSources.path]);
+  Process process = await Process.start(dart2jsPath, [
+    if (minified) '-m',
+    '--no-frequency-based-minification',
+    '-o',
+    javascriptOutput.path,
+    dartSources.path,
+  ]);
   process.stdout.listen((List<int> data) => stdout.add(data));
   process.stderr.listen((List<int> data) => stderr.add(data));
   int exitCode = await process.exitCode;

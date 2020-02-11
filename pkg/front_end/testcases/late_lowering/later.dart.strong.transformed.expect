@@ -1,4 +1,4 @@
-library;
+library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
@@ -79,7 +79,7 @@ class A extends core::Object {
     this.{self::A::_#A#b} = #t2;
   method foo(core::int x) → dynamic {}
 }
-class B extends core::Object {
+class B extends core::Object /*hasConstConstructor*/  {
   field core::int? _#B#x = null;
   const constructor •() → self::B
     : super core::Object::•()

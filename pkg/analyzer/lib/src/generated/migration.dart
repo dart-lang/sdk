@@ -25,6 +25,12 @@ abstract class MigrationResolutionHooks
   /// applied.
   DartType modifyExpressionType(Expression expression, DartType dartType);
 
+  /// Called after the resolver has inferred the type of a function literal
+  /// parameter.  Should return the type that the parameter has after migrations
+  /// have been applied.
+  DartType modifyInferredParameterType(
+      ParameterElement parameter, DartType type);
+
   /// Called when the resolver starts or stops making use of a [FlowAnalysis]
   /// instance.
   void setFlowAnalysis(

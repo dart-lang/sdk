@@ -453,6 +453,8 @@ abstract class String implements Comparable<String>, Pattern {
 
   int codeUnitAt(int index);
   bool contains(String other, [int startIndex = 0]);
+  String splitMapJoin(Pattern pattern,
+      {String onMatch(Match match), String onNonMatch(String nonMatch)});
   String substring(int len) => null;
   String toLowerCase();
   String toUpperCase();

@@ -47,10 +47,7 @@ class MigrationInfo {
   /// The filesystem root used to create relative paths for each unit.
   final String includedRoot;
 
-  final String migrationDate;
-
-  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot)
-      : migrationDate = DateTime.now().toString();
+  MigrationInfo(this.units, this.unitMap, this.pathContext, this.includedRoot);
 
   /// The path to the highlight.pack.js script, relative to [unitInfo].
   String get highlightJsPath => PreviewSite.highlightJsPath;
@@ -63,21 +60,19 @@ class MigrationInfo {
   String computeName(UnitInfo unit) =>
       pathContext.relative(unit.path, from: includedRoot);
 
-  /// Generate mustache context for unit links.
   List<UnitLink> unitLinks() {
     List<UnitLink> links = [];
     for (UnitInfo unit in units) {
       int count = unit.fixRegions.length;
       links.add(UnitLink(
-          _pathTo(target: unit), path.split(computeName(unit)), count));
+          _pathTo(target: unit), pathContext.split(computeName(unit)), count));
     }
     return links;
   }
 
-  /// The path to [target], relative to [from].
-  String _pathTo({@required UnitInfo target}) {
-    return target.path;
-  }
+  /// The path to [target], as an HTTP URI path, using forward slash separators.
+  String _pathTo({@required UnitInfo target}) =>
+      '/' + pathContext.split(target.path).skip(1).join('/');
 }
 
 /// A location from or to which a user might want to navigate.

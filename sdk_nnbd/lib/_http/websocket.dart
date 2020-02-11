@@ -134,7 +134,7 @@ class CompressionOptions {
       HeaderValue? requested) {
     var info = new _CompressionMaxWindowBits("", 0);
 
-    String? part = requested?.parameters?.[_serverMaxWindowBits];
+    String? part = requested?.parameters[_serverMaxWindowBits];
     if (part != null) {
       if (part.length >= 2 && part.startsWith('0')) {
         throw new ArgumentError("Illegal 0 padding on value.");
@@ -479,7 +479,7 @@ abstract class WebSocket
   /**
    * Sets the user agent to use for WebSocket connections.
    */
-  static set userAgent(String userAgent) {
+  static set userAgent(String? userAgent) {
     _WebSocketImpl.userAgent = userAgent;
   }
 }

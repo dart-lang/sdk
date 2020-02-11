@@ -182,6 +182,7 @@ class CallingConventions {
 
   // Whether 1 or 2 byte-sized arguments or return values are passed extended
   // to 4 bytes.
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kNotExtended;
   static constexpr ExtensionStrategy kArgumentRegisterExtension = kNotExtended;
   static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
 };

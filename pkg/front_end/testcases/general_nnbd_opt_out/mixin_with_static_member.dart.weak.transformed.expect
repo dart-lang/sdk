@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-abstract class _A&B&M extends self::B implements self::M {
+abstract class _A&B&M extends self::B implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_A&B&M*
     : super self::B::•()
     ;

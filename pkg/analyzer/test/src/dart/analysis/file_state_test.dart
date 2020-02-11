@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -61,7 +62,7 @@ class FileSystemStateTest with ResourceProviderMixin {
     AnalysisOptions analysisOptions = AnalysisOptionsImpl();
     var featureSetProvider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
-      contextRoot: null,
+      packages: Packages.empty,
       sourceFactory: sourceFactory,
       defaultFeatureSet: FeatureSet.fromEnableFlags([]),
     );

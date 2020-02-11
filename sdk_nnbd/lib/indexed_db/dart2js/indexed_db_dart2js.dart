@@ -231,7 +231,7 @@ class Cursor extends Interceptor {
   }
 
   @JSName('continue')
-  void next([Object key]) {
+  void next([Object? key]) {
     if (key == null) {
       JS('void', '#.continue()', this);
     } else {
@@ -248,15 +248,15 @@ class Cursor extends Interceptor {
 
   @_annotation_Creates_IDBKey
   @_annotation_Returns_IDBKey
-  Object get key => JS("Object", "#.key", this);
+  Object? get key => JS("Object", "#.key", this);
 
   @_annotation_Creates_IDBKey
   @_annotation_Returns_IDBKey
-  Object get primaryKey => JS("Object", "#.primaryKey", this);
+  Object? get primaryKey => JS("Object", "#.primaryKey", this);
 
   @Creates('Null')
   @Returns('ObjectStore|Index|Null')
-  Object get source => JS("Object", "#.source", this);
+  Object? get source => JS("Object", "#.source", this);
 
   void advance(int count) native;
 
@@ -289,7 +289,7 @@ class CursorWithValue extends Cursor {
   @JSName('value')
   @annotation_Creates_SerializedScriptValue
   @annotation_Returns_SerializedScriptValue
-  final dynamic _get_value;
+  dynamic get _get_value => JS("", "#.value", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -305,7 +305,7 @@ class CursorWithValue extends Cursor {
 @Unstable()
 @Native("IDBDatabase")
 class Database extends EventTarget {
-  ObjectStore createObjectStore(String name, {keyPath, bool autoIncrement}) {
+  ObjectStore createObjectStore(String name, {keyPath, bool? autoIncrement}) {
     var options = {};
     if (keyPath != null) {
       options['keyPath'] = keyPath;
@@ -402,7 +402,7 @@ class Database extends EventTarget {
 
   String get name => JS("String", "#.name", this);
 
-  @Returns('DomStringList|Null')
+  @Returns('DomStringList')
   @Creates('DomStringList')
   List<String> get objectStoreNames =>
       JS("DomStringList", "#.objectStoreNames", this);
@@ -470,9 +470,9 @@ class IdbFactory extends Interceptor {
   }
 
   Future<Database> open(String name,
-      {int version,
-      void onUpgradeNeeded(VersionChangeEvent event),
-      void onBlocked(Event event)}) {
+      {int? version,
+      void onUpgradeNeeded(VersionChangeEvent event)?,
+      void onBlocked(Event event)?}) {
     if ((version == null) != (onUpgradeNeeded == null)) {
       return new Future.error(new ArgumentError(
           'version and onUpgradeNeeded must be specified together'));
@@ -497,7 +497,7 @@ class IdbFactory extends Interceptor {
     }
   }
 
-  Future<IdbFactory> deleteDatabase(String name, {void onBlocked(Event e)}) {
+  Future<IdbFactory> deleteDatabase(String name, {void onBlocked(Event e)?}) {
     try {
       var request = _deleteDatabase(name);
 
@@ -601,7 +601,7 @@ class Index extends Interceptor {
    * * [ObjectStore.openCursor]
    */
   Stream<CursorWithValue> openCursor(
-      {key, KeyRange range, String direction, bool autoAdvance}) {
+      {key, KeyRange? range, String? direction, bool? autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -629,7 +629,7 @@ class Index extends Interceptor {
    * * [ObjectStore.openCursor]
    */
   Stream<Cursor> openKeyCursor(
-      {key, KeyRange range, String direction, bool autoAdvance}) {
+      {key, KeyRange? range, String? direction, bool? autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -655,7 +655,7 @@ class Index extends Interceptor {
   }
 
   @annotation_Creates_SerializedScriptValue
-  Object get keyPath => JS("Object", "#.keyPath", this);
+  Object? get keyPath => JS("Object", "#.keyPath", this);
 
   bool get multiEntry => JS("bool", "#.multiEntry", this);
 
@@ -670,7 +670,7 @@ class Index extends Interceptor {
   bool get unique => JS("bool", "#.unique", this);
 
   @JSName('count')
-  Request _count(Object key) native;
+  Request _count(Object? key) native;
 
   @JSName('get')
   @Returns('Request')
@@ -678,9 +678,9 @@ class Index extends Interceptor {
   @annotation_Creates_SerializedScriptValue
   Request _get(Object key) native;
 
-  Request getAll(Object query, [int? count]) native;
+  Request getAll(Object? query, [int? count]) native;
 
-  Request getAllKeys(Object query, [int? count]) native;
+  Request getAllKeys(Object? query, [int? count]) native;
 
   @JSName('getKey')
   @Returns('Request')
@@ -693,13 +693,13 @@ class Index extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object range, [String? direction]) native;
+  Request _openCursor(Object? range, [String? direction]) native;
 
   @JSName('openKeyCursor')
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openKeyCursor(Object range, [String? direction]) native;
+  Request _openKeyCursor(Object? range, [String? direction]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -728,12 +728,12 @@ class KeyRange extends Interceptor {
   }
 
   @annotation_Creates_SerializedScriptValue
-  Object get lower => JS("Object", "#.lower", this);
+  Object? get lower => JS("Object", "#.lower", this);
 
   bool get lowerOpen => JS("bool", "#.lowerOpen", this);
 
   @annotation_Creates_SerializedScriptValue
-  Object get upper => JS("Object", "#.upper", this);
+  Object? get upper => JS("Object", "#.upper", this);
 
   bool get upperOpen => JS("bool", "#.upperOpen", this);
 
@@ -844,7 +844,7 @@ class ObjectStore extends Interceptor {
    * the current transaction.
    */
   Stream<CursorWithValue> openCursor(
-      {key, KeyRange range, String direction, bool autoAdvance}) {
+      {key, KeyRange? range, String? direction, bool? autoAdvance}) {
     var key_OR_range = null;
     if (key != null) {
       if (range != null) {
@@ -865,7 +865,7 @@ class ObjectStore extends Interceptor {
     return _cursorStreamFromResult(request, autoAdvance);
   }
 
-  Index createIndex(String name, keyPath, {bool unique, bool multiEntry}) {
+  Index createIndex(String name, keyPath, {bool? unique, bool? multiEntry}) {
     var options = {};
     if (unique != null) {
       options['unique'] = unique;
@@ -884,12 +884,12 @@ class ObjectStore extends Interceptor {
 
   bool get autoIncrement => JS("bool", "#.autoIncrement", this);
 
-  @Returns('DomStringList|Null')
+  @Returns('DomStringList')
   @Creates('DomStringList')
   List<String> get indexNames => JS("DomStringList", "#.indexNames", this);
 
   @annotation_Creates_SerializedScriptValue
-  Object get keyPath => JS("Object", "#.keyPath", this);
+  Object? get keyPath => JS("Object", "#.keyPath", this);
 
   String get name => JS("String", "#.name", this);
 
@@ -927,7 +927,7 @@ class ObjectStore extends Interceptor {
   Request _clear() native;
 
   @JSName('count')
-  Request _count(Object key) native;
+  Request _count(Object? key) native;
 
   Index _createIndex(String name, Object keyPath, [Map? options]) {
     if (options != null) {
@@ -953,9 +953,9 @@ class ObjectStore extends Interceptor {
   @annotation_Creates_SerializedScriptValue
   Request _get(Object key) native;
 
-  Request getAll(Object query, [int? count]) native;
+  Request getAll(Object? query, [int? count]) native;
 
-  Request getAllKeys(Object query, [int? count]) native;
+  Request getAllKeys(Object? query, [int? count]) native;
 
   Request getKey(Object key) native;
 
@@ -965,9 +965,9 @@ class ObjectStore extends Interceptor {
   @Returns('Request')
   @Creates('Request')
   @Creates('Cursor')
-  Request _openCursor(Object range, [String? direction]) native;
+  Request _openCursor(Object? range, [String? direction]) native;
 
-  Request openKeyCursor(Object range, [String? direction]) native;
+  Request openKeyCursor(Object? range, [String? direction]) native;
 
   @Returns('Request')
   @Creates('Request')
@@ -997,7 +997,7 @@ class ObjectStore extends Interceptor {
    * Helper for iterating over cursors in a request.
    */
   static Stream<T> _cursorStreamFromResult<T extends Cursor>(
-      Request request, bool autoAdvance) {
+      Request request, bool? autoAdvance) {
     // TODO: need to guarantee that the controller provides the values
     // immediately as waiting until the next tick will cause the transaction to
     // close.
@@ -1031,11 +1031,11 @@ class Observation extends Interceptor {
     throw new UnsupportedError("Not supported");
   }
 
-  Object get key => JS("Object", "#.key", this);
+  Object? get key => JS("Object", "#.key", this);
 
   String get type => JS("String", "#.type", this);
 
-  Object get value => JS("Object", "#.value", this);
+  Object? get value => JS("Object", "#.value", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1079,7 +1079,7 @@ class ObserverChanges extends Interceptor {
 
   Database get database => JS("Database", "#.database", this);
 
-  Object get records => JS("Object", "#.records", this);
+  Object? get records => JS("Object", "#.records", this);
 
   Transaction get transaction => JS("Transaction", "#.transaction", this);
 }
@@ -1157,10 +1157,10 @@ class Request extends EventTarget {
   dynamic get result => _convertNativeToDart_IDBAny(this._get_result);
   @JSName('result')
   @Creates('Null')
-  final dynamic _get_result;
+  dynamic get _get_result => JS("", "#.result", this);
 
   @Creates('Null')
-  Object get source => JS("Object", "#.source", this);
+  Object? get source => JS("Object", "#.source", this);
 
   Transaction get transaction => JS("Transaction", "#.transaction", this);
 
@@ -1243,7 +1243,7 @@ class Transaction extends EventTarget {
 
   String get mode => JS("String", "#.mode", this);
 
-  @Returns('DomStringList|Null')
+  @Returns('DomStringList')
   @Creates('DomStringList')
   List<String> get objectStoreNames =>
       JS("DomStringList", "#.objectStoreNames", this);
@@ -1294,7 +1294,7 @@ class VersionChangeEvent extends Event {
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')
-  final int? newVersion;
+  int? get newVersion => JS("int", "#.newVersion", this);
 
   @Creates('int|String|Null')
   @Returns('int|String|Null')

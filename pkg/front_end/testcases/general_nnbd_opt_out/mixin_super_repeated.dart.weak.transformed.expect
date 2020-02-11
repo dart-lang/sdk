@@ -23,13 +23,13 @@ class S extends core::Object {
     : super core::Object::•()
     ;
 }
-abstract class _Named&S&M extends self::S implements self::M {
+abstract class _Named&S&M extends self::S implements self::M /*isAnonymousMixin,isEliminatedMixin*/  {
   field dynamic m = null;
   synthetic constructor •() → self::_Named&S&M*
     : super self::S::•()
     ;
 }
-abstract class _Named&S&M&N extends self::_Named&S&M implements self::N {
+abstract class _Named&S&M&N extends self::_Named&S&M implements self::N /*isAnonymousMixin,isEliminatedMixin*/  {
   synthetic constructor •() → self::_Named&S&M&N*
     : super self::_Named&S&M::•()
     ;
@@ -39,7 +39,7 @@ abstract class _Named&S&M&N extends self::_Named&S&M implements self::N {
   get superM() → dynamic
     return super.{self::M::m};
 }
-class Named extends self::_Named&S&M&N implements self::M {
+class Named extends self::_Named&S&M&N implements self::M /*isEliminatedMixin*/  {
   field dynamic m = null;
   synthetic constructor •() → self::Named*
     : super self::_Named&S&M&N::•()

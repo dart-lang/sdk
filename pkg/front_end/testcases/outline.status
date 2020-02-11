@@ -5,7 +5,7 @@
 general/abstract_members: TypeCheckError
 general/bug30695: TypeCheckError
 general/bug30695: TypeCheckError
-general/ignore_function: TypeCheckError
+general/infer_field_from_multiple: TypeCheckError
 general/invalid_operator: TypeCheckError
 general/mixin_application_override: TypeCheckError
 general/override_check_accessor_after_inference: TypeCheckError
@@ -19,7 +19,6 @@ general/override_setter_with_field: TypeCheckError
 general_nnbd_opt_out/abstract_members: TypeCheckError
 general_nnbd_opt_out/bug30695: TypeCheckError
 general_nnbd_opt_out/bug30695: TypeCheckError
-general_nnbd_opt_out/ignore_function: TypeCheckError
 general_nnbd_opt_out/mixin_application_override: TypeCheckError
 general_nnbd_opt_out/override_check_accessor_after_inference: TypeCheckError
 general_nnbd_opt_out/override_check_accessor_basic: TypeCheckError
@@ -29,17 +28,12 @@ general_nnbd_opt_out/override_check_basic: TypeCheckError
 general_nnbd_opt_out/override_check_with_covariant_modifier: TypeCheckError
 general_nnbd_opt_out/override_setter_with_field: TypeCheckError
 
-inference/conflicting_fields: TypeCheckError
-inference/conflicts_can_happen2: Fail
-inference/conflicts_can_happen: Fail
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: Fail
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: Fail
 inference/generic_methods_handle_override_of_non_generic_with_generic: Fail
-inference/inconsistent_overrides: TypeCheckError
 inference/infer_assign_to_index: Fail
 inference/infer_assign_to_property: Fail
 inference/infer_assign_to_property_custom: Fail
-inference/infer_field_override_multiple: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError
 inference/infer_type_cast: Fail
 inference/infer_types_on_generic_instantiations_infer: TypeCheckError
@@ -47,13 +41,11 @@ inference/mixin_inference_outwards_3: TypeCheckError
 inference/mixin_inference_outwards_4: TypeCheckError
 inference/mixin_inference_unification_1: TypeCheckError
 inference/mixin_inference_unification_2: TypeCheckError
-inference_new/infer_field_getter_setter_mismatch: TypeCheckError
-inference_new/infer_field_override_accessors: TypeCheckError
-inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
 
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
+nnbd/never_opt_out: TypeCheckError
 
 rasta/native_is_illegal: Pass # Issue 29763
 

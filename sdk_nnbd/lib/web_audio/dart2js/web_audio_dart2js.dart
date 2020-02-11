@@ -194,7 +194,7 @@ class AudioContext extends BaseAudioContext {
   Future close() => promiseToFuture(JS("", "#.close()", this));
 
   Map getOutputTimestamp() {
-    return convertNativeToDart_Dictionary(_getOutputTimestamp_1());
+    return convertNativeToDart_Dictionary(_getOutputTimestamp_1())!;
   }
 
   @JSName('getOutputTimestamp')
@@ -238,9 +238,9 @@ class AudioContext extends BaseAudioContext {
   }
 
   @JSName('decodeAudioData')
-  Future _decodeAudioData(ByteBuffer audioData,
-      [DecodeSuccessCallback successCallback,
-      DecodeErrorCallback errorCallback]) native;
+  Future<AudioBuffer> _decodeAudioData(ByteBuffer audioData,
+      [DecodeSuccessCallback? successCallback,
+      DecodeErrorCallback? errorCallback]) native;
 
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData,
       [DecodeSuccessCallback? successCallback,
@@ -406,7 +406,7 @@ class AudioParamMap extends Interceptor with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  Map _getItem(String key) =>
+  Map? _getItem(String key) =>
       convertNativeToDart_Dictionary(JS('', '#.get(#)', this, key));
 
   void addAll(Map<String, dynamic> other) {
@@ -417,7 +417,7 @@ class AudioParamMap extends Interceptor with MapMixin<String, dynamic> {
 
   bool containsKey(dynamic key) => _getItem(key) != null;
 
-  Map operator [](dynamic key) => _getItem(key);
+  Map? operator [](dynamic key) => _getItem(key);
 
   void forEach(void f(String key, dynamic value)) {
     var entries = JS('', '#.entries()', this);
@@ -536,7 +536,7 @@ class AudioTrack extends Interceptor {
 
   String get language => JS("String", "#.language", this);
 
-  final SourceBuffer? sourceBuffer;
+  SourceBuffer? get sourceBuffer => JS("SourceBuffer", "#.sourceBuffer", this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -556,7 +556,7 @@ class AudioTrackList extends EventTarget {
 
   AudioTrack __getter__(int index) native;
 
-  AudioTrack getTrackById(String id) native;
+  AudioTrack? getTrackById(String id) native;
 
   Stream<Event> get onChange => changeEvent.forTarget(this);
 }

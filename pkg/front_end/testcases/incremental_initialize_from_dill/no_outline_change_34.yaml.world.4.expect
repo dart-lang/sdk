@@ -1,6 +1,8 @@
 main = <No Member>;
 library from "org-dartlang-test:///lib1.dart" as lib1 {
-additionalExports = (main::main,
+additionalExports = (main::Extension|get#method,
+  main::Extension|method,
+  main::main,
   main::Class,
   main::Extension)
 

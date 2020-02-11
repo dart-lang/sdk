@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/src/context/packages.dart';
 
 /// Information about a Pub workspace.
 class PubWorkspace extends SimpleWorkspace {
@@ -18,10 +19,14 @@ class PubWorkspace extends SimpleWorkspace {
   /// Each Pub workspace is itself one package.
   PubWorkspacePackage _theOnlyPackage;
 
+  /// The associated pubspec file.
+  final File _pubspecFile;
+
   PubWorkspace._(
     ResourceProvider provider,
     Map<String, List<Folder>> packageMap,
     String root,
+    this._pubspecFile,
   ) : super(provider, packageMap, root);
 
   @override
@@ -52,10 +57,11 @@ class PubWorkspace extends SimpleWorkspace {
         return null;
       }
 
-      if (folder.getChildAssumingFile(_pubspecName).exists) {
+      var pubspec = folder.getChildAssumingFile(_pubspecName);
+      if (pubspec.exists) {
         // Found the pubspec.yaml file; this is our root.
         String root = folder.path;
-        return PubWorkspace._(provider, packageMap, root);
+        return PubWorkspace._(provider, packageMap, root, pubspec);
       }
 
       // Go up a folder.
@@ -73,10 +79,30 @@ class PubWorkspacePackage extends WorkspacePackage {
   @override
   final String root;
 
+  Pubspec _pubspec;
+
+  /// A flag to indicate if we've tried to parse the pubspec.
+  bool _parsedPubspec = false;
+
   @override
   final PubWorkspace workspace;
 
   PubWorkspacePackage(this.root, this.workspace);
+
+  /// Get the associated parsed [Pubspec], or `null` if there was an error in
+  /// reading or parsing.
+  Pubspec get pubspec {
+    if (!_parsedPubspec) {
+      _parsedPubspec = true;
+      try {
+        final content = workspace._pubspecFile.readAsStringSync();
+        _pubspec = Pubspec.parse(content);
+      } catch (_) {
+        // Pubspec will be null.
+      }
+    }
+    return _pubspec;
+  }
 
   @override
   bool contains(Source source) {

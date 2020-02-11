@@ -6130,6 +6130,57 @@ const MessageCode messageNonNullAwareSpreadIsNull = const MessageCode(
     message: r"""Can't spread a value with static type Null.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonNullableNotAssignedError = const Template<
+        Message Function(String name)>(
+    messageTemplate:
+        r"""Non-nullable variable '#name' must be assigned before it can be used.""",
+    withArguments: _withArgumentsNonNullableNotAssignedError);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonNullableNotAssignedError =
+    const Code<Message Function(String name)>(
+  "NonNullableNotAssignedError",
+  templateNonNullableNotAssignedError,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonNullableNotAssignedError(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonNullableNotAssignedError,
+      message:
+          """Non-nullable variable '${name}' must be assigned before it can be used.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateNonNullableNotAssignedWarning =
+    const Template<Message Function(String name)>(
+        messageTemplate:
+            r"""Non-nullable variable '#name' is used before it's assigned.""",
+        withArguments: _withArgumentsNonNullableNotAssignedWarning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonNullableNotAssignedWarning =
+    const Code<Message Function(String name)>(
+        "NonNullableNotAssignedWarning", templateNonNullableNotAssignedWarning,
+        severity: Severity.warning);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonNullableNotAssignedWarning(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonNullableNotAssignedWarning,
+      message:
+          """Non-nullable variable '${name}' is used before it's assigned.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonNullableOptOut = messageNonNullableOptOut;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

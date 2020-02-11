@@ -115,6 +115,9 @@ class DillClassBuilder extends ClassBuilderImpl {
   /// superclass.
   bool get isMixinApplication => cls.isMixinApplication;
 
+  @override
+  bool get hasConstConstructor => cls.hasConstConstructor;
+
   TypeBuilder get mixedInType {
     return computeTypeBuilder(library, cls.mixedInType);
   }

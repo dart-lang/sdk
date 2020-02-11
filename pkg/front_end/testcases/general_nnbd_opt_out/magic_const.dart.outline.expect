@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class Constant extends core::Object {
+class Constant extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::Constant*
     : super core::Object::•()
     ;

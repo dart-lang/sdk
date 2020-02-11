@@ -3,19 +3,3 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 # Status file for the test suite ../test/incremental_load_from_dill_test.dart.
-
-no_outline_change_1: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_2: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_6: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_7: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_9: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_10: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_11: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_12: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_13: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_14: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_21: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_24: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_27: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_33: Crash # Doesn't work on DillLibraryBuilders.
-no_outline_change_34: Crash # Doesn't work on DillLibraryBuilders.

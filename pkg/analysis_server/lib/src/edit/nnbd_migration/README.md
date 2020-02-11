@@ -1,7 +1,7 @@
 # Null Safety Migration Tooling
 
 Note: the null safety migration tooling and workflow is in a very early state;
-this doc will be updated as the steps and workflow are simplified. 
+this doc will be updated as the steps and workflow are simplified.
 
 ## Background
 
@@ -37,12 +37,12 @@ analyzer:
     - non-nullable
 ```
 - run `pub get` for the package (and, verify that the
-  `.dart_tool/package_config.json` file was created) 
+  `.dart_tool/package_config.json` file was created)
 
 Then, run the migration tool from the top-level of the package directory:
 
 ```
-<sdk-repo>/xcodebuild/ReleaseX64/dart <sdk-repo>/pkg/dartfix/bin/dartfix.dart  upgrade sdk --sdk=<sdk-repo>/xcodebuild/ReleaseX64NNBD/dart-sdk/ .
+<sdk-repo>/xcodebuild/ReleaseX64/dart <sdk-repo>/pkg/dartfix/bin/dartfix.dart upgrade sdk --sdk=<sdk-repo>/xcodebuild/ReleaseX64NNBD/dart-sdk/ .
 ```
 
 The migration tool will run, print the proposed changes to the console,

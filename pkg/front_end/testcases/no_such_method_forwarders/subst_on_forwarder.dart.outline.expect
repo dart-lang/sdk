@@ -13,7 +13,7 @@ class M extends core::Object {
   method noSuchMethod(core::Invocation* i) → dynamic
     ;
 }
-abstract class _A&Object&M = core::Object with self::M {
+abstract class _A&Object&M = core::Object with self::M /*isAnonymousMixin*/  {
   const synthetic constructor •() → self::_A&Object&M*
     : super core::Object::•()
     ;

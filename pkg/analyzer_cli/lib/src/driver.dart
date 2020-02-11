@@ -581,7 +581,8 @@ class Driver with HasContextMixin implements CommandLineStarter {
         FileContentOverlay(),
         ContextRoot(source, [], pathContext: resourceProvider.pathContext),
         sourceFactory,
-        analysisOptions);
+        analysisOptions,
+        packages: packageInfo.packages);
     analysisDriver.results.listen((_) {});
     analysisDriver.exceptions.listen((_) {});
     scheduler.start();

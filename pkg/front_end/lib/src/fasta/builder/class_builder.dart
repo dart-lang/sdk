@@ -46,6 +46,8 @@ import 'package:kernel/src/bounds_checks.dart'
         findTypeArgumentIssues,
         getGenericTypeName;
 
+import 'package:kernel/src/legacy_erasure.dart';
+
 import 'package:kernel/text/text_serialization_verifier.dart';
 
 import 'package:kernel/type_algebra.dart' show Substitution, substitute;
@@ -1164,6 +1166,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     }
     if (declaredSubstitution != null) {
       declaredType = declaredSubstitution.substituteType(declaredType);
+    }
+
+    if (!declaredMember.isNonNullableByDefault &&
+        interfaceMember.isNonNullableByDefault) {
+      interfaceType = legacyErasure(types.hierarchy.coreTypes, interfaceType);
     }
 
     bool inParameter = declaredParameter != null || asIfDeclaredParameter;

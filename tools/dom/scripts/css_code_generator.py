@@ -151,7 +151,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME $EXTENDS with
   }
 
 
-  void setProperty(String propertyName, String value, [String priority]) {
+  void setProperty(String propertyName, String value,
+      [String$NULLABLE priority]) {
     return _setPropertyHelper(_browserPropertyName(propertyName),
       value, priority);
   }
@@ -229,7 +230,7 @@ $!MEMBERS
 
 class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
-  Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
+  Iterable<CssStyleDeclaration>$NULLABLE _elementCssStyleDeclarationSetIterable;
 
   _CssStyleDeclarationSet(this._elementIterable) {
     _elementCssStyleDeclarationSetIterable = new List.from(
@@ -237,11 +238,12 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   }
 
   String getPropertyValue(String propertyName) =>
-      _elementCssStyleDeclarationSetIterable.first.getPropertyValue(
+      _elementCssStyleDeclarationSetIterable$NULLASSERT.first.getPropertyValue(
           propertyName);
 
-  void setProperty(String propertyName, String value, [String priority]) {
-    _elementCssStyleDeclarationSetIterable.forEach((e) =>
+  void setProperty(String propertyName, String value,
+      [String$NULLABLE priority]) {
+    _elementCssStyleDeclarationSetIterable$NULLASSERT.forEach((e) =>
         e.setProperty(propertyName, value, priority));
   }
 
@@ -276,7 +278,8 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
 
 abstract class CssStyleDeclarationBase {
   String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String priority]);
+  void setProperty(String propertyName, String value,
+      [String$NULLABLE priority]);
 """)
 
     class_lines = []

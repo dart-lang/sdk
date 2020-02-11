@@ -175,14 +175,16 @@ class LintDriver {
     PerformanceLog log = PerformanceLog(null);
     AnalysisDriverScheduler scheduler = AnalysisDriverScheduler(log);
     AnalysisDriver analysisDriver = AnalysisDriver(
-        scheduler,
-        log,
-        resourceProvider,
-        MemoryByteStore(),
-        FileContentOverlay(),
-        null,
-        sourceFactory,
-        _buildAnalyzerOptions(options));
+      scheduler,
+      log,
+      resourceProvider,
+      MemoryByteStore(),
+      FileContentOverlay(),
+      null,
+      sourceFactory,
+      _buildAnalyzerOptions(options),
+      packages: Packages.empty,
+    );
     analysisDriver.results.listen((_) {});
     analysisDriver.exceptions.listen((_) {});
     scheduler.start();

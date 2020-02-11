@@ -16,7 +16,13 @@ final neverType = dart.wrapType(dart.never_);
 /// Legacy types (produced by the legacy helper below) are returned unchanged
 /// because they are created unwrapped since wrapping will strip the legacy from
 /// them by design.
-Object unwrap(Type t) => t is dart.LegacyType ? t : dart.unwrapType(t);
+/// Generic functions are also unchanged, as they have a separate runtime type object representation.
+Object unwrap(Type t) {
+  if (t is dart.LegacyType || t is dart.GenericFunctionType) {
+    return t;
+  }
+  return dart.unwrapType(t);
+}
 
 /// Returns tWrapped? as a wrapped type.
 Type nullable(Type tWrapped) {
@@ -67,28 +73,26 @@ Type function1(Type returnWrapped, Type argWrapped) {
 
 // Returns a function type with a bounded type argument that takes no argument
 // and returns void as a wrapped type.
-Type genericFunction(Type boundWrapped) => dart.wrapType(
-    dart.gFnType((T) => [dart.VoidType, []], (T) => [unwrap(boundWrapped)]));
+Type genericFunction(Type boundWrapped) =>
+    dart.gFnType((T) => [dart.VoidType, []], (T) => [unwrap(boundWrapped)]);
 
 // Returns a function type with a bounded generic return type of
 // <T extends boundWrapped> argWrapped -> T as a wrapped type.
-Type functionGenericReturn(Type boundWrapped, Type argWrapped) =>
-    dart.wrapType(dart.gFnType(
-        (T) => [
-              T,
-              [unwrap(argWrapped)]
-            ],
-        (T) => [unwrap(boundWrapped)]));
+Type functionGenericReturn(Type boundWrapped, Type argWrapped) => dart.gFnType(
+    (T) => [
+          T,
+          [unwrap(argWrapped)]
+        ],
+    (T) => [unwrap(boundWrapped)]);
 
 // Returns a function with a bounded generic argument type of
 // <T extends boundWrapped> T -> returnWrapped as a wrapped type.
-Type functionGenericArg(Type boundWrapped, Type returnWrapped) =>
-    dart.wrapType(dart.gFnType(
-        (T) => [
-              unwrap(returnWrapped),
-              [T]
-            ],
-        (T) => [unwrap(boundWrapped)]));
+Type functionGenericArg(Type boundWrapped, Type returnWrapped) => dart.gFnType(
+    (T) => [
+          unwrap(returnWrapped),
+          [T]
+        ],
+    (T) => [unwrap(boundWrapped)]);
 
 void checkSubtype(Type sWrapped, Type tWrapped) {
   var s = unwrap(sWrapped);

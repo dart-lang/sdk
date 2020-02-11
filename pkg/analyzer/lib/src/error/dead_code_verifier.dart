@@ -315,7 +315,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
           int length = visitedTypes.length;
           for (int j = 0; j < length; j++) {
             DartType type = visitedTypes[j];
-            if (_typeSystem.isSubtypeOf(currentType, type)) {
+            if (_typeSystem.isSubtypeOf2(currentType, type)) {
               CatchClause lastCatchClause = catchClauses[numOfCatchClauses - 1];
               int offset = catchClause.offset;
               int length = lastCatchClause.end - offset;

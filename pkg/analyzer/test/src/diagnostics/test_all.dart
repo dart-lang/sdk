@@ -33,6 +33,8 @@ import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
 import 'case_expression_type_implements_equals_test.dart'
     as case_expression_type_implements_equals;
+import 'case_expression_type_is_not_switch_expression_subtype_test.dart'
+    as case_expression_type_is_not_switch_expression_subtype;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'concrete_class_with_abstract_member_test.dart'
     as concrete_class_with_abstract_member;
@@ -158,6 +160,8 @@ import 'import_deferred_library_with_load_function_test.dart'
 import 'import_duplicated_library_named_test.dart'
     as import_duplicated_library_named;
 import 'import_of_non_library_test.dart' as import_of_non_library;
+import 'inconsistent_case_expression_types_test.dart'
+    as inconsistent_case_expression_types;
 import 'inference_failure_on_collection_literal_test.dart'
     as inference_failure_on_collection_literal;
 import 'inference_failure_on_function_return_type_test.dart'
@@ -249,7 +253,8 @@ import 'missing_annotation_on_struct_field_test.dart'
     as missing_annotation_on_struct_field;
 import 'missing_default_value_for_parameter_test.dart'
     as missing_default_value_for_parameter;
-import 'missing_enum_value_in_switch_test.dart' as missing_enum_value_in_switch;
+import 'missing_enum_constant_in_switch_test.dart'
+    as missing_enum_constant_in_switch;
 import 'missing_exception_value_test.dart' as missing_exception_value;
 import 'missing_field_type_in_struct_test.dart' as missing_field_type_in_struct;
 import 'missing_js_lib_annotation_test.dart' as missing_js_lib_annotation;
@@ -283,6 +288,10 @@ import 'non_abstract_class_inherits_abstract_member_test.dart'
 import 'non_bool_condition_test.dart' as non_bool_condition;
 import 'non_bool_negation_expression_test.dart' as non_bool_negation_expression;
 import 'non_bool_operand_test.dart' as non_bool_operand;
+import 'non_constant_case_expression_from_deferred_library_test.dart'
+    as non_constant_case_expression_from_deferred_library;
+import 'non_constant_case_expression_test.dart' as non_constant_case_expression;
+import 'non_constant_default_value_test.dart' as non_constant_default_value;
 import 'non_constant_list_element_from_deferred_library_test.dart'
     as non_constant_list_element_from_deferred_library;
 import 'non_constant_list_element_test.dart' as non_constant_list_element;
@@ -513,6 +522,7 @@ main() {
     can_be_null_after_null_aware.main();
     case_block_not_terminated.main();
     case_expression_type_implements_equals.main();
+    case_expression_type_is_not_switch_expression_subtype.main();
     cast_to_non_type.main();
     concrete_class_with_abstract_member.main();
     conflicting_generic_interfaces.main();
@@ -594,6 +604,7 @@ main() {
     implicit_this_reference_in_initializer.main();
     import_deferred_library_with_load_function.main();
     import_duplicated_library_named.main();
+    inconsistent_case_expression_types.main();
     import_of_non_library.main();
     inference_failure_on_collection_literal.main();
     inference_failure_on_function_return_type.main();
@@ -655,7 +666,7 @@ main() {
     mismatched_annotation_on_struct_field.main();
     missing_annotation_on_struct_field.main();
     missing_default_value_for_parameter.main();
-    missing_enum_value_in_switch.main();
+    missing_enum_constant_in_switch.main();
     missing_exception_value.main();
     missing_field_type_in_struct.main();
     missing_js_lib_annotation.main();
@@ -682,6 +693,8 @@ main() {
     non_bool_negation_expression.main();
     non_bool_operand.main();
     non_constant_list_element.main();
+    non_constant_case_expression_from_deferred_library.main();
+    non_constant_case_expression.main();
     non_constant_list_element_from_deferred_library.main();
     non_constant_map_key.main();
     non_constant_map_key_from_deferred_library.main();
@@ -800,6 +813,7 @@ main() {
     undefined_prefixed_name.main();
     undefined_setter.main();
     undefined_shown_name.main();
+    non_constant_default_value.main();
     unnecessary_cast.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();

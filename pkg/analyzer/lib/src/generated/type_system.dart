@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'package:analyzer/dart/ast/ast.dart' show AstNode, ConstructorName;
 import 'package:analyzer/dart/ast/token.dart' show Keyword, TokenType;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -272,7 +273,7 @@ class Dart2TypeSystem extends TypeSystem {
     if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull) {
       // * Null if Null <: T2
       // * Never otherwise
-      if (isSubtypeOf(nullNone, T2)) {
+      if (isSubtypeOf2(nullNone, T2)) {
         return nullNone;
       } else {
         return NeverTypeImpl.instance;
@@ -283,7 +284,7 @@ class Dart2TypeSystem extends TypeSystem {
     if (T2_nullability == NullabilitySuffix.none && T2.isDartCoreNull) {
       // * Null if Null <: T1
       // * Never otherwise
-      if (isSubtypeOf(nullNone, T1)) {
+      if (isSubtypeOf2(nullNone, T1)) {
         return nullNone;
       } else {
         return NeverTypeImpl.instance;
@@ -371,12 +372,12 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // DOWN(T1, T2) = T1 if T1 <: T2
-    if (isSubtypeOf(T1, T2)) {
+    if (isSubtypeOf2(T1, T2)) {
       return T1;
     }
 
     // DOWN(T1, T2) = T2 if T2 <: T1
-    if (isSubtypeOf(T2, T1)) {
+    if (isSubtypeOf2(T2, T1)) {
       return T2;
     }
 
@@ -570,11 +571,11 @@ class Dart2TypeSystem extends TypeSystem {
     // UP(X1 & B1, T2)
     if (T1 is TypeParameterType) {
       // T2 if X1 <: T2
-      if (isSubtypeOf(T1, T2)) {
+      if (isSubtypeOf2(T1, T2)) {
         return T2;
       }
       // otherwise X1 if T2 <: X1
-      if (isSubtypeOf(T2, T1)) {
+      if (isSubtypeOf2(T2, T1)) {
         return T1;
       }
       // otherwise UP(B1[Object/X1], T2)
@@ -586,12 +587,12 @@ class Dart2TypeSystem extends TypeSystem {
     // UP(T1, X2 & B2)
     if (T2 is TypeParameterType) {
       // X2 if T1 <: X2
-      if (isSubtypeOf(T1, T2)) {
+      if (isSubtypeOf2(T1, T2)) {
         // TODO(scheglov) How to get here?
         return T2;
       }
       // otherwise T1 if X2 <: T1
-      if (isSubtypeOf(T2, T1)) {
+      if (isSubtypeOf2(T2, T1)) {
         return T1;
       }
       // otherwise UP(T1, B2[Object/X2])
@@ -899,8 +900,16 @@ class Dart2TypeSystem extends TypeSystem {
 
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
+    if (!NullSafetyUnderstandingFlag.isEnabled) {
+      fromType = NullabilityEliminator.perform(typeProvider, fromType);
+      toType = NullabilityEliminator.perform(typeProvider, toType);
+    }
+    return isAssignableTo2(fromType, toType);
+  }
+
+  bool isAssignableTo2(DartType fromType, DartType toType) {
     // An actual subtype
-    if (isSubtypeOf(fromType, toType)) {
+    if (isSubtypeOf2(fromType, toType)) {
       return true;
     }
 
@@ -909,7 +918,7 @@ class Dart2TypeSystem extends TypeSystem {
         !isNullable(fromType) &&
         acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
-      if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
+      if (callMethodType != null && isAssignableTo2(callMethodType, toType)) {
         return true;
       }
     }
@@ -944,7 +953,7 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // If the subtype relation goes the other way, allow the implicit downcast.
-    if (isSubtypeOf(toType, fromType)) {
+    if (isSubtypeOf2(toType, fromType)) {
       // TODO(leafp,jmesserly): we emit warnings/hints for these in
       // src/task/strong/checker.dart, which is a bit inconsistent. That
       // code should be handled into places that use isAssignableTo, such as
@@ -1078,7 +1087,7 @@ class Dart2TypeSystem extends TypeSystem {
   }
 
   @override
-  bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf(t1, t2);
+  bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf2(t1, t2);
 
   /// Defines a total order on top and Object types.
   bool isMoreTop(DartType T, DartType S) {
@@ -1221,6 +1230,14 @@ class Dart2TypeSystem extends TypeSystem {
   /// https://github.com/dart-lang/language/blob/master/resources/type-system/subtyping.md#rules
   @override
   bool isSubtypeOf(DartType _T0, DartType _T1) {
+    if (!NullSafetyUnderstandingFlag.isEnabled) {
+      _T0 = NullabilityEliminator.perform(typeProvider, _T0);
+      _T1 = NullabilityEliminator.perform(typeProvider, _T1);
+    }
+    return isSubtypeOf2(_T0, _T1);
+  }
+
+  bool isSubtypeOf2(DartType _T0, DartType _T1) {
     // Reflexivity: if `T0` and `T1` are the same type then `T0 <: T1`.
     if (identical(_T0, _T1)) {
       return true;
@@ -1248,7 +1265,7 @@ class Dart2TypeSystem extends TypeSystem {
     //   then `T0 <: T1` if `Object? <: T1`.
     if (identical(T0, DynamicTypeImpl.instance) ||
         identical(T0, VoidTypeImpl.instance)) {
-      if (isSubtypeOf(objectQuestion, T1)) {
+      if (isSubtypeOf2(objectQuestion, T1)) {
         return true;
       }
     }
@@ -1269,18 +1286,18 @@ class Dart2TypeSystem extends TypeSystem {
       if (T0_nullability == NullabilitySuffix.none &&
           T0 is TypeParameterTypeImpl) {
         var bound = T0.element.bound ?? objectQuestion;
-        return isSubtypeOf(bound, objectNone);
+        return isSubtypeOf2(bound, objectNone);
       }
       // * if `T0` is `FutureOr<S>` for some `S`,
       //   then `T0 <: T1` iff `S <: Object`
       if (T0_nullability == NullabilitySuffix.none &&
           T0 is InterfaceTypeImpl &&
           T0.isDartAsyncFutureOr) {
-        return isSubtypeOf(T0.typeArguments[0], T1);
+        return isSubtypeOf2(T0.typeArguments[0], T1);
       }
       // * if `T0` is `S*` for any `S`, then `T0 <: T1` iff `S <: T1`
       if (T0_nullability == NullabilitySuffix.star) {
-        return isSubtypeOf(
+        return isSubtypeOf2(
           T0.withNullability(NullabilitySuffix.none),
           T1,
         );
@@ -1306,7 +1323,7 @@ class Dart2TypeSystem extends TypeSystem {
           T1 is InterfaceTypeImpl &&
           T1.isDartAsyncFutureOr) {
         var S = T1.typeArguments[0];
-        return isSubtypeOf(nullNone, S);
+        return isSubtypeOf2(nullNone, S);
       }
       // If `T1` is `Null`, `S?` or `S*` for some `S`, then the query is true.
       if (T1_nullability == NullabilitySuffix.none && T1.isDartCoreNull ||
@@ -1326,14 +1343,14 @@ class Dart2TypeSystem extends TypeSystem {
     if (T0_nullability == NullabilitySuffix.star) {
       // * `T0 <: T1` iff `S0 <: T1`.
       var S0 = T0.withNullability(NullabilitySuffix.none);
-      return isSubtypeOf(S0, T1);
+      return isSubtypeOf2(S0, T1);
     }
 
     // Right Legacy `T1` is `S1*` then:
     //   * `T0 <: T1` iff `T0 <: S1?`.
     if (T1_nullability == NullabilitySuffix.star) {
       var S1 = T1.withNullability(NullabilitySuffix.question);
-      return isSubtypeOf(T0, S1);
+      return isSubtypeOf2(T0, S1);
     }
 
     // Left FutureOr: if `T0` is `FutureOr<S0>` then:
@@ -1342,12 +1359,12 @@ class Dart2TypeSystem extends TypeSystem {
         T0.isDartAsyncFutureOr) {
       var S0 = T0.typeArguments[0];
       // * `T0 <: T1` iff `Future<S0> <: T1` and `S0 <: T1`
-      if (isSubtypeOf(S0, T1)) {
+      if (isSubtypeOf2(S0, T1)) {
         var FutureS0 = typeProvider.futureElement.instantiate(
           typeArguments: [S0],
           nullabilitySuffix: NullabilitySuffix.none,
         );
-        return isSubtypeOf(FutureS0, T1);
+        return isSubtypeOf2(FutureS0, T1);
       }
       return false;
     }
@@ -1356,7 +1373,7 @@ class Dart2TypeSystem extends TypeSystem {
     //   * `T0 <: T1` iff `S0 <: T1` and `Null <: T1`.
     if (T0_nullability == NullabilitySuffix.question) {
       var S0 = T0.withNullability(NullabilitySuffix.none);
-      return isSubtypeOf(S0, T1) && isSubtypeOf(nullNone, T1);
+      return isSubtypeOf2(S0, T1) && isSubtypeOf2(nullNone, T1);
     }
 
     // Right Promoted Variable: if `T1` is a promoted type variable `X1 & S1`:
@@ -1365,14 +1382,14 @@ class Dart2TypeSystem extends TypeSystem {
       if (T1 is TypeParameterTypeImpl && T0.definition == T1.definition) {
         var S0 = T0.element.bound ?? objectQuestion;
         var S1 = T1.element.bound ?? objectQuestion;
-        if (isSubtypeOf(S0, S1)) {
+        if (isSubtypeOf2(S0, S1)) {
           return true;
         }
       }
 
       var T0_element = T0.element;
       if (T0_element is TypeParameterMember) {
-        return isSubtypeOf(T0_element.bound, T1);
+        return isSubtypeOf2(T0_element.bound, T1);
       }
     }
 
@@ -1387,18 +1404,18 @@ class Dart2TypeSystem extends TypeSystem {
         typeArguments: [S1],
         nullabilitySuffix: NullabilitySuffix.none,
       );
-      if (isSubtypeOf(T0, FutureS1)) {
+      if (isSubtypeOf2(T0, FutureS1)) {
         return true;
       }
       // * or `T0 <: S1`
-      if (isSubtypeOf(T0, S1)) {
+      if (isSubtypeOf2(T0, S1)) {
         return true;
       }
       // * or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
       // * or `T0` is `X0 & S0` and `S0 <: T1`
       if (T0 is TypeParameterTypeImpl) {
         var S0 = T0.element.bound ?? objectQuestion;
-        if (isSubtypeOf(S0, T1)) {
+        if (isSubtypeOf2(S0, T1)) {
           return true;
         }
       }
@@ -1411,18 +1428,18 @@ class Dart2TypeSystem extends TypeSystem {
       var S1 = T1.withNullability(NullabilitySuffix.none);
       // `T0 <: T1` iff any of the following hold:
       // * either `T0 <: S1`
-      if (isSubtypeOf(T0, S1)) {
+      if (isSubtypeOf2(T0, S1)) {
         return true;
       }
       // * or `T0 <: Null`
-      if (isSubtypeOf(T0, nullNone)) {
+      if (isSubtypeOf2(T0, nullNone)) {
         return true;
       }
       // or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
       // or `T0` is `X0 & S0` and `S0 <: T1`
       if (T0 is TypeParameterTypeImpl) {
         var S0 = T0.element.bound ?? objectQuestion;
-        return isSubtypeOf(S0, T1);
+        return isSubtypeOf2(S0, T1);
       }
       // iff
       return false;
@@ -1441,7 +1458,7 @@ class Dart2TypeSystem extends TypeSystem {
     //   * and `B0 <: T1`
     if (T0 is TypeParameterTypeImpl) {
       var S0 = T0.element.bound ?? objectQuestion;
-      if (isSubtypeOf(S0, T1)) {
+      if (isSubtypeOf2(S0, T1)) {
         return true;
       }
     }
@@ -1579,13 +1596,13 @@ class Dart2TypeSystem extends TypeSystem {
     //
     // This allows the variable to be used wherever the supertype (here `Base`)
     // is expected, while gaining a more precise type.
-    if (isSubtypeOf(to, from)) {
+    if (isSubtypeOf2(to, from)) {
       return to;
     }
     // For a type parameter `T extends U`, allow promoting the upper bound
     // `U` to `S` where `S <: U`, yielding a type parameter `T extends S`.
     if (from is TypeParameterType) {
-      if (isSubtypeOf(to, from.bound ?? DynamicTypeImpl.instance)) {
+      if (isSubtypeOf2(to, from.bound ?? DynamicTypeImpl.instance)) {
         var declaration = from.element.declaration;
         var newElement = TypeParameterMember(declaration, null, to);
         return newElement.instantiate(
@@ -1901,7 +1918,7 @@ class Dart2TypeSystem extends TypeSystem {
         FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) {
       // Type parameter bounds are invariant.
       // TODO(scheglov) We do this for top types, but the spec says explicitly.
-      return isSubtypeOf(t, s) && isSubtypeOf(s, t);
+      return isSubtypeOf2(t, s) && isSubtypeOf2(s, t);
     });
     if (freshTypeFormalTypes == null) {
       return false;
@@ -1910,7 +1927,7 @@ class Dart2TypeSystem extends TypeSystem {
     f = f.instantiate(freshTypeFormalTypes);
     g = g.instantiate(freshTypeFormalTypes);
 
-    if (!isSubtypeOf(f.returnType, g.returnType)) {
+    if (!isSubtypeOf2(f.returnType, g.returnType)) {
       return false;
     }
 
@@ -1924,7 +1941,7 @@ class Dart2TypeSystem extends TypeSystem {
       var gParameter = gParameters[gIndex];
       if (fParameter.isRequiredPositional) {
         if (gParameter.isRequiredPositional) {
-          if (isSubtypeOf(gParameter.type, fParameter.type)) {
+          if (isSubtypeOf2(gParameter.type, fParameter.type)) {
             fIndex++;
             gIndex++;
           } else {
@@ -1935,7 +1952,7 @@ class Dart2TypeSystem extends TypeSystem {
         }
       } else if (fParameter.isOptionalPositional) {
         if (gParameter.isPositional) {
-          if (isSubtypeOf(gParameter.type, fParameter.type)) {
+          if (isSubtypeOf2(gParameter.type, fParameter.type)) {
             fIndex++;
             gIndex++;
           } else {
@@ -1950,7 +1967,7 @@ class Dart2TypeSystem extends TypeSystem {
           if (compareNames == 0) {
             if (fParameter.isRequiredNamed && !gParameter.isRequiredNamed) {
               return false;
-            } else if (isSubtypeOf(gParameter.type, fParameter.type)) {
+            } else if (isSubtypeOf2(gParameter.type, fParameter.type)) {
               fIndex++;
               gIndex++;
             } else {
@@ -2020,15 +2037,15 @@ class Dart2TypeSystem extends TypeSystem {
         // variance is added to the interface.
         Variance variance = (tParams[i] as TypeParameterElementImpl).variance;
         if (variance.isCovariant) {
-          if (!isSubtypeOf(t1, t2)) {
+          if (!isSubtypeOf2(t1, t2)) {
             return false;
           }
         } else if (variance.isContravariant) {
-          if (!isSubtypeOf(t2, t1)) {
+          if (!isSubtypeOf2(t2, t1)) {
             return false;
           }
         } else if (variance.isInvariant) {
-          if (!isSubtypeOf(t1, t2) || !isSubtypeOf(t2, t1)) {
+          if (!isSubtypeOf2(t1, t2) || !isSubtypeOf2(t2, t1)) {
             return false;
           }
         } else {
@@ -3016,10 +3033,10 @@ class InterfaceLeastUpperBoundHelper {
     type1 = type1.withNullability(NullabilitySuffix.none);
     type2 = type2.withNullability(NullabilitySuffix.none);
 
-    if (typeSystem.isSubtypeOf(type1, type2)) {
+    if (typeSystem.isSubtypeOf2(type1, type2)) {
       return type2.withNullability(nullability);
     }
-    if (typeSystem.isSubtypeOf(type2, type1)) {
+    if (typeSystem.isSubtypeOf2(type2, type1)) {
       return type1.withNullability(nullability);
     }
 
@@ -3045,8 +3062,8 @@ class InterfaceLeastUpperBoundHelper {
             args[i] = typeSystem.getLeastUpperBound(args1[i], args2[i]);
           }
         } else if (parameterVariance.isInvariant) {
-          if (!typeSystem.isSubtypeOf(args1[i], args2[i]) ||
-              !typeSystem.isSubtypeOf(args2[i], args1[i])) {
+          if (!typeSystem.isSubtypeOf2(args1[i], args2[i]) ||
+              !typeSystem.isSubtypeOf2(args2[i], args1[i])) {
             // No bound will be valid, find bound at the interface level.
             return _computeLeastUpperBound(
               InstantiatedClass.of(type1),
@@ -3471,6 +3488,10 @@ abstract class TypeSystem implements public.TypeSystem {
 
   @override
   DartType leastUpperBound(DartType leftType, DartType rightType) {
+    if (!NullSafetyUnderstandingFlag.isEnabled) {
+      leftType = NullabilityEliminator.perform(typeProvider, leftType);
+      rightType = NullabilityEliminator.perform(typeProvider, rightType);
+    }
     return getLeastUpperBound(leftType, rightType);
   }
 
@@ -3921,7 +3942,7 @@ class _TypeConstraint extends _TypeRange {
   bool get isDownwards => origin is! _TypeConstraintFromArgument;
 
   bool isSatisifedBy(TypeSystemImpl ts, DartType type) =>
-      ts.isSubtypeOf(lowerBound, type) && ts.isSubtypeOf(type, upperBound);
+      ts.isSubtypeOf2(lowerBound, type) && ts.isSubtypeOf2(type, upperBound);
 
   /// Converts this constraint to a message suitable for a type inference error.
   @override

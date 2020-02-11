@@ -11,11 +11,13 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart' show LibraryElement;
+import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context_root.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -129,6 +131,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// The analysis options to analyze with.
   AnalysisOptionsImpl _analysisOptions;
+
+  /// The [Packages] object with packages and their language versions.
+  Packages _packages;
 
   /// The [SourceFactory] is used to resolve URIs to paths and restore URIs
   /// from file paths.
@@ -285,11 +290,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {this.disableChangesAndCacheAllResults = false,
+      {@required Packages packages,
+      this.disableChangesAndCacheAllResults = false,
       this.enableIndex = false,
       SummaryDataStore externalSummaries,
       bool retainDataForTesting = false})
       : _logger = logger,
+        _packages = packages ?? Packages.empty,
         _sourceFactory = sourceFactory,
         _externalSummaries = externalSummaries,
         testingData = retainDataForTesting ? TestingData() : null {
@@ -487,10 +494,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// At least one of the optional parameters should be provided, but only those
   /// that represent state that has actually changed need be provided.
-  void configure(
-      {AnalysisOptions analysisOptions, SourceFactory sourceFactory}) {
+  void configure({
+    AnalysisOptions analysisOptions,
+    Packages packages,
+    SourceFactory sourceFactory,
+  }) {
     if (analysisOptions != null) {
       _analysisOptions = analysisOptions;
+    }
+    if (packages != null) {
+      _packages = packages;
     }
     if (sourceFactory != null) {
       _sourceFactory = sourceFactory;
@@ -816,11 +829,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   ///
   /// The [path] must be absolute and normalized.
   Future<SourceKind> getSourceKind(String path) async {
-    // TODO(brianwilkerson) Determine whether this await is necessary.
-    await null;
     _throwIfNotAbsolutePath(path);
     if (AnalysisEngine.isDartFileName(path)) {
-      FileState file = _fsState.getFileForPath(path);
+      FileState file = _fileTracker.verifyApiSignature(path);
       return file.isPart ? SourceKind.PART : SourceKind.LIBRARY;
     }
     return null;
@@ -1216,6 +1227,21 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       {bool withUnit = false,
       bool asIsIfPartWithoutLibrary = false,
       bool skipIfSameSignature = false}) {
+    return NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+      return _computeAnalysisResult2(
+        path,
+        withUnit: withUnit,
+        asIsIfPartWithoutLibrary: asIsIfPartWithoutLibrary,
+        skipIfSameSignature: skipIfSameSignature,
+      );
+    });
+  }
+
+  /// Unwrapped implementation of [_computeAnalysisResult].
+  AnalysisResult _computeAnalysisResult2(String path,
+      {bool withUnit = false,
+      bool asIsIfPartWithoutLibrary = false,
+      bool skipIfSameSignature = false}) {
     FileState file = _fsState.getFileForPath(path);
 
     // Prepare the library - the file itself, or the known library.
@@ -1446,7 +1472,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     var featureSetProvider = FeatureSetProvider.build(
       resourceProvider: resourceProvider,
-      contextRoot: contextRoot,
+      packages: _packages,
       sourceFactory: _sourceFactory,
       defaultFeatureSet: _analysisOptions.contextFeatures,
     );
@@ -1476,21 +1502,24 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       }
     }
 
-    if (_libraryContext == null) {
-      _libraryContext = LibraryContext(
-        session: currentSession,
-        logger: _logger,
-        fsState: fsState,
-        byteStore: _byteStore,
-        analysisOptions: _analysisOptions,
-        declaredVariables: declaredVariables,
-        sourceFactory: _sourceFactory,
-        externalSummaries: _externalSummaries,
-        targetLibrary: library,
-      );
-    } else {
-      _libraryContext.load2(library);
-    }
+    NullSafetyUnderstandingFlag.enableNullSafetyTypes(() {
+      if (_libraryContext == null) {
+        _libraryContext = LibraryContext(
+          session: currentSession,
+          logger: _logger,
+          fsState: fsState,
+          byteStore: _byteStore,
+          analysisOptions: _analysisOptions,
+          declaredVariables: declaredVariables,
+          sourceFactory: _sourceFactory,
+          externalSummaries: _externalSummaries,
+          targetLibrary: library,
+        );
+      } else {
+        _libraryContext.load2(library);
+      }
+    });
+
     return _libraryContext;
   }
 

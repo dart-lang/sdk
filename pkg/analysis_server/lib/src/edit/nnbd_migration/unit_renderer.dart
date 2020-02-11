@@ -36,6 +36,9 @@ class UnitRenderer {
 
   /// Builds a JSON view of the instrumentation information in [unitInfo].
   String render() {
+    // TODO(devoncarew): Both _computeNavigationContent() and
+    // _computeRegionContent() send html back to the client; convert this to
+    // instead sending data back (instead of presentation).
     Map<String, dynamic> response = {
       'thisUnit': migrationInfo.computeName(unitInfo),
       'navContent': _computeNavigationContent(),
@@ -145,8 +148,11 @@ class UnitRenderer {
     StringBuffer regions = StringBuffer();
     int lineNumber = 1;
 
-    void writeSplitLines(String lines,
-        {String perLineOpeningTag = '', String perLineClosingTag = ''}) {
+    void writeSplitLines(
+      String lines, {
+      String perLineOpeningTag = '',
+      String perLineClosingTag = '',
+    }) {
       Iterator<String> lineIterator = LineSplitter.split(lines).iterator;
       lineIterator.moveNext();
 
@@ -165,6 +171,7 @@ class UnitRenderer {
           break;
         }
       }
+
       if (lines.endsWith('\n')) {
         lineNumber++;
         regions.write('</td></tr>'

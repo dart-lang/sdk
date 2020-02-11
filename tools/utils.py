@@ -272,12 +272,14 @@ BUILD_ROOT = {
     'macos': os.path.join('xcodebuild'),
 }
 
+# Note: gn expects these to be lower case.
 ARCH_FAMILY = {
     'ia32': 'ia32',
     'x64': 'ia32',
     'arm': 'arm',
     'armv6': 'arm',
     'arm64': 'arm',
+    'arm_x64': 'arm',
     'simarm': 'ia32',
     'simarmv6': 'ia32',
     'simarm64': 'ia32',

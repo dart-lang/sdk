@@ -164,6 +164,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
           if (inferredType.isDartCoreNull) {
             inferredType = _typeProvider.objectType;
           }
+          if (_migrationResolutionHooks != null) {
+            inferredType = _migrationResolutionHooks
+                .modifyInferredParameterType(p, inferredType);
+          }
           if (!inferredType.isDynamic) {
             p.type = inferredType;
             inferred = true;
@@ -403,8 +407,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
     var context = InferenceContext.getContext(
         (node as IntegerLiteralImpl).immediatelyNegated ? node.parent : node);
     if (context == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, context) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, context)) {
+        _typeSystem.isAssignableTo2(_typeProvider.intType, context) ||
+        !_typeSystem.isAssignableTo2(_typeProvider.doubleType, context)) {
       _recordStaticType(node, _nonNullable(_typeProvider.intType));
     } else {
       _recordStaticType(node, _nonNullable(_typeProvider.doubleType));

@@ -62,7 +62,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class C extends core::Object {
+class C extends core::Object /*hasConstConstructor*/  {
   static field dynamic _redirecting# = <dynamic>[self::C::good];
   const constructor constant() → self::C*
     : super core::Object::•()

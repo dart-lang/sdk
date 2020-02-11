@@ -32,7 +32,6 @@ general_nnbd_opt_out/error_locations/error_location_05: RuntimeError
 general_nnbd_opt_out/error_locations/error_location_06: RuntimeError
 general_nnbd_opt_out/expressions: RuntimeError
 general_nnbd_opt_out/external_import: RuntimeError # The native extension to import doesn't exist. This is ok.
-general_nnbd_opt_out/ignore_function: TypeCheckError
 general_nnbd_opt_out/incomplete_field_formal_parameter: RuntimeError
 general_nnbd_opt_out/invalid_type: TypeCheckError
 general_nnbd_opt_out/invocations: RuntimeError
@@ -66,3 +65,4 @@ general_nnbd_opt_out/warn_unresolved_sends: InstrumentationMismatch # Test assum
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
+nnbd/never_opt_out: TypeCheckError

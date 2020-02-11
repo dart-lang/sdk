@@ -798,6 +798,46 @@ TEST_CASE(DartAPI_EmptyString) {
   Dart_Handle empty = Dart_EmptyString();
   EXPECT_VALID(empty);
   EXPECT(!Dart_IsNull(empty));
+  EXPECT(Dart_IsString(empty));
+  intptr_t length = -1;
+  EXPECT_VALID(Dart_StringLength(empty, &length));
+  EXPECT_EQ(0, length);
+}
+
+TEST_CASE(DartAPI_TypeDynamic) {
+  Dart_Handle type = Dart_TypeDynamic();
+  EXPECT_VALID(type);
+  EXPECT(Dart_IsType(type));
+
+  Dart_Handle str = Dart_ToString(type);
+  EXPECT_VALID(str);
+  const char* cstr = nullptr;
+  EXPECT_VALID(Dart_StringToCString(str, &cstr));
+  EXPECT_STREQ("dynamic", cstr);
+}
+
+TEST_CASE(DartAPI_TypeVoid) {
+  Dart_Handle type = Dart_TypeVoid();
+  EXPECT_VALID(type);
+  EXPECT(Dart_IsType(type));
+
+  Dart_Handle str = Dart_ToString(type);
+  EXPECT_VALID(str);
+  const char* cstr = nullptr;
+  EXPECT_VALID(Dart_StringToCString(str, &cstr));
+  EXPECT_STREQ("void", cstr);
+}
+
+TEST_CASE(DartAPI_TypeNever) {
+  Dart_Handle type = Dart_TypeNever();
+  EXPECT_VALID(type);
+  EXPECT(Dart_IsType(type));
+
+  Dart_Handle str = Dart_ToString(type);
+  EXPECT_VALID(str);
+  const char* cstr = nullptr;
+  EXPECT_VALID(Dart_StringToCString(str, &cstr));
+  EXPECT_STREQ("Never", cstr);
 }
 
 TEST_CASE(DartAPI_IdentityEquals) {
@@ -1142,11 +1182,6 @@ TEST_CASE(DartAPI_ClassLibrary) {
   const char* str = NULL;
   Dart_StringToCString(lib_url, &str);
   EXPECT_STREQ("dart:core", str);
-
-  // Case with no library.
-  type = Dart_GetType(lib, NewString("dynamic"), 0, NULL);
-  EXPECT_VALID(type);
-  EXPECT(Dart_IsNull(Dart_ClassLibrary(type)));
 }
 
 TEST_CASE(DartAPI_BooleanValues) {
@@ -5051,7 +5086,9 @@ TEST_CASE(DartAPI_NewListOfType) {
       "  ChannelReadResult(this.handles);\n"
       "}\n"
       "void expectListOfString(List<String> _) {}\n"
-      "void expectListOfDynamic(List<dynamic> _) {}\n";
+      "void expectListOfDynamic(List<dynamic> _) {}\n"
+      "void expectListOfVoid(List<void> _) {}\n"
+      "void expectListOfNever(List<Never> _) {}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
 
   Dart_Handle zxhandle_type = Dart_GetType(lib, NewString("ZXHandle"), 0, NULL);
@@ -5093,14 +5130,28 @@ TEST_CASE(DartAPI_NewListOfType) {
   EXPECT_VALID(
       Dart_Invoke(lib, NewString("expectListOfString"), kNumArgs, args));
 
-  Dart_Handle dynamic_type =
-      Dart_GetType(dart_core, NewString("dynamic"), 0, NULL);
+  Dart_Handle dynamic_type = Dart_TypeDynamic();
   EXPECT_VALID(dynamic_type);
-  Dart_Handle dynamic_list = Dart_NewListOfType(string_type, 0);
+  Dart_Handle dynamic_list = Dart_NewListOfType(dynamic_type, 0);
   EXPECT_VALID(dynamic_list);
   args[0] = dynamic_list;
   EXPECT_VALID(
       Dart_Invoke(lib, NewString("expectListOfDynamic"), kNumArgs, args));
+
+  Dart_Handle void_type = Dart_TypeVoid();
+  EXPECT_VALID(void_type);
+  Dart_Handle void_list = Dart_NewListOfType(void_type, 0);
+  EXPECT_VALID(void_list);
+  args[0] = void_list;
+  EXPECT_VALID(Dart_Invoke(lib, NewString("expectListOfVoid"), kNumArgs, args));
+
+  Dart_Handle never_type = Dart_TypeNever();
+  EXPECT_VALID(never_type);
+  Dart_Handle never_list = Dart_NewListOfType(never_type, 0);
+  EXPECT_VALID(never_list);
+  args[0] = never_list;
+  EXPECT_VALID(
+      Dart_Invoke(lib, NewString("expectListOfNever"), kNumArgs, args));
 }
 
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {

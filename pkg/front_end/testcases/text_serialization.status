@@ -192,7 +192,7 @@ general/hello: TextSerializationFailure # Was: Pass
 general/if_null_in_cascade: TextSerializationFailure
 general/if_null_in_list_literal: TextSerializationFailure
 general/if_null_in_set_literal: TextSerializationFailure
-general/ignore_function: TypeCheckError
+general/ignore_function: TextSerializationFailure
 general/illegal_named_function_expression: TextSerializationFailure # Was: Pass
 general/illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
 general/implicit_const_with_static_fields: TextSerializationFailure # Was: Pass
@@ -204,6 +204,7 @@ general/import_conflicting_setters: TextSerializationFailure
 general/import_conflicting_type_member: TextSerializationFailure
 general/import_conflicting_types: TextSerializationFailure
 general/incomplete_field_formal_parameter: TextSerializationFailure # Was: RuntimeError
+general/infer_field_from_multiple: TypeCheckError
 general/interface_contravariant_from_class: TextSerializationFailure
 general/interface_covariantImpl_from_class: TextSerializationFailure
 general/interface_covariantInterface_from_class: TextSerializationFailure
@@ -468,7 +469,7 @@ general_nnbd_opt_out/hello: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/if_null_in_cascade: TextSerializationFailure
 general_nnbd_opt_out/if_null_in_list_literal: TextSerializationFailure
 general_nnbd_opt_out/if_null_in_set_literal: TextSerializationFailure
-general_nnbd_opt_out/ignore_function: TypeCheckError
+general_nnbd_opt_out/ignore_function: TextSerializationFailure
 general_nnbd_opt_out/illegal_named_function_expression: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/illegal_named_function_expression_scope: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/implicit_const_with_static_fields: TextSerializationFailure # Was: Pass
@@ -663,10 +664,9 @@ inference/coerce_bottom_and_null_types: TextSerializationFailure # Was: Pass
 inference/complex_predecrement: TextSerializationFailure # Was: Pass
 inference/conditional_lub: TextSerializationFailure # Was: Pass
 inference/conditional_upwards_inference: TextSerializationFailure # Was: Pass
-inference/conflicting_fields: ExpectationFileMismatch
-inference/conflicting_fields: TypeCheckError
-inference/conflicts_can_happen2: TypeCheckError
-inference/conflicts_can_happen: TypeCheckError
+inference/conflicting_fields: TextSerializationFailure
+inference/conflicts_can_happen2: TextSerializationFailure
+inference/conflicts_can_happen: TextSerializationFailure
 inference/constructors_downwards_with_constraint: TextSerializationFailure # Was: Pass
 inference/constructors_infer_from_arguments: TextSerializationFailure # Was: Pass
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
@@ -779,7 +779,7 @@ inference/generic_methods_iterable_and_future: TextSerializationFailure # Was: P
 inference/generic_methods_nested_generic_instantiation: TextSerializationFailure # Was: Pass
 inference/generic_methods_uses_greatest_lower_bound: TextSerializationFailure # Was: Pass
 inference/greatest_closure_multiple_params: TextSerializationFailure # Was: Pass
-inference/inconsistent_overrides: TypeCheckError
+inference/inconsistent_overrides: TextSerializationFailure
 inference/index_assign_operator_return_type: TextSerializationFailure # Was: Pass
 inference/index_assign_operator_return_type_2: TextSerializationFailure # Was: Pass
 inference/infer_accessor_from_later_inferred_field: TextSerializationFailure # Was: Pass
@@ -813,7 +813,7 @@ inference/infer_correctly_on_multiple_variables_declared_together: TextSerializa
 inference/infer_field_from_later_inferred_field: TextSerializationFailure # Was: Pass
 inference/infer_field_from_later_inferred_getter: TextSerializationFailure # Was: Pass
 inference/infer_field_from_later_inferred_setter: TextSerializationFailure # Was: Pass
-inference/infer_field_override_multiple: TypeCheckError
+inference/infer_field_override_multiple: TextSerializationFailure
 inference/infer_field_override_of_override: TextSerializationFailure # Was: Pass
 inference/infer_field_override_with_substitution: TextSerializationFailure # Was: Pass
 inference/infer_field_overrides_getter: TextSerializationFailure # Was: Pass
@@ -1091,9 +1091,9 @@ inference_new/infer_assign_to_property_upwards: TextSerializationFailure # Was: 
 inference_new/infer_assign_to_ref: TextSerializationFailure # Was: Pass
 inference_new/infer_assign_to_static: TextSerializationFailure # Was: Pass
 inference_new/infer_assign_to_static_upwards: TextSerializationFailure # Was: Pass
-inference_new/infer_field_getter_setter_mismatch: TypeCheckError
-inference_new/infer_field_override_accessors: TypeCheckError
-inference_new/infer_field_override_getter_overrides_setter: TypeCheckError
+inference_new/infer_field_getter_setter_mismatch: TextSerializationFailure
+inference_new/infer_field_override_accessors: TextSerializationFailure
+inference_new/infer_field_override_getter_overrides_setter: TextSerializationFailure
 inference_new/infer_field_override_setter_overrides_getter: TextSerializationFailure # Was: Pass
 inference_new/infer_instance_accessor_ref: TextSerializationFailure # Was: Pass
 inference_new/infer_instance_field_ref: TextSerializationFailure # Was: Pass
@@ -1190,6 +1190,8 @@ late_lowering/instance_nullable_field_with_initializer: TextSerializationFailure
 late_lowering/instance_nullable_field_without_initializer: TextSerializationFailure
 late_lowering/instance_nullable_final_field_without_initializer: TextSerializationFailure
 late_lowering/issue40093: TextSerializationFailure
+late_lowering/issue40373: TextSerializationFailure
+late_lowering/issue40373b: TextSerializationFailure
 late_lowering/late_field_with_initializer: TextSerializationFailure
 late_lowering/late_field_without_initializer: TextSerializationFailure
 late_lowering/late_final_field_with_initializer: TextSerializationFailure
@@ -1241,6 +1243,9 @@ nnbd/member_inheritance_from_opt_out: TextSerializationFailure
 nnbd/messages_with_types_opt_in: TypeCheckError
 nnbd/messages_with_types_opt_out: TypeCheckError
 nnbd/missing_required_named_parameter: TextSerializationFailure
+nnbd/mixin_from_opt_in: TextSerializationFailure
+nnbd/mixin_from_opt_out: TextSerializationFailure
+nnbd/never_opt_out: TypeCheckError
 nnbd/never_receiver: TextSerializationFailure
 nnbd/nnbd_opt_out_language_version: TextSerializationFailure
 nnbd/nnbd_opt_out_language_version_try_to_trick: TextSerializationFailure
@@ -1248,6 +1253,7 @@ nnbd/no_null_shorting: TextSerializationFailure
 nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
 nnbd/no_null_shorting_extension: TextSerializationFailure
 nnbd/non_nullable_field_initialization: TextSerializationFailure
+nnbd/nsm_from_opt_in: TextSerializationFailure
 nnbd/null_access: TextSerializationFailure
 nnbd/null_aware_chain: TextSerializationFailure
 nnbd/null_check: TextSerializationFailure

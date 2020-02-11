@@ -28,7 +28,7 @@ library from "org-dartlang-test:///main.dart" as main {
       return "${this.{main::Foo::message}}";
     }
   }
-  class CompilationStrategy extends dart.core::Object {
+  class CompilationStrategy extends dart.core::Object /*isEnum*/  {
     final field dart.core::int* index;
     final field dart.core::String* _name;
     static const field dart.core::List<main::CompilationStrategy*>* values = #C14;

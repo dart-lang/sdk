@@ -465,6 +465,12 @@ NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
+NonNullableInNullAware/analyzerCode: Fail
+NonNullableInNullAware/example: Fail
+NonNullableNotAssignedError/analyzerCode: Fail
+NonNullableNotAssignedError/example: Fail
+NonNullableNotAssignedWarning/analyzerCode: Fail
+NonNullableNotAssignedWarning/example: Fail
 NonNullableOptOut/analyzerCode: Fail
 NonNullableOptOut/example: Fail
 NonPartOfDirectiveInPart/part_wrapped_script1: Fail

@@ -21,6 +21,8 @@ import '../loader.dart' show Loader;
 
 import '../problems.dart' show unhandled;
 
+import '../source/source_loader.dart' show SourceLoader;
+
 import '../target_implementation.dart' show TargetImplementation;
 
 import 'dill_library_builder.dart' show DillLibraryBuilder;
@@ -28,6 +30,8 @@ import 'dill_library_builder.dart' show DillLibraryBuilder;
 import 'dill_target.dart' show DillTarget;
 
 class DillLoader extends Loader {
+  SourceLoader currentSourceLoader;
+
   DillLoader(TargetImplementation target) : super(target);
 
   Template<SummaryTemplate> get outlineSummaryTemplate =>

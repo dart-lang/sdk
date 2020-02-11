@@ -545,6 +545,7 @@ class ProcedureHelper {
     kRedirectingFactoryConstructor = 1 << 6,
     kNoSuchMethodForwarder = 1 << 7,
     kExtensionMember = 1 << 8,
+    kMemberSignature = 1 << 9,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -571,6 +572,7 @@ class ProcedureHelper {
     return (flags_ & kNoSuchMethodForwarder) != 0;
   }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
+  bool IsMemberSignature() const { return (flags_ & kMemberSignature) != 0; }
 
   NameIndex canonical_name_;
   TokenPosition start_position_;

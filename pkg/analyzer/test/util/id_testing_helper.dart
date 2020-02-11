@@ -16,6 +16,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -146,6 +147,7 @@ Future<TestResult<T>> runTestForConfig<T>(
         ResourceUriResolver(resourceProvider)
       ]),
       analysisOptions,
+      packages: Packages.empty,
       retainDataForTesting: true);
   scheduler.start();
   var result = await driver

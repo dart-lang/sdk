@@ -1603,6 +1603,7 @@ class ElementResolver extends SimpleAstVisitor<void> {
             identifier.parent is CommentReference)) {
       Identifier setterId = SyntheticIdentifier('${identifier.name}=');
       element = _resolver.nameScope.lookup(setterId, _definingLibrary);
+      element = _resolver.toLegacyElement(element);
     }
     if (element == null) {
       InterfaceType enclosingType;

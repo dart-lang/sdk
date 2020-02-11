@@ -596,38 +596,26 @@ void FlowGraphCompiler::GenerateInstanceOf(TokenPosition token_pos,
                                            NNBDMode mode,
                                            LocationSummary* locs) {
   ASSERT(type.IsFinalized());
-  ASSERT(!type.IsTopType(mode));  // Already checked.
+  ASSERT(!type.IsTopType());  // Already checked.
   const Register kInstantiatorTypeArgumentsReg = R1;
   const Register kFunctionTypeArgumentsReg = R2;
   __ PushPair(kFunctionTypeArgumentsReg, kInstantiatorTypeArgumentsReg);
 
   compiler::Label is_instance, is_not_instance;
-  // 'null' is an instance of Null, Object*, Object?, void, and dynamic.
-  // In addition, 'null' is an instance of Never and Object with legacy testing,
-  // or of any nullable or legacy type with nnbd testing.
+  // 'null' is an instance of Null, Object*, Never*, void, and dynamic.
+  // In addition, 'null' is an instance of any nullable type.
   // It is also an instance of FutureOr<T> if it is an instance of T.
-  if (mode == NNBDMode::kLegacyLib) {
-    // See Legacy_NullIsInstanceOf().
-    if (type.IsInstantiated()) {
-      AbstractType& type_arg = AbstractType::Handle(type.raw());
-      while (type_arg.IsFutureOr(&type_arg)) {
-      }
-      __ CompareObject(R0, Object::null_object());
-      __ b((type_arg.IsNullType() || type_arg.Legacy_IsTopType())
-               ? &is_instance
-               : &is_not_instance,
-           EQ);
-    }
-  } else {
-    ASSERT(mode == NNBDMode::kOptedInLib);
-    // Test is valid on uninstantiated type, unless nullability is undetermined.
-    // See NNBD_NullIsInstanceOf().
-    if (!type.IsUndetermined()) {
-      __ CompareObject(R0, Object::null_object());
-      __ b((type.IsNullable() || type.IsLegacy()) ? &is_instance
-                                                  : &is_not_instance,
-           EQ);
-    }
+  const AbstractType& unwrapped_type =
+      AbstractType::Handle(type.UnwrapFutureOr());
+  if (!unwrapped_type.IsTypeParameter() || unwrapped_type.IsNullable()) {
+    // Only nullable type parameter remains nullable after instantiation.
+    // See NullIsInstanceOf().
+    __ CompareObject(R0, Object::null_object());
+    __ b((unwrapped_type.IsNullable() ||
+          (unwrapped_type.IsLegacy() && unwrapped_type.IsNeverType()))
+             ? &is_instance
+             : &is_not_instance,
+         EQ);
   }
 
   // Generate inline instanceof test.
