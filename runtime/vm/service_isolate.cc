@@ -363,7 +363,6 @@ class RunServiceTask : public ThreadPool::Task {
 
       free(error);
       error = nullptr;
-      ServiceIsolate::SetServiceIsolate(NULL);
       ServiceIsolate::InitializingFailed(formatted_error);
       return;
     }
@@ -419,9 +418,6 @@ class RunServiceTask : public ThreadPool::Task {
       }
       Dart::RunShutdownCallback();
     }
-    ASSERT(ServiceIsolate::IsServiceIsolate(I));
-    ServiceIsolate::SetServiceIsolate(NULL);
-    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
 
     // Shut the isolate down.
     Dart::ShutdownIsolate(I);

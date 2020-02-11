@@ -1380,10 +1380,10 @@ void Isolate::InitVM() {
   shutdown_callback_ = nullptr;
   cleanup_callback_ = nullptr;
   cleanup_group_callback_ = nullptr;
-  if (isolates_list_monitor_ == nullptr) {
-    isolates_list_monitor_ = new Monitor();
+  if (isolate_creation_monitor_ == nullptr) {
+    isolate_creation_monitor_ = new Monitor();
   }
-  ASSERT(isolates_list_monitor_ != nullptr);
+  ASSERT(isolate_creation_monitor_ != nullptr);
   EnableIsolateCreation();
 }
 
@@ -1392,6 +1392,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
                               const Dart_IsolateFlags& api_flags,
                               bool is_vm_isolate) {
   Isolate* result = new Isolate(isolate_group, api_flags);
+  result->BuildName(name_prefix);
   ASSERT(result != nullptr);
 
 #if !defined(PRODUCT)
@@ -1458,7 +1459,6 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   result->set_pause_capability(result->random()->NextUInt64());
   result->set_terminate_capability(result->random()->NextUInt64());
 
-  result->BuildName(name_prefix);
 #if !defined(PRODUCT)
   result->debugger_ = new Debugger(result);
 #endif
@@ -1476,7 +1476,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
 #endif  // !PRODUCT
 
   // Add to isolate list. Shutdown and delete the isolate on failure.
-  if (!AddIsolateToList(result)) {
+  if (!TryMarkIsolateReady(result)) {
     result->LowLevelShutdown();
     Thread::ExitIsolate();
     if (KernelIsolate::IsKernelIsolate(result)) {
@@ -2224,12 +2224,7 @@ void Isolate::Shutdown() {
   // Don't allow anymore dart code to execution on this isolate.
   thread->ClearStackLimit();
 
-  // Remove this isolate from the list *before* we start tearing it down, to
-  // avoid exposing it in a state of decay.
-  RemoveIsolateFromList(this);
-
   {
-    // After removal from isolate list. Before tearing down the heap.
     StackZone zone(thread);
     HandleScope handle_scope(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
@@ -2265,6 +2260,7 @@ void Isolate::Shutdown() {
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   // Then, proceed with low-level teardown.
+  Isolate::UnMarkIsolateReady(this);
   LowLevelShutdown();
 
 #if defined(DEBUG)
@@ -2295,8 +2291,9 @@ Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = nullptr;
 Dart_IsolateCleanupCallback Isolate::cleanup_callback_ = nullptr;
 Dart_IsolateGroupCleanupCallback Isolate::cleanup_group_callback_ = nullptr;
 
-Monitor* Isolate::isolates_list_monitor_ = nullptr;
-Isolate* Isolate::isolates_list_head_ = nullptr;
+Monitor* Isolate::isolate_creation_monitor_ = nullptr;
+intptr_t Isolate::application_isolates_count_ = 0;
+intptr_t Isolate::total_isolates_count_ = 0;
 bool Isolate::creation_enabled_ = false;
 
 RwLock* IsolateGroup::isolate_groups_rwlock_ = nullptr;
@@ -3026,113 +3023,99 @@ void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   if (visitor == nullptr) {
     return;
   }
-  // The visitor could potentially run code that could safepoint so use
-  // SafepointMonitorLocker to ensure the lock has safepoint checks.
-  SafepointMonitorLocker ml(isolates_list_monitor_);
-  Isolate* current = isolates_list_head_;
-  while (current != nullptr) {
-    visitor->VisitIsolate(current);
-    current = current->next_;
-  }
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->ForEachIsolate(
+        [&](Isolate* isolate) { visitor->VisitIsolate(isolate); });
+  });
 }
 
 intptr_t Isolate::IsolateListLength() {
-  MonitorLocker ml(isolates_list_monitor_);
-  intptr_t count = 0;
-  Isolate* current = isolates_list_head_;
-  while (current != nullptr) {
-    count++;
-    current = current->next_;
-  }
-  return count;
+  MonitorLocker ml(isolate_creation_monitor_);
+  return total_isolates_count_;
 }
 
 Isolate* Isolate::LookupIsolateByPort(Dart_Port port) {
-  MonitorLocker ml(isolates_list_monitor_);
-  Isolate* current = isolates_list_head_;
-  while (current != nullptr) {
-    if (current->main_port() == port) {
-      return current;
-    }
-    current = current->next_;
-  }
-  return nullptr;
+  Isolate* match = nullptr;
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->ForEachIsolate([&](Isolate* isolate) {
+      if (isolate->main_port() == port) {
+        match = isolate;
+      }
+    });
+  });
+  return match;
 }
 
 std::unique_ptr<char[]> Isolate::LookupIsolateNameByPort(Dart_Port port) {
-  MonitorLocker ml(isolates_list_monitor_);
-  Isolate* current = isolates_list_head_;
-  while (current != nullptr) {
-    if (current->main_port() == port) {
-      const size_t len = strlen(current->name()) + 1;
-      auto result = std::unique_ptr<char[]>(new char[len]);
-      strncpy(result.get(), current->name(), len);
-      return result;
-    }
-    current = current->next_;
-  }
-  return std::unique_ptr<char[]>();
+  MonitorLocker ml(isolate_creation_monitor_);
+  std::unique_ptr<char[]> result;
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->ForEachIsolate([&](Isolate* isolate) {
+      if (isolate->main_port() == port) {
+        const size_t len = strlen(isolate->name()) + 1;
+        result = std::unique_ptr<char[]>(new char[len]);
+        strncpy(result.get(), isolate->name(), len);
+      }
+    });
+  });
+  return result;
 }
 
-bool Isolate::AddIsolateToList(Isolate* isolate) {
-  MonitorLocker ml(isolates_list_monitor_);
+bool Isolate::TryMarkIsolateReady(Isolate* isolate) {
+  MonitorLocker ml(isolate_creation_monitor_);
   if (!creation_enabled_) {
     return false;
   }
-  ASSERT(isolate != nullptr);
-  ASSERT(isolate->next_ == nullptr);
-  isolate->next_ = isolates_list_head_;
-  isolates_list_head_ = isolate;
+  total_isolates_count_++;
+  if (!Isolate::IsVMInternalIsolate(isolate)) {
+    application_isolates_count_++;
+  }
+  isolate->accepts_messages_ = true;
   return true;
 }
 
-void Isolate::RemoveIsolateFromList(Isolate* isolate) {
-  MonitorLocker ml(isolates_list_monitor_);
-  ASSERT(isolate != nullptr);
-  if (isolate == isolates_list_head_) {
-    isolates_list_head_ = isolate->next_;
-    if (!creation_enabled_) {
-      ml.Notify();
-    }
-    return;
+void Isolate::UnMarkIsolateReady(Isolate* isolate) {
+  MonitorLocker ml(isolate_creation_monitor_);
+  ASSERT(total_isolates_count_ > 0);
+  isolate->accepts_messages_ = false;
+}
+
+void Isolate::MarkIsolateDead(bool is_application_isolate) {
+  MonitorLocker ml(isolate_creation_monitor_);
+  ASSERT(total_isolates_count_ > 0);
+  total_isolates_count_--;
+  if (is_application_isolate) {
+    ASSERT(application_isolates_count_ > 0);
+    application_isolates_count_--;
   }
-  Isolate* previous = nullptr;
-  Isolate* current = isolates_list_head_;
-  while (current != nullptr) {
-    if (current == isolate) {
-      ASSERT(previous != nullptr);
-      previous->next_ = current->next_;
-      if (!creation_enabled_) {
-        ml.Notify();
-      }
-      return;
-    }
-    previous = current;
-    current = current->next_;
+  if (!creation_enabled_) {
+    ml.Notify();
   }
-  // If we are shutting down the VM, the isolate may not be in the list.
-  ASSERT(!creation_enabled_);
 }
 
 void Isolate::DisableIsolateCreation() {
-  MonitorLocker ml(isolates_list_monitor_);
+  MonitorLocker ml(isolate_creation_monitor_);
   creation_enabled_ = false;
 }
 
 void Isolate::EnableIsolateCreation() {
-  MonitorLocker ml(isolates_list_monitor_);
+  MonitorLocker ml(isolate_creation_monitor_);
   creation_enabled_ = true;
 }
 
 bool Isolate::IsolateCreationEnabled() {
-  MonitorLocker ml(isolates_list_monitor_);
+  MonitorLocker ml(isolate_creation_monitor_);
   return creation_enabled_;
 }
 
 bool Isolate::IsVMInternalIsolate(const Isolate* isolate) {
-  return (isolate == Dart::vm_isolate()) ||
-         ServiceIsolate::IsServiceIsolateDescendant(isolate) ||
-         KernelIsolate::IsKernelIsolate(isolate);
+  // We use a name comparison here because this method can be called during
+  // shutdown, where the actual isolate pointers might've already been cleared.
+  return Dart::VmIsolateNameEquals(isolate->name()) ||
+#if !defined(DART_PRECOMPILED_RUNTIME)
+         KernelIsolate::NameEquals(isolate->name()) ||
+#endif
+         ServiceIsolate::NameEquals(isolate->name());
 }
 
 void Isolate::KillLocked(LibMsgId msg_id) {
@@ -3189,7 +3172,9 @@ class IsolateKillerVisitor : public IsolateVisitor {
   void VisitIsolate(Isolate* isolate) {
     ASSERT(isolate != nullptr);
     if (ShouldKill(isolate)) {
-      isolate->KillLocked(msg_id_);
+      if (isolate->AcceptsMessagesLocked()) {
+        isolate->KillLocked(msg_id_);
+      }
     }
   }
 
@@ -3206,11 +3191,15 @@ class IsolateKillerVisitor : public IsolateVisitor {
 };
 
 void Isolate::KillAllIsolates(LibMsgId msg_id) {
+  MonitorLocker ml(isolate_creation_monitor_);
+
   IsolateKillerVisitor visitor(msg_id);
   VisitIsolates(&visitor);
 }
 
 void Isolate::KillIfExists(Isolate* isolate, LibMsgId msg_id) {
+  MonitorLocker ml(isolate_creation_monitor_);
+
   IsolateKillerVisitor visitor(isolate, msg_id);
   VisitIsolates(&visitor);
 }
