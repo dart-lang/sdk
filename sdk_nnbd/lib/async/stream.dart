@@ -553,7 +553,7 @@ abstract class Stream<T> {
    *
    * The returned stream is a broadcast stream if this stream is.
    */
-  Stream<E> asyncExpand<E>(Stream<E> convert(T event)) {
+  Stream<E> asyncExpand<E>(Stream<E>? convert(T event)) {
     _StreamControllerBase<E> controller;
     if (isBroadcast) {
       controller = _SyncBroadcastStreamController<E>(null, null);
@@ -566,15 +566,17 @@ abstract class Stream<T> {
           onError: controller._addError, // Avoid Zone error replacement.
           onDone: controller.close);
       subscription.onData((T event) {
-        Stream<E> newStream;
+        Stream<E>? newStream;
         try {
           newStream = convert(event);
         } catch (e, s) {
           controller.addError(e, s);
           return;
         }
-        subscription.pause();
-        controller.addStream(newStream).whenComplete(subscription.resume);
+        if (newStream != null) {
+          subscription.pause();
+          controller.addStream(newStream).whenComplete(subscription.resume);
+        }
       });
       controller.onCancel = subscription.cancel;
       if (!isBroadcast) {
