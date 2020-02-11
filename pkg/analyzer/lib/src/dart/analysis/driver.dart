@@ -290,7 +290,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       this.contextRoot,
       SourceFactory sourceFactory,
       this._analysisOptions,
-      {@required Packages packages,
+      {Packages packages,
       this.disableChangesAndCacheAllResults = false,
       this.enableIndex = false,
       SummaryDataStore externalSummaries,
