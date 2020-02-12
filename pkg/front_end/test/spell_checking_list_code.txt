@@ -679,6 +679,7 @@ orders
 ordinal
 org
 orphans
+ors
 os
 overlap
 overloader

@@ -14,7 +14,8 @@ abstract class SubtypeTest<T, E> {
     T supertype = toType(supertypeString, environment);
     Expect.isTrue(
         isSubtypeImpl(subtype, supertype).isSubtypeWhenUsingNullabilities(),
-        "$subtypeString should always be a subtype of $supertypeString.");
+        "$subtypeString should be a subtype of ${supertypeString}, "
+        "regardless of whether the nullability modifiers are ignored or not.");
   }
 
   void isNotSubtype(String subtypeString, String supertypeString,
@@ -24,7 +25,8 @@ abstract class SubtypeTest<T, E> {
     T supertype = toType(supertypeString, environment);
     Expect.isFalse(
         isSubtypeImpl(subtype, supertype).isSubtypeWhenIgnoringNullabilities(),
-        "$subtypeString should never be a subtype of $supertypeString.");
+        "$subtypeString shouldn't be a subtype of $supertypeString, "
+        "regardless of whether the nullability modifiers are ignored or not.");
   }
 
   /// Checks if a type is a subtype of the other ignoring nullability modifiers.
@@ -257,7 +259,11 @@ abstract class SubtypeTest<T, E> {
     isSubtype('Future<num>', 'FutureOr<num?>?');
     isSubtype('Future<num?>', 'FutureOr<num?>');
     isObliviousSubtype('Future<num?>', 'FutureOr<num>?');
+    isObliviousSubtype('FutureOr<int>?', 'FutureOr<int>');
+    isObliviousSubtype('Future<int>?', 'FutureOr<int>');
     isSubtype('Future<num?>', 'FutureOr<num?>?');
+    isSubtype('FutureOr<X>', 'FutureOr<Future<X>>',
+        typeParameters: 'X extends Future<Future<X>>');
 
     isSubtype('num?', 'FutureOr<FutureOr<FutureOr<num>>?>');
     isSubtype('Future<num>?', 'FutureOr<FutureOr<FutureOr<num>>?>');

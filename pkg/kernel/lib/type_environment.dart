@@ -471,9 +471,37 @@ abstract class SubtypeTester {
       var subtypeArg = subtype.typeArguments[0];
       if (supertype is InterfaceType &&
           identical(supertype.classNode, futureOrClass)) {
-        var supertypeArg = supertype.typeArguments[0];
-        // FutureOr<A> <: FutureOr<B> iff A <: B
-        return performNullabilityAwareSubtypeCheck(subtypeArg, supertypeArg);
+        DartType supertypeArg = supertype.typeArguments[0];
+        Nullability subtypeNullability =
+            computeNullabilityOfFutureOr(subtype, futureOrClass);
+        Nullability supertypeNullability =
+            computeNullabilityOfFutureOr(supertype, futureOrClass);
+        // The following is an optimized is-subtype-of test for the case where
+        // both LHS and RHS are FutureOrs.  It's based on the following:
+        // FutureOr<X> <: FutureOr<Y> iff X <: Y OR (X <: Future<Y> AND
+        // Future<X> <: Y).
+        //
+        // The correctness of that can be shown as follows:
+        //   1. FutureOr<X> <: Y iff X <: Y AND Future<X> <: Y
+        //   2. X <: FutureOr<Y> iff X <: Y OR X <: Future<Y>
+        //   3. 1,2 => FutureOr<X> <: FutureOr<Y> iff
+        //          (X <: Y OR X <: Future<Y>) AND
+        //            (Future<X> <: Y OR Future<X> <: Future<Y>)
+        //   4. X <: Y iff Future<X> <: Future<Y>
+        //   5. 3,4 => FutureOr<X> <: FutureOr<Y> iff
+        //          (X <: Y OR X <: Future<Y>) AND
+        //            (X <: Y OR Future<X> <: Y) iff
+        //          X <: Y OR (X <: Future<Y> AND Future<X> <: Y)
+        return performNullabilityAwareSubtypeCheck(subtypeArg, supertypeArg)
+            .or(performNullabilityAwareSubtypeCheck(subtypeArg,
+                    futureType(supertypeArg, Nullability.nonNullable))
+                .andSubtypeCheckFor(
+                    futureType(subtypeArg, Nullability.nonNullable),
+                    supertypeArg,
+                    this))
+            .and(new IsSubtypeOf.basedSolelyOnNullabilities(
+                subtype.withNullability(subtypeNullability),
+                supertype.withNullability(supertypeNullability)));
       }
 
       // given t1 is Future<A> | A, then:
@@ -854,8 +882,8 @@ class _FlatStatefulStaticTypeContext extends StatefulStaticTypeContext {
   }
 }
 
-/// Implementation of [StatefulStaticTypeContext] that use a stack to change state
-/// when entering and leaving libraries and members.
+/// Implementation of [StatefulStaticTypeContext] that use a stack to change
+/// state when entering and leaving libraries and members.
 class _StackedStatefulStaticTypeContext extends StatefulStaticTypeContext {
   final List<_StaticTypeContextState> _contextStack =
       <_StaticTypeContextState>[];

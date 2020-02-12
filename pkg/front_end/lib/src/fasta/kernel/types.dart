@@ -734,7 +734,38 @@ class IsFutureOrSubtypeOf extends TypeRelation<InterfaceType> {
     // This follows from combining rules 7, 10, and 11.
     DartType sArgument = sFutureOr.typeArguments.single;
     DartType tArgument = tFutureOr.typeArguments.single;
-    return types.performNullabilityAwareSubtypeCheck(sArgument, tArgument);
+    DartType sFutureOfArgument = new InterfaceType(types.hierarchy.futureClass,
+        Nullability.nonNullable, sFutureOr.typeArguments);
+    DartType tFutureOfArgument = new InterfaceType(types.hierarchy.futureClass,
+        Nullability.nonNullable, tFutureOr.typeArguments);
+    Nullability sNullability =
+        computeNullabilityOfFutureOr(sFutureOr, types.hierarchy.futureOrClass);
+    Nullability tNullability =
+        computeNullabilityOfFutureOr(tFutureOr, types.hierarchy.futureOrClass);
+    // The following is an optimized is-subtype-of test for the case where
+    // both LHS and RHS are FutureOrs.  It's based on the following:
+    // FutureOr<X> <: FutureOr<Y> iff X <: Y OR (X <: Future<Y> AND
+    // Future<X> <: Y).
+    //
+    // The correctness of that can be shown as follows:
+    //   1. FutureOr<X> <: Y iff X <: Y AND Future<X> <: Y
+    //   2. X <: FutureOr<Y> iff X <: Y OR X <: Future<Y>
+    //   3. 1,2 => FutureOr<X> <: FutureOr<Y> iff
+    //          (X <: Y OR X <: Future<Y>) AND
+    //            (Future<X> <: Y OR Future<X> <: Future<Y>)
+    //   4. X <: Y iff Future<X> <: Future<Y>
+    //   5. 3,4 => FutureOr<X> <: FutureOr<Y> iff
+    //          (X <: Y OR X <: Future<Y>) AND
+    //            (X <: Y OR Future<X> <: Y) iff
+    //          X <: Y OR (X <: Future<Y> AND Future<X> <: Y)
+    return types
+        .performNullabilityAwareSubtypeCheck(sArgument, tArgument)
+        .or(types
+            .performNullabilityAwareSubtypeCheck(sArgument, tFutureOfArgument)
+            .andSubtypeCheckFor(sFutureOfArgument, tArgument, types))
+        .and(new IsSubtypeOf.basedSolelyOnNullabilities(
+            sFutureOr.withNullability(sNullability),
+            tFutureOr.withNullability(tNullability)));
   }
 
   @override
