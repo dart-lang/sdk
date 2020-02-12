@@ -345,6 +345,7 @@ general/var_as_type_name: TextSerializationFailure # Was: Pass
 general/void_methods: TextSerializationFailure
 general/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 general/well_boundness_checks_in_outline: TextSerializationFailure
+general/with_dependencies/abstract_members_from_dill/main: TextSerializationFailure
 general/with_dependencies/extension_from_dill/extension_from_dill: TextSerializationFailure
 general/with_dependencies/variance_from_dill/variance_from_dill: TextSerializationFailure
 general_nnbd_opt_out/DeltaBlue: TextSerializationFailure # Was: Pass
@@ -1210,6 +1211,7 @@ late_lowering/late_nullable_local_with_initializer: TextSerializationFailure
 late_lowering/late_nullable_local_without_initializer: TextSerializationFailure
 late_lowering/later: TextSerializationFailure
 late_lowering/override: TextSerializationFailure
+late_lowering/override_getter_setter: TextSerializationFailure
 late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/assign_type_variable: TextSerializationFailure

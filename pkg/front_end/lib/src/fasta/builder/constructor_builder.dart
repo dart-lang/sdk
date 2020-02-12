@@ -12,7 +12,7 @@ import 'package:kernel/core_types.dart';
 import '../constant_context.dart' show ConstantContext;
 
 import '../kernel/body_builder.dart' show BodyBuilder;
-
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/expression_generator_helper.dart'
     show ExpressionGeneratorHelper;
 
@@ -360,4 +360,12 @@ class ConstructorBuilderImpl extends FunctionBuilderImpl
     superInitializer = null;
     hasMovedSuperInitializer = false;
   }
+
+  @override
+  List<ClassMember> get localMembers =>
+      throw new UnsupportedError('${runtimeType}.localMembers');
+
+  @override
+  List<ClassMember> get localSetters =>
+      throw new UnsupportedError('${runtimeType}.localSetters');
 }

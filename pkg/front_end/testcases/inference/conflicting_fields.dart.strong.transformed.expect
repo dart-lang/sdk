@@ -2,6 +2,16 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/inference/conflicting_fields.dart:18:7: Error: Can't infer a return type for 'field1' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   get field1 => null;
+//       ^^^^^^
+//
+// pkg/front_end/testcases/inference/conflicting_fields.dart:19:7: Error: Can't infer a return type for 'field2' as some of the inherited members have different types.
+// Try adding an explicit type.
+//   get field2 => null;
+//       ^^^^^^
+//
 // pkg/front_end/testcases/inference/conflicting_fields.dart:20:14: Error: Can't infer a type for 'value' as some of the inherited members have different types.
 // Try adding an explicit type.
 //   set field1(value) {}
@@ -33,9 +43,9 @@ class B extends self::A implements self::I {
   synthetic constructor •() → self::B*
     : super self::A::•()
     ;
-  get field1() → core::int*
+  get field1() → invalid-type
     return null;
-  get field2() → core::int*
+  get field2() → invalid-type
     return null;
   set field1(invalid-type value) → void {}
   set field2(invalid-type value) → void {}

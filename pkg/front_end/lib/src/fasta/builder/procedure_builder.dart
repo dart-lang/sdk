@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 
 import 'package:kernel/type_algebra.dart';
 
+import '../kernel/class_hierarchy_builder.dart' show ClassMember;
 import '../kernel/redirecting_factory_body.dart' show RedirectingFactoryBody;
 
 import '../loader.dart' show Loader;
@@ -501,6 +502,46 @@ class ProcedureBuilderImpl extends FunctionBuilderImpl
     } else {
       reportPatchMismatch(patch);
     }
+  }
+
+  @override
+  List<ClassMember> get localMembers => isSetter
+      ? const <ClassMember>[]
+      : <ClassMember>[new SourceProcedureMember(this)];
+
+  @override
+  List<ClassMember> get localSetters => isSetter
+      ? <ClassMember>[new SourceProcedureMember(this)]
+      : const <ClassMember>[];
+}
+
+class SourceProcedureMember extends BuilderClassMember {
+  @override
+  final ProcedureBuilderImpl memberBuilder;
+
+  SourceProcedureMember(this.memberBuilder);
+
+  List<FormalParameterBuilder> get formals => memberBuilder.formals;
+
+  TypeBuilder get returnType => memberBuilder.returnType;
+
+  bool get hadTypesInferred => memberBuilder.hadTypesInferred;
+
+  void set hadTypesInferred(bool value) {
+    memberBuilder.hadTypesInferred = value;
+  }
+
+  @override
+  ProcedureKind get memberKind => memberBuilder.kind;
+
+  @override
+  bool get hasExplicitReturnType {
+    return memberBuilder.returnType != null;
+  }
+
+  @override
+  bool hasExplicitlyTypedFormalParameter(int index) {
+    return memberBuilder.formals[index].type != null;
   }
 }
 

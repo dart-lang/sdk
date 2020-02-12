@@ -130,12 +130,30 @@ class DillMemberBuilder extends MemberBuilderImpl {
   }
 
   @override
-  List<ClassMember> get localMembers =>
-      isSetter ? const <ClassMember>[] : <ClassMember>[this];
+  List<ClassMember> get localMembers => isSetter
+      ? const <ClassMember>[]
+      : <ClassMember>[new DillClassMember(this)];
 
   @override
-  List<ClassMember> get localSetters =>
-      isSetter ? <ClassMember>[this] : const <ClassMember>[];
+  List<ClassMember> get localSetters => isSetter
+      ? <ClassMember>[new DillClassMember(this)]
+      : const <ClassMember>[];
+}
+
+class DillClassMember extends BuilderClassMember {
+  @override
+  final DillMemberBuilder memberBuilder;
+
+  DillClassMember(this.memberBuilder);
+
+  @override
+  ProcedureKind get memberKind => memberBuilder.kind;
+
+  @override
+  bool get hasExplicitReturnType => true;
+
+  @override
+  bool hasExplicitlyTypedFormalParameter(int index) => true;
 }
 
 int computeModifiers(Member member) {
