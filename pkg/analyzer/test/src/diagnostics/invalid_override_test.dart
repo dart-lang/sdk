@@ -505,6 +505,23 @@ class InvalidOverrideWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_method_parameter_interfaceOptOut_concreteOptIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+class A {
+  void foo(Object a) {}
+}
+''');
+
+    await assertNoErrorsInCode('''
+// @dart=2.6
+import 'a.dart';
+
+class B extends A {
+  void foo(dynamic a);
+}
+''');
+  }
+
   test_method_viaLegacy_returnType_notSubtype() async {
     newFile('/test/lib/a.dart', content: r'''
 class Nullable {
