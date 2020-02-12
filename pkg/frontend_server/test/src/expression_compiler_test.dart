@@ -193,8 +193,8 @@ class TestDriver {
     tempDir = systemTempDir.createTempSync('foo bar');
 
     line = _getEvaluationLine(source);
-    input = Uri.parse('file:///${tempDir.path}/foo.dart');
-    file = File(input.toFilePath())..createSync();
+    input = tempDir.uri.resolve('foo.dart');
+    file = File.fromUri(input)..createSync();
     file.writeAsStringSync(source);
   }
 
