@@ -43,6 +43,9 @@ import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 
+import 'package:package_config_v2/package_config.dart'
+    show Package, PackageConfig;
+
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
@@ -133,8 +136,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   bool initializedFromDill = false;
   bool initializedIncrementalSerializer = false;
   Uri previousPackagesUri;
-  Map<String, Uri> previousPackagesMap;
-  Map<String, Uri> currentPackagesMap;
+  Map<String, Package> previousPackagesMap;
+  Map<String, Package> currentPackagesMap;
   bool hasToCheckPackageUris = false;
   Map<Uri, List<DiagnosticMessageFromJson>> remainingComponentProblems =
       new Map<Uri, List<DiagnosticMessageFromJson>>();
@@ -910,12 +913,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     UriTranslator uriTranslator =
         await c.options.getUriTranslator(bypassCache: bypassCache);
     previousPackagesMap = currentPackagesMap;
-    currentPackagesMap = uriTranslator.packages.asMap();
+    currentPackagesMap = createPackagesMap(uriTranslator.packages);
     // TODO(jensj): We can probably (from the maps above) figure out if anything
     // changed and only set this to true if it did.
     hasToCheckPackageUris = hasToCheckPackageUris || bypassCache;
     ticker.logMs("Read packages file");
     return uriTranslator;
+  }
+
+  Map<String, Package> createPackagesMap(PackageConfig packages) {
+    Map<String, Package> result = new Map<String, Package>();
+    for (Package package in packages.packages) {
+      result[package.name] = package;
+    }
+    return result;
   }
 
   /// Load platform and (potentially) initialize from dill,
@@ -1604,6 +1615,16 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     });
   }
 
+  bool packagesEqual(Package a, Package b) {
+    if (a == null || b == null) return false;
+    if (a.name != b.name) return false;
+    if (a.root != b.root) return false;
+    if (a.packageUriRoot != b.packageUriRoot) return false;
+    if (a.languageVersion != b.languageVersion) return false;
+    if (a.extraData != b.extraData) return false;
+    return true;
+  }
+
   /// Internal method.
   ReusageResult computeReusedLibraries(
       Set<Uri> invalidatedUris, UriTranslator uriTranslator) {
@@ -1641,7 +1662,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         int firstSlash = path.indexOf('/');
         String packageName = path.substring(0, firstSlash);
         if (previousPackagesMap == null ||
-            (previousPackagesMap[packageName] !=
+            !packagesEqual(previousPackagesMap[packageName],
                 currentPackagesMap[packageName])) {
           Uri newFileUri = uriTranslator.translate(importUri, false);
           if (newFileUri != fileUri) {

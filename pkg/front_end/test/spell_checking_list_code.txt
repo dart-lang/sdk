@@ -630,6 +630,7 @@ ncurses
 nd
 near
 neighboring
+newest
 nextnext
 ni
 nine

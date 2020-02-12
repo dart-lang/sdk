@@ -497,8 +497,7 @@ const Code<Null> codeCantInferPackagesFromManyInputs =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCantInferPackagesFromManyInputs = const MessageCode(
     "CantInferPackagesFromManyInputs",
-    message:
-        r"""Can't infer a .packages file when compiling multiple inputs.""",
+    message: r"""Can't infer a packages file when compiling multiple inputs.""",
     tip: r"""Try specifying the file explicitly with the --packages option.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -508,7 +507,7 @@ const Code<Null> codeCantInferPackagesFromPackageUri =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
     "CantInferPackagesFromPackageUri",
-    message: r"""Can't infer a .packages file from an input 'package:*' URI.""",
+    message: r"""Can't infer a packages file from an input 'package:*' URI.""",
     tip: r"""Try specifying the file explicitly with the --packages option.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5325,7 +5324,7 @@ const Code<Null> codeLanguageVersionInvalidInDotPackages =
 const MessageCode messageLanguageVersionInvalidInDotPackages = const MessageCode(
     "LanguageVersionInvalidInDotPackages",
     message:
-        r"""The language version is not specified correctly in the .packages file.""");
+        r"""The language version is not specified correctly in the packages file.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeLanguageVersionLibraryContext =

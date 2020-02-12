@@ -49,10 +49,15 @@ class CompilerOptions {
 
   DiagnosticMessageHandler onDiagnostic;
 
-  /// URI of the ".packages" file (typically a "file:" URI).
+  /// URI of the ".dart_tool/package_config.json" or ".packages" file
+  /// (typically a "file:" URI).
   ///
-  /// If `null`, the ".packages" file will be found via the standard
-  /// package_config search algorithm.
+  /// If a ".packages" file is given and a ".dart_tool/package_config.json" file
+  /// exists next to it, the ".dart_tool/package_config.json" file is used
+  /// instead.
+  ///
+  /// If `null`, the file will be found via the standard package_config search
+  /// algorithm.
   ///
   /// If the URI's path component is empty (e.g. `new Uri()`), no packages file
   /// will be used.

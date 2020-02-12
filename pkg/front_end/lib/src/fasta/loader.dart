@@ -11,6 +11,7 @@ import 'dart:collection' show Queue;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/ast.dart' show Class, DartType, Library;
+import 'package:package_config_v2/package_config.dart';
 
 import 'scope.dart';
 
@@ -116,7 +117,7 @@ abstract class Loader {
               fileUri.scheme == "dart-ext")) {
         fileUri = null;
       }
-      String packageFragment;
+      Package packageForLanguageVersion;
       if (fileUri == null) {
         switch (uri.scheme) {
           case "package":
@@ -125,47 +126,31 @@ abstract class Loader {
                 new Uri(
                     scheme: untranslatableUriScheme,
                     path: Uri.encodeComponent("$uri"));
-            packageFragment = target.uriTranslator.getPackageFragment(uri);
+            packageForLanguageVersion = target.uriTranslator.getPackage(uri);
             break;
 
           default:
             fileUri = uri;
-            // Check for empty package name entry (redirecting to package name
-            // from which we should get the fragment part).
-            packageFragment = target.uriTranslator?.getDefaultPackageFragment();
+            packageForLanguageVersion =
+                target.uriTranslator.packages.packageOf(fileUri);
             break;
         }
+      } else {
+        packageForLanguageVersion =
+            target.uriTranslator.packages.packageOf(fileUri);
       }
       bool hasPackageSpecifiedLanguageVersion = false;
       int packageSpecifiedLanguageVersionMajor;
       int packageSpecifiedLanguageVersionMinor;
-      if (packageFragment != null) {
-        List<String> properties = packageFragment.split("&");
-        int foundEntries = 0;
-        for (int i = 0; i < properties.length; ++i) {
-          String property = properties[i];
-          if (property.startsWith("dart=")) {
-            if (++foundEntries > 1) {
-              // Force error to be issued if more than one "dart=" entry.
-              // (The error will be issued in library.setLanguageVersion below
-              // when giving it `null` version numbers.)
-              packageSpecifiedLanguageVersionMajor = null;
-              packageSpecifiedLanguageVersionMinor = null;
-              break;
-            }
-
-            hasPackageSpecifiedLanguageVersion = true;
-            String languageVersionString = property.substring(5);
-
-            // Verify that the version is x.y[whatever]
-            List<String> dotSeparatedParts = languageVersionString.split(".");
-            if (dotSeparatedParts.length >= 2) {
-              packageSpecifiedLanguageVersionMajor =
-                  int.tryParse(dotSeparatedParts[0]);
-              packageSpecifiedLanguageVersionMinor =
-                  int.tryParse(dotSeparatedParts[1]);
-            }
-          }
+      if (packageForLanguageVersion != null &&
+          packageForLanguageVersion.languageVersion != null) {
+        hasPackageSpecifiedLanguageVersion = true;
+        if (packageForLanguageVersion.languageVersion
+            is! InvalidLanguageVersion) {
+          packageSpecifiedLanguageVersionMajor =
+              packageForLanguageVersion.languageVersion.major;
+          packageSpecifiedLanguageVersionMinor =
+              packageForLanguageVersion.languageVersion.minor;
         }
       }
       LibraryBuilder library = target.createLibraryBuilder(

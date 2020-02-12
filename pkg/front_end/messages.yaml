@@ -14,6 +14,12 @@
 #    should be the path to an external test. The external test will not be run,
 #    but the existence of the file will be verified.
 #
+# Note that it can be hard or impossible to write an example that only gives the
+# specific error. To allow for this, one can specify
+# "exampleAllowMoreCodes: true" which filters out every message with a
+# different code, and just verifies we got exactly one message of the code in
+# question (in addition too different codes).
+#
 # A message shouldn't indicate which kind of diagnostic it is, for example,
 # warning or error. Tools are expected to prepend "Warning: ", or "Error: ",
 # and should be allowed to change the kind of diagnostic without affecting the
@@ -2823,11 +2829,11 @@ CannotReadSdkSpecification:
   template: "Unable to read the 'libraries.json' specification file:\n  #string."
 
 CantInferPackagesFromManyInputs:
-  template: "Can't infer a .packages file when compiling multiple inputs."
+  template: "Can't infer a packages file when compiling multiple inputs."
   tip: "Try specifying the file explicitly with the --packages option."
 
 CantInferPackagesFromPackageUri:
-  template: "Can't infer a .packages file from an input 'package:*' URI."
+  template: "Can't infer a packages file from an input 'package:*' URI."
   tip: "Try specifying the file explicitly with the --packages option."
 
 PackageNotFound:
@@ -3721,11 +3727,22 @@ LanguageVersionTooHigh:
     // @dart = 100.200
 
 LanguageVersionInvalidInDotPackages:
-  template: "The language version is not specified correctly in the .packages file."
+  template: "The language version is not specified correctly in the packages file."
+  exampleAllowMoreCodes: true
   script:
     main.dart: "import 'package:foo/foo.dart';"
     lib/foo.dart: "// blah blah blah"
-    .packages: "foo:lib/#dart=arglebargle"
+    .dart_tool/package_config.json: >
+      {
+          "configVersion": 2,
+          "packages": [
+              {
+                  "name": "foo",
+                  "rootUri": "../lib/",
+                  "languageVersion": "arglebargle"
+              }
+          ]
+      }
 
 LanguageVersionMismatchInPart:
   template: "The language version override has to be the same in the library and its part(s)."

@@ -10,7 +10,8 @@ environment:
 dependencies:
   _fe_analyzer_shared: 1.0.0
   kernel: 0.3.29
-  package_config: '^1.1.0'
+  package_config_v2:
+    path: ../../third_party/pkg/package_config_v2/
   meta: ^1.0.2
 dev_dependencies:
   analyzer: 0.39.1

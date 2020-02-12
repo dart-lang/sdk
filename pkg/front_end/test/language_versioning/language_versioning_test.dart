@@ -32,7 +32,11 @@ main(List<String> args) async {
       supportedMarkers: [cfeMarker],
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const LanguageVersioningDataComputer(), [cfeConfig]));
+      runTest: runTestFor(const LanguageVersioningDataComputer(), [cfeConfig]),
+      skipList: [
+        // Two language versions specified, the last one is ok and is used here.
+        "package_default_version_is_wrong_2",
+      ]);
 }
 
 class TestConfigWithLanguageVersion extends TestConfig {

@@ -1,0 +1,9 @@
+{
+    "configVersion": 2,
+    "packages": [
+        {
+            "name": "foo",
+            "rootUri": "../lib/"
+        }
+    ]
+}

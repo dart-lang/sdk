@@ -113,6 +113,7 @@ vars = {
   "oauth2_tag": "1.2.1",
   "observatory_pub_packages_rev": "0894122173b0f98eb08863a7712e78407d4477bc",
   "package_config_tag": "2453cd2e78c2db56ee2669ced17ce70dd00bf576", # should be 1.1.0
+  "package_config_v2_tag": "8e776a8b05951d4104aa101151df26a2c5ac931f", # should be 3.0
   "package_resolver_tag": "1.0.10",
   "path_tag": "1.6.2",
   "pedantic_tag": "v1.8.0",
@@ -341,6 +342,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg_tested/package_config":
       Var("dart_git") + "package_config.git" +
       "@" + Var("package_config_tag"),
+  Var("dart_root") + "/third_party/pkg/package_config_v2":
+      Var("dart_git") + "package_config.git" +
+      "@" + Var("package_config_v2_tag"),
   Var("dart_root") + "/third_party/pkg_tested/package_resolver":
       Var("dart_git") + "package_resolver.git"
       + "@" + Var("package_resolver_tag"),

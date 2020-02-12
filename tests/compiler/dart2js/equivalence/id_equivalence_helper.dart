@@ -420,7 +420,8 @@ Future<void> checkTests<T>(Directory dataDir, DataComputer<T> dataComputer,
       bool verbose,
       bool succinct,
       bool printCode,
-      Map<String, List<String>> skipMap}) async {
+      Map<String, List<String>> skipMap,
+      Uri nullUri}) async {
     String name = testData.name;
     List<String> testOptions = options.toList();
     if (name.endsWith('_ea.dart')) {

@@ -406,7 +406,6 @@ InvalidVoid/script2: Fail
 JsInteropIndexNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropIndexNotSupported/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
-LanguageVersionInvalidInDotPackages/part_wrapped_script: Fail # Importing file in the (now) part.
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
 LanguageVersionMismatchInPatch/analyzerCode: Fail

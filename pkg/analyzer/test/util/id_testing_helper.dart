@@ -102,7 +102,8 @@ RunTestFunction<T> runTestFor<T>(
       bool verbose,
       bool succinct,
       bool printCode,
-      Map<String, List<String>> skipMap}) {
+      Map<String, List<String>> skipMap,
+      Uri nullUri}) {
     return runTest(testData, dataComputer, testedConfigs,
         testAfterFailures: testAfterFailures,
         onFailure: onFailure,

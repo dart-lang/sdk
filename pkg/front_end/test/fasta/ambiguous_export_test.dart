@@ -26,8 +26,8 @@ main() async {
     library.addMember(field);
     Component component = new Component(libraries: <Library>[library]);
     await CompilerContext.runWithDefaultOptions((CompilerContext c) async {
-      DillTarget target =
-          new DillTarget(c.options.ticker, null, c.options.target);
+      DillTarget target = new DillTarget(c.options.ticker,
+          await c.options.getUriTranslator(), c.options.target);
       target.loader.appendLibraries(component);
       DillLibraryBuilder builder = target.loader.read(library.importUri, -1);
       await target.loader.buildOutline(builder);
