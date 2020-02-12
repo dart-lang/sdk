@@ -38,8 +38,8 @@ class JsObject {
 
   @patch
   factory JsObject.fromBrowserObject(Object object) {
-    if (object is num || object is String || object is bool) {
-      throw ArgumentError("object cannot be a num, string, or bool");
+    if (object is num || object is String || object is bool || object == null) {
+      throw ArgumentError("object cannot be a num, string, bool, or null");
     }
     return _wrapToDart(_convertToJS(object)!);
   }
