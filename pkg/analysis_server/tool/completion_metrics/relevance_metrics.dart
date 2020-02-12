@@ -15,7 +15,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart'
-    show ClassElement, Element, LibraryElement, LocalElement;
+    show ClassElement, Element, ExtensionElement, LibraryElement, LocalElement;
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
@@ -1211,17 +1211,66 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void _recordMemberDepth(DartType targetType, Element element) {
     if (targetType is InterfaceType) {
       var subclass = targetType.element;
+      var extension = element.thisOrAncestorOfType<ExtensionElement>();
+      if (extension != null) {
+        // TODO(brianwilkerson) It might be interesting to also know whether the
+        //  [element] was found in a class, interface, mixin or extension.
+        return;
+      }
       var superclass = element.thisOrAncestorOfType<ClassElement>();
       if (superclass != null) {
-        var depth = 0;
-        while (subclass != null && subclass != superclass) {
-          depth++;
-          subclass = subclass.supertype?.element;
+        int getSuperclassDepth() {
+          var depth = 0;
+          var currentClass = subclass;
+          while (currentClass != null) {
+            if (currentClass == superclass) {
+              return depth;
+            }
+            for (var mixin in currentClass.mixins.reversed) {
+              depth++;
+              if (mixin.element == superclass) {
+                return depth;
+              }
+            }
+            depth++;
+            currentClass = currentClass.supertype?.element;
+          }
+          return -1;
         }
-        // TODO(brianwilkerson) Handle the case where the member is defined in
-        //  an interface not on the superclass chain.
-        if (subclass != null) {
-          _recordDistance('member', depth);
+
+        var notFound = 0xFFFF;
+        int getInterfaceDepth(ClassElement currentClass) {
+          if (currentClass == null) {
+            return notFound;
+          } else if (currentClass == superclass) {
+            return 0;
+          }
+          var minDepth = getInterfaceDepth(currentClass.supertype?.element);
+          for (var mixin in currentClass.mixins) {
+            var depth = getInterfaceDepth(mixin.element);
+            if (depth < minDepth) {
+              minDepth = depth;
+            }
+          }
+          for (var interface in currentClass.interfaces) {
+            var depth = getInterfaceDepth(interface.element);
+            if (depth < minDepth) {
+              minDepth = depth;
+            }
+          }
+          return minDepth + 1;
+        }
+
+        int superclassDepth = getSuperclassDepth();
+        if (superclassDepth >= 0) {
+          _recordDistance('member (superclass)', superclassDepth);
+        } else {
+          int interfaceDepth = getInterfaceDepth(subclass);
+          if (interfaceDepth < notFound) {
+            _recordDistance('member (interface)', interfaceDepth);
+          } else {
+            _recordDistance('member (not found)', 0);
+          }
         }
       }
     }
