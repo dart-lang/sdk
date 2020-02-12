@@ -2827,9 +2827,9 @@ static RawTypeArguments* TypeArgumentsForElementType(
     case Dart_CoreType_Dynamic:
       return TypeArguments::null();
     case Dart_CoreType_Int:
-      return store->type_argument_int();
+      return store->type_argument_legacy_int();
     case Dart_CoreType_String:
-      return store->type_argument_string();
+      return store->type_argument_legacy_string();
   }
   UNREACHABLE();
   return NULL;
