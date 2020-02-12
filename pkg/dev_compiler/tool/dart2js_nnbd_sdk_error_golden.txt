@@ -1,7 +1,7 @@
 ERROR|COMPILE_TIME_ERROR|EXPORT_LEGACY_SYMBOL|lib/html/dart2js/html_dart2js.dart|69|8|16|The symbol 'HttpStatus' is defined in a legacy library, and can't be re-exported from a non-nullable by default library.
 ERROR|COMPILE_TIME_ERROR|EXPORT_LEGACY_SYMBOL|lib/html/dart2js/html_dart2js.dart|70|8|18|The symbol 'promiseToFuture' is defined in a legacy library, and can't be re-exported from a non-nullable by default library.
 ERROR|COMPILE_TIME_ERROR|EXPORT_LEGACY_SYMBOL|lib/html/html_common/html_common_dart2js.dart|19|8|14|The symbol 'promiseToFuture' is defined in a legacy library, and can't be re-exported from a non-nullable by default library.
-ERROR|COMPILE_TIME_ERROR|EXPORT_LEGACY_SYMBOL|lib/html/html_common/html_common_dart2js.dart|22|8|16|The symbol 'SupportedBrowser' is defined in a legacy library, and can't be re-exported from a non-nullable by default library.
+ERROR|COMPILE_TIME_ERROR|EXPORT_LEGACY_SYMBOL|lib/io/io.dart|206|8|16|The symbol 'HttpStatus' is defined in a legacy library, and can't be re-exported from a non-nullable by default library.
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '&': int.& (int Function(int)), JSNumber.& (num Function(num)).
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '<<': int.<< (int Function(int)), JSNumber.<< (num Function(num)).
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1655|7|5|Superinterfaces don't have a valid override for '>>': int.>> (int Function(int)), JSNumber.>> (num Function(num)).
