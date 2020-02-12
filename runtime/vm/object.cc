@@ -19575,6 +19575,16 @@ void TypeParameter::set_bound(const AbstractType& value) const {
   StorePointer(&raw_ptr()->bound_, value.raw());
 }
 
+RawAbstractType* TypeParameter::GetFromTypeArguments(
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments) const {
+  ASSERT(IsFinalized());
+  const TypeArguments& type_args = IsFunctionTypeParameter()
+                                       ? function_type_arguments
+                                       : instantiator_type_arguments;
+  return type_args.TypeAtNullSafe(index());
+}
+
 RawAbstractType* TypeParameter::InstantiateFrom(
     NNBDMode mode,
     const TypeArguments& instantiator_type_arguments,

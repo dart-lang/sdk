@@ -878,9 +878,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
     // So we have to install a specialized TTS on the value of the type
     // parameter, not the parameter itself.
     if (dst_type.IsTypeParameter()) {
-      dst_type = dst_type.InstantiateFrom(
-          nnbd_mode, instantiator_type_arguments, function_type_arguments,
-          kAllFree, NULL, Heap::kNew);
+      dst_type = TypeParameter::Cast(dst_type).GetFromTypeArguments(
+          instantiator_type_arguments, function_type_arguments);
     }
     if (FLAG_trace_type_checks) {
       OS::PrintErr("  Specializing type testing stub for %s\n",

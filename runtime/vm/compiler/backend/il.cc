@@ -387,9 +387,9 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
     // arguments are not "dynamic" but instantiated-to-bounds.
     const Type& rare_type =
         Type::Handle(zone, Type::RawCast(type_class.RareType()));
-    // TODO(regis): Revisit the usage of TypeEquality::kSyntactical when
-    // implementing strong mode.
-    if (!rare_type.IsEquivalent(type, TypeEquality::kSyntactical)) {
+    // TODO(dartbug.com/38845): revise when supporting NNBD strong mode.
+    if (!rare_type.IsEquivalent(type, TypeEquality::kIgnoreNullability)) {
+      ASSERT(type.arguments() != TypeArguments::null());
       return false;
     }
   }

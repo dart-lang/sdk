@@ -7806,6 +7806,14 @@ class TypeParameter : public AbstractType {
 
   virtual intptr_t Hash() const;
 
+  // Returns type corresponding to [this] type parameter from the
+  // given [instantiator_type_arguments] and [function_type_arguments].
+  // Unlike InstantiateFrom, nullability of type parameter is not applied to
+  // the result.
+  RawAbstractType* GetFromTypeArguments(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments) const;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeParameter));
   }
