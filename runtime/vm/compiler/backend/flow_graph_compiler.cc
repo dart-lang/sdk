@@ -611,9 +611,7 @@ void FlowGraphCompiler::VisitBlocks() {
         EmitInstructionPrologue(instr);
         ASSERT(pending_deoptimization_env_ == NULL);
         pending_deoptimization_env_ = instr->env();
-        DEBUG_ONLY(current_instruction_ = instr);
         instr->EmitNativeCode(this);
-        DEBUG_ONLY(current_instruction_ = nullptr);
         pending_deoptimization_env_ = NULL;
         if (IsPeephole(instr)) {
           ASSERT(top_of_stack_ == nullptr);
@@ -700,9 +698,7 @@ void FlowGraphCompiler::GenerateDeferredCode() {
             slow_path->instruction()->tag());
     SpecialStatsBegin(stats_tag);
     BeginCodeSourceRange();
-    DEBUG_ONLY(current_instruction_ = slow_path->instruction());
     slow_path->GenerateCode(this);
-    DEBUG_ONLY(current_instruction_ = nullptr);
     EndCodeSourceRange(slow_path->instruction()->token_pos());
     SpecialStatsEnd(stats_tag);
   }

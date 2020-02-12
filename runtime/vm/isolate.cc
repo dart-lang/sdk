@@ -2394,18 +2394,6 @@ void Isolate::ReleaseStoreBuffers() {
   thread_registry()->ReleaseStoreBuffers(this);
 }
 
-void Isolate::RememberLiveTemporaries() {
-  if (mutator_thread_ != nullptr) {
-    mutator_thread_->RememberLiveTemporaries();
-  }
-}
-
-void Isolate::DeferredMarkLiveTemporaries() {
-  if (mutator_thread_ != nullptr) {
-    mutator_thread_->DeferredMarkLiveTemporaries();
-  }
-}
-
 void Isolate::EnableIncrementalBarrier(MarkingStack* marking_stack,
                                        MarkingStack* deferred_marking_stack) {
   ASSERT(marking_stack_ == nullptr);
