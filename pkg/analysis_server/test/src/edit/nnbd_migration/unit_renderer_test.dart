@@ -46,8 +46,8 @@ bool b = a!.isEven;
 ''');
     var outputJson = renderUnits()[0];
     var output = jsonDecode(outputJson);
-    var editList = output['editList'];
-    expect(editList['editCount'], equals(2));
+    var editList = output['edits'];
+    expect(editList, hasLength(2));
   }
 
   Future<void> test_editList_containsEdits() async {
@@ -59,8 +59,7 @@ int? a = null;
 bool b = a!.isEven;
 ''');
     var outputJson = renderUnits()[0];
-    var output = jsonDecode(outputJson);
-    var editList = output['editList'];
+    var editList = jsonDecode(outputJson);
     expect(editList['edits'], hasLength(2));
     expect(editList['edits'][0]['line'], equals(1));
     expect(editList['edits'][0]['offset'], equals(3));
@@ -79,8 +78,8 @@ bool b = a!.isEven;
 
     var output = jsonDecode(outputJson);
     // Strip out URLs which will change; not being tested here.
-    var navContent =
-        output['navContent'].replaceAll(RegExp('href=".*?"'), 'href="..."');
+    var navContent = output['navigationContent']
+        .replaceAll(RegExp('href=".*?"'), 'href="..."');
     expect(
         navContent,
         contains(r'<a href="..." class="nav-link">List</a>'
