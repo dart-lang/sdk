@@ -5,11 +5,13 @@
 /// This library defines the representation of runtime types.
 part of dart._runtime;
 
+bool _strictSubtypeChecks = false;
+
 /// Sets the mode of the runtime subtype checks.
 ///
 /// Changing the mode after any calls to dart.isSubtype() is not supported.
 void strictSubtypeChecks(bool flag) {
-  JS('', 'dart.__strictSubtypeChecks = #', flag);
+  _strictSubtypeChecks = flag;
 }
 
 final metadata = JS('', 'Symbol("metadata")');
@@ -256,7 +258,7 @@ Object nullable(type) {
     return JS<NullableType>('!', '#[#]', type, _cachedNullable);
   }
   // Cache a canonical nullable version of this type on this type.
-  var cachedType = NullableType(type);
+  var cachedType = NullableType(JS<Type>('!', '#', type));
   JS('', '#[#] = #', type, _cachedNullable, cachedType);
   return cachedType;
 }
@@ -276,7 +278,7 @@ Object legacy(type) {
     return JS<LegacyType>('!', '#[#]', type, _cachedLegacy);
   }
   // Cache a canonical legacy version of this type on this type.
-  var cachedType = LegacyType(type);
+  var cachedType = LegacyType(JS<Type>('!', '#', type));
   JS('', '#[#] = #', type, _cachedLegacy, cachedType);
   return cachedType;
 }
@@ -285,9 +287,7 @@ Object legacy(type) {
 class NullableType extends DartType {
   final Type type;
 
-  NullableType(this.type)
-      : assert(type is! NullableType),
-        assert(type is! LegacyType);
+  NullableType(this.type);
 
   @override
   String get name => '$type?';
@@ -313,9 +313,7 @@ class NullableType extends DartType {
 class LegacyType extends DartType {
   final Type type;
 
-  LegacyType(this.type)
-      : assert(type is! LegacyType),
-        assert(type is! NullableType);
+  LegacyType(this.type);
 
   @override
   String get name => '$type';
@@ -328,7 +326,7 @@ class LegacyType extends DartType {
     if (obj == null) {
       // Object and Never are the only legacy types that should return true if
       // obj is `null`.
-      return type == unwrapType(Object) || type == unwrapType(Never);
+      return JS<bool>('!', '# === # || # === #', type, Object, type, never_);
     }
     return JS<bool>('!', '#.is(#)', type, obj);
   }
@@ -1172,7 +1170,7 @@ bool isSubtypeOf(Object t1, Object t2) {
   }
   var validSubtype = _isSubtype(t1, t2, true);
 
-  if (!validSubtype && !JS<bool>('!', 'dart.__strictSubtypeChecks')) {
+  if (!validSubtype && !_strictSubtypeChecks) {
     validSubtype = _isSubtype(t1, t2, false);
     if (validSubtype) {
       // TODO(nshahan) Need more information to be helpful here.
@@ -1205,20 +1203,22 @@ bool _isTop(type) {
 
 /// Returns `true` if [type] represents a nullable (question, ?) type.
 @notNull
-bool _isNullable(Type type) => JS<bool>('!', '$type instanceof $NullableType');
+bool _isNullable(type) => JS<bool>('!', '# instanceof #', type, NullableType);
 
 /// Returns `true` if [type] represents a legacy (star, *) type.
 @notNull
-bool _isLegacy(Type type) => JS<bool>('!', '$type instanceof $LegacyType');
+bool _isLegacy(type) => JS<bool>('!', '# instanceof #', type, LegacyType);
 
 /// Returns `true` if [type] is the [Null] type.
 @notNull
-bool _isNullType(Object type) =>
-    JS<bool>('!', '# === #', type, unwrapType(Null));
+bool _isNullType(type) => JS<bool>('!', '# === #', type, unwrapType(Null));
 
 @notNull
-bool _isFutureOr(type) =>
-    JS<bool>('!', '# === #', getGenericClass(type), getGenericClass(FutureOr));
+bool _isFutureOr(type) {
+  var genericClass = getGenericClass(type);
+  return JS<bool>('!', '# && # === #', genericClass, genericClass,
+      getGenericClass(FutureOr));
+}
 
 bool _isSubtype(t1, t2, bool strictMode) => JS('bool', '''(() => {
   if (!$strictMode) {

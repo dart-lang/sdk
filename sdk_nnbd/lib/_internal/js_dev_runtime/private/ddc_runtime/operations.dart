@@ -178,16 +178,16 @@ String? _argumentErrors(FunctionType type, List actuals, namedActuals) {
   // Verify that all required named parameters are provided an argument.
   Iterable requiredNames = getOwnPropertyNames(requiredNamed);
   if (requiredNames.length > 0 && namedActuals == null) {
-    if (!JS<bool>('', 'dart.__strictSubtypeChecks')) {
+    if (!_strictSubtypeChecks) {
       _warn("Dynamic call with missing required named arguments.");
     } else {
       return "Dynamic call with missing required named arguments.";
     }
   }
-  if (JS<bool>('', 'dart.__strictSubtypeChecks')) {
+  if (_strictSubtypeChecks) {
     for (var name in requiredNames) {
       if (!JS<bool>('!', '#.hasOwnProperty(#)', namedActuals, name)) {
-        if (!JS<bool>('', 'dart.__strictSubtypeChecks')) {
+        if (!_strictSubtypeChecks) {
           _warn("Dynamic call with missing required named argument '$name'.");
         } else {
           return "Dynamic call with missing required named argument '$name'.";
