@@ -1712,6 +1712,24 @@ class SubtypeTest extends _SubtypingTestBase {
     );
   }
 
+  test_functionType_73() {
+    var E0 = typeParameter('E0', bound: objectNone);
+    var E1 = typeParameter('E1', bound: futureOrNone(objectNone));
+
+    isSubtype(
+      functionTypeNone(
+        typeFormals: [E0],
+        returnType: voidNone,
+      ),
+      functionTypeNone(
+        typeFormals: [E1],
+        returnType: voidNone,
+      ),
+      strT0: 'void Function<E0 extends Object>()',
+      strT1: 'void Function<E1 extends FutureOr<Object>>()',
+    );
+  }
+
   test_functionType_generic_nested() {
     var E0 = typeParameter('E0');
     var F0 = typeParameter('F0');

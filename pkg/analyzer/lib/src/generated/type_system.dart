@@ -1916,8 +1916,6 @@ class Dart2TypeSystem extends TypeSystem {
     // The bounds of type parameters must be equal.
     var freshTypeFormalTypes =
         FunctionTypeImpl.relateTypeFormals(f, g, (t, s, _, __) {
-      // Type parameter bounds are invariant.
-      // TODO(scheglov) We do this for top types, but the spec says explicitly.
       return isSubtypeOf2(t, s) && isSubtypeOf2(s, t);
     });
     if (freshTypeFormalTypes == null) {
