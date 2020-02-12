@@ -2398,32 +2398,6 @@ Dart_New(Dart_Handle type,
          Dart_Handle* arguments);
 
 /**
- * Allocate a new object without invoking a constructor.
- *
- * \param type The type of an object to be allocated.
- *
- * \return The new object. If an error occurs during execution, then an
- *   error handle is returned.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle Dart_Allocate(Dart_Handle type);
-
-/**
- * Allocate a new object without invoking a constructor, and sets specified
- *  native fields.
- *
- * \param type The type of an object to be allocated.
- * \param num_native_fields The number of native fields to set.
- * \param native_fields An array containing the value of native fields.
- *
- * \return The new object. If an error occurs during execution, then an
- *   error handle is returned.
- */
-DART_EXPORT Dart_Handle
-Dart_AllocateWithNativeFields(Dart_Handle type,
-                              intptr_t num_native_fields,
-                              const intptr_t* native_fields);
-
-/**
  * Invokes a method or function.
  *
  * The 'target' parameter may be an object, type, or library.  If
@@ -2466,32 +2440,6 @@ DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
 Dart_InvokeClosure(Dart_Handle closure,
                    int number_of_arguments,
                    Dart_Handle* arguments);
-
-/**
- * Invokes a Generative Constructor on an object that was previously
- * allocated using Dart_Allocate/Dart_AllocateWithNativeFields.
- *
- * The 'target' parameter must be an object.
- *
- * This function ignores visibility (leading underscores in names).
- *
- * May generate an unhandled exception error.
- *
- * \param target An object.
- * \param name The name of the constructor to invoke.
- *   Use Dart_Null() or Dart_EmptyString() to invoke the unnamed constructor.
- * \param number_of_arguments Size of the arguments array.
- * \param arguments An array of arguments to the function.
- *
- * \return If the constructor is called and completes
- *   successfully, then the object is returned. If an error
- *   occurs during execution, then an error handle is returned.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_InvokeConstructor(Dart_Handle object,
-                       Dart_Handle name,
-                       int number_of_arguments,
-                       Dart_Handle* arguments);
 
 /**
  * Gets the value of a field.
