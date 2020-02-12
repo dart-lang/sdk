@@ -962,12 +962,9 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
 
     // If we are running a legacy test with NNBD enabled, tell analyzer to use
     // a pre-NNBD language version for the test.
-    var setLegacyVersion = false;
-    if (_configuration.experiments.contains("non-nullable")) {
-      var testPath = arguments.last;
-      var segments = Path(testPath).relativeTo(Repository.dir).segments();
-      setLegacyVersion = segments.any(legacyTestDirectories.contains);
-    }
+    var testPath = arguments.last;
+    var segments = Path(testPath).relativeTo(Repository.dir).segments();
+    var setLegacyVersion = segments.any(legacyTestDirectories.contains);
 
     var args = [
       ...arguments,
