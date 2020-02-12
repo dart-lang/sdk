@@ -2637,6 +2637,12 @@
           ]
         },
         {
+          "name": "analyze nnbd legacy weak tests enable-asserts",
+          "arguments": [
+            "-nanalyzer-asserts-weak-${system}"
+          ]
+        },
+        {
           "name": "analyze nnbd strong co19 tests",
           "arguments": [
             "-nanalyzer-asserts-strong-${system}",
