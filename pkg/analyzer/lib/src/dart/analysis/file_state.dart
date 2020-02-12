@@ -108,6 +108,14 @@ class FileState {
    */
   final bool isInExternalSummaries;
 
+  /**
+   * The default [FeatureSet] for the file path and URI.
+   *
+   * The actual language version, and the feature set, of the file might be
+   * different, if `@dart` is specified in the file header.
+   */
+  final FeatureSet _featureSet;
+
   bool _exists;
   String _content;
   String _contentHash;
@@ -139,14 +147,15 @@ class FileState {
    */
   bool hasErrorOrWarning = false;
 
-  FileState._(this._fsState, this.path, this.uri, this.source)
+  FileState._(this._fsState, this.path, this.uri, this.source, this._featureSet)
       : isInExternalSummaries = false;
 
   FileState._external(this._fsState, this.uri)
       : isInExternalSummaries = true,
         path = null,
         source = null,
-        _exists = true {
+        _exists = true,
+        _featureSet = null {
     _apiSignature = Uint8List(16);
     _libraryCycle = LibraryCycle.external();
   }
@@ -368,8 +377,7 @@ class FileState {
         return _parse(errorListener);
       });
     } catch (_) {
-      AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-      return _createEmptyCompilationUnit(analysisOptions.contextFeatures);
+      return _createEmptyCompilationUnit();
     }
   }
 
@@ -405,6 +413,7 @@ class FileState {
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._unlinkedSalt);
+      signature.addFeatureSet(_featureSet);
       signature.addString(_contentHash);
       signature.addBool(_exists);
       contentSignature = signature.toByteList();
@@ -522,10 +531,10 @@ class FileState {
   @override
   String toString() => path ?? '<unresolved>';
 
-  CompilationUnit _createEmptyCompilationUnit(FeatureSet featureSet) {
+  CompilationUnit _createEmptyCompilationUnit() {
     var token = Token.eof(0);
     return astFactory.compilationUnit(
-        beginToken: token, endToken: token, featureSet: featureSet)
+        beginToken: token, endToken: token, featureSet: _featureSet)
       ..lineInfo = LineInfo(const <int>[0]);
   }
 
@@ -568,14 +577,13 @@ class FileState {
 
   CompilationUnit _parse(AnalysisErrorListener errorListener) {
     AnalysisOptionsImpl analysisOptions = _fsState._analysisOptions;
-    var featureSet = _fsState.featureSetProvider.getFeatureSet(path, uri);
     if (source == null) {
-      return _createEmptyCompilationUnit(featureSet);
+      return _createEmptyCompilationUnit();
     }
 
     CharSequenceReader reader = CharSequenceReader(content);
     Scanner scanner = Scanner(source, reader, errorListener)
-      ..configureFeatures(featureSet);
+      ..configureFeatures(_featureSet);
     Token token = PerformanceStatistics.scan.makeCurrentWhile(() {
       return scanner.tokenize(reportScannerErrors: false);
     });
@@ -819,7 +827,8 @@ class FileSystemState {
    */
   FileState get unresolvedFile {
     if (_unresolvedFile == null) {
-      _unresolvedFile = FileState._(this, null, null, null);
+      var featureSet = FeatureSet.fromEnableFlags([]);
+      _unresolvedFile = FileState._(this, null, null, null, featureSet);
       _unresolvedFile.refresh();
     }
     return _unresolvedFile;
@@ -847,7 +856,8 @@ class FileSystemState {
       }
       // Create a new file.
       FileSource uriSource = FileSource(resource, uri);
-      file = FileState._(this, path, uri, uriSource);
+      FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
+      file = FileState._(this, path, uri, uriSource, featureSet);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       _pathToCanonicalFile[path] = file;
@@ -888,7 +898,8 @@ class FileSystemState {
       String path = uriSource.fullName;
       File resource = _resourceProvider.getFile(path);
       FileSource source = FileSource(resource, uri);
-      file = FileState._(this, path, uri, source);
+      FeatureSet featureSet = featureSetProvider.getFeatureSet(path, uri);
+      file = FileState._(this, path, uri, source, featureSet);
       _uriToFile[uri] = file;
       _addFileWithPath(path, file);
       file.refresh(allowCached: true);
