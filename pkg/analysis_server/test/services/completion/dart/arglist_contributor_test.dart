@@ -606,7 +606,7 @@ foo({String children}) {}
   Future<void> test_ArgumentList_imported_factory_named_param() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement
     addSource('/home/test/lib/a.dart',
-        'library libA; class A{factory A({int one}) => null;}');
+        'library libA; class A{factory A({int one}) => throw 0;}');
     addTestSource('import "a.dart"; main() { new A(^);}');
     await computeSuggestions();
     assertSuggestArgumentsAndTypes(namedArgumentsWithTypes: {'one': 'int'});

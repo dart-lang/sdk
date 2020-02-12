@@ -2018,8 +2018,8 @@ main() {
   test_instanceCreation_factory() async {
     String content = r'''
 class C {
-  factory C() => null;
-  factory C.named() => null;
+  factory C() => throw 0;
+  factory C.named() => throw 0;
 }
 var a = new C();
 var b = new C.named();
@@ -3153,7 +3153,7 @@ main() {
   test_invalid_instanceCreation_constOfNotConst_factory() async {
     addTestFile(r'''
 class C {
-  factory C(x) => null;
+  factory C(x) => throw 0;
 }
 
 var a = 0;

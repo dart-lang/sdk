@@ -134,7 +134,7 @@ class B implements A {
   factory B() = C;
 }
 class C implements B {
-  factory C() => null;
+  factory C() => throw 0;
 }
 ''');
   }

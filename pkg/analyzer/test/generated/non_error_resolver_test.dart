@@ -2417,7 +2417,7 @@ class B extends Object with A {}
   test_mixinDeclaresConstructor_factory() async {
     await assertNoErrorsInCode(r'''
 class A {
-  factory A() => null;
+  factory A() => throw 0;
 }
 class B extends Object with A {}
 ''');

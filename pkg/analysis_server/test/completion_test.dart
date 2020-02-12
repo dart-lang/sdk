@@ -562,8 +562,8 @@ class FileMode {
   final int _mode;
 }
 class File {
-  factory File(String path) => null;
-  factory File.fromPath(Path path) => null;
+  File(String path);
+  File.fromPath(Path path);
 }
 f() => new Fil!1''', <String>[
       '1+File',

@@ -39,7 +39,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         var m;''');
     addTestSource('''
         part of libA;
-        class B { factory B.bar(int x) => null; }
+        class B { B.bar(int x); }
         main() {new ^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);
@@ -212,7 +212,7 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         int af() {return 0;}''');
     addTestSource('''
         part of libA;
-        class B { factory B.bar(int x) => null; }
+        class B { B.bar(int x); }
         main() {^}''');
     await computeSuggestions();
     expect(replacementOffset, completionOffset);

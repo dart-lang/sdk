@@ -19,7 +19,7 @@ class InvalidFactoryNameNotAClassTest extends DriverResolutionTest {
     await assertErrorsInCode(r'''
 int B;
 class A {
-  factory B() => null;
+  factory B() => throw 0;
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 27, 1),
@@ -29,7 +29,7 @@ class A {
   test_notEnclosingClassName() async {
     await assertErrorsInCode(r'''
 class A {
-  factory B() => null;
+  factory B() => throw 0;
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS, 20, 1),
@@ -39,7 +39,7 @@ class A {
   test_valid() async {
     await assertNoErrorsInCode(r'''
 class A {
-  factory A() => null;
+  factory A() => throw 0;
 }
 ''');
   }

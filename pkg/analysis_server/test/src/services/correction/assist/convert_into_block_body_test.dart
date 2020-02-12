@@ -73,13 +73,17 @@ main() {
   Future<void> test_constructor() async {
     await resolveTestUnit('''
 class A {
-  factory A() => null;
+  A.named();
+
+  factory A() => A.named();
 }
 ''');
     await assertHasAssistAt('A()', '''
 class A {
+  A.named();
+
   factory A() {
-    return null;
+    return A.named();
   }
 }
 ''');

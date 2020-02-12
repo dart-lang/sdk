@@ -140,7 +140,8 @@ external main() {
   Future<void> test_BUILT_IN_factory() async {
     addTestFile('''
 class A {
-  factory A() => null;
+  A.named();
+  factory A() => A.named();
 }
 main() {
   var factory = 42;
