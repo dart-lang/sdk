@@ -41,9 +41,14 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     await driver.waitForSetWithUri(uriStr);
   }
 
-  Future<void> addTestFile(String content, {int offset}) async {
+  Future<List<CompletionSuggestion>> addTestFile(String content,
+      {int offset}) async {
     driver.addTestFile(content, offset: offset);
     await getSuggestions();
+    // For sanity, ensure that there are no errors recorded for project files
+    // since that may lead to unexpected results.
+    _assertNoErrorsInProjectFiles();
+    return suggestions;
   }
 
   void expectNoSuggestion({
@@ -166,6 +171,18 @@ project:${toUri('$projectPath/lib')}
     expect(matches, hasLength(1));
     return matches.first;
   }
+
+  void _assertNoErrorsInProjectFiles() {
+    var errors = <AnalysisError>[];
+    driver.filesErrors.forEach((file, fileErrors) {
+      // Completion test files are likely to be incomplete and so may have
+      // errors
+      if (file != testFilePath) {
+        errors.addAll(fileErrors);
+      }
+    });
+    expect(errors, isEmpty);
+  }
 }
 
 @reflectiveTest
@@ -210,14 +227,6 @@ class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest {
   @override
   String get testFilePath => '$projectPath/lib/test.dart';
 
-  void assertNoErrorsInCode() {
-    var errors = <AnalysisError>[];
-    driver.filesErrors.forEach((_, fileErrors) {
-      errors.addAll(fileErrors);
-    });
-    expect(errors, isEmpty);
-  }
-
   Future<void> test_project_lib() async {
     await addProjectFile('lib/a.dart', r'''
 class A {}
@@ -235,8 +244,6 @@ void main() {
   ^
 }
 ''');
-
-    assertNoErrorsInCode();
 
     expectSuggestion(
         completion: 'A',
