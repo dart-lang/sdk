@@ -233,7 +233,7 @@ class _ClassVerifier {
         //  overriding method. The classNameNode is always wrong.
         concreteElement = library.toLegacyElementIfOptOut(concreteElement);
         CorrectOverrideHelper(
-          typeSystem: typeSystem,
+          library: library,
           thisMember: concreteElement,
         ).verify(
           superMember: interfaceElement,
@@ -272,7 +272,7 @@ class _ClassVerifier {
 
     var name = Name(libraryUri, member.name);
     var correctOverrideHelper = CorrectOverrideHelper(
-      typeSystem: typeSystem,
+      library: library,
       thisMember: member,
     );
 

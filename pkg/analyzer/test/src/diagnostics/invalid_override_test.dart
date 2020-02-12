@@ -505,6 +505,23 @@ class InvalidOverrideWithNnbdTest extends DriverResolutionTest {
   @override
   bool get typeToStringWithNullability => true;
 
+  test_method_parameter_functionTyped_optOut_extends_optIn() async {
+    newFile('/test/lib/a.dart', content: r'''
+abstract class A {
+  A catchError(void Function(Object) a);
+}
+''');
+
+    await assertNoErrorsInCode('''
+// @dart=2.6
+import 'a.dart';
+
+class B implements A {
+  A catchError(void Function(dynamic) a) => this;
+}
+''');
+  }
+
   test_method_parameter_interfaceOptOut_concreteOptIn() async {
     newFile('/test/lib/a.dart', content: r'''
 class A {
