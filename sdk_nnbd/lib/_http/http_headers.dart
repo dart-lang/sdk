@@ -83,7 +83,6 @@ class _HttpHeaders implements HttpHeaders {
     value = _validateValue(value);
     if (name == HttpHeaders.transferEncodingHeader && value == "chunked") {
       _chunkedTransferEncoding = false;
-      return;
     }
     List<String>? values = _headers[name];
     if (values != null) {

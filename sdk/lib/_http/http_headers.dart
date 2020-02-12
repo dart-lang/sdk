@@ -172,7 +172,7 @@ class _HttpHeaders implements HttpHeaders {
     if (chunkedTransferEncoding == _chunkedTransferEncoding) return;
     if (chunkedTransferEncoding) {
       List<String> values = _headers[HttpHeaders.transferEncodingHeader];
-      if ((values == null || values.last != "chunked")) {
+      if ((values == null || !values.contains("chunked"))) {
         // Headers does not specify chunked encoding - add it if set.
         _addValue(HttpHeaders.transferEncodingHeader, "chunked");
       }
