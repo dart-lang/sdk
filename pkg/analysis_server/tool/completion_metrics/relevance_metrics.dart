@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
@@ -62,6 +63,17 @@ class RelevanceData {
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
 
+  /// Initialize a newly created set of relevance data to reflect the data in
+  /// the given JSON encoded [content].
+  RelevanceData.fromJson(String content) {
+    _initializeFromJson(content);
+  }
+
+  /// Add the data from the given relevance [data] to this set of data.
+  void addDataFrom(RelevanceData data) {
+    _addToMap(byElementKind, data.byElementKind);
+  }
+
   /// Record that a reference to an element was found and that the distance
   /// between that reference and the declaration site is the given [distance].
   /// The [descriptor] is used to describe the kind of distance being measured.
@@ -88,6 +100,75 @@ class RelevanceData {
   void recordTypeMatch(String kind, bool matches) {
     var contextMap = byTypeMatch.putIfAbsent(kind, () => {});
     contextMap[matches] = (contextMap[matches] ?? 0) + 1;
+  }
+
+  /// Return a JSON encoded string representing the data that was collected.
+  String toJson() {
+    return json.encode({
+      'byElementKind': _encodeMap(byElementKind, (kind) => kind.name),
+      'byTokenType': _encodeMap(byTokenType, (type) => type.name),
+      'byTypeMatch': _encodeMap(byTypeMatch, (match) => match.toString()),
+      'byDistance': _encodeMap(byDistance, (distance) => distance.toString()),
+    });
+  }
+
+  /// Add the data in the [source] map to the [target] map.
+  void _addToMap<T>(
+      Map<String, Map<T, int>> target, Map<String, Map<T, int>> source) {
+    for (var outerEntry in source.entries) {
+      var innerTarget = target.putIfAbsent(outerEntry.key, () => {});
+      for (var innerEntry in outerEntry.value.entries) {
+        var innerKey = innerEntry.key;
+        innerTarget[innerKey] = (innerTarget[innerKey] ?? 0) + innerEntry.value;
+      }
+    }
+  }
+
+  Map<String, dynamic> _convert(dynamic value) {
+    if (value is Map<String, dynamic>) {
+      return value;
+    }
+    throw FormatException('Expected a JSON map.', value);
+  }
+
+  /// Decode the content of the [source] map into the [target] map, using the
+  /// [keyMapper] to map the inner keys from a string to a [T].
+  void _decodeMap<T>(Map<String, Map<T, int>> target,
+      Map<String, dynamic> source, T Function(String) keyMapper) {
+    for (var outerEntry in source.entries) {
+      var outerKey = outerEntry.key;
+      var innerMap = _convert(outerEntry.value);
+      for (var innerEntry in innerMap.entries) {
+        var innerKey = keyMapper(innerEntry.key);
+        var count = innerEntry.value as int;
+        target.putIfAbsent(outerKey, () => {})[innerKey] = count;
+      }
+    }
+  }
+
+  /// Decode the content of the [map] map into form that can be JSON encoded,
+  /// using the [keyMapper] to map the inner keys from a [T] to a string.
+  Map<String, Map<String, int>> _encodeMap<T>(
+      Map<String, Map<T, int>> map, String Function(T) keyMapper) {
+    return map.map((key, value) => MapEntry(
+        key, value.map((key, value) => MapEntry(keyMapper(key), value))));
+  }
+
+  /// Initialize the state of this object from the given JSON encoded [content].
+  void _initializeFromJson(String content) {
+    var tokenTypes = <String, TokenType>{};
+    for (var type in TokenType.all) {
+      tokenTypes[type.name] = type;
+    }
+    var contentObject = _convert(json.decode(content));
+    _decodeMap(byElementKind, _convert(contentObject['byElementKind']),
+        (key) => ElementKind.fromJson(null, null, key));
+    _decodeMap(byTokenType, _convert(contentObject['byTokenType']),
+        (key) => tokenTypes[key]);
+    _decodeMap(byTypeMatch, _convert(contentObject['byTypeMatch']),
+        (match) => match == 'true' ? true : false);
+    _decodeMap(byDistance, _convert(contentObject['byDistance']),
+        (distance) => int.parse(distance));
   }
 }
 
