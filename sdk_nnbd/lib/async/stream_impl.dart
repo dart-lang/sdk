@@ -407,8 +407,7 @@ class _BufferingStreamSubscription<T>
     _cancel();
     _state |= _STATE_WAIT_FOR_CANCEL;
     var cancelFuture = _cancelFuture;
-    if (cancelFuture != null &&
-        !identical(cancelFuture, Future._nullFuture)) {
+    if (cancelFuture != null && !identical(cancelFuture, Future._nullFuture)) {
       cancelFuture.whenComplete(sendDone);
     } else {
       sendDone();
@@ -814,11 +813,13 @@ class _AsBroadcastStream<T> extends Stream<T> {
       this._source,
       void onListenHandler(StreamSubscription<T> subscription)?,
       void onCancelHandler(StreamSubscription<T> subscription)?)
-      : _onListenHandler = onListenHandler == null ? null : Zone.current
-            .registerUnaryCallback<void, StreamSubscription<T>>(
+      : _onListenHandler = onListenHandler == null
+            ? null
+            : Zone.current.registerUnaryCallback<void, StreamSubscription<T>>(
                 onListenHandler),
-        _onCancelHandler = onCancelHandler == null ? null : Zone.current
-            .registerUnaryCallback<void, StreamSubscription<T>>(
+        _onCancelHandler = onCancelHandler == null
+            ? null
+            : Zone.current.registerUnaryCallback<void, StreamSubscription<T>>(
                 onCancelHandler),
         _zone = Zone.current {
     _controller = new _AsBroadcastStreamController<T>(_onListen, _onCancel);
@@ -845,8 +846,7 @@ class _AsBroadcastStream<T> extends Stream<T> {
     bool shutdown = (controller == null) || controller.isClosed;
     var cancelHandler = _onCancelHandler;
     if (cancelHandler != null) {
-      _zone.runUnary(
-          cancelHandler, new _BroadcastSubscriptionWrapper<T>(this));
+      _zone.runUnary(cancelHandler, new _BroadcastSubscriptionWrapper<T>(this));
     }
     if (shutdown) {
       var subscription = _subscription;
@@ -860,8 +860,7 @@ class _AsBroadcastStream<T> extends Stream<T> {
   void _onListen() {
     var listenHandler = _onListenHandler;
     if (listenHandler != null) {
-      _zone.runUnary(
-          listenHandler, new _BroadcastSubscriptionWrapper<T>(this));
+      _zone.runUnary(listenHandler, new _BroadcastSubscriptionWrapper<T>(this));
     }
   }
 
@@ -992,7 +991,9 @@ class _StreamIterator<T> implements StreamIterator<T> {
   bool _isPaused = false;
 
   _StreamIterator(final Stream<T> stream)
-      : _stateData = stream;
+      : _stateData = stream {
+    ArgumentError.checkNotNull(stream, "stream");
+  }
 
   T get current {
     if (_subscription != null && _isPaused) {
