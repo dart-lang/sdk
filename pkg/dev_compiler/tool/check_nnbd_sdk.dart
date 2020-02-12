@@ -14,6 +14,10 @@ import 'package:front_end/src/fasta/resolve_input_uri.dart';
 import 'patch_sdk.dart' as patch;
 
 void main(List<String> argv) {
+  if (Platform.isWindows) {
+    print('Golden file does not support Windows.  Skipping.');
+    return;
+  }
   var args = _parser.parse(argv);
   if (args['help'] as bool) {
     print('Apply patch file to the SDK and report analysis errors from the '
