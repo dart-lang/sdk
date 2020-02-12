@@ -511,8 +511,10 @@ dart_ci_sandbox_builder(
 )
 
 # vm|nnbd
-dart_vm_extra_builder("vm-kernel-nnbd-linux-debug-x64", category="vm|nnbd|d")
-dart_vm_extra_builder("vm-kernel-nnbd-linux-release-x64", category="vm|nnbd|r")
+dart_vm_extra_builder(
+    "vm-kernel-nnbd-linux-debug-x64", category="vm|nnbd|d", on_cq=True)
+dart_vm_extra_builder(
+    "vm-kernel-nnbd-linux-release-x64", category="vm|nnbd|r", on_cq=True)
 
 # vm|app-kernel
 dart_vm_extra_builder(
@@ -784,10 +786,7 @@ dart_ci_sandbox_builder("ddk-linux-release-firefox", category="ddc|fl")
 
 # misc
 dart_ci_sandbox_builder(
-    "gclient",
-    recipe="gclient",
-    category="misc|g",
-    on_cq=True)
+    "gclient", recipe="gclient", category="misc|g", on_cq=True)
 dart_ci_builder(
     "debianpackage-linux",
     category="misc|dp",
