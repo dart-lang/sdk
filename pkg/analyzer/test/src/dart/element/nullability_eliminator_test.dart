@@ -207,6 +207,20 @@ class NullabilityEliminatorTest with ElementsTypesMixin {
     );
   }
 
+  test_functionType_typeParameters_bound_other() {
+    var T = typeParameter('T', bound: intNone);
+    var U = typeParameter('U', bound: typeParameterTypeNone(T));
+
+    _verifyStr(
+      functionTypeNone(
+        typeFormals: [T, U],
+        returnType: typeParameterTypeNone(T),
+      ),
+      'T Function<T extends int, U extends T>()',
+      'T* Function<T extends int*, U extends T*>()*',
+    );
+  }
+
   test_functionType_typeParameters_bound_question() {
     var T = typeParameter('T', bound: intQuestion);
 

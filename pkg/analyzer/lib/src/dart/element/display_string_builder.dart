@@ -359,10 +359,13 @@ class ElementDisplayStringBuilder {
       if (type is TypeParameterType) {
         referencedTypeParameters.add(type.element);
       } else if (type is FunctionType) {
-        collectTypeParameters(type.returnType);
+        for (var typeParameter in type.typeFormals) {
+          collectTypeParameters(typeParameter.bound);
+        }
         for (var parameter in type.parameters) {
           collectTypeParameters(parameter.type);
         }
+        collectTypeParameters(type.returnType);
       } else if (type is InterfaceType) {
         for (var typeArgument in type.typeArguments) {
           collectTypeParameters(typeArgument);

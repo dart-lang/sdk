@@ -137,6 +137,7 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
     }
 
     var freshElements = List<TypeParameterElement>(elements.length);
+    var substitutionMap = <TypeParameterElement, TypeParameterType>{};
     for (var i = 0; i < elements.length; i++) {
       // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
@@ -145,8 +146,19 @@ class NullabilityEliminator extends DartTypeVisitor<DartType> {
       if (!element.isLegacyCovariant) {
         freshElement.variance = element.variance;
       }
-      freshElement.bound = freshBounds[i];
       freshElements[i] = freshElement;
+      substitutionMap[element] = freshElement.instantiate(
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+
+    var substitution = Substitution.fromMap(substitutionMap);
+    for (var i = 0; i < elements.length; i++) {
+      var bound = freshBounds[i];
+      if (bound != null) {
+        var freshElement = freshElements[i] as TypeParameterElementImpl;
+        freshElement.bound = substitution.substituteType(bound);
+      }
     }
 
     FunctionType newType = replaceTypeParameters(type, freshElements);
