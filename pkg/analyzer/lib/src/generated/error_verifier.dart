@@ -426,7 +426,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     try {
       _isInCatchClause = true;
       _checkForTypeAnnotationDeferredClass(node.exceptionType);
-      _checkForPotentiallyNullableType(node.exceptionType);
+      _checkForNullableTypeInCatchClause(node.exceptionType);
       super.visitCatchClause(node);
     } finally {
       _isInCatchClause = previousIsInCatchClause;
@@ -3941,6 +3941,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForNullableTypeInCatchClause(TypeAnnotation type) {
+    if (!_isNonNullableByDefault) {
+      return;
+    }
+
+    if (type == null) {
+      return;
+    }
+
+    if (_typeSystem.isPotentiallyNullable(type.type)) {
+      _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
+        type,
+      );
+    }
+  }
+
   /**
    * Verify that all classes of the given [onClause] are valid.
    *
@@ -4042,18 +4059,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
               : CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE,
           node,
           extraErrorArgs);
-    }
-  }
-
-  /**
-   * Verify that the [type] is not potentially nullable.
-   */
-  void _checkForPotentiallyNullableType(TypeAnnotation type) {
-    if (_options.experimentStatus.non_nullable &&
-        type?.type != null &&
-        _typeSystem.isPotentiallyNullable(type.type)) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.NULLABLE_TYPE_IN_CATCH_CLAUSE, type);
     }
   }
 

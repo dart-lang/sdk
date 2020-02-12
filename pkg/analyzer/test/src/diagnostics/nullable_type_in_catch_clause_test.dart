@@ -85,4 +85,16 @@ class A<B extends Object> {
 }
 ''');
   }
+
+  test_optOut() async {
+    await assertNoErrorsInCode('''
+// @dart = 2.7
+
+void f() {
+  try {
+  } on dynamic {
+  }
+}
+''');
+  }
 }
