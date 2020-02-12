@@ -210,10 +210,20 @@ class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest {
   @override
   String get testFilePath => '$projectPath/lib/test.dart';
 
+  void assertNoErrorsInCode() {
+    var errors = <AnalysisError>[];
+    driver.filesErrors.forEach((_, fileErrors) {
+      errors.addAll(fileErrors);
+    });
+    expect(errors, isEmpty);
+  }
+
   Future<void> test_project_lib() async {
     await addProjectFile('lib/a.dart', r'''
 class A {}
-enum E {}
+enum E {
+  e,
+}
 extension Ex on A {}
 mixin M { }
 typedef T = Function(Object);
@@ -225,6 +235,8 @@ void main() {
   ^
 }
 ''');
+
+    assertNoErrorsInCode();
 
     expectSuggestion(
         completion: 'A',

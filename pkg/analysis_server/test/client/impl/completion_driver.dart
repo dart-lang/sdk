@@ -68,6 +68,8 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
   final Map<String, CompletionResultsParams> idToSuggestions = {};
   final Map<String, ExistingImports> fileToExistingImports = {};
 
+  final Map<String, List<AnalysisError>> filesErrors = {};
+
   String completionId;
   int completionOffset;
   int replacementOffset;
@@ -197,8 +199,15 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
         notification,
       );
       fileToExistingImports[params.file] = params.imports;
+    } else if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
+      var decoded = AnalysisErrorsParams.fromNotification(notification);
+      filesErrors[decoded.file] = decoded.errors;
     } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
       throw Exception('server error: ${notification.toJson()}');
+    } else if (notification.event == SERVER_NOTIFICATION_CONNECTED) {
+      // Ignored.
+    } else {
+      print('Unhandled notififcation: ${notification.event}');
     }
   }
 
