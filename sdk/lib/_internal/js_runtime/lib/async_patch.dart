@@ -298,7 +298,7 @@ void _awaitOnObject(object, _WrappedAsyncBody bodyFunction) {
     _Future future = new _Future().._setValue(object);
     // We can skip the zone registration, since the bodyFunction is already
     // registered (see [_wrapJsFunctionForAsync]).
-    future._thenAwait(thenCallback, null);
+    future._thenAwait(thenCallback, errorCallback);
   }
 }
 

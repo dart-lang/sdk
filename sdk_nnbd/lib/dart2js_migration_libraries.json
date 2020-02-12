@@ -4,8 +4,8 @@
   "dart2js": {
     "libraries": {
       "async": {
-        "uri": "../../sdk/lib/async/async.dart",
-        "patches": "../../sdk/lib/_internal/js_runtime/lib/async_patch.dart"
+        "uri": "async/async.dart",
+        "patches": "_internal/js_runtime/lib/async_patch.dart"
       },
       "collection": {
         "uri": "collection/collection.dart",

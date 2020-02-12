@@ -12,6 +12,7 @@ ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/intercept
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1157|7|17|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|703|17|3|'NativeTypedArrayOfDouble.[]=' ('void Function(int, double)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int*, dynamic)*').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|724|17|3|'NativeTypedArrayOfInt.[]=' ('void Function(int, int)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int*, dynamic)*').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/async/async.dart|5764|17|2|'_ControllerStream.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/js/js.dart|351|17|3|'JsArray.[]=' ('void Function(dynamic, E)') isn't a valid override of 'JsObject.[]=' ('void Function(dynamic, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/math/math.dart|260|17|2|'Point.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/math/math.dart|399|17|2|'_RectangleBase.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
