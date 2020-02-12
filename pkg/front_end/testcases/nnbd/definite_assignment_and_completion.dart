@@ -12,4 +12,29 @@ int foo() {
 
 int bar() {}
 
+int baz(int x) {
+  return x;
+}
+
+int boz(int x) => x;
+
+class Class {
+  final int x;
+
+  const Class(int x) : this.x = x;
+
+  int foo() {
+    int x;
+    return x;
+  }
+
+  int bar() {}
+
+  int baz(int x) {
+    return x;
+  }
+
+  int boz(int x) => x;
+}
+
 main() {}

@@ -738,7 +738,7 @@ class InferenceVisitor
               node, messageDefaultListConstructorError, noLength);
         } else {
           inferrer.library.addProblem(messageDefaultListConstructorWarning,
-              node.fileOffset, noLength, inferrer.library.fileUri);
+              node.fileOffset, noLength, inferrer.helper.uri);
         }
       }
     }

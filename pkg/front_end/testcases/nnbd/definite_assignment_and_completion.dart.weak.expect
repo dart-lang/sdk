@@ -6,12 +6,37 @@ library /*isNonNullableByDefault*/;
 //   return x;
 //          ^
 //
+// pkg/front_end/testcases/nnbd/definite_assignment_and_completion.dart:28:12: Warning: Non-nullable variable 'x' is used before it's assigned.
+//     return x;
+//            ^
+//
 import self as self;
 import "dart:core" as core;
 
+class Class extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  const constructor •(core::int x) → self::Class
+    : self::Class::x = x, super core::Object::•()
+    ;
+  method foo() → core::int {
+    core::int x;
+    return x;
+  }
+  method bar() → core::int {}
+  method baz(core::int x) → core::int {
+    return x;
+  }
+  method boz(core::int x) → core::int
+    return x;
+}
 static method foo() → core::int {
   core::int x;
   return x;
 }
 static method bar() → core::int {}
+static method baz(core::int x) → core::int {
+  return x;
+}
+static method boz(core::int x) → core::int
+  return x;
 static method main() → dynamic {}

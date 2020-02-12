@@ -892,15 +892,14 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     typeInferrer?.assignedVariables?.finish();
 
     FunctionBuilder builder = member;
-    FunctionNode function = builder.member.function;
-    for (VariableDeclaration parameter in function.positionalParameters) {
-      typeInferrer?.flowAnalysis?.initialize(parameter);
+    if (extensionThis != null) {
+      typeInferrer?.flowAnalysis?.initialize(extensionThis);
     }
-    for (VariableDeclaration parameter in function.namedParameters) {
-      typeInferrer?.flowAnalysis?.initialize(parameter);
-    }
-
     if (formals?.parameters != null) {
+      for (int i = 0; i < formals.parameters.length; i++) {
+        FormalParameterBuilder parameter = formals.parameters[i];
+        typeInferrer?.flowAnalysis?.initialize(parameter.variable);
+      }
       for (int i = 0; i < formals.parameters.length; i++) {
         FormalParameterBuilder parameter = formals.parameters[i];
         Expression initializer = parameter.variable.initializer;
@@ -1368,6 +1367,13 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
     assert(builder == member);
     Constructor constructor = builder.actualConstructor;
+    List<FormalParameterBuilder> formals = builder.formals;
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder parameter = formals[i];
+        typeInferrer?.flowAnalysis?.initialize(parameter.variable);
+      }
+    }
     if (_initializers != null) {
       for (Initializer initializer in _initializers) {
         typeInferrer?.inferInitializer(this, initializer);
