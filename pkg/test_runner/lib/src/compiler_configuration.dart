@@ -956,6 +956,7 @@ class AnalyzerCompilerConfiguration extends CompilerConfiguration {
       "ffi_2",
       "language_2",
       "lib_2",
+      "service",
       "standalone_2"
     };
 
