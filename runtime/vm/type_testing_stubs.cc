@@ -111,11 +111,9 @@ RawCode* TypeTestingStubGenerator::DefaultCodeForType(
   }
 
   if (type.IsType() || type.IsTypeParameter()) {
-    // TODO(dartbug.com/38845): Add support for specialized TTS for
-    //  nullable and non-nullable types in NNBD strong mode.
+    // TODO(dartbug.com/39755): Add support for specialized NNBD TTS.
     const bool should_specialize =
-        !FLAG_precompiled_mode && lazy_specialize &&
-        (type.IsLegacy() || !FLAG_strong_non_nullable_type_checks);
+        !FLAG_precompiled_mode && lazy_specialize && type.IsLegacy();
     return should_specialize ? StubCode::LazySpecializeTypeTest().raw()
                              : StubCode::DefaultTypeTest().raw();
   }
