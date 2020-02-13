@@ -50,11 +50,11 @@
         "patches": "../../sdk/lib/_internal/js_runtime/lib/js_patch.dart"
       },
       "_js": {
-        "uri": "../../sdk/lib/js/_js.dart",
-        "patches": "../../sdk/lib/js/_js_client.dart"
+        "uri": "js/_js.dart",
+        "patches": "js/_js_client.dart"
       },
       "js_util": {
-        "uri": "../../sdk/lib/js_util/js_util.dart"
+        "uri": "js_util/js_util.dart"
       },
       "math": {
         "uri": "math/math.dart",
@@ -84,7 +84,7 @@
         "patches": "_internal/js_runtime/lib/internal_patch.dart"
       },
       "_js_helper": {
-        "uri": "../../sdk/lib/_internal/js_runtime/lib/js_helper.dart"
+        "uri": "_internal/js_runtime/lib/js_helper.dart"
       },
       "_rti": {
         "uri": "../../sdk/lib/_internal/js_runtime/lib/rti.dart"
@@ -96,7 +96,7 @@
         "uri": "_internal/js_runtime/lib/foreign_helper.dart"
       },
       "_js_names": {
-        "uri": "../../sdk/lib/_internal/js_runtime/lib/js_names.dart"
+        "uri": "_internal/js_runtime/lib/js_names.dart"
       },
       "_js_primitives": {
         "uri": "_internal/js_runtime/lib/js_primitives.dart"
