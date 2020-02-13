@@ -341,6 +341,12 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitPropertySet(PropertySet node) {
+    _annotateCallSite(node, node.interfaceTarget);
+    super.visitPropertySet(node);
+  }
+
+  @override
   visitDirectMethodInvocation(DirectMethodInvocation node) {
     _annotateCallSite(node, node.target);
     super.visitDirectMethodInvocation(node);
@@ -350,6 +356,12 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   visitDirectPropertyGet(DirectPropertyGet node) {
     _annotateCallSite(node, node.target);
     super.visitDirectPropertyGet(node);
+  }
+
+  @override
+  visitDirectPropertySet(DirectPropertySet node) {
+    _annotateCallSite(node, node.target);
+    super.visitDirectPropertySet(node);
   }
 
   @override
@@ -365,6 +377,12 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   }
 
   @override
+  visitSuperPropertySet(SuperPropertySet node) {
+    _annotateCallSite(node, node.interfaceTarget);
+    super.visitSuperPropertySet(node);
+  }
+
+  @override
   visitStaticInvocation(StaticInvocation node) {
     _annotateCallSite(node, node.target);
     super.visitStaticInvocation(node);
@@ -374,6 +392,12 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   visitStaticGet(StaticGet node) {
     _annotateCallSite(node, node.target);
     super.visitStaticGet(node);
+  }
+
+  @override
+  visitStaticSet(StaticSet node) {
+    _annotateCallSite(node, node.target);
+    super.visitStaticSet(node);
   }
 }
 

@@ -162,6 +162,12 @@ class _DirectInvocation extends _Invocation {
     if (selector.member.function != null) {
       typeChecksNeeded = selector.member.function.typeParameters
           .any((t) => t.isGenericCovariantImpl);
+    } else {
+      Field field = selector.member;
+      if (selector.callKind == CallKind.PropertySet) {
+        // TODO(dartbug.com/40615): Use TFA results to improve this criterion.
+        typeChecksNeeded = field.isGenericCovariantImpl;
+      }
     }
   }
 
