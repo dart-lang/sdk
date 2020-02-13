@@ -12,8 +12,8 @@
         "patches": "_internal/js_runtime/lib/collection_patch.dart"
       },
       "convert": {
-        "uri": "../../sdk/lib/convert/convert.dart",
-        "patches": "../../sdk/lib/_internal/js_runtime/lib/convert_patch.dart"
+        "uri": "convert/convert.dart",
+        "patches": "_internal/js_runtime/lib/convert_patch.dart"
       },
       "core": {
         "uri": "../../sdk/lib/core/core.dart",

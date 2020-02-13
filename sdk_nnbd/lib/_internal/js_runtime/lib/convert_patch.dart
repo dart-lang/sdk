@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 // Patch file for dart:convert library.
 
 import 'dart:_js_helper' show argumentErrorValue, patch;
@@ -28,7 +26,7 @@ import 'dart:_native_typed_data' show NativeUint8List;
 ///
 /// Throws [FormatException] if the input is not valid JSON text.
 @patch
-_parseJson(String source, reviver(key, value)) {
+_parseJson(String source, reviver(key, value)?) {
   if (source is! String) throw argumentErrorValue(source);
 
   var parsed;
@@ -36,7 +34,7 @@ _parseJson(String source, reviver(key, value)) {
     parsed = JS('=Object|JSExtendableArray|Null|bool|num|String',
         'JSON.parse(#)', source);
   } catch (e) {
-    throw new FormatException(JS('String', 'String(#)', e));
+    throw FormatException(JS<String>('String', 'String(#)', e));
   }
 
   if (reviver == null) {
@@ -49,20 +47,20 @@ _parseJson(String source, reviver(key, value)) {
 /// Walks the raw JavaScript value [json], replacing JavaScript Objects with
 /// Maps. [json] is expected to be freshly allocated so elements can be replaced
 /// in-place.
-_convertJsonToDart(json, reviver(key, value)) {
-  assert(reviver != null);
+_convertJsonToDart(json, reviver(Object? key, Object? value)) {
   walk(e) {
     // JavaScript null, string, number, bool are in the correct representation.
-    if (JS('bool', '# == null', e) || JS('bool', 'typeof # != "object"', e)) {
+    if (JS<bool>('bool', '# == null', e) ||
+        JS<bool>('bool', 'typeof # != "object"', e)) {
       return e;
     }
 
     // This test is needed to avoid identifying '{"__proto__":[]}' as an Array.
     // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
     // bug 621 below is fixed.
-    if (JS('bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
+    if (JS<bool>('bool', 'Object.getPrototypeOf(#) === Array.prototype', e)) {
       // In-place update of the elements since JS Array is a Dart List.
-      for (int i = 0; i < JS('int', '#.length', e); i++) {
+      for (int i = 0; i < JS<int>('int', '#.length', e); i++) {
         // Use JS indexing to avoid range checks.  We know this is the only
         // reference to the list, but the compiler will likely never be able to
         // tell that this instance of the list cannot have its length changed by
@@ -76,7 +74,7 @@ _convertJsonToDart(json, reviver(key, value)) {
 
     // Otherwise it is a plain object, so copy to a JSON map, so we process
     // and revive all entries recursively.
-    _JsonMap map = new _JsonMap(e);
+    _JsonMap map = _JsonMap(e);
     var processed = map._processed;
     List<String> keys = map._computeKeys();
     for (int i = 0; i < keys.length; i++) {
@@ -98,19 +96,20 @@ _convertJsonToDartLazy(object) {
   if (object == null) return null;
 
   // JavaScript string, number, bool already has the correct representation.
-  if (JS('bool', 'typeof # != "object"', object)) {
+  if (JS<bool>('bool', 'typeof # != "object"', object)) {
     return object;
   }
 
   // This test is needed to avoid identifying '{"__proto__":[]}' as an array.
   // TODO(sra): Replace this test with cheaper '#.constructor === Array' when
   // bug https://code.google.com/p/v8/issues/detail?id=621 is fixed.
-  if (JS('bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
-    return new _JsonMap(object);
+  if (JS<bool>(
+      'bool', 'Object.getPrototypeOf(#) !== Array.prototype', object)) {
+    return _JsonMap(object);
   }
 
   // Update the elements in place since JS arrays are Dart lists.
-  for (int i = 0; i < JS('int', '#.length', object); i++) {
+  for (int i = 0; i < JS<int>('int', '#.length', object); i++) {
     // Use JS indexing to avoid range checks.  We know this is the only
     // reference to the list, but the compiler will likely never be able to
     // tell that this instance of the list cannot have its length changed by
@@ -157,12 +156,12 @@ class _JsonMap extends MapBase<String, dynamic> {
 
   Iterable<String> get keys {
     if (_isUpgraded) return _upgradedMap.keys;
-    return new _JsonMapKeyIterable(this);
+    return _JsonMapKeyIterable(this);
   }
 
   Iterable get values {
     if (_isUpgraded) return _upgradedMap.values;
-    return new MappedIterable(_computeKeys(), (each) => this[each]);
+    return MappedIterable(_computeKeys(), (each) => this[each]);
   }
 
   operator []=(key, value) {
@@ -209,7 +208,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     return value;
   }
 
-  remove(Object key) {
+  remove(Object? key) {
     if (!_isUpgraded && !containsKey(key)) return null;
     return _upgrade().remove(key);
   }
@@ -249,7 +248,7 @@ class _JsonMap extends MapBase<String, dynamic> {
       // Check if invoking the callback function changed
       // the key set. If so, throw an exception.
       if (!identical(keys, _data)) {
-        throw new ConcurrentModificationError(this);
+        throw ConcurrentModificationError(this);
       }
     }
   }
@@ -270,7 +269,7 @@ class _JsonMap extends MapBase<String, dynamic> {
 
   List<String> _computeKeys() {
     assert(!_isUpgraded);
-    List keys = _data;
+    List? keys = _data;
     if (keys == null) {
       keys = _data = new JSArray<String>.typed(_getPropertyNames(_original));
     }
@@ -293,7 +292,7 @@ class _JsonMap extends MapBase<String, dynamic> {
     // safely force a concurrent modification error in case
     // someone is iterating over the map here.
     if (keys.isEmpty) {
-      keys.add(null);
+      keys.add("");
     } else {
       keys.clear();
     }
@@ -316,15 +315,15 @@ class _JsonMap extends MapBase<String, dynamic> {
   // Private JavaScript helper methods.
   // ------------------------------------------
 
-  static bool _hasProperty(object, String key) =>
-      JS('bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key);
+  static bool _hasProperty(object, String key) => JS<bool>(
+      'bool', 'Object.prototype.hasOwnProperty.call(#,#)', object, key);
   static _getProperty(object, String key) => JS('', '#[#]', object, key);
   static _setProperty(object, String key, value) =>
       JS('', '#[#]=#', object, key, value);
   static List _getPropertyNames(object) =>
       JS('JSExtendableArray', 'Object.keys(#)', object);
   static bool _isUnprocessed(object) =>
-      JS('bool', 'typeof(#)=="undefined"', object);
+      JS<bool>('bool', 'typeof(#)=="undefined"', object);
   static _newJavaScriptObject() => JS('=Object', 'Object.create(null)');
 }
 
@@ -352,14 +351,14 @@ class _JsonMapKeyIterable extends ListIterable<String> {
 
   /// Delegate to [parent.containsKey] to ensure the performance expected
   /// from [Map.keys.containsKey].
-  bool contains(Object key) => _parent.containsKey(key);
+  bool contains(Object? key) => _parent.containsKey(key);
 }
 
 @patch
 class JsonDecoder {
   @patch
-  StringConversionSink startChunkedConversion(Sink<Object> sink) {
-    return new _JsonDecoderSink(_reviver, sink);
+  StringConversionSink startChunkedConversion(Sink<Object?> sink) {
+    return _JsonDecoderSink(_reviver, sink);
   }
 }
 
@@ -368,17 +367,16 @@ class JsonDecoder {
 ///
 /// The sink only creates one object, but its input can be chunked.
 // TODO(floitsch): don't accumulate everything before starting to decode.
-class _JsonDecoderSink extends _StringSinkConversionSink {
-  final Function(Object key, Object value) _reviver;
-  final Sink<Object> _sink;
+class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
+  final Object? Function(Object? key, Object? value)? _reviver;
+  final Sink<Object?> _sink;
 
-  _JsonDecoderSink(this._reviver, this._sink) : super(new StringBuffer(''));
+  _JsonDecoderSink(this._reviver, this._sink) : super(StringBuffer(''));
 
   void close() {
     super.close();
-    StringBuffer buffer = _stringSink;
-    String accumulated = buffer.toString();
-    buffer.clear();
+    String accumulated = _stringSink.toString();
+    _stringSink.clear();
     Object decoded = _parseJson(accumulated, _reviver);
     _sink.add(decoded);
     _sink.close();
@@ -393,20 +391,21 @@ class Utf8Decoder {
   }
 
   @patch
-  static String _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int end) {
+  static String? _convertIntercepted(
+      bool allowMalformed, List<int> codeUnits, int start, int? end) {
     // Test `codeUnits is NativeUint8List`. Dart's NativeUint8List is
     // implemented by JavaScript's Uint8Array.
-    if (JS('bool', '# instanceof Uint8Array', codeUnits)) {
+    if (JS<bool>('bool', '# instanceof Uint8Array', codeUnits)) {
       // JS 'cast' to avoid a downcast equivalent to the is-check we hand-coded.
-      NativeUint8List casted = JS('NativeUint8List', '#', codeUnits);
+      NativeUint8List casted =
+          JS<NativeUint8List>('NativeUint8List', '#', codeUnits);
       return _convertInterceptedUint8List(allowMalformed, casted, start, end);
     }
     return null; // This call was not intercepted.
   }
 
-  static String _convertInterceptedUint8List(
-      bool allowMalformed, NativeUint8List codeUnits, int start, int end) {
+  static String? _convertInterceptedUint8List(
+      bool allowMalformed, NativeUint8List codeUnits, int start, int? end) {
     if (allowMalformed) {
       // TextDecoder with option {fatal: false} does not produce the same result
       // as [Utf8Decoder]. It disagrees on the number of `U+FFFD` (REPLACEMENT
@@ -433,21 +432,23 @@ class Utf8Decoder {
       return _useTextDecoderChecked(decoder, codeUnits);
     }
 
-    return _useTextDecoderChecked(decoder,
-        JS('NativeUint8List', '#.subarray(#, #)', codeUnits, start, end));
+    return _useTextDecoderChecked(
+        decoder,
+        JS<NativeUint8List>(
+            'NativeUint8List', '#.subarray(#, #)', codeUnits, start, end));
   }
 
-  static String _useTextDecoderChecked(decoder, NativeUint8List codeUnits) {
+  static String? _useTextDecoderChecked(decoder, NativeUint8List codeUnits) {
     if (_unsafe(codeUnits)) return null;
     return _useTextDecoderUnchecked(decoder, codeUnits);
   }
 
-  static String _useTextDecoderUnchecked(decoder, NativeUint8List codeUnits) {
+  static String? _useTextDecoderUnchecked(decoder, NativeUint8List codeUnits) {
     // If the input is malformed, catch the exception and return `null` to fall
     // back on unintercepted decoder. The fallback will either succeed in
     // decoding, or report the problem better than TextDecoder.
     try {
-      return JS('String', '#.decode(#)', decoder, codeUnits);
+      return JS<String>('String', '#.decode(#)', decoder, codeUnits);
     } catch (e) {}
     return null;
   }
@@ -477,10 +478,9 @@ class Utf8Decoder {
     return false;
   }
 
-  // TextDecoder is not defined on some browsers and on the stand-alone d8 and
-  // jsshell engines. Use a lazy initializer to do feature detection once.
-  static final _decoder = _makeDecoder();
-  static _makeDecoder() {
+  /// TextDecoder is not defined on some browsers and on the stand-alone d8 and
+  /// jsshell engines. Use a lazy initializer to do feature detection once.
+  static final _decoder = () {
     try {
       // Use `{fatal: true}`. 'fatal' does not correspond exactly to
       // `!allowMalformed`: TextDecoder rejects unpaired surrogates which
@@ -490,7 +490,7 @@ class Utf8Decoder {
       return JS('', 'new TextDecoder("utf-8", {fatal: true})');
     } catch (e) {}
     return null;
-  }
+  }();
 }
 
 @patch
