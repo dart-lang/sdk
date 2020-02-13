@@ -131,8 +131,7 @@ class HttpAnalysisServer {
       List<String> updateValues = request.headers[HttpHeaders.upgradeHeader];
       if (request.method == 'GET') {
         await _handleGetRequest(request);
-      } else if (updateValues != null &&
-          updateValues.indexOf('websocket') >= 0) {
+      } else if (updateValues != null && updateValues.contains('websocket')) {
         // We no longer support serving analysis server communications over
         // WebSocket connections.
         HttpResponse response = request.response;

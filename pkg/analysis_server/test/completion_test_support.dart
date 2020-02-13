@@ -23,7 +23,7 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
   void assertHasCompletion(String completion) {
     int expectedOffset = completion.indexOf(CURSOR_MARKER);
     if (expectedOffset >= 0) {
-      if (completion.indexOf(CURSOR_MARKER, expectedOffset + 1) >= 0) {
+      if (completion.contains(CURSOR_MARKER, expectedOffset + 1)) {
         fail(
             "Invalid completion, contains multiple cursor positions: '$completion'");
       }

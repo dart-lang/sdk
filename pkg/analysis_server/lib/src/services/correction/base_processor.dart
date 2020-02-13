@@ -776,7 +776,7 @@ abstract class BaseProcessor {
             : (fromDouble ? "'" : '"');
         int quoteLength = literal.isMultiline ? 3 : 1;
         String lexeme = literal.literal.lexeme;
-        if (lexeme.indexOf(newQuote) < 0) {
+        if (!lexeme.contains(newQuote)) {
           var changeBuilder = _newDartChangeBuilder();
           await changeBuilder.addFileEdit(file, (DartFileEditBuilder builder) {
             builder.addSimpleReplacement(
@@ -801,7 +801,7 @@ abstract class BaseProcessor {
           InterpolationElement element = elements[i];
           if (element is InterpolationString) {
             String lexeme = element.contents.lexeme;
-            if (lexeme.indexOf(newQuote) >= 0) {
+            if (lexeme.contains(newQuote)) {
               return null;
             }
           }

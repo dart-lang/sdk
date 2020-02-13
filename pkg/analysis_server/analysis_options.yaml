@@ -9,7 +9,6 @@ analyzer:
   errors:
     # Increase the severity of the unused_import hint.
     unused_import: warning
-    prefer_contains: ignore
     # TODO(srawlins): At the time of writing, 2400 violations in lib/. The fix
     # is mechanical, via `dartfmt --fix-doc-comments`, but not worth the churn
     # today.

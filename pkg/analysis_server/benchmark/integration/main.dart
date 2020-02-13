@@ -154,7 +154,7 @@ PerfArgs parseArgs(List<String> rawArgs) {
   for (String pair in args[MAP_OPTION]) {
     if (pair is String) {
       int index = pair.indexOf(',');
-      if (index != -1 && pair.indexOf(',', index + 1) == -1) {
+      if (index != -1 && !pair.contains(',', index + 1)) {
         String oldSrcPrefix = _withTrailingSeparator(pair.substring(0, index));
         String newSrcPrefix = _withTrailingSeparator(pair.substring(index + 1));
         if (Directory(newSrcPrefix).existsSync()) {

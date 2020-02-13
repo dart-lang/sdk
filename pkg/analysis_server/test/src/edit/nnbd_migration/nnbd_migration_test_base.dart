@@ -30,6 +30,44 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         includedRoot: includedRoot, removeViaComments: removeViaComments);
   }
 
+  /// Uses the InfoBuilder to build information for a single test file.
+  ///
+  /// Asserts that [originalContent] is migrated to [migratedContent]. Returns
+  /// the singular UnitInfo which was built.
+  Future<UnitInfo> buildInfoForSingleTestFile(String originalContent,
+      {@required String migratedContent, bool removeViaComments = true}) async {
+    addTestFile(originalContent);
+    await buildInfo(removeViaComments: removeViaComments);
+    // Ignore info for dart:core.
+    var filteredInfos = [
+      for (var info in infos) if (!info.path.contains('core.dart')) info
+    ];
+    expect(filteredInfos, hasLength(1));
+    UnitInfo unit = filteredInfos[0];
+    expect(unit.path, testFile);
+    expect(unit.content, migratedContent);
+    return unit;
+  }
+
+  /// Uses the InfoBuilder to build information for test files.
+  ///
+  /// Returns
+  /// the singular UnitInfo which was built.
+  Future<List<UnitInfo>> buildInfoForTestFiles(Map<String, String> files,
+      {String includedRoot}) async {
+    var testPaths = <String>[];
+    files.forEach((String path, String content) {
+      newFile(path, content: content);
+      testPaths.add(path);
+    });
+    await _buildMigrationInfo(testPaths, includedRoot: includedRoot);
+    // Ignore info for dart:core.
+    var filteredInfos = [
+      for (var info in infos) if (!info.path.contains('core.dart')) info
+    ];
+    return filteredInfos;
+  }
+
   /// Uses the InfoBuilder to build information for files at [testPaths], which
   /// should all share a common parent directory, [includedRoot].
   Future<void> _buildMigrationInfo(List<String> testPaths,
@@ -60,43 +98,5 @@ class NnbdMigrationTestBase extends AbstractAnalysisTest {
         resourceProvider, includedRoot, info, listener,
         explainNonNullableTypes: true);
     infos = await builder.explainMigration();
-  }
-
-  /// Uses the InfoBuilder to build information for test files.
-  ///
-  /// Returns
-  /// the singular UnitInfo which was built.
-  Future<List<UnitInfo>> buildInfoForTestFiles(Map<String, String> files,
-      {String includedRoot}) async {
-    var testPaths = <String>[];
-    files.forEach((String path, String content) {
-      newFile(path, content: content);
-      testPaths.add(path);
-    });
-    await _buildMigrationInfo(testPaths, includedRoot: includedRoot);
-    // Ignore info for dart:core.
-    var filteredInfos = [
-      for (var info in infos) if (info.path.indexOf('core.dart') == -1) info
-    ];
-    return filteredInfos;
-  }
-
-  /// Uses the InfoBuilder to build information for a single test file.
-  ///
-  /// Asserts that [originalContent] is migrated to [migratedContent]. Returns
-  /// the singular UnitInfo which was built.
-  Future<UnitInfo> buildInfoForSingleTestFile(String originalContent,
-      {@required String migratedContent, bool removeViaComments = true}) async {
-    addTestFile(originalContent);
-    await buildInfo(removeViaComments: removeViaComments);
-    // Ignore info for dart:core.
-    var filteredInfos = [
-      for (var info in infos) if (info.path.indexOf('core.dart') == -1) info
-    ];
-    expect(filteredInfos, hasLength(1));
-    UnitInfo unit = filteredInfos[0];
-    expect(unit.path, testFile);
-    expect(unit.content, migratedContent);
-    return unit;
   }
 }
