@@ -50,7 +50,6 @@ class SelectorMap {
   void SetSelectorProperties(int32_t sid,
                              bool on_null_interface,
                              bool requires_args_descriptor);
-  void SetSelectorOffset(int32_t sid, int32_t offset);
 
   int32_t NumIds() const { return selectors_.length(); }
 

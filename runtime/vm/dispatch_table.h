@@ -49,6 +49,24 @@ class DispatchTable {
 #endif
   }
 
+  // The largest offset that can use a more compact instruction sequence.
+  static intptr_t LargestSmallOffset() {
+#if defined(TARGET_ARCH_X64)
+    // Origin + Max positive byte offset / 8
+    return 31;
+#elif defined(TARGET_ARCH_ARM)
+    // Origin + Max positive load offset / 4
+    return 2046;
+#elif defined(TARGET_ARCH_ARM64)
+    // Origin + Max consecutive add immediate value
+    return 8192;
+#else
+    // No AOT on IA32
+    UNREACHABLE();
+    return 0;
+#endif
+  }
+
   // Dispatch table array pointer to put into the dispatch table register.
   uword* ArrayOrigin() const { return &array()[OriginElement()]; }
 
