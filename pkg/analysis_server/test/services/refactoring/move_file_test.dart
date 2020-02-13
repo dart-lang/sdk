@@ -445,9 +445,7 @@ part of 'a.dart';
         expectedMessage: expectedMessage);
   }
 
-  /**
-   * Checks that all conditions are OK.
-   */
+  /// Checks that all conditions are OK.
   Future _assertSuccessfulRefactoring() async {
     await assertRefactoringConditionsOK();
     refactoringChange = await refactoring.createChange();

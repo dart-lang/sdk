@@ -29,10 +29,8 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
   List<NavigationTarget> testTargets;
   NavigationTarget testTarget;
 
-  /**
-   * Validates that there is a target in [testTargetIndexes] with [file],
-   * at [offset] and with the given [length].
-   */
+  /// Validates that there is a target in [testTargetIndexes] with [file],
+  /// at [offset] and with the given [length].
   void assertHasFileTarget(String file, int offset, int length) {
     for (NavigationTarget target in testTargets) {
       if (targetFiles[target.fileIndex] == file &&
@@ -54,11 +52,9 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     assertHasTarget(targetSearch, targetLength);
   }
 
-  /**
-   * Validates that there is a region at the offset of [search] in [testFile].
-   * If [length] is not specified explicitly, then length of an identifier
-   * from [search] is used.
-   */
+  /// Validates that there is a region at the offset of [search] in [testFile].
+  /// If [length] is not specified explicitly, then length of an identifier
+  /// from [search] is used.
   void assertHasRegion(String search, [int length = -1]) {
     int offset = findOffset(search);
     if (length == -1) {
@@ -67,10 +63,8 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     findRegion(offset, length, true);
   }
 
-  /**
-   * Validates that there is a region at the offset of [search] in [testFile]
-   * with the given [length] or the length of [search].
-   */
+  /// Validates that there is a region at the offset of [search] in [testFile]
+  /// with the given [length] or the length of [search].
   void assertHasRegionString(String search, [int length = -1]) {
     int offset = findOffset(search);
     if (length == -1) {
@@ -79,20 +73,16 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     findRegion(offset, length, true);
   }
 
-  /**
-   * Validates that there is an identifier region at [regionSearch] with target
-   * at [targetSearch].
-   */
+  /// Validates that there is an identifier region at [regionSearch] with target
+  /// at [targetSearch].
   void assertHasRegionTarget(String regionSearch, String targetSearch) {
     assertHasRegion(regionSearch);
     assertHasTarget(targetSearch);
   }
 
-  /**
-   * Validates that there is a target in [testTargets]  with [testFile], at the
-   * offset of [search] in [testFile], and with the given [length] or the length
-   * of an leading identifier in [search].
-   */
+  /// Validates that there is a target in [testTargets]  with [testFile], at the
+  /// offset of [search] in [testFile], and with the given [length] or the
+  /// length of an leading identifier in [search].
   void assertHasTarget(String search, [int length = -1]) {
     int offset = findOffset(search);
     if (length == -1) {
@@ -101,34 +91,26 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     assertHasFileTarget(testFile, offset, length);
   }
 
-  /**
-   * Validates that there is a target in [testTargets]  with [testFile], at the
-   * offset of [str] in [testFile], and with the length of  [str].
-   */
+  /// Validates that there is a target in [testTargets]  with [testFile], at the
+  /// offset of [str] in [testFile], and with the length of  [str].
   void assertHasTargetString(String str) {
     assertHasTarget(str, str.length);
   }
 
-  /**
-   * Validates that there is no a region at [search] and with the given
-   * [length].
-   */
+  /// Validates that there is no a region at [search] and with the given
+  /// [length].
   void assertNoRegion(String search, int length) {
     int offset = findOffset(search);
     findRegion(offset, length, false);
   }
 
-  /**
-   * Validates that there is no a region at [search] with any length.
-   */
+  /// Validates that there is no a region at [search] with any length.
   void assertNoRegionAt(String search) {
     int offset = findOffset(search);
     findRegion(offset, -1, false);
   }
 
-  /**
-   * Validates that there is no a region for [search] string.
-   */
+  /// Validates that there is no a region for [search] string.
   void assertNoRegionString(String search) {
     int offset = findOffset(search);
     int length = search.length;
@@ -146,16 +128,14 @@ class AbstractNavigationTest extends AbstractAnalysisTest {
     }
   }
 
-  /**
-   * Finds the navigation region with the given [offset] and [length].
-   * If [length] is `-1`, then it is ignored.
-   *
-   * If [exists] is `true`, then fails if such region does not exist.
-   * Otherwise remembers this it into [testRegion].
-   * Also fills [testTargets] with its targets.
-   *
-   * If [exists] is `false`, then fails if such region exists.
-   */
+  /// Finds the navigation region with the given [offset] and [length].
+  /// If [length] is `-1`, then it is ignored.
+  ///
+  /// If [exists] is `true`, then fails if such region does not exist.
+  /// Otherwise remembers this it into [testRegion].
+  /// Also fills [testTargets] with its targets.
+  ///
+  /// If [exists] is `false`, then fails if such region exists.
   void findRegion(int offset, int length, bool exists) {
     for (NavigationRegion region in regions) {
       if (region.offset == offset &&

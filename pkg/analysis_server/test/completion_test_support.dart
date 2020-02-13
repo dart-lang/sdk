@@ -10,9 +10,7 @@ import 'package:test/test.dart';
 
 import 'domain_completion_test.dart';
 
-/**
- * A base class for classes containing completion tests.
- */
+/// A base class for classes containing completion tests.
 class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
   static const String CURSOR_MARKER = '!';
 
@@ -64,10 +62,8 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
     }
   }
 
-  /**
-   * Discard any results that do not start with the characters the user has
-   * "already typed".
-   */
+  /// Discard any results that do not start with the characters the user has
+  /// "already typed".
   void filterResults(String content) {
     String charsAlreadyTyped =
         content.substring(replacementOffset, completionOffset).toLowerCase();
@@ -103,9 +99,7 @@ class CompletionTestCase extends CompletionDomainHandlerListTokenDetailsTest {
   }
 }
 
-/**
- * A specification of the completion results expected at a given location.
- */
+/// A specification of the completion results expected at a given location.
 class LocationSpec {
   String id;
   int testLocation = -1;
@@ -115,22 +109,21 @@ class LocationSpec {
 
   LocationSpec(this.id);
 
-  /**
-   * Parse a set of tests from the given `originalSource`. Return a list of the
-   * specifications that were parsed.
-   *
-   * The source string has test locations embedded in it, which are identified
-   * by '!X' where X is a single character. Each X is matched to positive or
-   * negative results in the array of [validationStrings]. Validation strings
-   * contain the name of a prediction with a two character prefix. The first
-   * character of the prefix corresponds to an X in the [originalSource]. The
-   * second character is either a '+' or a '-' indicating whether the string is
-   * a positive or negative result. If logical not is needed in the source it
-   * can be represented by '!!'.
-   *
-   * The [originalSource] is the source for a test that contains test locations.
-   * The [validationStrings] are the positive and negative predictions.
-   */
+  /// Parse a set of tests from the given `originalSource`. Return a list of the
+  /// specifications that were parsed.
+  ///
+  /// The source string has test locations embedded in it, which are identified
+  /// by '!X' where X is a single character. Each X is matched to positive or
+  /// negative results in the array of [validationStrings]. Validation strings
+  /// contain the name of a prediction with a two character prefix. The first
+  /// character of the prefix corresponds to an X in the [originalSource]. The
+  /// second character is either a '+' or a '-' indicating whether the string is
+  /// a positive or negative result. If logical not is needed in the source it
+  /// can be represented by '!!'.
+  ///
+  /// The [originalSource] is the source for a test that contains test
+  /// locations. The [validationStrings] are the positive and negative
+  /// predictions.
   static List<LocationSpec> from(
       String originalSource, List<String> validationStrings) {
     Map<String, LocationSpec> tests = HashMap<String, LocationSpec>();

@@ -123,10 +123,8 @@ class LspServerClient {
     _process.kill();
   }
 
-  /**
-   * Find the root directory of the analysis_server package by proceeding
-   * upward to the 'test' dir, and then going up one more directory.
-   */
+  /// Find the root directory of the analysis_server package by proceeding
+  /// upward to the 'test' dir, and then going up one more directory.
   String findRoot(String pathname) {
     while (!['benchmark', 'test'].contains(basename(pathname))) {
       String parent = dirname(pathname);

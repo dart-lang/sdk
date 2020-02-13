@@ -309,25 +309,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   final startOfDocPos = Position(0, 0);
   final startOfDocRange = Range(Position(0, 0), Position(0, 0));
 
-  /**
-   * A stream of [NotificationMessage]s from the server that may be errors.
-   */
+  /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
   }
 
-  /**
-   * A stream of [NotificationMessage]s from the server.
-   */
+  /// A stream of [NotificationMessage]s from the server.
   Stream<NotificationMessage> get notificationsFromServer {
     return serverToClient
         .where((m) => m is NotificationMessage)
         .cast<NotificationMessage>();
   }
 
-  /**
-   * A stream of [RequestMessage]s from the server.
-   */
+  /// A stream of [RequestMessage]s from the server.
   Stream<RequestMessage> get requestsFromServer {
     return serverToClient
         .where((m) => m is RequestMessage)

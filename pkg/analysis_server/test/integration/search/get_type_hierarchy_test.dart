@@ -19,9 +19,7 @@ void main() {
 
 @reflectiveTest
 class GetTypeHierarchyTest extends AbstractAnalysisServerIntegrationTest {
-  /**
-   * Pathname of the main file to run tests in.
-   */
+  /// Pathname of the main file to run tests in.
   String pathname;
 
   Future getTypeHierarchy_badTarget() {
@@ -229,30 +227,20 @@ class Pivot /* target */ extends Base2 {}
   }
 }
 
-/**
- * Results of a getTypeHierarchy request, processed for easier testing.
- */
+/// Results of a getTypeHierarchy request, processed for easier testing.
 class HierarchyResults {
-  /**
-   * The list of hierarchy items from the result.
-   */
+  /// The list of hierarchy items from the result.
   List<TypeHierarchyItem> items;
 
-  /**
-   * The first hierarchy item from the result, which represents the pivot
-   * class.
-   */
+  /// The first hierarchy item from the result, which represents the pivot
+  /// class.
   TypeHierarchyItem pivot;
 
-  /**
-   * A map from element name to item index.
-   */
+  /// A map from element name to item index.
   Map<String, int> nameToIndex;
 
-  /**
-   * Create a [HierarchyResults] object based on the result from a
-   * getTypeHierarchy request.
-   */
+  /// Create a [HierarchyResults] object based on the result from a
+  /// getTypeHierarchy request.
   HierarchyResults(this.items) {
     pivot = items[0];
     nameToIndex = <String, int>{};
@@ -261,9 +249,7 @@ class HierarchyResults {
     }
   }
 
-  /**
-   * Get an item by class name.
-   */
+  /// Get an item by class name.
   TypeHierarchyItem getItem(String name) {
     if (nameToIndex.containsKey(name)) {
       return items[nameToIndex[name]];

@@ -22,15 +22,11 @@ void main() {
 @reflectiveTest
 class AnalysisGetImportElementsIntegrationTest
     extends AbstractAnalysisServerIntegrationTest {
-  /**
-   * Pathname of the file containing Dart code.
-   */
+  /// Pathname of the file containing Dart code.
   String pathname;
 
-  /**
-   * Check that an edit.importElements request with the given list of [elements]
-   * produces the [expected] list of edits.
-   */
+  /// Check that an edit.importElements request with the given list of
+  /// [elements] produces the [expected] list of edits.
   Future<void> checkEdits(
       List<ImportedElements> elements, List<SourceEdit> expected,
       {String expectedFile}) async {
@@ -71,10 +67,8 @@ class AnalysisGetImportElementsIntegrationTest
     }
   }
 
-  /**
-   * Check that an edit.importElements request with the given list of [elements]
-   * produces no edits.
-   */
+  /// Check that an edit.importElements request with the given list of
+  /// [elements] produces no edits.
   Future<void> checkNoEdits(List<ImportedElements> elements) async {
     EditImportElementsResult result =
         await sendEditImportElements(pathname, <ImportedElements>[]);

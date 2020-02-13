@@ -2,12 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This test verifies that if reanalysis is performed while reanalysis is in
- * progress, no problems occur.
- *
- * See dartbug.com/21448.
- */
+/// This test verifies that if reanalysis is performed while reanalysis is in
+/// progress, no problems occur.
+///
+/// See dartbug.com/21448.
 import 'dart:async';
 
 import 'package:test/test.dart';

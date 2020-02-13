@@ -337,9 +337,7 @@ main(A a) {
   }
 }
 
-/**
- * A helper to test 'analysis.*' requests.
- */
+/// A helper to test 'analysis.*' requests.
 class AnalysisTestHelper with ResourceProviderMixin {
   MockServerChannel serverChannel;
   AnalysisServer server;
@@ -387,9 +385,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
     });
   }
 
-  /**
-   * Returns a [Future] that completes when the server's analysis is complete.
-   */
+  /// Returns a [Future] that completes when the server's analysis is complete.
   Future get onAnalysisComplete {
     return server.onAnalysisComplete;
   }
@@ -416,9 +412,7 @@ class AnalysisTestHelper with ResourceProviderMixin {
     addAnalysisSubscription(AnalysisService.NAVIGATION, file);
   }
 
-  /**
-   * Creates an empty project `/project`.
-   */
+  /// Creates an empty project `/project`.
   void createEmptyProject() {
     newFolder(projectPath);
     Request request =
@@ -426,10 +420,8 @@ class AnalysisTestHelper with ResourceProviderMixin {
     handleSuccessfulRequest(request);
   }
 
-  /**
-   * Creates a project with a single Dart file `/project/bin/test.dart` with
-   * the given [code].
-   */
+  /// Creates a project with a single Dart file `/project/bin/test.dart` with
+  /// the given [code].
   void createSingleFileProject(code) {
     testCode = _getCodeString(code);
     newFolder(projectPath);
@@ -439,20 +431,16 @@ class AnalysisTestHelper with ResourceProviderMixin {
     handleSuccessfulRequest(request);
   }
 
-  /**
-   * Returns the offset of [search] in [testCode].
-   * Fails if not found.
-   */
+  /// Returns the offset of [search] in [testCode].
+  /// Fails if not found.
   int findOffset(String search) {
     int offset = testCode.indexOf(search);
     expect(offset, isNot(-1));
     return offset;
   }
 
-  /**
-   * Returns [AnalysisError]s recorded for the given [file].
-   * May be empty, but not `null`.
-   */
+  /// Returns [AnalysisError]s recorded for the given [file].
+  /// May be empty, but not `null`.
   List<AnalysisError> getErrors(String file) {
     List<AnalysisError> errors = filesErrors[file];
     if (errors != null) {
@@ -461,10 +449,8 @@ class AnalysisTestHelper with ResourceProviderMixin {
     return <AnalysisError>[];
   }
 
-  /**
-   * Returns highlights recorded for the given [file].
-   * May be empty, but not `null`.
-   */
+  /// Returns highlights recorded for the given [file].
+  /// May be empty, but not `null`.
   List<HighlightRegion> getHighlights(String file) {
     List<HighlightRegion> highlights = filesHighlights[file];
     if (highlights != null) {
@@ -473,10 +459,8 @@ class AnalysisTestHelper with ResourceProviderMixin {
     return [];
   }
 
-  /**
-   * Returns navigation regions recorded for the given [file].
-   * May be empty, but not `null`.
-   */
+  /// Returns navigation regions recorded for the given [file].
+  /// May be empty, but not `null`.
   List<NavigationRegion> getNavigation(String file) {
     List<NavigationRegion> navigation = filesNavigation[file];
     if (navigation != null) {
@@ -485,50 +469,38 @@ class AnalysisTestHelper with ResourceProviderMixin {
     return [];
   }
 
-  /**
-   * Returns [AnalysisError]s recorded for the [testFile].
-   * May be empty, but not `null`.
-   */
+  /// Returns [AnalysisError]s recorded for the [testFile].
+  /// May be empty, but not `null`.
   List<AnalysisError> getTestErrors() {
     return getErrors(testFile);
   }
 
-  /**
-   * Returns highlights recorded for the given [testFile].
-   * May be empty, but not `null`.
-   */
+  /// Returns highlights recorded for the given [testFile].
+  /// May be empty, but not `null`.
   List<HighlightRegion> getTestHighlights() {
     return getHighlights(testFile);
   }
 
-  /**
-   * Returns navigation information recorded for the given [testFile].
-   * May be empty, but not `null`.
-   */
+  /// Returns navigation information recorded for the given [testFile].
+  /// May be empty, but not `null`.
   List<NavigationRegion> getTestNavigation() {
     return getNavigation(testFile);
   }
 
-  /**
-   * Validates that the given [request] is handled successfully.
-   */
+  /// Validates that the given [request] is handled successfully.
   void handleSuccessfulRequest(Request request) {
     Response response = handler.handleRequest(request);
     expect(response, isResponseSuccess('0'));
   }
 
-  /**
-   * Send an `updateContent` request for [testFile].
-   */
+  /// Send an `updateContent` request for [testFile].
   void sendContentChange(dynamic contentChange) {
     Request request =
         AnalysisUpdateContentParams({testFile: contentChange}).toRequest('0');
     handleSuccessfulRequest(request);
   }
 
-  /**
-   * Stops the associated server.
-   */
+  /// Stops the associated server.
   void stopServer() {
     server.done();
   }

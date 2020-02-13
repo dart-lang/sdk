@@ -14,18 +14,12 @@ void main() {
   builder.buildAll();
 }
 
-/**
- * A builder that builds the completion tests.
- */
+/// A builder that builds the completion tests.
 class CompletionTestBuilder {
-  /**
-   * Number of tests that have been built that are expected to pass.
-   */
+  /// Number of tests that have been built that are expected to pass.
   int expectedPassCount = 0;
 
-  /**
-   * Number of tests that have been built that are expected to fail.
-   */
+  /// Number of tests that have been built that are expected to fail.
   int expectedFailCount = 0;
 
   void buildAll() {
@@ -2401,26 +2395,24 @@ class A<Z extends X> {
         <String>['2+B']);
   }
 
-  /**
-   * Generate a set of completion tests based on the given [originalSource].
-   *
-   * The source string has completion points embedded in it, which are
-   * identified by '!X' where X is a single character. Each X is matched to
-   * positive or negative results in the array of [validationStrings].
-   * Validation strings contain the name of a prediction with a two character
-   * prefix. The first character of the prefix corresponds to an X in the
-   * [originalSource]. The second character is either a '+' or a '-' indicating
-   * whether the string is a positive or negative result.
-   *
-   * The [originalSource] is the source for a completion test that contains
-   * completion points. The [validationStrings] are the positive and negative
-   * predictions.
-   *
-   * Optional argument [failingTests], if given, is a string, each character of
-   * which corresponds to an X in the [originalSource] for which the test is
-   * expected to fail.  This should be used to mark known completion bugs that
-   * have not yet been fixed.
-   */
+  /// Generate a set of completion tests based on the given [originalSource].
+  ///
+  /// The source string has completion points embedded in it, which are
+  /// identified by '!X' where X is a single character. Each X is matched to
+  /// positive or negative results in the array of [validationStrings].
+  /// Validation strings contain the name of a prediction with a two character
+  /// prefix. The first character of the prefix corresponds to an X in the
+  /// [originalSource]. The second character is either a '+' or a '-' indicating
+  /// whether the string is a positive or negative result.
+  ///
+  /// The [originalSource] is the source for a completion test that contains
+  /// completion points. The [validationStrings] are the positive and negative
+  /// predictions.
+  ///
+  /// Optional argument [failingTests], if given, is a string, each character of
+  /// which corresponds to an X in the [originalSource] for which the test is
+  /// expected to fail.  This should be used to mark known completion bugs that
+  /// have not yet been fixed.
   void buildTests(String baseName, String originalSource, List<String> results,
       {Map<String, String> extraFiles, String failingTests = ''}) {
     List<LocationSpec> completionTests =

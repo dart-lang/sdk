@@ -44,9 +44,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return findOffset(search) + search.length;
   }
 
-  /**
-   * Returns the [SimpleIdentifier] at the given search pattern.
-   */
+  /// Returns the [SimpleIdentifier] at the given search pattern.
   SimpleIdentifier findIdentifier(String search) {
     return findNodeAtString(search, (node) => node is SimpleIdentifier);
   }

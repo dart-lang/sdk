@@ -25,10 +25,8 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
 
   final Completer<void> _resultsAvailable = Completer();
 
-  /**
-   * Asserts that there is an overridden interface [OverriddenMember] at the
-   * offset of [search] in [override].
-   */
+  /// Asserts that there is an overridden interface [OverriddenMember] at the
+  /// offset of [search] in [override].
   void assertHasInterfaceMember(String search) {
     int offset = findOffset(search);
     for (OverriddenMember member in overrideObject.interfaceMembers) {
@@ -40,12 +38,10 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
         '${overrideObject.interfaceMembers.join('\n')}');
   }
 
-  /**
-   * Validates that there is an [Override] at the offset of [search].
-   *
-   * If [length] is not specified explicitly, then length of an identifier
-   * from [search] is used.
-   */
+  /// Validates that there is an [Override] at the offset of [search].
+  ///
+  /// If [length] is not specified explicitly, then length of an identifier
+  /// from [search] is used.
   void assertHasOverride(String search, [int length = -1]) {
     int offset = findOffset(search);
     if (length == -1) {
@@ -54,29 +50,23 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
     findOverride(offset, length, true);
   }
 
-  /**
-   * Asserts that there is an overridden superclass [OverriddenMember] at the
-   * offset of [search] in [override].
-   */
+  /// Asserts that there is an overridden superclass [OverriddenMember] at the
+  /// offset of [search] in [override].
   void assertHasSuperElement(String search) {
     int offset = findOffset(search);
     OverriddenMember member = overrideObject.superclassMember;
     expect(member.element.location.offset, offset);
   }
 
-  /**
-   * Asserts that there are no overridden members from interfaces.
-   */
+  /// Asserts that there are no overridden members from interfaces.
   void assertNoInterfaceMembers() {
     expect(overrideObject.interfaceMembers, isNull);
   }
 
-  /**
-   * Validates that there is no [Override] at the offset of [search].
-   *
-   * If [length] is not specified explicitly, then length of an identifier
-   * from [search] is used.
-   */
+  /// Validates that there is no [Override] at the offset of [search].
+  ///
+  /// If [length] is not specified explicitly, then length of an identifier
+  /// from [search] is used.
   void assertNoOverride(String search, [int length = -1]) {
     int offset = findOffset(search);
     if (length == -1) {
@@ -85,21 +75,17 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
     findOverride(offset, length, false);
   }
 
-  /**
-   * Asserts that there are no overridden member from the superclass.
-   */
+  /// Asserts that there are no overridden member from the superclass.
   void assertNoSuperMember() {
     expect(overrideObject.superclassMember, isNull);
   }
 
-  /**
-   * Finds an [Override] with the given [offset] and [length].
-   *
-   * If [exists] is `true`, then fails if such [Override] does not exist.
-   * Otherwise remembers this it into [override].
-   *
-   * If [exists] is `false`, then fails if such [Override] exists.
-   */
+  /// Finds an [Override] with the given [offset] and [length].
+  ///
+  /// If [exists] is `true`, then fails if such [Override] does not exist.
+  /// Otherwise remembers this it into [override].
+  ///
+  /// If [exists] is `false`, then fails if such [Override] exists.
   void findOverride(int offset, int length, [bool exists]) {
     for (Override override in overridesList) {
       if (override.offset == offset && override.length == length) {

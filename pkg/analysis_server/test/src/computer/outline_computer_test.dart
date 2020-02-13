@@ -647,11 +647,9 @@ void main() {
         offset: testCode.indexOf("test('test2_2'"));
   }
 
-  /**
-   * Code like this caused NPE in the past.
-   *
-   * https://code.google.com/p/dart/issues/detail?id=21373
-   */
+  /// Code like this caused NPE in the past.
+  ///
+  /// https://code.google.com/p/dart/issues/detail?id=21373
   Future<void> test_invalidGetterInConstructor() async {
     Outline outline = await _computeOutline('''
 class A {
@@ -665,11 +663,9 @@ class A {
     expect(outline, isNotNull);
   }
 
-  /**
-   * Code like this caused Dart2 failure in the past.
-   *
-   * https://github.com/dart-lang/sdk/issues/33228
-   */
+  /// Code like this caused Dart2 failure in the past.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/33228
   Future<void> test_invocation_ofParameter() async {
     Outline outline = await _computeOutline('''
 main(p()) {

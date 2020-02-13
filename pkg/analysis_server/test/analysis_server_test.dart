@@ -30,10 +30,8 @@ class AnalysisServerTest with ResourceProviderMixin {
   MockServerChannel channel;
   AnalysisServer server;
 
-  /**
-   * Test that having multiple analysis contexts analyze the same file doesn't
-   * cause that file to receive duplicate notifications when it's modified.
-   */
+  /// Test that having multiple analysis contexts analyze the same file doesn't
+  /// cause that file to receive duplicate notifications when it's modified.
   Future do_not_test_no_duplicate_notifications() async {
     // Subscribe to STATUS so we'll know when analysis is done.
     server.serverServices = {ServerService.STATUS};

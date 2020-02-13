@@ -35,9 +35,7 @@ int findIdentifierLength(String search) {
   return length;
 }
 
-/**
- * The base class for all [Refactoring] tests.
- */
+/// The base class for all [Refactoring] tests.
 abstract class RefactoringTest extends AbstractSingleUnitTest {
   SearchEngine searchEngine;
 
@@ -45,10 +43,8 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   Refactoring get refactoring;
 
-  /**
-   * Asserts that [refactoringChange] contains a [FileEdit] for the file
-   * with the given [path], and it results the [expectedCode].
-   */
+  /// Asserts that [refactoringChange] contains a [FileEdit] for the file
+  /// with the given [path], and it results the [expectedCode].
   void assertFileChangeResult(String path, String expectedCode) {
     // prepare FileEdit
     SourceFileEdit fileEdit = refactoringChange.getFileEdit(convertPath(path));
@@ -60,18 +56,14 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     expect(actualCode, expectedCode);
   }
 
-  /**
-   * Asserts that [refactoringChange] does not contain a [FileEdit] for the file
-   * with the given [path].
-   */
+  /// Asserts that [refactoringChange] does not contain a [FileEdit] for the
+  /// file with the given [path].
   void assertNoFileChange(String path) {
     SourceFileEdit fileEdit = refactoringChange.getFileEdit(path);
     expect(fileEdit, isNull);
   }
 
-  /**
-   * Asserts that [refactoring] initial/final conditions status is OK.
-   */
+  /// Asserts that [refactoring] initial/final conditions status is OK.
   Future assertRefactoringConditionsOK() async {
     RefactoringStatus status = await refactoring.checkInitialConditions();
     assertRefactoringStatusOK(status);
@@ -79,17 +71,13 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     assertRefactoringStatusOK(status);
   }
 
-  /**
-   * Asserts that [refactoring] final conditions status is OK.
-   */
+  /// Asserts that [refactoring] final conditions status is OK.
   Future assertRefactoringFinalConditionsOK() async {
     RefactoringStatus status = await refactoring.checkFinalConditions();
     assertRefactoringStatusOK(status);
   }
 
-  /**
-   * Asserts that [status] has expected severity and message.
-   */
+  /// Asserts that [status] has expected severity and message.
   void assertRefactoringStatus(
       RefactoringStatus status, RefactoringProblemSeverity expectedSeverity,
       {String expectedMessage,
@@ -115,17 +103,13 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     }
   }
 
-  /**
-   * Asserts that [refactoring] status is OK.
-   */
+  /// Asserts that [refactoring] status is OK.
   void assertRefactoringStatusOK(RefactoringStatus status) {
     assertRefactoringStatus(status, null);
   }
 
-  /**
-   * Checks that all conditions of [refactoring] are OK and the result of
-   * applying the [Change] to [testUnit] is [expectedCode].
-   */
+  /// Checks that all conditions of [refactoring] are OK and the result of
+  /// applying the [Change] to [testUnit] is [expectedCode].
   Future assertSuccessfulRefactoring(String expectedCode) async {
     await assertRefactoringConditionsOK();
     SourceChange change = await refactoring.createChange();
@@ -133,10 +117,8 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     assertTestChangeResult(expectedCode);
   }
 
-  /**
-   * Asserts that [refactoringChange] contains a [FileEdit] for [testFile], and
-   * it results the [expectedCode].
-   */
+  /// Asserts that [refactoringChange] contains a [FileEdit] for [testFile], and
+  /// it results the [expectedCode].
   void assertTestChangeResult(String expectedCode) {
     // prepare FileEdit
     SourceFileEdit fileEdit = refactoringChange.getFileEdit(testFile);

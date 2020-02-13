@@ -243,19 +243,15 @@ class EnumTest {
   }
 }
 
-/**
- * Helper class for testing the correspondence between an analysis engine enum
- * and an analysis server API enum.
- */
+/// Helper class for testing the correspondence between an analysis engine enum
+/// and an analysis server API enum.
 class EnumTester<EngineEnum, ApiEnum> {
-  /**
-   * Test that the function [convert] properly converts all possible values of
-   * [EngineEnum] to an [ApiEnum] with the same name, with the exceptions noted
-   * in [exceptions].  For each key in [exceptions], if the corresponding value
-   * is null, then we check that converting the given key results in an error.
-   * If the corresponding value is an [ApiEnum], then we check that converting
-   * the given key results in the given value.
-   */
+  /// Test that the function [convert] properly converts all possible values of
+  /// [EngineEnum] to an [ApiEnum] with the same name, with the exceptions noted
+  /// in [exceptions].  For each key in [exceptions], if the corresponding value
+  /// is null, then we check that converting the given key results in an error.
+  /// If the corresponding value is an [ApiEnum], then we check that converting
+  /// the given key results in the given value.
   void run(ApiEnum Function(EngineEnum) convert,
       {Map<EngineEnum, ApiEnum> exceptions = const {}}) {
     ClassMirror engineClass = reflectClass(EngineEnum);

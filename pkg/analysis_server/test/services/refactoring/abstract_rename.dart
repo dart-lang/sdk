@@ -11,17 +11,13 @@ import 'package:test/test.dart';
 
 import 'abstract_refactoring.dart';
 
-/**
- * The base class for all [RenameRefactoring] tests.
- */
+/// The base class for all [RenameRefactoring] tests.
 class RenameRefactoringTest extends RefactoringTest {
   @override
   RenameRefactoring refactoring;
 
-  /**
-   * Asserts that [refactoring] has potential edits in [testFile] at offset
-   * of the given [searches].
-   */
+  /// Asserts that [refactoring] has potential edits in [testFile] at offset
+  /// of the given [searches].
   void assertPotentialEdits(List<String> searches) {
     Set<int> expectedOffsets = <int>{};
     for (String search in searches) {
@@ -38,10 +34,8 @@ class RenameRefactoringTest extends RefactoringTest {
     expect(expectedOffsets, isEmpty);
   }
 
-  /**
-   * Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
-   * the [SimpleIdentifier] at the given [search] pattern.
-   */
+  /// Creates a new [RenameRefactoring] in [refactoring] for the [Element] of
+  /// the [SimpleIdentifier] at the given [search] pattern.
   void createRenameRefactoringAtString(String search) {
     SimpleIdentifier identifier = findIdentifier(search);
     Element element = identifier.staticElement;
@@ -51,19 +45,15 @@ class RenameRefactoringTest extends RefactoringTest {
     createRenameRefactoringForElement(element);
   }
 
-  /**
-   * Creates a new [RenameRefactoring] in [refactoring] for [element].
-   * Fails if no [RenameRefactoring] can be created.
-   */
+  /// Creates a new [RenameRefactoring] in [refactoring] for [element].
+  /// Fails if no [RenameRefactoring] can be created.
   void createRenameRefactoringForElement(Element element) {
     var workspace = RefactoringWorkspace([driver], searchEngine);
     refactoring = RenameRefactoring(workspace, testAnalysisResult, element);
     expect(refactoring, isNotNull, reason: "No refactoring for '$element'.");
   }
 
-  /**
-   * Returns the [Edit] with the given [id], maybe `null`.
-   */
+  /// Returns the [Edit] with the given [id], maybe `null`.
   SourceEdit findEditById(String id) {
     for (SourceFileEdit fileEdit in refactoringChange.edits) {
       for (SourceEdit edit in fileEdit.edits) {

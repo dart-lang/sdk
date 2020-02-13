@@ -62,10 +62,8 @@ class ProtocolTestUtilities {
     'bz',
   ];
 
-  /**
-   * On return, increment [stringIndex] by 3 (or 4 if no [file] name is
-   * provided) and [intIndex] by 4.
-   */
+  /// On return, increment [stringIndex] by 3 (or 4 if no [file] name is
+  /// provided) and [intIndex] by 4.
   AnalysisError analysisError(int stringIndex, int intIndex, {String file}) {
     return AnalysisError(
         AnalysisErrorSeverity.ERROR,
@@ -77,9 +75,7 @@ class ProtocolTestUtilities {
         hasFix: true);
   }
 
-  /**
-   * On return, increment [stringIndex] by 5 and [intIndex] by 5.
-   */
+  /// On return, increment [stringIndex] by 5 and [intIndex] by 5.
   Element element(int stringIndex, int intIndex, {ElementKind kind}) =>
       Element(kind ?? ElementKind.CLASS, strings[stringIndex++], intIndex++,
           location: Location(fileName(stringIndex++), intIndex++, intIndex++,
@@ -96,9 +92,7 @@ class ProtocolTestUtilities {
   HighlightRegion highlightRegion(int offset, int length) =>
       HighlightRegion(HighlightRegionType.FIELD, offset, length);
 
-  /**
-   * On return, increment [stringIndex] by 1 and [intIndex] by 4.
-   */
+  /// On return, increment [stringIndex] by 1 and [intIndex] by 4.
   Location location(int stringIndex, int intIndex, {String file}) => Location(
       file ?? fileName(stringIndex),
       intIndex++,
@@ -106,18 +100,14 @@ class ProtocolTestUtilities {
       intIndex++,
       intIndex++);
 
-  /**
-   * On return, increment [stringIndex] by 5 and [intIndex] by 7.
-   */
+  /// On return, increment [stringIndex] by 5 and [intIndex] by 7.
   Occurrences occurrences(int stringIndex, int intIndex) {
     Element referencedElement = element(stringIndex, intIndex);
     return Occurrences(referencedElement, <int>[intIndex + 5, intIndex + 6],
         referencedElement.name.length);
   }
 
-  /**
-   * On return, increment [stringIndex] by 10 and [intIndex] by 14.
-   */
+  /// On return, increment [stringIndex] by 10 and [intIndex] by 14.
   Outline outline(int stringIndex, int intIndex) => Outline(
           element(stringIndex, intIndex),
           intIndex + 5,
@@ -134,10 +124,8 @@ class ProtocolTestUtilities {
                 intIndex + 13)
           ]);
 
-  /**
-   * On return, increment [stringIndex] by 2 (or 3 if no [file] name is
-   * provided) and [intIndex] by 4.
-   */
+  /// On return, increment [stringIndex] by 2 (or 3 if no [file] name is
+  /// provided) and [intIndex] by 4.
   plugin.AnalysisNavigationParams pluginNavigationParams(
           int stringIndex, int intIndex, {String file}) =>
       plugin.AnalysisNavigationParams(
@@ -151,19 +139,15 @@ class ProtocolTestUtilities {
         strings[stringIndex++]
       ]);
 
-  /**
-   * On return, increment [stringIndex] by 2 and [intIndex] by 4.
-   */
+  /// On return, increment [stringIndex] by 2 and [intIndex] by 4.
   RefactoringProblem refactoringProblem(int stringIndex, int intIndex) {
     return RefactoringProblem(
         RefactoringProblemSeverity.FATAL, strings[stringIndex++],
         location: location(stringIndex, intIndex));
   }
 
-  /**
-   * On return, increment [stringIndex] by 2 (or 3 if no [file] name is
-   * provided) and [intIndex] by 4.
-   */
+  /// On return, increment [stringIndex] by 2 (or 3 if no [file] name is
+  /// provided) and [intIndex] by 4.
   server.AnalysisNavigationParams serverNavigationParams(
           int stringIndex, int intIndex, {String file}) =>
       server.AnalysisNavigationParams(
@@ -177,9 +161,7 @@ class ProtocolTestUtilities {
         strings[stringIndex++]
       ]);
 
-  /**
-   * On return, increment [stringIndex] by 6 and [intIndex] by 6.
-   */
+  /// On return, increment [stringIndex] by 6 and [intIndex] by 6.
   SourceChange sourceChange(int stringIndex, int intIndex) =>
       SourceChange(strings[stringIndex++],
           edits: <SourceFileEdit>[
