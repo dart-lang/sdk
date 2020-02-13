@@ -109,7 +109,7 @@ class SelectorRow {
   void DefineSelectorImplementationForInterval(classid_t cid,
                                                int16_t depth,
                                                const Interval& range,
-                                               const Function& function);
+                                               const Function* function);
   bool Finalize();
 
   int32_t CallCount() const { return selector_->call_count; }
@@ -168,8 +168,8 @@ void SelectorRow::DefineSelectorImplementationForInterval(
     classid_t cid,
     int16_t depth,
     const Interval& range,
-    const Function& function) {
-  CidInterval cid_range(cid, depth, range, &function);
+    const Function* function) {
+  CidInterval cid_range(cid, depth, range, function);
   class_ranges_.Add(cid_range);
 }
 
@@ -251,7 +251,7 @@ void SelectorRow::FillTable(ClassTable* class_table, DispatchTable* table) {
     const CidInterval& cid_range = class_ranges_[i];
     const Interval& range = cid_range.range();
     const Function* function = cid_range.function();
-    if (function->HasCode()) {
+    if (function != nullptr && function->HasCode()) {
       code = function->CurrentCode();
       for (classid_t cid = range.begin(); cid < range.end(); cid++) {
         table->SetCodeAt(selector()->offset + cid, code);
@@ -378,9 +378,10 @@ const TableSelector* SelectorMap::GetSelector(
   return selector;
 }
 
-void SelectorMap::AddSelector(int32_t call_count) {
+void SelectorMap::AddSelector(int32_t call_count, bool called_on_null) {
   const int32_t added_sid = selectors_.length();
-  selectors_.Add(TableSelector(added_sid, call_count, kInvalidSelectorOffset));
+  selectors_.Add(TableSelector(added_sid, call_count, kInvalidSelectorOffset,
+                               called_on_null));
 }
 
 void SelectorMap::SetSelectorProperties(int32_t sid,
@@ -417,7 +418,7 @@ void DispatchTableGenerator::ReadTableSelectorInfo() {
   RELEASE_ASSERT(metadata != nullptr);
   for (intptr_t i = 0; i < metadata->selectors.length(); i++) {
     const kernel::TableSelectorInfo* info = &metadata->selectors[i];
-    selector_map_.AddSelector(info->call_count);
+    selector_map_.AddSelector(info->call_count, info->called_on_null);
   }
 }
 
@@ -533,7 +534,12 @@ void DispatchTableGenerator::SetupSelectorRows() {
   // Initialize selector rows.
   SelectorRow* selector_rows = Z->Alloc<SelectorRow>(num_selectors_);
   for (intptr_t i = 0; i < num_selectors_; i++) {
-    new (&selector_rows[i]) SelectorRow(Z, &selector_map_.selectors_[i]);
+    TableSelector* selector = &selector_map_.selectors_[i];
+    new (&selector_rows[i]) SelectorRow(Z, selector);
+    if (selector->called_on_null && !selector->on_null_interface) {
+      selector_rows[i].DefineSelectorImplementationForInterval(
+          kNullCid, 0, Interval(kNullCid, kNullCid + 1), nullptr);
+    }
   }
 
   // Add implementation intervals to the selector rows for all classes that
@@ -559,7 +565,7 @@ void DispatchTableGenerator::SetupSelectorRows() {
               for (intptr_t i = 0; i < subclasss_cid_ranges.length(); i++) {
                 Interval& subclass_cid_range = subclasss_cid_ranges[i];
                 selector_rows[sid].DefineSelectorImplementationForInterval(
-                    cid, depth, subclass_cid_range, function_handle);
+                    cid, depth, subclass_cid_range, &function_handle);
               }
             }
           }

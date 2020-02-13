@@ -60,15 +60,16 @@ class TableSelectorAssigner {
     throw "Unexpected member kind '${member.runtimeType}'";
   }
 
-  void registerCall(int selectorId) {
+  void registerCall(int selectorId, bool calledOnNull) {
     metadata.selectors[selectorId].callCount++;
+    metadata.selectors[selectorId].calledOnNull |= calledOnNull;
   }
 
-  void registerMethodOrSetterCall(Member member) {
-    registerCall(methodOrSetterSelectorId(member));
+  void registerMethodOrSetterCall(Member member, bool calledOnNull) {
+    registerCall(methodOrSetterSelectorId(member), calledOnNull);
   }
 
-  void registerGetterCall(Member member) {
-    registerCall(getterSelectorId(member));
+  void registerGetterCall(Member member, bool calledOnNull) {
+    registerCall(getterSelectorId(member), calledOnNull);
   }
 }

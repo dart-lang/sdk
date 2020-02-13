@@ -287,6 +287,12 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 #endif
 }
 
+void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
+    Assembler* assembler) {
+  // Only used in AOT.
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {
   __ Breakpoint();

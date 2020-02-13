@@ -292,6 +292,10 @@ void Precompiler::DoCompileAll() {
             StubCode::GetBuildMethodExtractorStub(global_object_pool_builder());
         I->object_store()->set_build_method_extractor_code(stub_code);
 
+        stub_code = StubCode::BuildIsolateSpecificDispatchTableNullErrorStub(
+            global_object_pool_builder());
+        I->object_store()->set_dispatch_table_null_error_stub(stub_code);
+
         stub_code =
             StubCode::BuildIsolateSpecificNullErrorSharedWithFPURegsStub(
                 global_object_pool_builder());

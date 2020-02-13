@@ -1303,12 +1303,6 @@ void AotCallSpecializer::TryReplaceWithDispatchTableCall(
     return;
   }
 
-  if (!selector->on_null_interface) {
-    // Selector not implemented by Null. Add null check if receiver is nullable.
-    AddCheckNull(receiver->CopyWithType(Z), call->function_name(),
-                 DeoptId::kNone, call->env(), call);
-  }
-
   const AbstractType& target_type =
       AbstractType::Handle(Class::Handle(interface_target.Owner()).RareType());
   const bool receiver_can_be_smi =

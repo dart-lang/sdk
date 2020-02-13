@@ -263,10 +263,12 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     final Selector selector = callSite.selector;
     if (selector is InterfaceSelector && !_callSiteUsesDirectCall(node)) {
       if (node is PropertyGet) {
-        _tableSelectorAssigner.registerGetterCall(selector.member);
+        _tableSelectorAssigner.registerGetterCall(
+            selector.member, callSite.isNullableReceiver);
       } else {
         assertx(node is MethodInvocation || node is PropertySet);
-        _tableSelectorAssigner.registerMethodOrSetterCall(selector.member);
+        _tableSelectorAssigner.registerMethodOrSetterCall(
+            selector.member, callSite.isNullableReceiver);
       }
     }
   }

@@ -1851,6 +1851,7 @@ TableSelectorMetadata* TableSelectorMetadataHelper::GetTableSelectorMetadata(
 void TableSelectorMetadataHelper::ReadTableSelectorInfo(
     TableSelectorInfo* info) {
   info->call_count = helper_->ReadUInt();
+  info->called_on_null = helper_->ReadByte() != 0;
 }
 
 intptr_t KernelReaderHelper::ReaderOffset() const {

@@ -512,6 +512,8 @@ static const char* NameOfStubIsolateSpecificStub(ObjectStore* object_store,
                                                  const Code& code) {
   if (code.raw() == object_store->build_method_extractor_code()) {
     return "_iso_stub_BuildMethodExtractorStub";
+  } else if (code.raw() == object_store->dispatch_table_null_error_stub()) {
+    return "_iso_stub_DispatchTableNullErrorStub";
   } else if (code.raw() == object_store->null_error_stub_with_fpu_regs_stub()) {
     return "_iso_stub_NullErrorSharedWithFPURegsStub";
   } else if (code.raw() ==

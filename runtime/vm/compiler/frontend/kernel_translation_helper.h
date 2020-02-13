@@ -1030,6 +1030,7 @@ class CallSiteAttributesMetadataHelper : public MetadataHelper {
 // Information about a table selector computed by the TFA.
 struct TableSelectorInfo {
   int call_count = 0;
+  bool called_on_null = true;
 };
 
 // Collection of table selector information for all selectors in the program.
@@ -1055,6 +1056,9 @@ class TableSelectorMetadataHelper : public MetadataHelper {
   TableSelectorMetadata* GetTableSelectorMetadata(Zone* zone);
 
  private:
+  static const int32_t kCalledOnNullBit = 1 << 0;
+  static const int32_t kCallCountShift = 1;
+
   void ReadTableSelectorInfo(TableSelectorInfo* info);
 
   DISALLOW_COPY_AND_ASSIGN(TableSelectorMetadataHelper);

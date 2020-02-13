@@ -745,11 +745,18 @@ void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                 CurrentTryIndex());
 }
 
-void FlowGraphCompiler::AddNullCheck(intptr_t pc_offset,
-                                     TokenPosition token_pos,
-                                     intptr_t null_check_name_idx) {
-  code_source_map_builder_->NoteNullCheck(pc_offset, token_pos,
-                                          null_check_name_idx);
+void FlowGraphCompiler::AddNullCheck(TokenPosition token_pos,
+                                     const String& name) {
+  // If we have DWARF stack traces enabled, the AOT runtime is unable to obtain
+  // the pool index at runtime. There is therefore no reason to put the name
+  // into the pool in the first place.
+  // TODO(dartbug.com/40605): Move this info to the pc descriptors.
+  if (!FLAG_dwarf_stack_traces) {
+    const intptr_t name_index =
+        assembler()->object_pool_builder().FindObject(name);
+    code_source_map_builder_->NoteNullCheck(assembler()->CodeSize(), token_pos,
+                                            name_index);
+  }
 }
 
 void FlowGraphCompiler::AddPcRelativeCallTarget(const Function& function,

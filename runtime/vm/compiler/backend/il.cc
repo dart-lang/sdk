@@ -4457,6 +4457,14 @@ void DispatchTableCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                   arguments_descriptor);
   compiler->EmitCallsiteMetadata(token_pos(), DeoptId::kNone,
                                  RawPcDescriptors::kOther, locs());
+  if (selector()->called_on_null && !selector()->on_null_interface) {
+    Value* receiver = ArgumentValueAt(FirstArgIndex());
+    if (receiver->Type()->is_nullable()) {
+      const String& function_name =
+          String::ZoneHandle(interface_target().name());
+      compiler->AddNullCheck(token_pos(), function_name);
+    }
+  }
   __ Drop(ArgumentCount());
 
   compiler->AddDispatchTableCallTarget(selector());
@@ -4862,11 +4870,7 @@ LocationSummary* CheckNullInstr::MakeLocationSummary(Zone* zone,
 
 void CheckNullInstr::AddMetadataForRuntimeCall(CheckNullInstr* check_null,
                                                FlowGraphCompiler* compiler) {
-  const String& function_name = check_null->function_name();
-  const intptr_t name_index =
-      compiler->assembler()->object_pool_builder().FindObject(function_name);
-  compiler->AddNullCheck(compiler->assembler()->CodeSize(),
-                         check_null->token_pos(), name_index);
+  compiler->AddNullCheck(check_null->token_pos(), check_null->function_name());
 }
 
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {

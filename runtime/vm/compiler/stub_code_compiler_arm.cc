@@ -469,6 +469,14 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 }
 #endif  // !defined(DART_PRECOMPILER)
 
+void StubCodeCompiler::GenerateDispatchTableNullErrorStub(
+    Assembler* assembler) {
+  __ EnterStubFrame();
+  __ CallRuntime(kNullErrorRuntimeEntry, /*argument_count=*/0);
+  // The NullError runtime entry does not return.
+  __ Breakpoint();
+}
+
 void StubCodeCompiler::GenerateNullErrorSharedWithoutFPURegsStub(
     Assembler* assembler) {
   GenerateSharedStub(
