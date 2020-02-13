@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Utility methods to efficiently manipulate typed JSInterop objects in cases
-/// where the name to call is not known at runtime. You should only use these
-/// methods when the same effect cannot be achieved with @JS annotations.
-/// These methods would be extension methods on JSObject if Dart supported
-/// extension methods.
+/// Utility methods to manipulate `package:js` annotated JavaScript interop
+/// objects in cases where the name to call is not known at runtime.
+///
+/// You should only use these methods when the same effect cannot be achieved
+/// with `@JS()` annotations.
 ///
 /// {@category Web}
 library dart.js_util;
@@ -16,16 +16,19 @@ import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
 import 'dart:_js_helper' show convertDartClosureToJS;
 
+/// Recursively converts a JSON-like collection to JavaScript compatible
+/// representation.
+///
 /// WARNING: performance of this method is much worse than other util
-/// methods in this library. Only use this method as a last resort.
+/// methods in this library. Only use this method as a last resort. Prefer
+/// instead to use `@anonymous` `@JS()` annotated classes to create map-like
+/// objects for JS interop.
 ///
-/// Recursively converts a JSON-like collection of Dart objects to a
-/// collection of JavaScript objects and returns a [JsObject] proxy to it.
-///
-/// [object] must be a [Map] or [Iterable], the contents of which are also
-/// converted. Maps and Iterables are copied to a new JavaScript object.
-/// Primitives and other transferable values are directly converted to their
-/// JavaScript type, and all other objects are proxied.
+/// The argument must be a [Map] or [Iterable], the contents of which are also
+/// deeply converted. Maps are converted into JavaScript objects. Iterables are
+/// converted into arrays. Strings, numbers, bools, and `@JS()` annotated
+/// objects are passed through unmodified. Dart objects are also passed through
+/// unmodified, but their members aren't usable from JavaScript.
 Object jsify(Object object) {
   if ((object is! Map) && (object is! Iterable)) {
     throw ArgumentError("object must be a Map or Iterable");
