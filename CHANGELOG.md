@@ -28,9 +28,6 @@ used (see Issue [39627][]).
 
 ### Dart VM
 
-* **Breaking Change**: Removed `Dart_Allocate`, `Dart_AllocateWithNativeFields`,
-  and `Dart_InvokeConstructor`. Calls to these methods should be replaced with
-  a single call to `Dart_New`.
 * Added `Dart_TypeDynamic`, `Dart_TypeVoid` and `Dart_TypeNever`. Type dynamic
   can no longer by reached by `Dart_GetType(dart:core, dynamic)`.
 

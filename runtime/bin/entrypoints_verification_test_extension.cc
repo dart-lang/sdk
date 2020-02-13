@@ -100,6 +100,8 @@ void RunTests(Dart_NativeArguments arguments) {
   Dart_Handle D_class = Dart_GetClass(lib, Dart_NewStringFromCString("D"));
   CHECK(D_class);
 
+  CHECK(Dart_Allocate(D_class));
+
   FAIL("D.", Dart_New(D_class, Dart_Null(), 0, nullptr));
 
   CHECK(Dart_New(D_class, Dart_NewStringFromCString("defined"), 0, nullptr));
