@@ -367,8 +367,25 @@ void main() {
         completion: 'v',
         element: ElementKind.TOP_LEVEL_VARIABLE,
         kind: CompletionSuggestionKind.INVOCATION);
+  }
 
-    // todo (pq): getters/setters?
+  /// See: https://github.com/dart-lang/sdk/issues/40626
+  @failingTest
+  Future<void> test_project_lib_getters() async {
+    await addProjectFile('lib/a.dart', r'''
+int get g => 0;
+''');
+
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    expectSuggestion(
+        completion: 's',
+        element: ElementKind.SETTER,
+        kind: CompletionSuggestionKind.INVOCATION);
   }
 
   @failingTest
@@ -391,6 +408,25 @@ void main() {
     expectSuggestion(
         completion: 'A',
         element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION);
+  }
+
+  /// See: https://github.com/dart-lang/sdk/issues/40626
+  @failingTest
+  Future<void> test_project_lib_setters() async {
+    await addProjectFile('lib/a.dart', r'''
+set s(int s) {}
+''');
+
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    expectSuggestion(
+        completion: 's',
+        element: ElementKind.SETTER,
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
