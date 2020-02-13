@@ -35,6 +35,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
+import 'package:analyzer/src/task/strong/checker.dart';
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -342,6 +343,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
     } else {
       _checkForArgumentTypeNotAssignableForArgument(rhs);
     }
+    if (operatorType == TokenType.QUESTION_QUESTION_EQ) {
+      _checkForDeadNullCoalesce(
+          getReadType(node.leftHandSide), node.rightHandSide);
+    }
     _checkForAssignmentToFinal(lhs);
     super.visitAssignmentExpression(node);
   }
@@ -369,6 +374,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
     } else {
       _checkForArgumentTypeNotAssignableForArgument(node.rightOperand);
+    }
+
+    if (type == TokenType.QUESTION_QUESTION) {
+      _checkForDeadNullCoalesce(
+          getReadType(node.leftOperand), node.rightOperand);
     }
 
     _checkForUseOfVoidResult(node.leftOperand);
@@ -2307,6 +2317,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void> {
           CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT,
           constructorName,
           [className]);
+    }
+  }
+
+  void _checkForDeadNullCoalesce(TypeImpl lhsType, Expression rhs) {
+    if (!_isNonNullableByDefault) return;
+
+    if (_typeSystem.isStrictlyNonNullable(lhsType)) {
+      _errorReporter.reportErrorForNode(
+        StaticWarningCode.DEAD_NULL_COALESCE,
+        rhs,
+      );
     }
   }
 
