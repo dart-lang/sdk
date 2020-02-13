@@ -74,50 +74,36 @@ Future<SnapshotGraph> load(String uri) async {
   return reader.done;
 }
 
-String makeJson(root) {
-  // 'root' can be arbitrarily deep, so we need to use an explicit stack
-  // instead of the call stack. We also must avoid using a JSON expression to
-  // avoid stack overflow in the JS engine parser.
-  final ids = new Map<dynamic, int>();
-  final sb = new StringBuffer();
-  final worklist = new List<dynamic>();
-  worklist.add(root);
+String makeData(dynamic root) {
+  // 'root' can be arbitrarily deep, so we can't directly represent it as a
+  // JSON tree, which cause a stack overflow here encoding it and in the JS
+  // engine decoding it. Instead we flatten the tree into a list of tuples with
+  // a parent pointer and re-inflate it in JS.
+  final indices = <dynamic, int>{};
+  final preorder = <dynamic>[];
+  preorder.add(root);
 
-  var id = 0;
-  while (id < worklist.length) {
-    var object = worklist[id];
-    ids[object] = id++;
-    worklist.addAll(object.children);
+  for (var index = 0; index < preorder.length; index++) {
+    final object = preorder[index];
+    preorder.addAll(object.children);
   }
 
-  while (!worklist.isEmpty) {
-    var object = worklist.removeLast();
-    var id = ids[object];
+  final flattened = <dynamic>[];
+  for (var index = 0; index < preorder.length; index++) {
+    final object = preorder[index];
+    indices[object] = index;
 
-    sb.write('var node');
-    sb.write(id.toString());
-    sb.write(' = {"name":"');
-    sb.write(object.description);
-    sb.write('","type":"');
-    sb.write(object.klass.name);
-    sb.write('","size":');
-    sb.write(object.retainedSize.toString());
-    sb.write(',"children":[');
-
-    bool first = true;
-    for (var child in object.children) {
-      if (!first) {
-        sb.write(',');
-      }
-      first = false;
-      sb.write('node');
-      sb.write(ids[child].toString());
+    flattened.add(object.description);
+    flattened.add(object.klass.name);
+    flattened.add(object.retainedSize);
+    if (index == 0) {
+      flattened.add(null);
+    } else {
+      flattened.add(indices[object.parent] as int);
     }
-
-    sb.write(']};\n');
   }
 
-  return sb.toString();
+  return json.encode(flattened);
 }
 
 var css = '''
@@ -362,28 +348,35 @@ function showDominatorTree(v) {
   content.appendChild(topTile);
 }
 
-function linkParents(root) {
+function inflateData(flattened) {
   // 'root' can be arbitrarily deep, so we need to use an explicit stack
   // instead of the call stack.
-  let worklist = new Array();
-  worklist.push(root);
+  let nodes = new Array();
+  let i = 0;
+  while (i < flattened.length) {
+    let node = {
+      "name": flattened[i++],
+      "type": flattened[i++],
+      "size": flattened[i++],
+      "children": [],
+      "parent": null
+    };
+    nodes.push(node);
 
-  while (worklist.length > 0) {
-    let node = worklist.pop();
-    node.children.forEach(function (child) {
-      child["parent"] = node;
-      worklist.push(child);
-    });
+    let parentIndex = flattened[i++];
+    if (parentIndex != null) {
+      let parent = nodes[parentIndex];
+      parent.children.push(node);
+      node.parent = parent;
+    }
   }
+
+  return nodes[0];
 }
 
-var root = null;
-(function() {
-  __JSON__
-  root = node0;
-})();
+var root = __DATA__;
+root = inflateData(root);
 
-linkParents(root);
 showDominatorTree(root);
 ''';
 
@@ -422,7 +415,7 @@ main(List<String> args) async {
   final dir = await Directory.systemTemp.createTemp('heap-snapshot');
   final path = dir.path + '/merged-dominator.html';
   final file = await File(path).create();
-  final tree = makeJson(snapshot.mergedRoot);
-  await file.writeAsString(html.replaceAll('__JSON__', tree));
+  final tree = makeData(snapshot.mergedRoot);
+  await file.writeAsString(html.replaceAll('__DATA__', tree));
   print('Wrote file://' + path);
 }
