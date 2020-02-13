@@ -15880,24 +15880,6 @@ void Code::DumpSourcePositions(bool relative_addresses) const {
   reader.DumpSourcePositions(relative_addresses ? 0 : PayloadStart());
 }
 
-bool Code::VerifyBSSRelocations() const {
-  const auto& descriptors = PcDescriptors::Handle(pc_descriptors());
-  PcDescriptors::Iterator iterator(descriptors,
-                                   RawPcDescriptors::kBSSRelocation);
-  while (iterator.MoveNext()) {
-    const uword reloc = PayloadStart() + iterator.PcOffset();
-    const word target = *reinterpret_cast<word*>(reloc);
-    // The relocation is in its original unpatched form -- the addend
-    // representing the target symbol itself.
-    if (target >= 0 &&
-        target <
-            BSS::RelocationIndex(BSS::Relocation::NumRelocations) * kWordSize) {
-      return false;
-    }
-  }
-  return true;
-}
-
 void Bytecode::Disassemble(DisassemblyFormatter* formatter) const {
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
 #if !defined(DART_PRECOMPILED_RUNTIME)

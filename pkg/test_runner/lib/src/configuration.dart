@@ -115,7 +115,6 @@ class TestConfiguration {
   bool get isMinified => configuration.isMinified;
   bool get useAnalyzerCfe => configuration.useAnalyzerCfe;
   bool get useAnalyzerFastaParser => configuration.useAnalyzerFastaParser;
-  bool get useBlobs => configuration.useBlobs;
   bool get useElf => configuration.useElf;
   bool get useSdk => configuration.useSdk;
   bool get enableAsserts => configuration.enableAsserts;

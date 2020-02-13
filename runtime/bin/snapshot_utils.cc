@@ -509,29 +509,6 @@ void Snapshot::GenerateAppJIT(const char* snapshot_filename) {
 #endif
 }
 
-void Snapshot::GenerateAppAOTAsBlobs(const char* snapshot_filename) {
-  uint8_t* vm_data_buffer = NULL;
-  intptr_t vm_data_size = 0;
-  uint8_t* vm_instructions_buffer = NULL;
-  intptr_t vm_instructions_size = 0;
-  uint8_t* isolate_data_buffer = NULL;
-  intptr_t isolate_data_size = 0;
-  uint8_t* isolate_instructions_buffer = NULL;
-  intptr_t isolate_instructions_size = 0;
-  Dart_Handle result = Dart_CreateAppAOTSnapshotAsBlobs(
-      &vm_data_buffer, &vm_data_size, &vm_instructions_buffer,
-      &vm_instructions_size, &isolate_data_buffer, &isolate_data_size,
-      &isolate_instructions_buffer, &isolate_instructions_size,
-      /*callback=*/nullptr, /*debug_callback_info=*/nullptr);
-  if (Dart_IsError(result)) {
-    ErrorExit(kErrorExitCode, "%s\n", Dart_GetError(result));
-  }
-  WriteAppSnapshot(snapshot_filename, vm_data_buffer, vm_data_size,
-                   vm_instructions_buffer, vm_instructions_size,
-                   isolate_data_buffer, isolate_data_size,
-                   isolate_instructions_buffer, isolate_instructions_size);
-}
-
 static void StreamingWriteCallback(void* callback_data,
                                    const uint8_t* buffer,
                                    intptr_t size) {

@@ -3481,31 +3481,6 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                    void* callback_data);
 
 /**
- *  Same as Dart_CreateAppAOTSnapshotAsAssembly, except all the pieces are
- *  provided directly as bytes that the embedder can load with mmap. The
- *  instructions pieces must be loaded with read and execute permissions; the
- *  other pieces may be loaded as read-only.
- *
- *  This function has been DEPRECATED. Please use Dart_CreateAppAOTSnapshotAsELF
- *  or Dart_CreateAppAOTSnapshotAsAssembly instead. A portable ELF loader is
- *  available in the target //runtime/bin:elf_loader.
- *
- *  If callback and debug_callback_data are provided, debug_callback_data will
- *  be used with the callback to provide separate debugging information.
- */
-DART_EXPORT DART_WARN_UNUSED_RESULT Dart_Handle
-Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
-                                 intptr_t* vm_snapshot_data_size,
-                                 uint8_t** vm_snapshot_instructions_buffer,
-                                 intptr_t* vm_snapshot_instructions_size,
-                                 uint8_t** isolate_snapshot_data_buffer,
-                                 intptr_t* isolate_snapshot_data_size,
-                                 uint8_t** isolate_snapshot_instructions_buffer,
-                                 intptr_t* isolate_snapshot_instructions_size,
-                                 Dart_StreamingWriteCallback callback,
-                                 void* debug_callback_data);
-
-/**
  * Sorts the class-ids in depth first traversal order of the inheritance
  * tree. This is a costly operation, but it can make method dispatch
  * more efficient and is done before writing snapshots.
