@@ -6,7 +6,7 @@ library MirrorsTest;
 
 import 'dart:mirrors';
 
-import '../../light_unittest.dart';
+import 'package:expect/minitest.dart';
 
 bool isDart2js = false; // TODO(ahe): Remove this field.
 
