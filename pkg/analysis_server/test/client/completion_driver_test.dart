@@ -177,7 +177,7 @@ project:${toUri('$projectPath/lib')}
     driver.filesErrors.forEach((file, fileErrors) {
       // Completion test files are likely to be incomplete and so may have
       // errors
-      if (file != testFilePath) {
+      if (file != convertPath(testFilePath)) {
         errors.addAll(fileErrors);
       }
     });
