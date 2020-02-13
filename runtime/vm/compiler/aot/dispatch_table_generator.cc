@@ -400,17 +400,20 @@ const TableSelector* SelectorMap::GetSelector(
   const int32_t sid = SelectorId(interface_target);
   if (sid == kInvalidSelectorId) return nullptr;
   const TableSelector* selector = &selectors_[sid];
+  if (!selector->IsUsed()) return nullptr;
   if (selector->offset == kInvalidSelectorOffset) return nullptr;
   return selector;
+}
+
+void SelectorMap::AddSelector(int32_t call_count) {
+  const int32_t added_sid = selectors_.length();
+  selectors_.Add(TableSelector(added_sid, call_count, kInvalidSelectorOffset));
 }
 
 void SelectorMap::SetSelectorProperties(int32_t sid,
                                         bool on_null_interface,
                                         bool requires_args_descriptor) {
-  while (selectors_.length() <= sid) {
-    const int32_t added_sid = selectors_.length();
-    selectors_.Add(TableSelector{added_sid, kInvalidSelectorId, false, false});
-  }
+  ASSERT(sid < selectors_.length());
   selectors_[sid].on_null_interface |= on_null_interface;
   selectors_[sid].requires_args_descriptor |= requires_args_descriptor;
 }
@@ -429,9 +432,24 @@ DispatchTableGenerator::DispatchTableGenerator(Zone* zone)
 void DispatchTableGenerator::Initialize(ClassTable* table) {
   classes_ = table;
 
+  ReadTableSelectorInfo();
   NumberSelectors();
   SetupSelectorRows();
   ComputeSelectorOffsets();
+}
+
+void DispatchTableGenerator::ReadTableSelectorInfo() {
+  const auto& object_class = Class::Handle(Z, classes_->At(kInstanceCid));
+  const auto& script = Script::Handle(Z, object_class.script());
+  const auto& info = KernelProgramInfo::Handle(Z, script.kernel_program_info());
+  kernel::TableSelectorMetadata* metadata =
+      kernel::TableSelectorMetadataForProgram(info, Z);
+  // This assert will fail if gen_kernel was run in non-AOT mode or without TFA.
+  RELEASE_ASSERT(metadata != nullptr);
+  for (intptr_t i = 0; i < metadata->selectors.length(); i++) {
+    const kernel::TableSelectorInfo* info = &metadata->selectors[i];
+    selector_map_.AddSelector(info->call_count);
+  }
 }
 
 void DispatchTableGenerator::NumberSelectors() {
@@ -583,7 +601,8 @@ void DispatchTableGenerator::SetupSelectorRows() {
 
   // Retain all selectors that contain implementation intervals.
   for (intptr_t i = 0; i < num_selectors_; i++) {
-    if (selector_rows[i].Finalize()) {
+    const TableSelector& selector = selector_map_.selectors_[i];
+    if (selector.IsUsed() && selector_rows[i].Finalize()) {
       table_rows_.Add(&selector_rows[i]);
     }
   }

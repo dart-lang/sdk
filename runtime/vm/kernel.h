@@ -43,6 +43,7 @@ namespace kernel {
 
 class Reader;
 struct ProcedureAttributesMetadata;
+class TableSelectorMetadata;
 
 class StringIndex {
  public:
@@ -223,6 +224,10 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
                                                   Zone* zone);
+
+TableSelectorMetadata* TableSelectorMetadataForProgram(
+    const KernelProgramInfo& info,
+    Zone* zone);
 
 }  // namespace kernel
 }  // namespace dart

@@ -25,6 +25,7 @@ import '../devirtualization.dart' show Devirtualization;
 import '../../metadata/direct_call.dart';
 import '../../metadata/inferred_type.dart';
 import '../../metadata/procedure_attributes.dart';
+import '../../metadata/table_selector.dart';
 import '../../metadata/unreachable.dart';
 
 const bool kDumpClassHierarchy =
@@ -116,23 +117,34 @@ class TFADevirtualization extends Devirtualization {
 class AnnotateKernel extends RecursiveVisitor<Null> {
   final TypeFlowAnalysis _typeFlowAnalysis;
   final FieldMorpher fieldMorpher;
+  final DirectCallMetadataRepository _directCallMetadataRepository;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
+  final TableSelectorMetadataRepository _tableSelectorMetadata;
   final TableSelectorAssigner _tableSelectorAssigner;
   final Class _intClass;
   Constant _nullConstant;
 
   AnnotateKernel(Component component, this._typeFlowAnalysis, this.fieldMorpher)
-      : _inferredTypeMetadata = new InferredTypeMetadataRepository(),
+      : _directCallMetadataRepository =
+            component.metadata[DirectCallMetadataRepository.repositoryTag],
+        _inferredTypeMetadata = new InferredTypeMetadataRepository(),
         _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
         _procedureAttributesMetadata =
             new ProcedureAttributesMetadataRepository(),
+        _tableSelectorMetadata = new TableSelectorMetadataRepository(),
         _tableSelectorAssigner = new TableSelectorAssigner(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);
+    component.addMetadataRepository(_tableSelectorMetadata);
+  }
+
+  // Query whether a call site was marked as a direct call by the analysis.
+  bool _callSiteUsesDirectCall(TreeNode node) {
+    return _directCallMetadataRepository.mapping.containsKey(node);
   }
 
   InferredType _convertType(Type type,
@@ -245,6 +257,17 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
     if (markSkipCheck || markReceiverNotInt || callSite.isResultUsed) {
       _setInferredType(node, resultType,
           skipCheck: markSkipCheck, receiverNotInt: markReceiverNotInt);
+    }
+
+    // Tell the table selector assigner about the callsite.
+    final Selector selector = callSite.selector;
+    if (selector is InterfaceSelector && !_callSiteUsesDirectCall(node)) {
+      if (node is PropertyGet) {
+        _tableSelectorAssigner.registerGetterCall(selector.member);
+      } else {
+        assertx(node is MethodInvocation || node is PropertySet);
+        _tableSelectorAssigner.registerMethodOrSetterCall(selector.member);
+      }
     }
   }
 
@@ -398,6 +421,12 @@ class AnnotateKernel extends RecursiveVisitor<Null> {
   visitStaticSet(StaticSet node) {
     _annotateCallSite(node, node.target);
     super.visitStaticSet(node);
+  }
+
+  @override
+  visitComponent(Component node) {
+    super.visitComponent(node);
+    _tableSelectorMetadata.mapping[node] = _tableSelectorAssigner.metadata;
   }
 }
 

@@ -1027,6 +1027,39 @@ class CallSiteAttributesMetadataHelper : public MetadataHelper {
   DISALLOW_COPY_AND_ASSIGN(CallSiteAttributesMetadataHelper);
 };
 
+// Information about a table selector computed by the TFA.
+struct TableSelectorInfo {
+  int call_count = 0;
+};
+
+// Collection of table selector information for all selectors in the program.
+class TableSelectorMetadata : public ZoneAllocated {
+ public:
+  explicit TableSelectorMetadata(intptr_t num_selectors)
+      : selectors(num_selectors) {
+    selectors.FillWith(TableSelectorInfo(), 0, num_selectors);
+  }
+
+  GrowableArray<TableSelectorInfo> selectors;
+
+  DISALLOW_COPY_AND_ASSIGN(TableSelectorMetadata);
+};
+
+// Helper class which provides access to table selector metadata.
+class TableSelectorMetadataHelper : public MetadataHelper {
+ public:
+  static const char* tag() { return "vm.table-selector.metadata"; }
+
+  explicit TableSelectorMetadataHelper(KernelReaderHelper* helper);
+
+  TableSelectorMetadata* GetTableSelectorMetadata(Zone* zone);
+
+ private:
+  void ReadTableSelectorInfo(TableSelectorInfo* info);
+
+  DISALLOW_COPY_AND_ASSIGN(TableSelectorMetadataHelper);
+};
+
 class KernelReaderHelper {
  public:
   KernelReaderHelper(Zone* zone,
@@ -1162,6 +1195,7 @@ class KernelReaderHelper {
   friend class ProcedureHelper;
   friend class SimpleExpressionConverter;
   friend class ScopeBuilder;
+  friend class TableSelectorMetadataHelper;
   friend class TypeParameterHelper;
   friend class TypeTranslator;
   friend class VariableDeclarationHelper;

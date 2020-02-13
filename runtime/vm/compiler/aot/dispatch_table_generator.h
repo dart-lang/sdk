@@ -19,10 +19,16 @@ namespace compiler {
 class SelectorRow;
 
 struct TableSelector {
+  TableSelector(int32_t id, int32_t call_count, int32_t offset)
+      : id(id), call_count(call_count), offset(offset) {}
+
+  bool IsUsed() const { return call_count > 0; }
+
   int32_t id;
+  int32_t call_count;
   int32_t offset;
-  bool on_null_interface;
-  bool requires_args_descriptor;
+  bool on_null_interface = false;
+  bool requires_args_descriptor = false;
 };
 
 class SelectorMap {
@@ -40,6 +46,7 @@ class SelectorMap {
 
   int32_t SelectorId(const Function& interface_target) const;
 
+  void AddSelector(int32_t call_count);
   void SetSelectorProperties(int32_t sid,
                              bool on_null_interface,
                              bool requires_args_descriptor);
@@ -68,6 +75,7 @@ class DispatchTableGenerator {
   DispatchTable* BuildTable();
 
  private:
+  void ReadTableSelectorInfo();
   void NumberSelectors();
   void SetupSelectorRows();
   void ComputeSelectorOffsets();

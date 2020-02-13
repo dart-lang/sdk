@@ -1824,6 +1824,35 @@ CallSiteAttributesMetadataHelper::GetCallSiteAttributes(intptr_t node_offset) {
   return metadata;
 }
 
+TableSelectorMetadataHelper::TableSelectorMetadataHelper(
+    KernelReaderHelper* helper)
+    : MetadataHelper(helper, tag(), /* precompiler_only = */ true) {}
+
+TableSelectorMetadata* TableSelectorMetadataHelper::GetTableSelectorMetadata(
+    Zone* zone) {
+  const intptr_t node_offset = GetComponentMetadataPayloadOffset();
+  const intptr_t md_offset = GetNextMetadataPayloadOffset(node_offset);
+  if (md_offset < 0) {
+    return nullptr;
+  }
+
+  AlternativeReadingScopeWithNewData alt(&helper_->reader_,
+                                         &H.metadata_payloads(), md_offset);
+
+  const intptr_t num_selectors = helper_->ReadUInt();
+  TableSelectorMetadata* metadata =
+      new (zone) TableSelectorMetadata(num_selectors);
+  for (intptr_t i = 0; i < num_selectors; i++) {
+    ReadTableSelectorInfo(&metadata->selectors[i]);
+  }
+  return metadata;
+}
+
+void TableSelectorMetadataHelper::ReadTableSelectorInfo(
+    TableSelectorInfo* info) {
+  info->call_count = helper_->ReadUInt();
+}
+
 intptr_t KernelReaderHelper::ReaderOffset() const {
   return reader_.offset();
 }

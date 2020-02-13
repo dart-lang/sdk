@@ -864,6 +864,18 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
       field.KernelDataProgramOffset(), field.kernel_offset());
 }
 
+TableSelectorMetadata* TableSelectorMetadataForProgram(
+    const KernelProgramInfo& info,
+    Zone* zone) {
+  TranslationHelper translation_helper(Thread::Current());
+  translation_helper.InitFromKernelProgramInfo(info);
+  const auto& data = ExternalTypedData::Handle(zone, info.metadata_payloads());
+  KernelReaderHelper reader_helper(zone, &translation_helper,
+                                   Script::Handle(zone), data, 0);
+  TableSelectorMetadataHelper table_selector_metadata_helper(&reader_helper);
+  return table_selector_metadata_helper.GetTableSelectorMetadata(zone);
+}
+
 }  // namespace kernel
 }  // namespace dart
 
