@@ -227,7 +227,7 @@ class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest {
   @override
   String get testFilePath => '$projectPath/lib/test.dart';
 
-  Future<void> test_project_filterImports() async {
+  Future<void> test_project_filterImports_defaultConstructor() async {
     await addProjectFile('lib/a.dart', r'''
 class A {}
 ''');
@@ -245,6 +245,55 @@ void main() {
 
     expectSuggestion(
         completion: 'A',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION);
+  }
+
+  /// see: https://github.com/dart-lang/sdk/issues/40620
+  Future<void> test_project_filterImports_enumValues() async {
+    await addProjectFile('lib/a.dart', r'''
+enum E {
+  e,
+}
+''');
+
+    await addProjectFile('lib/b.dart', r'''
+export 'a.dart';
+''');
+
+    await addTestFile('''
+import 'a.dart';
+void main() {
+  ^
+}
+''');
+    expectSuggestion(
+        completion: 'E.e',
+        element: ElementKind.ENUM_CONSTANT,
+        kind: CompletionSuggestionKind.INVOCATION);
+  }
+
+  /// see: https://github.com/dart-lang/sdk/issues/40620
+  Future<void> test_project_filterImports_namedConstructors() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {
+  A.a();
+}
+''');
+
+    await addProjectFile('lib/b.dart', r'''
+export 'a.dart';
+''');
+
+    await addTestFile('''
+import 'a.dart';
+void main() {
+  ^
+}
+''');
+
+    expectSuggestion(
+        completion: 'A.a',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
   }
