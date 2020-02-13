@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code generation for the file "AnalysisServer.java".
- */
+/// Code generation for the file "AnalysisServer.java".
 import 'package:analysis_tool/tools.dart';
 
 import 'api.dart';

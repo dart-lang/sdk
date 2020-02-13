@@ -17,66 +17,48 @@ import 'instrumentation_input_converter.dart';
 import 'log_file_input_converter.dart';
 import 'operation.dart';
 
-/**
- * Common input converter superclass for sharing implementation.
- */
+/// Common input converter superclass for sharing implementation.
 abstract class CommonInputConverter extends Converter<String, Operation> {
   static final ERROR_PREFIX = 'Server responded with an error: ';
   final Logger logger = Logger('InstrumentationInputConverter');
   final Set<String> eventsSeen = <String>{};
 
-  /**
-   * A mapping from request/response id to request json
-   * for those requests for which a response has not been processed.
-   */
+  /// A mapping from request/response id to request json
+  /// for those requests for which a response has not been processed.
   final Map<String, dynamic> requestMap = {};
 
-  /**
-   * A mapping from request/response id to a completer
-   * for those requests for which a response has not been processed.
-   * The completer is called with the actual json response
-   * when it becomes available.
-   */
+  /// A mapping from request/response id to a completer
+  /// for those requests for which a response has not been processed.
+  /// The completer is called with the actual json response
+  /// when it becomes available.
   final Map<String, Completer> responseCompleters = {};
 
-  /**
-   * A mapping from request/response id to the actual response result
-   * for those responses that have not been processed.
-   */
+  /// A mapping from request/response id to the actual response result
+  /// for those responses that have not been processed.
   final Map<String, dynamic> responseMap = {};
 
-  /**
-   * A mapping of current overlay content
-   * parallel to what is in the analysis server
-   * so that we can update the file system.
-   */
+  /// A mapping of current overlay content
+  /// parallel to what is in the analysis server
+  /// so that we can update the file system.
   final Map<String, String> overlays = {};
 
-  /**
-   * The prefix used to determine if a request parameter is a file path.
-   */
+  /// The prefix used to determine if a request parameter is a file path.
   final String rootPrefix = path.rootPrefix(path.current);
 
-  /**
-   * A mapping of source path prefixes
-   * from location where instrumentation or log file was generated
-   * to the target location of the source using during performance measurement.
-   */
+  /// A mapping of source path prefixes
+  /// from location where instrumentation or log file was generated
+  /// to the target location of the source using during performance measurement.
   final PathMap srcPathMap;
 
-  /**
-   * The root directory for all source being modified
-   * during performance measurement.
-   */
+  /// The root directory for all source being modified
+  /// during performance measurement.
   final String tmpSrcDirPath;
 
   CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
   Map<String, dynamic> asMap(dynamic value) => value as Map<String, dynamic>;
 
-  /**
-   * Return an operation for the notification or `null` if none.
-   */
+  /// Return an operation for the notification or `null` if none.
   Operation convertNotification(Map<String, dynamic> json) {
     String event = json['event'];
     if (event == SERVER_NOTIFICATION_STATUS) {
@@ -99,9 +81,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     return null;
   }
 
-  /**
-   * Return an operation for the request or `null` if none.
-   */
+  /// Return an operation for the request or `null` if none.
   Operation convertRequest(Map<String, dynamic> origJson) {
     Map<String, dynamic> json = asMap(translateSrcPaths(origJson));
     requestMap[json['id']] = json;
@@ -170,9 +150,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     throw 'unknown request: $method\n  $json';
   }
 
-  /**
-   * Return an operation for the recorded/expected response.
-   */
+  /// Return an operation for the recorded/expected response.
   Operation convertResponse(Map<String, dynamic> json) {
     return ResponseOperation(this, asMap(requestMap.remove(json['id'])),
         asMap(translateSrcPaths(json)));
@@ -186,11 +164,9 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     }
   }
 
-  /**
-   * Process an error response from the server by either
-   * completing the associated completer in the [responseCompleters]
-   * or stashing it in [responseMap] if no completer exists.
-   */
+  /// Process an error response from the server by either
+  /// completing the associated completer in the [responseCompleters]
+  /// or stashing it in [responseMap] if no completer exists.
   void processErrorResponse(String id, exception) {
     var result = exception;
     if (exception is UnimplementedError) {
@@ -201,15 +177,13 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     processResponseResult(id, result);
   }
 
-  /**
-   * Process the expected response by completing the given completer
-   * with the result if it has already been received,
-   * or caching the completer to be completed when the server
-   * returns the associated result.
-   * Return a future that completes when the response is received
-   * or `null` if the response has already been received
-   * and the completer completed.
-   */
+  /// Process the expected response by completing the given completer
+  /// with the result if it has already been received,
+  /// or caching the completer to be completed when the server
+  /// returns the associated result.
+  /// Return a future that completes when the response is received
+  /// or `null` if the response has already been received
+  /// and the completer completed.
   Future processExpectedResponse(String id, Completer completer) {
     if (responseMap.containsKey(id)) {
       logger.log(Level.INFO, 'processing cached response $id');
@@ -222,12 +196,10 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     }
   }
 
-  /**
-   * Process a success response result from the server by either
-   * completing the associated completer in the [responseCompleters]
-   * or stashing it in [responseMap] if no completer exists.
-   * The response result may be `null`.
-   */
+  /// Process a success response result from the server by either
+  /// completing the associated completer in the [responseCompleters]
+  /// or stashing it in [responseMap] if no completer exists.
+  /// The response result may be `null`.
   void processResponseResult(String id, result) {
     Completer completer = responseCompleters[id];
     if (completer != null) {
@@ -239,11 +211,9 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     }
   }
 
-  /**
-   * Recursively translate source paths in the specified JSON to reference
-   * the temporary source used during performance measurement rather than
-   * the original source when the instrumentation or log file was generated.
-   */
+  /// Recursively translate source paths in the specified JSON to reference
+  /// the temporary source used during performance measurement rather than
+  /// the original source when the instrumentation or log file was generated.
   dynamic translateSrcPaths(json) {
     if (json is String) {
       return srcPathMap.translate(json);
@@ -266,43 +236,31 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   }
 }
 
-/**
- * [InputConverter] converts an input stream
- * into a series of operations to be sent to the analysis server.
- * The input stream can be either an instrumentation or log file.
- */
+/// [InputConverter] converts an input stream
+/// into a series of operations to be sent to the analysis server.
+/// The input stream can be either an instrumentation or log file.
 class InputConverter extends Converter<String, Operation> {
   final Logger logger = Logger('InputConverter');
 
-  /**
-   * A mapping of source path prefixes
-   * from location where instrumentation or log file was generated
-   * to the target location of the source using during performance measurement.
-   */
+  /// A mapping of source path prefixes
+  /// from location where instrumentation or log file was generated
+  /// to the target location of the source using during performance measurement.
   final PathMap srcPathMap;
 
-  /**
-   * The root directory for all source being modified
-   * during performance measurement.
-   */
+  /// The root directory for all source being modified
+  /// during performance measurement.
   final String tmpSrcDirPath;
 
-  /**
-   * The number of lines read before the underlying converter was determined
-   * or the end of file was reached.
-   */
+  /// The number of lines read before the underlying converter was determined
+  /// or the end of file was reached.
   int headerLineCount = 0;
 
-  /**
-   * The underlying converter used to translate lines into operations
-   * or `null` if it has not yet been determined.
-   */
+  /// The underlying converter used to translate lines into operations
+  /// or `null` if it has not yet been determined.
   Converter<String, Operation> converter;
 
-  /**
-   * [active] is `true` if converting lines to operations
-   * or `false` if an exception has occurred.
-   */
+  /// [active] is `true` if converting lines to operations
+  /// or `false` if an exception has occurred.
   bool active = true;
 
   InputConverter(this.tmpSrcDirPath, this.srcPathMap);
@@ -341,10 +299,8 @@ class InputConverter extends Converter<String, Operation> {
   }
 }
 
-/**
- * A container of [PathMapEntry]s used to translate a source path in the log
- * before it is sent to the analysis server.
- */
+/// A container of [PathMapEntry]s used to translate a source path in the log
+/// before it is sent to the analysis server.
 class PathMap {
   final List<PathMapEntry> entries = [];
 
@@ -361,10 +317,8 @@ class PathMap {
   }
 }
 
-/**
- * An entry in [PathMap] used to translate a source path in the log
- * before it is sent to the analysis server.
- */
+/// An entry in [PathMap] used to translate a source path in the log
+/// before it is sent to the analysis server.
 class PathMapEntry {
   final String oldSrcPrefix;
   final String newSrcPrefix;

@@ -9,44 +9,30 @@ import 'package:args/args.dart';
 import 'log/log.dart';
 import 'server.dart';
 
-/**
- * Start a web server that will allow an instrumentation log to be viewed.
- */
+/// Start a web server that will allow an instrumentation log to be viewed.
 void main(List<String> args) {
   Driver driver = Driver();
   driver.start(args);
 }
 
-/**
- * The main driver that configures and starts the web server.
- */
+/// The main driver that configures and starts the web server.
 class Driver {
-  /**
-   * The flag used to specify that the user wants to have help text printed but
-   * that no other work should be done.
-   */
+  /// The flag used to specify that the user wants to have help text printed but
+  /// that no other work should be done.
   static String helpFlag = 'help';
 
-  /**
-   * The option used to specify the port on which the server should listen for
-   * requests.
-   */
+  /// The option used to specify the port on which the server should listen for
+  /// requests.
   static String portOption = 'port';
 
-  /**
-   * The port that will be used if no port number is provided on the command
-   * line.
-   */
+  /// The port that will be used if no port number is provided on the command
+  /// line.
   static int defaultPortNumber = 11000;
 
-  /**
-   * Initialize a newly created driver.
-   */
+  /// Initialize a newly created driver.
   Driver();
 
-  /**
-   * Create and return the parser used to parse the command-line arguments.
-   */
+  /// Create and return the parser used to parse the command-line arguments.
   ArgParser createParser() {
     ArgParser parser = ArgParser();
     parser.addFlag(helpFlag, help: 'Print this help text', negatable: false);
@@ -56,9 +42,7 @@ class Driver {
     return parser;
   }
 
-  /**
-   * Print usage information.
-   */
+  /// Print usage information.
   void printUsage(ArgParser parser,
       {String error, Object exception, StackTrace stackTrace}) {
     if (error != null) {
@@ -82,9 +66,7 @@ class Driver {
     }
   }
 
-  /**
-   * Use the given command-line [args] to configure and start the web server.
-   */
+  /// Use the given command-line [args] to configure and start the web server.
   void start(List<String> args) {
     ArgParser parser = createParser();
     ArgResults options = parser.parse(args);

@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code for reading an HTML API description.
- */
+/// Code for reading an HTML API description.
 import 'dart:io';
 
 import 'package:analysis_tool/html.dart';
@@ -14,10 +12,8 @@ import 'package:path/path.dart';
 
 import 'api.dart';
 
-/**
- * Read the API description from the file 'plugin_spec.html'.  [pkgPath] is the
- * path to the current package.
- */
+/// Read the API description from the file 'plugin_spec.html'.  [pkgPath] is the
+/// path to the current package.
 Api readApi(String pkgPath) {
   ApiReader reader =
       ApiReader(join(pkgPath, 'tool', 'spec', 'spec_input.html'));
@@ -56,32 +52,26 @@ class ApiReader {
     'include'
   ];
 
-  /**
-   * The absolute and normalized path to the file being read.
-   */
+  /// The absolute and normalized path to the file being read.
   final String filePath;
 
-  /**
-   * Initialize a newly created API reader to read from the file with the given
-   * [filePath].
-   */
+  /// Initialize a newly created API reader to read from the file with the given
+  /// [filePath].
   ApiReader(this.filePath);
 
-  /**
-   * Create an [Api] object from an HTML representation such as:
-   *
-   * <html>
-   *   ...
-   *   <body>
-   *     ... <version>1.0</version> ...
-   *     <domain name="...">...</domain> <!-- zero or more -->
-   *     <types>...</types>
-   *     <refactorings>...</refactorings>
-   *   </body>
-   * </html>
-   *
-   * Child elements of <api> can occur in any order.
-   */
+  /// Create an [Api] object from an HTML representation such as:
+  ///
+  /// <html>
+  ///   ...
+  ///   <body>
+  ///     ... <version>1.0</version> ...
+  ///     <domain name="...">...</domain> <!-- zero or more -->
+  ///     <types>...</types>
+  ///     <refactorings>...</refactorings>
+  ///   </body>
+  /// </html>
+  ///
+  /// Child elements of <api> can occur in any order.
   Api apiFromHtml(dom.Element html) {
     Api api;
     List<String> versions = <String>[];
@@ -112,11 +102,9 @@ class ApiReader {
     return api;
   }
 
-  /**
-   * Check that the given [element] has all of the attributes in
-   * [requiredAttributes], possibly some of the attributes in
-   * [optionalAttributes], and no others.
-   */
+  /// Check that the given [element] has all of the attributes in
+  /// [requiredAttributes], possibly some of the attributes in
+  /// [optionalAttributes], and no others.
   void checkAttributes(
       dom.Element element, List<String> requiredAttributes, String context,
       {List<String> optionalAttributes = const []}) {
@@ -137,9 +125,7 @@ class ApiReader {
     }
   }
 
-  /**
-   * Check that the given [element] has the given [expectedName].
-   */
+  /// Check that the given [element] has the given [expectedName].
   void checkName(dom.Element element, String expectedName, [String context]) {
     if (element.localName != expectedName) {
       context ??= element.localName;
@@ -148,16 +134,14 @@ class ApiReader {
     }
   }
 
-  /**
-   * Create a [Domain] object from an HTML representation such as:
-   *
-   * <domain name="domainName">
-   *   <request method="...">...</request> <!-- zero or more -->
-   *   <notification event="...">...</notification> <!-- zero or more -->
-   * </domain>
-   *
-   * Child elements can occur in any order.
-   */
+  /// Create a [Domain] object from an HTML representation such as:
+  ///
+  /// <domain name="domainName">
+  ///   <request method="...">...</request> <!-- zero or more -->
+  ///   <notification event="...">...</notification> <!-- zero or more -->
+  /// </domain>
+  ///
+  /// Child elements can occur in any order.
   Domain domainFromHtml(dom.Element html) {
     checkName(html, 'domain');
     String name = html.attributes['name'];
@@ -191,19 +175,18 @@ class ApiReader {
         '$context: <${html.localName}> must be nested within <$name>');
   }
 
-  /**
-   * Create a [Notification] object from an HTML representation such as:
-   *
-   * <notification event="methodName">
-   *   <params>...</params> <!-- optional -->
-   * </notification>
-   *
-   * Note that the event name should not include the domain name.
-   *
-   * <params> has the same form as <object>, as described in [typeDeclFromHtml].
-   *
-   * Child elements can occur in any order.
-   */
+  /// Create a [Notification] object from an HTML representation such as:
+  ///
+  /// <notification event="methodName">
+  ///   <params>...</params> <!-- optional -->
+  /// </notification>
+  ///
+  /// Note that the event name should not include the domain name.
+  ///
+  /// <params> has the same form as <object>, as described in
+  /// [typeDeclFromHtml].
+  ///
+  /// Child elements can occur in any order.
   Notification notificationFromHtml(dom.Element html, String context) {
     String domainName = getAncestor(html, 'domain', context).attributes['name'];
     checkName(html, 'notification', context);
@@ -222,10 +205,8 @@ class ApiReader {
         experimental: experimental);
   }
 
-  /**
-   * Create a single of [TypeDecl] corresponding to the type defined inside the
-   * given HTML element.
-   */
+  /// Create a single of [TypeDecl] corresponding to the type defined inside the
+  /// given HTML element.
   TypeDecl processContentsAsType(dom.Element html, String context) {
     List<TypeDecl> types = processContentsAsTypes(html, context);
     if (types.length != 1) {
@@ -234,35 +215,33 @@ class ApiReader {
     return types[0];
   }
 
-  /**
-   * Create a list of [TypeDecl]s corresponding to the types defined inside the
-   * given HTML element.  The following forms are supported.
-   *
-   * To refer to a type declared elsewhere (or a built-in type):
-   *
-   *   <ref>typeName</ref>
-   *
-   * For a list: <list>ItemType</list>
-   *
-   * For a map: <map><key>KeyType</key><value>ValueType</value></map>
-   *
-   * For a JSON object:
-   *
-   *   <object>
-   *     <field name="...">...</field> <!-- zero or more -->
-   *   </object>
-   *
-   * For an enum:
-   *
-   *   <enum>
-   *     <value>...</value> <!-- zero or more -->
-   *   </enum>
-   *
-   * For a union type:
-   *   <union>
-   *     TYPE <!-- zero or more -->
-   *   </union>
-   */
+  /// Create a list of [TypeDecl]s corresponding to the types defined inside the
+  /// given HTML element.  The following forms are supported.
+  ///
+  /// To refer to a type declared elsewhere (or a built-in type):
+  ///
+  ///   <ref>typeName</ref>
+  ///
+  /// For a list: <list>ItemType</list>
+  ///
+  /// For a map: <map><key>KeyType</key><value>ValueType</value></map>
+  ///
+  /// For a JSON object:
+  ///
+  ///   <object>
+  ///     <field name="...">...</field> <!-- zero or more -->
+  ///   </object>
+  ///
+  /// For an enum:
+  ///
+  ///   <enum>
+  ///     <value>...</value> <!-- zero or more -->
+  ///   </enum>
+  ///
+  /// For a union type:
+  ///   <union>
+  ///     TYPE <!-- zero or more -->
+  ///   </union>
   List<TypeDecl> processContentsAsTypes(dom.Element html, String context) {
     List<TypeDecl> types = <TypeDecl>[];
     recurse(html, context, {
@@ -316,9 +295,7 @@ class ApiReader {
     return types;
   }
 
-  /**
-   * Read the API description from file with the given [filePath].
-   */
+  /// Read the API description from file with the given [filePath].
   Api readApi() {
     String htmlContents = File(filePath).readAsStringSync();
     dom.Document document = parser.parse(htmlContents);
@@ -347,19 +324,17 @@ class ApiReader {
     }
   }
 
-  /**
-   * Create a [Refactoring] object from an HTML representation such as:
-   *
-   * <refactoring kind="refactoringKind">
-   *   <feedback>...</feedback> <!-- optional -->
-   *   <options>...</options> <!-- optional -->
-   * </refactoring>
-   *
-   * <feedback> and <options> have the same form as <object>, as described in
-   * [typeDeclFromHtml].
-   *
-   * Child elements can occur in any order.
-   */
+  /// Create a [Refactoring] object from an HTML representation such as:
+  ///
+  /// <refactoring kind="refactoringKind">
+  ///   <feedback>...</feedback> <!-- optional -->
+  ///   <options>...</options> <!-- optional -->
+  /// </refactoring>
+  ///
+  /// <feedback> and <options> have the same form as <object>, as described in
+  /// [typeDeclFromHtml].
+  ///
+  /// Child elements can occur in any order.
   Refactoring refactoringFromHtml(dom.Element html) {
     checkName(html, 'refactoring');
     String kind = html.attributes['kind'];
@@ -378,13 +353,11 @@ class ApiReader {
     return Refactoring(kind, feedback, options, html);
   }
 
-  /**
-   * Create a [Refactorings] object from an HTML representation such as:
-   *
-   * <refactorings>
-   *   <refactoring kind="...">...</refactoring> <!-- zero or more -->
-   * </refactorings>
-   */
+  /// Create a [Refactorings] object from an HTML representation such as:
+  ///
+  /// <refactorings>
+  ///   <refactoring kind="...">...</refactoring> <!-- zero or more -->
+  /// </refactorings>
   Refactorings refactoringsFromHtml(dom.Element html) {
     checkName(html, 'refactorings');
     String context = 'refactorings';
@@ -398,21 +371,19 @@ class ApiReader {
     return Refactorings(refactorings, html);
   }
 
-  /**
-   * Create a [Request] object from an HTML representation such as:
-   *
-   * <request method="methodName">
-   *   <params>...</params> <!-- optional -->
-   *   <result>...</result> <!-- optional -->
-   * </request>
-   *
-   * Note that the method name should not include the domain name.
-   *
-   * <params> and <result> have the same form as <object>, as described in
-   * [typeDeclFromHtml].
-   *
-   * Child elements can occur in any order.
-   */
+  /// Create a [Request] object from an HTML representation such as:
+  ///
+  /// <request method="methodName">
+  ///   <params>...</params> <!-- optional -->
+  ///   <result>...</result> <!-- optional -->
+  /// </request>
+  ///
+  /// Note that the method name should not include the domain name.
+  ///
+  /// <params> and <result> have the same form as <object>, as described in
+  /// [typeDeclFromHtml].
+  ///
+  /// Child elements can occur in any order.
   Request requestFromHtml(dom.Element html, String context) {
     String domainName = getAncestor(html, 'domain', context).attributes['name'];
     checkName(html, 'request', context);
@@ -436,17 +407,15 @@ class ApiReader {
         experimental: experimental, deprecated: deprecated);
   }
 
-  /**
-   * Create a [TypeDefinition] object from an HTML representation such as:
-   *
-   * <type name="typeName">
-   *   TYPE
-   * </type>
-   *
-   * Where TYPE is any HTML that can be parsed by [typeDeclFromHtml].
-   *
-   * Child elements can occur in any order.
-   */
+  /// Create a [TypeDefinition] object from an HTML representation such as:
+  ///
+  /// <type name="typeName">
+  ///   TYPE
+  /// </type>
+  ///
+  /// Where TYPE is any HTML that can be parsed by [typeDeclFromHtml].
+  ///
+  /// Child elements can occur in any order.
   TypeDefinition typeDefinitionFromHtml(dom.Element html) {
     checkName(html, 'type');
     String name = html.attributes['name'];
@@ -460,9 +429,7 @@ class ApiReader {
         experimental: experimental, deprecated: deprecated);
   }
 
-  /**
-   * Create a [TypeEnum] from an HTML description.
-   */
+  /// Create a [TypeEnum] from an HTML description.
   TypeEnum typeEnumFromHtml(dom.Element html, String context) {
     checkName(html, 'enum', context);
     checkAttributes(html, [], context);
@@ -475,17 +442,15 @@ class ApiReader {
     return TypeEnum(values, html);
   }
 
-  /**
-   * Create a [TypeEnumValue] from an HTML description such as:
-   *
-   * <enum>
-   *   <code>VALUE</code>
-   * </enum>
-   *
-   * Where VALUE is the text of the enumerated value.
-   *
-   * Child elements can occur in any order.
-   */
+  /// Create a [TypeEnumValue] from an HTML description such as:
+  ///
+  /// <enum>
+  ///   <code>VALUE</code>
+  /// </enum>
+  ///
+  /// Where VALUE is the text of the enumerated value.
+  ///
+  /// Child elements can occur in any order.
   TypeEnumValue typeEnumValueFromHtml(dom.Element html, String context) {
     checkName(html, 'value', context);
     checkAttributes(html, [], context, optionalAttributes: ['deprecated']);
@@ -503,21 +468,19 @@ class ApiReader {
     return TypeEnumValue(values[0], html, deprecated: deprecated);
   }
 
-  /**
-   * Create a [TypeObjectField] from an HTML description such as:
-   *
-   * <field name="fieldName">
-   *   TYPE
-   * </field>
-   *
-   * Where TYPE is any HTML that can be parsed by [typeDeclFromHtml].
-   *
-   * In addition, the attribute optional="true" may be used to specify that the
-   * field is optional, and the attribute value="..." may be used to specify that
-   * the field is required to have a certain value.
-   *
-   * Child elements can occur in any order.
-   */
+  /// Create a [TypeObjectField] from an HTML description such as:
+  ///
+  /// <field name="fieldName">
+  ///   TYPE
+  /// </field>
+  ///
+  /// Where TYPE is any HTML that can be parsed by [typeDeclFromHtml].
+  ///
+  /// In addition, the attribute optional="true" may be used to specify that the
+  /// field is optional, and the attribute value="..." may be used to specify
+  /// that the field is required to have a certain value.
+  ///
+  /// Child elements can occur in any order.
   TypeObjectField typeObjectFieldFromHtml(dom.Element html, String context) {
     checkName(html, 'field', context);
     String name = html.attributes['name'];
@@ -555,9 +518,7 @@ class ApiReader {
         experimental: experimental);
   }
 
-  /**
-   * Create a [TypeObject] from an HTML description.
-   */
+  /// Create a [TypeObject] from an HTML description.
   TypeObject typeObjectFromHtml(dom.Element html, String context) {
     checkAttributes(html, [], context, optionalAttributes: ['experimental']);
     List<TypeObjectField> fields = <TypeObjectField>[];
@@ -570,13 +531,11 @@ class ApiReader {
     return TypeObject(fields, html, experimental: experimental);
   }
 
-  /**
-   * Create a [Types] object from an HTML representation such as:
-   *
-   * <types>
-   *   <type name="...">...</type> <!-- zero or more -->
-   * </types>
-   */
+  /// Create a [Types] object from an HTML representation such as:
+  ///
+  /// <types>
+  ///   <type name="...">...</type> <!-- zero or more -->
+  /// </types>
   Types typesFromHtml(dom.Element html) {
     checkName(html, 'types');
     String context = 'types';

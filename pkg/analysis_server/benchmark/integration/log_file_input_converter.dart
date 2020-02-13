@@ -16,10 +16,8 @@ const SENT_FRAGMENT = ' => {';
 final int NINE = '9'.codeUnitAt(0);
 final int ZERO = '0'.codeUnitAt(0);
 
-/**
- * [LogFileInputConverter] converts a log file stream
- * into a series of operations to be sent to the analysis server.
- */
+/// [LogFileInputConverter] converts a log file stream
+/// into a series of operations to be sent to the analysis server.
 class LogFileInputConverter extends CommonInputConverter {
   LogFileInputConverter(String tmpSrcDirPath, PathMap srcPathMap)
       : super(tmpSrcDirPath, srcPathMap);
@@ -51,11 +49,9 @@ class LogFileInputConverter extends CommonInputConverter {
     }
   }
 
-  /**
-   * Determine if the given line is from an instrumentation file.
-   * For example:
-   * `1428347977499 <= {"event":"server.connected","params":{"version":"1.6.0"}}`
-   */
+  /// Determine if the given line is from an instrumentation file.
+  /// For example:
+  /// `1428347977499 <= {"event":"server.connected","params":{"version":"1.6.0"}}`
   static bool isFormat(String line) {
     String timeStampString = _parseTimeStamp(line);
     int start = timeStampString.length;
@@ -64,10 +60,8 @@ class LogFileInputConverter extends CommonInputConverter {
         line.substring(start, end) == CONNECTED_MSG_FRAGMENT;
   }
 
-  /**
-   * Parse the given line and return the millisecond timestamp or `null`
-   * if it cannot be determined.
-   */
+  /// Parse the given line and return the millisecond timestamp or `null`
+  /// if it cannot be determined.
   static String _parseTimeStamp(String line) {
     int index = 0;
     while (index < line.length) {

@@ -34,9 +34,7 @@ String _generateNotificationMethodName(String domainName, String event) =>
 String _generateParamTypeName(String domainName, String event) =>
     '${_capitalize(domainName)}${_capitalize(event)}Params';
 
-/**
- * Visitor which produces Dart code representing the API.
- */
+/// Visitor which produces Dart code representing the API.
 class CodegenNotificationHandlerVisitor extends DartCodegenVisitor
     with CodeGenerator {
   CodegenNotificationHandlerVisitor(Api api) : super(api) {

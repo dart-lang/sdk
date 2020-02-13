@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Code generation for the file "AnalysisServer.java".
- */
+/// Code generation for the file "AnalysisServer.java".
 import 'package:analysis_tool/tools.dart';
 import 'package:html/dom.dart' as dom;
 
@@ -13,11 +11,9 @@ import 'codegen_java.dart';
 import 'from_html.dart';
 import 'implied_types.dart';
 
-/**
- * A map between the field names and values for the Element object such as:
- *
- * private static final int ABSTRACT = 0x01;
- */
+/// A map between the field names and values for the Element object such as:
+///
+/// private static final int ABSTRACT = 0x01;
 const Map<String, String> _extraFieldsOnElement = {
   'ABSTRACT': '0x01',
   'CONST': '0x02',
@@ -27,13 +23,12 @@ const Map<String, String> _extraFieldsOnElement = {
   'DEPRECATED': '0x20',
 };
 
-/**
- * A map between the method names and field names to generate additional methods on the Element object:
- *
- * public boolean isFinal() {
- *   return (flags & FINAL) != 0;
- * }
- */
+/// A map between the method names and field names to generate additional
+/// methods on the Element object:
+///
+/// public boolean isFinal() {
+///   return (flags & FINAL) != 0;
+/// }
 const Map<String, String> _extraMethodsOnElement = {
   'isAbstract': 'ABSTRACT',
   'isConst': 'CONST',
@@ -43,9 +38,7 @@ const Map<String, String> _extraMethodsOnElement = {
   'isTopLevelOrStatic': 'TOP_LEVEL_STATIC',
 };
 
-/**
- * Type references in the spec that are named something else in Java.
- */
+/// Type references in the spec that are named something else in Java.
 const Map<String, String> _typeRenames = {
   'Override': 'OverrideMember',
 };
@@ -115,9 +108,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
       this.generateGetters, this.generateSetters)
       : super(api);
 
-  /**
-   * Get the name of the consumer class for responses to this request.
-   */
+  /// Get the name of the consumer class for responses to this request.
   @override
   String consumerName(Request request) {
     return camelJoin([request.method, 'consumer'], doCapitalize: true);
@@ -165,10 +156,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
     }
   }
 
-  /**
-   * For some [TypeObjectField] return the [String] source for the field value
-   * for the toString generation.
-   */
+  /// For some [TypeObjectField] return the [String] source for the field value
+  /// for the toString generation.
   String _getToStringForField(TypeObjectField field) {
     String name = javaName(field.name);
     if (isArray(field.type) || isList(field.type)) {
@@ -190,9 +179,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
     }
   }
 
-  /**
-   * This method writes extra fields and methods to the Element type.
-   */
+  /// This method writes extra fields and methods to the Element type.
   void _writeExtraContentInElementType() {
     //
     // Extra fields on the Element type such as:
@@ -219,10 +206,8 @@ class CodegenJavaType extends CodegenJavaVisitor {
     });
   }
 
-  /**
-   * For some [TypeObjectField] write out the source that adds the field
-   * information to the 'jsonObject'.
-   */
+  /// For some [TypeObjectField] write out the source that adds the field
+  /// information to the 'jsonObject'.
   void _writeOutJsonObjectAddStatement(TypeObjectField field) {
     String name = javaName(field.name);
     if (isDeclaredInSpec(field.type)) {

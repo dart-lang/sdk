@@ -29,36 +29,26 @@ void _printColumn(StringBuffer sb, String text, int keyLen,
   sb.writeCharCode(SPACE);
 }
 
-/**
- * [Driver] launches and manages an instance of analysis server,
- * reads a stream of operations, sends requests to analysis server
- * based upon those operations, and evaluates the results.
- */
+/// [Driver] launches and manages an instance of analysis server,
+/// reads a stream of operations, sends requests to analysis server
+/// based upon those operations, and evaluates the results.
 class Driver extends IntegrationTestMixin {
-  /**
-   * The amount of time to give the server to respond to a shutdown request
-   * before forcibly terminating it.
-   */
+  /// The amount of time to give the server to respond to a shutdown request
+  /// before forcibly terminating it.
   static const Duration SHUTDOWN_TIMEOUT = Duration(seconds: 5);
 
   final Logger logger = Logger('Driver');
 
-  /**
-   * The diagnostic port for Analysis Server or `null` if none.
-   */
+  /// The diagnostic port for Analysis Server or `null` if none.
   final int diagnosticPort;
 
-  /**
-   * A flag indicating whether the server is running.
-   */
+  /// A flag indicating whether the server is running.
   bool running = false;
 
   @override
   Server server;
 
-  /**
-   * The results collected while running analysis server.
-   */
+  /// The results collected while running analysis server.
   final Results results = Results();
 
   /// The [Completer] for [runComplete].
@@ -66,38 +56,30 @@ class Driver extends IntegrationTestMixin {
 
   Driver({this.diagnosticPort});
 
-  /**
-   * Return a [Future] that completes with the [Results] of running
-   * the analysis server once all operations have been performed.
-   */
+  /// Return a [Future] that completes with the [Results] of running
+  /// the analysis server once all operations have been performed.
   Future<Results> get runComplete => _runCompleter.future;
 
-  /**
-   * Perform the given operation.
-   * Return a [Future] that completes when the next operation can be performed,
-   * or `null` if the next operation can be performed immediately
-   */
+  /// Perform the given operation.
+  /// Return a [Future] that completes when the next operation can be performed,
+  /// or `null` if the next operation can be performed immediately
   Future perform(Operation op) {
     return op.perform(this);
   }
 
-  /**
-   * Send a command to the server.  An 'id' will be automatically assigned.
-   * The returned [Future] will be completed when the server acknowledges the
-   * command with a response.  If the server acknowledges the command with a
-   * normal (non-error) response, the future will be completed with the 'result'
-   * field from the response.  If the server acknowledges the command with an
-   * error response, the future will be completed with an error.
-   */
+  /// Send a command to the server.  An 'id' will be automatically assigned.
+  /// The returned [Future] will be completed when the server acknowledges the
+  /// command with a response.  If the server acknowledges the command with a
+  /// normal (non-error) response, the future will be completed with the
+  /// 'result' field from the response.  If the server acknowledges the command
+  /// with an error response, the future will be completed with an error.
   Future<Map<String, dynamic>> send(
       String method, Map<String, dynamic> params) {
     return server.send(method, params);
   }
 
-  /**
-   * Launch the analysis server.
-   * Return a [Future] that completes when analysis server has started.
-   */
+  /// Launch the analysis server.
+  /// Return a [Future] that completes when analysis server has started.
   Future startServer() async {
     logger.log(Level.FINE, 'starting server');
     initializeInttestMixin();
@@ -121,9 +103,7 @@ class Driver extends IntegrationTestMixin {
     });
   }
 
-  /**
-   * Shutdown the analysis server if it is running.
-   */
+  /// Shutdown the analysis server if it is running.
   Future stopServer([Duration timeout = SHUTDOWN_TIMEOUT]) async {
     if (running) {
       logger.log(Level.FINE, 'requesting server shutdown');
@@ -137,9 +117,7 @@ class Driver extends IntegrationTestMixin {
     _resultsReady();
   }
 
-  /**
-   * If not already complete, signal the completer with the collected results.
-   */
+  /// If not already complete, signal the completer with the collected results.
   void _resultsReady() {
     if (!_runCompleter.isCompleted) {
       _runCompleter.complete(results);
@@ -147,9 +125,7 @@ class Driver extends IntegrationTestMixin {
   }
 }
 
-/**
- * [Measurement] tracks elapsed time for a given operation.
- */
+/// [Measurement] tracks elapsed time for a given operation.
 class Measurement {
   final String tag;
   final bool notification;
@@ -218,16 +194,12 @@ class Measurement {
   }
 }
 
-/**
- * [Results] contains information gathered by [Driver]
- * while running the analysis server
- */
+/// [Results] contains information gathered by [Driver]
+/// while running the analysis server
 class Results {
   Map<String, Measurement> measurements = <String, Measurement>{};
 
-  /**
-   * Display results on stdout.
-   */
+  /// Display results on stdout.
   void printResults() {
     print('');
     print('==================================================================');
@@ -266,9 +238,7 @@ class Results {
 (2) all times in milliseconds''');
   }
 
-  /**
-   * Record the elapsed time for the given operation.
-   */
+  /// Record the elapsed time for the given operation.
   void record(String tag, Duration elapsed,
       {bool notification = false, bool success = true}) {
     Measurement measurement = measurements[tag];
