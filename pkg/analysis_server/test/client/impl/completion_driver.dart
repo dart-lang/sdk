@@ -150,6 +150,10 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
       allSuggestions[id] = params.results;
       var includedKinds = params.includedElementKinds;
 
+      //
+      // Collect relevance information.
+      //
+
       // https://github.com/JetBrains/intellij-plugins/blob/59018828753973324ea0500fa4bae93563f1aacf/Dart/src/com/jetbrains/lang/dart/analyzer/DartAnalysisServerService.java#L467
       var includedRelevanceTags = <String, IncludedSuggestionRelevanceTag>{};
       var includedSuggestionRelevanceTags =
@@ -161,22 +165,79 @@ class CompletionDriver extends AbstractClient with ExpectMixin {
         }
       }
 
+      //
+      // Identify imported libraries.
+      //
+
+      var importedLibraryUris = <String>{};
+      var existingImports = fileToExistingImports[params.libraryFile];
+      if (existingImports != null) {
+        for (var existingImport in existingImports.imports) {
+          var uri = existingImports.elements.strings[existingImport.uri];
+          importedLibraryUris.add(uri);
+        }
+      }
+
+      //
+      // Partition included suggestion sets into imported and not-imported groups.
+      //
+
+      var importedSets = <IncludedSuggestionSet>[];
+      var notImportedSets = <IncludedSuggestionSet>[];
+
       for (var set in params.includedSuggestionSets) {
         var id = set.id;
         while (!idToSetMap.containsKey(id)) {
           await Future.delayed(const Duration(milliseconds: 1));
         }
         var suggestionSet = idToSetMap[id];
-        for (var suggestion in suggestionSet.items) {
-          var kind = suggestion.element.kind;
-          if (!includedKinds.contains(kind)) {
-            continue;
-          }
+        if (importedLibraryUris.contains(suggestionSet.uri)) {
+          importedSets.add(set);
+        } else {
+          notImportedSets.add(set);
+        }
+      }
 
-          var completionSuggestion =
-              _createCompletionSuggestionFromAvailableSuggestion(
-                  suggestion, set.relevance, includedRelevanceTags);
-          suggestions.add(completionSuggestion);
+      //
+      // Add suggestions.
+      //
+      // First from imported then from not-imported sets.
+      //
+
+      void addSuggestion(
+          AvailableSuggestion suggestion, IncludedSuggestionSet includeSet) {
+        var kind = suggestion.element.kind;
+        if (!includedKinds.contains(kind)) {
+          return;
+        }
+        var completionSuggestion =
+            _createCompletionSuggestionFromAvailableSuggestion(
+                suggestion, includeSet.relevance, includedRelevanceTags);
+        suggestions.add(completionSuggestion);
+      }
+
+      // Track seen elements to ensure they are not duplicated.
+      var seenElements = <String>{};
+
+      // Suggestions can be uniquely identified by kind, label and uri.
+      String suggestionId(AvailableSuggestion s) =>
+          '${s.declaringLibraryUri}:${s.element.kind}:${s.label}';
+
+      for (var includeSet in importedSets) {
+        var set = idToSetMap[includeSet.id];
+        for (var suggestion in set.items) {
+          if (seenElements.add(suggestionId(suggestion))) {
+            addSuggestion(suggestion, includeSet);
+          }
+        }
+      }
+
+      for (var includeSet in notImportedSets) {
+        var set = idToSetMap[includeSet.id];
+        for (var suggestion in set.items) {
+          if (!seenElements.contains(suggestionId(suggestion))) {
+            addSuggestion(suggestion, includeSet);
+          }
         }
       }
 

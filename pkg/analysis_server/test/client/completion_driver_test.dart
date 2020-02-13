@@ -227,6 +227,51 @@ class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest {
   @override
   String get testFilePath => '$projectPath/lib/test.dart';
 
+  Future<void> test_project_filterImports() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {}
+''');
+
+    await addProjectFile('lib/b.dart', r'''
+export 'a.dart';
+''');
+
+    await addTestFile('''
+import 'a.dart';
+void main() {
+  ^
+}
+''');
+
+    expectSuggestion(
+        completion: 'A',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION);
+  }
+
+  Future<void> test_project_filterMultipleImports() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {}
+''');
+
+    await addProjectFile('lib/b.dart', r'''
+export 'a.dart';
+''');
+
+    await addTestFile('''
+import 'a.dart';
+import 'b.dart';
+void main() {
+  ^
+}
+''');
+
+    expectSuggestion(
+        completion: 'A',
+        element: ElementKind.CLASS,
+        kind: CompletionSuggestionKind.INVOCATION);
+  }
+
   Future<void> test_project_lib() async {
     await addProjectFile('lib/a.dart', r'''
 class A {}
@@ -278,6 +323,28 @@ void main() {
   }
 
   @failingTest
+  Future<void> test_project_lib_multipleExports() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {}
+''');
+
+    await addProjectFile('lib/b.dart', r'''
+export 'a.dart';
+''');
+
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    // Should only have one suggestion.
+    expectSuggestion(
+        completion: 'A',
+        element: ElementKind.CONSTRUCTOR,
+        kind: CompletionSuggestionKind.INVOCATION);
+  }
+
   Future<void> test_sdk_lib_future_isNotDuplicated() async {
     await addTestFile('''
 void main() {
