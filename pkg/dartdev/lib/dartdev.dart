@@ -8,6 +8,7 @@ import 'package:cli_util/cli_logging.dart';
 
 import 'src/commands/create.dart';
 import 'src/commands/format.dart';
+import 'src/commands/pub.dart';
 import 'src/core.dart';
 
 class DartdevRunner<int> extends CommandRunner {
@@ -22,6 +23,7 @@ class DartdevRunner<int> extends CommandRunner {
 
     addCommand(CreateCommand(verbose: verbose));
     addCommand(FormatCommand(verbose: verbose));
+    addCommand(PubCommand(verbose: verbose));
   }
 
   @override

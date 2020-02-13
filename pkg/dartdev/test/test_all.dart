@@ -7,6 +7,7 @@ import 'package:test/test.dart';
 import 'commands/create_test.dart' as create;
 import 'commands/flag_test.dart' as flag;
 import 'commands/format_test.dart' as format;
+import 'commands/pub_test.dart' as pub;
 import 'utils_test.dart' as utils;
 
 main() {
@@ -14,6 +15,7 @@ main() {
     create.main();
     flag.main();
     format.main();
+    pub.main();
     utils.main();
   });
 }

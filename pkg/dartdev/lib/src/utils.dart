@@ -25,6 +25,12 @@ typedef void VoidFunction();
 
 final NumberFormat _numberFormat = NumberFormat.decimalPattern();
 
+/// Whether today is April Fools' day.
+bool get isAprilFools {
+  var date = DateTime.now();
+  return date.month == 4 && date.day == 1;
+}
+
 /// Convert the given number to a string using the current locale.
 String formatNumber(int i) => _numberFormat.format(i);
 
