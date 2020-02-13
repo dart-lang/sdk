@@ -63,6 +63,7 @@ final allFixes = <DartFixInfo>[
   LintFixInfo.preferAdjacentStringConcatenation,
   LintFixInfo.preferCollectionLiterals,
   LintFixInfo.preferConditionalAssignment,
+  LintFixInfo.preferContains,
   LintFixInfo.preferEqualForDefaultValues,
   LintFixInfo.preferFinalFields,
   LintFixInfo.preferFinalLocals,
@@ -318,6 +319,13 @@ class LintFixInfo extends DartFixInfo {
     'prefer_conditional_assignment',
     DartFixKind.REPLACE_WITH_CONDITIONAL_ASSIGNMENT,
     'Replace with a conditional assignment.',
+    isPedantic: true,
+  );
+
+  static final preferContains = LintFixInfo(
+    'prefer_contains',
+    DartFixKind.CONVERT_TO_CONTAINS,
+    "Convert to using 'contains'.",
     isPedantic: true,
   );
 
