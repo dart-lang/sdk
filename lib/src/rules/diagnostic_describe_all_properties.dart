@@ -17,7 +17,7 @@ const _desc = r'DO reference all public properties in debug methods.';
 const _details = r'''
 **DO** reference all public properties in `debug` method implementations.
 
-Implementers of `Diagnosticable` should reference all public properties in
+Implementers of `DiagnosticableMixin` should reference all public properties in
 a `debugFillProperties(...)` or `debugDescribeChildren(...)` method
 implementation to improve debuggability at runtime.
 
@@ -124,7 +124,8 @@ class _Visitor extends SimpleAstVisitor {
   void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
     final type = node.declaredElement.thisType;
-    if (!DartTypeUtilities.implementsInterface(type, 'Diagnosticable', '')) {
+    if (!DartTypeUtilities.implementsInterface(
+        type, 'DiagnosticableMixin', '')) {
       return;
     }
 

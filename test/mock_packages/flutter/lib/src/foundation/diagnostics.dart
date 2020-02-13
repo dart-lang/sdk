@@ -2657,7 +2657,7 @@ class DiagnosticsProperty<T> extends DiagnosticsNode {
     List<Map<String, Object>> properties;
     if (delegate.expandPropertyValues &&
         delegate.includeProperties &&
-        v is Diagnosticable &&
+        v is DiagnosticableMixin &&
         getProperties().isEmpty) {
       // Exclude children for expanded nodes to avoid cycles.
       delegate = delegate.copyWith(subtreeDepth: 0, includeProperties: false);
@@ -2680,7 +2680,7 @@ class DiagnosticsProperty<T> extends DiagnosticsNode {
     if (exception != null) json['exception'] = exception.toString();
     json['propertyType'] = propertyType.toString();
     json['defaultLevel'] = describeEnum(_defaultLevel);
-    if (value is Diagnosticable || value is DiagnosticsNode)
+    if (value is DiagnosticableMixin || value is DiagnosticsNode)
       json['isDiagnosticableValue'] = true;
     if (v is num)
       // Workaround for https://github.com/flutter/flutter/issues/39937#issuecomment-529558033.
@@ -2852,7 +2852,7 @@ class DiagnosticsProperty<T> extends DiagnosticsNode {
       if (object is DiagnosticsNode) {
         return object.getProperties();
       }
-      if (object is Diagnosticable) {
+      if (object is DiagnosticableMixin) {
         return object.toDiagnosticsNode(style: style).getProperties();
       }
     }
@@ -2866,7 +2866,7 @@ class DiagnosticsProperty<T> extends DiagnosticsNode {
       if (object is DiagnosticsNode) {
         return object.getChildren();
       }
-      if (object is Diagnosticable) {
+      if (object is DiagnosticableMixin) {
         return object.toDiagnosticsNode(style: style).getChildren();
       }
     }
@@ -2876,8 +2876,9 @@ class DiagnosticsProperty<T> extends DiagnosticsNode {
 
 /// [DiagnosticsNode] that lazily calls the associated [Diagnosticable] [value]
 /// to implement [getChildren] and [getProperties].
-class DiagnosticableNode<T extends Diagnosticable> extends DiagnosticsNode {
-  /// Create a diagnostics describing a [Diagnosticable] value.
+class DiagnosticableNode<T extends DiagnosticableMixin>
+    extends DiagnosticsNode {
+  /// Create a diagnostics describing a [DiagnosticableMixin] value.
   ///
   /// The [value] argument must not be null.
   DiagnosticableNode({
@@ -3000,7 +3001,7 @@ String describeEnum(Object enumEntry) {
 }
 
 /// Builder to accumulate properties and configuration used to assemble a
-/// [DiagnosticsNode] from a [Diagnosticable] object.
+/// [DiagnosticsNode] from a [DiagnosticableMixin] object.
 class DiagnosticPropertiesBuilder {
   /// Creates a [DiagnosticPropertiesBuilder] with [properties] initialize to
   /// an empty array.
@@ -3028,7 +3029,7 @@ class DiagnosticPropertiesBuilder {
 }
 
 // Examples can assume:
-// class ExampleSuperclass extends Diagnosticable { String message; double stepWidth; double scale; double paintExtent; double hitTestExtent; double paintExtend; double maxWidth; bool primary; double progress; int maxLines; Duration duration; int depth; dynamic boxShadow; dynamic style; bool hasSize; Matrix4 transform; Map<Listenable, VoidCallback> handles; Color color; bool obscureText; ImageRepeat repeat; Size size; Widget widget; bool isCurrent; bool keepAlive; TextAlign textAlign; }
+// class ExampleSuperclass with DiagnosticableMixin { String message; double stepWidth; double scale; double paintExtent; double hitTestExtent; double paintExtend; double maxWidth; bool primary; double progress; int maxLines; Duration duration; int depth; dynamic boxShadow; dynamic style; bool hasSize; Matrix4 transform; Map<Listenable, VoidCallback> handles; Color color; bool obscureText; ImageRepeat repeat; Size size; Widget widget; bool isCurrent; bool keepAlive; TextAlign textAlign; }
 
 /// A base class for providing string and [DiagnosticsNode] debug
 /// representations describing the properties of an object.
