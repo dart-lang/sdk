@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 library _interceptors;
 
 import 'dart:_js_embedded_names'
@@ -62,17 +60,6 @@ part 'js_string.dart';
 
 final String DART_CLOSURE_PROPERTY_NAME =
     getIsolateAffinityTag(r'_$dart_dartClosure');
-
-String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
-
-_symbolMapToStringMap(Map<Symbol, dynamic> map) {
-  if (map == null) return null;
-  var result = new Map<String, dynamic>();
-  map.forEach((Symbol key, value) {
-    result[_symbolToString(key)] = value;
-  });
-  return result;
-}
 
 getDispatchProperty(object) {
   return JS(
@@ -236,7 +223,7 @@ get typeToInterceptorMap {
   return JS_EMBEDDED_GLOBAL('', TYPE_TO_INTERCEPTOR_MAP);
 }
 
-int findIndexForNativeSubclassType(Type type) {
+int? findIndexForNativeSubclassType(Type? type) {
   if (JS('bool', '# == null', typeToInterceptorMap)) return null;
   List map = JS('JSFixedArray', '#', typeToInterceptorMap);
   for (int i = 0; i + 1 < map.length; i += 3) {
@@ -247,7 +234,7 @@ int findIndexForNativeSubclassType(Type type) {
   return null;
 }
 
-findInterceptorConstructorForType(Type type) {
+findInterceptorConstructorForType(Type? type) {
   var index = findIndexForNativeSubclassType(type);
   if (index == null) return null;
   List map = JS('JSFixedArray', '#', typeToInterceptorMap);
@@ -258,7 +245,7 @@ findInterceptorConstructorForType(Type type) {
 /// `null` if there is no such constructor.
 ///
 /// The returned function takes one argument, the web component object.
-findConstructorForNativeSubclassType(Type type, String name) {
+findConstructorForNativeSubclassType(Type? type, String name) {
   var index = findIndexForNativeSubclassType(type);
   if (index == null) return null;
   List map = JS('JSFixedArray', '#', typeToInterceptorMap);
@@ -267,7 +254,7 @@ findConstructorForNativeSubclassType(Type type, String name) {
   return constructorFn;
 }
 
-findInterceptorForType(Type type) {
+findInterceptorForType(Type? type) {
   var constructor = findInterceptorConstructorForType(type);
   if (constructor == null) return null;
   return JS('', '#.prototype', constructor);

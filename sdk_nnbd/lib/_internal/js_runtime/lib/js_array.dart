@@ -82,7 +82,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   factory JSArray.markGrowable(allocation) =>
       JS('JSExtendableArray', '#', new JSArray<E>.typed(allocation));
 
-  static List markFixedList(List list) {
+  static List<T> markFixedList<T>(List<T> list) {
     // Functions are stored in the hidden class and not as properties in
     // the object. We never actually look at the value, but only want
     // to know if the property exists.
@@ -90,7 +90,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return JS('JSFixedArray', '#', list);
   }
 
-  static List markUnmodifiableList(List list) {
+  static List<T> markUnmodifiableList<T>(List list) {
     // Functions are stored in the hidden class and not as properties in
     // the object. We never actually look at the value, but only want
     // to know if the property exists.
@@ -178,7 +178,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return JS('', r'#.pop()', this);
   }
 
-  bool remove(Object element) {
+  bool remove(Object? element) {
     checkGrowable('remove');
     for (int i = 0; i < this.length; i++) {
       if (this[i] == element) {
@@ -266,7 +266,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
   }
 
   String join([String separator = '']) {
-    var list = List.filled(this.length, null);
+    var list = List.filled(this.length, "");
     for (int i = 0; i < this.length; i++) {
       list[i] = '${this[i]}';
     }
@@ -316,7 +316,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return value;
   }
 
-  E firstWhere(bool test(E value), {E orElse()}) {
+  E firstWhere(bool Function(E) test, {E Function()? orElse}) {
     var end = this.length;
     for (int i = 0; i < end; ++i) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
@@ -329,7 +329,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), {E orElse()}) {
+  E lastWhere(bool Function(E) test, {E Function()? orElse}) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
@@ -344,9 +344,9 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), {E orElse()}) {
+  E singleWhere(bool Function(E) test, {E Function()? orElse}) {
     int length = this.length;
-    E match = null;
+    E? match = null;
     bool matchFound = false;
     for (int i = 0; i < length; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
@@ -363,7 +363,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
         throw new ConcurrentModificationError(this);
       }
     }
-    if (matchFound) return match;
+    if (matchFound) return match!;
     if (orElse != null) return orElse();
     throw IterableElementError.noElement();
   }
@@ -372,7 +372,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return this[index];
   }
 
-  List<E> sublist(int start, [int end]) {
+  List<E> sublist(int start, [int? end]) {
     checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
     if (start is! int) throw argumentErrorValue(start);
     if (start < 0 || start > length) {
@@ -430,7 +430,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     List<E> otherList;
     int otherStart;
     // TODO(floitsch): Make this accept more.
-    if (iterable is List) {
+    if (iterable is List<E>) {
       otherList = iterable;
       otherStart = skipCount;
     } else {
@@ -459,12 +459,14 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
   }
 
-  void fillRange(int start, int end, [E fillValue]) {
+  void fillRange(int start, int end, [E? fillValue]) {
     checkMutable('fill range');
     RangeError.checkValidRange(start, end, this.length);
+    E checkedFillValue = fillValue as E;
     for (int i = start; i < end; i++) {
-      // Store is safe since [fillValue] type has been checked as parameter.
-      JS('', '#[#] = #', this, i, fillValue);
+      // Store is safe since [checkedFillValue] type has been checked as
+      // parameter and for null.
+      JS('', '#[#] = #', this, i, checkedFillValue);
     }
   }
 
@@ -521,18 +523,16 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   Iterable<E> get reversed => new ReversedListIterable<E>(this);
 
-  void sort([int compare(E a, E b)]) {
+  void sort([int Function(E, E)? compare]) {
     checkMutable('sort');
     Sort.sort(this, compare ?? _compareAny);
   }
 
   static int _compareAny(a, b) {
-    // In strong mode Comparable.compare requires an implicit cast to ensure
-    // `a` and `b` are Comparable.
-    return Comparable.compare(a, b);
+    return Comparable.compare(a as Comparable, b as Comparable);
   }
 
-  void shuffle([Random random]) {
+  void shuffle([Random? random]) {
     checkMutable('shuffle');
     if (random == null) random = new Random();
     int length = this.length;
@@ -545,14 +545,15 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     }
   }
 
-  int indexOf(Object element, [int start = 0]) {
-    if (start >= this.length) {
+  int indexOf(Object? element, [int start = 0]) {
+    int length = this.length;
+    if (start >= length) {
       return -1;
     }
     if (start < 0) {
       start = 0;
     }
-    for (int i = start; i < this.length; i++) {
+    for (int i = start; i < length; i++) {
       if (this[i] == element) {
         return i;
       }
@@ -560,16 +561,13 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return -1;
   }
 
-  int lastIndexOf(Object element, [int startIndex]) {
-    if (startIndex == null) {
+  int lastIndexOf(Object? element, [int? _startIndex]) {
+    int startIndex = _startIndex ?? this.length - 1;
+    if (startIndex < 0) {
+      return -1;
+    }
+    if (startIndex >= this.length) {
       startIndex = this.length - 1;
-    } else {
-      if (startIndex < 0) {
-        return -1;
-      }
-      if (startIndex >= this.length) {
-        startIndex = this.length - 1;
-      }
     }
     for (int i = startIndex; i >= 0; i--) {
       if (this[i] == element) {
@@ -579,9 +577,10 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return -1;
   }
 
-  bool contains(Object other) {
+  bool contains(Object? other) {
     for (int i = 0; i < length; i++) {
-      if (this[i] == other) return true;
+      E element = JS('', '#[#]', this, i);
+      if (element == other) return true;
     }
     return false;
   }
@@ -663,7 +662,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
     return -1;
   }
 
-  int lastIndexWhere(bool test(E element), [int start]) {
+  int lastIndexWhere(bool test(E element), [int? start]) {
     if (start == null) start = this.length - 1;
     if (start < 0) return -1;
     for (int i = start; i >= 0; i--) {
@@ -706,14 +705,14 @@ class ArrayIterator<E> implements Iterator<E> {
   final JSArray<E> _iterable;
   final int _length;
   int _index;
-  E _current;
+  E? _current;
 
   ArrayIterator(JSArray<E> iterable)
       : _iterable = iterable,
         _length = iterable.length,
         _index = 0;
 
-  E get current => _current;
+  E get current => _current as E;
 
   bool moveNext() {
     int length = _iterable.length;

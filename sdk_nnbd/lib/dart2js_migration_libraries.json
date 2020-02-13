@@ -80,8 +80,8 @@
         "uri": "web_sql/dart2js/web_sql_dart2js.dart"
       },
       "_internal": {
-        "uri": "../../sdk/lib/internal/internal.dart",
-        "patches": "../../sdk/lib/_internal/js_runtime/lib/internal_patch.dart"
+        "uri": "internal/internal.dart",
+        "patches": "_internal/js_runtime/lib/internal_patch.dart"
       },
       "_js_helper": {
         "uri": "../../sdk/lib/_internal/js_runtime/lib/js_helper.dart"
@@ -90,7 +90,7 @@
         "uri": "../../sdk/lib/_internal/js_runtime/lib/rti.dart"
       },
       "_interceptors": {
-        "uri": "../../sdk/lib/_internal/js_runtime/lib/interceptors.dart"
+        "uri": "_internal/js_runtime/lib/interceptors.dart"
       },
       "_foreign_helper": {
         "uri": "_internal/js_runtime/lib/foreign_helper.dart"
