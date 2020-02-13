@@ -1544,6 +1544,37 @@ void h() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_exact_nullability_counterexample() async {
+    var content = '''
+void f(List<int> x) {
+  x.add(1);
+}
+void g() {
+  f([null]);
+}
+void h(List<int> x) {
+  f(x);
+}
+''';
+    // The `null` in `g` causes `f`'s `x` argument to have type `List<int?>`.
+    // Even though `f` calls a method that uses `List`'s type parameter
+    // contravariantly (the `add` method), that is not sufficient to cause exact
+    // nullability propagation, since value passed to `add` has a
+    // non-nullable type.  So nullability is *not* propagated back to `h`.
+    var expected = '''
+void f(List<int?> x) {
+  x.add(1);
+}
+void g() {
+  f([null]);
+}
+void h(List<int> x) {
+  f(x);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_explicit_nullable_overrides_hard_edge() async {
     var content = '''
 int f(int/*?*/ i) => i + 1;
