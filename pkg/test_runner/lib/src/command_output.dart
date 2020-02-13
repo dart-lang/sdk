@@ -1193,7 +1193,10 @@ mixin _StaticErrorOutput on CommandOutput {
             ? error.isAnalyzer
             : error.isCfe);
 
-    var validation = StaticError.validateExpectations(expected, errors);
+    var validation = StaticError.validateExpectations(
+      expected,
+      [...errors, ...warnings],
+    );
     if (validation == null) return Expectation.pass;
 
     writer?.subsection("static error failures");
