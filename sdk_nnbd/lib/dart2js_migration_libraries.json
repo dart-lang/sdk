@@ -20,8 +20,8 @@
         "patches": "../../sdk/lib/_internal/js_runtime/lib/core_patch.dart"
       },
       "developer": {
-        "uri": "../../sdk/lib/developer/developer.dart",
-        "patches": "../../sdk/lib/_internal/js_runtime/lib/developer_patch.dart"
+        "uri": "developer/developer.dart",
+        "patches": "_internal/js_runtime/lib/developer_patch.dart"
       },
       "html": {
         "uri": "html/dart2js/html_dart2js.dart"
