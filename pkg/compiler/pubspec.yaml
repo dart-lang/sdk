@@ -3,7 +3,7 @@
 name: compiler
 publish_to: none
 environment:
-  sdk: '>=2.3.0 <3.0.0'
+  sdk: '>=2.6.0 <3.0.0'
 
 # NOTE: `pub get / pub upgrade` are generally not needed when working on this
 # package. The `.packages` file in the repository root will be used by default.

@@ -2372,7 +2372,7 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   if (sKind == Rti.kindAny) return true;
 
   // Left Top:
-  if (isTopType(s)) return false;
+  if (isStrongTopType(s)) return false;
 
   // Left Bottom:
   if (isLegacy) {
@@ -2489,6 +2489,10 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     int sLength = _Utils.arrayLength(sBounds);
     int tLength = _Utils.arrayLength(tBounds);
     if (sLength != tLength) return false;
+
+    sEnv = sEnv == null ? sBounds : _Utils.arrayConcat(sBounds, sEnv);
+    tEnv = tEnv == null ? tBounds : _Utils.arrayConcat(tBounds, tEnv);
+
     for (int i = 0; i < sLength; i++) {
       var sBound = _Utils.arrayAt(sBounds, i);
       var tBound = _Utils.arrayAt(tBounds, i);
@@ -2497,9 +2501,6 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
         return false;
       }
     }
-
-    sEnv = sEnv == null ? sBounds : _Utils.arrayConcat(sBounds, sEnv);
-    tEnv = tEnv == null ? tBounds : _Utils.arrayConcat(tBounds, tEnv);
 
     return _isFunctionSubtype(universe, Rti._getGenericFunctionBase(s), sEnv,
         Rti._getGenericFunctionBase(t), tEnv);
@@ -2685,21 +2686,23 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
   return true;
 }
 
-bool isTopType(Rti t) {
-  if (JS_GET_FLAG('LEGACY')) {
-    if (isObjectType(t)) return true;
-  } else {
-    if (isNullableObjectType(t)) return true;
-  }
+bool isTopType(Rti t) => isStrongTopType(t) || isLegacyObjectType(t);
+
+bool isStrongTopType(Rti t) {
   int kind = Rti._getKind(t);
   return kind == Rti.kindDynamic ||
       kind == Rti.kindVoid ||
       kind == Rti.kindAny ||
       kind == Rti.kindErased ||
-      kind == Rti.kindFutureOr && isTopType(Rti._getFutureOrArgument(t));
+      !JS_GET_FLAG('NNBD') && isObjectType(t) ||
+      isNullableObjectType(t);
 }
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
+// TODO(fishythefish): Use `LEGACY_TYPE_REF<Object?>()`.
+bool isLegacyObjectType(Rti t) =>
+    Rti._getKind(t) == Rti.kindQuestion &&
+    isObjectType(Rti._getStarArgument(t));
 // TODO(fishythefish): Use `TYPE_REF<Object?>()`.
 bool isNullableObjectType(Rti t) =>
     Rti._getKind(t) == Rti.kindQuestion &&

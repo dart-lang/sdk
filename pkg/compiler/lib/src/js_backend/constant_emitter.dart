@@ -447,8 +447,8 @@ class ConstantEmitter extends ModularConstantEmitter {
       _constantReferenceGenerator(constant.function)
     ];
     if (_options.useNewRti) {
-      fields
-          .add(_reifiedTypeNewRti(InterfaceType(cls, constant.typeArguments)));
+      fields.add(_reifiedTypeNewRti(InterfaceType(cls, constant.typeArguments,
+          _commonElements.dartTypes.defaultNullability)));
     } else {
       fields.add(_reifiedTypeArguments(constant, constant.typeArguments));
     }

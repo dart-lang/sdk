@@ -89,8 +89,6 @@ class Tag {
 /// Enum used for identifying [DartType] subclasses in serialization.
 enum DartTypeKind {
   none,
-  legacyType,
-  nullableType,
   neverType,
   voidType,
   typeVariable,
@@ -124,23 +122,10 @@ class DartTypeWriter
   }
 
   @override
-  void visitLegacyType(covariant LegacyType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.legacyType);
-    _sink._writeDartType(type.baseType, functionTypeVariables);
-  }
-
-  @override
-  void visitNullableType(covariant NullableType type,
-      List<FunctionTypeVariable> functionTypeVariables) {
-    _sink.writeEnum(DartTypeKind.nullableType);
-    _sink._writeDartType(type.baseType, functionTypeVariables);
-  }
-
-  @override
   void visitNeverType(covariant NeverType type,
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.neverType);
+    _sink.writeEnum(type.nullability);
   }
 
   @override
@@ -154,6 +139,7 @@ class DartTypeWriter
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.typeVariable);
     IndexedTypeVariable typeVariable = type.element;
+    _sink.writeEnum(type.nullability);
     _sink.writeTypeVariable(typeVariable);
   }
 
@@ -179,6 +165,9 @@ class DartTypeWriter
           ..addAll(type.typeVariables);
     _sink.writeInt(type.typeVariables.length);
     for (FunctionTypeVariable variable in type.typeVariables) {
+      _sink.writeEnum(variable.nullability);
+    }
+    for (FunctionTypeVariable variable in type.typeVariables) {
       _sink._writeDartType(variable.bound, functionTypeVariables);
     }
     _sink._writeDartType(type.returnType, functionTypeVariables);
@@ -188,6 +177,7 @@ class DartTypeWriter
     for (String namedParameter in type.namedParameters) {
       _sink.writeString(namedParameter);
     }
+    _sink.writeEnum(type.nullability);
   }
 
   @override
@@ -196,6 +186,7 @@ class DartTypeWriter
     _sink.writeEnum(DartTypeKind.interfaceType);
     _sink.writeClass(type.element);
     visitTypes(type.typeArguments, functionTypeVariables);
+    _sink.writeEnum(type.nullability);
   }
 
   @override
@@ -221,6 +212,7 @@ class DartTypeWriter
       List<FunctionTypeVariable> functionTypeVariables) {
     _sink.writeEnum(DartTypeKind.futureOr);
     _sink._writeDartType(type.typeArgument, functionTypeVariables);
+    _sink.writeEnum(type.nullability);
   }
 }
 

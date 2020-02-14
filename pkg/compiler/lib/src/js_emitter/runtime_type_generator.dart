@@ -196,7 +196,8 @@ class RuntimeTypeGenerator {
         classElement, generateFunctionTypeSignature, generateTypeCheck);
 
     if (classElement == _commonElements.jsJavaScriptFunctionClass) {
-      var type = jsInteropAnalysis.buildJsFunctionType();
+      var type =
+          jsInteropAnalysis.buildJsFunctionType(_commonElements.dartTypes);
       if (type != null) {
         jsAst.Expression thisAccess = new jsAst.This();
         jsAst.Expression encoding = _rtiEncoder.getSignatureEncoding(
@@ -321,14 +322,6 @@ class _TypeContainedInOutputUnitVisitor
     }
     return true;
   }
-
-  @override
-  bool visitLegacyType(LegacyType type, OutputUnit argument) =>
-      visit(type.baseType, argument);
-
-  @override
-  bool visitNullableType(NullableType type, OutputUnit argument) =>
-      visit(type.baseType, argument);
 
   @override
   bool visitNeverType(NeverType type, OutputUnit argument) => true;

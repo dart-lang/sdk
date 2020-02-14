@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 
 class Class1 {
   method1() {
-    /*needsSignature*/
+    /**/
     num local<T>(num n) => null;
     return local;
   }
@@ -18,7 +18,7 @@ class Class1 {
   }
 
   method3() {
-    /*needsSignature*/
+    /**/
     int local<T>(num n) => null;
     return local;
   }

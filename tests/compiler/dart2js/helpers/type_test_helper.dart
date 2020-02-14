@@ -18,7 +18,7 @@ import 'package:compiler/src/world.dart' show JClosedWorld, KClosedWorld;
 import 'memory_compiler.dart' as memory;
 
 DartType instantiate(ClassEntity element, List<DartType> arguments) {
-  return new InterfaceType(element, arguments);
+  return new InterfaceType(element, arguments, Nullability.none);
 }
 
 class TypeEnvironment {

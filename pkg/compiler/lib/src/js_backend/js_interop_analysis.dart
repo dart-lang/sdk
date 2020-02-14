@@ -40,7 +40,7 @@ jsAst.Statement buildJsInteropBootstrap(
   return new jsAst.Block(statements);
 }
 
-FunctionType buildJsFunctionType() {
+FunctionType buildJsFunctionType(DartTypes dartTypes) {
   // TODO(jacobr): consider using codegenWorldBuilder.isChecks to determine the
   // range of positional arguments that need to be supported by JavaScript
   // function types.
@@ -50,5 +50,6 @@ FunctionType buildJsFunctionType() {
       new List<DartType>.filled(16, DynamicType()),
       const <String>[],
       const <DartType>[],
-      const <FunctionTypeVariable>[]);
+      const <FunctionTypeVariable>[],
+      dartTypes.defaultNullability);
 }

@@ -182,16 +182,14 @@ abstract class AbstractDataSource extends DataSourceMixin
     switch (kind) {
       case DartTypeKind.none:
         return null;
-      case DartTypeKind.legacyType:
-        return LegacyType(_readDartType(functionTypeVariables));
-      case DartTypeKind.nullableType:
-        return NullableType(_readDartType(functionTypeVariables));
       case DartTypeKind.neverType:
-        return NeverType();
+        Nullability nullability = readEnum(Nullability.values);
+        return NeverType(nullability);
       case DartTypeKind.voidType:
         return VoidType();
       case DartTypeKind.typeVariable:
-        return new TypeVariableType(readTypeVariable());
+        Nullability nullability = readEnum(Nullability.values);
+        return new TypeVariableType(readTypeVariable(), nullability);
       case DartTypeKind.functionTypeVariable:
         int index = readInt();
         assert(0 <= index && index < functionTypeVariables.length);
@@ -200,7 +198,10 @@ abstract class AbstractDataSource extends DataSourceMixin
         int typeVariableCount = readInt();
         List<FunctionTypeVariable> typeVariables =
             new List<FunctionTypeVariable>.generate(typeVariableCount,
-                (int index) => new FunctionTypeVariable(index));
+                (int index) {
+          Nullability nullability = readEnum(Nullability.values);
+          return new FunctionTypeVariable(index, nullability);
+        });
         functionTypeVariables =
             new List<FunctionTypeVariable>.from(functionTypeVariables)
               ..addAll(typeVariables);
@@ -218,18 +219,21 @@ abstract class AbstractDataSource extends DataSourceMixin
         for (int i = 0; i < namedParameters.length; i++) {
           namedParameters[i] = readString();
         }
+        Nullability nullability = readEnum(Nullability.values);
         return new FunctionType(
             returnType,
             parameterTypes,
             optionalParameterTypes,
             namedParameters,
             namedParameterTypes,
-            typeVariables);
+            typeVariables,
+            nullability);
 
       case DartTypeKind.interfaceType:
         IndexedClass cls = readClass();
         List<DartType> typeArguments = _readDartTypes(functionTypeVariables);
-        return new InterfaceType(cls, typeArguments);
+        Nullability nullability = readEnum(Nullability.values);
+        return new InterfaceType(cls, typeArguments, nullability);
       case DartTypeKind.dynamicType:
         return DynamicType();
       case DartTypeKind.erasedType:
@@ -238,7 +242,8 @@ abstract class AbstractDataSource extends DataSourceMixin
         return AnyType();
       case DartTypeKind.futureOr:
         DartType typeArgument = _readDartType(functionTypeVariables);
-        return new FutureOrType(typeArgument);
+        Nullability nullability = readEnum(Nullability.values);
+        return new FutureOrType(typeArgument, nullability);
     }
     throw new UnsupportedError("Unexpected DartTypeKind $kind");
   }

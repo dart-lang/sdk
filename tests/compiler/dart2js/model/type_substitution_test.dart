@@ -201,18 +201,24 @@ testTypeSubstitution() async {
       env.elementEnvironment,
       arguments,
       parameters,
-      new FunctionType(intType, [StringType], [], [], [], []),
-      new FunctionType(intType, [StringType], [], [], [], []));
+      new FunctionType(
+          intType, [StringType], [], [], [], [], env.types.defaultNullability),
+      new FunctionType(
+          intType, [StringType], [], [], [], [], env.types.defaultNullability));
   testSubstitution(
       env.elementEnvironment,
       arguments,
       parameters,
-      new FunctionType(VoidType(), [T, S], [], [], [], []),
-      new FunctionType(VoidType(), [intType, StringType], [], [], [], []));
+      new FunctionType(
+          VoidType(), [T, S], [], [], [], [], env.types.defaultNullability),
+      new FunctionType(VoidType(), [intType, StringType], [], [], [], [],
+          env.types.defaultNullability));
   testSubstitution(
       env.elementEnvironment,
       arguments,
       parameters,
-      new FunctionType(VoidType(), [DynamicType()], [], [], [], []),
-      new FunctionType(VoidType(), [DynamicType()], [], [], [], []));
+      new FunctionType(VoidType(), [DynamicType()], [], [], [], [],
+          env.types.defaultNullability),
+      new FunctionType(VoidType(), [DynamicType()], [], [], [], [],
+          env.types.defaultNullability));
 }

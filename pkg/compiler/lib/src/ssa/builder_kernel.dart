@@ -387,6 +387,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
         return options.useNewRti;
       case 'VARIANCE':
         return options.enableVariance;
+      case 'NNBD':
+        return options.useNullSafety;
       case 'LEGACY':
         return options.useLegacySubtyping;
       default:
@@ -2121,8 +2123,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     List<HInstruction> arguments = [pop()];
     ClassEntity cls = _commonElements.streamIterator;
     DartType typeArg = _elementMap.getDartType(node.variable.type);
-    InterfaceType instanceType =
-        localsHandler.substInContext(new InterfaceType(cls, [typeArg]));
+    InterfaceType instanceType = localsHandler.substInContext(new InterfaceType(
+        cls, [typeArg], closedWorld.dartTypes.defaultNullability));
     // TODO(johnniwinther): This should be the exact type.
     StaticType staticInstanceType =
         new StaticType(instanceType, ClassRelation.subtype);
@@ -3108,8 +3110,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     }
     if (options.useNewRti) {
       // [type] could be `List<T>`, so ensure it is `JSArray<T>`.
-      InterfaceType arrayType =
-          InterfaceType(_commonElements.jsArrayClass, type.typeArguments);
+      InterfaceType arrayType = InterfaceType(_commonElements.jsArrayClass,
+          type.typeArguments, closedWorld.dartTypes.defaultNullability);
       HInstruction rti =
           _typeBuilder.analyzeTypeArgumentNewRti(arrayType, sourceElement);
 
@@ -4713,8 +4715,8 @@ class KernelSsaGraphBuilder extends ir.Visitor {
     }
     // TODO(sra): This should be JSArray<any>, created via
     // _elementEnvironment.getJsInteropType(_elementEnvironment.jsArrayClass);
-    InterfaceType interopType =
-        InterfaceType(_commonElements.jsArrayClass, [DynamicType()]);
+    InterfaceType interopType = InterfaceType(_commonElements.jsArrayClass,
+        [DynamicType()], closedWorld.dartTypes.defaultNullability);
     SourceInformation sourceInformation =
         _sourceInformationBuilder.buildCall(invocation, invocation);
     HInstruction rti =

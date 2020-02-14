@@ -1005,17 +1005,6 @@ class TypeRepresentationGenerator
   }
 
   @override
-  jsAst.Expression visitLegacyType(LegacyType type, ModularEmitter emitter) {
-    throw UnsupportedError('Legacy RTI does not support legacy types');
-  }
-
-  @override
-  jsAst.Expression visitNullableType(
-      NullableType type, ModularEmitter emitter) {
-    throw UnsupportedError('Legacy RTI does not support nullable types');
-  }
-
-  @override
   jsAst.Expression visitNeverType(NeverType type, ModularEmitter emitter) {
     throw UnsupportedError('Legacy RTI does not support the Never type');
   }
@@ -1249,16 +1238,6 @@ class ArgumentCollector extends DartTypeVisitor<void, void> {
   void collectAll(List<DartType> types) => types.forEach(collect);
 
   @override
-  void visitLegacyType(LegacyType type, _) {
-    collect(type.baseType);
-  }
-
-  @override
-  void visitNullableType(NullableType type, _) {
-    collect(type.baseType);
-  }
-
-  @override
   void visitFutureOrType(FutureOrType type, _) {
     collect(type.typeArgument);
   }
@@ -1333,14 +1312,6 @@ class TypeVisitor extends DartTypeVisitor<void, TypeVisitorState> {
       visitType(type, state);
     }
   }
-
-  @override
-  void visitLegacyType(LegacyType type, TypeVisitorState state) =>
-      visitType(type.baseType, state);
-
-  @override
-  void visitNullableType(NullableType type, TypeVisitorState state) =>
-      visitType(type.baseType, state);
 
   @override
   void visitFutureOrType(FutureOrType type, TypeVisitorState state) =>

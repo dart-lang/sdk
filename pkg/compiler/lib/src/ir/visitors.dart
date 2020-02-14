@@ -50,6 +50,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   DartTypeConverter(this.elementMap);
 
+  DartTypes get _dartTypes => elementMap.commonElements.dartTypes;
+
   DartType convert(ir.DartType type) {
     topLevel = true;
     return type.accept(this);
@@ -63,7 +65,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   InterfaceType visitSupertype(ir.Supertype node) {
     ClassEntity cls = elementMap.getClass(node.classNode);
-    return new InterfaceType(cls, visitTypes(node.typeArguments));
+    return new InterfaceType(
+        cls, visitTypes(node.typeArguments), _dartTypes.defaultNullability);
   }
 
   List<DartType> visitTypes(List<ir.DartType> types) {
@@ -83,7 +86,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
       // variables.
       return DynamicType();
     }
-    return new TypeVariableType(elementMap.getTypeVariable(node.parameter));
+    return new TypeVariableType(elementMap.getTypeVariable(node.parameter),
+        _dartTypes.defaultNullability);
   }
 
   @override
@@ -91,7 +95,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     int index = 0;
     List<FunctionTypeVariable> typeVariables;
     for (ir.TypeParameter typeParameter in node.typeParameters) {
-      FunctionTypeVariable typeVariable = new FunctionTypeVariable(index);
+      FunctionTypeVariable typeVariable =
+          new FunctionTypeVariable(index, _dartTypes.defaultNullability);
       currentFunctionTypeParameters[typeParameter] = typeVariable;
       typeVariables ??= <FunctionTypeVariable>[];
       typeVariables.add(typeVariable);
@@ -114,7 +119,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
             .toList()),
         node.namedParameters.map((n) => n.name).toList(),
         node.namedParameters.map((n) => visitType(n.type)).toList(),
-        typeVariables ?? const <FunctionTypeVariable>[]);
+        typeVariables ?? const <FunctionTypeVariable>[],
+        _dartTypes.defaultNullability);
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       currentFunctionTypeParameters.remove(typeParameter);
     }
@@ -126,9 +132,11 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     ClassEntity cls = elementMap.getClass(node.classNode);
     if (cls.name == 'FutureOr' &&
         cls.library == elementMap.commonElements.asyncLibrary) {
-      return new FutureOrType(visitTypes(node.typeArguments).single);
+      return new FutureOrType(
+          visitTypes(node.typeArguments).single, _dartTypes.defaultNullability);
     }
-    return new InterfaceType(cls, visitTypes(node.typeArguments));
+    return new InterfaceType(
+        cls, visitTypes(node.typeArguments), _dartTypes.defaultNullability);
   }
 
   @override

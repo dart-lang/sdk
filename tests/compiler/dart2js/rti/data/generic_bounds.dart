@@ -39,13 +39,13 @@ class Class4 {}
 method10<T extends Class4>() => null;
 
 main() {
-  /*strong.needsArgs,needsSignature,selectors=[Selector(call, call, arity=0, types=1)]*/
-  /*omit.needsSignature*/method7<T extends Class1a>() => null;
+  /*strong.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+  /*omit.*/method7<T extends Class1a>() => null;
 
-  /*strong.needsArgs,needsSignature,selectors=[Selector(call, call, arity=0, types=1)]*/
-  /*omit.needsSignature*/method8<T extends Class2a<num>>() => null;
+  /*strong.needsArgs,selectors=[Selector(call, call, arity=0, types=1)]*/
+  /*omit.*/method8<T extends Class2a<num>>() => null;
 
-  /*needsSignature*/
+  /**/
   method9<T>() => null;
 
   dynamic f1 = method1;

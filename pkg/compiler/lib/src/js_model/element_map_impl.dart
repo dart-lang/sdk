@@ -137,7 +137,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
     _typeConverter = new DartTypeConverter(this);
-    _types = new KernelDartTypes(this, options.useLegacySubtyping);
+    _types = new KernelDartTypes(this, options);
     _commonElements = new CommonElementsImpl(
         _types, _elementEnvironment, _elementMap.options);
     _constantValuefier = new ConstantValuefier(this);
@@ -298,7 +298,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       this._environment, ir.Component component, DataSource source) {
     _elementEnvironment = new JsElementEnvironment(this);
     _typeConverter = new DartTypeConverter(this);
-    _types = new KernelDartTypes(this, options.useLegacySubtyping);
+    _types = new KernelDartTypes(this, options);
     _commonElements =
         new CommonElementsImpl(_types, _elementEnvironment, options);
     _constantValuefier = new ConstantValuefier(this);
@@ -619,7 +619,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   @override
   InterfaceType createInterfaceType(
       ir.Class cls, List<ir.DartType> typeArguments) {
-    return new InterfaceType(getClass(cls), getDartTypes(typeArguments));
+    return new InterfaceType(
+        getClass(cls), getDartTypes(typeArguments), types.defaultNullability);
   }
 
   @override
@@ -641,20 +642,23 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (data is JClassDataImpl && data.thisType == null) {
       ir.Class node = data.cls;
       if (node.typeParameters.isEmpty) {
-        data.thisType =
-            data.rawType = new InterfaceType(cls, const <DartType>[]);
+        data.thisType = data.rawType = new InterfaceType(
+            cls, const <DartType>[], types.defaultNullability);
       } else {
         data.thisType = new InterfaceType(
             cls,
             new List<DartType>.generate(node.typeParameters.length,
                 (int index) {
               return new TypeVariableType(
-                  getTypeVariableInternal(node.typeParameters[index]));
-            }));
+                  getTypeVariableInternal(node.typeParameters[index]),
+                  types.defaultNullability);
+            }),
+            types.defaultNullability);
         data.rawType = new InterfaceType(
             cls,
             new List<DartType>.filled(
-                node.typeParameters.length, DynamicType()));
+                node.typeParameters.length, DynamicType()),
+            types.defaultNullability);
       }
     }
   }
@@ -668,7 +672,9 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         data.jsInteropType = data.thisType;
       } else {
         data.jsInteropType = InterfaceType(
-            cls, List<DartType>.filled(node.typeParameters.length, AnyType()));
+            cls,
+            List<DartType>.filled(node.typeParameters.length, AnyType()),
+            types.defaultNullability);
       }
     }
   }
@@ -901,7 +907,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       }
       typeVariables = new List<FunctionTypeVariable>.generate(
           node.typeParameters.length,
-          (int index) => new FunctionTypeVariable(index));
+          (int index) =>
+              new FunctionTypeVariable(index, types.defaultNullability));
 
       DartType subst(DartType type) {
         return type.subst(typeVariables, typeParameters);
@@ -919,8 +926,14 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       typeVariables = const <FunctionTypeVariable>[];
     }
 
-    return new FunctionType(returnType, parameterTypes, optionalParameterTypes,
-        namedParameters, namedParameterTypes, typeVariables);
+    return new FunctionType(
+        returnType,
+        parameterTypes,
+        optionalParameterTypes,
+        namedParameters,
+        namedParameterTypes,
+        typeVariables,
+        types.defaultNullability);
   }
 
   @override
@@ -1743,13 +1756,14 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       Map<String, IndexedMember> memberMap = <String, IndexedMember>{};
       JRecord container = new JRecord(member.library, box.name);
       BoxLocal boxLocal = new BoxLocal(container);
-      InterfaceType thisType = new InterfaceType(container, const <DartType>[]);
+      InterfaceType thisType = new InterfaceType(
+          container, const <DartType>[], types.defaultNullability);
       InterfaceType supertype = commonElements.objectType;
       JClassData containerData = new RecordClassData(
           new RecordContainerDefinition(getMemberDefinition(member).location),
           thisType,
           supertype,
-          getOrderedTypeSet(supertype.element).extendClass(_types, thisType));
+          getOrderedTypeSet(supertype.element).extendClass(types, thisType));
       classes.register(container, containerData, new RecordEnv(memberMap));
 
       InterfaceType memberThisType = member.enclosingClass != null
@@ -1806,12 +1820,13 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     JClass classEntity = new JClosureClass(enclosingLibrary, name);
     // Create a classData and set up the interfaces and subclass
     // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
-    InterfaceType thisType = new InterfaceType(classEntity, const <DartType>[]);
+    InterfaceType thisType = new InterfaceType(
+        classEntity, const <DartType>[], types.defaultNullability);
     ClosureClassData closureData = new ClosureClassData(
         new ClosureClassDefinition(location),
         thisType,
         supertype,
-        getOrderedTypeSet(supertype.element).extendClass(_types, thisType));
+        getOrderedTypeSet(supertype.element).extendClass(types, thisType));
     classes.register(classEntity, closureData, new ClosureClassEnv(memberMap));
 
     Local closureEntity;
@@ -2219,7 +2234,8 @@ class JsElementEnvironment extends ElementEnvironment
   @override
   InterfaceType createInterfaceType(
       ClassEntity cls, List<DartType> typeArguments) {
-    return new InterfaceType(cls, typeArguments);
+    return new InterfaceType(
+        cls, typeArguments, elementMap.types.defaultNullability);
   }
 
   @override
