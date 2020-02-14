@@ -66,7 +66,6 @@ class Dart : public AllStatic {
 
   static Isolate* vm_isolate() { return vm_isolate_; }
   static ThreadPool* thread_pool() { return thread_pool_; }
-  static bool VmIsolateNameEquals(const char* name);
 
   static int64_t UptimeMicros();
   static int64_t UptimeMillis() {
@@ -130,10 +129,9 @@ class Dart : public AllStatic {
   static bool non_nullable_flag() { return true; }
 
  private:
-  static constexpr const char* kVmIsolateName = "vm-isolate";
-
   static void WaitForIsolateShutdown();
   static void WaitForApplicationIsolateShutdown();
+  static bool HasApplicationIsolateLocked();
 
   static Isolate* vm_isolate_;
   static int64_t start_time_micros_;

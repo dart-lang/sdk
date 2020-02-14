@@ -246,12 +246,12 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
     // really an isolate itself - it acts more as a container for VM-global
     // objects.
     std::unique_ptr<IsolateGroupSource> source(
-        new IsolateGroupSource(nullptr, kVmIsolateName, vm_isolate_snapshot,
+        new IsolateGroupSource(nullptr, "vm-isolate", vm_isolate_snapshot,
                                instructions_snapshot, nullptr, -1, api_flags));
     auto group = new IsolateGroup(std::move(source), /*embedder_data=*/nullptr);
     IsolateGroup::RegisterIsolateGroup(group);
     vm_isolate_ =
-        Isolate::InitIsolate(kVmIsolateName, group, api_flags, is_vm_isolate);
+        Isolate::InitIsolate("vm-isolate", group, api_flags, is_vm_isolate);
     group->set_initial_spawn_successful();
 
     // Verify assumptions about executing in the VM isolate.
@@ -405,43 +405,31 @@ char* Dart::Init(const uint8_t* vm_isolate_snapshot,
   return NULL;
 }
 
-static void DumpAliveIsolates(intptr_t num_attempts,
-                              bool only_aplication_isolates) {
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->ForEachIsolate([&](Isolate* isolate) {
-      if (!only_aplication_isolates || !Isolate::IsVMInternalIsolate(isolate)) {
-        OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
-                     num_attempts, isolate->name());
-      }
-    });
-  });
-}
-
-static bool OnlyVmIsolateLeft() {
-  intptr_t count = 0;
-  bool found_vm_isolate = false;
-  IsolateGroup::ForEach([&](IsolateGroup* group) {
-    group->ForEachIsolate([&](Isolate* isolate) {
-      count++;
-      if (isolate == Dart::vm_isolate()) {
-        found_vm_isolate = true;
-      }
-    });
-  });
-  return count == 1 && found_vm_isolate;
+bool Dart::HasApplicationIsolateLocked() {
+  for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
+       isolate = isolate->next_) {
+    if (!Isolate::IsVMInternalIsolate(isolate)) return true;
+  }
+  return false;
 }
 
 // This waits until only the VM, service and kernel isolates are in the list.
 void Dart::WaitForApplicationIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
-  MonitorLocker ml(Isolate::isolate_creation_monitor_);
+  MonitorLocker ml(Isolate::isolates_list_monitor_);
   intptr_t num_attempts = 0;
-  while (Isolate::application_isolates_count_ > 1) {
+  while (HasApplicationIsolateLocked()) {
     Monitor::WaitResult retval = ml.Wait(1000);
     if (retval == Monitor::kTimedOut) {
       num_attempts += 1;
       if (num_attempts > 10) {
-        DumpAliveIsolates(num_attempts, /*only_application_isolates=*/true);
+        for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
+             isolate = isolate->next_) {
+          if (!Isolate::IsVMInternalIsolate(isolate)) {
+            OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
+                         num_attempts, isolate->name_);
+          }
+        }
       }
     }
   }
@@ -450,19 +438,22 @@ void Dart::WaitForApplicationIsolateShutdown() {
 // This waits until only the VM isolate remains in the list.
 void Dart::WaitForIsolateShutdown() {
   ASSERT(!Isolate::creation_enabled_);
-  MonitorLocker ml(Isolate::isolate_creation_monitor_);
+  MonitorLocker ml(Isolate::isolates_list_monitor_);
   intptr_t num_attempts = 0;
-  while (Isolate::total_isolates_count_ > 1) {
+  while ((Isolate::isolates_list_head_ != NULL) &&
+         (Isolate::isolates_list_head_->next_ != NULL)) {
     Monitor::WaitResult retval = ml.Wait(1000);
     if (retval == Monitor::kTimedOut) {
       num_attempts += 1;
       if (num_attempts > 10) {
-        DumpAliveIsolates(num_attempts, /*only_application_isolates=*/false);
+        for (Isolate* isolate = Isolate::isolates_list_head_; isolate != NULL;
+             isolate = isolate->next_)
+          OS::PrintErr("Attempt:%" Pd " waiting for isolate %s to check in\n",
+                       num_attempts, isolate->name_);
       }
     }
   }
-
-  ASSERT(OnlyVmIsolateLeft());
+  ASSERT(Isolate::isolates_list_head_ == Dart::vm_isolate());
 }
 
 char* Dart::Cleanup() {
@@ -948,22 +939,11 @@ void Dart::ShutdownIsolate(Isolate* isolate) {
 
 void Dart::ShutdownIsolate() {
   Isolate* isolate = Isolate::Current();
-  const bool is_application_isolate = !Isolate::IsVMInternalIsolate(isolate);
   isolate->Shutdown();
   if (KernelIsolate::IsKernelIsolate(isolate)) {
     KernelIsolate::SetKernelIsolate(NULL);
   }
   delete isolate;
-
-  // Only now do we know for sure that the isolate and all it's resources have
-  // been deleted. So we can let any potential Dart::Cleanup() know it's safe to
-  // proceed shutdown of the VM.
-  Isolate::MarkIsolateDead(is_application_isolate);
-}
-
-bool Dart::VmIsolateNameEquals(const char* name) {
-  ASSERT(name != NULL);
-  return (strcmp(name, kVmIsolateName) == 0);
 }
 
 int64_t Dart::UptimeMicros() {
