@@ -23,7 +23,7 @@ void format() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Idiomatically formats Dart source code.'));
-    expect(result.stdout, contains('Usage: dartdev format [arguments]'));
+    expect(result.stdout, contains('Usage: dart format [arguments]'));
   });
 
   test('--help', () {
@@ -32,7 +32,7 @@ void format() {
     expect(result.exitCode, 0);
     expect(result.stderr, isEmpty);
     expect(result.stdout, contains('Idiomatically formats Dart source code.'));
-    expect(result.stdout, contains('Usage: dartdev format [arguments]'));
+    expect(result.stdout, contains('Usage: dart format [arguments]'));
   });
 
   test('unchanged', () {

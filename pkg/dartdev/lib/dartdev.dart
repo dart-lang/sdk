@@ -15,7 +15,7 @@ class DartdevRunner<int> extends CommandRunner {
   static const String dartdevDescription =
       'A command-line utility for Dart development';
 
-  DartdevRunner(List<String> args) : super('dartdev', '$dartdevDescription.') {
+  DartdevRunner(List<String> args) : super('dart', '$dartdevDescription.') {
     final bool verbose = args.contains('-v') || args.contains('--verbose');
 
     argParser.addFlag('verbose',
