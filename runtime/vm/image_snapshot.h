@@ -186,6 +186,35 @@ class ImageWriter : public ValueObject {
   static intptr_t SizeInSnapshot(RawObject* object);
   static const intptr_t kBareInstructionsAlignment = 4;
 
+  static_assert(
+      (kObjectAlignmentLog2 -
+       compiler::target::ObjectAlignment::kObjectAlignmentLog2) >= 0,
+      "Target object alignment is larger than the host object alignment");
+
+  // Converts the target object size (in bytes) to an appropriate argument for
+  // RawObject::SizeTag methods on the host machine.
+  //
+  // RawObject::SizeTag expects a size divisible by kObjectAlignment and
+  // checks this in debug mode, but the size on the target machine may not be
+  // divisible by the host machine's object alignment if they differ.
+  //
+  // If target_size = n, we convert it to n * m, where m is the host alignment
+  // divided by the target alignment. This means AdjustObjectSizeForTarget(n)
+  // encodes on the host machine to the same bits that decode to n on the target
+  // machine. That is:
+  //    n * (host align / target align) / host align => n / target align
+  static constexpr intptr_t AdjustObjectSizeForTarget(intptr_t target_size) {
+    return target_size
+           << (kObjectAlignmentLog2 -
+               compiler::target::ObjectAlignment::kObjectAlignmentLog2);
+  }
+
+  static UNLESS_DEBUG(constexpr) compiler::target::uword
+      UpdateObjectSizeForTarget(intptr_t size, uword marked_tags) {
+    return RawObject::SizeTag::update(AdjustObjectSizeForTarget(size),
+                                      marked_tags);
+  }
+
  protected:
   void WriteROData(WriteStream* stream);
   virtual void WriteText(WriteStream* clustered_stream, bool vm) = 0;

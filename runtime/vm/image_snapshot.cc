@@ -377,7 +377,6 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 
     NoSafepointScope no_safepoint;
     uword start = reinterpret_cast<uword>(obj.raw()) - kHeapObjectTag;
-    uword end = start + obj.raw()->HeapSize();
 
     // Write object header with the mark and read-only bits set.
     uword marked_tags = obj.raw()->ptr()->tags_;
@@ -390,10 +389,6 @@ void ImageWriter::WriteROData(WriteStream* stream) {
 #endif
 
 #if defined(IS_SIMARM_X64)
-    static_assert(
-        kObjectAlignment ==
-            compiler::target::ObjectAlignment::kObjectAlignment * 2,
-        "host object alignment is not double target object alignment");
     if (obj.IsCompressedStackMaps()) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
       auto const object_start = stream->Position();
@@ -401,7 +396,7 @@ void ImageWriter::WriteROData(WriteStream* stream) {
       const intptr_t payload_size = map.payload_size();
       const intptr_t size_in_bytes =
           CompressedStackMapsSizeInSnapshot(payload_size);
-      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
       stream->WriteFixed<uint32_t>(map.raw()->ptr()->flags_and_size_);
@@ -415,7 +410,7 @@ void ImageWriter::WriteROData(WriteStream* stream) {
       RELEASE_ASSERT(str.IsOneByteString() || str.IsTwoByteString());
       const intptr_t size_in_bytes =
           StringSizeInSnapshot(str.Length(), str.IsOneByteString());
-      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
       stream->WriteTargetWord(
@@ -427,9 +422,8 @@ void ImageWriter::WriteROData(WriteStream* stream) {
       stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
     } else if (obj.IsCodeSourceMap()) {
       const CodeSourceMap& map = CodeSourceMap::Cast(obj);
-
       const intptr_t size_in_bytes = CodeSourceMapSizeInSnapshot(map.Length());
-      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
       stream->WriteTargetWord(map.Length());
@@ -439,7 +433,7 @@ void ImageWriter::WriteROData(WriteStream* stream) {
       const PcDescriptors& desc = PcDescriptors::Cast(obj);
 
       const intptr_t size_in_bytes = PcDescriptorsSizeInSnapshot(desc.Length());
-      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
       stream->WriteTargetWord(desc.Length());
@@ -449,9 +443,9 @@ void ImageWriter::WriteROData(WriteStream* stream) {
       const Class& clazz = Class::Handle(obj.clazz());
       FATAL1("Unsupported class %s in rodata section.\n", clazz.ToCString());
     }
-    USE(start);
-    USE(end);
 #else   // defined(IS_SIMARM_X64)
+    const uword end = start + obj.raw()->HeapSize();
+
     stream->WriteWord(marked_tags);
     start += sizeof(uword);
     for (uword* cursor = reinterpret_cast<uword*>(start);
@@ -623,21 +617,13 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   if (bare_instruction_payloads) {
     const intptr_t section_size = image_size - Image::kHeaderSize;
     // Add the RawInstructionsSection header.
-    uword marked_tags = 0;
-    marked_tags = RawObject::OldBit::update(true, marked_tags);
-    marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
-#if defined(IS_SIMARM_X64)
-    static_assert(
-        kObjectAlignment ==
-            compiler::target::ObjectAlignment::kObjectAlignment * 2,
-        "host object alignment is not double target object alignment");
-    marked_tags = RawObject::SizeTag::update(2 * section_size, marked_tags);
-#else
-    marked_tags = RawObject::SizeTag::update(section_size, marked_tags);
-#endif
-    marked_tags =
-        RawObject::ClassIdTag::update(kInstructionsSectionCid, marked_tags);
-
+    const compiler::target::uword marked_tags =
+        RawObject::OldBit::encode(true) |
+        RawObject::OldAndNotMarkedBit::encode(false) |
+        RawObject::OldAndNotRememberedBit::encode(true) |
+        RawObject::NewBit::encode(false) |
+        RawObject::SizeTag::encode(AdjustObjectSizeForTarget(section_size)) |
+        RawObject::ClassIdTag::encode(kInstructionsSectionCid);
     WriteWordLiteralText(marked_tags);
     // Calculated using next_text_offset_, which doesn't include post-payload
     // padding to object alignment.
@@ -743,7 +729,7 @@ void AssemblyImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
 #if defined(IS_SIMARM_X64)
       const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.raw());
-      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
       WriteWordLiteralText(marked_tags);
       text_offset += sizeof(compiler::target::uword);
       WriteWordLiteralText(insns.raw_ptr()->size_and_flags_);
@@ -1076,21 +1062,13 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
   if (bare_instruction_payloads) {
     const intptr_t section_size = image_size - Image::kHeaderSize;
     // Add the RawInstructionsSection header.
-    uword marked_tags = 0;
-    marked_tags = RawObject::OldBit::update(true, marked_tags);
-    marked_tags = RawObject::OldAndNotRememberedBit::update(true, marked_tags);
-#if defined(IS_SIMARM_X64)
-    static_assert(
-        kObjectAlignment ==
-            compiler::target::ObjectAlignment::kObjectAlignment * 2,
-        "host object alignment is not double target object alignment");
-    marked_tags = RawObject::SizeTag::update(2 * section_size, marked_tags);
-#else
-    marked_tags = RawObject::SizeTag::update(section_size, marked_tags);
-#endif
-    marked_tags =
-        RawObject::ClassIdTag::update(kInstructionsSectionCid, marked_tags);
-
+    const compiler::target::uword marked_tags =
+        RawObject::OldBit::encode(true) |
+        RawObject::OldAndNotMarkedBit::encode(false) |
+        RawObject::OldAndNotRememberedBit::encode(true) |
+        RawObject::NewBit::encode(false) |
+        RawObject::SizeTag::encode(AdjustObjectSizeForTarget(section_size)) |
+        RawObject::ClassIdTag::encode(kInstructionsSectionCid);
     instructions_blob_stream_.WriteTargetWord(marked_tags);
     // Uses next_text_offset_ to avoid any post-payload padding.
     const intptr_t instructions_length =
@@ -1167,9 +1145,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 
     if (!bare_instruction_payloads) {
       const intptr_t size_in_bytes = InstructionsSizeInSnapshot(insns.raw());
-      ASSERT_EQUAL(kObjectAlignment,
-                   compiler::target::ObjectAlignment::kObjectAlignment * 2);
-      marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
+      marked_tags = UpdateObjectSizeForTarget(size_in_bytes, marked_tags);
       instructions_blob_stream_.WriteTargetWord(marked_tags);
       instructions_blob_stream_.WriteFixed<uint32_t>(
           insns.raw_ptr()->size_and_flags_);
