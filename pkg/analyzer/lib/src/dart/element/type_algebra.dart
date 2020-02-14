@@ -190,7 +190,7 @@ abstract class Substitution {
 
   /// Substitutes the Nth parameter in [parameters] with the Nth type in
   /// [types].
-  static Substitution fromPairs(
+  static MapSubstitution fromPairs(
     List<TypeParameterElement> parameters,
     List<DartType> types,
   ) {
