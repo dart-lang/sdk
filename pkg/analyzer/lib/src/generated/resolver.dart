@@ -47,6 +47,7 @@ import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/type_promotion_manager.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
+import 'package:meta/meta.dart';
 
 export 'package:analyzer/dart/element/type_provider.dart';
 export 'package:analyzer/src/dart/constant/constant_verifier.dart';
@@ -1207,38 +1208,55 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    bool isFunctionDeclarationStatement =
-        node.parent is FunctionDeclarationStatement;
-    try {
-      SimpleIdentifier functionName = node.name;
-      if (_flowAnalysis != null) {
-        if (isFunctionDeclarationStatement) {
-          _flowAnalysis.flow.functionExpression_begin(node);
-        } else {
-          _flowAnalysis.topLevelDeclaration_enter(node,
-              node.functionExpression.parameters, node.functionExpression.body);
-        }
-        _flowAnalysis.executableDeclaration_enter(node,
-            node.functionExpression.parameters, isFunctionDeclarationStatement);
+    _enclosingFunction = node.declaredElement;
+
+    bool isLocal = node.parent is FunctionDeclarationStatement;
+
+    if (_flowAnalysis != null) {
+      if (isLocal) {
+        _flowAnalysis.flow.functionExpression_begin(node);
+      } else {
+        _flowAnalysis.topLevelDeclaration_enter(
+          node,
+          node.functionExpression.parameters,
+          node.functionExpression.body,
+        );
       }
+      _flowAnalysis.executableDeclaration_enter(
+        node,
+        node.functionExpression.parameters,
+        isLocal,
+      );
+    } else {
       _promoteManager.enterFunctionBody(node.functionExpression.body);
-      _enclosingFunction = functionName.staticElement as ExecutableElement;
-      InferenceContext.setType(
-          node.functionExpression, _enclosingFunction.type);
-      super.visitFunctionDeclaration(node);
-    } finally {
-      if (_flowAnalysis != null) {
-        _flowAnalysis.executableDeclaration_exit(
-            node.functionExpression.body, isFunctionDeclarationStatement);
-        if (isFunctionDeclarationStatement) {
-          _flowAnalysis.flow.functionExpression_end();
-        } else {
-          _flowAnalysis.topLevelDeclaration_exit();
-        }
-      }
-      _promoteManager.exitFunctionBody();
-      _enclosingFunction = outerFunction;
     }
+
+    var functionType = _enclosingFunction.type;
+    InferenceContext.setType(node.functionExpression, functionType);
+
+    super.visitFunctionDeclaration(node);
+
+    if (_flowAnalysis != null) {
+      var returnType = _computeReturnOrYieldType(functionType.returnType);
+      _checkForBodyMayCompleteNormally(
+        returnType: returnType,
+        body: node.functionExpression.body,
+        errorNode: node.name,
+      );
+      _flowAnalysis.executableDeclaration_exit(
+        node.functionExpression.body,
+        isLocal,
+      );
+      if (isLocal) {
+        _flowAnalysis.flow.functionExpression_end();
+      } else {
+        _flowAnalysis.topLevelDeclaration_exit();
+      }
+    } else {
+      _promoteManager.exitFunctionBody();
+    }
+
+    _enclosingFunction = outerFunction;
   }
 
   @override
@@ -1250,39 +1268,49 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    bool isFunctionDeclaration = node.parent is FunctionDeclaration;
-    try {
-      if (_flowAnalysis != null) {
-        if (!isFunctionDeclaration) {
-          _flowAnalysis.flow.functionExpression_begin(node);
-        }
-      } else {
-        _promoteManager.enterFunctionBody(node.body);
-      }
+    _enclosingFunction = node.declaredElement;
 
-      _enclosingFunction = node.declaredElement;
-      DartType functionType = InferenceContext.getContext(node);
-      if (functionType is FunctionType) {
-        functionType =
-            matchFunctionTypeParameters(node.typeParameters, functionType);
-        if (functionType is FunctionType) {
-          typeAnalyzer.inferFormalParameterList(node.parameters, functionType);
-          InferenceContext.setType(
-              node.body, _computeReturnOrYieldType(functionType.returnType));
-        }
-      }
-      super.visitFunctionExpression(node);
-    } finally {
-      if (_flowAnalysis != null) {
-        if (!isFunctionDeclaration) {
-          _flowAnalysis.flow?.functionExpression_end();
-        }
-      } else {
-        _promoteManager.exitFunctionBody();
-      }
+    var isFunctionDeclaration = node.parent is FunctionDeclaration;
+    var body = node.body;
 
-      _enclosingFunction = outerFunction;
+    if (_flowAnalysis != null) {
+      if (!isFunctionDeclaration) {
+        _flowAnalysis.flow.functionExpression_begin(node);
+      }
+    } else {
+      _promoteManager.enterFunctionBody(body);
     }
+
+    DartType returnType;
+    var contextType = InferenceContext.getContext(node);
+    if (contextType is FunctionType) {
+      contextType = matchFunctionTypeParameters(
+        node.typeParameters,
+        contextType,
+      );
+      if (contextType is FunctionType) {
+        typeAnalyzer.inferFormalParameterList(node.parameters, contextType);
+        returnType = _computeReturnOrYieldType(contextType.returnType);
+        InferenceContext.setType(body, returnType);
+      }
+    }
+
+    super.visitFunctionExpression(node);
+
+    if (_flowAnalysis != null) {
+      if (!isFunctionDeclaration) {
+        _checkForBodyMayCompleteNormally(
+          returnType: returnType,
+          body: body,
+          errorNode: body,
+        );
+        _flowAnalysis.flow?.functionExpression_end();
+      }
+    } else {
+      _promoteManager.exitFunctionBody();
+    }
+
+    _enclosingFunction = outerFunction;
   }
 
   @override
@@ -1447,23 +1475,35 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
-    try {
-      _flowAnalysis?.topLevelDeclaration_enter(
-          node, node.parameters, node.body);
-      _flowAnalysis?.executableDeclaration_enter(node, node.parameters, false);
+    _enclosingFunction = node.declaredElement;
+
+    if (_flowAnalysis != null) {
+      _flowAnalysis.topLevelDeclaration_enter(node, node.parameters, node.body);
+      _flowAnalysis.executableDeclaration_enter(node, node.parameters, false);
+    } else {
       _promoteManager.enterFunctionBody(node.body);
-      _enclosingFunction = node.declaredElement;
-      DartType returnType = _computeReturnOrYieldType(
-        _enclosingFunction?.returnType,
-      );
-      InferenceContext.setType(node.body, returnType);
-      super.visitMethodDeclaration(node);
-    } finally {
-      _flowAnalysis?.executableDeclaration_exit(node.body, false);
-      _flowAnalysis?.topLevelDeclaration_exit();
-      _promoteManager.exitFunctionBody();
-      _enclosingFunction = outerFunction;
     }
+
+    DartType returnType = _computeReturnOrYieldType(
+      _enclosingFunction?.returnType,
+    );
+    InferenceContext.setType(node.body, returnType);
+
+    super.visitMethodDeclaration(node);
+
+    if (_flowAnalysis != null) {
+      _checkForBodyMayCompleteNormally(
+        returnType: returnType,
+        body: node.body,
+        errorNode: node.name,
+      );
+      _flowAnalysis.executableDeclaration_exit(node.body, false);
+      _flowAnalysis.topLevelDeclaration_exit();
+    } else {
+      _promoteManager.exitFunctionBody();
+    }
+
+    _enclosingFunction = outerFunction;
   }
 
   @override
@@ -1889,6 +1929,33 @@ class ResolverVisitor extends ScopedVisitor {
       }
       if (type != null) {
         inferenceContext.addReturnOrYieldType(type);
+      }
+    }
+  }
+
+  void _checkForBodyMayCompleteNormally({
+    @required DartType returnType,
+    @required FunctionBody body,
+    @required AstNode errorNode,
+  }) {
+    if (!_flowAnalysis.flow.isReachable) {
+      return;
+    }
+
+    if (returnType == null) {
+      return;
+    }
+
+    if (body is BlockFunctionBody) {
+      if (body.isGenerator) {
+        return;
+      }
+
+      if (typeSystem.isPotentiallyNonNullable(returnType)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY,
+          errorNode,
+        );
       }
     }
   }

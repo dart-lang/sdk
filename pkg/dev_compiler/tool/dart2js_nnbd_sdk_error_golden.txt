@@ -1,3 +1,6 @@
+ERROR|COMPILE_TIME_ERROR|BODY_MAY_COMPLETE_NORMALLY|lib/html/dart2js/html_dart2js.dart|23331|8|15|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
+ERROR|COMPILE_TIME_ERROR|BODY_MAY_COMPLETE_NORMALLY|lib/html/dart2js/html_dart2js.dart|2978|13|11|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
+ERROR|COMPILE_TIME_ERROR|BODY_MAY_COMPLETE_NORMALLY|lib/html/dart2js/html_dart2js.dart|41436|8|15|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '&': int.& (int Function(int)), JSNumber.& (num Function(num)).
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '<<': int.<< (int Function(int)), JSNumber.<< (num Function(num)).
 ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '>>': int.>> (int Function(int)), JSNumber.>> (num Function(num)).

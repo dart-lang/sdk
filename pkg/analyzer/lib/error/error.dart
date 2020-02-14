@@ -77,6 +77,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
   CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
   CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+  CompileTimeErrorCode.BODY_MAY_COMPLETE_NORMALLY,
   CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME,
   CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME,

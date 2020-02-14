@@ -482,6 +482,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
           correction:
               "Try marking the function body with either 'async' or 'async*'.");
 
+  /**
+   * It is an error if the body of a method, function, getter, or function
+   * expression with a potentially non-nullable return type may completely
+   * normally.
+   */
+  static const CompileTimeErrorCode BODY_MAY_COMPLETE_NORMALLY =
+      CompileTimeErrorCode(
+          'BODY_MAY_COMPLETE_NORMALLY',
+          "The body might complete normally, which would cause 'null' to be "
+              "returned, but the return type is a potentially "
+              "non-nullable type.",
+          correction:
+              "Try adding either a return or a throw statement at the end.");
+
   static const CompileTimeErrorCode BREAK_LABEL_ON_SWITCH_MEMBER =
       CompileTimeErrorCode('BREAK_LABEL_ON_SWITCH_MEMBER',
           "Break label resolves to case or default statement");

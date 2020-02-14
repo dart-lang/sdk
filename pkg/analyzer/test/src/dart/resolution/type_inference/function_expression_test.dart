@@ -5,8 +5,10 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:meta/meta.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../generated/test_support.dart';
 import '../driver_resolution.dart';
 
 main() {
@@ -18,6 +20,17 @@ main() {
 
 @reflectiveTest
 class FunctionExpressionTest extends DriverResolutionTest {
+  List<ExpectedError> expectedErrorsByNullability({
+    @required List<ExpectedError> nullable,
+    @required List<ExpectedError> legacy,
+  }) {
+    if (typeToStringWithNullability) {
+      return nullable;
+    } else {
+      return legacy;
+    }
+  }
+
   test_returnType_blockBody_notNullable() async {
     await resolveTestCode('''
 var v = (bool b) {
@@ -30,6 +43,12 @@ var v = (bool b) {
   }
 
   test_returnType_blockBody_notNullable_switch_onEnum() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [],
+      legacy: [
+        error(HintCode.MISSING_RETURN, 28, 102),
+      ],
+    );
     await assertErrorsInCode('''
 enum E { a, b }
 
@@ -43,9 +62,7 @@ main() {
     }
   };
 }
-''', [
-      error(HintCode.MISSING_RETURN, 28, 102),
-    ]);
+''', expectedErrors);
     var element = findNode.functionExpression('(E e)').declaredElement;
     assertType(element.returnType, 'int');
   }
@@ -54,6 +71,13 @@ main() {
     newFile('/test/lib/a.dart', content: r'''
 enum E { a, b }
 ''');
+
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [],
+      legacy: [
+        error(HintCode.MISSING_RETURN, 34, 108),
+      ],
+    );
     await assertErrorsInCode('''
 import 'a.dart' as p;
 
@@ -67,9 +91,7 @@ main() {
     }
   };
 }
-''', [
-      error(HintCode.MISSING_RETURN, 34, 108),
-    ]);
+''', expectedErrors);
     var element = findNode.functionExpression('(p.E e)').declaredElement;
     assertType(element.returnType, 'int');
   }
@@ -99,14 +121,19 @@ var v = (bool b) {
 };
 ''');
     var element = findNode.functionExpression('(bool').declaredElement;
-    if (typeToStringWithNullability) {
-      assertType(element.returnType, 'int?');
-    } else {
-      assertType(element.returnType, 'int');
-    }
+    assertType(
+      element.returnType,
+      typeStringByNullability(nullable: 'int?', legacy: 'int'),
+    );
   }
 
   test_returnType_blockBody_nullable_switch() async {
+    var expectedErrors = expectedErrorsByNullability(
+      nullable: [],
+      legacy: [
+        error(HintCode.MISSING_RETURN, 11, 68),
+      ],
+    );
     await assertErrorsInCode('''
 main() {
   (int a) {
@@ -116,15 +143,12 @@ main() {
     }
   };
 }
-''', [
-      error(HintCode.MISSING_RETURN, 11, 68),
-    ]);
+''', expectedErrors);
     var element = findNode.functionExpression('(int a)').declaredElement;
-    if (typeToStringWithNullability) {
-      assertType(element.returnType, 'int?');
-    } else {
-      assertType(element.returnType, 'int');
-    }
+    assertType(
+      element.returnType,
+      typeStringByNullability(nullable: 'int?', legacy: 'int'),
+    );
   }
 
   test_returnType_expressionBody_Never() async {
@@ -132,11 +156,10 @@ main() {
 var v = () => throw 42;
 ''');
     var element = findNode.functionExpression('() =>').declaredElement;
-    if (typeToStringWithNullability) {
-      assertType(element.returnType, 'Never');
-    } else {
-      assertType(element.returnType, 'Null');
-    }
+    assertType(
+      element.returnType,
+      typeStringByNullability(nullable: 'Never', legacy: 'Null'),
+    );
   }
 
   test_returnType_expressionBody_notNullable() async {
@@ -153,6 +176,17 @@ var v = () => null;
 ''');
     var element = findNode.functionExpression('() =>').declaredElement;
     assertType(element.returnType, 'Null');
+  }
+
+  String typeStringByNullability({
+    @required String nullable,
+    @required String legacy,
+  }) {
+    if (typeToStringWithNullability) {
+      return nullable;
+    } else {
+      return legacy;
+    }
   }
 }
 

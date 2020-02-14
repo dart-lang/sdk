@@ -101,7 +101,9 @@ void f(int a) {
   }
 }
 
-Never neverCompletes() {}
+Never neverCompletes() {
+  throw 0;
+}
 ''');
   }
 
