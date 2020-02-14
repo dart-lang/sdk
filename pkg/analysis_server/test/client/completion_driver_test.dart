@@ -51,7 +51,7 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
     return suggestions;
   }
 
-  void expectNoSuggestion({
+  void assertNoSuggestion({
     @required String completion,
     ElementKind element,
     CompletionSuggestionKind kind,
@@ -67,7 +67,23 @@ abstract class AbstractCompletionDriverTest with ResourceProviderMixin {
         isEmpty);
   }
 
-  void expectSuggestion({
+  void assertSuggestion({
+    @required String completion,
+    ElementKind element,
+    CompletionSuggestionKind kind,
+    String file,
+  }) {
+    expect(
+        suggestionWith(
+          completion: completion,
+          element: element,
+          kind: kind,
+          file: file,
+        ),
+        isNotNull);
+  }
+
+  void assertSuggestions({
     @required String completion,
     ElementKind element,
     CompletionSuggestionKind kind,
@@ -243,7 +259,7 @@ void main() {
 }
 ''');
 
-    expectSuggestion(
+    assertSuggestion(
         completion: 'A',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -267,7 +283,7 @@ void main() {
   ^
 }
 ''');
-    expectSuggestion(
+    assertSuggestion(
         completion: 'E.e',
         element: ElementKind.ENUM_CONSTANT,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -292,7 +308,7 @@ void main() {
 }
 ''');
 
-    expectSuggestion(
+    assertSuggestion(
         completion: 'A.a',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -315,7 +331,7 @@ void main() {
 }
 ''');
 
-    expectSuggestion(
+    assertSuggestion(
         completion: 'A',
         element: ElementKind.CLASS,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -339,31 +355,31 @@ void main() {
 }
 ''');
 
-    expectSuggestion(
+    assertSuggestion(
         completion: 'A',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
-    expectSuggestion(
+    assertSuggestion(
         completion: 'A',
         element: ElementKind.CLASS,
         kind: CompletionSuggestionKind.INVOCATION);
-    expectSuggestion(
+    assertSuggestion(
         completion: 'E',
         element: ElementKind.ENUM,
         kind: CompletionSuggestionKind.INVOCATION);
-    expectSuggestion(
+    assertSuggestion(
         completion: 'Ex',
         element: ElementKind.EXTENSION,
         kind: CompletionSuggestionKind.INVOCATION);
-    expectSuggestion(
+    assertSuggestion(
         completion: 'M',
         element: ElementKind.MIXIN,
         kind: CompletionSuggestionKind.INVOCATION);
-    expectSuggestion(
+    assertSuggestion(
         completion: 'T',
         element: ElementKind.FUNCTION_TYPE_ALIAS,
         kind: CompletionSuggestionKind.INVOCATION);
-    expectSuggestion(
+    assertSuggestion(
         completion: 'v',
         element: ElementKind.TOP_LEVEL_VARIABLE,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -381,7 +397,7 @@ void main() {
 }
 ''');
 
-    expectSuggestion(
+    assertSuggestion(
         completion: 'g',
         element: ElementKind.GETTER,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -404,7 +420,7 @@ void main() {
 ''');
 
     // Should only have one suggestion.
-    expectSuggestion(
+    assertSuggestion(
         completion: 'A',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
@@ -422,10 +438,73 @@ void main() {
 }
 ''');
 
-    expectSuggestion(
+    assertSuggestion(
         completion: 's',
         element: ElementKind.SETTER,
         kind: CompletionSuggestionKind.INVOCATION);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38739')
+  Future<void>
+      test_project_suggestionRelevance_constructorParameterType() async {
+    await addProjectFile('lib/a.dart', r'''
+import 'b.dart';
+
+class A {
+  A.b({O o});
+}
+''');
+
+    await addProjectFile('lib/b.dart', r'''
+class O { }
+''');
+
+    await addTestFile('''
+import 'a.dart';
+
+void main(List<String> args) {
+  var a = A.b(o: ^)
+}
+''');
+
+    expect(
+        suggestionWith(
+                completion: 'O',
+                element: ElementKind.CONSTRUCTOR,
+                kind: CompletionSuggestionKind.INVOCATION)
+            .relevance,
+        greaterThan(suggestionWith(
+                completion: 'args',
+                element: ElementKind.PARAMETER,
+                kind: CompletionSuggestionKind.INVOCATION)
+            .relevance));
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/38796')
+  Future<void> test_project_suggestionRelevance_constructorsAndTypes() async {
+    await addProjectFile('lib/a.dart', r'''
+class A { }
+''');
+
+    await addTestFile('''
+import 'a.dart';
+
+void main(List<String> args) {
+  var a = ^
+}
+''');
+
+    expect(
+        suggestionWith(
+                completion: 'A',
+                element: ElementKind.CONSTRUCTOR,
+                kind: CompletionSuggestionKind.INVOCATION)
+            .relevance,
+        greaterThan(suggestionWith(
+                completion: 'A',
+                element: ElementKind.CLASS,
+                kind: CompletionSuggestionKind.INVOCATION)
+            .relevance));
   }
 
   Future<void> test_sdk_lib_future_isNotDuplicated() async {
@@ -454,40 +533,40 @@ void main() {
     // A kind-filtered set of SDK suggestions.
 
     // Constructors should be visible.
-    expectSuggestion(
+    assertSuggestion(
         completion: 'Timer',
         file: '/sdk/lib/async/async.dart',
         element: ElementKind.CONSTRUCTOR,
         kind: CompletionSuggestionKind.INVOCATION);
 
     // But not methods.
-    expectNoSuggestion(
+    assertNoSuggestion(
         // dart:async (StreamSubscription)
         completion: 'asFuture',
         element: ElementKind.METHOD,
         kind: CompletionSuggestionKind.INVOCATION);
 
     // +  Functions.
-    expectSuggestion(
+    assertSuggestion(
         completion: 'print',
         file: '/sdk/lib/core/core.dart',
         element: ElementKind.FUNCTION,
         kind: CompletionSuggestionKind.INVOCATION);
-    expectSuggestion(
+    assertSuggestion(
         completion: 'tan',
         file: '/sdk/lib/math/math.dart',
         element: ElementKind.FUNCTION,
         kind: CompletionSuggestionKind.INVOCATION);
 
     // + Classes.
-    expectSuggestion(
+    assertSuggestion(
         completion: 'HashMap',
         file: '/sdk/lib/collection/collection.dart',
         element: ElementKind.CLASS,
         kind: CompletionSuggestionKind.INVOCATION);
 
     // + Top level variables.
-    expectSuggestion(
+    assertSuggestion(
         completion: 'PI',
         file: '/sdk/lib/math/math.dart',
         element: ElementKind.TOP_LEVEL_VARIABLE,
