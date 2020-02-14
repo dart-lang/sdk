@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/matchers_lite.dart";
+import "package:expect/minitest.dart";
 
 import "package:kernel/ast.dart";
 import "package:kernel/class_hierarchy.dart";
@@ -744,8 +744,8 @@ abstract class B extends self::A {}
         ]));
     expect(hierarchy.getDeclaredMembers(a, setters: true),
         unorderedEquals([setter, abstractSetter, nonFinalField]));
-    expect(hierarchy.getDeclaredMembers(b), isEmpty);
-    expect(hierarchy.getDeclaredMembers(b, setters: true), isEmpty);
+    expect(hierarchy.getDeclaredMembers(b).isEmpty, isTrue);
+    expect(hierarchy.getDeclaredMembers(b, setters: true).isEmpty, isTrue);
   }
 
   void test_getDispatchTarget() {
