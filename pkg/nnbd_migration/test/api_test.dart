@@ -2948,6 +2948,33 @@ class C {
         {path2: file2, path1: file1}, {path1: expected1, path2: expected2});
   }
 
+  Future<void> test_literals_maintain_nullability() async {
+    // See #40590. Without exact nullability, this would migrate to
+    // `List<int?> list = <int>[1, 2]`. While the function of exact nullability
+    // may change, this case should continue to work.
+    var content = r'''
+void f() {
+  List<int> list = [1, 2];
+  list.add(null);
+  Set<int> set_ = {1, 2};
+  set_.add(null);
+  Map<int, int> map = {1: 2};
+  map[null] = null;
+}
+''';
+    var expected = r'''
+void f() {
+  List<int?> list = [1, 2];
+  list.add(null);
+  Set<int?> set_ = {1, 2};
+  set_.add(null);
+  Map<int?, int?> map = {1: 2};
+  map[null] = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_local_function() async {
     var content = '''
 int f(int i) {

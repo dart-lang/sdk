@@ -436,6 +436,8 @@ abstract class Set<E> implements Iterable<E> {
   factory Set.of(Iterable<E> elements) => null;
 
   Set<R> cast<R>();
+
+  void add(E element) {}
 }
 
 class StackTrace {}
