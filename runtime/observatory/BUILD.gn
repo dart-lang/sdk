@@ -80,8 +80,6 @@ observatory_ignore_patterns = [
   "interop_support.*",
   "package.json",
   "unittest*",
-  "webcomponents-lite.js",
-  "webcomponents.*",
 ]
 
 if (!is_debug) {
