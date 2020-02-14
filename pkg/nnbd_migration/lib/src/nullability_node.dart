@@ -801,10 +801,11 @@ class _PropagationState {
         // TODO(mfairhurst): should this propagate back up outerContainerNodes?
       }
     }
+
     while (pendingEdges.isNotEmpty) {
       var edge = pendingEdges.removeLast();
       var node = edge.sourceNode;
-      if (node is NullabilityNodeMutable) {
+      if (node is NullabilityNodeMutable && !edge.isCheckable) {
         var oldNullability = _setNullable(node, Nullability.exactNullable);
         if (!oldNullability.isExactNullable) {
           // Was not previously in the "exact nullable" state.  Need to

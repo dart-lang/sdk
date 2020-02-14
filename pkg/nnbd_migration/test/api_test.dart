@@ -3964,6 +3964,50 @@ main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_regression_40551() async {
+    var content = '''
+class B<T extends Object> { // bound should not be made nullable
+  void f(T t) { // parameter should not be made nullable
+    // Create an edge from the bound to some type
+    List<dynamic> x = [t];
+    // and make that type exact nullable
+    x[0] = null;
+  }
+}
+''';
+    var expected = '''
+class B<T extends Object> { // bound should not be made nullable
+  void f(T t) { // parameter should not be made nullable
+    // Create an edge from the bound to some type
+    List<dynamic> x = [t];
+    // and make that type exact nullable
+    x[0] = null;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_regression_40552() async {
+    var content = '''
+void f(Object o) { // parameter should not be made nullable
+  // Create an edge from the bound to some type
+  List<dynamic> x = [o];
+  // and make that type exact nullable
+  x[0] = null;
+}
+''';
+    var expected = '''
+void f(Object o) { // parameter should not be made nullable
+  // Create an edge from the bound to some type
+  List<dynamic> x = [o];
+  // and make that type exact nullable
+  x[0] = null;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_remove_question_from_question_dot() async {
     var content = '_f(int/*!*/ i) => i?.isEven;';
     var expected = '_f(int/*!*/ i) => i.isEven;';
