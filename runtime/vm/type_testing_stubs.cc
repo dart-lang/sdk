@@ -143,7 +143,8 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
   ASSERT(StubCode::HasBeenInitialized());
 
   if (type.IsTypeRef()) {
-    return StubCode::DefaultTypeTest().raw();
+    return TypeTestingStubGenerator::DefaultCodeForType(
+        type, /*lazy_specialize=*/false);
   }
 
   const intptr_t cid = type.type_class_id();
@@ -161,17 +162,16 @@ RawCode* TypeTestingStubGenerator::OptimizedCodeForType(
       }
 
       // Fall back to default.
-      return StubCode::DefaultTypeTest().raw();
 #else
       // In the precompiled runtime we cannot lazily create new optimized type
       // testing stubs, so if we cannot find one, we'll just return the default
       // one.
-      return StubCode::DefaultTypeTest().raw();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
     }
   }
 #endif  // !defined(TARGET_ARCH_IA32)
-  return TypeTestingStubGenerator::DefaultCodeForType(type, false);
+  return TypeTestingStubGenerator::DefaultCodeForType(
+      type, /*lazy_specialize=*/false);
 }
 
 #if !defined(TARGET_ARCH_IA32)

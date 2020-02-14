@@ -1676,8 +1676,8 @@ void Precompiler::AttachOptimizedTypeTestingStub() {
     }
   }
 
-  ASSERT(Object::dynamic_type().type_test_stub_entry_point() !=
-         StubCode::DefaultTypeTest().EntryPoint());
+  ASSERT(Object::dynamic_type().type_test_stub_entry_point() ==
+         StubCode::TopTypeTypeTest().EntryPoint());
 }
 
 void Precompiler::DropTypes() {
