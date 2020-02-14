@@ -46,8 +46,8 @@
         "supported": false
       },
       "js": {
-        "uri": "../../sdk/lib/js/js.dart",
-        "patches": "../../sdk/lib/_internal/js_runtime/lib/js_patch.dart"
+        "uri": "js/js.dart",
+        "patches": "_internal/js_runtime/lib/js_patch.dart"
       },
       "_js": {
         "uri": "js/_js.dart",
@@ -87,7 +87,7 @@
         "uri": "_internal/js_runtime/lib/js_helper.dart"
       },
       "_rti": {
-        "uri": "../../sdk/lib/_internal/js_runtime/lib/rti.dart"
+        "uri": "_internal/js_runtime/lib/rti.dart"
       },
       "_interceptors": {
         "uri": "_internal/js_runtime/lib/interceptors.dart"

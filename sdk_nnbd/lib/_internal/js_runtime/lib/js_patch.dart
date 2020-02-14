@@ -278,7 +278,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 
   @patch
-  void operator []=(Object index, E value) {
+  void operator []=(Object index, Object? value) {
     if (index is int) {
       _checkIndex(index);
     }
@@ -352,7 +352,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
   }
 
   @patch
-  void sort([int compare(E a, E b)]) {
+  void sort([int compare(E a, E b)?]) {
     // Note: arr.sort(null) is a type error in FF
     callMethod('sort', compare == null ? [] : [compare]);
   }
@@ -390,7 +390,7 @@ bool _hasOwnProperty(o, String name) {
 
 bool _isExtensible(o) => JS('bool', 'Object.isExtensible(#)', o);
 
-Object _getOwnProperty(o, String name) {
+Object? _getOwnProperty(o, String name) {
   if (_hasOwnProperty(o, name)) {
     return JS('', '#[#]', o, name);
   }
@@ -434,7 +434,7 @@ Object? _convertToJS(Object? o) {
       o, _JS_OBJECT_PROPERTY_NAME, (o) => JS('', 'new #(#)', ctor, o));
 }
 
-Object _getJsProxy(o, String propertyName, createProxy(o)) {
+Object? _getJsProxy(o, String propertyName, createProxy(o)) {
   var jsProxy = _getOwnProperty(o, propertyName);
   if (jsProxy == null) {
     jsProxy = createProxy(o);

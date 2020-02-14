@@ -13,7 +13,8 @@ ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_ty
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/async/async.dart|5764|17|2|'_ControllerStream.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/internal/internal.dart|2657|17|2|'Symbol.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/internal/internal.dart|2657|17|2|'Symbol.==' ('bool Function(Object)') isn't a valid override of 'Symbol.==' ('bool* Function(dynamic)*').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/js/js.dart|351|17|3|'JsArray.[]=' ('void Function(dynamic, E)') isn't a valid override of 'JsObject.[]=' ('void Function(dynamic, dynamic)').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/js/js.dart|221|17|2|'JsObject.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
+ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/js/js.dart|329|7|7|'JsObject.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/math/math.dart|260|17|2|'Point.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/math/math.dart|399|17|2|'_RectangleBase.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
 ERROR|STATIC_TYPE_WARNING|RETURN_OF_INVALID_TYPE_FROM_CLOSURE|lib/collection/collection.dart|4836|53|10|The return type 'V?' isn't a 'V', as required by the closure's context.
@@ -30,5 +31,6 @@ ERROR|STATIC_WARNING|NEW_WITH_UNDEFINED_CONSTRUCTOR|lib/internal/internal.dart|1
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|1463|39|5|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|8345|60|5|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|9272|54|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/developer/developer.dart|315|25|23|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/html/dart2js/html_dart2js.dart|4075|25|2|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/io/io.dart|9167|16|1|The left operand can't be null, so the right operand is never executed.
