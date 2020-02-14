@@ -1940,29 +1940,48 @@ void KernelLoader::LoadProcedure(const Library& library,
   ASSERT(function_node_tag == kSomething);
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilIncluding(FunctionNodeHelper::kDartAsyncMarker);
+
+  const bool is_async_await_completer_owner =
+      Symbols::_AsyncAwaitCompleter().Equals(
+          String::Handle(Z, owner.ScrubbedName()));
+
   // _AsyncAwaitCompleter.future should be made non-debuggable, otherwise
   // stepping out of async methods will keep hitting breakpoint resulting in
   // infinite loop.
-  bool isAsyncAwaitCompleterFuture =
-      Symbols::_AsyncAwaitCompleter().Equals(
-          String::Handle(owner.ScrubbedName())) &&
-      Symbols::CompleterGetFuture().Equals(String::Handle(function.name()));
+  const bool is_async_await_completer_future =
+      is_async_await_completer_owner &&
+      Symbols::CompleterGetFuture().Equals(name);
   function.set_is_debuggable(function_node_helper.dart_async_marker_ ==
                                  FunctionNodeHelper::kSync &&
-                             !isAsyncAwaitCompleterFuture);
+                             !is_async_await_completer_future);
+
+  // _AsyncAwaitCompleter.start should be made non-visible in stack traces,
+  // since it is an implementation detail of our await/async desugaring.
+  if (is_async_await_completer_owner &&
+      Symbols::_AsyncAwaitStart().Equals(name)) {
+    function.set_is_visible(!FLAG_causal_async_stacks &&
+                            !FLAG_lazy_async_stacks);
+  }
+
   switch (function_node_helper.dart_async_marker_) {
     case FunctionNodeHelper::kSyncStar:
       function.set_modifier(RawFunction::kSyncGen);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsync:
       function.set_modifier(RawFunction::kAsync);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
       break;
     case FunctionNodeHelper::kAsyncStar:
       function.set_modifier(RawFunction::kAsyncGen);
       function.set_is_inlinable(!FLAG_causal_async_stacks &&
                                 !FLAG_lazy_async_stacks);
+      function.set_is_visible(!FLAG_causal_async_stacks &&
+                              !FLAG_lazy_async_stacks);
       break;
     default:
       // no special modifier

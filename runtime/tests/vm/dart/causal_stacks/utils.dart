@@ -947,26 +947,17 @@ Future<void> doTestsLazy() async {
   final noYieldsExpected = const <String>[
     r'^#0      throwSync \(.*/utils.dart:16(:3)?\)$',
     r'^#1      noYields3 \(.*/utils.dart:54(:3)?\)$',
-    // TODO(dart-vm): Figure out why this frame is flaky:
-    r'^#2      _AsyncAwaitCompleter.start ',
-    r'^#3      noYields3 \(.*/utils.dart:53(:23)?\)$',
-    r'^#4      noYields2 \(.*/utils.dart:50(:9)?\)$',
-    r'^#5      _AsyncAwaitCompleter.start ',
-    r'^#6      noYields2 \(.*/utils.dart:49(:23)?\)$',
-    r'^#7      noYields \(.*/utils.dart:46(:9)?\)$',
-    r'^#8      _AsyncAwaitCompleter.start ',
-    r'^#9      noYields \(.*/utils.dart:45(:22)?\)$',
+    r'^#2      noYields2 \(.*/utils.dart:50(:9)?\)$',
+    r'^#3      noYields \(.*/utils.dart:46(:9)?\)$',
   ];
   await doTestAwait(
       noYields,
       noYieldsExpected +
           const <String>[
-            r'^#10     doTestAwait ',
-            r'^#11     _AsyncAwaitCompleter.start ',
-            r'^#12     doTestAwait ',
-            r'^#13     doTestsLazy ',
+            r'^#4      doTestAwait ',
+            r'^#5      doTestsLazy ',
             r'^<asynchronous suspension>$',
-            r'^#14     main ',
+            r'^#6      main ',
             r'^<asynchronous suspension>$',
             r'^$',
           ]);
@@ -974,12 +965,10 @@ Future<void> doTestsLazy() async {
       noYields,
       noYieldsExpected +
           const <String>[
-            r'^#10     doTestAwaitThen ',
-            r'^#11     _AsyncAwaitCompleter.start ',
-            r'^#12     doTestAwaitThen ',
-            r'^#13     doTestsLazy ',
+            r'^#4      doTestAwaitThen ',
+            r'^#5      doTestsLazy ',
             r'^<asynchronous suspension>$',
-            r'^#14     main ',
+            r'^#6      main ',
             r'^<asynchronous suspension>$',
             r'^$',
           ]);
@@ -987,12 +976,10 @@ Future<void> doTestsLazy() async {
       noYields,
       noYieldsExpected +
           const <String>[
-            r'^#10     doTestAwaitCatchError ',
-            r'^#11     _AsyncAwaitCompleter.start ',
-            r'^#12     doTestAwaitCatchError ',
-            r'^#13     doTestsLazy ',
+            r'^#4      doTestAwaitCatchError ',
+            r'^#5      doTestsLazy ',
             r'^<asynchronous suspension>$',
-            r'^#14     main ',
+            r'^#6      main ',
             r'^<asynchronous suspension>$',
             r'^$',
           ]);

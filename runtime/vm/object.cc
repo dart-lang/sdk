@@ -23074,15 +23074,6 @@ const char* StackTrace::ToDartCString(const StackTrace& stack_trace_in) {
         }
       } else if (code_object.raw() == StubCode::AsynchronousGapMarker().raw()) {
         buffer.AddString("<asynchronous suspension>\n");
-        // With lazy_async_stacks we're constructing the stack correctly
-        // (see `StackTraceUtils::CollectFramesLazy`) so there are no extra
-        // frames to skip.
-        if (!FLAG_lazy_async_stacks) {
-          // The frame immediately after the asynchronous gap marker is the
-          // identical to the frame above the marker. Skip the frame to enhance
-          // the readability of the trace.
-          i++;
-        }
       } else {
         intptr_t pc_offset = Smi::Value(stack_trace.PcOffsetAtFrame(i));
         if (code_object.IsCode()) {
