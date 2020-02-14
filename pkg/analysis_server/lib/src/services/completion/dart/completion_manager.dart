@@ -241,6 +241,8 @@ class DartCompletionManager implements CompletionContributor {
         kinds.add(protocol.ElementKind.ENUM_CONSTANT);
         kinds.add(protocol.ElementKind.EXTENSION);
         kinds.add(protocol.ElementKind.FUNCTION);
+        kinds.add(protocol.ElementKind.GETTER);
+        kinds.add(protocol.ElementKind.SETTER);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
       }
     }

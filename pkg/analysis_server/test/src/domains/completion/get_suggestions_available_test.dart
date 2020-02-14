@@ -184,7 +184,9 @@ main() {
         ElementKind.EXTENSION,
         ElementKind.FUNCTION,
         ElementKind.FUNCTION_TYPE_ALIAS,
+        ElementKind.GETTER,
         ElementKind.MIXIN,
+        ElementKind.SETTER,
         ElementKind.TOP_LEVEL_VARIABLE,
       ]),
     );

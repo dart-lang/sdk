@@ -370,7 +370,6 @@ void main() {
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
-  @failingTest
   Future<void> test_project_lib_getters() async {
     await addProjectFile('lib/a.dart', r'''
 int get g => 0;
@@ -383,8 +382,8 @@ void main() {
 ''');
 
     expectSuggestion(
-        completion: 's',
-        element: ElementKind.SETTER,
+        completion: 'g',
+        element: ElementKind.GETTER,
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
@@ -412,7 +411,6 @@ void main() {
   }
 
   /// See: https://github.com/dart-lang/sdk/issues/40626
-  @failingTest
   Future<void> test_project_lib_setters() async {
     await addProjectFile('lib/a.dart', r'''
 set s(int s) {}
