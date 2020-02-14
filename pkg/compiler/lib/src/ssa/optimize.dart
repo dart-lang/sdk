@@ -76,7 +76,8 @@ class SsaOptimizerTask extends CompilerTask {
     SsaCodeMotion codeMotion;
     SsaLoadElimination loadElimination;
 
-    TypeRecipeDomain typeRecipeDomain = TypeRecipeDomainImpl();
+    TypeRecipeDomain typeRecipeDomain =
+        TypeRecipeDomainImpl(closedWorld.dartTypes);
 
     OptimizationTestLog log;
     if (retainDataForTesting) {
@@ -693,7 +694,9 @@ class SsaInstructionSimplifier extends HBaseVisitor
     if (_options.useNewRti) {
       typeInfo = HLoadType.type(
           _closedWorld.elementEnvironment.createInterfaceType(
-              commonElements.jsArrayClass, [commonElements.stringType]),
+              commonElements.jsArrayClass,
+              [commonElements.stringType],
+              Nullability.none),
           _abstractValueDomain.dynamicType);
       node.block.addBefore(node, typeInfo);
     } else {

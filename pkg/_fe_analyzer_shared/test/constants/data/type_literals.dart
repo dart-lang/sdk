@@ -41,7 +41,8 @@ main() {
       typedefWithFutureOr);
 
   print(
-      /*TypeLiteral(FutureOr<dynamic>)*/
+      /*cfe|analyzer.TypeLiteral(FutureOr<dynamic>)*/
+      /*dart2js.TypeLiteral(dynamic)*/
       futureOr);
 
   print(

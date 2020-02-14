@@ -14,9 +14,6 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   /// and deserialization.
   final bool useDataKinds;
 
-  /// Visitor used for serializing [DartType]s.
-  DartTypeWriter _dartTypeWriter;
-
   /// Visitor used for serializing [ir.DartType]s.
   DartTypeNodeWriter _dartTypeNodeWriter;
 
@@ -44,7 +41,6 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
   _MemberData _currentMemberData;
 
   AbstractDataSink({this.useDataKinds: false, this.tagFrequencyMap}) {
-    _dartTypeWriter = new DartTypeWriter(this);
     _dartTypeNodeWriter = new DartTypeNodeWriter(this);
     _stringIndex = new IndexedSink<String>(this);
     _uriIndex = new IndexedSink<Uri>(this);
@@ -124,7 +120,7 @@ abstract class AbstractDataSink extends DataSinkMixin implements DataSink {
       }
       writeEnum(DartTypeKind.none);
     } else {
-      _dartTypeWriter.visit(value, functionTypeVariables);
+      value.writeToDataSink(this, functionTypeVariables);
     }
   }
 

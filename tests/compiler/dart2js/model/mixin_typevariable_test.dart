@@ -106,6 +106,7 @@ testNonTrivialSubstitutions() async {
         new F2();
       }
       """, expectNoWarningsOrErrors: true);
+  var types = env.types;
   DartType _dynamic = env['dynamic'];
   DartType _ = env['_'];
 
@@ -178,7 +179,7 @@ testNonTrivialSubstitutions() async {
     A: [D1_T],
     B: [
       D1_T,
-      instantiate(A, [D1_T])
+      instantiate(types, A, [D1_T])
     ]
   });
   DartType D1_superclass_T = env.elementEnvironment
@@ -189,7 +190,7 @@ testNonTrivialSubstitutions() async {
     A: [D1_superclass_T],
     B: [
       D1_superclass_T,
-      instantiate(A, [D1_superclass_T])
+      instantiate(types, A, [D1_superclass_T])
     ]
   });
   DartType D2_T = env.elementEnvironment.getThisType(D2).typeArguments.first;
@@ -197,7 +198,7 @@ testNonTrivialSubstitutions() async {
     A: [D2_T],
     B: [
       D2_T,
-      instantiate(A, [D2_T])
+      instantiate(types, A, [D2_T])
     ]
   });
 
@@ -205,21 +206,21 @@ testNonTrivialSubstitutions() async {
     A: [_],
     B: [
       _,
-      instantiate(A, [_])
+      instantiate(types, A, [_])
     ]
   });
   testSupertypes(env.elementEnvironment.getSuperClass(E1), {
     A: [_],
     B: [
       _,
-      instantiate(A, [_])
+      instantiate(types, A, [_])
     ]
   });
   testSupertypes(E2, {
     A: [_],
     B: [
       _,
-      instantiate(A, [_])
+      instantiate(types, A, [_])
     ]
   });
 
@@ -228,7 +229,7 @@ testNonTrivialSubstitutions() async {
     A: [_],
     B: [
       _,
-      instantiate(B, [F1_T, _])
+      instantiate(types, B, [F1_T, _])
     ]
   });
   DartType F1_superclass_T = env.elementEnvironment
@@ -239,7 +240,7 @@ testNonTrivialSubstitutions() async {
     A: [_],
     B: [
       _,
-      instantiate(B, [F1_superclass_T, _])
+      instantiate(types, B, [F1_superclass_T, _])
     ]
   });
   DartType F2_T = env.elementEnvironment.getThisType(F2).typeArguments.first;
@@ -247,7 +248,7 @@ testNonTrivialSubstitutions() async {
     A: [_],
     B: [
       _,
-      instantiate(B, [F2_T, _])
+      instantiate(types, B, [F2_T, _])
     ]
   });
 }

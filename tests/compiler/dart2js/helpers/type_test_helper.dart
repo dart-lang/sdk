@@ -17,8 +17,9 @@ import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/world.dart' show JClosedWorld, KClosedWorld;
 import 'memory_compiler.dart' as memory;
 
-DartType instantiate(ClassEntity element, List<DartType> arguments) {
-  return new InterfaceType(element, arguments, Nullability.none);
+DartType instantiate(
+    DartTypes dartTypes, ClassEntity element, List<DartType> arguments) {
+  return dartTypes.interfaceType(element, arguments, Nullability.none);
 }
 
 class TypeEnvironment {
@@ -112,10 +113,10 @@ class TypeEnvironment {
 
   DartType operator [](String name) {
     if (name == 'dynamic') {
-      return DynamicType();
+      return types.dynamicType();
     }
     if (name == 'void') {
-      return VoidType();
+      return types.voidType();
     }
     return getElementType(name);
   }

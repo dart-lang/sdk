@@ -239,9 +239,9 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   @override
   InterfaceType createInterfaceType(
-      ir.Class cls, List<ir.DartType> typeArguments) {
-    return new InterfaceType(
-        getClass(cls), getDartTypes(typeArguments), types.defaultNullability);
+      ir.Class cls, List<ir.DartType> typeArguments, Nullability nullability) {
+    return types.interfaceType(
+        getClass(cls), getDartTypes(typeArguments), nullability);
   }
 
   LibraryEntity getLibrary(ir.Library node) => getLibraryInternal(node);
@@ -262,22 +262,22 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (data is KClassDataImpl && data.thisType == null) {
       ir.Class node = data.node;
       if (node.typeParameters.isEmpty) {
-        data.thisType = data.rawType = new InterfaceType(
+        data.thisType = data.rawType = types.interfaceType(
             cls, const <DartType>[], types.defaultNullability);
       } else {
-        data.thisType = new InterfaceType(
+        data.thisType = types.interfaceType(
             cls,
             new List<DartType>.generate(node.typeParameters.length,
                 (int index) {
-              return new TypeVariableType(
+              return types.typeVariableType(
                   getTypeVariableInternal(node.typeParameters[index]),
                   types.defaultNullability);
             }),
             types.defaultNullability);
-        data.rawType = new InterfaceType(
+        data.rawType = types.interfaceType(
             cls,
             new List<DartType>.filled(
-                node.typeParameters.length, DynamicType()),
+                node.typeParameters.length, types.dynamicType()),
             types.defaultNullability);
       }
     }
@@ -291,9 +291,9 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
         _ensureThisAndRawType(cls, data);
         data.jsInteropType = data.thisType;
       } else {
-        data.jsInteropType = InterfaceType(
+        data.jsInteropType = types.interfaceType(
             cls,
-            List<DartType>.filled(node.typeParameters.length, AnyType()),
+            List<DartType>.filled(node.typeParameters.length, types.anyType()),
             types.defaultNullability);
       }
     }
@@ -491,7 +491,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (node.parent is ir.Constructor) {
       // The return type on generative constructors is `void`, but we need
       // `dynamic` type to match the element model.
-      returnType = DynamicType();
+      returnType = types.dynamicType();
     } else {
       returnType = getDartType(node.returnType);
     }
@@ -531,10 +531,10 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       typeVariables = new List<FunctionTypeVariable>.generate(
           node.typeParameters.length,
           (int index) =>
-              new FunctionTypeVariable(index, types.defaultNullability));
+              types.functionTypeVariable(index, types.defaultNullability));
 
       DartType subst(DartType type) {
-        return type.subst(typeVariables, typeParameters);
+        return types.subst(typeVariables, typeParameters, type);
       }
 
       returnType = subst(returnType);
@@ -549,7 +549,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
       typeVariables = const <FunctionTypeVariable>[];
     }
 
-    return new FunctionType(
+    return types.functionType(
         returnType,
         parameterTypes,
         optionalParameterTypes,
@@ -561,8 +561,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
 
   @override
   DartType substByContext(DartType type, InterfaceType context) {
-    return type.subst(
-        context.typeArguments, getThisType(context.element).typeArguments);
+    return types.subst(context.typeArguments,
+        getThisType(context.element).typeArguments, type);
   }
 
   /// Returns the type of the `call` method on 'type'.
@@ -1625,7 +1625,7 @@ class KernelElementEnvironment extends ElementEnvironment
   KernelElementEnvironment(this.elementMap);
 
   @override
-  DartType get dynamicType => DynamicType();
+  DartType get dynamicType => elementMap.types.dynamicType();
 
   @override
   LibraryEntity get mainLibrary => elementMap._mainLibrary;
@@ -1688,9 +1688,8 @@ class KernelElementEnvironment extends ElementEnvironment
 
   @override
   InterfaceType createInterfaceType(
-      ClassEntity cls, List<DartType> typeArguments) {
-    return new InterfaceType(
-        cls, typeArguments, elementMap.types.defaultNullability);
+      ClassEntity cls, List<DartType> typeArguments, Nullability nullability) {
+    return elementMap.types.interfaceType(cls, typeArguments, nullability);
   }
 
   @override

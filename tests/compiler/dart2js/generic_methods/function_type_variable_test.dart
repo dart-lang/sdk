@@ -66,6 +66,8 @@ main() {
     }
     """));
 
+    var types = env.types;
+
     testToString(FunctionType type, String expectedToString) {
       Expect.equals(expectedToString, type.toString());
     }
@@ -81,14 +83,14 @@ main() {
 
     testInstantiate(FunctionType type, List<DartType> instantiation,
         String expectedToString) {
-      DartType result = type.instantiate(instantiation);
+      DartType result = types.instantiate(type, instantiation);
       Expect.equals(expectedToString, result.toString(),
           "Unexpected instantiation of $type with $instantiation: $result");
     }
 
     void testSubst(List<DartType> arguments, List<DartType> parameters,
         DartType type1, String expectedToString) {
-      DartType subst = type1.subst(arguments, parameters);
+      DartType subst = types.subst(arguments, parameters, type1);
       Expect.equals(expectedToString, subst.toString(),
           "$type1.subst($arguments,$parameters)");
     }
@@ -117,10 +119,10 @@ main() {
     InterfaceType Object_ = env['Object'];
     InterfaceType num_ = env['num'];
     InterfaceType int_ = env['int'];
-    InterfaceType C1 = instantiate(env.getClass('C1'), []);
-    InterfaceType C2 = instantiate(env.getClass('C2'), []);
+    InterfaceType C1 = instantiate(types, env.getClass('C1'), []);
+    InterfaceType C2 = instantiate(types, env.getClass('C2'), []);
     ClassEntity C3 = env.getClass('C3');
-    InterfaceType C4 = instantiate(env.getClass('C4'), []);
+    InterfaceType C4 = instantiate(types, env.getClass('C4'), []);
     FunctionType F1 = env.getFieldType('F1');
     FunctionType F2 = env.getFieldType('F2');
     FunctionType F3 = env.getFieldType('F3');
@@ -203,10 +205,10 @@ main() {
     testBounds(F9, [F9.typeVariables.last, Object_]);
     testBounds(F10, [F10.typeVariables.last, Object_]);
     testBounds(F11, [
-      instantiate(C3, [F11.typeVariables.last])
+      instantiate(types, C3, [F11.typeVariables.last])
     ]);
     testBounds(F12, [
-      instantiate(C3, [F12.typeVariables.last])
+      instantiate(types, C3, [F12.typeVariables.last])
     ]);
     testBounds(F13, [Object_]);
     testBounds(F14, [Object_]);

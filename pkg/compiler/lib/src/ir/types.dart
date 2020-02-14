@@ -68,9 +68,8 @@ class KernelDartTypes extends DartTypes {
     for (int index = 0; index < typeArguments.length; index++) {
       DartType typeArgument = typeArguments[index];
       TypeVariableType typeVariable = typeVariables[index];
-      DartType bound = elementMap
-          .getTypeVariableBound(typeVariable.element)
-          .subst(typeArguments, typeVariables);
+      DartType bound = subst(typeArguments, typeVariables,
+          elementMap.getTypeVariableBound(typeVariable.element));
       checkTypeVariableBound(context, typeArgument, typeVariable, bound);
     }
   }

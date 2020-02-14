@@ -54,6 +54,7 @@ class JsClosedWorldBuilder {
 
   ElementEnvironment get _elementEnvironment => _elementMap.elementEnvironment;
   CommonElements get _commonElements => _elementMap.commonElements;
+  DartTypes get _dartTypes => _elementMap.types;
 
   JsClosedWorld convertClosedWorld(
       KClosedWorld closedWorld,
@@ -427,7 +428,7 @@ class JsClosedWorldBuilder {
         boxedVariables,
         info,
         localsMap,
-        new InterfaceType(
+        _dartTypes.interfaceType(
             superclass, const [], _elementMap.types.defaultNullability),
         createSignatureMethod: createSignatureMethod);
 
@@ -678,7 +679,8 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
   DartType toBackendType(DartType type, {bool allowFreeVariables: false}) =>
       type == null
           ? null
-          : new _TypeConverter(allowFreeVariables: allowFreeVariables)
+          : new _TypeConverter(_backend.types,
+                  allowFreeVariables: allowFreeVariables)
               .visit(type, toBackendEntity);
 
   Entity toBackendEntity(Entity entity) {
@@ -733,12 +735,13 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
 typedef Entity _EntityConverter(Entity cls);
 
 class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
+  final DartTypes _dartTypes;
   final bool allowFreeVariables;
 
   Map<FunctionTypeVariable, FunctionTypeVariable> _functionTypeVariables =
       <FunctionTypeVariable, FunctionTypeVariable>{};
 
-  _TypeConverter({this.allowFreeVariables: false});
+  _TypeConverter(this._dartTypes, {this.allowFreeVariables: false});
 
   List<DartType> convertTypes(
           List<DartType> types, _EntityConverter converter) =>
@@ -759,39 +762,39 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
 
   @override
   DartType visitNeverType(NeverType type, _EntityConverter converter) =>
-      NeverType(type.nullability);
+      _dartTypes.neverType(type.nullability);
 
   @override
-  DartType visitDynamicType(DynamicType type, _EntityConverter converter) {
-    return DynamicType();
-  }
+  DartType visitDynamicType(DynamicType type, _EntityConverter converter) =>
+      _dartTypes.dynamicType();
 
   @override
   DartType visitErasedType(ErasedType type, _EntityConverter converter) =>
-      ErasedType();
+      _dartTypes.erasedType();
 
   @override
-  DartType visitAnyType(AnyType type, _EntityConverter converter) => AnyType();
+  DartType visitAnyType(AnyType type, _EntityConverter converter) =>
+      _dartTypes.anyType();
 
   @override
   DartType visitInterfaceType(InterfaceType type, _EntityConverter converter) {
-    return new InterfaceType(converter(type.element),
+    return _dartTypes.interfaceType(converter(type.element),
         visitList(type.typeArguments, converter), type.nullability);
   }
 
   @override
   DartType visitTypeVariableType(
       TypeVariableType type, _EntityConverter converter) {
-    return new TypeVariableType(converter(type.element), type.nullability);
+    return _dartTypes.typeVariableType(
+        converter(type.element), type.nullability);
   }
 
   @override
   DartType visitFunctionType(FunctionType type, _EntityConverter converter) {
     List<FunctionTypeVariable> typeVariables = <FunctionTypeVariable>[];
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
-      typeVariables.add(_functionTypeVariables[typeVariable] =
-          new FunctionTypeVariable(
-              typeVariable.index, typeVariable.nullability));
+      typeVariables.add(_functionTypeVariables[typeVariable] = _dartTypes
+          .functionTypeVariable(typeVariable.index, typeVariable.nullability));
     }
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
       _functionTypeVariables[typeVariable].bound = typeVariable.bound != null
@@ -807,7 +810,7 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
     for (FunctionTypeVariable typeVariable in type.typeVariables) {
       _functionTypeVariables.remove(typeVariable);
     }
-    return new FunctionType(
+    return _dartTypes.functionType(
         returnType,
         parameterTypes,
         optionalParameterTypes,
@@ -830,15 +833,13 @@ class _TypeConverter implements DartTypeVisitor<DartType, _EntityConverter> {
   }
 
   @override
-  DartType visitVoidType(VoidType type, _EntityConverter converter) {
-    return VoidType();
-  }
+  DartType visitVoidType(VoidType type, _EntityConverter converter) =>
+      _dartTypes.voidType();
 
   @override
-  DartType visitFutureOrType(FutureOrType type, _EntityConverter converter) {
-    return new FutureOrType(
-        visit(type.typeArgument, converter), type.nullability);
-  }
+  DartType visitFutureOrType(FutureOrType type, _EntityConverter converter) =>
+      _dartTypes.futureOrType(
+          visit(type.typeArgument, converter), type.nullability);
 }
 
 class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
@@ -847,7 +848,7 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   final _TypeConverter typeConverter;
 
   _ConstantConverter(this._dartTypes, this.toBackendEntity)
-      : typeConverter = new _TypeConverter();
+      : typeConverter = new _TypeConverter(_dartTypes);
 
   @override
   ConstantValue visitNull(NullConstantValue constant, _) => constant;

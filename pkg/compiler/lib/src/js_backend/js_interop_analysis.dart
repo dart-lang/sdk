@@ -44,10 +44,10 @@ FunctionType buildJsFunctionType(DartTypes dartTypes) {
   // TODO(jacobr): consider using codegenWorldBuilder.isChecks to determine the
   // range of positional arguments that need to be supported by JavaScript
   // function types.
-  return new FunctionType(
-      DynamicType(),
+  return dartTypes.functionType(
+      dartTypes.dynamicType(),
       const <DartType>[],
-      new List<DartType>.filled(16, DynamicType()),
+      new List<DartType>.filled(16, dartTypes.dynamicType()),
       const <String>[],
       const <DartType>[],
       const <FunctionTypeVariable>[],

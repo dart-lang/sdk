@@ -140,16 +140,6 @@ abstract class AbstractDataSource extends DataSourceMixin
     return _entityReader.readTypeVariableFromDataSource(this, entityLookup);
   }
 
-  List<DartType> _readDartTypes(
-      List<FunctionTypeVariable> functionTypeVariables) {
-    int count = readInt();
-    List<DartType> types = new List<DartType>(count);
-    for (int index = 0; index < count; index++) {
-      types[index] = _readDartType(functionTypeVariables);
-    }
-    return types;
-  }
-
   List<ir.DartType> _readDartTypeNodes(
       List<ir.TypeParameter> functionTypeVariables) {
     int count = readInt();
@@ -172,80 +162,9 @@ abstract class AbstractDataSource extends DataSourceMixin
   @override
   DartType readDartType({bool allowNull: false}) {
     _checkDataKind(DataKind.dartType);
-    DartType type = _readDartType([]);
+    DartType type = DartType.readFromDataSource(this, []);
     assert(type != null || allowNull);
     return type;
-  }
-
-  DartType _readDartType(List<FunctionTypeVariable> functionTypeVariables) {
-    DartTypeKind kind = readEnum(DartTypeKind.values);
-    switch (kind) {
-      case DartTypeKind.none:
-        return null;
-      case DartTypeKind.neverType:
-        Nullability nullability = readEnum(Nullability.values);
-        return NeverType(nullability);
-      case DartTypeKind.voidType:
-        return VoidType();
-      case DartTypeKind.typeVariable:
-        Nullability nullability = readEnum(Nullability.values);
-        return new TypeVariableType(readTypeVariable(), nullability);
-      case DartTypeKind.functionTypeVariable:
-        int index = readInt();
-        assert(0 <= index && index < functionTypeVariables.length);
-        return functionTypeVariables[index];
-      case DartTypeKind.functionType:
-        int typeVariableCount = readInt();
-        List<FunctionTypeVariable> typeVariables =
-            new List<FunctionTypeVariable>.generate(typeVariableCount,
-                (int index) {
-          Nullability nullability = readEnum(Nullability.values);
-          return new FunctionTypeVariable(index, nullability);
-        });
-        functionTypeVariables =
-            new List<FunctionTypeVariable>.from(functionTypeVariables)
-              ..addAll(typeVariables);
-        for (int index = 0; index < typeVariableCount; index++) {
-          typeVariables[index].bound = _readDartType(functionTypeVariables);
-        }
-        DartType returnType = _readDartType(functionTypeVariables);
-        List<DartType> parameterTypes = _readDartTypes(functionTypeVariables);
-        List<DartType> optionalParameterTypes =
-            _readDartTypes(functionTypeVariables);
-        List<DartType> namedParameterTypes =
-            _readDartTypes(functionTypeVariables);
-        List<String> namedParameters =
-            new List<String>(namedParameterTypes.length);
-        for (int i = 0; i < namedParameters.length; i++) {
-          namedParameters[i] = readString();
-        }
-        Nullability nullability = readEnum(Nullability.values);
-        return new FunctionType(
-            returnType,
-            parameterTypes,
-            optionalParameterTypes,
-            namedParameters,
-            namedParameterTypes,
-            typeVariables,
-            nullability);
-
-      case DartTypeKind.interfaceType:
-        IndexedClass cls = readClass();
-        List<DartType> typeArguments = _readDartTypes(functionTypeVariables);
-        Nullability nullability = readEnum(Nullability.values);
-        return new InterfaceType(cls, typeArguments, nullability);
-      case DartTypeKind.dynamicType:
-        return DynamicType();
-      case DartTypeKind.erasedType:
-        return ErasedType();
-      case DartTypeKind.anyType:
-        return AnyType();
-      case DartTypeKind.futureOr:
-        DartType typeArgument = _readDartType(functionTypeVariables);
-        Nullability nullability = readEnum(Nullability.values);
-        return new FutureOrType(typeArgument, nullability);
-    }
-    throw new UnsupportedError("Unexpected DartTypeKind $kind");
   }
 
   @override

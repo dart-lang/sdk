@@ -1049,7 +1049,7 @@ class InstantiationConstantValue extends ConstantValue {
   @override
   DartType getType(CommonElements types) {
     FunctionType type = function.getType(types);
-    return type.instantiate(typeArguments);
+    return types.dartTypes.instantiate(type, typeArguments);
   }
 
   @override

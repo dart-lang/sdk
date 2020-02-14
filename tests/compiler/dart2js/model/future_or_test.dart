@@ -99,8 +99,8 @@ main() {
         getReturnType('futureOrFutureOrNum', 'FutureOr<FutureOr<num>>');
 
     DartType futureNull = getReturnType('futureNull', 'Future<Null>');
-    FutureOrType futureOrNull = getReturnType('futureOrNull', 'FutureOr<Null>');
-    DartType Null_ = futureOrNull.typeArgument;
+    InterfaceType futureOrNull = getReturnType('futureOrNull', 'Future<Null>');
+    DartType Null_ = futureOrNull.typeArguments.single;
 
     ClassEntity C = env.getClass('C');
     DartType futureT = getReturnType('futureT', 'Future<C.T>', C);
@@ -111,7 +111,7 @@ main() {
 
     DartType returnVoid = getFunctionType('returnVoid', 'void Function()');
     DartType returnFutureNull =
-        getFunctionType('futureOrNull', 'FutureOr<Null> Function()');
+        getFunctionType('futureOrNull', 'Future<Null> Function()');
 
     List<DartType> all = [
       Object_,

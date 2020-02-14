@@ -63,6 +63,8 @@ Future testInterfaceSubtype() async {
       testTypes(env, T, S, expectSubtype);
     }
 
+    var types = env.types;
+
     ClassEntity A = env.getClass('A');
     ClassEntity B = env.getClass('B');
     ClassEntity C = env.getClass('C');
@@ -124,12 +126,12 @@ Future testInterfaceSubtype() async {
     expect(false, dynamic_, Null_);
     expect(true, Null_, Null_);
 
-    DartType A_Object = instantiate(A, [Object_]);
-    DartType A_num = instantiate(A, [num_]);
-    DartType A_int = instantiate(A, [int_]);
-    DartType A_String = instantiate(A, [String_]);
-    DartType A_dynamic = instantiate(A, [dynamic_]);
-    DartType A_Null = instantiate(A, [Null_]);
+    DartType A_Object = instantiate(types, A, [Object_]);
+    DartType A_num = instantiate(types, A, [num_]);
+    DartType A_int = instantiate(types, A, [int_]);
+    DartType A_String = instantiate(types, A, [String_]);
+    DartType A_dynamic = instantiate(types, A, [dynamic_]);
+    DartType A_Null = instantiate(types, A, [Null_]);
 
     expect(true, A_Object, Object_);
     expect(false, A_Object, num_);
@@ -180,11 +182,11 @@ Future testInterfaceSubtype() async {
     expect(false, A_dynamic, A_Null);
     expect(true, A_Null, A_Null);
 
-    DartType B_Object_Object = instantiate(B, [Object_, Object_]);
-    DartType B_num_num = instantiate(B, [num_, num_]);
-    DartType B_int_num = instantiate(B, [int_, num_]);
-    DartType B_dynamic_dynamic = instantiate(B, [dynamic_, dynamic_]);
-    DartType B_String_dynamic = instantiate(B, [String_, dynamic_]);
+    DartType B_Object_Object = instantiate(types, B, [Object_, Object_]);
+    DartType B_num_num = instantiate(types, B, [num_, num_]);
+    DartType B_int_num = instantiate(types, B, [int_, num_]);
+    DartType B_dynamic_dynamic = instantiate(types, B, [dynamic_, dynamic_]);
+    DartType B_String_dynamic = instantiate(types, B, [String_, dynamic_]);
 
     expect(true, B_Object_Object, Object_);
     expect(true, B_Object_Object, A_Object);
@@ -251,10 +253,10 @@ Future testInterfaceSubtype() async {
     expect(false, B_dynamic_dynamic, B_String_dynamic);
     expect(true, B_String_dynamic, B_String_dynamic);
 
-    DartType C_Object_Object = instantiate(C, [Object_, Object_]);
-    DartType C_num_num = instantiate(C, [num_, num_]);
-    DartType C_int_String = instantiate(C, [int_, String_]);
-    DartType C_dynamic_dynamic = instantiate(C, [dynamic_, dynamic_]);
+    DartType C_Object_Object = instantiate(types, C, [Object_, Object_]);
+    DartType C_num_num = instantiate(types, C, [num_, num_]);
+    DartType C_int_String = instantiate(types, C, [int_, String_]);
+    DartType C_dynamic_dynamic = instantiate(types, C, [dynamic_, dynamic_]);
 
     expect(true, C_Object_Object, B_Object_Object);
     expect(false, C_Object_Object, B_num_num);
@@ -285,7 +287,7 @@ Future testInterfaceSubtype() async {
     // TODO(johnniwinther): Inheritance with different type arguments is
     // currently not supported by the implementation.
     //expect(true, C_int_String, instantiate(A, [A_int]));
-    expect(false, C_int_String, instantiate(A, [A_String]));
+    expect(false, C_int_String, instantiate(types, A, [A_String]));
   });
 }
 
@@ -749,6 +751,8 @@ Future testStrongModeSubtyping() async {
       }
     }
 
+    var types = env.types;
+
     InterfaceType ClassWithCall = env['ClassWithCall'];
     DartType Object_ = env['Object'];
     DartType dynamic_ = env['dynamic'];
@@ -758,11 +762,16 @@ Future testStrongModeSubtyping() async {
     DartType ClassWithCallType =
         env.getMemberType('call', ClassWithCall.element);
 
-    InterfaceType List_Object = env.commonElements.listType(Object_);
-    InterfaceType List_dynamic = env.commonElements.listType(dynamic_);
-    InterfaceType List_void = env.commonElements.listType(void_);
-    InterfaceType List_Null = env.commonElements.listType(Null_);
-    InterfaceType List_Function = env.commonElements.listType(Function_);
+    InterfaceType List_Object =
+        env.commonElements.listType(types.defaultNullability, Object_);
+    InterfaceType List_dynamic =
+        env.commonElements.listType(types.defaultNullability, dynamic_);
+    InterfaceType List_void =
+        env.commonElements.listType(types.defaultNullability, void_);
+    InterfaceType List_Null =
+        env.commonElements.listType(types.defaultNullability, Null_);
+    InterfaceType List_Function =
+        env.commonElements.listType(types.defaultNullability, Function_);
 
     DartType returnNum = env.getMemberType('returnNum');
     DartType returnInt = env.getMemberType('returnInt');

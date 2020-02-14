@@ -103,6 +103,7 @@ main() {
   }
 
   JClosedWorld closedWorld = compiler.backendClosedWorldForTesting;
+  DartTypes dartTypes = closedWorld.dartTypes;
   ElementEnvironment elementEnvironment = closedWorld.elementEnvironment;
   String func = rtiTags.functionTypeTag;
   String ret = rtiTags.functionTypeReturnTypeTag;
@@ -179,49 +180,51 @@ main() {
   // List
   expect(elementEnvironment.getRawType(List_), '[$List_rep,,]');
   // List<dynamic>
-  expect(instantiate(List_, [dynamic_]), '[$List_rep,,]');
+  expect(instantiate(dartTypes, List_, [dynamic_]), '[$List_rep,,]');
   // List<int>
-  expect(instantiate(List_, [int_]), '[$List_rep, $int_rep]');
+  expect(instantiate(dartTypes, List_, [int_]), '[$List_rep, $int_rep]');
   // List<Typedef1>
-  expect(instantiate(List_, [Typedef1_]), '[$List_rep, {$func: 1, $retvoid}]',
+  expect(
+      instantiate(dartTypes, List_, [Typedef1_]),
+      '[$List_rep, {$func: 1, $retvoid}]',
       '[$List_rep, {$func: 1, $retvoid$Typedef1_tag}]');
   expect(
-      instantiate(List_, [Typedef2_]),
+      instantiate(dartTypes, List_, [Typedef2_]),
       '[$List_rep, {$func: 1, $ret: $int_rep}]',
       '[$List_rep, {$func: 1, $ret: $int_rep$Typedef2_tag}]');
   expect(
-      instantiate(List_, [Typedef3_]),
+      instantiate(dartTypes, List_, [Typedef3_]),
       '[$List_rep, {$func: 1, $ret: [$List_rep, $int_rep]}]',
       '[$List_rep, {$func: 1, $ret: [$List_rep, $int_rep]$Typedef3_tag}]');
-  expect(instantiate(List_, [Typedef4_]), '[$List_rep, {$func: 1}]',
+  expect(instantiate(dartTypes, List_, [Typedef4_]), '[$List_rep, {$func: 1}]',
       '[$List_rep, {$func: 1$Typedef4_tag}]');
   expect(
-      instantiate(List_, [Typedef5_]),
+      instantiate(dartTypes, List_, [Typedef5_]),
       '[$List_rep, {$func: 1,'
           ' $args: [$int_rep, $String_rep]}]',
       '[$List_rep, {$func: 1,'
           ' $args: [$int_rep, $String_rep]$Typedef5_tag}]');
   expect(
-      instantiate(List_, [Typedef6_]),
+      instantiate(dartTypes, List_, [Typedef6_]),
       '[$List_rep, {$func: 1,'
           ' $args: [$int_rep], $opt: [$String_rep]}]',
       '[$List_rep, {$func: 1,'
           ' $args: [$int_rep], $opt: [$String_rep]$Typedef6_tag}]');
   expect(
-      instantiate(List_, [Typedef7_]),
+      instantiate(dartTypes, List_, [Typedef7_]),
       '[$List_rep, {$func: 1, $args: '
           '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep],,]}]',
       '[$List_rep, {$func: 1, $args: '
           '[$int_rep, $String_rep], $opt: [[$List_rep, $int_rep],,]'
           '$Typedef7_tag}]');
   expect(
-      instantiate(List_, [Typedef8_]),
+      instantiate(dartTypes, List_, [Typedef8_]),
       '[$List_rep, {$func: 1, $args: [$int_rep],'
           ' $named: {b: $String_rep}}]',
       '[$List_rep, {$func: 1, $args: [$int_rep],'
           ' $named: {b: $String_rep}$Typedef8_tag}]');
   expect(
-      instantiate(List_, [Typedef9_]),
+      instantiate(dartTypes, List_, [Typedef9_]),
       '[$List_rep, {$func: 1, '
           '$args: [$int_rep, $String_rep], $named: '
           '{c: [$List_rep, $int_rep], d: null}}]',
@@ -229,7 +232,7 @@ main() {
           '$args: [$int_rep, $String_rep], $named: {c: [$List_rep, $int_rep],'
           ' d: null}$Typedef9_tag}]');
   expect(
-      instantiate(List_, [Typedef10_]),
+      instantiate(dartTypes, List_, [Typedef10_]),
       '[$List_rep, {$func: 1, '
           '$args: [{$func: 1, $retvoid, '
           '$args: [$int_rep], $opt: [,]}]}]',
@@ -238,7 +241,7 @@ main() {
           '$args: [$int_rep], $opt: [,]}]$Typedef10_tag}]');
 
   expect(
-      instantiate(List_, [Typedef11_]),
+      instantiate(dartTypes, List_, [Typedef11_]),
       '[$List_rep, {$func: 1, $bounds: [$num_rep, $Object_rep], '
       '$ret: {$futureOr: 1, $futureOrType: $int_rep}, '
       '$args: [{$futureOr: 1, $futureOrType: 0}, 1, [$List_rep, -1]]}]');
@@ -249,10 +252,10 @@ main() {
   // Map
   expect(elementEnvironment.getRawType(Map_), '[$Map_rep,,,]');
   // Map<dynamic,dynamic>
-  expect(instantiate(Map_, [dynamic_, dynamic_]), '[$Map_rep,,,]');
+  expect(instantiate(dartTypes, Map_, [dynamic_, dynamic_]), '[$Map_rep,,,]');
   // Map<int,String>
-  expect(
-      instantiate(Map_, [int_, String_]), '[$Map_rep, $int_rep, $String_rep]');
+  expect(instantiate(dartTypes, Map_, [int_, String_]),
+      '[$Map_rep, $int_rep, $String_rep]');
 
   // void m1() {}
   expect(findFunctionType(closedWorld, 'm1'), '{$func: 1, $retvoid}');

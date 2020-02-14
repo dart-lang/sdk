@@ -65,7 +65,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   InterfaceType visitSupertype(ir.Supertype node) {
     ClassEntity cls = elementMap.getClass(node.classNode);
-    return new InterfaceType(
+    return _dartTypes.interfaceType(
         cls, visitTypes(node.typeArguments), _dartTypes.defaultNullability);
   }
 
@@ -84,9 +84,12 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     if (node.parameter.parent is ir.Typedef) {
       // Typedefs are only used in type literals so we never need their type
       // variables.
-      return DynamicType();
+      return _dartTypes.dynamicType();
     }
-    return new TypeVariableType(elementMap.getTypeVariable(node.parameter),
+    // We assume the incoming type is already normalized, so the bound is not
+    // `Never`. Attempting to check the bound here will overflow the stack.
+    return _dartTypes.typeVariableType(
+        elementMap.getTypeVariable(node.parameter),
         _dartTypes.defaultNullability);
   }
 
@@ -96,7 +99,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     List<FunctionTypeVariable> typeVariables;
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       FunctionTypeVariable typeVariable =
-          new FunctionTypeVariable(index, _dartTypes.defaultNullability);
+          _dartTypes.functionTypeVariable(index, _dartTypes.defaultNullability);
       currentFunctionTypeParameters[typeParameter] = typeVariable;
       typeVariables ??= <FunctionTypeVariable>[];
       typeVariables.add(typeVariable);
@@ -109,7 +112,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
       }
     }
 
-    FunctionType type = new FunctionType(
+    FunctionType type = _dartTypes.functionType(
         visitType(node.returnType),
         visitTypes(node.positionalParameters
             .take(node.requiredParameterCount)
@@ -132,28 +135,28 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     ClassEntity cls = elementMap.getClass(node.classNode);
     if (cls.name == 'FutureOr' &&
         cls.library == elementMap.commonElements.asyncLibrary) {
-      return new FutureOrType(
+      return _dartTypes.futureOrType(
           visitTypes(node.typeArguments).single, _dartTypes.defaultNullability);
     }
-    return new InterfaceType(
+    return _dartTypes.interfaceType(
         cls, visitTypes(node.typeArguments), _dartTypes.defaultNullability);
   }
 
   @override
   DartType visitVoidType(ir.VoidType node) {
-    return VoidType();
+    return _dartTypes.voidType();
   }
 
   @override
   DartType visitDynamicType(ir.DynamicType node) {
-    return DynamicType();
+    return _dartTypes.dynamicType();
   }
 
   @override
   DartType visitInvalidType(ir.InvalidType node) {
     // Root uses such a `o is Unresolved` and `o as Unresolved` must be special
     // cased in the builder, nested invalid types are treated as `dynamic`.
-    return DynamicType();
+    return _dartTypes.dynamicType();
   }
 
   @override
@@ -205,8 +208,8 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue visitInstanceConstant(ir.InstanceConstant node) {
-    InterfaceType type =
-        elementMap.createInterfaceType(node.classNode, node.typeArguments);
+    InterfaceType type = elementMap.createInterfaceType(
+        node.classNode, node.typeArguments, Nullability.none);
     Map<FieldEntity, ConstantValue> fields = {};
     node.fieldValues.forEach((ir.Reference reference, ir.Constant value) {
       FieldEntity field = elementMap.getField(reference.asField);
@@ -222,7 +225,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
       elements.add(visitConstant(element));
     }
     DartType type = elementMap.commonElements
-        .listType(elementMap.getDartType(node.typeArgument));
+        .listType(Nullability.none, elementMap.getDartType(node.typeArgument));
     return constant_system.createList(
         elementMap.commonElements, type, elements);
   }
@@ -234,7 +237,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
       elements.add(visitConstant(element));
     }
     DartType type = elementMap.commonElements
-        .setType(elementMap.getDartType(node.typeArgument));
+        .setType(Nullability.none, elementMap.getDartType(node.typeArgument));
     return constant_system.createSet(elementMap.commonElements, type, elements);
   }
 
@@ -247,6 +250,7 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
       values.add(visitConstant(element.value));
     }
     DartType type = elementMap.commonElements.mapType(
+        Nullability.none,
         elementMap.getDartType(node.keyType),
         elementMap.getDartType(node.valueType));
     return constant_system.createMap(

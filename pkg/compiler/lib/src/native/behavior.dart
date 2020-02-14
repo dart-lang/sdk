@@ -363,7 +363,7 @@ class NativeBehavior {
   /// [nullType] define the types for `Object` and `Null`, respectively. The
   /// latter is used for the type strings of the form '' and 'var'.
   /// [validTags] can be used to restrict which tags are accepted.
-  static void processSpecString(
+  static void processSpecString(DartTypes dartTypes,
       DiagnosticReporter reporter, Spannable spannable, String specString,
       {Iterable<String> validTags,
       void setSideEffects(SideEffects newEffects),
@@ -397,7 +397,7 @@ class NativeBehavior {
     /// *  'void' - in which case [onVoid] is called,
     /// *  '' or 'var' - in which case [onVar] is called,
     /// *  'T1|...|Tn' - in which case [onType] is called for each resolved Ti.
-    void resolveTypesString(String typesString,
+    void resolveTypesString(DartTypes dartTypes, String typesString,
         {onVoid(), onVar(), onType(type)}) {
       // Various things that are not in fact types.
       if (typesString == 'void') {
@@ -413,13 +413,13 @@ class NativeBehavior {
         return;
       }
       for (final typeString in typesString.split('|')) {
-        onType(_parseType(typeString.trim(), lookupType));
+        onType(_parseType(dartTypes, typeString.trim(), lookupType));
       }
     }
 
     if (!specString.contains(';') && !specString.contains(':')) {
       // Form (1), types or pseudo-types like 'void' and 'var'.
-      resolveTypesString(specString.trim(), onVar: () {
+      resolveTypesString(dartTypes, specString.trim(), onVar: () {
         typesReturned.add(objectType);
         typesReturned.add(nullType);
       }, onType: (type) {
@@ -478,7 +478,7 @@ class NativeBehavior {
 
     String returns = values['returns'];
     if (returns != null) {
-      resolveTypesString(returns, onVar: () {
+      resolveTypesString(dartTypes, returns, onVar: () {
         typesReturned.add(objectType);
         typesReturned.add(nullType);
       }, onType: (type) {
@@ -488,13 +488,13 @@ class NativeBehavior {
 
     String creates = values['creates'];
     if (creates != null) {
-      resolveTypesString(creates, onVoid: () {
+      resolveTypesString(dartTypes, creates, onVoid: () {
         reportError("Invalid type string 'creates:$creates'");
       }, onType: (type) {
         typesInstantiated.add(type);
       });
     } else if (returns != null) {
-      resolveTypesString(returns, onType: (type) {
+      resolveTypesString(dartTypes, returns, onType: (type) {
         typesInstantiated.add(type);
       });
     }
@@ -634,7 +634,7 @@ class NativeBehavior {
       behavior.useGvn = useGvn;
     }
 
-    processSpecString(reporter, spannable, specString,
+    processSpecString(commonElements.dartTypes, reporter, spannable, specString,
         setSideEffects: setSideEffects,
         setThrows: setThrows,
         setIsAllocation: setIsAllocation,
@@ -669,7 +669,7 @@ class NativeBehavior {
       behavior.sideEffects.setTo(newEffects);
     }
 
-    processSpecString(reporter, spannable, specString,
+    processSpecString(commonElements.dartTypes, reporter, spannable, specString,
         validTags: validTags,
         lookupType: lookupType,
         setSideEffects: setSideEffects,
@@ -711,10 +711,10 @@ class NativeBehavior {
   }
 
   static dynamic /*DartType|SpecialType*/ _parseType(
-      String typeString, TypeLookup lookupType) {
+      DartTypes dartTypes, String typeString, TypeLookup lookupType) {
     if (typeString == '=Object') return SpecialType.JsObject;
     if (typeString == 'dynamic') {
-      return DynamicType();
+      return dartTypes.dynamicType();
     }
     int index = typeString.indexOf('<');
     var type = lookupType(typeString, required: index == -1);
@@ -727,7 +727,7 @@ class NativeBehavior {
         return type;
       }
     }
-    return DynamicType();
+    return dartTypes.dynamicType();
   }
 }
 
@@ -766,7 +766,8 @@ abstract class BehaviorBuilder {
     List<dynamic> types = null;
     for (String specString in annotations) {
       for (final typeString in specString.split('|')) {
-        var type = NativeBehavior._parseType(typeString, lookupType);
+        var type = NativeBehavior._parseType(
+            commonElements.dartTypes, typeString, lookupType);
         if (types == null) types = [];
         types.add(type);
       }
