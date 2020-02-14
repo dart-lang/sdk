@@ -9,10 +9,7 @@ import 'test_helper.dart';
 
 class _TestClass {
   _TestClass();
-  // Make sure these fields are not removed by the tree shaker.
-  @pragma("vm:entry-point")
   var x;
-  @pragma("vm:entry-point")
   var y;
 }
 

@@ -18,10 +18,10 @@ import '../../common_test_utils.dart';
 
 final String pkgVmDir = Platform.script.resolve('../../..').toFilePath();
 
-runTestCase(Uri source, List<String> experimentalFlags) async {
+runTestCase(Uri source) async {
   final target = new TestingVmTarget(new TargetFlags());
-  Component component = await compileTestCaseToKernelProgram(source,
-      target: target, experimentalFlags: experimentalFlags);
+  Component component =
+      await compileTestCaseToKernelProgram(source, target: target);
 
   final coreTypes = new CoreTypes(component);
 
@@ -44,10 +44,7 @@ main() {
         .listSync(recursive: true, followLinks: false)
         .reversed) {
       if (entry.path.endsWith(".dart")) {
-        final List<String> experimentalFlags = [
-          if (entry.path.endsWith("_nnbd.dart")) 'non-nullable',
-        ];
-        test(entry.path, () => runTestCase(entry.uri, experimentalFlags));
+        test(entry.path, () => runTestCase(entry.uri));
       }
     }
   });

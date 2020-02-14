@@ -8,10 +8,7 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 
-// Make sure these variables are not removed by the tree shaker.
-@pragma("vm:entry-point")
 var regex0;
-@pragma("vm:entry-point")
 var regex;
 
 void script() {

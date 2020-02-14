@@ -9,11 +9,7 @@ import 'test_helper.dart';
 import 'service_test_common.dart';
 
 class Pair {
-  // Make sure these fields are not removed by the tree shaker.
-  @pragma("vm:entry-point")
-  var x;
-  @pragma("vm:entry-point")
-  var y;
+  var x, y;
 }
 
 var p1;

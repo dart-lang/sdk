@@ -12,86 +12,62 @@ import 'test_helper.dart';
 
 // small example from [Lenguaer & Tarjan 1979]
 class R {
-  // All fields are marked with @pragma("vm:entry-point")
-  // in order to make sure they are not removed by the tree shaker
-  // even though they are never read.
-  @pragma("vm:entry-point")
   var x;
-  @pragma("vm:entry-point")
   var y;
-  @pragma("vm:entry-point")
   var z;
 }
 
 class A {
-  @pragma("vm:entry-point")
   var x;
 }
 
 class B {
-  @pragma("vm:entry-point")
   var x;
-  @pragma("vm:entry-point")
   var y;
-  @pragma("vm:entry-point")
   var z;
 }
 
 class C {
-  @pragma("vm:entry-point")
   var x;
-  @pragma("vm:entry-point")
   var y;
 }
 
 class D {
-  @pragma("vm:entry-point")
   var x;
 }
 
 class E {
-  @pragma("vm:entry-point")
   var x;
 }
 
 class F {
-  @pragma("vm:entry-point")
   var x;
 }
 
 class G {
-  @pragma("vm:entry-point")
   var x;
-  @pragma("vm:entry-point")
   var y;
 }
 
 class H {
-  @pragma("vm:entry-point")
   var x;
-  @pragma("vm:entry-point")
   var y;
 }
 
 class I {
-  @pragma("vm:entry-point")
   var x;
 }
 
 class J {
-  @pragma("vm:entry-point")
   var x;
 }
 
 class K {
-  @pragma("vm:entry-point")
   var x;
-  @pragma("vm:entry-point")
   var y;
 }
 
 class L {
-  @pragma("vm:entry-point")
   var x;
 }
 
