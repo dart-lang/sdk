@@ -17,6 +17,24 @@ void main() {
 
 @reflectiveTest
 class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
+  Future<void> test_extensions() async {
+    const content = '''
+    extension StringExtensions on String {}
+    extension on String {}
+    ''';
+    newFile(mainFilePath, content: withoutMarkers(content));
+    await initialize();
+
+    final symbols = await getWorkspaceSymbols('S');
+
+    final namedExtensions =
+        symbols.firstWhere((s) => s.name == 'StringExtensions');
+    expect(namedExtensions.kind, equals(SymbolKind.Obj));
+    expect(namedExtensions.containerName, isNull);
+
+    // Unnamed extensions are not returned in Workspace Symbols.
+  }
+
   Future<void> test_fullMatch() async {
     const content = '''
     [[String topLevel = '']];

@@ -38,6 +38,23 @@ class OutlineTest extends AbstractLspAnalysisServerTest {
     expect(outlineAfterChange.children[0].element.name, equals('B'));
   }
 
+  Future<void> test_extensions() async {
+    final initialContent = '''
+extension StringExtensions on String {}
+extension on String {}
+    ''';
+    await initialize(initializationOptions: {'outline': true});
+
+    final outlineUpdate = waitForOutline(mainFileUri);
+    openFile(mainFileUri, initialContent);
+    final outline = await outlineUpdate;
+
+    expect(outline, isNotNull);
+    expect(outline.children, hasLength(2));
+    expect(outline.children[0].element.name, equals('StringExtensions'));
+    expect(outline.children[1].element.name, equals('<unnamed extension>'));
+  }
+
   Future<void> test_initial() async {
     final content = '''
 /// a

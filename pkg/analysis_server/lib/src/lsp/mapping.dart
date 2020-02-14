@@ -160,12 +160,17 @@ lsp.SymbolKind declarationKindToSymbolKind(
       case server.DeclarationKind.VARIABLE:
         return const [lsp.SymbolKind.Variable];
       default:
-        assert(false, 'Unexpected declaration kind $kind');
+        // Assert that we only get here if kind=null. If it's anything else
+        // then we're missing a mapping from above.
+        assert(kind == null, 'Unexpected declaration kind $kind');
         return const [];
     }
   }
 
-  return getKindPreferences().firstWhere(isSupported, orElse: () => null);
+  // LSP requires we specify *some* kind, so in the case where the above code doesn't
+  // match we'll just have to send a value to avoid a crash.
+  return getKindPreferences()
+      .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
 }
 
 lsp.CompletionItem declarationToCompletionItem(
@@ -383,7 +388,9 @@ lsp.SymbolKind elementKindToSymbolKind(
       case server.ElementKind.UNIT_TEST_TEST:
         return const [lsp.SymbolKind.Method];
       default:
-        assert(false, 'Unexpected element kind $kind');
+        // Assert that we only get here if kind=null. If it's anything else
+        // then we're missing a mapping from above.
+        assert(kind == null, 'Unexpected element kind $kind');
         return const [];
     }
   }
@@ -746,12 +753,20 @@ lsp.Element toElement(server.LineInfo lineInfo, server.Element element) =>
       element.location != null
           ? toRange(lineInfo, element.location.offset, element.location.length)
           : null,
-      element.name,
+      toElementName(element),
       element.kind.name,
       element.parameters,
       element.typeParameters,
       element.returnType,
     );
+
+String toElementName(server.Element element) {
+  return element.name != null && element.name != ''
+      ? element.name
+      : (element.kind == server.ElementKind.EXTENSION
+          ? '<unnamed extension>'
+          : '<unnamed>');
+}
 
 lsp.FlutterOutline toFlutterOutline(
         server.LineInfo lineInfo, server.FlutterOutline outline) =>

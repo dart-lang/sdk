@@ -14,7 +14,6 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/protocol_server.dart' show Outline;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart' show ElementKind;
 
 // If the client does not provide capabilities.documentSymbol.symbolKind.valueSet
 // then we must never send a kind that's not in this list.
@@ -80,13 +79,8 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     LineInfo lineInfo,
     Outline outline,
   ) {
-    final name = outline.element.name != null && outline.element.name != ''
-        ? outline.element.name
-        : (outline.element.kind == ElementKind.EXTENSION
-            ? '<unnamed extension>'
-            : '<unnamed>');
     return DocumentSymbol(
-      name,
+      toElementName(outline.element),
       outline.element.parameters,
       elementKindToSymbolKind(clientSupportedSymbolKinds, outline.element.kind),
       outline.element.isDeprecated,
@@ -108,7 +102,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
     Outline outline,
   ) {
     return SymbolInformation(
-      outline.element.name,
+      toElementName(outline.element),
       elementKindToSymbolKind(clientSupportedSymbolKinds, outline.element.kind),
       outline.element.isDeprecated,
       Location(
