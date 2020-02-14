@@ -358,8 +358,8 @@ class NullabilityNodeTest {
     propagate();
     expect(n1.isNullable, false);
     expect(n2.isNullable, false);
-    expect(unsatisfiedSubstitutions, hasLength(1));
-    expect(unsatisfiedSubstitutions[0], same(substitutionNode));
+    expect(substitutionNode.isNullable, false);
+    expect(unsatisfiedSubstitutions, isEmpty);
   }
 
   void test_propagation_downstream_through_lub_both() {

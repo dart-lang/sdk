@@ -363,7 +363,8 @@ abstract class NullabilityNode implements NullabilityNodeInfo {
   final _upstreamEdges = <NullabilityEdge>[];
 
   /// List of compound nodes wrapping this node.
-  final List<NullabilityNode> outerCompoundNodes = <NullabilityNode>[];
+  final List<_NullabilityNodeCompound> outerCompoundNodes =
+      <_NullabilityNodeCompound>[];
 
   /// Creates a [NullabilityNode] representing the nullability of a variable
   /// whose type comes from an already-migrated library.
@@ -730,28 +731,44 @@ class _PropagationState {
   /// Propagates non-null intent upstream along unconditional control flow
   /// lines.
   void _propagateUpstream() {
-    assert(_pendingEdges.isEmpty);
-    _pendingEdges.addAll(_never._upstreamEdges);
-    while (_pendingEdges.isNotEmpty) {
-      var edge = _pendingEdges.removeLast();
-      // We only propagate for nodes that are "upstream triggered".  At this
-      // point of propagation, a node is upstream triggered if it is hard.
-      assert(edge.isUpstreamTriggered == edge.isHard);
-      if (!edge.isHard) continue;
-      var node = edge.sourceNode;
-      if (node is NullabilityNodeMutable) {
-        var oldNonNullIntent = node._nonNullIntent;
-        if (edge.isUnion && edge.destinationNode == _never) {
-          // If a node is unioned with "never" then it's considered to have
-          // direct non-null intent.
-          node._nonNullIntent = NonNullIntent.direct;
-        } else {
-          node._nonNullIntent = oldNonNullIntent.addIndirect();
+    var pendingNodes = <NullabilityNode>[_never];
+    while (pendingNodes.isNotEmpty) {
+      var pendingNode = pendingNodes.removeLast();
+      for (var edge in pendingNode._upstreamEdges) {
+        // We only propagate for nodes that are "upstream triggered".  At this
+        // point of propagation, a node is upstream triggered if it is hard.
+        assert(edge.isUpstreamTriggered == edge.isHard);
+        if (!edge.isHard) continue;
+        var node = edge.sourceNode;
+        if (node is NullabilityNodeMutable) {
+          var oldNonNullIntent = node._nonNullIntent;
+          if (edge.isUnion && edge.destinationNode == _never) {
+            // If a node is unioned with "never" then it's considered to have
+            // direct non-null intent.
+            node._nonNullIntent = NonNullIntent.direct;
+          } else {
+            node._nonNullIntent = oldNonNullIntent.addIndirect();
+          }
+          if (!oldNonNullIntent.isPresent) {
+            // We did not previously have non-null intent, so we need to
+            // propagate.
+            pendingNodes.add(node);
+          }
         }
+      }
+      // If any compound node is forced to be non-nullable by this change,
+      // propagate to it.
+      for (var node in pendingNode.outerCompoundNodes) {
+        if (node._components
+            .any((component) => !component.nonNullIntent.isPresent)) {
+          continue;
+        }
+        var oldNonNullIntent = node._nonNullIntent;
+        node._nonNullIntent = oldNonNullIntent.addIndirect();
         if (!oldNonNullIntent.isPresent) {
           // We did not previously have non-null intent, so we need to
           // propagate.
-          _pendingEdges.addAll(node._upstreamEdges);
+          pendingNodes.add(node);
         }
       }
     }

@@ -48,8 +48,8 @@ int f() async {
       error(StaticTypeWarningCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3),
       error(StaticTypeWarningCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 25, 1,
           contextMessages: [
-            message('/sdk/lib/core/core.dart', 1954, 3),
-            message('/sdk/lib/core/core.dart', 1954, 3)
+            message('/sdk/lib/core/core.dart', 2003, 3),
+            message('/sdk/lib/core/core.dart', 2003, 3)
           ]),
     ]);
   }

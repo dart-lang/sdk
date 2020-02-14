@@ -2274,6 +2274,31 @@ Object g(C c) => c.f()();
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void>
+      test_generic_typedef_respects_explicit_nullability_of_type_arg() async {
+    var content = '''
+class C {
+  final Comparator<int/*!*/> comparison;
+  C(int Function(int, int) comparison) : comparison = comparison;
+  void test() {
+    comparison(f(), f());
+  }
+}
+int f() => null;
+''';
+    var expected = '''
+class C {
+  final Comparator<int/*!*/> comparison;
+  C(int Function(int, int) comparison) : comparison = comparison;
+  void test() {
+    comparison(f()!, f()!);
+  }
+}
+int? f() => null;
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_genericType_noTypeArguments() async {
     var content = '''
 void f(C c) {}
@@ -3343,6 +3368,33 @@ int f(int i, [int j]) {
 int f(int i, [int? j]) {
   if (i == 0) return i;
   return i + j!;
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void>
+      test_non_null_intent_propagated_through_substitution_nodes() async {
+    var content = '''
+abstract class C {
+  void f(List<int/*!*/> x, int y) {
+    x.add(y);
+  }
+  int/*?*/ g();
+  void test() {
+    f(<int>[], g());
+  }
+}
+''';
+    var expected = '''
+abstract class C {
+  void f(List<int/*!*/> x, int y) {
+    x.add(y);
+  }
+  int?/*?*/ g();
+  void test() {
+    f(<int>[], g()!);
+  }
 }
 ''';
     await _checkSingleFileChanges(content, expected);

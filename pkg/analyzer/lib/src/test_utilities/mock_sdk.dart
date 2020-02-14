@@ -222,6 +222,8 @@ abstract class Comparable<T> {
   int compareTo(T other);
 }
 
+typedef Comparator<T> = int Function(T a, T b);
+
 class DateTime extends Object {}
 
 class Deprecated extends Object {
