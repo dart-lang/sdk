@@ -5261,12 +5261,12 @@ DART_EXPORT Dart_Handle Dart_GetClass(Dart_Handle library,
   return Api::NewHandle(T, cls.RareType());
 }
 
-DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
-                                     Dart_Handle class_name,
-                                     intptr_t number_of_type_arguments,
-                                     Dart_Handle* type_arguments) {
+static Dart_Handle GetTypeCommon(Dart_Handle library,
+                                 Dart_Handle class_name,
+                                 intptr_t number_of_type_arguments,
+                                 Dart_Handle* type_arguments,
+                                 Nullability nullability) {
   DARTSCOPE(Thread::Current());
-
   // Validate the input arguments.
   const Library& lib = Api::UnwrapLibraryHandle(Z, library);
   if (lib.IsNull()) {
@@ -5288,6 +5288,8 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
   }
   cls.EnsureDeclarationLoaded();
   CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+
+  Type& type = Type::Handle();
   if (cls.NumTypeArguments() == 0) {
     if (number_of_type_arguments != 0) {
       return Api::NewError(
@@ -5295,44 +5297,116 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
           "got %" Pd " expected 0",
           number_of_type_arguments);
     }
-    return Api::NewHandle(T, Type::NewNonParameterizedType(cls));
-  }
-  intptr_t num_expected_type_arguments = cls.NumTypeParameters();
-  TypeArguments& type_args_obj = TypeArguments::Handle();
-  if (number_of_type_arguments > 0) {
-    if (type_arguments == NULL) {
-      RETURN_NULL_ERROR(type_arguments);
+    type ^= Type::NewNonParameterizedType(cls);
+    type ^= type.ToNullability(nullability, Heap::kOld);
+  } else {
+    intptr_t num_expected_type_arguments = cls.NumTypeParameters();
+    TypeArguments& type_args_obj = TypeArguments::Handle();
+    if (number_of_type_arguments > 0) {
+      if (type_arguments == NULL) {
+        RETURN_NULL_ERROR(type_arguments);
+      }
+      if (num_expected_type_arguments != number_of_type_arguments) {
+        return Api::NewError(
+            "Invalid number of type arguments specified, "
+            "got %" Pd " expected %" Pd,
+            number_of_type_arguments, num_expected_type_arguments);
+      }
+      const Array& array = Api::UnwrapArrayHandle(Z, *type_arguments);
+      if (array.IsNull()) {
+        RETURN_TYPE_ERROR(Z, *type_arguments, Array);
+      }
+      if (array.Length() != num_expected_type_arguments) {
+        return Api::NewError(
+            "Invalid type arguments specified, expected an "
+            "array of len %" Pd " but got an array of len %" Pd,
+            number_of_type_arguments, array.Length());
+      }
+      // Set up the type arguments array.
+      type_args_obj = TypeArguments::New(num_expected_type_arguments);
+      AbstractType& type_arg = AbstractType::Handle();
+      for (intptr_t i = 0; i < number_of_type_arguments; i++) {
+        type_arg ^= array.At(i);
+        type_args_obj.SetTypeAt(i, type_arg);
+      }
     }
-    if (num_expected_type_arguments != number_of_type_arguments) {
-      return Api::NewError(
-          "Invalid number of type arguments specified, "
-          "got %" Pd " expected %" Pd,
-          number_of_type_arguments, num_expected_type_arguments);
-    }
-    const Array& array = Api::UnwrapArrayHandle(Z, *type_arguments);
-    if (array.IsNull()) {
-      RETURN_TYPE_ERROR(Z, *type_arguments, Array);
-    }
-    if (array.Length() != num_expected_type_arguments) {
-      return Api::NewError(
-          "Invalid type arguments specified, expected an "
-          "array of len %" Pd " but got an array of len %" Pd,
-          number_of_type_arguments, array.Length());
-    }
-    // Set up the type arguments array.
-    type_args_obj = TypeArguments::New(num_expected_type_arguments);
-    AbstractType& type_arg = AbstractType::Handle();
-    for (intptr_t i = 0; i < number_of_type_arguments; i++) {
-      type_arg ^= array.At(i);
-      type_args_obj.SetTypeAt(i, type_arg);
-    }
-  }
 
-  // Construct the type object, canonicalize it and return.
-  Type& instantiated_type =
-      Type::Handle(Type::New(cls, type_args_obj, TokenPosition::kNoSource));
-  instantiated_type ^= ClassFinalizer::FinalizeType(cls, instantiated_type);
-  return Api::NewHandle(T, instantiated_type.raw());
+    // Construct the type object, canonicalize it and return.
+    type ^=
+        Type::New(cls, type_args_obj, TokenPosition::kNoSource, nullability);
+  }
+  type ^= ClassFinalizer::FinalizeType(cls, type);
+  return Api::NewHandle(T, type.raw());
+}
+
+DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
+                                     Dart_Handle class_name,
+                                     intptr_t number_of_type_arguments,
+                                     Dart_Handle* type_arguments) {
+  return GetTypeCommon(library, class_name, number_of_type_arguments,
+                       type_arguments, Nullability::kLegacy);
+}
+
+DART_EXPORT Dart_Handle Dart_GetNullableType(Dart_Handle library,
+                                             Dart_Handle class_name,
+                                             intptr_t number_of_type_arguments,
+                                             Dart_Handle* type_arguments) {
+  return GetTypeCommon(library, class_name, number_of_type_arguments,
+                       type_arguments, Nullability::kNullable);
+}
+
+DART_EXPORT Dart_Handle
+Dart_GetNonNullableType(Dart_Handle library,
+                        Dart_Handle class_name,
+                        intptr_t number_of_type_arguments,
+                        Dart_Handle* type_arguments) {
+  return GetTypeCommon(library, class_name, number_of_type_arguments,
+                       type_arguments, Nullability::kNonNullable);
+}
+
+static Dart_Handle TypeToHelper(Dart_Handle type, Nullability nullability) {
+  DARTSCOPE(Thread::Current());
+  const Type& ty = Api::UnwrapTypeHandle(Z, type);
+  if (ty.IsNull()) {
+    RETURN_TYPE_ERROR(Z, type, Type);
+  }
+  if (ty.nullability() == nullability) {
+    return type;
+  }
+  return Api::NewHandle(T, ty.ToNullability(nullability, Heap::kOld));
+}
+
+DART_EXPORT Dart_Handle Dart_TypeToNullableType(Dart_Handle type) {
+  return TypeToHelper(type, Nullability::kNullable);
+}
+
+DART_EXPORT Dart_Handle Dart_TypeToNonNullableType(Dart_Handle type) {
+  return TypeToHelper(type, Nullability::kNonNullable);
+}
+
+static Dart_Handle IsOfTypeNullabilityHelper(Dart_Handle type,
+                                             Nullability nullability,
+                                             bool* result) {
+  DARTSCOPE(Thread::Current());
+  const Type& ty = Api::UnwrapTypeHandle(Z, type);
+  if (ty.IsNull()) {
+    *result = false;
+    RETURN_TYPE_ERROR(Z, type, Type);
+  }
+  *result = (ty.nullability() == nullability);
+  return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_IsNullableType(Dart_Handle type, bool* result) {
+  return IsOfTypeNullabilityHelper(type, Nullability::kNullable, result);
+}
+
+DART_EXPORT Dart_Handle Dart_IsNonNullableType(Dart_Handle type, bool* result) {
+  return IsOfTypeNullabilityHelper(type, Nullability::kNonNullable, result);
+}
+
+DART_EXPORT Dart_Handle Dart_IsLegacyType(Dart_Handle type, bool* result) {
+  return IsOfTypeNullabilityHelper(type, Nullability::kLegacy, result);
 }
 
 DART_EXPORT Dart_Handle Dart_LibraryUrl(Dart_Handle library) {

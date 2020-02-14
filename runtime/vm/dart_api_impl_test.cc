@@ -3847,15 +3847,20 @@ TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
   bool instanceOf = false;
 
   // First get the type objects of these non parameterized types.
-  Dart_Handle type0 = Dart_GetType(lib, NewString("MyClass0"), 0, NULL);
+  Dart_Handle type0 =
+      Dart_GetNonNullableType(lib, NewString("MyClass0"), 0, NULL);
   EXPECT_VALID(type0);
-  Dart_Handle type1 = Dart_GetType(lib, NewString("MyClass1"), 0, NULL);
+  Dart_Handle type1 =
+      Dart_GetNonNullableType(lib, NewString("MyClass1"), 0, NULL);
   EXPECT_VALID(type1);
-  Dart_Handle type2 = Dart_GetType(lib, NewString("MyClass2"), 0, NULL);
+  Dart_Handle type2 =
+      Dart_GetNonNullableType(lib, NewString("MyClass2"), 0, NULL);
   EXPECT_VALID(type2);
-  Dart_Handle type3 = Dart_GetType(lib, NewString("MyInterface0"), 0, NULL);
+  Dart_Handle type3 =
+      Dart_GetNonNullableType(lib, NewString("MyInterface0"), 0, NULL);
   EXPECT_VALID(type3);
-  Dart_Handle type4 = Dart_GetType(lib, NewString("MyInterface1"), 0, NULL);
+  Dart_Handle type4 =
+      Dart_GetNonNullableType(lib, NewString("MyInterface1"), 0, NULL);
   EXPECT_VALID(type4);
 
   // Now create objects of these non parameterized types and check
@@ -5857,6 +5862,52 @@ TEST_CASE(DartAPI_GetNativeArgumentCount) {
   EXPECT_EQ(3, value);
 }
 
+TEST_CASE(DartAPI_TypeToNullability) {
+  const char* kScriptChars =
+      "library testlib;\n"
+      "class Class {\n"
+      "  static var name = 'Class';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  const Dart_Handle name = NewString("Class");
+  // Lookup the legacy type for Class.
+  Dart_Handle type = Dart_GetType(lib, name, 0, NULL);
+  EXPECT_VALID(type);
+  bool result = false;
+  EXPECT_VALID(Dart_IsLegacyType(type, &result));
+  EXPECT(result);
+
+  // Legacy -> Nullable
+  Dart_Handle nullableType = Dart_TypeToNullableType(type);
+  EXPECT_VALID(nullableType);
+  result = false;
+  EXPECT_VALID(Dart_IsNullableType(nullableType, &result));
+  EXPECT(result);
+  EXPECT(Dart_IdentityEquals(nullableType,
+                             Dart_GetNullableType(lib, name, 0, nullptr)));
+
+  // Legacy -> Non-Nullable
+  Dart_Handle nonNullableType = Dart_TypeToNonNullableType(type);
+  EXPECT_VALID(nonNullableType);
+  result = false;
+  EXPECT_VALID(Dart_IsNonNullableType(nonNullableType, &result));
+  EXPECT(result);
+  EXPECT(Dart_IdentityEquals(nonNullableType,
+                             Dart_GetNonNullableType(lib, name, 0, nullptr)));
+
+  // Nullable -> Non-Nullable
+  EXPECT(Dart_IdentityEquals(
+      nonNullableType,
+      Dart_TypeToNonNullableType(Dart_GetNullableType(lib, name, 0, nullptr))));
+
+  // Nullable -> Non-Nullable
+  EXPECT(Dart_IdentityEquals(
+      nullableType,
+      Dart_TypeToNullableType(Dart_GetNonNullableType(lib, name, 0, nullptr))));
+}
+
 TEST_CASE(DartAPI_GetType) {
   const char* kScriptChars =
       "library testlib;\n"
@@ -5873,6 +5924,9 @@ TEST_CASE(DartAPI_GetType) {
   // Lookup a class.
   Dart_Handle type = Dart_GetType(lib, NewString("Class"), 0, NULL);
   EXPECT_VALID(type);
+  bool result = false;
+  EXPECT_VALID(Dart_IsLegacyType(type, &result));
+  EXPECT(result);
   Dart_Handle name = Dart_GetField(type, NewString("name"));
   EXPECT_VALID(name);
   const char* name_cstr = "";
@@ -5882,6 +5936,9 @@ TEST_CASE(DartAPI_GetType) {
   // Lookup a private class.
   type = Dart_GetType(lib, NewString("_Class"), 0, NULL);
   EXPECT_VALID(type);
+  result = false;
+  EXPECT_VALID(Dart_IsLegacyType(type, &result));
+  EXPECT(result);
   name = Dart_GetField(type, NewString("name"));
   EXPECT_VALID(name);
   name_cstr = "";
@@ -5901,6 +5958,127 @@ TEST_CASE(DartAPI_GetType) {
 
   // Lookup a type using an error class name.  The error propagates.
   type = Dart_GetType(lib, Api::NewError("myerror"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
+}
+
+TEST_CASE(DartAPI_GetNullableType) {
+  const char* kScriptChars =
+      "library testlib;\n"
+      "class Class {\n"
+      "  static var name = 'Class';\n"
+      "}\n"
+      "\n"
+      "class _Class {\n"
+      "  static var name = '_Class';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Lookup a class.
+  Dart_Handle type = Dart_GetNullableType(lib, NewString("Class"), 0, NULL);
+  EXPECT_VALID(type);
+  bool result = false;
+  EXPECT_VALID(Dart_IsNullableType(type, &result));
+  EXPECT(result);
+  Dart_Handle name = Dart_ToString(type);
+  EXPECT_VALID(name);
+  const char* name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("Class", name_cstr);
+
+  name = Dart_GetField(type, NewString("name"));
+  EXPECT_VALID(name);
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("Class", name_cstr);
+
+  // Lookup a private class.
+  type = Dart_GetNullableType(lib, NewString("_Class"), 0, NULL);
+  EXPECT_VALID(type);
+  result = false;
+  EXPECT_VALID(Dart_IsNullableType(type, &result));
+
+  name = Dart_GetField(type, NewString("name"));
+  EXPECT_VALID(name);
+  name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("_Class", name_cstr);
+
+  // Lookup a class that does not exist.
+  type = Dart_GetNullableType(lib, NewString("DoesNotExist"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("Type 'DoesNotExist' not found in library 'testlib'.",
+               Dart_GetError(type));
+
+  // Lookup a class from an error library.  The error propagates.
+  type = Dart_GetNullableType(Api::NewError("myerror"), NewString("Class"), 0,
+                              NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
+
+  // Lookup a type using an error class name.  The error propagates.
+  type = Dart_GetNullableType(lib, Api::NewError("myerror"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
+}
+
+TEST_CASE(DartAPI_GetNonNullableType) {
+  const char* kScriptChars =
+      "library testlib;\n"
+      "class Class {\n"
+      "  static var name = 'Class';\n"
+      "}\n"
+      "\n"
+      "class _Class {\n"
+      "  static var name = '_Class';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Lookup a class.
+  Dart_Handle type = Dart_GetNonNullableType(lib, NewString("Class"), 0, NULL);
+  EXPECT_VALID(type);
+  bool result = false;
+  EXPECT_VALID(Dart_IsNonNullableType(type, &result));
+  EXPECT(result);
+  Dart_Handle name = Dart_ToString(type);
+  EXPECT_VALID(name);
+  const char* name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("Class", name_cstr);
+
+  name = Dart_GetField(type, NewString("name"));
+  EXPECT_VALID(name);
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("Class", name_cstr);
+
+  // Lookup a private class.
+  type = Dart_GetNonNullableType(lib, NewString("_Class"), 0, NULL);
+  EXPECT_VALID(type);
+  result = false;
+  EXPECT_VALID(Dart_IsNonNullableType(type, &result));
+  EXPECT(result);
+
+  name = Dart_GetField(type, NewString("name"));
+  EXPECT_VALID(name);
+  name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  EXPECT_STREQ("_Class", name_cstr);
+
+  // Lookup a class that does not exist.
+  type = Dart_GetNonNullableType(lib, NewString("DoesNotExist"), 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("Type 'DoesNotExist' not found in library 'testlib'.",
+               Dart_GetError(type));
+
+  // Lookup a class from an error library.  The error propagates.
+  type = Dart_GetNonNullableType(Api::NewError("myerror"), NewString("Class"),
+                                 0, NULL);
+  EXPECT(Dart_IsError(type));
+  EXPECT_STREQ("myerror", Dart_GetError(type));
+
+  // Lookup a type using an error class name.  The error propagates.
+  type = Dart_GetNonNullableType(lib, Api::NewError("myerror"), 0, NULL);
   EXPECT(Dart_IsError(type));
   EXPECT_STREQ("myerror", Dart_GetError(type));
 }

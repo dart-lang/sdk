@@ -3046,7 +3046,8 @@ DART_EXPORT Dart_Handle Dart_RootLibrary();
 DART_EXPORT Dart_Handle Dart_SetRootLibrary(Dart_Handle library);
 
 /**
- * Lookup or instantiate a type by name and type arguments from a Library.
+ * Lookup or instantiate a legacy type by name and type arguments from a
+ * Library.
  *
  * \param library The library containing the class or interface.
  * \param class_name The class name for the type.
@@ -3062,6 +3063,78 @@ DART_EXPORT Dart_Handle Dart_GetType(Dart_Handle library,
                                      Dart_Handle class_name,
                                      intptr_t number_of_type_arguments,
                                      Dart_Handle* type_arguments);
+
+/**
+ * Lookup or instantiate a nullable type by name and type arguments from
+ * Library.
+ *
+ * \param library The library containing the class or interface.
+ * \param class_name The class name for the type.
+ * \param number_of_type_arguments Number of type arguments.
+ *   For non parametric types the number of type arguments would be 0.
+ * \param type_arguments Pointer to an array of type arguments.
+ *   For non parameteric types a NULL would be passed in for this argument.
+ *
+ * \return If no error occurs, the type is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetNullableType(Dart_Handle library,
+                                             Dart_Handle class_name,
+                                             intptr_t number_of_type_arguments,
+                                             Dart_Handle* type_arguments);
+
+/**
+ * Lookup or instantiate a non-nullable type by name and type arguments from
+ * Library.
+ *
+ * \param library The library containing the class or interface.
+ * \param class_name The class name for the type.
+ * \param number_of_type_arguments Number of type arguments.
+ *   For non parametric types the number of type arguments would be 0.
+ * \param type_arguments Pointer to an array of type arguments.
+ *   For non parameteric types a NULL would be passed in for this argument.
+ *
+ * \return If no error occurs, the type is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle
+Dart_GetNonNullableType(Dart_Handle library,
+                        Dart_Handle class_name,
+                        intptr_t number_of_type_arguments,
+                        Dart_Handle* type_arguments);
+
+/**
+ * Creates a nullable version of the provided type.
+ *
+ * \param type The type to be converted to a nullable type.
+ *
+ * \return If no error occurs, a nullable type is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_TypeToNullableType(Dart_Handle type);
+
+/**
+ * Creates a non-nullable version of the provided type.
+ *
+ * \param type The type to be converted to a non-nullable type.
+ *
+ * \return If no error occurs, a non-nullable type is returned.
+ *   Otherwise an error handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_TypeToNonNullableType(Dart_Handle type);
+
+/**
+ * A type's nullability.
+ *
+ * \param type A Dart type.
+ * \param result An out parameter containing the result of the check. True if
+ * the type is of the specified nullability, false otherwise.
+ *
+ * \return Returns an error handle if type is not of type Type.
+ */
+DART_EXPORT Dart_Handle Dart_IsNullableType(Dart_Handle type, bool* result);
+DART_EXPORT Dart_Handle Dart_IsNonNullableType(Dart_Handle type, bool* result);
+DART_EXPORT Dart_Handle Dart_IsLegacyType(Dart_Handle type, bool* result);
 
 /**
  * Lookup a class or interface by name from a Library.

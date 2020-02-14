@@ -33,6 +33,14 @@ used (see Issue [39627][]).
 
 * Added `Dart_TypeDynamic`, `Dart_TypeVoid` and `Dart_TypeNever`. Type dynamic
   can no longer by reached by `Dart_GetType(dart:core, dynamic)`.
+* Added the following methods to the VM embedding API:
+  * `Dart_GetNonNullableType`
+  * `Dart_GetNullableType`
+  * `Dart_TypeToNonNullable`
+  * `Dart_TypeToNullable`
+  * `Dart_IsLegacyType`
+  * `Dart_IsNonNullableType`
+  * `Dart_IsNullableType`
 
 ### Tools
 
