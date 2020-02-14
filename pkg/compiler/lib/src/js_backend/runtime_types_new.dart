@@ -44,11 +44,6 @@ abstract class RecipeEncoder {
   jsAst.Literal encodeMetadataRecipe(ModularEmitter emitter,
       InterfaceType declaringType, DartType supertypeArgument);
 
-  /// Converts a recipe into a fragment of code that accesses the evaluated
-  /// recipe.
-  // TODO(33422): Remove need for this by pushing stubs through SSA.
-  jsAst.Expression evaluateRecipe(ModularEmitter emitter, jsAst.Literal recipe);
-
   // TODO(sra): Still need a $signature function when the function type is a
   // function of closed type variables. See if the $signature method can always
   // be generated through SSA in those cases.
@@ -89,13 +84,6 @@ class RecipeEncoderImpl implements RecipeEncoder {
             metadata: true)
         .run()
         .recipe;
-  }
-
-  @override
-  jsAst.Expression evaluateRecipe(
-      ModularEmitter emitter, jsAst.Literal recipe) {
-    return js('#(#)',
-        [emitter.staticFunctionAccess(commonElements.findType), recipe]);
   }
 
   @override

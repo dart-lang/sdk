@@ -68,6 +68,11 @@ additional details see the [announcement].
   web has been unsupported and prevented by the Dart build systems since Dart
   v2.0.0. All known exception cases have been cleaned up. This change makes DDC
   and dart2js now issue a compile-time error directly as well.
+* **Breaking Change**: Types are now normalized. See [normalization] for the
+  full specification. Types will now be printed in their normal form, and
+  mutual subtypes with the same normal form will now be considered equal.
+
+ [normalization]: https://github.com/dart-lang/language/blob/master/resources/type-system/normalization.md
 
 #### Linter
 
