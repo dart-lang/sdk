@@ -51,8 +51,9 @@ class _InvocationMirror implements Invocation {
   List? _positionalArguments;
   Map<Symbol, dynamic>? _namedArguments;
 
-  _InvocationMirror._withType(this._memberName, this._type, this._typeArguments,
-      this._positionalArguments, this._namedArguments) {
+  _InvocationMirror._withType(this._memberName, int? type, this._typeArguments,
+      this._positionalArguments, this._namedArguments)
+      : _type = type ?? _UNINITIALIZED {
     _typeArguments ??= const <Type>[];
     _positionalArguments ??= const [];
     _namedArguments ??= const {};
@@ -200,9 +201,9 @@ class _InvocationMirror implements Invocation {
       String functionName,
       List argumentsDescriptor,
       List arguments,
-      int type,
+      int? type,
       int delayedTypeArgumentsLen) {
     return new _InvocationMirror(functionName, argumentsDescriptor, arguments,
-        false, type, delayedTypeArgumentsLen);
+        false, type ?? _UNINITIALIZED, delayedTypeArgumentsLen);
   }
 }
