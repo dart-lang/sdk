@@ -1882,6 +1882,24 @@ RawError* Object::Init(Isolate* isolate,
     RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
     pending_classes.Add(cls);
 
+    // Pre-register the async library so we can place the vm class
+    // FutureOr there rather than the core library.
+    lib = Library::LookupLibrary(thread, Symbols::DartAsync());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartAsync(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kAsync, lib);
+    ASSERT(!lib.IsNull());
+    ASSERT(lib.raw() == Library::AsyncLibrary());
+    cls = Class::New<FutureOr, RTN::FutureOr>(isolate);
+    cls.set_type_arguments_field_offset(FutureOr::type_arguments_offset(),
+                                        RTN::FutureOr::type_arguments_offset());
+    cls.set_num_type_arguments(1);
+    RegisterClass(cls, Symbols::FutureOr(), lib);
+    pending_classes.Add(cls);
+
     // Pre-register the developer library so we can place the vm class
     // UserTag there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartDeveloper());
@@ -2425,7 +2443,7 @@ RawError* Object::Init(Isolate* isolate,
 
     cls = Class::New<MirrorReference, RTN::MirrorReference>(isolate);
     cls = Class::New<UserTag, RTN::UserTag>(isolate);
-
+    cls = Class::New<FutureOr, RTN::FutureOr>(isolate);
     cls =
         Class::New<TransferableTypedData, RTN::TransferableTypedData>(isolate);
   }
@@ -4837,14 +4855,6 @@ bool Class::IsFutureClass() const {
   // this function is called during class finalization, before the object store
   // field would be initialized by InitKnownObjects().
   return (Name() == Symbols::Future().raw()) &&
-         (library() == Library::AsyncLibrary());
-}
-
-bool Class::IsFutureOrClass() const {
-  // Looking up future_or_class in the object store would not work, because
-  // this function is called during class finalization, before the object store
-  // field would be initialized by InitKnownObjects().
-  return (Name() == Symbols::FutureOr().raw()) &&
          (library() == Library::AsyncLibrary());
 }
 
@@ -13953,9 +13963,9 @@ void ICData::SetReceiversStaticType(const AbstractType& type) const {
 
 #if defined(TARGET_ARCH_X64)
   if (!type.IsNull() && type.HasTypeClass() && (NumArgsTested() == 1) &&
-      type.IsInstantiated()) {
+      type.IsInstantiated() && !type.IsFutureOrType()) {
     const Class& cls = Class::Handle(type.type_class());
-    if (cls.IsGeneric() && !cls.IsFutureOrClass()) {
+    if (cls.IsGeneric()) {
       set_tracking_exactness(true);
     }
   }
@@ -17588,8 +17598,7 @@ bool Instance::RuntimeTypeIsSubtypeOf(
 bool Instance::IsFutureOrInstanceOf(Zone* zone,
                                     NNBDMode mode,
                                     const AbstractType& other) const {
-  if (other.IsType() &&
-      Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
+  if (other.IsType() && other.IsFutureOrType()) {
     if (other.arguments() == TypeArguments::null()) {
       return true;
     }
@@ -18194,16 +18203,15 @@ bool AbstractType::IsNeverType() const {
 // Caution: IsTopType() does not return true for non-nullable Object.
 bool AbstractType::IsTopType() const {
   // FutureOr<T> where T is a top type behaves as a top type.
-  const AbstractType& unwrapped_type = AbstractType::Handle(UnwrapFutureOr());
-  classid_t cid = unwrapped_type.type_class_id();
-  if (cid == kIllegalCid) {  // Includes TypeParameter.
-    return false;
-  }
+  const classid_t cid = type_class_id();
   if (cid == kDynamicCid || cid == kVoidCid) {
     return true;
   }
   if (cid == kInstanceCid) {  // Object type.
     return !IsNonNullable();  // kLegacy or kNullable.
+  }
+  if (cid == kFutureOrCid) {
+    return AbstractType::Handle(UnwrapFutureOr()).IsTopType();
   }
   return false;
 }
@@ -18257,30 +18265,20 @@ bool AbstractType::IsFfiPointerType() const {
 }
 
 RawAbstractType* AbstractType::UnwrapFutureOr() const {
-  if (!IsType()) {
-    return raw();
-  }
-  Thread* thread = Thread::Current();
-  REUSABLE_CLASS_HANDLESCOPE(thread);
-  Class& cls = thread->ClassHandle();
-  cls = type_class();
-  if (!cls.IsFutureOrClass()) {
+  if (!IsType() || !IsFutureOrType()) {
     return raw();
   }
   if (arguments() == TypeArguments::null()) {
     return Type::dynamic_type().raw();
   }
+  Thread* thread = Thread::Current();
   REUSABLE_TYPE_ARGUMENTS_HANDLESCOPE(thread);
   TypeArguments& type_args = thread->TypeArgumentsHandle();
   type_args = arguments();
   REUSABLE_ABSTRACT_TYPE_HANDLESCOPE(thread);
   AbstractType& type_arg = thread->AbstractTypeHandle();
   type_arg = type_args.TypeAt(0);
-  while (type_arg.IsType()) {
-    cls = type_arg.type_class();
-    if (!cls.IsFutureOrClass()) {
-      break;
-    }
+  while (type_arg.IsType() && type_arg.IsFutureOrType()) {
     if (type_arg.arguments() == TypeArguments::null()) {
       return Type::dynamic_type().raw();
     }
@@ -18426,8 +18424,7 @@ bool AbstractType::IsSubtypeOfFutureOr(Zone* zone,
                                        NNBDMode mode,
                                        const AbstractType& other,
                                        Heap::Space space) const {
-  if (other.IsType() &&
-      Class::Handle(zone, other.type_class()).IsFutureOrClass()) {
+  if (other.IsType() && other.IsFutureOrType()) {
     if (other.arguments() == TypeArguments::null()) {
       return true;
     }
@@ -22236,6 +22233,11 @@ RawLinkedHashMap* LinkedHashMap::NewUninitialized(Heap::Space space) {
 const char* LinkedHashMap::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   return zone->PrintToString("_LinkedHashMap len:%" Pd, Length());
+}
+
+const char* FutureOr::ToCString() const {
+  // FutureOr is an abstract class.
+  UNREACHABLE();
 }
 
 RawFloat32x4* Float32x4::New(float v0,

@@ -1208,7 +1208,7 @@ class Class : public Object {
   bool IsFutureClass() const;
 
   // Check if this class represents the 'FutureOr' class.
-  bool IsFutureOrClass() const;
+  bool IsFutureOrClass() const { return id() == kFutureOrCid; }
 
   // Check if this class represents the 'Closure' class.
   bool IsClosureClass() const { return id() == kClosureCid; }
@@ -7446,6 +7446,9 @@ class AbstractType : public Instance {
   // Check if this type represents the 'Pointer' type from "dart:ffi".
   bool IsFfiPointerType() const;
 
+  // Check if this type represents the 'FutureOr' type.
+  bool IsFutureOrType() const { return type_class_id() == kFutureOrCid; }
+
   // Returns the type argument of this (possibly nested) 'FutureOr' type.
   // Returns unmodified type if this type is not a 'FutureOr' type.
   RawAbstractType* UnwrapFutureOr() const;
@@ -10490,6 +10493,26 @@ class UserTag : public Instance {
   }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(UserTag, Instance);
+  friend class Class;
+};
+
+// Represents abstract FutureOr class in dart:async.
+class FutureOr : public Instance {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawFutureOr));
+  }
+
+  virtual RawTypeArguments* GetTypeArguments() const {
+    return raw_ptr()->type_arguments_;
+  }
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(RawFutureOr, type_arguments_);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(FutureOr, Instance);
+
   friend class Class;
 };
 

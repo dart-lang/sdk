@@ -2826,6 +2826,16 @@ class RawUserTag : public RawInstance {
   uword tag() const { return tag_; }
 };
 
+class RawFutureOr : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FutureOr);
+
+  VISIT_FROM(RawCompressed, type_arguments_)
+  RawTypeArguments* type_arguments_;
+  VISIT_TO(RawCompressed, type_arguments_)
+
+  friend class SnapshotReader;
+};
+
 // Class Id predicates.
 
 inline bool RawObject::IsErrorClassId(intptr_t index) {

@@ -361,9 +361,6 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
     return false;
   }
 
-  Zone* zone = thread()->zone();
-  const Class& type_class = Class::Handle(zone, type.type_class());
-
   // The FutureOr<T> type cannot be handled by checking whether the instance is
   // a subtype of FutureOr and then checking whether the type argument `T`
   // matches.
@@ -372,9 +369,12 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   //
   //    instance is Null || instance is T || instance is Future<T>
   //
-  if (type_class.IsFutureOrClass()) {
+  if (type.IsFutureOrType()) {
     return false;
   }
+
+  Zone* zone = thread()->zone();
+  const Class& type_class = Class::Handle(zone, type.type_class());
 
   // We can use class id range checks only if we don't have to test type
   // arguments.
@@ -404,15 +404,6 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
     return false;
   }
 
-  // NOTE: We do allow non-instantiated types here (in comparison to
-  // [CanUseSubtypeRangeCheckFor], since we handle type parameters in the type
-  // expression in some cases (see below).
-
-  Zone* zone = thread()->zone();
-  const Class& type_class = Class::Handle(zone, type.type_class());
-  const intptr_t num_type_parameters = type_class.NumTypeParameters();
-  const intptr_t num_type_arguments = type_class.NumTypeArguments();
-
   // The FutureOr<T> type cannot be handled by checking whether the instance is
   // a subtype of FutureOr and then checking whether the type argument `T`
   // matches.
@@ -421,9 +412,18 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   //
   //    instance is Null || instance is T || instance is Future<T>
   //
-  if (type_class.IsFutureOrClass()) {
+  if (type.IsFutureOrType()) {
     return false;
   }
+
+  // NOTE: We do allow non-instantiated types here (in comparison to
+  // [CanUseSubtypeRangeCheckFor], since we handle type parameters in the type
+  // expression in some cases (see below).
+
+  Zone* zone = thread()->zone();
+  const Class& type_class = Class::Handle(zone, type.type_class());
+  const intptr_t num_type_parameters = type_class.NumTypeParameters();
+  const intptr_t num_type_arguments = type_class.NumTypeArguments();
 
   // This function should only be called for generic classes.
   ASSERT(type_class.NumTypeParameters() > 0 &&

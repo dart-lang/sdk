@@ -1622,6 +1622,10 @@ void UserTag::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Instance::PrintJSONImpl(stream, ref);
 }
 
+void FutureOr::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Instance::PrintJSONImpl(stream, ref);
+}
+
 #endif
 
 }  // namespace dart

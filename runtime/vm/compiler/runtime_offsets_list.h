@@ -93,6 +93,7 @@
   RANGE(Function, entry_point_offset, CodeEntryKind, CodeEntryKind::kNormal,   \
         CodeEntryKind::kUnchecked, [](CodeEntryKind value) { return true; })   \
   PRECOMP_NO_CHECK(FIELD(Function, usage_counter_offset))                      \
+  FIELD(FutureOr, type_arguments_offset)                                       \
   FIELD(GrowableObjectArray, data_offset)                                      \
   FIELD(GrowableObjectArray, length_offset)                                    \
   FIELD(GrowableObjectArray, type_arguments_offset)                            \
@@ -282,6 +283,7 @@
   SIZEOF(Float32x4, InstanceSize, RawFloat32x4)                                \
   SIZEOF(Float64x2, InstanceSize, RawFloat64x2)                                \
   SIZEOF(Function, InstanceSize, RawFunction)                                  \
+  SIZEOF(FutureOr, InstanceSize, RawFutureOr)                                  \
   SIZEOF(GrowableObjectArray, InstanceSize, RawGrowableObjectArray)            \
   SIZEOF(ICData, InstanceSize, RawICData)                                      \
   SIZEOF(Instance, InstanceSize, RawInstance)                                  \

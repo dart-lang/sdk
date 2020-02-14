@@ -117,6 +117,8 @@ static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     4, 8};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
+static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
+    4;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -410,6 +412,7 @@ static constexpr dart::compiler::target::word Field_InstanceSize = 64;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 88;
+static constexpr dart::compiler::target::word FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     16;
 static constexpr dart::compiler::target::word ICData_InstanceSize = 32;
@@ -580,6 +583,8 @@ static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     8, 16};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     132;
+static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
+    8;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -875,6 +880,7 @@ static constexpr dart::compiler::target::word Field_InstanceSize = 112;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 144;
+static constexpr dart::compiler::target::word FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     32;
 static constexpr dart::compiler::target::word ICData_InstanceSize = 56;
@@ -1044,6 +1050,8 @@ static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     4, 8};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
+static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
+    4;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -1333,6 +1341,7 @@ static constexpr dart::compiler::target::word Field_InstanceSize = 64;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 88;
+static constexpr dart::compiler::target::word FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     16;
 static constexpr dart::compiler::target::word ICData_InstanceSize = 32;
@@ -1503,6 +1512,8 @@ static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     8, 16};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     132;
+static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
+    8;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -1799,6 +1810,7 @@ static constexpr dart::compiler::target::word Field_InstanceSize = 112;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 144;
+static constexpr dart::compiler::target::word FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     32;
 static constexpr dart::compiler::target::word ICData_InstanceSize = 56;
@@ -1968,6 +1980,8 @@ static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     4, 8};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
+static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
+    4;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -2257,6 +2271,7 @@ static constexpr dart::compiler::target::word Field_InstanceSize = 64;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 88;
+static constexpr dart::compiler::target::word FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     16;
 static constexpr dart::compiler::target::word ICData_InstanceSize = 32;
@@ -2425,6 +2440,8 @@ static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     8, 16};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     132;
+static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
+    8;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -2716,6 +2733,7 @@ static constexpr dart::compiler::target::word Field_InstanceSize = 112;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 144;
+static constexpr dart::compiler::target::word FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     32;
 static constexpr dart::compiler::target::word ICData_InstanceSize = 56;
@@ -2883,6 +2901,8 @@ static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     4, 8};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     76;
+static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
+    4;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -3168,6 +3188,7 @@ static constexpr dart::compiler::target::word Field_InstanceSize = 64;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 88;
+static constexpr dart::compiler::target::word FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     16;
 static constexpr dart::compiler::target::word ICData_InstanceSize = 32;
@@ -3336,6 +3357,8 @@ static constexpr dart::compiler::target::word Function_entry_point_offset[] = {
     8, 16};
 static constexpr dart::compiler::target::word Function_usage_counter_offset =
     132;
+static constexpr dart::compiler::target::word FutureOr_type_arguments_offset =
+    8;
 static constexpr dart::compiler::target::word GrowableObjectArray_data_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -3628,6 +3651,7 @@ static constexpr dart::compiler::target::word Field_InstanceSize = 112;
 static constexpr dart::compiler::target::word Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word Function_InstanceSize = 144;
+static constexpr dart::compiler::target::word FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word GrowableObjectArray_InstanceSize =
     32;
 static constexpr dart::compiler::target::word ICData_InstanceSize = 56;
@@ -3798,6 +3822,8 @@ static constexpr dart::compiler::target::word AOT_Float64x2_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {4, 8};
+static constexpr dart::compiler::target::word
+    AOT_FutureOr_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_data_offset = 12;
 static constexpr dart::compiler::target::word
@@ -4122,6 +4148,7 @@ static constexpr dart::compiler::target::word AOT_Field_InstanceSize = 48;
 static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Function_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_ICData_InstanceSize = 24;
@@ -4304,6 +4331,8 @@ static constexpr dart::compiler::target::word AOT_Float64x2_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {8, 16};
+static constexpr dart::compiler::target::word
+    AOT_FutureOr_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_data_offset = 24;
 static constexpr dart::compiler::target::word
@@ -4629,6 +4658,7 @@ static constexpr dart::compiler::target::word AOT_Field_InstanceSize = 80;
 static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Function_InstanceSize = 104;
+static constexpr dart::compiler::target::word AOT_FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_ICData_InstanceSize = 48;
@@ -4815,6 +4845,8 @@ static constexpr dart::compiler::target::word AOT_Float64x2_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {8, 16};
+static constexpr dart::compiler::target::word
+    AOT_FutureOr_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_data_offset = 24;
 static constexpr dart::compiler::target::word
@@ -5141,6 +5173,7 @@ static constexpr dart::compiler::target::word AOT_Field_InstanceSize = 80;
 static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Function_InstanceSize = 104;
+static constexpr dart::compiler::target::word AOT_FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_ICData_InstanceSize = 48;
@@ -5324,6 +5357,8 @@ static constexpr dart::compiler::target::word AOT_Float64x2_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 44;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {4, 8};
+static constexpr dart::compiler::target::word
+    AOT_FutureOr_type_arguments_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_data_offset = 12;
 static constexpr dart::compiler::target::word
@@ -5643,6 +5678,7 @@ static constexpr dart::compiler::target::word AOT_Field_InstanceSize = 48;
 static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Function_InstanceSize = 56;
+static constexpr dart::compiler::target::word AOT_FutureOr_InstanceSize = 8;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_InstanceSize = 16;
 static constexpr dart::compiler::target::word AOT_ICData_InstanceSize = 24;
@@ -5823,6 +5859,8 @@ static constexpr dart::compiler::target::word AOT_Float64x2_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {8, 16};
+static constexpr dart::compiler::target::word
+    AOT_FutureOr_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_data_offset = 24;
 static constexpr dart::compiler::target::word
@@ -6143,6 +6181,7 @@ static constexpr dart::compiler::target::word AOT_Field_InstanceSize = 80;
 static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Function_InstanceSize = 104;
+static constexpr dart::compiler::target::word AOT_FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_ICData_InstanceSize = 48;
@@ -6327,6 +6366,8 @@ static constexpr dart::compiler::target::word AOT_Float64x2_value_offset = 8;
 static constexpr dart::compiler::target::word AOT_Function_code_offset = 88;
 static constexpr dart::compiler::target::word
     AOT_Function_entry_point_offset[] = {8, 16};
+static constexpr dart::compiler::target::word
+    AOT_FutureOr_type_arguments_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_data_offset = 24;
 static constexpr dart::compiler::target::word
@@ -6648,6 +6689,7 @@ static constexpr dart::compiler::target::word AOT_Field_InstanceSize = 80;
 static constexpr dart::compiler::target::word AOT_Float32x4_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Float64x2_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Function_InstanceSize = 104;
+static constexpr dart::compiler::target::word AOT_FutureOr_InstanceSize = 16;
 static constexpr dart::compiler::target::word
     AOT_GrowableObjectArray_InstanceSize = 32;
 static constexpr dart::compiler::target::word AOT_ICData_InstanceSize = 48;

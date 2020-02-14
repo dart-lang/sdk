@@ -514,7 +514,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   }
   if (type.IsType()) {
     // Smi is FutureOr<T>, when T is a top type or int or num.
-    if (!Class::Handle(type.type_class()).IsFutureOrClass()) {
+    if (!type.IsFutureOrType()) {
       __ BranchIfSmi(kInstanceReg, is_not_instance_lbl);
     }
     __ ldm(IA, SP,

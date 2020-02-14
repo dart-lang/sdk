@@ -553,6 +553,13 @@ class LinkedHashMap : public AllStatic {
   static word NextFieldOffset();
 };
 
+class FutureOr : public AllStatic {
+ public:
+  static word type_arguments_offset();
+  static word InstanceSize();
+  static word NextFieldOffset();
+};
+
 class ArgumentsDescriptor : public AllStatic {
  public:
   static word first_named_entry_offset();
