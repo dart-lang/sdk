@@ -3572,7 +3572,7 @@ abstract class TypeSystem implements public.TypeSystem {
           return type;
         } else {
           return TypeParameterTypeImpl(
-            element,
+            element: element,
             nullabilitySuffix: NullabilitySuffix.none,
           );
         }
@@ -3582,7 +3582,11 @@ abstract class TypeSystem implements public.TypeSystem {
         // you can't create a TypeParameterMember wrapping a
         // TypeParameterMember.
         return TypeParameterTypeImpl(
-          TypeParameterMember(element.declaration, null, promotedBound),
+          element: TypeParameterMember(
+            element.declaration,
+            null,
+            promotedBound,
+          ),
           nullabilitySuffix: NullabilitySuffix.none,
         );
       }

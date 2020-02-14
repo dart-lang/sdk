@@ -574,7 +574,7 @@ class TypeProviderImpl extends TypeProviderBase {
     if (typeParameters.isNotEmpty) {
       typeArguments = typeParameters.map((e) {
         return TypeParameterTypeImpl(
-          e,
+          element: e,
           nullabilitySuffix: _nullabilitySuffix,
         );
       }).toList(growable: false);

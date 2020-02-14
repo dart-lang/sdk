@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -164,7 +165,10 @@ class DecoratedType implements DecoratedTypeInfo {
   /// Creates a [DecoratedType] for a synthetic type parameter, to be used
   /// during comparison of generic function types.
   DecoratedType._forTypeParameterSubstitution(TypeParameterElement parameter)
-      : type = TypeParameterTypeImpl(parameter),
+      : type = TypeParameterTypeImpl(
+          element: parameter,
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
         node = null,
         returnType = null,
         positionalParameters = const [],

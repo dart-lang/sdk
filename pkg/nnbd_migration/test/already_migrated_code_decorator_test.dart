@@ -162,7 +162,10 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
       FunctionTypeImpl(
         typeFormals: [typeFormal],
         parameters: const [],
-        returnType: TypeParameterTypeImpl(typeFormal),
+        returnType: TypeParameterTypeImpl(
+          element: typeFormal,
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
         nullabilitySuffix: suffix,
       ),
     );
@@ -177,7 +180,10 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
       FunctionTypeImpl(
         typeFormals: [typeFormal],
         parameters: const [],
-        returnType: TypeParameterTypeImpl(typeFormal),
+        returnType: TypeParameterTypeImpl(
+          element: typeFormal,
+          nullabilitySuffix: NullabilitySuffix.star,
+        ),
         nullabilitySuffix: suffix,
       ),
     );
@@ -316,8 +322,8 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   void test_decorate_typeParameterType_question() {
     var element = TypeParameterElementImpl.synthetic('T');
     checkTypeParameter(
-        decorate(TypeParameterTypeImpl(element,
-            nullabilitySuffix: NullabilitySuffix.question)),
+        decorate(TypeParameterTypeImpl(
+            element: element, nullabilitySuffix: NullabilitySuffix.question)),
         checkExplicitlyNullable,
         element);
   }
@@ -325,7 +331,8 @@ class _AlreadyMigratedCodeDecoratorTestBase extends Object with EdgeTester {
   void test_decorate_typeParameterType_star() {
     var element = TypeParameterElementImpl.synthetic('T');
     checkTypeParameter(
-        decorate(TypeParameterTypeImpl(element, nullabilitySuffix: suffix)),
+        decorate(
+            TypeParameterTypeImpl(element: element, nullabilitySuffix: suffix)),
         checkExplicitlyNonNullable,
         element);
   }

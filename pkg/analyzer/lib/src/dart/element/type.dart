@@ -2044,9 +2044,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
    * Initialize a newly created type parameter type to be declared by the given
    * [element] and to have the given name.
    */
-  TypeParameterTypeImpl(TypeParameterElement element,
-      {this.nullabilitySuffix = NullabilitySuffix.star})
-      : super(element);
+  TypeParameterTypeImpl({
+    @required TypeParameterElement element,
+    @required this.nullabilitySuffix,
+  }) : super(element);
 
   @override
   DartType get bound => element.bound ?? DynamicTypeImpl.instance;
@@ -2180,7 +2181,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   TypeImpl withNullability(NullabilitySuffix nullabilitySuffix) {
     if (this.nullabilitySuffix == nullabilitySuffix) return this;
-    return TypeParameterTypeImpl(element, nullabilitySuffix: nullabilitySuffix);
+    return TypeParameterTypeImpl(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   /**

@@ -278,7 +278,7 @@ class SubstituteTest extends _Base {
         {tElement: typeArgument},
       ).substituteType(
         TypeParameterTypeImpl(
-          tElement,
+          element: tElement,
           nullabilitySuffix: typeParameterNullability,
         ),
       );

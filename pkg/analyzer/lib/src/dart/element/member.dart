@@ -1038,7 +1038,10 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   TypeParameterMember(TypeParameterElement declaration,
       MapSubstitution substitution, this._bound)
       : super(declaration, substitution, false) {
-    _type = TypeParameterTypeImpl(this);
+    _type = TypeParameterTypeImpl(
+      element: this,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 
   @deprecated
@@ -1082,7 +1085,10 @@ class TypeParameterMember extends Member implements TypeParameterElement {
   TypeParameterType instantiate({
     @required NullabilitySuffix nullabilitySuffix,
   }) {
-    return TypeParameterTypeImpl(this, nullabilitySuffix: nullabilitySuffix);
+    return TypeParameterTypeImpl(
+      element: this,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 }
 

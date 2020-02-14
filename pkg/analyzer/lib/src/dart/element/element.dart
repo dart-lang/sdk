@@ -7524,7 +7524,10 @@ class TypeParameterElementImpl extends ElementImpl
     // of whether it appears in a migrated library.  This is because for type
     // parameters of synthetic function types, the ancestor chain is broken and
     // we can't find the enclosing library to tell whether it is migrated.
-    return _type ??= TypeParameterTypeImpl(this);
+    return _type ??= TypeParameterTypeImpl(
+      element: this,
+      nullabilitySuffix: NullabilitySuffix.star,
+    );
   }
 
   set type(TypeParameterType type) {
@@ -7573,7 +7576,10 @@ class TypeParameterElementImpl extends ElementImpl
   TypeParameterType instantiate({
     @required NullabilitySuffix nullabilitySuffix,
   }) {
-    return TypeParameterTypeImpl(this, nullabilitySuffix: nullabilitySuffix);
+    return TypeParameterTypeImpl(
+      element: this,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 }
 
