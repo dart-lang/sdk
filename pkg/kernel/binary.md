@@ -352,7 +352,7 @@ type Extension extends Node {
 enum ExtensionMemberKind { Field = 0, Method = 1, Getter = 2, Setter = 3, Operator = 4, TearOff = 5, }
 
 type ExtensionMemberDescriptor {
-  StringReference name;
+  Name name;
   ExtensionMemberKind kind;
   Byte flags (isStatic);
   MemberReference member;
