@@ -17,6 +17,9 @@ used (see Issue [39627][]).
 
 #### `dart:io`
 
+* Class `HttpParser` will no longer throw an exception when a HTTP response
+  status code is within [0, 999]. Customized status codes in this range are now valid.
+
 * The `Socket` class will now throw a `SocketException` if the socket has been
   destroyed or upgraded to a secure socket upon setting or getting socket
   options. Previously setting a socket options would be ignored and getting a
