@@ -1575,6 +1575,106 @@ void h(List<int> x) {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_exact_nullability_doesnt_affect_function_args() async {
+    // Test attempting to create a bug from #40625. Currently passes, but if it
+    // breaks, that bug may need to be reopened.
+    var content = '''
+class C<T> {
+  int Function(T) f;
+}
+void main() {
+  C<String> c;
+  int Function(String) f1 = c.f; // should not have a nullable arg
+  c.f(null); // exact nullability induced here
+}
+''';
+    var expected = '''
+class C<T> {
+  int Function(T)? f;
+}
+void main() {
+  C<String?> c;
+  int Function(String)? f1 = c.f; // should not have a nullable arg
+  c.f!(null); // exact nullability induced here
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_exact_nullability_doesnt_affect_function_returns() async {
+    // Test attempting to create a bug from #40625. Currently passes, but if it
+    // breaks, that bug may need to be reopened.
+    var content = '''
+class C<T> {
+  T Function(String) f;
+}
+int Function(String) f1; // should not have a nullable return
+void main() {
+  C<int> c;
+  c.f = f1;
+  c.f = (_) => null; // exact nullability induced here
+}
+''';
+    var expected = '''
+class C<T> {
+  T Function(String)? f;
+}
+int Function(String) f1; // should not have a nullable return
+void main() {
+  C<int?> c;
+  c.f = f1;
+  c.f = (_) => null; // exact nullability induced here
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_exact_nullability_doesnt_affect_typedef_args() async {
+    // Test attempting to create a bug from #40625. Currently passes, but if it
+    // breaks, that bug may need to be reopened.
+    var content = '''
+typedef F<T> = int Function(T);
+F<String> f1;
+
+void main() {
+  f1(null); // induce exact nullability
+  int Function(String) f2 = f1; // shouldn't have a nullable arg
+}
+''';
+    var expected = '''
+typedef F<T> = int Function(T);
+F<String?> f1;
+
+void main() {
+  f1(null); // induce exact nullability
+  int Function(String) f2 = f1; // shouldn't have a nullable arg
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_exact_nullability_doesnt_affect_typedef_returns() async {
+    // Test attempting to create a bug from #40625. Currently passes, but if it
+    // breaks, that bug may need to be reopened.
+    var content = '''
+typedef F<T> = T Function(String);
+int Function(String) f1; // should not have a nullable return
+void main() {
+  F<int> f2 = f1;
+  f2 = (_) => null; // exact nullability induced here
+}
+''';
+    var expected = '''
+typedef F<T> = T Function(String);
+int Function(String) f1; // should not have a nullable return
+void main() {
+  F<int?> f2 = f1;
+  f2 = (_) => null; // exact nullability induced here
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_explicit_nullable_overrides_hard_edge() async {
     var content = '''
 int f(int/*?*/ i) => i + 1;
