@@ -368,6 +368,22 @@ void f(int i, String callback()) {
     expect(previewInfo.applyTo(code), 'f(int? x) {}');
   }
 
+  Future<void> test_nullCheck_index_cascadeResult() async {
+    await analyze('f(a) => a..[0].c;');
+    var index = findNode.index('[0]');
+    var previewInfo =
+        run({index: NodeChangeForExpression()..addNullCheck(_MockInfo())});
+    expect(previewInfo.applyTo(code), 'f(a) => a..[0]!.c;');
+  }
+
+  Future<void> test_nullCheck_methodInvocation_cascadeResult() async {
+    await analyze('f(a) => a..b().c;');
+    var method = findNode.methodInvocation('b()');
+    var previewInfo = run(
+        {method: NodeChangeForMethodInvocation()..addNullCheck(_MockInfo())});
+    expect(previewInfo.applyTo(code), 'f(a) => a..b()!.c;');
+  }
+
   Future<void> test_nullCheck_no_parens() async {
     await analyze('f(a) => a++;');
     var expr = findNode.postfix('a++');
@@ -382,6 +398,14 @@ void f(int i, String callback()) {
     var previewInfo =
         run({expr: NodeChangeForExpression()..addNullCheck(_MockInfo())});
     expect(previewInfo.applyTo(code), 'f(a) => (-a)!;');
+  }
+
+  Future<void> test_nullCheck_propertyAccess_cascadeResult() async {
+    await analyze('f(a) => a..b.c;');
+    var property = findNode.propertyAccess('b');
+    var previewInfo = run(
+        {property: NodeChangeForPropertyAccess()..addNullCheck(_MockInfo())});
+    expect(previewInfo.applyTo(code), 'f(a) => a..b!.c;');
   }
 
   Future<void>

@@ -3946,6 +3946,32 @@ void test() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_property_access_on_cascade_result() async {
+    var content = '''
+int f(List<int> l) {
+  l..first.isEven
+   ..firstWhere((_) => true).isEven
+   ..[0].isEven;
+}
+
+void g() {
+  f([null]);
+}
+''';
+    var expected = '''
+int f(List<int?> l) {
+  l..first!.isEven
+   ..firstWhere((_) => true)!.isEven
+   ..[0]!.isEven;
+}
+
+void g() {
+  f([null]);
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_redirecting_constructor_factory() async {
     var content = '''
 class C {

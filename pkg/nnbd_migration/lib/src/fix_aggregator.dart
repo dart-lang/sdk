@@ -397,7 +397,8 @@ class NodeChangeForPropertyAccess
     with NodeChangeForNullAware {
   @override
   NodeProducingEditPlan _apply(PropertyAccess node, FixAggregator aggregator) {
-    var targetPlan = aggregator.planForNode(node.target);
+    var targetPlan =
+        node.target == null ? null : aggregator.planForNode(node.target);
     var nullAwarePlan = _applyNullAware(node, aggregator);
     var propertyNamePlan = aggregator.planForNode(node.propertyName);
     var innerPlans = [
