@@ -104,11 +104,6 @@ class Pointer<T extends NativeType> {
 
   @patch
   Pointer<U> cast<U extends NativeType>() => Pointer.fromAddress(address);
-
-  @patch
-  R asFunction<R extends Function>() {
-    throw UnsupportedError("Pointer.asFunction cannot be called dynamically.");
-  }
 }
 
 /// Returns an integer encoding the ABI used for size and alignment
@@ -226,6 +221,13 @@ Pointer<Double> _elementAtDouble(Pointer<Double> pointer, int index) =>
 Pointer<Pointer<S>> _elementAtPointer<S extends NativeType>(
         Pointer<Pointer<S>> pointer, int index) =>
     Pointer.fromAddress(pointer.address + _intPtrSize * index);
+
+extension NativeFunctionPointer<NF extends Function>
+    on Pointer<NativeFunction<NF>> {
+  @patch
+  DF asFunction<DF extends Function>() =>
+      throw UnsupportedError("The body is inlined in the frontend.");
+}
 
 //
 // The following code is generated, do not edit by hand.

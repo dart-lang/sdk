@@ -884,7 +884,8 @@ Fragment BaseFlowGraphBuilder::AllocateObject(TokenPosition position,
 
 Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
     const TypeArguments& signatures) {
-  ASSERT(signatures.IsInstantiated() && signatures.Length() == 2);
+  ASSERT(signatures.IsInstantiated());
+  ASSERT(signatures.Length() == 2);
 
   const AbstractType& dart_type = AbstractType::Handle(signatures.TypeAt(0));
   const AbstractType& native_type = AbstractType::Handle(signatures.TypeAt(1));

@@ -68,7 +68,7 @@ void testWrongTypes() {
 // an exception.
 void testDynamicAsFunction() {
   dynamic x = ffi.nullptr.cast<ffi.NativeFunction<ffi.Void Function()>>();
-  Expect.throwsUnsupportedError(() {
+  Expect.throwsNoSuchMethodError(() {
     x.asFunction<void Function()>();
   });
 }
@@ -77,7 +77,7 @@ void testDynamicAsFunction() {
 // type throws an exception.
 void testDynamicLookupFunction() {
   dynamic lib = ffiTestFunctions;
-  Expect.throwsUnsupportedError(() {
+  Expect.throwsNoSuchMethodError(() {
     lib.lookupFunction<ffi.Void Function(), void Function()>("_");
   });
 }

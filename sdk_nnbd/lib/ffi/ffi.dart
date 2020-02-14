@@ -66,13 +66,6 @@ class Pointer<T extends NativeType> extends NativeType {
   /// Cast Pointer<T> to a Pointer<V>.
   external Pointer<U> cast<U extends NativeType>();
 
-  /// Convert to Dart function, automatically marshalling the arguments
-  /// and return value.
-  ///
-  /// Can only be called on [Pointer]<[NativeFunction]>. Does not accept dynamic
-  /// invocations -- where the type of the receiver is [dynamic].
-  external R asFunction<@DartRepresentationOf("T") R extends Function>();
-
   /// Equality for Pointers only depends on their address.
   bool operator ==(Object other) {
     if (other is! Pointer) return false;
@@ -84,6 +77,14 @@ class Pointer<T extends NativeType> extends NativeType {
   int get hashCode {
     return address.hashCode;
   }
+}
+
+/// Extension on [Pointer] specialized for the type argument [NativeFunction].
+extension NativeFunctionPointer<NF extends Function>
+    on Pointer<NativeFunction<NF>> {
+  /// Convert to Dart function, automatically marshalling the arguments
+  /// and return value.
+  external DF asFunction<@DartRepresentationOf("NF") DF extends Function>();
 }
 
 //

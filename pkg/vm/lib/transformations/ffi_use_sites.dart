@@ -153,7 +153,30 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final Member target = node.target;
     try {
-      if (target == fromFunctionMethod) {
+      if (target == lookupFunctionMethod && !isFfiLibrary) {
+        final DartType nativeType = InterfaceType(
+            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
+        final DartType dartType = node.arguments.types[1];
+
+        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeToDartType(nativeType, dartType, node);
+        return _replaceLookupFunction(node);
+      } else if (target == asFunctionMethod && !isFfiLibrary) {
+        final DartType dartType = node.arguments.types[1];
+        final DartType nativeType = InterfaceType(
+            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
+
+        _ensureNativeTypeValid(nativeType, node);
+        _ensureNativeTypeToDartType(nativeType, dartType, node);
+
+        final DartType nativeSignature =
+            (nativeType as InterfaceType).typeArguments[0];
+        // Inline function body to make all type arguments instatiated.
+        return StaticInvocation(
+            asFunctionInternal,
+            Arguments([node.arguments.positional[0]],
+                types: [dartType, nativeSignature]));
+      } else if (target == fromFunctionMethod) {
         final DartType nativeType = InterfaceType(
             nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
         final Expression func = node.arguments.positional[0];
@@ -246,15 +269,10 @@ class _FfiUseSiteTransformer extends FfiTransformer {
   // We need to replace calls to 'DynamicLibrary.lookupFunction' with explicit
   // Kernel, because we cannot have a generic call to 'asFunction' in its body.
   //
-  // Below, in 'visitMethodInvocation', we ensure that the type arguments to
+  // Above, in 'visitStaticInvocation', we ensure that the type arguments to
   // 'lookupFunction' are constants, so by inlining the call to 'asFunction' at
   // the call-site, we ensure that there are no generic calls to 'asFunction'.
-  //
-  // We will not detect dynamic invocations of 'asFunction' and
-  // 'lookupFunction': these are handled by the stubs in 'ffi_patch.dart' and
-  // 'dynamic_library_patch.dart'. Dynamic invocations of 'lookupFunction' (and
-  // 'asFunction') are not legal and throw a runtime exception.
-  Expression _replaceLookupFunction(MethodInvocation node) {
+  Expression _replaceLookupFunction(StaticInvocation node) {
     // The generated code looks like:
     //
     // _asFunctionInternal<DS, NS>(lookup<NativeFunction<NS>>(symbolName))
@@ -263,13 +281,16 @@ class _FfiUseSiteTransformer extends FfiTransformer {
     final DartType dartSignature = node.arguments.types[1];
 
     final Arguments args = Arguments([
-      node.arguments.positional.single
+      node.arguments.positional[1]
     ], types: [
       InterfaceType(nativeFunctionClass, Nullability.legacy, [nativeSignature])
     ]);
 
     final Expression lookupResult = MethodInvocation(
-        node.receiver, Name("lookup"), args, libraryLookupMethod);
+        node.arguments.positional[0],
+        Name("lookup"),
+        args,
+        libraryLookupMethod);
 
     return StaticInvocation(asFunctionInternal,
         Arguments([lookupResult], types: [dartSignature, nativeSignature]));
@@ -318,35 +339,7 @@ class _FfiUseSiteTransformer extends FfiTransformer {
 
     final Member target = node.interfaceTarget;
     try {
-      // We will not detect dynamic invocations of 'asFunction' and
-      // 'lookupFunction' -- these are handled by the 'asFunctionInternal' stub
-      // in 'dynamic_library_patch.dart'. Dynamic invocations of 'asFunction'
-      // and 'lookupFunction' are not legal and throw a runtime exception.
-      if (target == lookupFunctionMethod) {
-        final DartType nativeType = InterfaceType(
-            nativeFunctionClass, Nullability.legacy, [node.arguments.types[0]]);
-        final DartType dartType = node.arguments.types[1];
-
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
-        return _replaceLookupFunction(node);
-      } else if (target == asFunctionMethod) {
-        final DartType dartType = node.arguments.types[0];
-        final DartType pointerType =
-            node.receiver.getStaticType(_staticTypeContext);
-        final DartType nativeType = _pointerTypeGetTypeArg(pointerType);
-
-        _ensureNativeTypeValid(pointerType, node);
-        _ensureNativeTypeValid(nativeType, node);
-        _ensureNativeTypeToDartType(nativeType, dartType, node);
-
-        final DartType nativeSignature =
-            (nativeType as InterfaceType).typeArguments[0];
-        return StaticInvocation(asFunctionInternal,
-            Arguments([node.receiver], types: [dartType, nativeSignature]));
-      } else if (target == elementAtMethod) {
-        // TODO(37773): When moving to extension methods we can get rid of
-        // this rewiring.
+      if (target == elementAtMethod) {
         final DartType pointerType =
             node.receiver.getStaticType(_staticTypeContext);
         final DartType nativeType = _pointerTypeGetTypeArg(pointerType);

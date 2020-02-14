@@ -234,11 +234,12 @@ class FfiTransformer extends Transformer {
         addressOfField = index.getMember('dart:ffi', 'Struct', '_addressOf'),
         structFromPointer =
             index.getMember('dart:ffi', 'Struct', '_fromPointer'),
-        asFunctionMethod = index.getMember('dart:ffi', 'Pointer', 'asFunction'),
+        asFunctionMethod =
+            index.getMember('dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =
             index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),
         lookupFunctionMethod =
-            index.getMember('dart:ffi', 'DynamicLibrary', 'lookupFunction'),
+            index.getMember('dart:ffi', 'LibraryExtension', 'lookupFunction'),
         fromFunctionMethod =
             index.getMember('dart:ffi', 'Pointer', 'fromFunction'),
         libraryLookupMethod =
