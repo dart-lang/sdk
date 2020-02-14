@@ -169,9 +169,7 @@ String _computeLibraryName(CompilationUnit unit) {
   return null;
 }
 
-/**
- * Runs the given notification producing function [f], catching exceptions.
- */
+/// Runs the given notification producing function [f], catching exceptions.
 void _sendNotification(AnalysisServer server, Function() f) {
   ServerPerformanceStatistics.notices.makeCurrentWhile(() {
     try {

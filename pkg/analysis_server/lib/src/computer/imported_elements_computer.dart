@@ -7,37 +7,25 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * An object used to compute the list of elements referenced within a given
- * region of a compilation unit that are imported into the compilation unit's
- * library.
- */
+/// An object used to compute the list of elements referenced within a given
+/// region of a compilation unit that are imported into the compilation unit's
+/// library.
 class ImportedElementsComputer {
-  /**
-   * The compilation unit in which the elements are referenced.
-   */
+  /// The compilation unit in which the elements are referenced.
   final CompilationUnit unit;
 
-  /**
-   * The offset of the region containing the references to be returned.
-   */
+  /// The offset of the region containing the references to be returned.
   final int offset;
 
-  /**
-   * The length of the region containing the references to be returned.
-   */
+  /// The length of the region containing the references to be returned.
   final int length;
 
-  /**
-   * Initialize a newly created computer to compute the list of imported
-   * elements referenced in the given [unit] within the region with the given
-   * [offset] and [length].
-   */
+  /// Initialize a newly created computer to compute the list of imported
+  /// elements referenced in the given [unit] within the region with the given
+  /// [offset] and [length].
   ImportedElementsComputer(this.unit, this.offset, this.length);
 
-  /**
-   * Compute and return the list of imported elements.
-   */
+  /// Compute and return the list of imported elements.
   List<ImportedElements> compute() {
     if (_regionIncludesDirectives()) {
       return const <ImportedElements>[];
@@ -48,11 +36,9 @@ class ImportedElementsComputer {
     return visitor.importedElements.values.toList();
   }
 
-  /**
-   * Return `true` if the region being copied includes any directives. This
-   * really only needs to check for import and export directives, but excluding
-   * other directives is unlikely to hurt the UX.
-   */
+  /// Return `true` if the region being copied includes any directives. This
+  /// really only needs to check for import and export directives, but excluding
+  /// other directives is unlikely to hurt the UX.
   bool _regionIncludesDirectives() {
     NodeList<Directive> directives = unit.directives;
     if (directives.isEmpty) {
@@ -64,36 +50,24 @@ class ImportedElementsComputer {
   }
 }
 
-/**
- * The visitor used by an [ImportedElementsComputer] to record the names of all
- * imported elements.
- */
+/// The visitor used by an [ImportedElementsComputer] to record the names of all
+/// imported elements.
 class _Visitor extends UnifyingAstVisitor<void> {
-  /**
-   * The element representing the library containing the code being visited.
-   */
+  /// The element representing the library containing the code being visited.
   final LibraryElement containingLibrary;
 
-  /**
-   * The offset of the start of the region of text being copied.
-   */
+  /// The offset of the start of the region of text being copied.
   final int startOffset;
 
-  /**
-   * The offset of the end of the region of text being copied.
-   */
+  /// The offset of the end of the region of text being copied.
   final int endOffset;
 
-  /**
-   * A table mapping library path and prefix keys to the imported elements from
-   * that library.
-   */
+  /// A table mapping library path and prefix keys to the imported elements from
+  /// that library.
   Map<String, ImportedElements> importedElements = <String, ImportedElements>{};
 
-  /**
-   * Initialize a newly created visitor to visit nodes within a specified
-   * region.
-   */
+  /// Initialize a newly created visitor to visit nodes within a specified
+  /// region.
   _Visitor(this.containingLibrary, this.startOffset, this.endOffset);
 
   @override

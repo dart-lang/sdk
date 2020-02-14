@@ -6,10 +6,8 @@ import 'package:analysis_server/protocol/protocol_generated.dart' as server;
 import 'package:analysis_server/src/protocol/protocol_internal.dart' as server;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
-/**
- * An object used to convert between similar objects defined by both the plugin
- * protocol and the server protocol.
- */
+/// An object used to convert between similar objects defined by both the plugin
+/// protocol and the server protocol.
 class RequestConverter {
   plugin.AnalysisService convertAnalysisService(
       server.AnalysisService service) {

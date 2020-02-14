@@ -15,10 +15,8 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * Returns [Token]s of the given Dart source, not `null`, may be empty if no
- * tokens or some exception happens.
- */
+/// Returns [Token]s of the given Dart source, not `null`, may be empty if no
+/// tokens or some exception happens.
 List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
     List<Token> tokens = <Token>[];
@@ -35,9 +33,7 @@ List<Token> _getTokens(String text, FeatureSet featureSet) {
   }
 }
 
-/**
- * Analyzer to check if a selection covers a valid set of statements of AST.
- */
+/// Analyzer to check if a selection covers a valid set of statements of AST.
 class StatementAnalyzer extends SelectionAnalyzer {
   final ResolvedUnitResult resolveResult;
 
@@ -46,21 +42,15 @@ class StatementAnalyzer extends SelectionAnalyzer {
   StatementAnalyzer(this.resolveResult, SourceRange selection)
       : super(selection);
 
-  /**
-   * Returns the [RefactoringStatus] result of selection checking.
-   */
+  /// Returns the [RefactoringStatus] result of selection checking.
   RefactoringStatus get status => _status;
 
-  /**
-   * Analyze the selection, compute [status] and nodes.
-   */
+  /// Analyze the selection, compute [status] and nodes.
   void analyze() {
     resolveResult.unit.accept(this);
   }
 
-  /**
-   * Records fatal error with given message and [Location].
-   */
+  /// Records fatal error with given message and [Location].
   void invalidSelection(String message, [Location context]) {
     if (!_status.hasFatalError) {
       _status.addFatalError(message, context);
@@ -189,9 +179,7 @@ class StatementAnalyzer extends SelectionAnalyzer {
     return null;
   }
 
-  /**
-   * Checks final selected [AstNode]s after processing [CompilationUnit].
-   */
+  /// Checks final selected [AstNode]s after processing [CompilationUnit].
   void _checkSelectedNodes(CompilationUnit unit) {
     List<AstNode> nodes = selectedNodes;
     // some tokens before first selected node
@@ -220,24 +208,18 @@ class StatementAnalyzer extends SelectionAnalyzer {
     }
   }
 
-  /**
-   * Returns `true` if there are [Token]s in the given [SourceRange].
-   */
+  /// Returns `true` if there are [Token]s in the given [SourceRange].
   bool _hasTokens(SourceRange range) {
     String fullText = resolveResult.content;
     String rangeText = fullText.substring(range.offset, range.end);
     return _getTokens(rangeText, resolveResult.unit.featureSet).isNotEmpty;
   }
 
-  /**
-   * Returns `true` if [nodes] contains [node].
-   */
+  /// Returns `true` if [nodes] contains [node].
   static bool _contains(List<AstNode> nodes, AstNode node) =>
       nodes.contains(node);
 
-  /**
-   * Returns `true` if [nodes] contains one of the [otherNodes].
-   */
+  /// Returns `true` if [nodes] contains one of the [otherNodes].
   static bool _containsAny(List<AstNode> nodes, List<AstNode> otherNodes) {
     for (AstNode otherNode in otherNodes) {
       if (nodes.contains(otherNode)) {

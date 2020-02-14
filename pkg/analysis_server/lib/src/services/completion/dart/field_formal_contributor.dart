@@ -10,10 +10,8 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
-/**
- * A contributor for calculating invocation / access suggestions
- * `completion.getSuggestions` request results.
- */
+/// A contributor for calculating invocation / access suggestions
+/// `completion.getSuggestions` request results.
 class FieldFormalContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(

@@ -17,11 +17,9 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 
-/**
- * Return the class containing the target
- * or `null` if the target is in a static method or field
- * or not in a class.
- */
+/// Return the class containing the target
+/// or `null` if the target is in a static method or field
+/// or not in a class.
 ClassOrMixinDeclaration _enclosingClass(CompletionTarget target) {
   AstNode node = target.containingNode;
   while (node != null) {
@@ -41,9 +39,7 @@ ClassOrMixinDeclaration _enclosingClass(CompletionTarget target) {
   return null;
 }
 
-/**
- * A contributor for calculating suggestions for inherited references.
- */
+/// A contributor for calculating suggestions for inherited references.
 class InheritedReferenceContributor extends DartCompletionContributor
     with ElementSuggestionBuilder {
   @override

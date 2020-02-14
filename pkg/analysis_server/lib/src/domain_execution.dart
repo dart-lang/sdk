@@ -14,34 +14,23 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * Instances of the class [ExecutionDomainHandler] implement a [RequestHandler]
- * that handles requests in the `execution` domain.
- */
+/// Instances of the class [ExecutionDomainHandler] implement a [RequestHandler]
+/// that handles requests in the `execution` domain.
 class ExecutionDomainHandler implements RequestHandler {
-  /**
-   * The analysis server that is using this handler to process requests.
-   */
+  /// The analysis server that is using this handler to process requests.
   final AnalysisServer server;
 
-  /**
-   * The next execution context identifier to be returned.
-   */
+  /// The next execution context identifier to be returned.
   int nextContextId = 0;
 
-  /**
-   * A table mapping execution context id's to the root of the context.
-   */
+  /// A table mapping execution context id's to the root of the context.
   final Map<String, String> contextMap = HashMap<String, String>();
 
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   ExecutionDomainHandler(this.server);
 
-  /**
-   * Implement the `execution.createContext` request.
-   */
+  /// Implement the `execution.createContext` request.
   Response createContext(Request request) {
     String file = ExecutionCreateContextParams.fromRequest(request).contextRoot;
     String contextId = (nextContextId++).toString();
@@ -49,18 +38,14 @@ class ExecutionDomainHandler implements RequestHandler {
     return ExecutionCreateContextResult(contextId).toResponse(request.id);
   }
 
-  /**
-   * Implement the `execution.deleteContext` request.
-   */
+  /// Implement the `execution.deleteContext` request.
   Response deleteContext(Request request) {
     String contextId = ExecutionDeleteContextParams.fromRequest(request).id;
     contextMap.remove(contextId);
     return ExecutionDeleteContextResult().toResponse(request.id);
   }
 
-  /**
-   * Implement the 'execution.getSuggestions' request.
-   */
+  /// Implement the 'execution.getSuggestions' request.
   void getSuggestions(Request request) async {
 //    // TODO(brianwilkerson) Determine whether this await is necessary.
 //    await null;
@@ -111,9 +96,7 @@ class ExecutionDomainHandler implements RequestHandler {
     return null;
   }
 
-  /**
-   * Implement the 'execution.mapUri' request.
-   */
+  /// Implement the 'execution.mapUri' request.
   Response mapUri(Request request) {
     ExecutionMapUriParams params = ExecutionMapUriParams.fromRequest(request);
     String contextId = params.id;
@@ -163,9 +146,7 @@ class ExecutionDomainHandler implements RequestHandler {
         request, 'file', 'Either file or uri must be provided');
   }
 
-  /**
-   * Implement the 'execution.setSubscriptions' request.
-   */
+  /// Implement the 'execution.setSubscriptions' request.
   Response setSubscriptions(Request request) {
     // Under the analysis driver, setSubscriptions() becomes a no-op.
     return ExecutionSetSubscriptionsResult().toResponse(request.id);

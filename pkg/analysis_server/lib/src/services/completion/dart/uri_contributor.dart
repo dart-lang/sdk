@@ -16,14 +16,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' show posix;
 import 'package:path/src/context.dart';
 
-/**
- * A contributor for calculating uri suggestions for import and part directives.
- */
+/// A contributor for calculating uri suggestions for import and part
+/// directives.
 class UriContributor extends DartCompletionContributor {
-  /**
-   * A flag indicating whether file: and package: URI suggestions should
-   * be included in the list of completion suggestions.
-   */
+  /// A flag indicating whether file: and package: URI suggestions should
+  /// be included in the list of completion suggestions.
   // TODO(danrubel): remove this flag and related functionality
   // once the UriContributor limits file: and package: URI suggestions
   // to only those paths within context roots.

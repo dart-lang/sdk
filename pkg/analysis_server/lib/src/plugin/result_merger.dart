@@ -9,28 +9,23 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:meta/meta.dart';
 
-/**
- * An object used to merge partial lists of results that were contributed by
- * plugins.
- *
- * All of the methods in this class assume that the contributions from the
- * analysis server are the first partial result in the list of partial results
- * to be merged.
- */
+/// An object used to merge partial lists of results that were contributed by
+/// plugins.
+///
+/// All of the methods in this class assume that the contributions from the
+/// analysis server are the first partial result in the list of partial results
+/// to be merged.
 class ResultMerger {
-  /**
-   * Return a list of fixes composed by merging the lists of fixes in the
-   * [partialResultList].
-   *
-   * The resulting list of fixes will contain exactly one fix for every analysis
-   * error for which there are fixes. If two or more plugins contribute the same
-   * fix for a given error, the resulting list will contain duplications.
-   */
+  /// Return a list of fixes composed by merging the lists of fixes in the
+  /// [partialResultList].
+  ///
+  /// The resulting list of fixes will contain exactly one fix for every
+  /// analysis error for which there are fixes. If two or more plugins
+  /// contribute the same fix for a given error, the resulting list will contain
+  /// duplications.
   List<plugin.AnalysisErrorFixes> mergeAnalysisErrorFixes(
       List<List<plugin.AnalysisErrorFixes>> partialResultList) {
-    /**
-     * Return a key encoding the unique attributes of the given [error].
-     */
+    /// Return a key encoding the unique attributes of the given [error].
     String computeKey(AnalysisError error) {
       StringBuffer buffer = StringBuffer();
       buffer.write(error.location.offset);
@@ -79,14 +74,12 @@ class ResultMerger {
     return mergedFixes;
   }
 
-  /**
-   * Return a list of errors composed by merging the lists of errors in the
-   * [partialResultList].
-   *
-   * The resulting list will contain all of the analysis errors from all of the
-   * plugins. If two or more plugins contribute the same error the resulting
-   * list will contain duplications.
-   */
+  /// Return a list of errors composed by merging the lists of errors in the
+  /// [partialResultList].
+  ///
+  /// The resulting list will contain all of the analysis errors from all of the
+  /// plugins. If two or more plugins contribute the same error the resulting
+  /// list will contain duplications.
   List<AnalysisError> mergeAnalysisErrors(
       List<List<AnalysisError>> partialResultList) {
     // TODO(brianwilkerson) Consider merging duplicate errors (same code,
@@ -105,14 +98,12 @@ class ResultMerger {
     return mergedErrors;
   }
 
-  /**
-   * Return a list of suggestions composed by merging the lists of suggestions
-   * in the [partialResultList].
-   *
-   * The resulting list will contain all of the suggestions from all of the
-   * plugins. If two or more plugins contribute the same suggestion the
-   * resulting list will contain duplications.
-   */
+  /// Return a list of suggestions composed by merging the lists of suggestions
+  /// in the [partialResultList].
+  ///
+  /// The resulting list will contain all of the suggestions from all of the
+  /// plugins. If two or more plugins contribute the same suggestion the
+  /// resulting list will contain duplications.
   List<CompletionSuggestion> mergeCompletionSuggestions(
       List<List<CompletionSuggestion>> partialResultList) {
     int count = partialResultList.length;
@@ -128,16 +119,14 @@ class ResultMerger {
     return mergedSuggestions;
   }
 
-  /**
-   * Return a list of regions composed by merging the lists of regions in the
-   * [partialResultList].
-   *
-   * The resulting list will contain all of the folding regions from all of the
-   * plugins. If a plugin contributes a folding region that overlaps a region
-   * from a previous plugin, the overlapping region will be omitted. (For these
-   * purposes, if either region is fully contained within the other they are not
-   * considered to be overlapping.)
-   */
+  /// Return a list of regions composed by merging the lists of regions in the
+  /// [partialResultList].
+  ///
+  /// The resulting list will contain all of the folding regions from all of the
+  /// plugins. If a plugin contributes a folding region that overlaps a region
+  /// from a previous plugin, the overlapping region will be omitted. (For these
+  /// purposes, if either region is fully contained within the other they are
+  /// not considered to be overlapping.)
   List<FoldingRegion> mergeFoldingRegions(
       List<List<FoldingRegion>> partialResultList) {
     int count = partialResultList.length;
@@ -148,10 +137,8 @@ class ResultMerger {
     }
     List<FoldingRegion> mergedRegions = partialResultList[0].toList();
 
-    /**
-     * Return `true` if the [newRegion] does not overlap any of the regions in
-     * the collection of [mergedRegions].
-     */
+    /// Return `true` if the [newRegion] does not overlap any of the regions in
+    /// the collection of [mergedRegions].
     bool isNonOverlapping(FoldingRegion newRegion) {
       int newStart = newRegion.offset;
       int newEnd = newStart + newRegion.length;
@@ -177,14 +164,12 @@ class ResultMerger {
     return mergedRegions;
   }
 
-  /**
-   * Return a list of regions composed by merging the lists of regions in the
-   * [partialResultList].
-   *
-   * The resulting list will contain all of the highlight regions from all of
-   * the plugins. If two or more plugins contribute the same highlight region
-   * the resulting list will contain duplications.
-   */
+  /// Return a list of regions composed by merging the lists of regions in the
+  /// [partialResultList].
+  ///
+  /// The resulting list will contain all of the highlight regions from all of
+  /// the plugins. If two or more plugins contribute the same highlight region
+  /// the resulting list will contain duplications.
   List<HighlightRegion> mergeHighlightRegions(
       List<List<HighlightRegion>> partialResultList) {
     int count = partialResultList.length;
@@ -200,14 +185,12 @@ class ResultMerger {
     return mergedRegions;
   }
 
-  /**
-   * Return kythe entry result parameters composed by merging the parameters in
-   * the [partialResultList].
-   *
-   * The resulting list will contain all of the kythe entries from all of the
-   * plugins. If a plugin contributes a kythe entry that is the same as the
-   * entry from a different plugin, the entry will appear twice in the list.
-   */
+  /// Return kythe entry result parameters composed by merging the parameters in
+  /// the [partialResultList].
+  ///
+  /// The resulting list will contain all of the kythe entries from all of the
+  /// plugins. If a plugin contributes a kythe entry that is the same as the
+  /// entry from a different plugin, the entry will appear twice in the list.
   KytheGetKytheEntriesResult mergeKytheEntries(
       List<KytheGetKytheEntriesResult> partialResultList) {
     List<KytheEntry> mergedEntries = <KytheEntry>[];
@@ -219,15 +202,13 @@ class ResultMerger {
     return KytheGetKytheEntriesResult(mergedEntries, mergedFiles.toList());
   }
 
-  /**
-   * Return navigation notification parameters composed by merging the
-   * parameters in the [partialResultList].
-   *
-   * The resulting list will contain all of the navigation regions from all of
-   * the plugins. If a plugin contributes a navigation region that overlaps a
-   * region from a previous plugin, the overlapping region will be omitted. (For
-   * these purposes, nested regions are considered to be overlapping.)
-   */
+  /// Return navigation notification parameters composed by merging the
+  /// parameters in the [partialResultList].
+  ///
+  /// The resulting list will contain all of the navigation regions from all of
+  /// the plugins. If a plugin contributes a navigation region that overlaps a
+  /// region from a previous plugin, the overlapping region will be omitted.
+  /// (For these purposes, nested regions are considered to be overlapping.)
   AnalysisNavigationParams mergeNavigation(
       List<AnalysisNavigationParams> partialResultList) {
     int count = partialResultList.length;
@@ -242,10 +223,8 @@ class ResultMerger {
     List<NavigationTarget> mergedTargets = base.targets.toList();
     List<String> mergedFiles = base.files.toList();
 
-    /**
-     * Return `true` if the [newRegion] does not overlap any of the regions in
-     * the collection of [mergedRegions].
-     */
+    /// Return `true` if the [newRegion] does not overlap any of the regions in
+    /// the collection of [mergedRegions].
     bool isNonOverlapping(NavigationRegion newRegion) {
       int newStart = newRegion.offset;
       int newEnd = newStart + newRegion.length;
@@ -259,11 +238,9 @@ class ResultMerger {
       return true;
     }
 
-    /**
-     * Return the index of the region in the collection of [mergedRegions] that
-     * covers exactly the same region as the [newRegion], or `-1` if there is no
-     * such region.
-     */
+    /// Return the index of the region in the collection of [mergedRegions] that
+    /// covers exactly the same region as the [newRegion], or `-1` if there is
+    /// no such region.
     int matchingRegion(newRegion) {
       int newOffset = newRegion.offset;
       int newLength = newRegion.length;
@@ -366,16 +343,14 @@ class ResultMerger {
         file, mergedRegions, mergedTargets, mergedFiles);
   }
 
-  /**
-   * Return a list of occurrences composed by merging the lists of occurrences
-   * in the [partialResultList].
-   *
-   * The resulting list of occurrences will contain exactly one occurrences for
-   * every element for which there is at least one occurrences. If two or more
-   * plugins contribute an occurrences for the same element, the resulting
-   * occurrences for that element will include all of the locations from all of
-   * the plugins without duplications.
-   */
+  /// Return a list of occurrences composed by merging the lists of occurrences
+  /// in the [partialResultList].
+  ///
+  /// The resulting list of occurrences will contain exactly one occurrences for
+  /// every element for which there is at least one occurrences. If two or more
+  /// plugins contribute an occurrences for the same element, the resulting
+  /// occurrences for that element will include all of the locations from all of
+  /// the plugins without duplications.
   List<Occurrences> mergeOccurrences(
       List<List<Occurrences>> partialResultList) {
     int count = partialResultList.length;
@@ -403,23 +378,20 @@ class ResultMerger {
     return mergedOccurrences;
   }
 
-  /**
-   * Return a list of outlines composed by merging the lists of outlines in the
-   * [partialResultList].
-   *
-   * The resulting list of outlines will contain ...
-   *
-   * Throw an exception if any of the outlines are associated with an element
-   * that does not have a location.
-   *
-   * Throw an exception if any outline has children that are also children of
-   * another outline. No exception is thrown if a plugin contributes a top-level
-   * outline that is a child of an outline contributed by a different plugin.
-   */
+  /// Return a list of outlines composed by merging the lists of outlines in the
+  /// [partialResultList].
+  ///
+  /// The resulting list of outlines will contain ...
+  ///
+  /// Throw an exception if any of the outlines are associated with an element
+  /// that does not have a location.
+  ///
+  /// Throw an exception if any outline has children that are also children of
+  /// another outline. No exception is thrown if a plugin contributes a
+  /// top-level outline that is a child of an outline contributed by a different
+  /// plugin.
   List<Outline> mergeOutline(List<List<Outline>> partialResultList) {
-    /**
-     * Return a key encoding the unique attributes of the given [element].
-     */
+    /// Return a key encoding the unique attributes of the given [element].
     String computeKey(Element element) {
       Location location = element.location;
       if (location == null) {
@@ -443,9 +415,7 @@ class ResultMerger {
     Map<String, Outline> outlineMap = <String, Outline>{};
     Map<Outline, Outline> copyMap = <Outline, Outline>{};
 
-    /**
-     * Add the given [outline] and all of its children to the [outlineMap].
-     */
+    /// Add the given [outline] and all of its children to the [outlineMap].
     void addToMap(Outline outline) {
       String key = computeKey(outline.element);
       if (outlineMap.containsKey(key)) {
@@ -456,10 +426,8 @@ class ResultMerger {
       outline.children?.forEach(addToMap);
     }
 
-    /**
-     * Merge the children of the [newOutline] into the list of children of the
-     * [mergedOutline].
-     */
+    /// Merge the children of the [newOutline] into the list of children of the
+    /// [mergedOutline].
     void mergeChildren(Outline mergedOutline, Outline newOutline) {
       for (Outline newChild in newOutline.children) {
         Outline mergedChild = outlineMap[computeKey(newChild.element)];
@@ -498,11 +466,9 @@ class ResultMerger {
       }
     }
 
-    /**
-     * Perform a depth first traversal of the outline structure rooted at the
-     * given [outline] item, re-building each item if any of its children have
-     * been updated by the merge process.
-     */
+    /// Perform a depth first traversal of the outline structure rooted at the
+    /// given [outline] item, re-building each item if any of its children have
+    /// been updated by the merge process.
     Outline traverse(Outline outline) {
       Outline copiedOutline = copyMap[outline];
       bool isCopied = copiedOutline != null;
@@ -535,14 +501,12 @@ class ResultMerger {
     return mergedOutlines;
   }
 
-  /**
-   * Return a list of source changes composed by merging the lists of source
-   * changes in the [partialResultList].
-   *
-   * The resulting list will contain all of the source changes from all of the
-   * plugins. If two or more plugins contribute the same source change the
-   * resulting list will contain duplications.
-   */
+  /// Return a list of source changes composed by merging the lists of source
+  /// changes in the [partialResultList].
+  ///
+  /// The resulting list will contain all of the source changes from all of the
+  /// plugins. If two or more plugins contribute the same source change the
+  /// resulting list will contain duplications.
   List<plugin.PrioritizedSourceChange> mergePrioritizedSourceChanges(
       List<List<plugin.PrioritizedSourceChange>> partialResultList) {
     int count = partialResultList.length;
@@ -561,18 +525,16 @@ class ResultMerger {
     return mergedChanges;
   }
 
-  /**
-   * Return a refactoring feedback composed by merging the refactoring feedbacks
-   * in the [partialResultList].
-   *
-   * The content of the resulting feedback depends on the kind of feedbacks
-   * being merged.
-   *
-   * Throw an exception if the refactoring feedbacks are of an unhandled type.
-   *
-   * The feedbacks in the [partialResultList] are expected to all be of the same
-   * type. If that expectation is violated, and exception might be thrown.
-   */
+  /// Return a refactoring feedback composed by merging the refactoring
+  /// feedbacks in the [partialResultList].
+  ///
+  /// The content of the resulting feedback depends on the kind of feedbacks
+  /// being merged.
+  ///
+  /// Throw an exception if the refactoring feedbacks are of an unhandled type.
+  ///
+  /// The feedbacks in the [partialResultList] are expected to all be of the
+  /// same type. If that expectation is violated, and exception might be thrown.
   RefactoringFeedback mergeRefactoringFeedbacks(
       List<RefactoringFeedback> feedbacks) {
     int count = feedbacks.length;
@@ -675,13 +637,11 @@ class ResultMerger {
         'Unsupported class of refactoring feedback: ${first.runtimeType}');
   }
 
-  /**
-   * Return a list of refactoring kinds composed by merging the lists of
-   * refactoring kinds in the [partialResultList].
-   *
-   * The resulting list will contain all of the refactoring kinds from all of
-   * the plugins, but will not contain duplicate elements.
-   */
+  /// Return a list of refactoring kinds composed by merging the lists of
+  /// refactoring kinds in the [partialResultList].
+  ///
+  /// The resulting list will contain all of the refactoring kinds from all of
+  /// the plugins, but will not contain duplicate elements.
   List<RefactoringKind> mergeRefactoringKinds(
       List<List<RefactoringKind>> partialResultList) {
     int count = partialResultList.length;
@@ -697,36 +657,32 @@ class ResultMerger {
     return mergedKinds.toList();
   }
 
-  /**
-   * Return the result for a getRefactorings request composed by merging the
-   * results in the [partialResultList].
-   *
-   * The returned result will contain the concatenation of the initial, options,
-   * and final problems. If two or more plugins produce the same problem, then
-   * the resulting list of problems will contain duplications.
-   *
-   * The returned result will contain a merged list of refactoring feedbacks (as
-   * defined by [mergeRefactoringFeedbacks]) and a merged list of source changes
-   * (as defined by [mergeChanges]).
-   *
-   * The returned result will contain the concatenation of the potential edits.
-   * If two or more plugins produce the same potential edit, then the resulting
-   * list of potential edits will contain duplications.
-   */
+  /// Return the result for a getRefactorings request composed by merging the
+  /// results in the [partialResultList].
+  ///
+  /// The returned result will contain the concatenation of the initial,
+  /// options, and final problems. If two or more plugins produce the same
+  /// problem, then the resulting list of problems will contain duplications.
+  ///
+  /// The returned result will contain a merged list of refactoring feedbacks
+  /// (as defined by [mergeRefactoringFeedbacks]) and a merged list of source
+  /// changes (as defined by [mergeChanges]).
+  ///
+  /// The returned result will contain the concatenation of the potential edits.
+  /// If two or more plugins produce the same potential edit, then the resulting
+  /// list of potential edits will contain duplications.
   EditGetRefactoringResult mergeRefactorings(
       List<EditGetRefactoringResult> partialResultList) {
-    /**
-     * Return the result of merging the given list of source [changes] into a
-     * single source change.
-     *
-     * The resulting change will have the first non-null message and the first
-     * non-null selection. The linked edit groups will be a concatenation of all
-     * of the individual linked edit groups because there's no way to determine
-     * when two such groups should be merged. The resulting list of edits will
-     * be merged at the level of the file being edited, but will be a
-     * concatenation of the individual edits within each file, even if multiple
-     * plugins contribute duplicate or conflicting edits.
-     */
+    /// Return the result of merging the given list of source [changes] into a
+    /// single source change.
+    ///
+    /// The resulting change will have the first non-null message and the first
+    /// non-null selection. The linked edit groups will be a concatenation of
+    /// all of the individual linked edit groups because there's no way to
+    /// determine when two such groups should be merged. The resulting list of
+    /// edits will be merged at the level of the file being edited, but will be
+    /// a concatenation of the individual edits within each file, even if
+    /// multiple plugins contribute duplicate or conflicting edits.
     SourceChange mergeChanges(List<SourceChange> changes) {
       int count = changes.length;
       if (count == 0) {
@@ -807,14 +763,12 @@ class ResultMerger {
         potentialEdits: potentialEdits);
   }
 
-  /**
-   * Return a list of source changes composed by merging the lists of source
-   * changes in the [partialResultList].
-   *
-   * The resulting list will contain all of the source changes from all of the
-   * plugins. If two or more plugins contribute the same source change the
-   * resulting list will contain duplications.
-   */
+  /// Return a list of source changes composed by merging the lists of source
+  /// changes in the [partialResultList].
+  ///
+  /// The resulting list will contain all of the source changes from all of the
+  /// plugins. If two or more plugins contribute the same source change the
+  /// resulting list will contain duplications.
   List<SourceChange> mergeSourceChanges(
       List<List<SourceChange>> partialResultList) {
     int count = partialResultList.length;
@@ -830,13 +784,11 @@ class ResultMerger {
     return mergedChanges;
   }
 
-  /**
-   * Return `true` if a region extending from [leftStart] (inclusive) to
-   * [leftEnd] (exclusive) overlaps a region extending from [rightStart]
-   * (inclusive) to [rightEnd] (exclusive). If [allowNesting] is `true`, then
-   * the regions are allowed to overlap as long as one region is completely
-   * nested within the other region.
-   */
+  /// Return `true` if a region extending from [leftStart] (inclusive) to
+  /// [leftEnd] (exclusive) overlaps a region extending from [rightStart]
+  /// (inclusive) to [rightEnd] (exclusive). If [allowNesting] is `true`, then
+  /// the regions are allowed to overlap as long as one region is completely
+  /// nested within the other region.
   @visibleForTesting
   bool overlaps(int leftStart, int leftEnd, int rightStart, int rightEnd,
       {bool allowNesting = false}) {

@@ -10,17 +10,13 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * A computer for `search.findElementReferences` request results.
- */
+/// A computer for `search.findElementReferences` request results.
 class ElementReferencesComputer {
   final SearchEngine searchEngine;
 
   ElementReferencesComputer(this.searchEngine);
 
-  /**
-   * Computes [SearchResult]s for [element] references.
-   */
+  /// Computes [SearchResult]s for [element] references.
   Future<List<SearchResult>> compute(
       Element element, bool withPotential) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -42,10 +38,8 @@ class ElementReferencesComputer {
     return results;
   }
 
-  /**
-   * Returns a [Future] completing with a [List] of references to [element] or
-   * to the corresponding hierarchy [Element]s.
-   */
+  /// Returns a [Future] completing with a [List] of references to [element] or
+  /// to the corresponding hierarchy [Element]s.
   Future<List<SearchResult>> _findElementsReferences(Element element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -59,9 +53,7 @@ class ElementReferencesComputer {
     return allResults;
   }
 
-  /**
-   * Returns a [Future] completing with a [List] of references to [element].
-   */
+  /// Returns a [Future] completing with a [List] of references to [element].
   Future<List<SearchResult>> _findSingleElementReferences(
       Element element) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -71,14 +63,12 @@ class ElementReferencesComputer {
     return matches.map(toResult).toList();
   }
 
-  /**
-   * Returns a [Future] completing with [Element]s to search references to.
-   *
-   * If a [ClassMemberElement] or a named [ParameterElement] is given, each
-   * corresponding [Element] in the hierarchy is returned.
-   *
-   * Otherwise, only references to [element] should be searched.
-   */
+  /// Returns a [Future] completing with [Element]s to search references to.
+  ///
+  /// If a [ClassMemberElement] or a named [ParameterElement] is given, each
+  /// corresponding [Element] in the hierarchy is returned.
+  ///
+  /// Otherwise, only references to [element] should be searched.
   Future<Iterable<Element>> _getRefElements(Element element) {
     if (element is ParameterElement && element.isNamed) {
       return getHierarchyNamedParameters(searchEngine, element);

@@ -10,9 +10,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-/**
- * Returns direct children of [parent].
- */
+/// Returns direct children of [parent].
 List<Element> getChildren(Element parent, [String name]) {
   List<Element> children = <Element>[];
   visitChildren(parent, (Element element) {
@@ -24,12 +22,10 @@ List<Element> getChildren(Element parent, [String name]) {
   return children;
 }
 
-/**
- * Returns direct non-synthetic children of the given [ClassElement].
- *
- * Includes: fields, accessors and methods.
- * Excludes: constructors and synthetic elements.
- */
+/// Returns direct non-synthetic children of the given [ClassElement].
+///
+/// Includes: fields, accessors and methods.
+/// Excludes: constructors and synthetic elements.
 List<Element> getClassMembers(ClassElement clazz, [String name]) {
   List<Element> members = <Element>[];
   visitChildren(clazz, (Element element) {
@@ -53,9 +49,7 @@ List<Element> getClassMembers(ClassElement clazz, [String name]) {
   return members;
 }
 
-/**
- * Returns a [Set] with direct subclasses of [seed].
- */
+/// Returns a [Set] with direct subclasses of [seed].
 Future<Set<ClassElement>> getDirectSubClasses(
     SearchEngine searchEngine, ClassElement seed) async {
   // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -86,10 +80,8 @@ List<Element> getExtensionMembers(ExtensionElement extension, [String name]) {
   return members;
 }
 
-/**
- * @return all implementations of the given {@link ClassMemberElement} is its superclasses and
- *         their subclasses.
- */
+/// Return all implementations of the given [member], its superclasses, and
+/// their subclasses.
 Future<Set<ClassMemberElement>> getHierarchyMembers(
     SearchEngine searchEngine, ClassMemberElement member) async {
   // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -131,10 +123,8 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   return result;
 }
 
-/**
- * If the [element] is a named parameter in a [MethodElement], return all
- * corresponding named parameters in the method hierarchy.
- */
+/// If the [element] is a named parameter in a [MethodElement], return all
+/// corresponding named parameters in the method hierarchy.
 Future<List<ParameterElement>> getHierarchyNamedParameters(
     SearchEngine searchEngine, ParameterElement element) async {
   // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -161,13 +151,12 @@ Future<List<ParameterElement>> getHierarchyNamedParameters(
   return [element];
 }
 
-/**
- * Returns non-synthetic members of the given [ClassElement] and its super
- * classes.
- *
- * Includes: fields, accessors and methods.
- * Excludes: constructors and synthetic elements.
- */
+/// Returns non-synthetic members of the given [ClassElement] and its super
+/// classes.
+///
+/// Includes: fields, accessors and methods.
+///
+/// Excludes: constructors and synthetic elements.
 List<Element> getMembers(ClassElement clazz) {
   List<Element> members = <Element>[];
   members.addAll(getClassMembers(clazz));
@@ -178,9 +167,7 @@ List<Element> getMembers(ClassElement clazz) {
   return members;
 }
 
-/**
- * Returns a [Set] with all direct and indirect superclasses of [seed].
- */
+/// Returns a [Set] with all direct and indirect superclasses of [seed].
 Set<ClassElement> getSuperClasses(ClassElement seed) {
   Set<ClassElement> result = HashSet<ClassElement>();
   // prepare queue
@@ -214,10 +201,8 @@ Set<ClassElement> getSuperClasses(ClassElement seed) {
   return result;
 }
 
-/**
- * If the given [element] is a synthetic [PropertyAccessorElement] returns
- * its variable, otherwise returns [element].
- */
+/// If the given [element] is a synthetic [PropertyAccessorElement] returns
+/// its variable, otherwise returns [element].
 Element getSyntheticAccessorVariable(Element element) {
   if (element is PropertyAccessorElement) {
     if (element.isSynthetic) {

@@ -16,10 +16,8 @@ import 'package:analyzer/src/util/comment.dart';
 
 import '../../../protocol_server.dart' show CompletionSuggestion;
 
-/**
- * Return a suggestion based upon the given element or `null` if a suggestion
- * is not appropriate for the given element.
- */
+/// Return a suggestion based upon the given element or `null` if a suggestion
+/// is not appropriate for the given element.
 CompletionSuggestion createSuggestion(Element element,
     {String completion,
     CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
@@ -80,39 +78,25 @@ CompletionSuggestion createSuggestion(Element element,
   return suggestion;
 }
 
-/**
- * Common mixin for sharing behavior.
- */
+/// Common mixin for sharing behavior.
 mixin ElementSuggestionBuilder {
-  /**
-   * A collection of completion suggestions.
-   */
+  /// A collection of completion suggestions.
   final List<CompletionSuggestion> suggestions = <CompletionSuggestion>[];
 
-  /**
-   * A set of existing completions used to prevent duplicate suggestions.
-   */
+  /// A set of existing completions used to prevent duplicate suggestions.
   final Set<String> _completions = <String>{};
 
-  /**
-   * A map of element names to suggestions for synthetic getters and setters.
-   */
+  /// A map of element names to suggestions for synthetic getters and setters.
   final Map<String, CompletionSuggestion> _syntheticMap =
       <String, CompletionSuggestion>{};
 
-  /**
-   * Return the library in which the completion is requested.
-   */
+  /// Return the library in which the completion is requested.
   LibraryElement get containingLibrary;
 
-  /**
-   * Return the kind of suggestions that should be built.
-   */
+  /// Return the kind of suggestions that should be built.
   CompletionSuggestionKind get kind;
 
-  /**
-   * Add a suggestion based upon the given element.
-   */
+  /// Add a suggestion based upon the given element.
   CompletionSuggestion addSuggestion(Element element,
       {String prefix,
       int relevance = DART_RELEVANCE_DEFAULT,
@@ -179,9 +163,7 @@ mixin ElementSuggestionBuilder {
   }
 }
 
-/**
- * This class creates suggestions based upon top-level elements.
- */
+/// This class creates suggestions based upon top-level elements.
 class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
     with ElementSuggestionBuilder {
   @override
@@ -252,54 +234,38 @@ class LibraryElementSuggestionBuilder extends SimpleElementVisitor<void>
   }
 }
 
-/**
- * This class provides suggestions based upon the visible instance members in
- * an interface type.
- */
+/// This class provides suggestions based upon the visible instance members in
+/// an interface type.
 class MemberSuggestionBuilder {
-  /**
-   * Enumerated value indicating that we have not generated any completions for
-   * a given identifier yet.
-   */
+  /// Enumerated value indicating that we have not generated any completions for
+  /// a given identifier yet.
   static const int _COMPLETION_TYPE_NONE = 0;
 
-  /**
-   * Enumerated value indicating that we have generated a completion for a
-   * getter.
-   */
+  /// Enumerated value indicating that we have generated a completion for a
+  /// getter.
   static const int _COMPLETION_TYPE_GETTER = 1;
 
-  /**
-   * Enumerated value indicating that we have generated a completion for a
-   * setter.
-   */
+  /// Enumerated value indicating that we have generated a completion for a
+  /// setter.
   static const int _COMPLETION_TYPE_SETTER = 2;
 
-  /**
-   * Enumerated value indicating that we have generated a completion for a
-   * field, a method, or a getter/setter pair.
-   */
+  /// Enumerated value indicating that we have generated a completion for a
+  /// field, a method, or a getter/setter pair.
   static const int _COMPLETION_TYPE_FIELD_OR_METHOD_OR_GETSET = 3;
 
-  /**
-   * The library containing the unit in which the completion is requested.
-   */
+  /// The library containing the unit in which the completion is requested.
   final LibraryElement containingLibrary;
 
-  /**
-   * Map indicating, for each possible completion identifier, whether we have
-   * already generated completions for a getter, setter, or both.  The "both"
-   * case also handles the case where have generated a completion for a method
-   * or a field.
-   *
-   * Note: the enumerated values stored in this map are intended to be bitwise
-   * compared.
-   */
+  /// Map indicating, for each possible completion identifier, whether we have
+  /// already generated completions for a getter, setter, or both.  The "both"
+  /// case also handles the case where have generated a completion for a method
+  /// or a field.
+  ///
+  /// Note: the enumerated values stored in this map are intended to be bitwise
+  /// compared.
   final Map<String, int> _completionTypesGenerated = HashMap<String, int>();
 
-  /**
-   * Map from completion identifier to completion suggestion
-   */
+  /// Map from completion identifier to completion suggestion
   final Map<String, CompletionSuggestion> _suggestionMap =
       <String, CompletionSuggestion>{};
 
@@ -307,17 +273,13 @@ class MemberSuggestionBuilder {
 
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 
-  /**
-   * Add the given completion [suggestion].
-   */
+  /// Add the given completion [suggestion].
   void addCompletionSuggestion(CompletionSuggestion suggestion) {
     _suggestionMap[suggestion.completion] = suggestion;
   }
 
-  /**
-   * Add a suggestion based upon the given element, provided that it is not
-   * shadowed by a previously added suggestion.
-   */
+  /// Add a suggestion based upon the given element, provided that it is not
+  /// shadowed by a previously added suggestion.
   void addSuggestion(Element element,
       {int relevance = DART_RELEVANCE_DEFAULT}) {
     if (element.isPrivate) {

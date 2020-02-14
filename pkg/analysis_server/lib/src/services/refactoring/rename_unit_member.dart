@@ -19,10 +19,8 @@ import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
-/**
- * Checks if creating a top-level function with the given [name] in [library]
- * will cause any conflicts.
- */
+/// Checks if creating a top-level function with the given [name] in [library]
+/// will cause any conflicts.
 Future<RefactoringStatus> validateCreateFunction(
     SearchEngine searchEngine, LibraryElement library, String name) {
   return _RenameUnitMemberValidator.forCreate(
@@ -30,19 +28,15 @@ Future<RefactoringStatus> validateCreateFunction(
       .validate();
 }
 
-/**
- * Checks if creating a top-level function with the given [name] in [element]
- * will cause any conflicts.
- */
+/// Checks if creating a top-level function with the given [name] in [element]
+/// will cause any conflicts.
 Future<RefactoringStatus> validateRenameTopLevel(
     SearchEngine searchEngine, Element element, String name) {
   return _RenameUnitMemberValidator.forRename(searchEngine, element, name)
       .validate();
 }
 
-/**
- * A [Refactoring] for renaming compilation unit member [Element]s.
- */
+/// A [Refactoring] for renaming compilation unit member [Element]s.
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   final ResolvedUnitResult resolvedUnit;
 
@@ -167,9 +161,8 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-/**
- * Helper to check if the created or renamed [Element] will cause any conflicts.
- */
+/// Helper to check if the created or renamed [Element] will cause any
+/// conflicts.
 class _RenameUnitMemberValidator {
   final SearchEngine searchEngine;
   LibraryElement library;
@@ -205,9 +198,7 @@ class _RenameUnitMemberValidator {
     return result;
   }
 
-  /**
-   * Returns `true` if [element] is visible at the given [SearchMatch].
-   */
+  /// Returns `true` if [element] is visible at the given [SearchMatch].
   bool _isVisibleAt(Element element, SearchMatch at) {
     LibraryElement atLibrary = at.element.library;
     // may be the same library
@@ -229,9 +220,7 @@ class _RenameUnitMemberValidator {
     return false;
   }
 
-  /**
-   * Validates if any usage of [element] renamed to [name] will be invisible.
-   */
+  /// Validates if any usage of [element] renamed to [name] will be invisible.
   void _validateWillBeInvisible() {
     if (!Identifier.isPrivateName(name)) {
       return;
@@ -247,9 +236,7 @@ class _RenameUnitMemberValidator {
     }
   }
 
-  /**
-   * Validates if any usage of [element] renamed to [name] will be shadowed.
-   */
+  /// Validates if any usage of [element] renamed to [name] will be shadowed.
   void _validateWillBeShadowed() {
     for (SearchMatch reference in references) {
       Element refElement = reference.element;
@@ -270,10 +257,8 @@ class _RenameUnitMemberValidator {
     }
   }
 
-  /**
-   * Validates if [element] renamed to [name] will conflict with another
-   * top-level [Element] in the same library.
-   */
+  /// Validates if [element] renamed to [name] will conflict with another
+  /// top-level [Element] in the same library.
   void _validateWillConflict() {
     visitLibraryTopLevelElements(library, (element) {
       if (hasDisplayName(element, name)) {
@@ -284,9 +269,7 @@ class _RenameUnitMemberValidator {
     });
   }
 
-  /**
-   * Validates if renamed [element] will shadow any [Element] named [name].
-   */
+  /// Validates if renamed [element] will shadow any [Element] named [name].
   Future _validateWillShadow() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;

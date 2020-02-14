@@ -22,33 +22,23 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/src/context.dart';
 
-/**
- * An object used to compute a set of edits to add imports to a given library in
- * order to make a given set of elements visible.
- *
- * This is used to implement the `edit.importElements` request.
- */
+/// An object used to compute a set of edits to add imports to a given library
+/// in order to make a given set of elements visible.
+///
+/// This is used to implement the `edit.importElements` request.
 class ImportElementsComputer {
-  /**
-   * The resource provider used to access the file system.
-   */
+  /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
-  /**
-   * The resolution result associated with the defining compilation unit of the
-   * library to which imports might be added.
-   */
+  /// The resolution result associated with the defining compilation unit of the
+  /// library to which imports might be added.
   final ResolvedUnitResult libraryResult;
 
-  /**
-   * Initialize a newly created builder.
-   */
+  /// Initialize a newly created builder.
   ImportElementsComputer(this.resourceProvider, this.libraryResult);
 
-  /**
-   * Create the edits that will cause the list of [importedElements] to be
-   * imported into the library at the given [path].
-   */
+  /// Create the edits that will cause the list of [importedElements] to be
+  /// imported into the library at the given [path].
   Future<SourceChange> createEdits(
       List<ImportedElements> importedElementsList) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -188,24 +178,20 @@ class ImportElementsComputer {
     return builder.sourceChange;
   }
 
-  /**
-   * Choose the import for which the least amount of work is required,
-   * preferring to do no work in there is an import that already makes the name
-   * visible, and preferring to remove hide combinators rather than add show
-   * combinators.
-   *
-   * The name is visible without needing any changes if:
-   * - there is an import with no combinators,
-   * - there is an import with only hide combinators and none of them hide the
-   *   name,
-   * - there is an import that shows the name and doesn't subsequently hide the
-   *   name.
-   */
+  /// Choose the import for which the least amount of work is required,
+  /// preferring to do no work in there is an import that already makes the name
+  /// visible, and preferring to remove hide combinators rather than add show
+  /// combinators.
+  ///
+  /// The name is visible without needing any changes if:
+  /// - there is an import with no combinators,
+  /// - there is an import with only hide combinators and none of them hide the
+  ///   name,
+  /// - there is an import that shows the name and doesn't subsequently hide the
+  ///   name.
   void _computeUpdate(Map<ImportDirective, _ImportUpdate> updateMap,
       List<ImportDirective> matchingImports, String requiredName) {
-    /**
-     * Return `true` if the [requiredName] is in the given list of [names].
-     */
+    /// Return `true` if the [requiredName] is in the given list of [names].
     bool nameIn(NodeList<SimpleIdentifier> names) {
       for (SimpleIdentifier name in names) {
         if (name.name == requiredName) {
@@ -261,12 +247,10 @@ class ImportElementsComputer {
     }
   }
 
-  /**
-   * Filter the given list of imported elements ([originalList]) so that only
-   * the names that are not already defined still remain. Names that are already
-   * defined are removed even if they might not resolve to the same name as in
-   * the original source.
-   */
+  /// Filter the given list of imported elements ([originalList]) so that only
+  /// the names that are not already defined still remain. Names that are
+  /// already defined are removed even if they might not resolve to the same
+  /// name as in the original source.
   List<ImportedElements> _filterImportedElements(
       List<ImportedElements> originalList) {
     LibraryElement libraryElement = libraryResult.libraryElement;
@@ -300,11 +284,9 @@ class ImportElementsComputer {
     return filteredList;
   }
 
-  /**
-   * Return all of the import elements in the list of [existingImports] that
-   * match the given specification of [importedElements], or an empty list if
-   * there are no such imports.
-   */
+  /// Return all of the import elements in the list of [existingImports] that
+  /// match the given specification of [importedElements], or an empty list if
+  /// there are no such imports.
   List<ImportDirective> _findMatchingImports(
       List<ImportDirective> existingImports,
       ImportedElements importedElements) {
@@ -317,12 +299,10 @@ class ImportElementsComputer {
     return matchingImports;
   }
 
-  /**
-   * Return the offset at which an import of the given [importUri] should be
-   * inserted.
-   *
-   * Partially copied from DartFileEditBuilderImpl.
-   */
+  /// Return the offset at which an import of the given [importUri] should be
+  /// inserted.
+  ///
+  /// Partially copied from DartFileEditBuilderImpl.
   _InsertionDescription _getInsertionDescription(String importUri) {
     CompilationUnit unit = libraryResult.unit;
     LibraryDirective libraryDirective;
@@ -352,11 +332,9 @@ class ImportElementsComputer {
     return _InsertionDescription(importDirectives.last.end, before: 1);
   }
 
-  /**
-   * Computes the best URI to import [what] into [from].
-   *
-   * Copied from DartFileEditBuilderImpl.
-   */
+  /// Computes the best URI to import [what] into [from].
+  ///
+  /// Copied from DartFileEditBuilderImpl.
   String _getLibrarySourceUri(LibraryElement from, Source what) {
     String whatPath = what.fullName;
     // check if an absolute URI (such as 'dart:' or 'package:')
@@ -372,11 +350,9 @@ class ImportElementsComputer {
     return context.split(relativeFile).join('/');
   }
 
-  /**
-   * Return `true` if the given [import] matches the given specification of
-   * [importedElements]. They will match if they import the same library using
-   * the same prefix.
-   */
+  /// Return `true` if the given [import] matches the given specification of
+  /// [importedElements]. They will match if they import the same library using
+  /// the same prefix.
   bool _matches(ImportDirective import, ImportedElements importedElements) {
     LibraryElement library = (import.element as ImportElement).importedLibrary;
     return library != null &&
@@ -385,42 +361,28 @@ class ImportElementsComputer {
   }
 }
 
-/**
- * Information about how a given import directive needs to be updated in order
- * to make the required names visible.
- */
+/// Information about how a given import directive needs to be updated in order
+/// to make the required names visible.
 class _ImportUpdate {
-  /**
-   * The import directive to be updated.
-   */
+  /// The import directive to be updated.
   final ImportDirective import;
 
-  /**
-   * The list of names that are currently hidden that need to not be hidden.
-   */
+  /// The list of names that are currently hidden that need to not be hidden.
   final List<String> namesToUnhide = <String>[];
 
-  /**
-   * The list of names that need to be added to show clauses.
-   */
+  /// The list of names that need to be added to show clauses.
   final List<String> namesToShow = <String>[];
 
-  /**
-   * Initialize a newly created information holder to hold information about
-   * updates to the given [import].
-   */
+  /// Initialize a newly created information holder to hold information about
+  /// updates to the given [import].
   _ImportUpdate(this.import);
 
-  /**
-   * Record that the given [name] needs to be added to show combinators.
-   */
+  /// Record that the given [name] needs to be added to show combinators.
   void show(String name) {
     namesToShow.add(name);
   }
 
-  /**
-   * Record that the given [name] needs to be removed from hide combinators.
-   */
+  /// Record that the given [name] needs to be removed from hide combinators.
   void unhide(String name) {
     namesToUnhide.add(name);
   }

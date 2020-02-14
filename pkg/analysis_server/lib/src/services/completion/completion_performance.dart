@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Overall performance of a code completion operation.
- */
+/// Overall performance of a code completion operation.
 class CompletionPerformance {
   final DateTime start = DateTime.now();
   final Map<String, Duration> _startTimes = <String, Duration>{};
@@ -64,29 +62,21 @@ class CompletionPerformance {
   }
 }
 
-/**
- * The performance of an operation when computing code completion.
- */
+/// The performance of an operation when computing code completion.
 class OperationPerformance {
-  /**
-   * The name of the operation
-   */
+  /// The name of the operation
   final String name;
 
-  /**
-   * The elapse time or `null` if undefined.
-   */
+  /// The elapse time or `null` if undefined.
   final Duration elapsed;
 
   OperationPerformance(this.name, this.elapsed);
 }
 
-/**
- * Compute a string representing a code completion operation at the
- * given source and location.
- *
- * This string is useful for displaying to users in a diagnostic context.
- */
+/// Compute a string representing a code completion operation at the
+/// given source and location.
+///
+/// This string is useful for displaying to users in a diagnostic context.
 String computeCompletionSnippet(String contents, int offset) {
   if (contents == null ||
       offset == null ||

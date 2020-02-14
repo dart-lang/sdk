@@ -22,10 +22,8 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
     show LocalDeclarationVisitor;
 
-/**
- * A contributor for calculating constructor suggestions
- * for declarations in the local file.
- */
+/// A contributor for calculating constructor suggestions
+/// for declarations in the local file.
 class LocalConstructorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -47,9 +45,7 @@ class LocalConstructorContributor extends DartCompletionContributor {
   }
 }
 
-/**
- * A visitor for collecting constructor suggestions.
- */
+/// A visitor for collecting constructor suggestions.
 class _Visitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
@@ -107,12 +103,10 @@ class _Visitor extends LocalDeclarationVisitor {
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {}
 
-  /**
-   * For the given class and constructor,
-   * add a suggestion of the form B(...) or B.name(...).
-   * If the given constructor is `null`
-   * then add a default constructor suggestion.
-   */
+  /// For the given class and constructor,
+  /// add a suggestion of the form B(...) or B.name(...).
+  /// If the given constructor is `null`
+  /// then add a default constructor suggestion.
   void _addSuggestion(
       ClassDeclaration classDecl, ConstructorDeclaration constructorDecl) {
     String completion = classDecl.name.name;

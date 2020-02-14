@@ -32,9 +32,7 @@ List<String> showNamesIn(ImportElement importElem) {
   return null;
 }
 
-/**
- * A contributor for calculating suggestions for imported top level members.
- */
+/// A contributor for calculating suggestions for imported top level members.
 class ImportedReferenceContributor extends DartCompletionContributor {
   DartCompletionRequest request;
   OpType optype;

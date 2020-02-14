@@ -1463,10 +1463,8 @@ abstract class BaseProcessor {
     return node != null;
   }
 
-  /**
-   * Return `true` if all of the parameters in the given list of [parameters]
-   * have an explicit type annotation.
-   */
+  /// Return `true` if all of the parameters in the given list of [parameters]
+  /// have an explicit type annotation.
   bool _allParametersHaveTypes(FormalParameterList parameters) {
     for (FormalParameter parameter in parameters.parameters) {
       if (parameter is DefaultFormalParameter) {

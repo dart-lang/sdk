@@ -46,9 +46,7 @@ import 'package:path/path.dart' hide context;
 
 typedef _SimpleIdentifierVisitor = void Function(SimpleIdentifier node);
 
-/**
- * The computer for Dart assists.
- */
+/// The computer for Dart assists.
 class AssistProcessor extends BaseProcessor {
   final DartAssistContext context;
   final List<Assist> assists = <Assist>[];
@@ -1051,9 +1049,7 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, DartAssistKind.CONVERT_INTO_IS_NOT);
   }
 
-  /**
-   * Converts "!isEmpty" -> "isNotEmpty" if possible.
-   */
+  /// Converts "!isEmpty" -> "isNotEmpty" if possible.
   Future<void> _addProposal_convertToIsNotEmpty() async {
     // prepare "expr.isEmpty"
     AstNode isEmptyAccess;
@@ -3040,16 +3036,12 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, kind);
   }
 
-  /**
-   * Returns the text of the given node in the unit.
-   */
+  /// Returns the text of the given node in the unit.
   String _getNodeText(AstNode node) {
     return utils.getNodeText(node);
   }
 
-  /**
-   * Returns the text of the given range in the unit.
-   */
+  /// Returns the text of the given range in the unit.
   String _getRangeText(SourceRange range) {
     return utils.getRangeText(range);
   }
@@ -3138,13 +3130,11 @@ class AssistProcessor extends BaseProcessor {
     _addAssistFromBuilder(changeBuilder, kind);
   }
 
-  /**
-   * This method does nothing, but we invoke it in places where Dart VM
-   * coverage agent fails to provide coverage information - such as almost
-   * all "return" statements.
-   *
-   * https://code.google.com/p/dart/issues/detail?id=19912
-   */
+  /// This method does nothing, but we invoke it in places where Dart VM
+  /// coverage agent fails to provide coverage information - such as almost
+  /// all "return" statements.
+  ///
+  /// https://code.google.com/p/dart/issues/detail?id=19912
   static void _coverageMarker() {}
 
   static String _replaceSourceIndent(
@@ -3152,10 +3142,8 @@ class AssistProcessor extends BaseProcessor {
     return source.replaceAll(RegExp('^$indentOld', multiLine: true), indentNew);
   }
 
-  /**
-   * Checks if the given [Expression] should be wrapped with parenthesis when we
-   * want to use it as operand of a logical `and` expression.
-   */
+  /// Checks if the given [Expression] should be wrapped with parenthesis when
+  /// we want to use it as operand of a logical `and` expression.
   static bool _shouldWrapParenthesisBeforeAnd(Expression expr) {
     if (expr is BinaryExpression) {
       BinaryExpression binary = expr;
@@ -3177,10 +3165,8 @@ class _SimpleIdentifierRecursiveAstVisitor extends RecursiveAstVisitor<void> {
   }
 }
 
-/**
- * A visitor used to find all of the classes that define members referenced via
- * `super`.
- */
+/// A visitor used to find all of the classes that define members referenced via
+/// `super`.
 class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
   final List<ClassElement> referencedClasses = <ClassElement>[];
 

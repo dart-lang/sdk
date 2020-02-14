@@ -21,9 +21,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * [InlineLocalRefactoring] implementation.
- */
+/// [InlineLocalRefactoring] implementation.
 class InlineLocalRefactoringImpl extends RefactoringImpl
     implements InlineLocalRefactoring {
   final SearchEngine searchEngine;

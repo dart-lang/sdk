@@ -23,10 +23,8 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * Checks if creating a method with the given [name] in [classElement] will
- * cause any conflicts.
- */
+/// Checks if creating a method with the given [name] in [classElement] will
+/// cause any conflicts.
 Future<RefactoringStatus> validateCreateMethod(
     SearchEngine searchEngine,
     AnalysisSessionHelper sessionHelper,
@@ -37,9 +35,7 @@ Future<RefactoringStatus> validateCreateMethod(
       .validate();
 }
 
-/**
- * A [Refactoring] for renaming class member [Element]s.
- */
+/// A [Refactoring] for renaming class member [Element]s.
 class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   final AnalysisSessionHelper sessionHelper;
 
@@ -133,9 +129,8 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 }
 
-/**
- * Helper to check if the created or renamed [Element] will cause any conflicts.
- */
+/// Helper to check if the created or renamed [Element] will cause any
+/// conflicts.
 class _ClassMemberValidator {
   final SearchEngine searchEngine;
   final AnalysisSessionHelper sessionHelper;
@@ -298,9 +293,7 @@ class _ClassMemberValidator {
     return null;
   }
 
-  /**
-   * Fills [elements] with [Element]s to rename.
-   */
+  /// Fills [elements] with [Element]s to rename.
   Future _prepareElements() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -311,9 +304,7 @@ class _ClassMemberValidator {
     }
   }
 
-  /**
-   * Fills [references] with all references to [elements].
-   */
+  /// Fills [references] with all references to [elements].
   Future _prepareReferences() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -330,9 +321,7 @@ class _ClassMemberValidator {
     });
   }
 
-  /**
-   * Validates if any usage of [element] renamed to [name] will be invisible.
-   */
+  /// Validates if any usage of [element] renamed to [name] will be invisible.
   void _validateWillBeInvisible() {
     if (!Identifier.isPrivateName(name)) {
       return;

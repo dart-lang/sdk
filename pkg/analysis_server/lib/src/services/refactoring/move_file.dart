@@ -20,9 +20,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as pathos;
 
-/**
- * [MoveFileRefactoring] implementation.
- */
+/// [MoveFileRefactoring] implementation.
 class MoveFileRefactoringImpl extends RefactoringImpl
     implements MoveFileRefactoring {
   final ResourceProvider resourceProvider;
@@ -154,9 +152,7 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     return changeBuilder.sourceChange;
   }
 
-  /**
-   * Computes the URI to use to reference [newFile] from [reference].
-   */
+  /// Computes the URI to use to reference [newFile] from [reference].
   String _computeNewUri(SourceReference reference) {
     String refDir = pathContext.dirname(reference.file);
     // Try to keep package: URI
@@ -185,13 +181,11 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     return packagePrefixedStringPattern.hasMatch(quotedImportUri);
   }
 
-  /**
-   * Checks if the given [path] represents a relative URI.
-   *
-   * The following URI's are not relative:
-   *    `/absolute/path/file.dart`
-   *    `dart:math`
-   */
+  /// Checks if the given [path] represents a relative URI.
+  ///
+  /// The following URI's are not relative:
+  ///    `/absolute/path/file.dart`
+  ///    `dart:math`
   bool _isRelativeUri(String path) {
     // absolute URI
     if (Uri.parse(path).isAbsolute) {

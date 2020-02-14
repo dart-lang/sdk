@@ -22,9 +22,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * An enumeration of possible statement completion kinds.
- */
+/// An enumeration of possible statement completion kinds.
 class DartStatementCompletion {
   static const NO_COMPLETION =
       StatementCompletionKind('No_COMPLETION', 'No completion available');
@@ -56,31 +54,22 @@ class DartStatementCompletion {
       'COMPLETE_WHILE_STMT', 'Complete while-statement');
 }
 
-/**
- * A description of a statement completion.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// A description of a statement completion.
+///
+/// Clients may not extend, implement or mix-in this class.
 class StatementCompletion {
-  /**
-   * A description of the assist being proposed.
-   */
+  /// A description of the assist being proposed.
   final StatementCompletionKind kind;
 
-  /**
-   * The change to be made in order to apply the assist.
-   */
+  /// The change to be made in order to apply the assist.
   final SourceChange change;
 
-  /**
-   * Initialize a newly created completion to have the given [kind] and [change].
-   */
+  /// Initialize a newly created completion to have the given [kind] and
+  /// [change].
   StatementCompletion(this.kind, this.change);
 }
 
-/**
- * The context for computing a statement completion.
- */
+/// The context for computing a statement completion.
 class StatementCompletionContext {
   final ResolvedUnitResult resolveResult;
   final int selectionOffset;
@@ -88,38 +77,28 @@ class StatementCompletionContext {
   StatementCompletionContext(this.resolveResult, this.selectionOffset);
 }
 
-/**
- * A description of a class of statement completions. Instances are intended to
- * hold the information that is common across a number of completions and to be
- * shared by those completions.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// A description of a class of statement completions. Instances are intended to
+/// hold the information that is common across a number of completions and to be
+/// shared by those completions.
+///
+/// Clients may not extend, implement or mix-in this class.
 class StatementCompletionKind {
-  /**
-   * The name of this kind of statement completion, used for debugging.
-   */
+  /// The name of this kind of statement completion, used for debugging.
   final String name;
 
-  /**
-   * A human-readable description of the changes that will be applied by this
-   * kind of statement completion.
-   */
+  /// A human-readable description of the changes that will be applied by this
+  /// kind of statement completion.
   final String message;
 
-  /**
-   * Initialize a newly created kind of statement completion to have the given
-   * [name] and [message].
-   */
+  /// Initialize a newly created kind of statement completion to have the given
+  /// [name] and [message].
   const StatementCompletionKind(this.name, this.message);
 
   @override
   String toString() => name;
 }
 
-/**
- * The computer for Dart statement completions.
- */
+/// The computer for Dart statement completions.
 class StatementCompletionProcessor {
   static final NO_COMPLETION = StatementCompletion(
       DartStatementCompletion.NO_COMPLETION, SourceChange('', edits: []));

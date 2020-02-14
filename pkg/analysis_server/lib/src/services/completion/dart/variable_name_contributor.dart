@@ -14,12 +14,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
-/**
- * Given some [String] name "foo", return a [CompletionSuggestion] with the
- * [String].
- *
- * If the passed [String] is null or empty, null is returned.
- */
+/// Given some [String] name "foo", return a [CompletionSuggestion] with the
+/// [String].
+///
+/// If the passed [String] is null or empty, null is returned.
 CompletionSuggestion _createNameSuggestion(String name) {
   if (name == null || name.isEmpty) {
     return null;
@@ -28,9 +26,7 @@ CompletionSuggestion _createNameSuggestion(String name) {
       DART_RELEVANCE_DEFAULT, name, name.length, 0, false, false);
 }
 
-/**
- * Convert some [Identifier] to its [String] name.
- */
+/// Convert some [Identifier] to its [String] name.
 String _getStringName(Identifier id) {
   if (id == null) {
     return null;
@@ -43,9 +39,7 @@ String _getStringName(Identifier id) {
   return id.name;
 }
 
-/**
- * A contributor for calculating suggestions for variable names.
- */
+/// A contributor for calculating suggestions for variable names.
 class VariableNameContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(

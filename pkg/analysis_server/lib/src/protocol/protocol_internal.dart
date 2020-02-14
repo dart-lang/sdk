@@ -17,17 +17,13 @@ export 'package:analyzer_plugin/src/protocol/protocol_internal.dart'
 final Map<String, RefactoringKind> REQUEST_ID_REFACTORING_KINDS =
     HashMap<String, RefactoringKind>();
 
-/**
- * Adds the given [sourceEdits] to the list in [sourceFileEdit].
- */
+/// Adds the given [sourceEdits] to the list in [sourceFileEdit].
 void addAllEditsForSource(
     SourceFileEdit sourceFileEdit, Iterable<SourceEdit> edits) {
   edits.forEach(sourceFileEdit.add);
 }
 
-/**
- * Adds the given [sourceEdit] to the list in [sourceFileEdit].
- */
+/// Adds the given [sourceEdit] to the list in [sourceFileEdit].
 void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
   List<SourceEdit> edits = sourceFileEdit.edits;
   int index = 0;
@@ -37,9 +33,7 @@ void addEditForSource(SourceFileEdit sourceFileEdit, SourceEdit sourceEdit) {
   edits.insert(index, sourceEdit);
 }
 
-/**
- * Adds [edit] to the [FileEdit] for the given [file].
- */
+/// Adds [edit] to the [FileEdit] for the given [file].
 void addEditToSourceChange(
     SourceChange change, String file, int fileStamp, SourceEdit edit) {
   SourceFileEdit fileEdit = change.getFileEdit(file);
@@ -50,10 +44,8 @@ void addEditToSourceChange(
   fileEdit.add(edit);
 }
 
-/**
- * Get the result of applying the edit to the given [code].  Access via
- * SourceEdit.apply().
- */
+/// Get the result of applying the edit to the given [code].  Access via
+/// SourceEdit.apply().
 String applyEdit(String code, SourceEdit edit) {
   if (edit.length < 0) {
     throw RangeError('length is negative');
@@ -61,11 +53,9 @@ String applyEdit(String code, SourceEdit edit) {
   return code.replaceRange(edit.offset, edit.end, edit.replacement);
 }
 
-/**
- * Get the result of applying a set of [edits] to the given [code].  Edits
- * are applied in the order they appear in [edits].  Access via
- * SourceEdit.applySequence().
- */
+/// Get the result of applying a set of [edits] to the given [code].  Edits
+/// are applied in the order they appear in [edits].  Access via
+/// SourceEdit.applySequence().
 String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
   edits.forEach((SourceEdit edit) {
     code = edit.apply(code);
@@ -73,9 +63,7 @@ String applySequenceOfEdits(String code, Iterable<SourceEdit> edits) {
   return code;
 }
 
-/**
- * Returns the [FileEdit] for the given [file], maybe `null`.
- */
+/// Returns the [FileEdit] for the given [file], maybe `null`.
 SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
   for (SourceFileEdit fileEdit in change.edits) {
     if (fileEdit.file == file) {
@@ -85,10 +73,8 @@ SourceFileEdit getChangeFileEdit(SourceChange change, String file) {
   return null;
 }
 
-/**
- * Compare the lists [listA] and [listB], using [itemEqual] to compare
- * list elements.
- */
+/// Compare the lists [listA] and [listB], using [itemEqual] to compare
+/// list elements.
 bool listEqual<T1, T2>(
     List<T1> listA, List<T2> listB, bool Function(T1 a, T2 b) itemEqual) {
   if (listA == null) {
@@ -108,10 +94,8 @@ bool listEqual<T1, T2>(
   return true;
 }
 
-/**
- * Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
- * values.
- */
+/// Compare the maps [mapA] and [mapB], using [valueEqual] to compare map
+/// values.
 bool mapEqual<K, V>(
     Map<K, V> mapA, Map<K, V> mapB, bool Function(V a, V b) valueEqual) {
   if (mapA == null) {
@@ -134,10 +118,8 @@ bool mapEqual<K, V>(
   return true;
 }
 
-/**
- * Translate the input [map], applying [keyCallback] to all its keys, and
- * [valueCallback] to all its values.
- */
+/// Translate the input [map], applying [keyCallback] to all its keys, and
+/// [valueCallback] to all its values.
 Map<KR, VR> mapMap<KP, VP, KR, VR>(Map<KP, VP> map,
     {KR Function(KP key) keyCallback, VR Function(VP value) valueCallback}) {
   Map<KR, VR> result = HashMap<KR, VR>();
@@ -181,9 +163,7 @@ RefactoringProblemSeverity maxRefactoringProblemSeverity(
   return a;
 }
 
-/**
- * Create a [RefactoringFeedback] corresponding the given [kind].
- */
+/// Create a [RefactoringFeedback] corresponding the given [kind].
 RefactoringFeedback refactoringFeedbackFromJson(
     JsonDecoder jsonDecoder, String jsonPath, Object json, Map feedbackJson) {
   RefactoringKind kind = jsonDecoder.refactoringKind;
@@ -208,9 +188,7 @@ RefactoringFeedback refactoringFeedbackFromJson(
   return null;
 }
 
-/**
- * Create a [RefactoringOptions] corresponding the given [kind].
- */
+/// Create a [RefactoringOptions] corresponding the given [kind].
 RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
     String jsonPath, Object json, RefactoringKind kind) {
   if (kind == RefactoringKind.EXTRACT_LOCAL_VARIABLE) {
@@ -234,32 +212,22 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
   return null;
 }
 
-/**
- * Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
- * string describing the part of the JSON object being decoded, and [value] is
- * the part to decode.
- */
+/// Type of callbacks used to decode parts of JSON objects.  [jsonPath] is a
+/// string describing the part of the JSON object being decoded, and [value] is
+/// the part to decode.
 typedef JsonDecoderCallback<E> = E Function(String jsonPath, Object value);
 
-/**
- * Instances of the class [HasToJson] implement [toJson] method that returns
- * a JSON presentation.
- */
+/// Instances of the class [HasToJson] implement [toJson] method that returns
+/// a JSON presentation.
 abstract class HasToJson {
-  /**
-   * Returns a JSON presentation of the object.
-   */
+  /// Returns a JSON presentation of the object.
   Map<String, Object> toJson();
 }
 
-/**
- * JsonDecoder for decoding requests.  Errors are reporting by throwing a
- * [RequestFailure].
- */
+/// JsonDecoder for decoding requests.  Errors are reporting by throwing a
+/// [RequestFailure].
 class RequestDecoder extends JsonDecoder {
-  /**
-   * The request being deserialized.
-   */
+  /// The request being deserialized.
   final Request _request;
 
   RequestDecoder(this._request);
@@ -292,17 +260,13 @@ class RequestDecoder extends JsonDecoder {
 }
 
 abstract class RequestParams implements HasToJson {
-  /**
-   * Return a request whose parameters are taken from this object and that has
-   * the given [id].
-   */
+  /// Return a request whose parameters are taken from this object and that has
+  /// the given [id].
   Request toRequest(String id);
 }
 
-/**
- * JsonDecoder for decoding responses from the server.  This is intended to be
- * used only for testing.  Errors are reported using bare [Exception] objects.
- */
+/// JsonDecoder for decoding responses from the server.  This is intended to be
+/// used only for testing.  Errors are reported using bare [Exception] objects.
 class ResponseDecoder extends JsonDecoder {
   @override
   final RefactoringKind refactoringKind;
@@ -330,13 +294,9 @@ class ResponseDecoder extends JsonDecoder {
   }
 }
 
-/**
- * The result data associated with a response.
- */
+/// The result data associated with a response.
 abstract class ResponseResult implements HasToJson {
-  /**
-   * Return a response whose result data is this object for the request with the
-   * given [id].
-   */
+  /// Return a response whose result data is this object for the request with
+  /// the given [id].
   Response toResponse(String id);
 }

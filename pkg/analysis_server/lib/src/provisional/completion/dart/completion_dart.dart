@@ -16,80 +16,56 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 export 'package:analyzer_plugin/utilities/completion/relevance.dart';
 
-/**
- * An object used to produce completions
- * at a specific location within a Dart file.
- *
- * Clients may implement this class when implementing plugins.
- */
+/// An object used to produce completions
+/// at a specific location within a Dart file.
+///
+/// Clients may implement this class when implementing plugins.
 abstract class DartCompletionContributor {
-  /**
-   * Return a [Future] that completes with a list of suggestions
-   * for the given completion [request].
-   */
+  /// Return a [Future] that completes with a list of suggestions
+  /// for the given completion [request].
   Future<List<CompletionSuggestion>> computeSuggestions(
       DartCompletionRequest request);
 }
 
-/**
- * The information about a requested list of completions within a Dart file.
- *
- * Clients may not extend, implement or mix-in this class.
- */
+/// The information about a requested list of completions within a Dart file.
+///
+/// Clients may not extend, implement or mix-in this class.
 abstract class DartCompletionRequest extends CompletionRequest {
-  /**
-   * Return the expression to the right of the "dot" or "dot dot",
-   * or `null` if this is not a "dot" completion (e.g. `foo.b`).
-   */
+  /// Return the expression to the right of the "dot" or "dot dot",
+  /// or `null` if this is not a "dot" completion (e.g. `foo.b`).
   Expression get dotTarget;
 
-  /**
-   * Return the feature set that was used to analyze the compilation unit in
-   * which suggestions are being made.
-   */
+  /// Return the feature set that was used to analyze the compilation unit in
+  /// which suggestions are being made.
   FeatureSet get featureSet;
 
-  /**
-   * Return `true` if free standing identifiers should be suggested
-   */
+  /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers;
 
-  /**
-   * Return the library element which contains the unit in which the completion
-   * is occurring. This may return `null` if the library cannot be determined
-   * (e.g. unlinked part file).
-   */
+  /// Return the library element which contains the unit in which the completion
+  /// is occurring. This may return `null` if the library cannot be determined
+  /// (e.g. unlinked part file).
   LibraryElement get libraryElement;
 
-  /**
-   * The source for the library containing the completion request.
-   * This may be different from the source in which the completion is requested
-   * if the completion is being requested in a part file.
-   * This may be `null` if the library for a part file cannot be determined.
-   */
+  /// The source for the library containing the completion request.
+  /// This may be different from the source in which the completion is requested
+  /// if the completion is being requested in a part file.
+  /// This may be `null` if the library for a part file cannot be determined.
   Source get librarySource;
 
-  /**
-   * Answer the [DartType] for Object in dart:core
-   */
+  /// Answer the [DartType] for Object in dart:core
   DartType get objectType;
 
-  /**
-   * The [OpType] which describes which types of suggestions would fit the
-   * request.
-   */
+  /// The [OpType] which describes which types of suggestions would fit the
+  /// request.
   OpType get opType;
 
-  /**
-   * Return the [SourceFactory] of the request.
-   */
+  /// Return the [SourceFactory] of the request.
   SourceFactory get sourceFactory;
 
-  /**
-   * Return the completion target.  This determines what part of the parse tree
-   * will receive the newly inserted text.
-   * At a minimum, all declarations in the completion scope in [target.unit]
-   * will be resolved if they can be resolved.
-   */
+  /// Return the completion target.  This determines what part of the parse tree
+  /// will receive the newly inserted text.
+  /// At a minimum, all declarations in the completion scope in [target.unit]
+  /// will be resolved if they can be resolved.
   CompletionTarget get target;
 }

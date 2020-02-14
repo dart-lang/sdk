@@ -18,11 +18,9 @@ import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 
-/**
- * A visitor for building suggestions based upon the elements defined by
- * a source file contained in the same library but not the same as
- * the source in which the completions are being requested.
- */
+/// A visitor for building suggestions based upon the elements defined by
+/// a source file contained in the same library but not the same as
+/// the source in which the completions are being requested.
 class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     with ElementSuggestionBuilder {
   final DartCompletionRequest request;
@@ -31,9 +29,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   CompletionSuggestionKind kind;
   final String prefix;
 
-  /**
-   * The set of libraries that have been, or are currently being, visited.
-   */
+  /// The set of libraries that have been, or are currently being, visited.
   final Set<LibraryElement> visitedLibraries = <LibraryElement>{};
 
   LibraryElementSuggestionBuilder(this.request, this.optype, [this.prefix]) {
@@ -163,9 +159,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
     }
   }
 
-  /**
-   * Add constructor suggestions for the given class.
-   */
+  /// Add constructor suggestions for the given class.
   void _addConstructorSuggestions(ClassElement classElem, int relevance) {
     String className = classElem.name;
     for (ConstructorElement constructor in classElem.constructors) {
@@ -212,11 +206,9 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   }
 }
 
-/**
- * A contributor for calculating suggestions for top level members
- * in the library in which the completion is requested
- * but outside the file in which the completion is requested.
- */
+/// A contributor for calculating suggestions for top level members
+/// in the library in which the completion is requested
+/// but outside the file in which the completion is requested.
 class LocalLibraryContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(

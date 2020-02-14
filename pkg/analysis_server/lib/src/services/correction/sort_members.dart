@@ -6,9 +6,7 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
-/**
- * Sorter for unit/class members.
- */
+/// Sorter for unit/class members.
 class MemberSorter {
   static final List<_PriorityItem> _PRIORITY_ITEMS = [
     _PriorityItem(false, _MemberKind.UNIT_FUNCTION_MAIN, false),
@@ -52,9 +50,7 @@ class MemberSorter {
     endOfLine = getEOL(code);
   }
 
-  /**
-   * Return the [SourceEdit]s that sort [unit].
-   */
+  /// Return the [SourceEdit]s that sort [unit].
   List<SourceEdit> sort() {
     _sortClassesMembers();
     _sortUnitMembers();
@@ -85,9 +81,7 @@ class MemberSorter {
     }
   }
 
-  /**
-   * Sorts all members of all [ClassOrMixinDeclaration]s.
-   */
+  /// Sorts all members of all [ClassOrMixinDeclaration]s.
   void _sortClassesMembers() {
     for (CompilationUnitMember unitMember in unit.declarations) {
       if (unitMember is ClassOrMixinDeclaration) {
@@ -96,9 +90,7 @@ class MemberSorter {
     }
   }
 
-  /**
-   * Sorts all members of the given [classDeclaration].
-   */
+  /// Sorts all members of the given [classDeclaration].
   void _sortClassMembers(ClassOrMixinDeclaration classDeclaration) {
     List<_MemberInfo> members = <_MemberInfo>[];
     for (ClassMember member in classDeclaration.members) {
@@ -149,9 +141,7 @@ class MemberSorter {
     _sortAndReorderMembers(members);
   }
 
-  /**
-   * Sorts all [Directive]s.
-   */
+  /// Sorts all [Directive]s.
   void _sortUnitDirectives() {
     bool hasLibraryDirective = false;
     List<_DirectiveInfo> directives = [];
@@ -266,9 +256,7 @@ class MemberSorter {
     code = beforeDirectives + directivesCode + afterDirectives;
   }
 
-  /**
-   * Sorts all [CompilationUnitMember]s.
-   */
+  /// Sorts all [CompilationUnitMember]s.
   void _sortUnitMembers() {
     List<_MemberInfo> members = [];
     for (CompilationUnitMember member in unit.declarations) {
@@ -333,9 +321,7 @@ class MemberSorter {
     _sortAndReorderMembers(members);
   }
 
-  /**
-   * Return the EOL to use for [code].
-   */
+  /// Return the EOL to use for [code].
   static String getEOL(String code) {
     if (code.contains('\r\n')) {
       return '\r\n';
@@ -405,10 +391,8 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
     return 0;
   }
 
-  /**
-   * Split the given [uri] like `package:some.name/and/path.dart` into a list
-   * like `[package:some.name, and/path.dart]`.
-   */
+  /// Split the given [uri] like `package:some.name/and/path.dart` into a list
+  /// like `[package:some.name, and/path.dart]`.
   static List<String> _splitUri(String uri) {
     int index = uri.indexOf('/');
     if (index == -1) {

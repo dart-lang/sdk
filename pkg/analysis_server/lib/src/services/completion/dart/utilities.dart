@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A collection of utility methods used by completion contributors.
- */
+/// A collection of utility methods used by completion contributors.
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind, Location;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
@@ -18,15 +16,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
 
-/**
- * The name of the type `dynamic`;
- */
+/// The name of the type `dynamic`;
 const DYNAMIC = 'dynamic';
 
-/**
- * Sort by relevance first, highest to lowest, and then by the completion
- * alphabetically.
- */
+/// Sort by relevance first, highest to lowest, and then by the completion
+/// alphabetically.
 Comparator<CompletionSuggestion> completionComparator = (a, b) {
   if (a.relevance == b.relevance) {
     return a.completion.compareTo(b.completion);
@@ -34,17 +28,13 @@ Comparator<CompletionSuggestion> completionComparator = (a, b) {
   return b.relevance.compareTo(a.relevance);
 };
 
-/**
- * A marker used in place of `null` when a function has no return type.
- */
+/// A marker used in place of `null` when a function has no return type.
 final TypeName NO_RETURN_TYPE = astFactory.typeName(
     astFactory.simpleIdentifier(StringToken(TokenType.IDENTIFIER, '', 0)),
     null);
 
-/**
- * Add default argument list text and ranges based on the given [requiredParams]
- * and [namedParams].
- */
+/// Add default argument list text and ranges based on the given
+/// [requiredParams] and [namedParams].
 void addDefaultArgDetails(
     CompletionSuggestion suggestion,
     Element element,
@@ -75,7 +65,8 @@ void addDefaultArgDetails(
 
       blockBuffer.write(' ');
 
-      // todo (pq): consider refactoring to share common logic w/ ArgListContributor.buildClosureSuggestions
+      // todo (pq): consider refactoring to share common logic w/
+      //  ArgListContributor.buildClosureSuggestions
       final returnType = type.returnType;
       if (returnType.isVoid) {
         blockBuffer.write('{');
@@ -150,9 +141,7 @@ String buildClosureParameters(FunctionType type) {
   return buffer.toString();
 }
 
-/**
- * Create a new protocol Element for inclusion in a completion suggestion.
- */
+/// Create a new protocol Element for inclusion in a completion suggestion.
 protocol.Element createLocalElement(
     Source source, protocol.ElementKind kind, SimpleIdentifier id,
     {String parameters,
@@ -179,10 +168,8 @@ protocol.Element createLocalElement(
       returnType: nameForType(id, returnType));
 }
 
-/**
- * Create a new suggestion based upon the given information. Return the new
- * suggestion or `null` if it could not be created.
- */
+/// Create a new suggestion based upon the given information. Return the new
+/// suggestion or `null` if it could not be created.
 CompletionSuggestion createLocalSuggestion(SimpleIdentifier id,
     bool isDeprecated, int defaultRelevance, TypeAnnotation returnType,
     {ClassOrMixinDeclaration classDecl,
@@ -276,9 +263,7 @@ String getTypeString(DartType type) {
   }
 }
 
-/**
- * Return `true` if the @deprecated annotation is present on the given [node].
- */
+/// Return `true` if the @deprecated annotation is present on the given [node].
 bool isDeprecated(AnnotatedNode node) {
   if (node != null) {
     NodeList<Annotation> metadata = node.metadata;
@@ -291,10 +276,8 @@ bool isDeprecated(AnnotatedNode node) {
   return false;
 }
 
-/**
- * Return name of the type of the given [identifier], or, if it unresolved, the
- * name of its declared [declaredType].
- */
+/// Return name of the type of the given [identifier], or, if it unresolved, the
+/// name of its declared [declaredType].
 String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
   if (identifier == null) {
     return null;
@@ -338,19 +321,13 @@ String nameForType(SimpleIdentifier identifier, TypeAnnotation declaredType) {
 /// TODO(pq): fix to use getDefaultStringParameterValue()
 String _getDefaultValue(ParameterElement param) => 'null';
 
-/**
- * A tuple of text to insert and an (optional) location for the cursor.
- */
+/// A tuple of text to insert and an (optional) location for the cursor.
 class DefaultArgument {
-  /**
-   * The text to insert.
-   */
+  /// The text to insert.
   final String text;
 
-  /**
-   * An optional location for the cursor, relative to the text's start. This
-   * field can be null.
-   */
+  /// An optional location for the cursor, relative to the text's start. This
+  /// field can be null.
   final int cursorPosition;
 
   DefaultArgument(this.text, {this.cursorPosition});

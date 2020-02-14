@@ -14,9 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-/**
- * Helper for renaming one or more [Element]s.
- */
+/// Helper for renaming one or more [Element]s.
 class RenameProcessor {
   final RefactoringWorkspace workspace;
   final SourceChange change;
@@ -24,9 +22,7 @@ class RenameProcessor {
 
   RenameProcessor(this.workspace, this.change, this.newName);
 
-  /**
-   * Add the edit that updates the [element] declaration.
-   */
+  /// Add the edit that updates the [element] declaration.
   void addDeclarationEdit(Element element) {
     if (element != null && workspace.containsElement(element)) {
       SourceEdit edit =
@@ -35,9 +31,7 @@ class RenameProcessor {
     }
   }
 
-  /**
-   * Add edits that update [matches].
-   */
+  /// Add edits that update [matches].
   void addReferenceEdits(List<SearchMatch> matches) {
     List<SourceReference> references = getSourceReferences(matches);
     for (SourceReference reference in references) {
@@ -48,9 +42,7 @@ class RenameProcessor {
     }
   }
 
-  /**
-   * Update the [element] declaration and reference to it.
-   */
+  /// Update the [element] declaration and reference to it.
   Future<void> renameElement(Element element) {
     addDeclarationEdit(element);
     return workspace.searchEngine
@@ -59,9 +51,7 @@ class RenameProcessor {
   }
 }
 
-/**
- * An abstract implementation of [RenameRefactoring].
- */
+/// An abstract implementation of [RenameRefactoring].
 abstract class RenameRefactoringImpl extends RefactoringImpl
     implements RenameRefactoring {
   final RefactoringWorkspace workspace;
@@ -123,9 +113,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
     return change;
   }
 
-  /**
-   * Adds individual edits to [change].
-   */
+  /// Adds individual edits to [change].
   Future<void> fillChange();
 
   static String _getDisplayName(Element element) {

@@ -12,9 +12,7 @@ import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/**
- * A computer for [CompilationUnit] outline.
- */
+/// A computer for [CompilationUnit] outline.
 class DartUnitOutlineComputer {
   final ResolvedUnitResult resolvedUnit;
   final bool withBasicFlutter;
@@ -23,9 +21,7 @@ class DartUnitOutlineComputer {
   DartUnitOutlineComputer(this.resolvedUnit, {this.withBasicFlutter = false})
       : flutter = Flutter.of(resolvedUnit);
 
-  /**
-   * Returns the computed outline, not `null`.
-   */
+  /// Returns the computed outline, not `null`.
   Outline compute() {
     List<Outline> unitContents = <Outline>[];
     for (CompilationUnitMember unitMember in resolvedUnit.unit.declarations) {
@@ -396,9 +392,7 @@ class DartUnitOutlineComputer {
     return parameters.toSource();
   }
 
-  /**
-   * Returns `true` if the given [element] is not `null` and deprecated.
-   */
+  /// Returns `true` if the given [element] is not `null` and deprecated.
   static bool _isDeprecated(Declaration declaration) {
     engine.Element element = declaration.declaredElement;
     return element != null && element.hasDeprecated;
@@ -408,19 +402,15 @@ class DartUnitOutlineComputer {
       node == null ? '' : node.toSource();
 }
 
-/**
- * A visitor for building local function outlines.
- */
+/// A visitor for building local function outlines.
 class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
   final DartUnitOutlineComputer outlineComputer;
   final List<Outline> contents;
 
   _FunctionBodyOutlinesVisitor(this.outlineComputer, this.contents);
 
-  /**
-   * Return `true` if the given [element] is the method 'group' defined in the
-   * test package.
-   */
+  /// Return `true` if the given [element] is the method 'group' defined in the
+  /// test package.
   bool isGroup(engine.ExecutableElement element) {
     if (element != null && element.hasIsTestGroup) {
       return true;
@@ -430,10 +420,8 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
         _isInsideTestPackage(element);
   }
 
-  /**
-   * Return `true` if the given [element] is the method 'test' defined in the
-   * test package.
-   */
+  /// Return `true` if the given [element] is the method 'test' defined in the
+  /// test package.
   bool isTest(engine.ExecutableElement element) {
     if (element != null && element.hasIsTest) {
       return true;
@@ -515,10 +503,8 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
     }
   }
 
-  /**
-   * Return `true` if the given [element] is a top-level member of the test
-   * package.
-   */
+  /// Return `true` if the given [element] is a top-level member of the test
+  /// package.
   bool _isInsideTestPackage(engine.FunctionElement element) {
     engine.Element parent = element.enclosingElement;
     return parent is engine.CompilationUnitElement &&

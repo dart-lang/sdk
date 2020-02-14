@@ -9,25 +9,17 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
 
-/**
- * Utility methods that can be mixed in to classes that produce an HTML
- * representation of a tree structure.
- */
+/// Utility methods that can be mixed in to classes that produce an HTML
+/// representation of a tree structure.
 mixin TreeWriter {
-  /**
-   * The buffer on which the HTML is to be written.
-   */
+  /// The buffer on which the HTML is to be written.
   StringBuffer buffer;
 
-  /**
-   * The current level of indentation.
-   */
+  /// The current level of indentation.
   int indentLevel = 0;
 
-  /**
-   * A list containing the exceptions that were caught while attempting to write
-   * out the tree structure.
-   */
+  /// A list containing the exceptions that were caught while attempting to
+  /// write out the tree structure.
   List<CaughtException> exceptions = <CaughtException>[];
 
   void indent([int extra = 0]) {
@@ -42,9 +34,7 @@ mixin TreeWriter {
     }
   }
 
-  /**
-   * Write a representation of the given [properties] to the buffer.
-   */
+  /// Write a representation of the given [properties] to the buffer.
   void writeProperties(Map<String, Object> properties) {
     List<String> propertyNames = properties.keys.toList();
     propertyNames.sort();
@@ -53,9 +43,7 @@ mixin TreeWriter {
     }
   }
 
-  /**
-   * Write the [value] of the property with the given [name].
-   */
+  /// Write the [value] of the property with the given [name].
   void writeProperty(String name, Object value) {
     if (value != null) {
       indent(2);
@@ -91,9 +79,7 @@ mixin TreeWriter {
     return null;
   }
 
-  /**
-   * Write the [value] of the property with the given [name].
-   */
+  /// Write the [value] of the property with the given [name].
   void _writePropertyValue(Object value, int baseIndent) {
     if (value is List) {
       if (value.isEmpty) {

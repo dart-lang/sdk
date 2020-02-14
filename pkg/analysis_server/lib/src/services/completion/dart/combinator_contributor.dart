@@ -11,10 +11,8 @@ import 'package:analysis_server/src/services/completion/dart/suggestion_builder.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-/**
- * A contributor for calculating `completion.getSuggestions` request results
- * for the import combinators show and hide.
- */
+/// A contributor for calculating `completion.getSuggestions` request results
+/// for the import combinators show and hide.
 class CombinatorContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(

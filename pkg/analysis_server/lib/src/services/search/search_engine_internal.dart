@@ -10,9 +10,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
 
-/**
- * A [SearchEngine] implementation.
- */
+/// A [SearchEngine] implementation.
 class SearchEngineImpl implements SearchEngine {
   final Iterable<AnalysisDriver> _drivers;
 
@@ -144,10 +142,8 @@ class SearchEngineImpl implements SearchEngine {
     return allElements.map(SearchMatchImpl.forElement).toList();
   }
 
-  /**
-   * Create a new [SearchedFiles] instance in which added files are owned
-   * by the drivers that have them added.
-   */
+  /// Create a new [SearchedFiles] instance in which added files are owned
+  /// by the drivers that have them added.
   SearchedFiles _createSearchedFiles(List<AnalysisDriver> drivers) {
     var searchedFiles = SearchedFiles();
     for (AnalysisDriver driver in drivers) {

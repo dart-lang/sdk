@@ -26,10 +26,8 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
     show LocalDeclarationVisitor;
 import 'package:meta/meta.dart';
 
-/**
- * A contributor for calculating suggestions for declarations in the local
- * file and containing library.
- */
+/// A contributor for calculating suggestions for declarations in the local
+/// file and containing library.
 class LocalReferenceContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -73,10 +71,8 @@ class LocalReferenceContributor extends DartCompletionContributor {
   }
 }
 
-/**
- * A visitor for collecting suggestions from the most specific child [AstNode]
- * that contains the completion offset to the [CompilationUnit].
- */
+/// A visitor for collecting suggestions from the most specific child [AstNode]
+/// that contains the completion offset to the [CompilationUnit].
 class _LocalVisitor extends LocalDeclarationVisitor {
   final DartCompletionRequest request;
   final OpType optype;
@@ -89,7 +85,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   _LocalVisitor(this.request, int offset, this.optype,
       {this.suggestLocalFields})
       : super(offset) {
-    // Suggestions for inherited members provided by InheritedReferenceContributor
+    // Suggestions for inherited members provided by
+    // InheritedReferenceContributor
     targetIsFunctionalArgument = request.target.isFunctionalArgument();
 
     // If user typed identifier starting with '_'
@@ -622,10 +619,8 @@ class _LocalVisitor extends LocalDeclarationVisitor {
     return false;
   }
 
-  /**
-   * If the given [documentationComment] is not `null`, fill the [suggestion]
-   * documentation fields.
-   */
+  /// If the given [documentationComment] is not `null`, fill the [suggestion]
+  /// documentation fields.
   static void _setDocumentation(
       CompletionSuggestion suggestion, Comment documentationComment) {
     if (documentationComment != null) {

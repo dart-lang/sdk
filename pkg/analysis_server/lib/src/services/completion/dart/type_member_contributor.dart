@@ -16,10 +16,8 @@ import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
 
-/**
- * A contributor for calculating instance invocation / access suggestions
- * `completion.getSuggestions` request results.
- */
+/// A contributor for calculating instance invocation / access suggestions
+/// `completion.getSuggestions` request results.
 class TypeMemberContributor extends DartCompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
@@ -117,25 +115,17 @@ class TypeMemberContributor extends DartCompletionContributor {
   }
 }
 
-/**
- * An [AstVisitor] which looks for a declaration with the given name
- * and if found, tries to determine a type for that declaration.
- */
+/// An [AstVisitor] which looks for a declaration with the given name
+/// and if found, tries to determine a type for that declaration.
 class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
-  /**
-   * The name for the declaration to be found.
-   */
+  /// The name for the declaration to be found.
   final String targetName;
 
-  /**
-   * The best type for the found declaration,
-   * or `null` if no declaration found or failed to determine a type.
-   */
+  /// The best type for the found declaration,
+  /// or `null` if no declaration found or failed to determine a type.
   DartType typeFound;
 
-  /**
-   * Construct a new instance to search for a declaration
-   */
+  /// Construct a new instance to search for a declaration
   _LocalBestTypeVisitor(this.targetName, int offset) : super(offset);
 
   @override
@@ -244,19 +234,15 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
   }
 }
 
-/**
- * This class provides suggestions based upon the visible instance members in
- * an interface type.
- */
+/// This class provides suggestions based upon the visible instance members in
+/// an interface type.
 class _SuggestionBuilder extends MemberSuggestionBuilder {
   _SuggestionBuilder(LibraryElement containingLibrary)
       : super(containingLibrary);
 
-  /**
-   * Return completion suggestions for 'dot' completions on the given [type].
-   * If the 'dot' completion is a super expression, then [containingMethodName]
-   * is the name of the method in which the completion is requested.
-   */
+  /// Return completion suggestions for 'dot' completions on the given [type].
+  /// If the 'dot' completion is a super expression, then [containingMethodName]
+  /// is the name of the method in which the completion is requested.
   void buildSuggestions(InterfaceType type, String containingMethodName,
       {List<InterfaceType> mixins, List<InterfaceType> superclassConstraints}) {
     // Visit all of the types in the class hierarchy, collecting possible
@@ -300,10 +286,8 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
     }
   }
 
-  /**
-   * Get a list of [InterfaceType]s that should be searched to find the
-   * possible completions for an object having type [type].
-   */
+  /// Get a list of [InterfaceType]s that should be searched to find the
+  /// possible completions for an object having type [type].
   List<InterfaceType> _getTypeOrdering(InterfaceType type) {
     // Candidate completions can come from [type] as well as any types above it
     // in the class hierarchy (including mixins, superclasses, and interfaces).

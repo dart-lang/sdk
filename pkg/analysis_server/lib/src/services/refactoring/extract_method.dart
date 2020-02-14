@@ -46,18 +46,14 @@ Element _getLocalElement(SimpleIdentifier node) {
   return null;
 }
 
-/**
- * Returns the "normalized" version of the given source, which is reconstructed
- * from tokens, so ignores all the comments and spaces.
- */
+/// Returns the "normalized" version of the given source, which is reconstructed
+/// from tokens, so ignores all the comments and spaces.
 String _getNormalizedSource(String src, FeatureSet featureSet) {
   List<Token> selectionTokens = TokenUtils.getTokens(src, featureSet);
   return selectionTokens.join(_TOKEN_SEPARATOR);
 }
 
-/**
- * Returns the [Map] which maps [map] values to their keys.
- */
+/// Returns the [Map] which maps [map] values to their keys.
 Map<String, String> _inverseMap(Map<String, String> map) {
   Map<String, String> result = <String, String>{};
   map.forEach((String key, String value) {
@@ -66,9 +62,7 @@ Map<String, String> _inverseMap(Map<String, String> map) {
   return result;
 }
 
-/**
- * [ExtractMethodRefactoring] implementation.
- */
+/// [ExtractMethodRefactoring] implementation.
 class ExtractMethodRefactoringImpl extends RefactoringImpl
     implements ExtractMethodRefactoring {
   static const ERROR_EXITS =
@@ -98,20 +92,14 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   @override
   final List<int> lengths = <int>[];
 
-  /**
-   * The map of local elements to their visibility ranges.
-   */
+  /// The map of local elements to their visibility ranges.
   Map<LocalElement, SourceRange> _visibleRangeMap;
 
-  /**
-   * The map of local names to their visibility ranges.
-   */
+  /// The map of local names to their visibility ranges.
   final Map<String, List<SourceRange>> _localNames =
       <String, List<SourceRange>>{};
 
-  /**
-   * The set of names that are referenced without any qualifier.
-   */
+  /// The set of names that are referenced without any qualifier.
   final Set<String> _unqualifiedNames = <String>{};
 
   final Set<String> _excludedNames = <String>{};
@@ -413,9 +401,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return !_checkSelection().hasFatalError;
   }
 
-  /**
-   * Adds a new reference to the parameter with the given name.
-   */
+  /// Adds a new reference to the parameter with the given name.
   void _addParameterReference(String name, SourceRange range) {
     List<SourceRange> references = _parameterReferencesMap[name];
     if (references == null) {
@@ -446,9 +432,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return result;
   }
 
-  /**
-   * Checks if created method will shadow or will be shadowed by other elements.
-   */
+  /// Checks if created method will shadow or will be shadowed by other
+  /// elements.
   Future<RefactoringStatus> _checkPossibleConflicts() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -469,10 +454,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return Future<RefactoringStatus>.value(result);
   }
 
-  /**
-   * Checks if [selectionRange] selects [Expression] which can be extracted, and
-   * location of this [DartExpression] in AST allows extracting.
-   */
+  /// Checks if [selectionRange] selects [Expression] which can be extracted,
+  /// and location of this [DartExpression] in AST allows extracting.
   RefactoringStatus _checkSelection() {
     if (selectionOffset <= 0) {
       return RefactoringStatus.fatal(
@@ -559,9 +542,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         'Can only extract a single expression or a set of statements.');
   }
 
-  /**
-   * Initializes [canCreateGetter] flag.
-   */
+  /// Initializes [canCreateGetter] flag.
   bool _computeCanCreateGetter() {
     // is a function expression
     if (_selectionFunctionExpression != null) {
@@ -585,10 +566,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return true;
   }
 
-  /**
-   * If the [selectionRange] is associated with a [FunctionExpression], return
-   * this [FunctionExpression].
-   */
+  /// If the [selectionRange] is associated with a [FunctionExpression], return
+  /// this [FunctionExpression].
   FunctionExpression _findFunctionExpression() {
     if (selectionRange.length != 0) {
       return null;
@@ -622,12 +601,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return null;
   }
 
-  /**
-   * If the selected closure (i.e. [_selectionFunctionExpression]) is an
-   * argument for a function typed parameter (as it should be), and the
-   * function type has the return type specified, return this return type's
-   * code. Otherwise return the empty string.
-   */
+  /// If the selected closure (i.e. [_selectionFunctionExpression]) is an
+  /// argument for a function typed parameter (as it should be), and the
+  /// function type has the return type specified, return this return type's
+  /// code. Otherwise return the empty string.
   String _getExpectedClosureReturnTypeCode() {
     Expression argument = _selectionFunctionExpression;
     if (argument.parent is NamedExpression) {
@@ -646,10 +623,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return '';
   }
 
-  /**
-   * Returns the selected [Expression] source, with applying new parameter
-   * names.
-   */
+  /// Returns the selected [Expression] source, with applying new parameter
+  /// names.
   String _getMethodBodySource() {
     String source = utils.getRangeText(selectionRange);
     // prepare operations to replace variables with parameters
@@ -715,9 +690,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     _hasAwait = visitor.result;
   }
 
-  /**
-   * Fills [_occurrences] field.
-   */
+  /// Fills [_occurrences] field.
   void _initializeOccurrences() {
     _occurrences.clear();
     // prepare selection
@@ -731,10 +704,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         this, selectionPattern, patternToSelectionName));
   }
 
-  /**
-   * Prepares information about used variables, which should be turned into
-   * parameters.
-   */
+  /// Prepares information about used variables, which should be turned into
+  /// parameters.
   Future<RefactoringStatus> _initializeParameters() async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -833,16 +804,12 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
   }
 
-  /**
-   * Checks if the given [element] is declared in [selectionRange].
-   */
+  /// Checks if the given [element] is declared in [selectionRange].
   bool _isDeclaredInSelection(Element element) {
     return selectionRange.contains(element.nameOffset);
   }
 
-  /**
-   * Checks if it is OK to extract the node with the given [SourceRange].
-   */
+  /// Checks if it is OK to extract the node with the given [SourceRange].
   bool _isExtractable(SourceRange range) {
     var analyzer = _ExtractMethodAnalyzer(resolveResult, range);
     analyzer.analyze();
@@ -869,19 +836,15 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return false;
   }
 
-  /**
-   * Checks if [element] is referenced after [selectionRange].
-   */
+  /// Checks if [element] is referenced after [selectionRange].
   bool _isUsedAfterSelection(Element element) {
     var visitor = _IsUsedAfterSelectionVisitor(this, element);
     _parentMember.accept(visitor);
     return visitor.result;
   }
 
-  /**
-   * Prepare names that are used in the enclosing function, so should not be
-   * proposed as names of the extracted method.
-   */
+  /// Prepare names that are used in the enclosing function, so should not be
+  /// proposed as names of the extracted method.
   void _prepareExcludedNames() {
     _excludedNames.clear();
     List<LocalElement> localElements = getDefinedLocalElements(_parentMember);
@@ -906,9 +869,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     }
   }
 
-  /**
-   * Checks if the given [expression] is reasonable to extract as a getter.
-   */
+  /// Checks if the given [expression] is reasonable to extract as a getter.
   static bool _isExpressionForGetter(Expression expression) {
     if (expression is BinaryExpression) {
       return _isExpressionForGetter(expression.leftOperand) &&
@@ -932,9 +893,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     return false;
   }
 
-  /**
-   * Returns `true` if the given [statement] may end with a [ReturnStatement].
-   */
+  /// Returns `true` if the given [statement] may end with a [ReturnStatement].
   static bool _mayEndWithReturnStatement(Statement statement) {
     _HasReturnStatementVisitor visitor = _HasReturnStatementVisitor();
     statement.accept(visitor);
@@ -942,9 +901,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 }
 
-/**
- * [SelectionAnalyzer] for [ExtractMethodRefactoringImpl].
- */
+/// [SelectionAnalyzer] for [ExtractMethodRefactoringImpl].
 class _ExtractMethodAnalyzer extends StatementAnalyzer {
   _ExtractMethodAnalyzer(
       ResolvedUnitResult resolveResult, SourceRange selection)
@@ -1205,9 +1162,8 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
     super.visitSwitchMember(node);
   }
 
-  /**
-   * Checks if given [SourceRange] matched selection source and adds [_Occurrence].
-   */
+  /// Checks if given [SourceRange] matched selection source and adds
+  /// [_Occurrence].
   bool _tryToFindOccurrence(SourceRange nodeRange) {
     // check if can be extracted
     if (!ref._isExtractable(nodeRange)) {
@@ -1337,10 +1293,8 @@ class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor<void> {
   }
 }
 
-/**
- * Description of a single occurrence of the selected expression or set of
- * statements.
- */
+/// Description of a single occurrence of the selected expression or set of
+/// statements.
 class _Occurrence {
   final SourceRange range;
   final bool isSelection;
@@ -1385,11 +1339,9 @@ class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
   }
 }
 
-/**
- * Generalized version of some source, in which references to the specific
- * variables are replaced with pattern variables, with back mapping from the
- * pattern to the original variable names.
- */
+/// Generalized version of some source, in which references to the specific
+/// variables are replaced with pattern variables, with back mapping from the
+/// pattern to the original variable names.
 class _SourcePattern {
   final List<DartType> parameterTypes = <DartType>[];
   String normalizedSource;

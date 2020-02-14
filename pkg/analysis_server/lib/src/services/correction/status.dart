@@ -4,80 +4,56 @@
 
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/**
- * An outcome of a condition checking operation.
- */
+/// An outcome of a condition checking operation.
 class RefactoringStatus {
-  /**
-   * The current severity of this [RefactoringStatus] - the maximum of the
-   * severities of its [entries].
-   */
+  /// The current severity of this [RefactoringStatus] - the maximum of the
+  /// severities of its [entries].
   RefactoringProblemSeverity _severity;
 
-  /**
-   * A list of [RefactoringProblem]s.
-   */
+  /// A list of [RefactoringProblem]s.
   final List<RefactoringProblem> problems = [];
 
-  /**
-   * Creates a new OK [RefactoringStatus].
-   */
+  /// Creates a new OK [RefactoringStatus].
   RefactoringStatus();
 
-  /**
-   * Creates a new [RefactoringStatus] with the ERROR severity.
-   */
+  /// Creates a new [RefactoringStatus] with the ERROR severity.
   factory RefactoringStatus.error(String msg, [Location location]) {
     RefactoringStatus status = RefactoringStatus();
     status.addError(msg, location);
     return status;
   }
 
-  /**
-   * Creates a new [RefactoringStatus] with the FATAL severity.
-   */
+  /// Creates a new [RefactoringStatus] with the FATAL severity.
   factory RefactoringStatus.fatal(String msg, [Location location]) {
     RefactoringStatus status = RefactoringStatus();
     status.addFatalError(msg, location);
     return status;
   }
 
-  /**
-   * Creates a new [RefactoringStatus] with the WARNING severity.
-   */
+  /// Creates a new [RefactoringStatus] with the WARNING severity.
   factory RefactoringStatus.warning(String msg, [Location location]) {
     RefactoringStatus status = RefactoringStatus();
     status.addWarning(msg, location);
     return status;
   }
 
-  /**
-   * Returns `true` if the severity is FATAL or ERROR.
-   */
+  /// Returns `true` if the severity is FATAL or ERROR.
   bool get hasError {
     return _severity == RefactoringProblemSeverity.FATAL ||
         _severity == RefactoringProblemSeverity.ERROR;
   }
 
-  /**
-   * Returns `true` if the severity is FATAL.
-   */
+  /// Returns `true` if the severity is FATAL.
   bool get hasFatalError => _severity == RefactoringProblemSeverity.FATAL;
 
-  /**
-   * Returns `true` if the severity is WARNING.
-   */
+  /// Returns `true` if the severity is WARNING.
   bool get hasWarning => _severity == RefactoringProblemSeverity.WARNING;
 
-  /**
-   * Return `true` if the severity is `OK`.
-   */
+  /// Return `true` if the severity is `OK`.
   bool get isOK => _severity == null;
 
-  /**
-   * Returns the message of the [RefactoringProblem] with highest severity;
-   * may be `null` if no problems.
-   */
+  /// Returns the message of the [RefactoringProblem] with highest severity;
+  /// may be `null` if no problems.
   String get message {
     RefactoringProblem problem = this.problem;
     if (problem == null) {
@@ -86,11 +62,9 @@ class RefactoringStatus {
     return problem.message;
   }
 
-  /**
-   * Returns the first [RefactoringProblem] with the highest severity.
-   *
-   * Returns `null` if no entries.
-   */
+  /// Returns the first [RefactoringProblem] with the highest severity.
+  ///
+  /// Returns `null` if no entries.
   RefactoringProblem get problem {
     for (RefactoringProblem problem in problems) {
       if (problem.severity == _severity) {
@@ -100,36 +74,28 @@ class RefactoringStatus {
     return null;
   }
 
-  /**
-   * Returns the current severity of this [RefactoringStatus].
-   */
+  /// Returns the current severity of this [RefactoringStatus].
   RefactoringProblemSeverity get severity => _severity;
 
-  /**
-   * Adds an ERROR problem with the given message and location.
-   */
+  /// Adds an ERROR problem with the given message and location.
   void addError(String msg, [Location location]) {
     _addProblem(RefactoringProblem(RefactoringProblemSeverity.ERROR, msg,
         location: location));
   }
 
-  /**
-   * Adds a FATAL problem with the given message and location.
-   */
+  /// Adds a FATAL problem with the given message and location.
   void addFatalError(String msg, [Location location]) {
     _addProblem(RefactoringProblem(RefactoringProblemSeverity.FATAL, msg,
         location: location));
   }
 
-  /**
-   * Merges [other] into this [RefactoringStatus].
-   *
-   * The [other]'s entries are added to this.
-   *
-   * The resulting severity is the more severe of this and [other] severities.
-   *
-   * Merging with `null` is allowed - it has no effect.
-   */
+  /// Merges [other] into this [RefactoringStatus].
+  ///
+  /// The [other]'s entries are added to this.
+  ///
+  /// The resulting severity is the more severe of this and [other] severities.
+  ///
+  /// Merging with `null` is allowed - it has no effect.
   void addStatus(RefactoringStatus other) {
     if (other == null) {
       return;
@@ -138,9 +104,7 @@ class RefactoringStatus {
     _severity = RefactoringProblemSeverity.max(_severity, other.severity);
   }
 
-  /**
-   * Adds a WARNING problem with the given message and location.
-   */
+  /// Adds a WARNING problem with the given message and location.
   void addWarning(String msg, [Location location]) {
     _addProblem(RefactoringProblem(RefactoringProblemSeverity.WARNING, msg,
         location: location));
@@ -167,9 +131,7 @@ class RefactoringStatus {
     return sb.toString();
   }
 
-  /**
-   * Adds the given [RefactoringProblem] and updates [severity].
-   */
+  /// Adds the given [RefactoringProblem] and updates [severity].
   void _addProblem(RefactoringProblem problem) {
     problems.add(problem);
     // update maximum severity

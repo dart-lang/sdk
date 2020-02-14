@@ -29,27 +29,21 @@ export 'package:analysis_server/protocol/protocol.dart';
 export 'package:analysis_server/protocol/protocol_generated.dart';
 export 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/**
- * Returns a list of AnalysisErrors corresponding to the given list of Engine
- * errors.
- */
+/// Returns a list of AnalysisErrors corresponding to the given list of Engine
+/// errors.
 List<AnalysisError> doAnalysisError_listFromEngine(
     engine.ResolvedUnitResult result) {
   return mapEngineErrors(result, result.errors, newAnalysisError_fromEngine);
 }
 
-/**
- * Adds [edit] to the file containing the given [element].
- */
+/// Adds [edit] to the file containing the given [element].
 void doSourceChange_addElementEdit(
     SourceChange change, engine.Element element, SourceEdit edit) {
   engine.Source source = element.source;
   doSourceChange_addSourceEdit(change, source, edit);
 }
 
-/**
- * Adds [edit] for the given [source] to the [change].
- */
+/// Adds [edit] for the given [source] to the [change].
 void doSourceChange_addSourceEdit(
     SourceChange change, engine.Source source, SourceEdit edit,
     {bool isNewFile = false}) {
@@ -77,9 +71,7 @@ String getReturnTypeString(engine.Element element) {
   }
 }
 
-/**
- * Translates engine errors through the ErrorProcessor.
- */
+/// Translates engine errors through the ErrorProcessor.
 List<T> mapEngineErrors<T>(
     engine.ResolvedUnitResult result,
     List<engine.AnalysisError> errors,
@@ -106,11 +98,9 @@ List<T> mapEngineErrors<T>(
   return serverErrors;
 }
 
-/**
- * Construct based on error information from the analyzer engine.
- *
- * If an [errorSeverity] is specified, it will override the one in [error].
- */
+/// Construct based on error information from the analyzer engine.
+///
+/// If an [errorSeverity] is specified, it will override the one in [error].
 AnalysisError newAnalysisError_fromEngine(
     engine.ResolvedUnitResult result, engine.AnalysisError error,
     [engine.ErrorSeverity errorSeverity]) {
@@ -158,9 +148,7 @@ AnalysisError newAnalysisError_fromEngine(
       url: url);
 }
 
-/**
- * Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
- */
+/// Create a DiagnosticMessage based on an [engine.DiagnosticMessage].
 DiagnosticMessage newDiagnosticMessage(
     engine.ResolvedUnitResult result, engine.DiagnosticMessage message) {
   String file = message.filePath;
@@ -180,9 +168,7 @@ DiagnosticMessage newDiagnosticMessage(
       message.message, Location(file, offset, length, startLine, startColumn));
 }
 
-/**
- * Create a Location based on an [engine.Element].
- */
+/// Create a Location based on an [engine.Element].
 Location newLocation_fromElement(engine.Element element) {
   if (element == null || element.source == null) {
     return null;
@@ -199,17 +185,13 @@ Location newLocation_fromElement(engine.Element element) {
   return _locationForArgs(unitElement, range);
 }
 
-/**
- * Create a Location based on an [engine.SearchMatch].
- */
+/// Create a Location based on an [engine.SearchMatch].
 Location newLocation_fromMatch(engine.SearchMatch match) {
   engine.CompilationUnitElement unitElement = _getUnitElement(match.element);
   return _locationForArgs(unitElement, match.sourceRange);
 }
 
-/**
- * Create a Location based on an [engine.AstNode].
- */
+/// Create a Location based on an [engine.AstNode].
 Location newLocation_fromNode(engine.AstNode node) {
   engine.CompilationUnit unit =
       node.thisOrAncestorOfType<engine.CompilationUnit>();
@@ -218,26 +200,20 @@ Location newLocation_fromNode(engine.AstNode node) {
   return _locationForArgs(unitElement, range);
 }
 
-/**
- * Create a Location based on an [engine.CompilationUnit].
- */
+/// Create a Location based on an [engine.CompilationUnit].
 Location newLocation_fromUnit(
     engine.CompilationUnit unit, engine.SourceRange range) {
   return _locationForArgs(unit.declaredElement, range);
 }
 
-/**
- * Construct based on an element from the analyzer engine.
- */
+/// Construct based on an element from the analyzer engine.
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member) {
   Element element = convertElement(member);
   String className = member.enclosingElement.displayName;
   return OverriddenMember(element, className);
 }
 
-/**
- * Construct based on a value from the search engine.
- */
+/// Construct based on a value from the search engine.
 SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
   SearchResultKind kind = newSearchResultKind_fromEngine(match.kind);
   Location location = newLocation_fromMatch(match);
@@ -245,9 +221,7 @@ SearchResult newSearchResult_fromMatch(engine.SearchMatch match) {
   return SearchResult(location, kind, !match.isResolved, path);
 }
 
-/**
- * Construct based on a value from the search engine.
- */
+/// Construct based on a value from the search engine.
 SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
   if (kind == engine.MatchKind.DECLARATION) {
     return SearchResultKind.DECLARATION;
@@ -270,9 +244,7 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
   return SearchResultKind.UNKNOWN;
 }
 
-/**
- * Construct based on a SourceRange.
- */
+/// Construct based on a SourceRange.
 SourceEdit newSourceEdit_range(engine.SourceRange range, String replacement,
     {String id}) {
   return SourceEdit(range.offset, range.length, replacement, id: id);
@@ -312,9 +284,7 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
   return null;
 }
 
-/**
- * Creates a new [Location].
- */
+/// Creates a new [Location].
 Location _locationForArgs(
     engine.CompilationUnitElement unitElement, engine.SourceRange range) {
   int startLine = 0;

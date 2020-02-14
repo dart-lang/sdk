@@ -8,58 +8,38 @@ import 'dart:io';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 
-/**
- * Instances of the class [AbstractGetHandler] handle GET requests.
- */
+/// Instances of the class [AbstractGetHandler] handle GET requests.
 abstract class AbstractGetHandler {
-  /**
-   * Handle a GET request received by the HTTP server.
-   */
+  /// Handle a GET request received by the HTTP server.
   void handleGetRequest(HttpRequest request);
 }
 
-/**
- * Instances of the class [HttpServer] implement a simple HTTP server. The
- * server:
- *
- * - listens for an UPGRADE request in order to start an analysis server
- * - serves diagnostic information as html pages
- */
+/// Instances of the class [HttpServer] implement a simple HTTP server. The
+/// server:
+///
+/// - listens for an UPGRADE request in order to start an analysis server
+/// - serves diagnostic information as html pages
 class HttpAnalysisServer {
-  /**
-   * Number of lines of print output to capture.
-   */
+  /// Number of lines of print output to capture.
   static const int MAX_PRINT_BUFFER_LENGTH = 1000;
 
-  /**
-   * An object that can handle either a WebSocket connection or a connection
-   * to the client over stdio.
-   */
+  /// An object that can handle either a WebSocket connection or a connection
+  /// to the client over stdio.
   AbstractSocketServer socketServer;
 
-  /**
-   * An object that can handle GET requests.
-   */
+  /// An object that can handle GET requests.
   AbstractGetHandler getHandler;
 
-  /**
-   * Future that is completed with the HTTP server once it is running.
-   */
+  /// Future that is completed with the HTTP server once it is running.
   Future<HttpServer> _serverFuture;
 
-  /**
-   * Last PRINT_BUFFER_LENGTH lines printed.
-   */
+  /// Last PRINT_BUFFER_LENGTH lines printed.
   final List<String> _printBuffer = <String>[];
 
-  /**
-   * Initialize a newly created HTTP server.
-   */
+  /// Initialize a newly created HTTP server.
   HttpAnalysisServer(this.socketServer);
 
-  /**
-   * Return the port this server is bound to.
-   */
+  /// Return the port this server is bound to.
   Future<int> get boundPort async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -72,9 +52,7 @@ class HttpAnalysisServer {
     });
   }
 
-  /**
-   * Record that the given line was printed out by the analysis server.
-   */
+  /// Record that the given line was printed out by the analysis server.
   void recordPrint(String line) {
     _printBuffer.add(line);
     if (_printBuffer.length > MAX_PRINT_BUFFER_LENGTH) {
@@ -83,9 +61,7 @@ class HttpAnalysisServer {
     }
   }
 
-  /**
-   * Begin serving HTTP requests over the given port.
-   */
+  /// Begin serving HTTP requests over the given port.
   Future<int> serveHttp([int initialPort]) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -109,9 +85,7 @@ class HttpAnalysisServer {
     }
   }
 
-  /**
-   * Handle a GET request received by the HTTP server.
-   */
+  /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -121,9 +95,7 @@ class HttpAnalysisServer {
     await (getHandler.handleGetRequest(request) as dynamic);
   }
 
-  /**
-   * Attach a listener to a newly created HTTP server.
-   */
+  /// Attach a listener to a newly created HTTP server.
   void _handleServer(HttpServer httpServer) {
     httpServer.listen((HttpRequest request) async {
       // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -146,10 +118,8 @@ class HttpAnalysisServer {
     });
   }
 
-  /**
-   * Return an error in response to an unrecognized request received by the HTTP
-   * server.
-   */
+  /// Return an error in response to an unrecognized request received by the
+  /// HTTP server.
   void _returnUnknownRequest(HttpRequest request) {
     HttpResponse response = request.response;
     response.statusCode = HttpStatus.notFound;

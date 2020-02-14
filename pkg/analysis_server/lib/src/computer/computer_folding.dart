@@ -9,9 +9,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
-/**
- * A computer for [CompilationUnit] folding.
- */
+/// A computer for [CompilationUnit] folding.
 class DartUnitFoldingComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
@@ -21,9 +19,7 @@ class DartUnitFoldingComputer {
 
   DartUnitFoldingComputer(this._lineInfo, this._unit);
 
-  /**
-   * Returns a list of folding regions, not `null`.
-   */
+  /// Returns a list of folding regions, not `null`.
   List<FoldingRegion> compute() {
     _addFileHeaderRegion();
     _unit.accept(_DartUnitFoldingComputerVisitor(this));
@@ -102,9 +98,7 @@ class DartUnitFoldingComputer {
   }
 }
 
-/**
- * An AST visitor for [DartUnitFoldingComputer].
- */
+/// An AST visitor for [DartUnitFoldingComputer].
 class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   final DartUnitFoldingComputer _computer;
 

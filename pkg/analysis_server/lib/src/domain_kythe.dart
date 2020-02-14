@@ -21,19 +21,14 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
-/**
- * Instances of the class [KytheDomainHandler] implement a [RequestHandler]
- * that handles requests in the `kythe` domain.
- */
+/// Instances of the class [KytheDomainHandler] implement a [RequestHandler]
+/// that handles requests in the `kythe` domain.
 class KytheDomainHandler extends AbstractRequestHandler {
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   KytheDomainHandler(AnalysisServer server) : super(server);
 
-  /**
-   * Implement the `kythe.getKytheEntries` request.
-   */
+  /// Implement the `kythe.getKytheEntries` request.
   Future<void> getKytheEntries(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;

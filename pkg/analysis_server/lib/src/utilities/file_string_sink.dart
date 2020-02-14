@@ -4,9 +4,7 @@
 
 import 'dart:io';
 
-/**
- * A string sink that write into a file.
- */
+/// A string sink that write into a file.
 class FileStringSink implements StringSink {
   IOSink _sink;
 

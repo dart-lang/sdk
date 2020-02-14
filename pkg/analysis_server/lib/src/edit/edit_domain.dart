@@ -74,29 +74,20 @@ bool test_simulateRefactoringReset_afterCreateChange = false;
 bool test_simulateRefactoringReset_afterFinalConditions = false;
 bool test_simulateRefactoringReset_afterInitialConditions = false;
 
-/**
- * Instances of the class [EditDomainHandler] implement a [RequestHandler]
- * that handles requests in the edit domain.
- */
+/// Instances of the class [EditDomainHandler] implement a [RequestHandler]
+/// that handles requests in the edit domain.
 class EditDomainHandler extends AbstractRequestHandler {
-  /**
-   * The [SearchEngine] for this server.
-   */
+  /// The [SearchEngine] for this server.
   SearchEngine searchEngine;
 
-  /**
-   * The workspace for rename refactorings.
-   */
+  /// The workspace for rename refactorings.
   RefactoringWorkspace refactoringWorkspace;
 
-  /**
-   * The object used to manage uncompleted refactorings.
-   */
+  /// The object used to manage uncompleted refactorings.
   _RefactoringManager refactoringManager;
 
-  /**
-   * Initialize a newly created handler to handle requests for the given [server].
-   */
+  /// Initialize a newly created handler to handle requests for the given
+  /// [server].
   EditDomainHandler(AnalysisServer server) : super(server) {
     searchEngine = server.searchEngine;
     refactoringWorkspace =
@@ -414,9 +405,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     return null;
   }
 
-  /**
-   * Implement the `edit.importElements` request.
-   */
+  /// Implement the `edit.importElements` request.
   Future<void> importElements(Request request) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
     await null;
@@ -579,10 +568,8 @@ class EditDomainHandler extends AbstractRequestHandler {
     server.sendResponse(EditSortMembersResult(fileEdit).toResponse(request.id));
   }
 
-  /**
-   * Compute and return the fixes associated with server-generated errors in
-   * analysis options files.
-   */
+  /// Compute and return the fixes associated with server-generated errors in
+  /// analysis options files.
   Future<List<AnalysisErrorFixes>> _computeAnalysisOptionsFixes(
       String file, int offset) async {
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
@@ -620,10 +607,8 @@ class EditDomainHandler extends AbstractRequestHandler {
     return errorFixesList;
   }
 
-  /**
-   * Compute and return the fixes associated with server-generated errors in
-   * Dart files.
-   */
+  /// Compute and return the fixes associated with server-generated errors in
+  /// Dart files.
   Future<List<AnalysisErrorFixes>> _computeDartFixes(
       Request request, String file, int offset) async {
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
@@ -663,10 +648,8 @@ class EditDomainHandler extends AbstractRequestHandler {
     return errorFixesList;
   }
 
-  /**
-   * Compute and return the fixes associated with server-generated errors in
-   * Android manifest files.
-   */
+  /// Compute and return the fixes associated with server-generated errors in
+  /// Android manifest files.
   Future<List<AnalysisErrorFixes>> _computeManifestFixes(
       String file, int offset) async {
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
@@ -704,10 +687,8 @@ class EditDomainHandler extends AbstractRequestHandler {
     return errorFixesList;
   }
 
-  /**
-   * Compute and return the fixes associated with server-generated errors in
-   * pubspec.yaml files.
-   */
+  /// Compute and return the fixes associated with server-generated errors in
+  /// pubspec.yaml files.
   Future<List<AnalysisErrorFixes>> _computePubspecFixes(
       String file, int offset) async {
     List<AnalysisErrorFixes> errorFixesList = <AnalysisErrorFixes>[];
@@ -745,9 +726,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     return errorFixesList;
   }
 
-  /**
-   * Compute and return the fixes associated with server-generated errors.
-   */
+  /// Compute and return the fixes associated with server-generated errors.
   Future<List<AnalysisErrorFixes>> _computeServerErrorFixes(
       Request request, String file, int offset) async {
     Context context = server.resourceProvider.pathContext;
@@ -854,9 +833,7 @@ class EditDomainHandler extends AbstractRequestHandler {
     return Response.DELAYED_RESPONSE;
   }
 
-  /**
-   * Initializes [refactoringManager] with a new instance.
-   */
+  /// Initializes [refactoringManager] with a new instance.
   void _newRefactoringManager() {
     refactoringManager = _RefactoringManager(server, refactoringWorkspace);
   }
@@ -883,16 +860,14 @@ class EditDomainHandler extends AbstractRequestHandler {
   }
 }
 
-/**
- * An object managing a single [Refactoring] instance.
- *
- * The instance is identified by its kind, file, offset and length.
- * It is initialized when the a set of parameters is given for the first time.
- * All subsequent requests are performed on this [Refactoring] instance.
- *
- * Once new set of parameters is received, the previous [Refactoring] instance
- * is invalidated and a new one is created and initialized.
- */
+/// An object managing a single [Refactoring] instance.
+///
+/// The instance is identified by its kind, file, offset and length.
+/// It is initialized when the a set of parameters is given for the first time.
+/// All subsequent requests are performed on this [Refactoring] instance.
+///
+/// Once new set of parameters is received, the previous [Refactoring] instance
+/// is invalidated and a new one is created and initialized.
 class _RefactoringManager {
   static const List<RefactoringProblem> EMPTY_PROBLEM_LIST =
       <RefactoringProblem>[];
@@ -920,9 +895,8 @@ class _RefactoringManager {
     _reset();
   }
 
-  /**
-   * Returns `true` if a response for the current request has not yet been sent.
-   */
+  /// Returns `true` if a response for the current request has not yet been
+  /// sent.
   bool get hasPendingRequest => request != null;
 
   bool get _hasFatalError {
@@ -931,9 +905,7 @@ class _RefactoringManager {
         finalStatus.hasFatalError;
   }
 
-  /**
-   * Checks if [refactoring] requires options.
-   */
+  /// Checks if [refactoring] requires options.
   bool get _requiresOptions {
     return refactoring is ExtractLocalRefactoring ||
         refactoring is ExtractMethodRefactoring ||
@@ -943,9 +915,7 @@ class _RefactoringManager {
         refactoring is RenameRefactoring;
   }
 
-  /**
-   * Cancels processing of the current request and cleans up.
-   */
+  /// Cancels processing of the current request and cleans up.
   void cancel() {
     if (request != null) {
       server.sendResponse(Response.refactoringRequestCancelled(request));
@@ -1060,10 +1030,8 @@ class _RefactoringManager {
     }
   }
 
-  /**
-   * Initializes this context to perform a refactoring with the specified
-   * parameters. The existing [Refactoring] is reused or created as needed.
-   */
+  /// Initializes this context to perform a refactoring with the specified
+  /// parameters. The existing [Refactoring] is reused or created as needed.
   Future _init(
       RefactoringKind kind, String file, int offset, int length) async {
     // TODO(brianwilkerson) Determine whether this await is necessary.
@@ -1321,8 +1289,6 @@ class _RefactoringManager {
   }
 }
 
-/**
- * [_RefactoringManager] throws instances of this class internally to stop
- * processing in a manager that was reset.
- */
+/// [_RefactoringManager] throws instances of this class internally to stop
+/// processing in a manager that was reset.
 class _ResetError {}

@@ -7,14 +7,10 @@ import 'package:analysis_server/src/protocol/protocol_internal.dart' as server;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 
-/**
- * An object used to convert between similar objects defined by both the plugin
- * protocol and the server protocol.
- */
+/// An object used to convert between similar objects defined by both the plugin
+/// protocol and the server protocol.
 class ResultConverter {
-  /**
-   * The decoder used to decode Json representations of server objects.
-   */
+  /// The decoder used to decode Json representations of server objects.
   static final server.ResponseDecoder decoder = server.ResponseDecoder(null);
 
   server.AnalysisErrorFixes convertAnalysisErrorFixes(
