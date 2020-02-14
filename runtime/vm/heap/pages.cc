@@ -1336,9 +1336,7 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size) {
     usage_.used_in_words = usage_.used_in_words + (size >> kWordSizeLog2);
     return result;
   }
-  result = TryAllocateDataBumpLocked(size);
-  if (result != 0) return result;
-  return TryAllocateDataLocked(size, PageSpace::kForceGrowth);
+  return TryAllocateDataBumpLocked(size);
 }
 
 void PageSpace::SetupImagePage(void* pointer, uword size, bool is_executable) {
