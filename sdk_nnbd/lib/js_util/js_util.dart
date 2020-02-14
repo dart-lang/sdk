@@ -29,7 +29,7 @@ import 'dart:_js_helper' show convertDartClosureToJS;
 /// converted into arrays. Strings, numbers, bools, and `@JS()` annotated
 /// objects are passed through unmodified. Dart objects are also passed through
 /// unmodified, but their members aren't usable from JavaScript.
-Object jsify(Object object) {
+dynamic jsify(Object object) {
   if ((object is! Map) && (object is! Iterable)) {
     throw ArgumentError("object must be a Map or Iterable");
   }
