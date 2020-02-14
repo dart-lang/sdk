@@ -41,29 +41,32 @@ Future<void> main(List<String> args) async {
   await computer.compute(rootPath);
   stopwatch.stop();
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
-  print('Metrics computed in $duration');
+  print('  Metrics computed in $duration');
   computer.printMetrics();
   io.exit(0);
 }
 
 /// An object that records the data used to compute the metrics.
 class RelevanceData {
+  /// A number identifying the version of this code that produced a given JSON
+  /// encoded file. The number should be incremented whenever the shape of the
+  /// JSON file is changed.
   static const String currentVersion = '1';
 
   /// A table mapping match distances to counts.
-  Map<String, Map<int, int>> byDistance = {};
+  Map<String, Map<String, int>> byDistance = {};
 
   /// A table mapping element kinds to counts by context.
-  Map<String, Map<ElementKind, int>> byElementKind = {};
+  Map<String, Map<String, int>> byElementKind = {};
 
   /// A table mapping AST node classes to counts by context.
   Map<String, Map<String, int>> byNodeClass = {};
 
   /// A table mapping token types to counts by context.
-  Map<String, Map<TokenType, int>> byTokenType = {};
+  Map<String, Map<String, int>> byTokenType = {};
 
   /// A table mapping match types to counts.
-  Map<String, Map<bool, int>> byTypeMatch = {};
+  Map<String, Map<String, int>> byTypeMatch = {};
 
   /// Initialize a newly created set of relevance data to be empty.
   RelevanceData();
@@ -88,14 +91,16 @@ class RelevanceData {
   /// The [descriptor] is used to describe the kind of distance being measured.
   void recordDistance(String descriptor, int distance) {
     var contextMap = byDistance.putIfAbsent(descriptor, () => {});
-    contextMap[distance] = (contextMap[distance] ?? 0) + 1;
+    var key = distance.toString();
+    contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
   /// Record that an element of the given [kind] was found in the given
   /// [context].
   void recordElementKind(String context, ElementKind kind) {
     var contextMap = byElementKind.putIfAbsent(context, () => {});
-    contextMap[kind] = (contextMap[kind] ?? 0) + 1;
+    var key = kind.name;
+    contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
   /// Record that an element of the given [node] was found in the given
@@ -112,31 +117,33 @@ class RelevanceData {
   /// Record that a token of the given [type] was found in the given [context].
   void recordTokenType(String context, TokenType type) {
     var contextMap = byTokenType.putIfAbsent(context, () => {});
-    contextMap[type] = (contextMap[type] ?? 0) + 1;
+    var key = type.name;
+    contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
   /// Record whether the given [kind] or type match applied to a given argument
   /// (that is, whether [matches] is `true`).
   void recordTypeMatch(String kind, bool matches) {
     var contextMap = byTypeMatch.putIfAbsent(kind, () => {});
-    contextMap[matches] = (contextMap[matches] ?? 0) + 1;
+    var key = matches.toString();
+    contextMap[key] = (contextMap[key] ?? 0) + 1;
   }
 
   /// Return a JSON encoded string representing the data that was collected.
   String toJson() {
     return json.encode({
       'version': currentVersion,
-      'byDistance': _encodeMap(byDistance, (distance) => distance.toString()),
-      'byElementKind': _encodeMap(byElementKind, (kind) => kind.name),
-      'byNodeClass': _encodeMap(byNodeClass, (className) => className),
-      'byTokenType': _encodeMap(byTokenType, (type) => type.name),
-      'byTypeMatch': _encodeMap(byTypeMatch, (match) => match.toString()),
+      'byDistance': byDistance,
+      'byElementKind': byElementKind,
+      'byNodeClass': byNodeClass,
+      'byTokenType': byTokenType,
+      'byTypeMatch': byTypeMatch,
     });
   }
 
   /// Add the data in the [source] map to the [target] map.
-  void _addToMap<T>(
-      Map<String, Map<T, int>> target, Map<String, Map<T, int>> source) {
+  void _addToMap(Map<String, Map<String, int>> target,
+      Map<String, Map<String, int>> source) {
     for (var outerEntry in source.entries) {
       var innerTarget = target.putIfAbsent(outerEntry.key, () => {});
       for (var innerEntry in outerEntry.value.entries) {
@@ -155,49 +162,33 @@ class RelevanceData {
 
   /// Decode the content of the [source] map into the [target] map, using the
   /// [keyMapper] to map the inner keys from a string to a [T].
-  void _decodeMap<T>(Map<String, Map<T, int>> target,
-      Map<String, dynamic> source, T Function(String) keyMapper) {
-    for (var outerEntry in source.entries) {
+  void _decodeMap(
+      Map<String, Map<String, int>> target, Map<String, dynamic> source) {
+    var outerMap = _convert(source);
+    for (var outerEntry in outerMap.entries) {
       var outerKey = outerEntry.key;
       var innerMap = _convert(outerEntry.value);
       for (var innerEntry in innerMap.entries) {
-        var innerKey = keyMapper(innerEntry.key);
+        var innerKey = innerEntry.key;
         var count = innerEntry.value as int;
         target.putIfAbsent(outerKey, () => {})[innerKey] = count;
       }
     }
   }
 
-  /// Decode the content of the [map] map into form that can be JSON encoded,
-  /// using the [keyMapper] to map the inner keys from a [T] to a string.
-  Map<String, Map<String, int>> _encodeMap<T>(
-      Map<String, Map<T, int>> map, String Function(T) keyMapper) {
-    return map.map((key, value) => MapEntry(
-        key, value.map((key, value) => MapEntry(keyMapper(key), value))));
-  }
-
   /// Initialize the state of this object from the given JSON encoded [content].
   void _initializeFromJson(String content) {
-    var tokenTypes = <String, TokenType>{};
-    for (var type in TokenType.all) {
-      tokenTypes[type.name] = type;
-    }
     var contentObject = _convert(json.decode(content));
     var version = contentObject['version'].toString();
     if (version != currentVersion) {
       throw StateError(
           'Invalid version: expected $currentVersion, found $version');
     }
-    _decodeMap(byDistance, _convert(contentObject['byDistance']),
-        (distance) => int.parse(distance));
-    _decodeMap(byElementKind, _convert(contentObject['byElementKind']),
-        (key) => ElementKind.fromJson(null, null, key));
-    _decodeMap(byNodeClass, _convert(contentObject['byNodeClass']),
-        (className) => className);
-    _decodeMap(byTokenType, _convert(contentObject['byTokenType']),
-        (key) => tokenTypes[key]);
-    _decodeMap(byTypeMatch, _convert(contentObject['byTypeMatch']),
-        (match) => match == 'true' ? true : false);
+    _decodeMap(byDistance, contentObject['byDistance']);
+    _decodeMap(byElementKind, contentObject['byElementKind']);
+    _decodeMap(byNodeClass, contentObject['byNodeClass']);
+    _decodeMap(byTokenType, contentObject['byTokenType']);
+    _decodeMap(byTypeMatch, contentObject['byTypeMatch']);
   }
 }
 
@@ -1391,25 +1382,24 @@ class RelevanceMetricsComputer {
   void printMetrics() {
     print('');
     print('Node classes by context');
-    _printContextMap(data.byNodeClass, (className) => className);
+    _printContextMap(data.byNodeClass);
     print('');
     print('Element kinds by context');
-    _printContextMap(data.byElementKind, (kind) => kind.name);
+    _printContextMap(data.byElementKind);
     print('');
     print('Token types by context');
-    _printContextMap(data.byTokenType, (type) => type.name);
+    _printContextMap(data.byTokenType);
     print('');
     print('Argument types match');
-    _printContextMap(data.byTypeMatch, (match) => match.toString());
+    _printContextMap(data.byTypeMatch);
     print('');
     print('Distance from reference to declaration');
-    _printContextMap(data.byDistance, (distance) => distance.toString());
+    _printContextMap(data.byDistance);
   }
 
   /// Print a [contextMap] containing one kind of metric data, using the
   /// [getName] function to print the second-level keys.
-  void _printContextMap<T>(
-      Map<String, Map<T, int>> contextMap, String Function(T) getName) {
+  void _printContextMap(Map<String, Map<String, int>> contextMap) {
     var contexts = contextMap.keys.toList()..sort();
     for (var context in contexts) {
       var kindMap = contextMap[context];
@@ -1428,7 +1418,7 @@ class RelevanceMetricsComputer {
         if (percent.length < 4) {
           percent = ' $percent';
         }
-        print('    $percent%: ${getName(entry.key)} ($value)');
+        print('    $percent%: ${entry.key} ($value)');
       }
     }
   }
