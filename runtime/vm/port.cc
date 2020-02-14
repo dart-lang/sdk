@@ -249,6 +249,8 @@ bool PortMap::PostMessage(std::unique_ptr<Message> message,
   MutexLocker ml(mutex_);
   intptr_t index = FindPort(message->dest_port());
   if (index < 0) {
+    // Ownership of external data remains with the poster.
+    message->DropFinalizers();
     return false;
   }
   ASSERT(index >= 0);

@@ -6430,6 +6430,30 @@ TEST_CASE(DartAPI_IllegalPost) {
   EXPECT(!success);
 }
 
+static void UnreachableFinalizer(void* isolate_callback_data,
+                                 Dart_WeakPersistentHandle handle,
+                                 void* peer) {
+  UNREACHABLE();
+}
+
+TEST_CASE(DartAPI_PostCObject_DoesNotRunFinalizerOnFailure) {
+  char* my_str = strdup("Ownership of this memory remains with the caller");
+
+  Dart_CObject message;
+  message.type = Dart_CObject_kExternalTypedData;
+  message.value.as_external_typed_data.type = Dart_TypedData_kUint8;
+  message.value.as_external_typed_data.length = strlen(my_str);
+  message.value.as_external_typed_data.data =
+      reinterpret_cast<uint8_t*>(my_str);
+  message.value.as_external_typed_data.peer = my_str;
+  message.value.as_external_typed_data.callback = UnreachableFinalizer;
+
+  bool success = Dart_PostCObject(ILLEGAL_PORT, &message);
+  EXPECT(!success);
+
+  free(my_str);  // Never a double-free.
+}
+
 VM_UNIT_TEST_CASE(DartAPI_NewNativePort) {
   // Create a port with a bogus handler.
   Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);

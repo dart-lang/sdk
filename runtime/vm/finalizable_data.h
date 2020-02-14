@@ -70,6 +70,13 @@ class MessageFinalizableData {
     }
   }
 
+  void DropFinalizers() {
+    records_.Clear();
+    get_position_ = 0;
+    take_position_ = 0;
+    external_size_ = 0;
+  }
+
   intptr_t external_size() const { return external_size_; }
 
  private:
