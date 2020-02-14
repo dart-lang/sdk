@@ -11,9 +11,9 @@ ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interc
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1661|17|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1666|18|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1666|44|1|The operator '&' isn't defined for the type 'JSInt'.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|1463|39|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|8345|60|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|9272|54|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|1476|39|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|8383|60|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|9310|54|5|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/developer/developer.dart|315|25|23|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/html/dart2js/html_dart2js.dart|4075|25|2|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/io/io.dart|9167|16|1|The left operand can't be null, so the right operand is never executed.

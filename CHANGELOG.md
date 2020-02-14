@@ -19,6 +19,14 @@ used (see Issue [39627][]).
 
 * Class `HttpParser` will no longer throw an exception when a HTTP response
   status code is within [0, 999]. Customized status codes in this range are now valid.
+* **Breaking change** [#33501](https://github.com/dart-lang/sdk/issues/33501):
+
+An named parameter is added to `add` and `set` for class `HttpHeaders`.
+The signature of has been changed from `void add(String name, Object value)` to
+`void add(String name, Object value, {bool preserveHeaderCase: false})`.
+Same change is applied to `set`. `preserveHeaderCase` will preserve the
+case of `name` instead of converting them to lowercase.
+`HttpHeader.forEach()` provides the current case of each header.
 
 * The `Socket` class will now throw a `SocketException` if the socket has been
   destroyed or upgraded to a secure socket upon setting or getting socket

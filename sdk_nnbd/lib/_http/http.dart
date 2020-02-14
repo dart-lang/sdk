@@ -683,22 +683,31 @@ abstract class HttpHeaders {
    * The header named [name] will have a string value derived from [value]
    * added to its list of values.
    *
-   * Some headers are single valued, and for these adding a value will replace
-   * a previous value.
-   * If the [value] is a [DateTime], an HTTP date format will be
-   * applied. If the value is a [List], each element of the list will
-   * be added separately. For all other types the default [Object.toString]
-   * method will be used.
+   * Some headers are single valued, and for these, adding a value will
+   * replace a previous value. If the [value] is a [DateTime], an
+   * HTTP date format will be applied. If the value is an [Iterable],
+   * each element will be added separately. For all other
+   * types the default [Object.toString] method will be used.
+   *
+   * Header names are converted to lower-case unless
+   * [preserveHeaderCase] is set to true. If two header names are
+   * the same when converted to lower-case, they are considered to be
+   * the same header, with one set of values.
+   *
+   * The current case of the a header name is that of the name used by
+   * the last [set] or [add] call for that header.
    */
-  void add(String name, Object value);
+  void add(String name, Object value,
+      {@Since("2.8") bool preserveHeaderCase = false});
 
   /**
-   * Sets a header.
+   * Sets the header [name] to [value].
    *
-   * Removes all existing values for [name], then adds [value] as
-   * if using [add].
+   * Removes all existing values for the header named [name] and
+   * then [add]s [value] to it.
    */
-  void set(String name, Object value);
+  void set(String name, Object value,
+      {@Since("2.8") bool preserveHeaderCase = false});
 
   /**
    * Removes a specific value for a header name.
@@ -723,11 +732,15 @@ abstract class HttpHeaders {
   void removeAll(String name);
 
   /**
-   * Enumerates the headers, applying the function [f] to each header.
+   * Performs the [action] on each header.
    *
-   * The header name passed in [name] will be all lower case.
+   * The [action] function is called with each header's name and a list
+   * of the header's values. The casing of the name string is determined by
+   * the last [add] or [set] operation for that particular header,
+   * which defaults to lower-casing the header name unless explicitly
+   * set to preserve the case.
    */
-  void forEach(void f(String name, List<String> values));
+  void forEach(void action(String name, List<String> values));
 
   /**
    * Disables folding for the header named [name] when sending the HTTP header.

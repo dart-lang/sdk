@@ -18,9 +18,9 @@ ERROR|COMPILE_TIME_ERROR|BODY_MAY_COMPLETE_NORMALLY|lib/_internal/js_dev_runtime
 ERROR|COMPILE_TIME_ERROR|BODY_MAY_COMPLETE_NORMALLY|lib/html/dart2js/html_dart2js.dart|23331|8|15|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
 ERROR|COMPILE_TIME_ERROR|BODY_MAY_COMPLETE_NORMALLY|lib/html/dart2js/html_dart2js.dart|2978|13|11|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
 ERROR|COMPILE_TIME_ERROR|BODY_MAY_COMPLETE_NORMALLY|lib/html/dart2js/html_dart2js.dart|41436|8|15|The body might complete normally, which would cause 'null' to be returned, but the return type is a potentially non-nullable type.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|1463|39|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|8345|60|5|The left operand can't be null, so the right operand is never executed.
-WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|9272|54|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|1476|39|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|8383|60|5|The left operand can't be null, so the right operand is never executed.
+WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|9310|54|5|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/collection/collection.dart|1076|46|13|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/developer/developer.dart|332|25|23|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/html/dart2js/html_dart2js.dart|4075|25|2|The left operand can't be null, so the right operand is never executed.
