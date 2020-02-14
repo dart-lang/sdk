@@ -2600,7 +2600,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitBottomType(BottomType type) =>
-      _emitNullabilityWrapper(runtimeCall('bottom'), type.nullability);
+      _emitType(_types.nullType);
 
   @override
   js_ast.Expression visitNeverType(NeverType type) =>

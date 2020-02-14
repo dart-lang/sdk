@@ -18,7 +18,8 @@ final neverType = dart.wrapType(dart.never_);
 /// them by design.
 /// Generic functions are also unchanged, as they have a separate runtime type object representation.
 Object unwrap(Type t) {
-  if (t is dart.LegacyType || t is dart.GenericFunctionType) {
+  if (JS<bool>('!', '# instanceof #', t, dart.LegacyType) ||
+      JS<bool>('!', '# instanceof #', t, dart.GenericFunctionType)) {
     return t;
   }
   return dart.unwrapType(t);

@@ -366,7 +366,7 @@ class BottomType extends DartType {
   toString() => 'bottom';
 }
 
-final bottom = never_;
+final bottom = unwrapType(Null);
 
 class JSObjectType extends DartType {
   toString() => 'NativeJavaScriptObject';
@@ -403,7 +403,7 @@ Type wrapType(type, {isNormalized = false}) {
   }
   var result = isNormalized
       ? _Type(type)
-      : (type is LegacyType
+      : (_isLegacy(type)
           ? wrapType(type.type)
           : _canonicalizeNormalizedTypeObject(type));
   JS('', '#[#] = #', type, _typeObject, result);
@@ -415,7 +415,7 @@ Type wrapType(type, {isNormalized = false}) {
 /// Used for type object identity. Normalization requires us to return a
 /// canonicalized version of the input with all legacy wrappers removed.
 Type _canonicalizeNormalizedTypeObject(type) {
-  assert(type is! LegacyType);
+  assert(!_isLegacy(type));
   // We don't call _canonicalizeNormalizedTypeObject recursively but call wrap
   // + unwrap to handle legacy types automatically and force caching the
   // canonicalized type under the _typeObject cache property directly. This
@@ -424,10 +424,10 @@ Type _canonicalizeNormalizedTypeObject(type) {
   Object normalizeHelper(a) => unwrapType(wrapType(a));
 
   // GenericFunctionTypeIdentifiers are implicitly normalized.
-  if (type is GenericFunctionTypeIdentifier) {
+  if (JS<bool>('!', '# instanceof #', type, GenericFunctionTypeIdentifier)) {
     return wrapType(type, isNormalized: true);
   }
-  if (type is FunctionType) {
+  if (JS<bool>('!', '# instanceof #', type, FunctionType)) {
     var normReturnType = normalizeHelper(type.returnType);
     var normArgs = type.args.map(normalizeHelper).toList();
     if (JS<bool>('!', '#.Object.keys(#).length === 0', global_, type.named) &&
@@ -449,7 +449,7 @@ Type _canonicalizeNormalizedTypeObject(type) {
         fnType(normReturnType, normArgs, normNamed, normRequiredNamed);
     return wrapType(normType, isNormalized: true);
   }
-  if (type is GenericFunctionType) {
+  if (JS<bool>('!', '# instanceof #', type, GenericFunctionType)) {
     var formals = _getCanonicalTypeFormals(type.typeFormals.length);
     var normBounds =
         type.instantiateTypeBounds(formals).map(normalizeHelper).toList();
@@ -1187,8 +1187,8 @@ bool isSubtypeOf(Object t1, Object t2) {
 final _subtypeCache = JS('', 'Symbol("_subtypeCache")');
 
 @notNull
-bool _isBottom(type, strictMode) =>
-    JS('!', '# == # || (!# && #)', type, bottom, strictMode, _isNullType(type));
+bool _isBottom(type, strictMode) => JS(
+    '!', '# === # || (!# && # === #)', type, never_, strictMode, type, bottom);
 
 // TODO(nshahan): Add support for strict/weak mode.
 @notNull
