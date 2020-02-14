@@ -19388,3 +19388,274 @@ abstract class _UnlinkedUnit2Mixin implements idl.UnlinkedUnit2 {
   @override
   String toString() => convert.json.encode(toJson());
 }
+
+class CiderUnlinkedUnitBuilder extends Object
+    with _CiderUnlinkedUnitMixin
+    implements idl.CiderUnlinkedUnit {
+  List<int> _contentDigest;
+  UnlinkedUnit2Builder _unlinkedUnit;
+
+  @override
+  List<int> get contentDigest => _contentDigest ??= <int>[];
+
+  /// The hash signature of the contents of the file.
+  set contentDigest(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._contentDigest = value;
+  }
+
+  @override
+  UnlinkedUnit2Builder get unlinkedUnit => _unlinkedUnit;
+
+  /// Unlinked summary of the compilation unit.
+  set unlinkedUnit(UnlinkedUnit2Builder value) {
+    this._unlinkedUnit = value;
+  }
+
+  CiderUnlinkedUnitBuilder(
+      {List<int> contentDigest, UnlinkedUnit2Builder unlinkedUnit})
+      : _contentDigest = contentDigest,
+        _unlinkedUnit = unlinkedUnit;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {
+    _unlinkedUnit?.flushInformative();
+  }
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._contentDigest == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._contentDigest.length);
+      for (var x in this._contentDigest) {
+        signature.addInt(x);
+      }
+    }
+    signature.addBool(this._unlinkedUnit != null);
+    this._unlinkedUnit?.collectApiSignature(signature);
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "CUUN");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_contentDigest;
+    fb.Offset offset_unlinkedUnit;
+    if (!(_contentDigest == null || _contentDigest.isEmpty)) {
+      offset_contentDigest = fbBuilder.writeListUint32(_contentDigest);
+    }
+    if (_unlinkedUnit != null) {
+      offset_unlinkedUnit = _unlinkedUnit.finish(fbBuilder);
+    }
+    fbBuilder.startTable();
+    if (offset_contentDigest != null) {
+      fbBuilder.addOffset(0, offset_contentDigest);
+    }
+    if (offset_unlinkedUnit != null) {
+      fbBuilder.addOffset(1, offset_unlinkedUnit);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.CiderUnlinkedUnit readCiderUnlinkedUnit(List<int> buffer) {
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
+  return const _CiderUnlinkedUnitReader().read(rootRef, 0);
+}
+
+class _CiderUnlinkedUnitReader extends fb.TableReader<_CiderUnlinkedUnitImpl> {
+  const _CiderUnlinkedUnitReader();
+
+  @override
+  _CiderUnlinkedUnitImpl createObject(fb.BufferContext bc, int offset) =>
+      _CiderUnlinkedUnitImpl(bc, offset);
+}
+
+class _CiderUnlinkedUnitImpl extends Object
+    with _CiderUnlinkedUnitMixin
+    implements idl.CiderUnlinkedUnit {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _CiderUnlinkedUnitImpl(this._bc, this._bcOffset);
+
+  List<int> _contentDigest;
+  idl.UnlinkedUnit2 _unlinkedUnit;
+
+  @override
+  List<int> get contentDigest {
+    _contentDigest ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
+    return _contentDigest;
+  }
+
+  @override
+  idl.UnlinkedUnit2 get unlinkedUnit {
+    _unlinkedUnit ??=
+        const _UnlinkedUnit2Reader().vTableGet(_bc, _bcOffset, 1, null);
+    return _unlinkedUnit;
+  }
+}
+
+abstract class _CiderUnlinkedUnitMixin implements idl.CiderUnlinkedUnit {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (contentDigest.isNotEmpty) {
+      _result["contentDigest"] = contentDigest;
+    }
+    if (unlinkedUnit != null) {
+      _result["unlinkedUnit"] = unlinkedUnit.toJson();
+    }
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "contentDigest": contentDigest,
+        "unlinkedUnit": unlinkedUnit,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}
+
+class CiderLinkedLibraryCycleBuilder extends Object
+    with _CiderLinkedLibraryCycleMixin
+    implements idl.CiderLinkedLibraryCycle {
+  List<int> _signature;
+  LinkedNodeBundleBuilder _bundle;
+
+  @override
+  List<int> get signature => _signature ??= <int>[];
+
+  /// The hash signature for this linked cycle. It depends of API signatures
+  /// of all files in the cycle, and on the signatures of the transitive
+  /// closure of the cycle dependencies.
+  set signature(List<int> value) {
+    assert(value == null || value.every((e) => e >= 0));
+    this._signature = value;
+  }
+
+  @override
+  LinkedNodeBundleBuilder get bundle => _bundle;
+
+  set bundle(LinkedNodeBundleBuilder value) {
+    this._bundle = value;
+  }
+
+  CiderLinkedLibraryCycleBuilder(
+      {List<int> signature, LinkedNodeBundleBuilder bundle})
+      : _signature = signature,
+        _bundle = bundle;
+
+  /// Flush [informative] data recursively.
+  void flushInformative() {
+    _bundle?.flushInformative();
+  }
+
+  /// Accumulate non-[informative] data into [signature].
+  void collectApiSignature(api_sig.ApiSignature signature) {
+    if (this._signature == null) {
+      signature.addInt(0);
+    } else {
+      signature.addInt(this._signature.length);
+      for (var x in this._signature) {
+        signature.addInt(x);
+      }
+    }
+    signature.addBool(this._bundle != null);
+    this._bundle?.collectApiSignature(signature);
+  }
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "CLNB");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    fb.Offset offset_signature;
+    fb.Offset offset_bundle;
+    if (!(_signature == null || _signature.isEmpty)) {
+      offset_signature = fbBuilder.writeListUint32(_signature);
+    }
+    if (_bundle != null) {
+      offset_bundle = _bundle.finish(fbBuilder);
+    }
+    fbBuilder.startTable();
+    if (offset_signature != null) {
+      fbBuilder.addOffset(0, offset_signature);
+    }
+    if (offset_bundle != null) {
+      fbBuilder.addOffset(1, offset_bundle);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.CiderLinkedLibraryCycle readCiderLinkedLibraryCycle(List<int> buffer) {
+  fb.BufferContext rootRef = fb.BufferContext.fromBytes(buffer);
+  return const _CiderLinkedLibraryCycleReader().read(rootRef, 0);
+}
+
+class _CiderLinkedLibraryCycleReader
+    extends fb.TableReader<_CiderLinkedLibraryCycleImpl> {
+  const _CiderLinkedLibraryCycleReader();
+
+  @override
+  _CiderLinkedLibraryCycleImpl createObject(fb.BufferContext bc, int offset) =>
+      _CiderLinkedLibraryCycleImpl(bc, offset);
+}
+
+class _CiderLinkedLibraryCycleImpl extends Object
+    with _CiderLinkedLibraryCycleMixin
+    implements idl.CiderLinkedLibraryCycle {
+  final fb.BufferContext _bc;
+  final int _bcOffset;
+
+  _CiderLinkedLibraryCycleImpl(this._bc, this._bcOffset);
+
+  List<int> _signature;
+  idl.LinkedNodeBundle _bundle;
+
+  @override
+  List<int> get signature {
+    _signature ??=
+        const fb.Uint32ListReader().vTableGet(_bc, _bcOffset, 0, const <int>[]);
+    return _signature;
+  }
+
+  @override
+  idl.LinkedNodeBundle get bundle {
+    _bundle ??=
+        const _LinkedNodeBundleReader().vTableGet(_bc, _bcOffset, 1, null);
+    return _bundle;
+  }
+}
+
+abstract class _CiderLinkedLibraryCycleMixin
+    implements idl.CiderLinkedLibraryCycle {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (signature.isNotEmpty) {
+      _result["signature"] = signature;
+    }
+    if (bundle != null) {
+      _result["bundle"] = bundle.toJson();
+    }
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+        "signature": signature,
+        "bundle": bundle,
+      };
+
+  @override
+  String toString() => convert.json.encode(toJson());
+}

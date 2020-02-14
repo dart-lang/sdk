@@ -2199,3 +2199,36 @@ abstract class UnlinkedUnit2 extends base.SummaryClass {
   @Id(4)
   List<String> get parts;
 }
+
+/// Information about a compilation unit, contains the content hash
+/// and unlinked summary.
+@TopLevel('CUUN')
+abstract class CiderUnlinkedUnit extends base.SummaryClass {
+  factory CiderUnlinkedUnit.fromBuffer(List<int> buffer) =>
+      generated.readCiderUnlinkedUnit(buffer);
+
+  /// The hash signature of the contents of the file.
+  @Id(0)
+  List<int> get contentDigest;
+
+  /// Unlinked summary of the compilation unit.
+  @Id(1)
+  UnlinkedUnit2 get unlinkedUnit;
+}
+
+/// Information about linked libraries, a group of libraries that form
+/// a library cycle.
+@TopLevel('CLNB')
+abstract class CiderLinkedLibraryCycle extends base.SummaryClass {
+  factory CiderLinkedLibraryCycle.fromBuffer(List<int> buffer) =>
+      generated.readCiderLinkedLibraryCycle(buffer);
+
+  /// The hash signature for this linked cycle. It depends of API signatures
+  /// of all files in the cycle, and on the signatures of the transitive
+  /// closure of the cycle dependencies.
+  @Id(0)
+  List<int> get signature;
+
+  @Id(1)
+  LinkedNodeBundle get bundle;
+}
