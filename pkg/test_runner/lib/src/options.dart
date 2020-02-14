@@ -816,6 +816,7 @@ compiler.''',
                   useAnalyzerCfe: data["use_cfe"] as bool,
                   useAnalyzerFastaParser:
                       data["analyzer_use_fasta_parser"] as bool,
+                  useBlobs: data["use_blobs"] as bool,
                   useElf: data["use_elf"] as bool,
                   useSdk: data["use_sdk"] as bool,
                   useHotReload: data["hot_reload"] as bool,

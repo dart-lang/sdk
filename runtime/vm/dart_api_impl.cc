@@ -6241,6 +6241,78 @@ Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
 #endif
 }
 
+DART_EXPORT Dart_Handle
+Dart_CreateAppAOTSnapshotAsBlobs(uint8_t** vm_snapshot_data_buffer,
+                                 intptr_t* vm_snapshot_data_size,
+                                 uint8_t** vm_snapshot_instructions_buffer,
+                                 intptr_t* vm_snapshot_instructions_size,
+                                 uint8_t** isolate_snapshot_data_buffer,
+                                 intptr_t* isolate_snapshot_data_size,
+                                 uint8_t** isolate_snapshot_instructions_buffer,
+                                 intptr_t* isolate_snapshot_instructions_size,
+                                 Dart_StreamingWriteCallback callback,
+                                 void* debug_callback_data) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  Isolate* I = T->isolate();
+  if (I->compilation_allowed()) {
+    return Api::NewError(
+        "Isolate is not precompiled. "
+        "Did you forget to call Dart_Precompile?");
+  }
+  CHECK_NULL(vm_snapshot_data_buffer);
+  CHECK_NULL(vm_snapshot_data_size);
+  CHECK_NULL(vm_snapshot_instructions_buffer);
+  CHECK_NULL(vm_snapshot_instructions_size);
+  CHECK_NULL(isolate_snapshot_data_buffer);
+  CHECK_NULL(isolate_snapshot_data_size);
+  CHECK_NULL(isolate_snapshot_instructions_buffer);
+  CHECK_NULL(isolate_snapshot_instructions_size);
+
+  TIMELINE_DURATION(T, Isolate, "WriteAppAOTSnapshot");
+
+  const bool generate_debug = debug_callback_data != nullptr;
+
+  StreamingWriteStream debug_stream(generate_debug ? kInitialDebugSize : 0,
+                                    callback, debug_callback_data);
+
+  Elf* elf = nullptr;
+  Dwarf* dwarf = nullptr;
+  if (generate_debug) {
+    elf = new (Z) Elf(Z, &debug_stream);
+    dwarf = new (Z) Dwarf(Z, nullptr, elf);
+  }
+
+  BlobImageWriter vm_image_writer(T, vm_snapshot_instructions_buffer,
+                                  ApiReallocate, kInitialSize, dwarf);
+  BlobImageWriter isolate_image_writer(T, isolate_snapshot_instructions_buffer,
+                                       ApiReallocate, kInitialSize, dwarf);
+  FullSnapshotWriter writer(Snapshot::kFullAOT, vm_snapshot_data_buffer,
+                            isolate_snapshot_data_buffer, ApiReallocate,
+                            &vm_image_writer, &isolate_image_writer);
+
+  writer.WriteFullSnapshot();
+  *vm_snapshot_data_size = writer.VmIsolateSnapshotSize();
+  *vm_snapshot_instructions_size = vm_image_writer.InstructionsBlobSize();
+  *isolate_snapshot_data_size = writer.IsolateSnapshotSize();
+  *isolate_snapshot_instructions_size =
+      isolate_image_writer.InstructionsBlobSize();
+
+  if (generate_debug) {
+    dwarf->Write();
+    elf->Finalize();
+  }
+
+  return Api::Success();
+#endif
+}
+
 #if (!defined(TARGET_ARCH_IA32) && !defined(DART_PRECOMPILED_RUNTIME))
 
 // Any flag that affects how we compile code might cause a problem when the

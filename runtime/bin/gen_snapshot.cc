@@ -81,6 +81,7 @@ enum SnapshotKind {
   kCoreJIT,
   kApp,
   kAppJIT,
+  kAppAOTBlobs,
   kAppAOTAssembly,
   kAppAOTElf,
   kVMAOTAssembly,
@@ -94,6 +95,7 @@ static const char* kSnapshotKindNames[] = {
     "core-jit",
     "app",
     "app-jit",
+    "app-aot-blobs",
     "app-aot-assembly",
     "app-aot-elf",
     "vm-aot-assembly",
@@ -144,7 +146,8 @@ DEFINE_ENUM_OPTION(snapshot_kind, SnapshotKind, snapshot_kind);
 DEFINE_CB_OPTION(ProcessEnvironmentOption);
 
 static bool IsSnapshottingForPrecompilation() {
-  return (snapshot_kind == kAppAOTAssembly) || (snapshot_kind == kAppAOTElf) ||
+  return (snapshot_kind == kAppAOTBlobs) ||
+         (snapshot_kind == kAppAOTAssembly) || (snapshot_kind == kAppAOTElf) ||
          (snapshot_kind == kVMAOTAssembly);
 }
 
@@ -279,6 +282,34 @@ static int ParseArguments(int argc,
             "--load_vm_snapshot_data and --load_vm_snapshot_instructions, an "
             " output file for --isolate_snapshot_data, and an output "
             "file for --isolate_snapshot_instructions.\n\n");
+        return -1;
+      }
+      break;
+    }
+    case kAppAOTBlobs: {
+      if ((blobs_container_filename == NULL) &&
+          ((vm_snapshot_data_filename == NULL) ||
+           (vm_snapshot_instructions_filename == NULL) ||
+           (isolate_snapshot_data_filename == NULL) ||
+           (isolate_snapshot_instructions_filename == NULL))) {
+        Syslog::PrintErr(
+            "Building an AOT snapshot as blobs requires specifying output "
+            "file for --blobs_container_filename or "
+            "files for --vm_snapshot_data, --vm_snapshot_instructions, "
+            "--isolate_snapshot_data and --isolate_snapshot_instructions.\n\n");
+        return -1;
+      }
+      if ((blobs_container_filename != NULL) &&
+          ((vm_snapshot_data_filename != NULL) ||
+           (vm_snapshot_instructions_filename != NULL) ||
+           (isolate_snapshot_data_filename != NULL) ||
+           (isolate_snapshot_instructions_filename != NULL))) {
+        Syslog::PrintErr(
+            "Building an AOT snapshot as blobs requires specifying output "
+            "file for --blobs_container_filename or "
+            "files for --vm_snapshot_data, --vm_snapshot_instructions, "
+            "--isolate_snapshot_data and --isolate_snapshot_instructions"
+            " not both.\n\n");
         return -1;
       }
       break;
@@ -638,6 +669,54 @@ static void CreateAndWritePrecompiledSnapshot() {
           "         To avoid this, use --strip to remove it and "
           "--save-debugging-info=<...> to save it to a separate file.\n");
     }
+  } else if (snapshot_kind == kAppAOTBlobs) {
+    Syslog::PrintErr(
+        "WARNING: app-aot-blobs snapshots have been deprecated and support for "
+        "generating them will be removed soon. Please use the app-aot-elf or "
+        "app-aot-assembly snapshot kinds in conjunction with the portable ELF "
+        "loader from //runtime/bin:elf_loader if necessary. See "
+        "http://dartbug.com/38764 for more details.\n");
+
+    uint8_t* vm_snapshot_data_buffer = NULL;
+    intptr_t vm_snapshot_data_size = 0;
+    uint8_t* vm_snapshot_instructions_buffer = NULL;
+    intptr_t vm_snapshot_instructions_size = 0;
+    uint8_t* isolate_snapshot_data_buffer = NULL;
+    intptr_t isolate_snapshot_data_size = 0;
+    uint8_t* isolate_snapshot_instructions_buffer = NULL;
+    intptr_t isolate_snapshot_instructions_size = 0;
+    File* debug_file = nullptr;
+    if (debugging_info_filename != nullptr) {
+      debug_file = OpenFile(debugging_info_filename);
+    }
+    result = Dart_CreateAppAOTSnapshotAsBlobs(
+        &vm_snapshot_data_buffer, &vm_snapshot_data_size,
+        &vm_snapshot_instructions_buffer, &vm_snapshot_instructions_size,
+        &isolate_snapshot_data_buffer, &isolate_snapshot_data_size,
+        &isolate_snapshot_instructions_buffer,
+        &isolate_snapshot_instructions_size, StreamingWriteCallback,
+        debug_file);
+    if (debug_file != nullptr) debug_file->Release();
+    CHECK_RESULT(result);
+
+    if (blobs_container_filename != NULL) {
+      Snapshot::WriteAppSnapshot(
+          blobs_container_filename, vm_snapshot_data_buffer,
+          vm_snapshot_data_size, vm_snapshot_instructions_buffer,
+          vm_snapshot_instructions_size, isolate_snapshot_data_buffer,
+          isolate_snapshot_data_size, isolate_snapshot_instructions_buffer,
+          isolate_snapshot_instructions_size);
+    } else {
+      WriteFile(vm_snapshot_data_filename, vm_snapshot_data_buffer,
+                vm_snapshot_data_size);
+      WriteFile(vm_snapshot_instructions_filename,
+                vm_snapshot_instructions_buffer, vm_snapshot_instructions_size);
+      WriteFile(isolate_snapshot_data_filename, isolate_snapshot_data_buffer,
+                isolate_snapshot_data_size);
+      WriteFile(isolate_snapshot_instructions_filename,
+                isolate_snapshot_instructions_buffer,
+                isolate_snapshot_instructions_size);
+    }
   } else {
     UNREACHABLE();
   }
@@ -747,6 +826,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
       CreateAndWriteAppJITSnapshot();
       break;
     case kAppAOTAssembly:
+    case kAppAOTBlobs:
     case kAppAOTElf:
       CreateAndWritePrecompiledSnapshot();
       break;

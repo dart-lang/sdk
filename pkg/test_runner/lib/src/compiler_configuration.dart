@@ -626,7 +626,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
           tempDir, arguments, environmentOverrides));
     }
 
-    if (!_configuration.useElf) {
+    if (!_configuration.useBlobs && !_configuration.useElf) {
       commands.add(
           computeAssembleCommand(tempDir, arguments, environmentOverrides));
       if (!_configuration.keepGeneratedFiles) {
@@ -698,7 +698,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     }
 
     var args = [
-      if (_configuration.useElf) ...[
+      if (_configuration.useBlobs) ...[
+        "--snapshot-kind=app-aot-blobs",
+        "--blobs_container_filename=$tempDir/out.aotsnapshot"
+      ] else if (_configuration.useElf) ...[
         "--snapshot-kind=app-aot-elf",
         "--elf=$tempDir/out.aotsnapshot"
       ] else ...[

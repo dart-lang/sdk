@@ -382,6 +382,7 @@ void main() {
         isMinified: true,
         useAnalyzerCfe: true,
         useAnalyzerFastaParser: true,
+        useBlobs: true,
         useElf: true,
         useHotReload: true,
         useHotReloadRollback: true,
@@ -411,6 +412,7 @@ architecture: ia32 x64
    minified: false true
    use-cfe: false true
    analyzer-use-fasta-parser: false true
+   use-blobs: false true
    host-checked: false true
    hot-reload: false true
    hot-reload-rollback: false true

@@ -547,6 +547,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
   final String processTestFilename;
   final String precompiledTestDirectory;
   final List<String> arguments;
+  final bool useBlobs;
   final bool useElf;
   final List<String> extraLibraries;
 
@@ -555,6 +556,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
       this.processTestFilename,
       this.precompiledTestDirectory,
       this.arguments,
+      this.useBlobs,
       this.useElf,
       this.extraLibraries,
       {int index = 0})
@@ -565,6 +567,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
       processTestFilename,
       precompiledTestDirectory,
       arguments,
+      useBlobs,
       useElf,
       extraLibraries,
       index: index);
@@ -579,6 +582,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
     builder.add(buildPath);
     builder.add(precompiledTestDirectory);
     builder.add(arguments);
+    builder.add(useBlobs);
     builder.add(useElf);
     extraLibraries.forEach(builder.add);
   }
@@ -586,6 +590,7 @@ class AdbPrecompilationCommand extends Command implements AdbCommand {
   bool _equal(AdbPrecompilationCommand other) =>
       super._equal(other) &&
       buildPath == other.buildPath &&
+      useBlobs == other.useBlobs &&
       useElf == other.useElf &&
       arguments == other.arguments &&
       precompiledTestDirectory == other.precompiledTestDirectory &&

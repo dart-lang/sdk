@@ -1028,8 +1028,8 @@ BlobImageWriter::BlobImageWriter(Thread* thread,
       bss_base_(bss_base),
       debug_dwarf_(debug_dwarf) {
 #if defined(DART_PRECOMPILER)
-  RELEASE_ASSERT(elf_ != nullptr &&
-                 (elf_dwarf_ == nullptr || elf_dwarf_->elf() == elf_));
+  RELEASE_ASSERT(elf_ == nullptr || elf_dwarf_ == nullptr ||
+                 elf_dwarf_->elf() == elf_);
 #else
   RELEASE_ASSERT(elf_ == nullptr);
   RELEASE_ASSERT(elf_dwarf_ == nullptr);
@@ -1048,9 +1048,10 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       FLAG_precompiled_mode && FLAG_use_bare_instructions;
 
 #ifdef DART_PRECOMPILER
-  ASSERT(elf_ != nullptr);
   intptr_t segment_base = 0;
-  segment_base = elf_->NextMemoryOffset();
+  if (elf_ != nullptr) {
+    segment_base = elf_->NextMemoryOffset();
+  }
   intptr_t debug_segment_base = 0;
   if (debug_dwarf_ != nullptr) {
     debug_segment_base = debug_dwarf_->elf()->NextMemoryOffset();
@@ -1063,7 +1064,8 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       next_text_offset_, compiler::target::ObjectAlignment::kObjectAlignment);
   instructions_blob_stream_.WriteTargetWord(image_size);
 #if defined(DART_PRECOMPILER)
-  instructions_blob_stream_.WriteTargetWord(bss_base_ - segment_base);
+  instructions_blob_stream_.WriteTargetWord(
+      elf_ != nullptr ? bss_base_ - segment_base : 0);
 #else
   instructions_blob_stream_.WriteTargetWord(0);  // No relocations.
 #endif
@@ -1210,7 +1212,7 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #endif
 
 #if defined(DART_PRECOMPILER)
-    if (elf_dwarf_ != nullptr) {
+    if (elf_ != nullptr && elf_dwarf_ != nullptr) {
       const auto& code = *instructions_[i].code_;
       auto const virtual_address = segment_base + payload_stream_start;
       elf_dwarf_->AddCode(code, virtual_address);
@@ -1223,33 +1225,39 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
       debug_dwarf_->AddCode(code, virtual_address);
     }
 
-    const intptr_t current_stream_position =
-        instructions_blob_stream_.Position();
+    // Don't patch the relocation if we're not generating ELF. The regular blobs
+    // format does not yet support these relocations. Use
+    // Code::VerifyBSSRelocations to check whether the relocations are patched
+    // or not after loading.
+    if (elf_ != nullptr) {
+      const intptr_t current_stream_position =
+          instructions_blob_stream_.Position();
 
-    descriptors = data.code_->pc_descriptors();
+      descriptors = data.code_->pc_descriptors();
 
-    PcDescriptors::Iterator iterator(
-        descriptors, /*kind_mask=*/RawPcDescriptors::kBSSRelocation);
+      PcDescriptors::Iterator iterator(
+          descriptors, /*kind_mask=*/RawPcDescriptors::kBSSRelocation);
 
-    while (iterator.MoveNext()) {
-      const intptr_t reloc_offset = iterator.PcOffset();
+      while (iterator.MoveNext()) {
+        const intptr_t reloc_offset = iterator.PcOffset();
 
-      // The instruction stream at the relocation position holds an offset
-      // into BSS corresponding to the symbol being resolved. This addend is
-      // factored into the relocation.
-      const auto addend = *reinterpret_cast<compiler::target::word*>(
-          insns.PayloadStart() + reloc_offset);
+        // The instruction stream at the relocation position holds an offset
+        // into BSS corresponding to the symbol being resolved. This addend is
+        // factored into the relocation.
+        const auto addend = *reinterpret_cast<compiler::target::word*>(
+            insns.PayloadStart() + reloc_offset);
 
-      // Overwrite the relocation position in the instruction stream with the
-      // (positive) offset of the start of the payload from the start of the
-      // BSS segment plus the addend in the relocation.
-      instructions_blob_stream_.SetPosition(payload_stream_start +
-                                            reloc_offset);
+        // Overwrite the relocation position in the instruction stream with the
+        // (positive) offset of the start of the payload from the start of the
+        // BSS segment plus the addend in the relocation.
+        instructions_blob_stream_.SetPosition(payload_stream_start +
+                                              reloc_offset);
 
-      const compiler::target::word offset =
-          bss_base_ - (segment_base + payload_stream_start + reloc_offset) +
-          addend;
-      instructions_blob_stream_.WriteTargetWord(offset);
+        const compiler::target::word offset =
+            bss_base_ - (segment_base + payload_stream_start + reloc_offset) +
+            addend;
+        instructions_blob_stream_.WriteTargetWord(offset);
+      }
 
       // Restore stream position after the relocation was patched.
       instructions_blob_stream_.SetPosition(current_stream_position);
@@ -1273,10 +1281,12 @@ void BlobImageWriter::WriteText(WriteStream* clustered_stream, bool vm) {
 #ifdef DART_PRECOMPILER
   const char* instructions_symbol =
       vm ? "_kDartVmSnapshotInstructions" : "_kDartIsolateSnapshotInstructions";
-  auto const segment_base2 =
-      elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
-                    instructions_blob_stream_.bytes_written());
-  ASSERT(segment_base == segment_base2);
+  if (elf_ != nullptr) {
+    auto const segment_base2 =
+        elf_->AddText(instructions_symbol, instructions_blob_stream_.buffer(),
+                      instructions_blob_stream_.bytes_written());
+    ASSERT(segment_base == segment_base2);
+  }
   if (debug_dwarf_ != nullptr) {
     auto const debug_segment_base2 = debug_dwarf_->elf()->AddText(
         instructions_symbol, instructions_blob_stream_.buffer(),
