@@ -1350,6 +1350,19 @@ class SummaryCollector extends RecursiveVisitor<TypeExpr> {
   }
 
   @override
+  TypeExpr visitNullCheck(NullCheck node) {
+    final operandNode = node.operand;
+    final TypeExpr result = _makeNarrow(_visit(operandNode), const AnyType());
+    if (operandNode is VariableGet) {
+      final int varIndex = _variablesInfo.varIndex[operandNode.variable];
+      if (_variableCells[varIndex] == null) {
+        _variableValues[varIndex] = result;
+      }
+    }
+    return result;
+  }
+
+  @override
   TypeExpr visitBoolLiteral(BoolLiteral node) {
     return _boolLiteralType(node.value);
   }
