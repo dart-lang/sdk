@@ -1,33 +1,15 @@
-ERROR|COMPILE_TIME_ERROR|CONST_EVAL_THROWS_EXCEPTION|lib/developer/developer.dart|522|5|73|Evaluation of this constant expression throws an exception.
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '&': int.& (int* Function(int*)*), JSNumber.& (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '<<': int.<< (int* Function(int*)*), JSNumber.<< (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '>>': int.>> (int* Function(int*)*), JSNumber.>> (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '\|': int.\| (int* Function(int*)*), JSNumber.\| (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '^': int.^ (int* Function(int*)*), JSNumber.^ (num Function(num)).
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1139|7|14|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1141|7|12|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1143|7|17|'JSArray.[]=' ('void Function(int, E)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/interceptors.dart|1958|10|12|'JSString.splitMapJoin' ('String Function(Pattern, {String Function(Match)? onMatch, String Function(Match)? onNonMatch})') isn't a valid override of 'String.splitMapJoin' ('String* Function(Pattern*, {String* Function(Match*)* onMatch, String* Function(String*)* onNonMatch})*').
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '&': int.& (int Function(int)), JSNumber.& (num Function(num)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '<<': int.<< (int Function(int)), JSNumber.<< (num Function(num)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '>>': int.>> (int Function(int)), JSNumber.>> (num Function(num)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '\|': int.\| (int Function(int)), JSNumber.\| (num Function(num)).
+ERROR|COMPILE_TIME_ERROR|INCONSISTENT_INHERITANCE|lib/_internal/js_runtime/lib/interceptors.dart|1639|7|5|Superinterfaces don't have a valid override for '^': int.^ (int Function(int)), JSNumber.^ (num Function(num)).
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|703|17|3|'NativeTypedArrayOfDouble.[]=' ('void Function(int, double)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
 ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/_internal/js_runtime/lib/native_typed_data.dart|724|17|3|'NativeTypedArrayOfInt.[]=' ('void Function(int, int)') isn't a valid override of 'JSMutableIndexable.[]=' ('void Function(int, dynamic)').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/async/async.dart|5764|17|2|'_ControllerStream.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/internal/internal.dart|2657|17|2|'Symbol.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/internal/internal.dart|2657|17|2|'Symbol.==' ('bool Function(Object)') isn't a valid override of 'Symbol.==' ('bool* Function(dynamic)*').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/js/js.dart|221|17|2|'JsObject.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/js/js.dart|329|7|7|'JsObject.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/math/math.dart|260|17|2|'Point.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
-ERROR|COMPILE_TIME_ERROR|INVALID_OVERRIDE|lib/math/math.dart|399|17|2|'_RectangleBase.==' ('bool Function(Object)') isn't a valid override of 'Object.==' ('bool* Function(dynamic)*').
-ERROR|STATIC_TYPE_WARNING|RETURN_OF_INVALID_TYPE_FROM_CLOSURE|lib/collection/collection.dart|4836|53|10|The return type 'V?' isn't a 'V', as required by the closure's context.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1656|28|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1658|27|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1661|17|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1666|18|1|The operator '&' isn't defined for the type 'JSInt'.
 ERROR|STATIC_TYPE_WARNING|UNDEFINED_OPERATOR|lib/_internal/js_runtime/lib/interceptors.dart|1666|44|1|The operator '&' isn't defined for the type 'JSInt'.
-ERROR|STATIC_WARNING|NEW_WITH_UNDEFINED_CONSTRUCTOR|lib/_http/http.dart|2395|28|5|The class 'List' doesn't have a constructor named 'empty'.
-ERROR|STATIC_WARNING|NEW_WITH_UNDEFINED_CONSTRUCTOR|lib/collection/collection.dart|1693|38|5|The class 'List' doesn't have a constructor named 'empty'.
-ERROR|STATIC_WARNING|NEW_WITH_UNDEFINED_CONSTRUCTOR|lib/collection/collection.dart|3026|37|5|The class 'List' doesn't have a constructor named 'empty'.
-ERROR|STATIC_WARNING|NEW_WITH_UNDEFINED_CONSTRUCTOR|lib/internal/internal.dart|1205|37|5|The class 'List' doesn't have a constructor named 'empty'.
-ERROR|STATIC_WARNING|NEW_WITH_UNDEFINED_CONSTRUCTOR|lib/internal/internal.dart|1663|52|5|The class 'List' doesn't have a constructor named 'empty'.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|1463|39|5|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|8345|60|5|The left operand can't be null, so the right operand is never executed.
 WARNING|STATIC_WARNING|DEAD_NULL_COALESCE|lib/_http/http.dart|9272|54|5|The left operand can't be null, so the right operand is never executed.

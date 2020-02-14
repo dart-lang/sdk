@@ -575,9 +575,10 @@ class _SyncStarIterator<T> implements Iterator<T> {
 
   _SyncStarIterator(this._body);
 
-  T? get current {
+  T get current {
     var nested = _nestedIterator;
-    return nested != null ? nested.current : _current;
+    var result = nested != null ? nested.current : _current;
+    return result as T;
   }
 
   _runBody() {

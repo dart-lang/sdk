@@ -93,7 +93,7 @@ class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 
   Iterable<V> get values {
-    return new MappedIterable<K, V>(keys, (each) => this[each]);
+    return new MappedIterable<K, V>(keys, (each) => this[each] as V);
   }
 
   bool containsKey(Object? key) {

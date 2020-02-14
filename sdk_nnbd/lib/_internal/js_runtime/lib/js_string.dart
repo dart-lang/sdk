@@ -67,7 +67,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   String splitMapJoin(Pattern from,
-      {String Function(Match)? onMatch, String Function(Match)? onNonMatch}) {
+      {String Function(Match)? onMatch, String Function(String)? onNonMatch}) {
     return stringReplaceAllFuncUnchecked(this, from, onMatch, onNonMatch);
   }
 
