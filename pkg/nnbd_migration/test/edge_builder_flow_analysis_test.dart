@@ -1230,7 +1230,7 @@ void g(List<int> j) {}
     assertNoEdge(nNode, jNode);
     // But there is an edge from nonNull(List<int>) to j
     assertEdge(inSet(neverClosure), jNode, hard: false);
-    assertEdge(intParamNode, jParamNode, hard: false);
+    assertEdge(intParamNode, jParamNode, hard: false, checkable: false);
   }
 
   Future<void> test_postfixDecrement() async {
