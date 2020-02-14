@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io' as io;
+import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/protocol_server.dart'
@@ -23,15 +24,17 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 
 Future<void> main(List<String> args) async {
+  var out = io.stdout;
   if (args.isEmpty) {
-    print('Usage: a single absolute file path to analyze.');
+    out.writeln('Usage: a single absolute file path to analyze.');
+    await out.flush();
     io.exit(1);
   }
 
   var rootPath = args[0];
-  print('Analyzing root: \"$rootPath\"');
+  out.writeln('Analyzing root: \"$rootPath\"');
   if (!io.Directory(rootPath).existsSync()) {
-    print('\tError: No such directory exists on this machine.\n');
+    out.writeln('\tError: No such directory exists on this machine.\n');
     return;
   }
 
@@ -41,8 +44,9 @@ Future<void> main(List<String> args) async {
   await computer.compute(rootPath);
   stopwatch.stop();
   var duration = Duration(milliseconds: stopwatch.elapsedMilliseconds);
-  print('  Metrics computed in $duration');
-  computer.printMetrics();
+  out.writeln('  Metrics computed in $duration');
+  computer.writeMetrics(out);
+  await out.flush();
   io.exit(0);
 }
 
@@ -1378,48 +1382,151 @@ class RelevanceMetricsComputer {
     }
   }
 
-  /// Print a report of the metrics that were computed.
-  void printMetrics() {
-    print('');
-    print('Node classes by context');
-    _printContextMap(data.byNodeClass);
-    print('');
-    print('Element kinds by context');
-    _printContextMap(data.byElementKind);
-    print('');
-    print('Token types by context');
-    _printContextMap(data.byTokenType);
-    print('');
-    print('Argument types match');
-    _printContextMap(data.byTypeMatch);
-    print('');
-    print('Distance from reference to declaration');
-    _printContextMap(data.byDistance);
+  /// Write a report of the metrics that were computed to the [sink].
+  void writeMetrics(StringSink sink) {
+    sink.writeln('');
+    _writeSideBySide(
+        sink,
+        [data.byTokenType, data.byElementKind, data.byNodeClass],
+        ['Token Types', 'Element Kinds', 'Node Classes']);
+    sink.writeln('');
+    sink.writeln('Argument types match');
+    _writeContextMap(sink, data.byTypeMatch);
+    sink.writeln('');
+    sink.writeln('Distance from reference to declaration');
+    _writeContextMap(sink, data.byDistance);
   }
 
-  /// Print a [contextMap] containing one kind of metric data, using the
-  /// [getName] function to print the second-level keys.
-  void _printContextMap(Map<String, Map<String, int>> contextMap) {
+  /// Return the minimum widths for each of the columns in the given [table].
+  ///
+  /// The table is represented as a list or rows, where each row is a list of the
+  /// contents of the cells in that row.
+  ///
+  /// Throws an [ArgumentError] if the table is empty or if the rows do not
+  /// contain the same number of cells.
+  List<int> _computeColumnWidths(List<List<String>> table) {
+    if (table.isEmpty) {
+      throw ArgumentError('table cannot be empty');
+    }
+    var columnCount = table[0].length;
+    if (columnCount == 0) {
+      throw ArgumentError('rows cannot be empty');
+    }
+    var columnWidths = List<int>.filled(columnCount, 0);
+    for (var row in table) {
+      var rowLength = row.length;
+      if (rowLength > 0) {
+        if (rowLength != columnCount) {
+          throw ArgumentError(
+              'non-empty rows must contain the same number of columns');
+        }
+        for (int i = 0; i < rowLength; i++) {
+          var cellWidth = row[i].length;
+          columnWidths[i] = math.max(columnWidths[i], cellWidth);
+        }
+      }
+    }
+    return columnWidths;
+  }
+
+  /// Convert the contents of a single [map] into the values for each row in the
+  /// column occupied by the map.
+  List<String> _convertMap(String context, Map<String, int> map) {
+    var columns = <String>[];
+    if (map == null) {
+      return columns;
+    }
+    var entries = map.entries.toList()
+      ..sort((first, second) {
+        return second.value.compareTo(first.value);
+      });
+    var total = 0;
+    for (var entry in entries) {
+      total += entry.value;
+    }
+    columns.add('$context ($total)');
+    for (var entry in entries) {
+      var value = entry.value;
+      var percent = ((value / total) * 100).toStringAsFixed(1);
+      if (percent.length < 4) {
+        percent = ' $percent';
+      }
+      columns.add('  $percent%: ${entry.key} ($value)');
+    }
+    return columns;
+  }
+
+  /// Convert the data in a list of [maps] into a table with one column per map.
+  /// The columns will be titled using the given [columnTitles].
+  List<List<String>> _createTable(
+      List<Map<String, Map<String, int>>> maps, List<String> columnTitles) {
+    var uniqueContexts = <String>{};
+    for (var map in maps) {
+      uniqueContexts.addAll(map.keys);
+    }
+    var contexts = uniqueContexts.toList()..sort();
+
+    var blankRow = <String>[];
+    var table = <List<String>>[];
+    table.add(columnTitles);
+    for (var context in contexts) {
+      var columns = maps.map((map) => _convertMap(context, map[context]));
+      var maxRowCount = columns.fold<int>(
+          0, (previous, column) => math.max(previous, column.length));
+      for (var i = 0; i < maxRowCount; i++) {
+        var row = <String>[];
+        for (var column in columns) {
+          if (i < column.length) {
+            row.add(column[i]);
+          } else {
+            row.add('');
+          }
+        }
+        table.add(row);
+      }
+      table.add(blankRow);
+    }
+    return table;
+  }
+
+  /// Write a [contextMap] containing one kind of metric data to the [sink].
+  void _writeContextMap(
+      StringSink sink, Map<String, Map<String, int>> contextMap) {
     var contexts = contextMap.keys.toList()..sort();
     for (var context in contexts) {
-      var kindMap = contextMap[context];
-      var entries = kindMap.entries.toList()
-        ..sort((first, second) {
-          return second.value.compareTo(first.value);
-        });
-      var total = 0;
-      for (var entry in entries) {
-        total += entry.value;
+      var lines = _convertMap(context, contextMap[context]);
+      for (var line in lines) {
+        sink.writeln('  $line');
       }
-      print('  $context ($total)');
-      for (var entry in entries) {
-        var value = entry.value;
-        var percent = ((value / total) * 100).toStringAsFixed(1);
-        if (percent.length < 4) {
-          percent = ' $percent';
-        }
-        print('    $percent%: ${entry.key} ($value)');
+    }
+  }
+
+  /// Write the given [maps] to the given [sink], formatting them as side-by-side
+  /// columns titled by the given [columnTitles].
+  void _writeSideBySide(StringSink sink,
+      List<Map<String, Map<String, int>>> maps, List<String> columnTitles) {
+    var table = _createTable(maps, columnTitles);
+    _writeTable(sink, table);
+  }
+
+  /// Write the given [table] to the [sink].
+  ///
+  /// The table is represented as a list or rows, where each row is a list of the
+  /// contents of the cells in that row.
+  ///
+  /// Throws an [ArgumentError] if the table is empty or if the rows do not
+  /// contain the same number of cells.
+  void _writeTable(StringSink sink, List<List<String>> table) {
+    var columnWidths = _computeColumnWidths(table);
+    for (var row in table) {
+      for (int i = 0; i < row.length; i++) {
+        var cellContent = row[i];
+        var columnWidth = columnWidths[i];
+        var padding = columnWidth - cellContent.length;
+        sink.write(cellContent);
+        sink.write(' ' * (padding + 2));
       }
+      sink.writeln();
     }
   }
 
