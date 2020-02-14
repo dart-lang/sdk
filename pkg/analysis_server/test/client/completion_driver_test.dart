@@ -265,7 +265,7 @@ void main() {
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
-  /// see: https://github.com/dart-lang/sdk/issues/40620
+  /// See: https://github.com/dart-lang/sdk/issues/40620
   Future<void> test_project_filterImports_enumValues() async {
     await addProjectFile('lib/a.dart', r'''
 enum E {
@@ -289,7 +289,7 @@ void main() {
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
-  /// see: https://github.com/dart-lang/sdk/issues/40620
+  /// See: https://github.com/dart-lang/sdk/issues/40620
   Future<void> test_project_filterImports_namedConstructors() async {
     await addProjectFile('lib/a.dart', r'''
 class A {
@@ -505,6 +505,27 @@ void main(List<String> args) {
                 element: ElementKind.CLASS,
                 kind: CompletionSuggestionKind.INVOCATION)
             .relevance));
+  }
+
+  /// See: https://github.com/dart-lang/sdk/issues/35529
+  Future<void> test_project_suggestMixins() async {
+    await addProjectFile('lib/a.dart', r'''
+mixin M { }
+class A { }
+''');
+
+    await addTestFile('''
+class C extends Object with ^
+''');
+
+    assertSuggestion(
+        completion: 'M',
+        element: ElementKind.MIXIN,
+        kind: CompletionSuggestionKind.INVOCATION);
+    assertSuggestion(
+        completion: 'A',
+        element: ElementKind.CLASS,
+        kind: CompletionSuggestionKind.INVOCATION);
   }
 
   Future<void> test_sdk_lib_future_isNotDuplicated() async {
