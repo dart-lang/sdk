@@ -267,6 +267,7 @@
   SIZEOF(Code, InstanceSize, RawCode)                                          \
   SIZEOF(CodeSourceMap, InstanceSize, RawCodeSourceMap)                        \
   SIZEOF(CompressedStackMaps, InstanceSize, RawCompressedStackMaps)            \
+  SIZEOF(CompressedStackMaps, HeaderSize, RawCompressedStackMaps)              \
   SIZEOF(Context, InstanceSize, RawContext)                                    \
   SIZEOF(Context, header_size, RawContext)                                     \
   SIZEOF(ContextScope, InstanceSize, RawContextScope)                          \

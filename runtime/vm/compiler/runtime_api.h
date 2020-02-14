@@ -750,6 +750,7 @@ class CodeSourceMap : public AllStatic {
 
 class CompressedStackMaps : public AllStatic {
  public:
+  static word HeaderSize();
   static word InstanceSize();
   static word NextFieldOffset();
 };

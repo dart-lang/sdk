@@ -668,6 +668,7 @@ void Object::Init(Isolate* isolate) {
   *null_type_arguments_ = TypeArguments::null();
   *empty_type_arguments_ = TypeArguments::null();
   *null_abstract_type_ = AbstractType::null();
+  *null_compressed_stack_maps_ = CompressedStackMaps::null();
 
   // Initialize the empty and zero array handles to null_ in order to be able to
   // check if the empty and zero arrays were allocated (RAW_NULL is not
@@ -1136,6 +1137,8 @@ void Object::Init(Isolate* isolate) {
   ASSERT(null_function_->IsFunction());
   ASSERT(!null_type_arguments_->IsSmi());
   ASSERT(null_type_arguments_->IsTypeArguments());
+  ASSERT(!null_compressed_stack_maps_->IsSmi());
+  ASSERT(null_compressed_stack_maps_->IsCompressedStackMaps());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
   ASSERT(!zero_array_->IsSmi());
@@ -13487,8 +13490,11 @@ intptr_t CompressedStackMaps::Hashcode() const {
 
 RawCompressedStackMaps* CompressedStackMaps::New(
     const GrowableArray<uint8_t>& payload,
-    RawCompressedStackMaps::Kind kind) {
+    bool is_global_table,
+    bool uses_global_table) {
   ASSERT(Object::compressed_stackmaps_class() != Class::null());
+  // We don't currently allow both flags to be true.
+  ASSERT(!is_global_table || !uses_global_table);
   auto& result = CompressedStackMaps::Handle();
 
   const uintptr_t payload_size = payload.length();
@@ -13506,46 +13512,28 @@ RawCompressedStackMaps* CompressedStackMaps::New(
         CompressedStackMaps::InstanceSize(payload_size), Heap::kOld);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.set_payload_size(payload_size, kind);
+    result.StoreNonPointer(
+        &result.raw_ptr()->flags_and_size_,
+        RawCompressedStackMaps::GlobalTableBit::encode(is_global_table) |
+            RawCompressedStackMaps::UsesTableBit::encode(uses_global_table) |
+            RawCompressedStackMaps::SizeField::encode(payload_size));
+    auto cursor = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
+    memcpy(cursor, payload.data(), payload.length());  // NOLINT
   }
-  result.SetPayload(payload);
+
+  ASSERT(!result.IsGlobalTable() || !result.UsesGlobalTable());
 
   return result.raw();
-}
-
-void CompressedStackMaps::SetPayload(
-    const GrowableArray<uint8_t>& payload) const {
-  const uintptr_t array_length = payload.length();
-  ASSERT(array_length <= payload_size());
-
-  NoSafepointScope no_safepoint;
-  uint8_t* payload_start = UnsafeMutableNonPointer(raw_ptr()->data());
-  for (uintptr_t i = 0; i < array_length; i++) {
-    payload_start[i] = payload.At(i);
-  }
 }
 
 const char* CompressedStackMaps::ToCString() const {
   ASSERT(!IsGlobalTable());
   auto const t = Thread::Current();
   auto zone = t->zone();
-  ZoneTextBuffer b(zone, 100);
   const auto& global_table = CompressedStackMaps::Handle(
       zone, t->isolate()->object_store()->canonicalized_stack_map_entries());
   CompressedStackMapsIterator it(*this, global_table);
-  bool first_entry = true;
-  while (it.MoveNext()) {
-    if (first_entry) {
-      first_entry = false;
-    } else {
-      b.AddString("\n");
-    }
-    b.Printf("0x%08x: ", it.pc_offset());
-    for (intptr_t i = 0, n = it.Length(); i < n; i++) {
-      b.AddString(it.IsObject(i) ? "1" : "0");
-    }
-  }
-  return b.buffer();
+  return it.ToCString(zone);
 }
 
 RawString* LocalVarDescriptors::GetName(intptr_t var_index) const {

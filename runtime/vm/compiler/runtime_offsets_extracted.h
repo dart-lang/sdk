@@ -389,6 +389,8 @@ static constexpr dart::compiler::target::word Code_InstanceSize = 96;
 static constexpr dart::compiler::target::word CodeSourceMap_InstanceSize = 8;
 static constexpr dart::compiler::target::word CompressedStackMaps_InstanceSize =
     8;
+static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
+    8;
 static constexpr dart::compiler::target::word Context_InstanceSize = 12;
 static constexpr dart::compiler::target::word Context_header_size = 12;
 static constexpr dart::compiler::target::word ContextScope_InstanceSize = 12;
@@ -851,6 +853,8 @@ static constexpr dart::compiler::target::word ClosureData_InstanceSize = 40;
 static constexpr dart::compiler::target::word Code_InstanceSize = 176;
 static constexpr dart::compiler::target::word CodeSourceMap_InstanceSize = 16;
 static constexpr dart::compiler::target::word CompressedStackMaps_InstanceSize =
+    12;
+static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
     12;
 static constexpr dart::compiler::target::word Context_InstanceSize = 24;
 static constexpr dart::compiler::target::word Context_header_size = 24;
@@ -1308,6 +1312,8 @@ static constexpr dart::compiler::target::word Code_InstanceSize = 96;
 static constexpr dart::compiler::target::word CodeSourceMap_InstanceSize = 8;
 static constexpr dart::compiler::target::word CompressedStackMaps_InstanceSize =
     8;
+static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
+    8;
 static constexpr dart::compiler::target::word Context_InstanceSize = 12;
 static constexpr dart::compiler::target::word Context_header_size = 12;
 static constexpr dart::compiler::target::word ContextScope_InstanceSize = 12;
@@ -1772,6 +1778,8 @@ static constexpr dart::compiler::target::word Code_InstanceSize = 176;
 static constexpr dart::compiler::target::word CodeSourceMap_InstanceSize = 16;
 static constexpr dart::compiler::target::word CompressedStackMaps_InstanceSize =
     12;
+static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
+    12;
 static constexpr dart::compiler::target::word Context_InstanceSize = 24;
 static constexpr dart::compiler::target::word Context_header_size = 24;
 static constexpr dart::compiler::target::word ContextScope_InstanceSize = 16;
@@ -2227,6 +2235,8 @@ static constexpr dart::compiler::target::word ClosureData_InstanceSize = 20;
 static constexpr dart::compiler::target::word Code_InstanceSize = 76;
 static constexpr dart::compiler::target::word CodeSourceMap_InstanceSize = 8;
 static constexpr dart::compiler::target::word CompressedStackMaps_InstanceSize =
+    8;
+static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
     8;
 static constexpr dart::compiler::target::word Context_InstanceSize = 12;
 static constexpr dart::compiler::target::word Context_header_size = 12;
@@ -2685,6 +2695,8 @@ static constexpr dart::compiler::target::word Code_InstanceSize = 144;
 static constexpr dart::compiler::target::word CodeSourceMap_InstanceSize = 16;
 static constexpr dart::compiler::target::word CompressedStackMaps_InstanceSize =
     12;
+static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
+    12;
 static constexpr dart::compiler::target::word Context_InstanceSize = 24;
 static constexpr dart::compiler::target::word Context_header_size = 24;
 static constexpr dart::compiler::target::word ContextScope_InstanceSize = 16;
@@ -3134,6 +3146,8 @@ static constexpr dart::compiler::target::word ClosureData_InstanceSize = 20;
 static constexpr dart::compiler::target::word Code_InstanceSize = 76;
 static constexpr dart::compiler::target::word CodeSourceMap_InstanceSize = 8;
 static constexpr dart::compiler::target::word CompressedStackMaps_InstanceSize =
+    8;
+static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
     8;
 static constexpr dart::compiler::target::word Context_InstanceSize = 12;
 static constexpr dart::compiler::target::word Context_header_size = 12;
@@ -3592,6 +3606,8 @@ static constexpr dart::compiler::target::word ClosureData_InstanceSize = 40;
 static constexpr dart::compiler::target::word Code_InstanceSize = 144;
 static constexpr dart::compiler::target::word CodeSourceMap_InstanceSize = 16;
 static constexpr dart::compiler::target::word CompressedStackMaps_InstanceSize =
+    12;
+static constexpr dart::compiler::target::word CompressedStackMaps_HeaderSize =
     12;
 static constexpr dart::compiler::target::word Context_InstanceSize = 24;
 static constexpr dart::compiler::target::word Context_header_size = 24;
@@ -4083,6 +4099,8 @@ static constexpr dart::compiler::target::word AOT_CodeSourceMap_InstanceSize =
     8;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_InstanceSize = 8;
+static constexpr dart::compiler::target::word
+    AOT_CompressedStackMaps_HeaderSize = 8;
 static constexpr dart::compiler::target::word AOT_Context_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_Context_header_size = 12;
 static constexpr dart::compiler::target::word AOT_ContextScope_InstanceSize =
@@ -4588,6 +4606,8 @@ static constexpr dart::compiler::target::word AOT_CodeSourceMap_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_InstanceSize = 12;
+static constexpr dart::compiler::target::word
+    AOT_CompressedStackMaps_HeaderSize = 12;
 static constexpr dart::compiler::target::word AOT_Context_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
 static constexpr dart::compiler::target::word AOT_ContextScope_InstanceSize =
@@ -5098,6 +5118,8 @@ static constexpr dart::compiler::target::word AOT_CodeSourceMap_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_InstanceSize = 12;
+static constexpr dart::compiler::target::word
+    AOT_CompressedStackMaps_HeaderSize = 12;
 static constexpr dart::compiler::target::word AOT_Context_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
 static constexpr dart::compiler::target::word AOT_ContextScope_InstanceSize =
@@ -5598,6 +5620,8 @@ static constexpr dart::compiler::target::word AOT_CodeSourceMap_InstanceSize =
     8;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_InstanceSize = 8;
+static constexpr dart::compiler::target::word
+    AOT_CompressedStackMaps_HeaderSize = 8;
 static constexpr dart::compiler::target::word AOT_Context_InstanceSize = 12;
 static constexpr dart::compiler::target::word AOT_Context_header_size = 12;
 static constexpr dart::compiler::target::word AOT_ContextScope_InstanceSize =
@@ -6096,6 +6120,8 @@ static constexpr dart::compiler::target::word AOT_CodeSourceMap_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_InstanceSize = 12;
+static constexpr dart::compiler::target::word
+    AOT_CompressedStackMaps_HeaderSize = 12;
 static constexpr dart::compiler::target::word AOT_Context_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
 static constexpr dart::compiler::target::word AOT_ContextScope_InstanceSize =
@@ -6599,6 +6625,8 @@ static constexpr dart::compiler::target::word AOT_CodeSourceMap_InstanceSize =
     16;
 static constexpr dart::compiler::target::word
     AOT_CompressedStackMaps_InstanceSize = 12;
+static constexpr dart::compiler::target::word
+    AOT_CompressedStackMaps_HeaderSize = 12;
 static constexpr dart::compiler::target::word AOT_Context_InstanceSize = 24;
 static constexpr dart::compiler::target::word AOT_Context_header_size = 24;
 static constexpr dart::compiler::target::word AOT_ContextScope_InstanceSize =

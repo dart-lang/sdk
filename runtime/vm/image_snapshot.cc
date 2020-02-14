@@ -157,10 +157,8 @@ static intptr_t InstructionsSizeInSnapshot(RawInstructions* raw) {
 
 #if defined(IS_SIMARM_X64)
 static intptr_t CompressedStackMapsSizeInSnapshot(intptr_t payload_size) {
-  // We do not need to round the non-payload size up to a word boundary because
-  // currently sizeof(RawCompressedStackMaps) is 12, even on 64-bit.
   const intptr_t unrounded_size_in_bytes =
-      compiler::target::kWordSize + sizeof(uint32_t) + payload_size;
+      compiler::target::CompressedStackMaps::HeaderSize() + payload_size;
   return Utils::RoundUp(unrounded_size_in_bytes,
                         compiler::target::ObjectAlignment::kObjectAlignment);
 }
@@ -198,7 +196,8 @@ intptr_t ImageWriter::SizeInSnapshot(RawObject* raw_object) {
     case kCompressedStackMapsCid: {
       RawCompressedStackMaps* raw_maps =
           static_cast<RawCompressedStackMaps*>(raw_object);
-      return CompressedStackMapsSizeInSnapshot(raw_maps->ptr()->payload_size());
+      auto const payload_size = CompressedStackMaps::PayloadSizeOf(raw_maps);
+      return CompressedStackMapsSizeInSnapshot(payload_size);
     }
     case kOneByteStringCid:
     case kTwoByteStringCid: {
@@ -397,18 +396,17 @@ void ImageWriter::WriteROData(WriteStream* stream) {
         "host object alignment is not double target object alignment");
     if (obj.IsCompressedStackMaps()) {
       const CompressedStackMaps& map = CompressedStackMaps::Cast(obj);
+      auto const object_start = stream->Position();
 
-      // Header layout is the same between 32-bit and 64-bit architecture, but
-      // we need to recalcuate the size in words.
       const intptr_t payload_size = map.payload_size();
       const intptr_t size_in_bytes =
           CompressedStackMapsSizeInSnapshot(payload_size);
       marked_tags = RawObject::SizeTag::update(size_in_bytes * 2, marked_tags);
 
       stream->WriteTargetWord(marked_tags);
-      // We do not need to align the stream to a word boundary on 64-bit because
-      // sizeof(RawCompressedStackMaps) is 12, even there.
       stream->WriteFixed<uint32_t>(map.raw()->ptr()->flags_and_size_);
+      ASSERT_EQUAL(stream->Position() - object_start,
+                   compiler::target::CompressedStackMaps::HeaderSize());
       stream->WriteBytes(map.raw()->ptr()->data(), payload_size);
       stream->Align(compiler::target::ObjectAlignment::kObjectAlignment);
     } else if (obj.IsString()) {

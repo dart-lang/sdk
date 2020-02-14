@@ -1752,12 +1752,13 @@ class RawCompressedStackMaps : public RawObject {
   // The low bits determine the expected payload contents, as described below.
   uint32_t flags_and_size_;
 
-  // Variable length data follows here. There are three types of
-  // CompressedStackMaps (CSM):
+  // Variable length data follows here. The contents of the payload depend on
+  // the type of CompressedStackMaps (CSM) being represented. There are three
+  // major types of CSM:
   //
-  // 1) kind == kInlined: CSMs that include all information about the stack
-  //    maps. The payload for these contain tightly packed entries with the
-  //    following information:
+  // 1) GlobalTableBit = false, UsesTableBit = false: CSMs that include all
+  //    information about the stack maps. The payload for these contain tightly
+  //    packed entries with the following information:
   //
   //   * A header containing the following three pieces of information:
   //     * An unsigned integer representing the PC offset as a delta from the
@@ -1769,17 +1770,20 @@ class RawCompressedStackMaps : public RawObject {
   //   * The body containing the bits for the stack map. The length of the body
   //     in bits is the sum of the spill slot and non-spill slot bit counts.
   //
-  // 2) kind == kUsesTable: CSMs where the majority of the stack map information
-  //    has been offloaded and canonicalized into a global table. The payload
-  //    contains tightly packed entries with the following information:
+  // 2) GlobalTableBit = false, UsesTableBit = true: CSMs where the majority of
+  //    the stack map information has been offloaded and canonicalized into a
+  //    global table. The payload contains tightly packed entries with the
+  //    following information:
   //
   //   * A header containing just an unsigned integer representing the PC offset
   //     delta as described above.
   //   * The body is just an unsigned integer containing the offset into the
   //     payload for the global table.
   //
-  // 3) kind == kGlobalTable: A CSM implementing the global table. Here, the
-  //    payload contains tightly packed entries with the following information:
+  // 3) GlobalTableBit = true, UsesTableBit = false: A CSM implementing the
+  //    global table. Here, the payload contains tightly packed entries with
+  //    the following information:
+  //
   //   * A header containing the following two pieces of information:
   //     * An unsigned integer representing the number of bits used for
   //       spill slot entries.
@@ -1799,23 +1803,14 @@ class RawCompressedStackMaps : public RawObject {
   uint8_t* data() { OPEN_ARRAY_START(uint8_t, uint8_t); }
   const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, uint8_t); }
 
-  enum Kind {
-    kInlined = 0b00,
-    kUsesTable = 0b01,
-    kGlobalTable = 0b10,
-  };
-
-  static const uintptr_t kKindBits = 2;
-  using KindField = BitField<uint32_t, Kind, 0, kKindBits>;
-  using SizeField = BitField<uint32_t, uint32_t, kKindBits, 32 - kKindBits>;
-
-  uint32_t payload_size() const { return SizeField::decode(flags_and_size_); }
-  bool UsesGlobalTable() const {
-    return KindField::decode(flags_and_size_) == kUsesTable;
-  }
-  bool IsGlobalTable() const {
-    return KindField::decode(flags_and_size_) == kGlobalTable;
-  }
+  class GlobalTableBit : public BitField<uint32_t, bool, 0, 1> {};
+  class UsesTableBit
+      : public BitField<uint32_t, bool, GlobalTableBit::kNextBit, 1> {};
+  class SizeField : public BitField<uint32_t,
+                                    uint32_t,
+                                    UsesTableBit::kNextBit,
+                                    sizeof(flags_and_size_) * kBitsPerByte -
+                                        UsesTableBit::kNextBit> {};
 
   friend class ImageWriter;
 };
