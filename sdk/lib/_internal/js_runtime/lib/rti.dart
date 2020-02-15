@@ -2826,10 +2826,9 @@ bool isStrongTopType(Rti t) {
 }
 
 bool isObjectType(Rti t) => _Utils.isIdentical(t, TYPE_REF<Object>());
-// TODO(fishythefish): Use `LEGACY_TYPE_REF<Object?>()`.
+// TODO(fishythefish): Use `LEGACY_TYPE_REF<Object>()`.
 bool isLegacyObjectType(Rti t) =>
-    Rti._getKind(t) == Rti.kindQuestion &&
-    isObjectType(Rti._getStarArgument(t));
+    Rti._getKind(t) == Rti.kindStar && isObjectType(Rti._getStarArgument(t));
 // TODO(fishythefish): Use `TYPE_REF<Object?>()`.
 bool isNullableObjectType(Rti t) =>
     Rti._getKind(t) == Rti.kindQuestion &&
