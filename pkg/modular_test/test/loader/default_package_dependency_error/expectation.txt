@@ -6,7 +6,6 @@ expect
   is sdk?  no
   dependencies: meta, sdk
   lib/expect.dart
-  lib/matchers_lite.dart
   lib/minitest.dart
 
 main
