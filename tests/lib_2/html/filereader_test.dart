@@ -4,14 +4,11 @@
 
 library filereader_test;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_minitest.dart';
 import 'dart:html';
 import 'dart:typed_data';
 
 main() {
-  useHtmlConfiguration();
-
   test('readAsText', () {
     var reader = new FileReader();
     reader.onLoad.listen(expectAsync((event) {
@@ -26,7 +23,7 @@ main() {
     reader.onLoad.listen(expectAsync((event) {
       var result = reader.result;
       expect(result is Uint8List, isTrue);
-      expect(result, orderedEquals([65, 66, 67]));
+      expect(result, equals([65, 66, 67]));
     }));
     reader.readAsArrayBuffer(new Blob(['ABC']));
   });

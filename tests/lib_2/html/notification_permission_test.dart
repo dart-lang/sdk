@@ -6,12 +6,9 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'package:async_helper/async_helper.dart';
 
 main() async {
-  useHtmlConfiguration();
-
   test('Notification.requestPermission', () async {
     String permission = await Notification.requestPermission();
     expect(permission, isNotNull);

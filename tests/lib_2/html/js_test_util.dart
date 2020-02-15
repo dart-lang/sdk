@@ -8,7 +8,7 @@ import 'dart:html';
 import 'dart:indexed_db' show IdbFactory, KeyRange;
 import 'dart:js';
 
-import 'package:expect/minitest.dart';
+import 'package:unittest/unittest.dart';
 
 injectJs() {
   final script = new ScriptElement();

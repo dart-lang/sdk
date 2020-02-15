@@ -7,7 +7,7 @@ library CssStyleDeclarationTest;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'utils.dart';
 
@@ -23,10 +23,10 @@ main() {
 
   test('default constructor is empty', () {
     var style = new CssStyleDeclaration();
-    expect(style.cssText, isEmpty);
-    expect(style.getPropertyPriority('color'), isEmpty);
-    expect(style.item(0), isEmpty);
-    expect(style, hasLength(0));
+    expect(style.cssText.isEmpty, isTrue);
+    expect(style.getPropertyPriority('color').isEmpty, isTrue);
+    expect(style.item(0).isEmpty, isTrue);
+    expect(style.length, 0);
     // These assertions throw a UnimplementedError in dartium:
     // expect(style.parentRule, isNull);
     // expect(style.getPropertyCssValue('color'), isNull);
@@ -34,12 +34,12 @@ main() {
   });
 
   test('length is wrapped', () {
-    expect(createTestStyle(), hasLength(2));
+    expect(createTestStyle().length, 2);
   });
 
   test('getPropertyPriority is wrapped', () {
     var style = createTestStyle();
-    expect(style.getPropertyPriority("color"), isEmpty);
+    expect(style.getPropertyPriority("color").isEmpty, isTrue);
     expect(style.getPropertyPriority("width"), equals("important"));
   });
 
@@ -94,7 +94,7 @@ main() {
     new Timer(const Duration(milliseconds: 10), expectAsync(() {
       element.style.textDecoration = 'underline';
       var style = element.getComputedStyle();
-      expect(style.textDecoration, contains('underline'));
+      expect(style.textDecoration.contains('underline'), isTrue);
     }));
   });
 

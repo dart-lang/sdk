@@ -3,9 +3,8 @@ library fileapi;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:async_helper/async_minitest.dart';
 
 class FileAndDir {
   FileEntry file;
@@ -16,8 +15,6 @@ class FileAndDir {
 FileSystem fs;
 
 main() async {
-  useHtmlConfiguration();
-
   getFileSystem() async {
     var fileSystem = await window.requestFileSystem(100);
     fs = fileSystem;
@@ -45,7 +42,7 @@ main() async {
       var changeTime = metadata.modificationTime;
 
       // Increased Windows buildbots can sometimes be particularly slow.
-      expect(new DateTime.now().difference(changeTime).inMinutes, lessThan(4));
+      expect(new DateTime.now().difference(changeTime).inMinutes < 4, isTrue);
       expect(metadata.size, equals(0));
     });
   }

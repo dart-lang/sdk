@@ -1,7 +1,6 @@
 library fontface_loaded_test;
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
+import 'package:async_helper/async_minitest.dart';
 
 import 'dart:async';
 import 'dart:isolate';
@@ -12,8 +11,6 @@ class NullTreeSanitizer implements NodeTreeSanitizer {
 }
 
 main() {
-  useHtmlConfiguration();
-
   var style = new Element.html(
       '''
       <style>

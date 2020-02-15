@@ -3,9 +3,8 @@ library file_sample;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:unittest/unittest.dart';
 
 // Expected output from all functions, asynchronous, and event routines.
 const String log_results = 'test-first\n' +
@@ -101,8 +100,6 @@ Future<List<Entry>> readEntries(DirectoryEntry directory) async {
 }
 
 main() {
-  useHtmlConfiguration();
-
   group('test FileSystem', () {
     test('FileSystem request #1', () async {
       testLog.log('test-first');

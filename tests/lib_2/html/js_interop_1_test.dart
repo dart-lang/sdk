@@ -5,7 +5,6 @@
 library JsInterop1Test;
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:html';
 
 injectSource(code) {
@@ -16,7 +15,6 @@ injectSource(code) {
 }
 
 main() {
-  useHtmlConfiguration();
   var callback;
 
   test('js-to-dart-post-message', () {

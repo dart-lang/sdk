@@ -1,7 +1,6 @@
 library IndexedDB1Test;
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:indexed_db' as idb;
@@ -55,8 +54,6 @@ List<String> get nonNativeListData {
 }
 
 main() {
-  useHtmlConfiguration();
-
   var obj1 = {'a': 100, 'b': 's'};
   var obj2 = {'x': obj1, 'y': obj1}; // DAG.
 

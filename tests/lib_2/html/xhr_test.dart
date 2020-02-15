@@ -10,12 +10,9 @@ import 'dart:html';
 import 'dart:typed_data';
 
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'package:async_helper/async_helper.dart';
 
 main() async {
-  useHtmlConfiguration();
-
   // Cache blocker is a workaround for:
   // https://code.google.com/p/dart/issues/detail?id=11834
   var cacheBlocker = new DateTime.now().millisecondsSinceEpoch;

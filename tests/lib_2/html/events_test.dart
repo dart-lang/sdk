@@ -7,7 +7,6 @@ library tests.html.events_test;
 import 'dart:async';
 import 'dart:html';
 import 'package:unittest/unittest.dart';
-import 'package:unittest/html_config.dart';
 import 'package:unittest/src/expected_function.dart' show ExpectedFunction;
 
 T Function() expectAsync0<T>(T Function() callback,
@@ -19,8 +18,6 @@ T Function(A) expectAsync1<T, A>(T Function(A) callback,
     new ExpectedFunction<T>(callback, count, max).max1;
 
 main() {
-  useHtmlConfiguration();
-
   test('TimeStamp', () {
     var event = new Event('test');
 
