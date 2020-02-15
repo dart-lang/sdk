@@ -764,7 +764,8 @@ class _HeaderValue implements HeaderValue {
               index++;
               break;
             }
-            sb.write(s[index]);
+            char = s[index];
+            sb.write(char);
             index++;
           }
           return sb.toString();

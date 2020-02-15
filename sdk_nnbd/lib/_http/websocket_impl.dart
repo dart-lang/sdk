@@ -710,8 +710,10 @@ class _WebSocketOutgoingTransformer
       } else {
         throw new ArgumentError(message);
       }
-
-      _deflateHelper?.processOutgoingMessage(messageData);
+      var deflateHelper = _deflateHelper;
+      if (deflateHelper != null) {
+        messageData = deflateHelper.processOutgoingMessage(messageData);
+      }
       data = messageData;
     } else {
       opcode = _WebSocketOpcode.TEXT;
