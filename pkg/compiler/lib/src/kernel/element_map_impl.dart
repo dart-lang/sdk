@@ -116,7 +116,7 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
   KernelToElementMapImpl(
       this.reporter, this._environment, this._frontendStrategy, this.options) {
     _elementEnvironment = new KernelElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(this);
+    _typeConverter = new DartTypeConverter(options, this);
     _types = new KernelDartTypes(this, options);
     _commonElements =
         new CommonElementsImpl(_types, _elementEnvironment, options);
@@ -525,8 +525,8 @@ class KernelToElementMapImpl implements KernelToElementMap, IrToElementMap {
     if (node.typeParameters.isNotEmpty) {
       List<DartType> typeParameters = <DartType>[];
       for (ir.TypeParameter typeParameter in node.typeParameters) {
-        typeParameters.add(getDartType(
-            new ir.TypeParameterType(typeParameter, ir.Nullability.legacy)));
+        typeParameters.add(getDartType(new ir.TypeParameterType(typeParameter,
+            ir.TypeParameterType.computeNullabilityFromBound(typeParameter))));
       }
       typeVariables = new List<FunctionTypeVariable>.generate(
           node.typeParameters.length,

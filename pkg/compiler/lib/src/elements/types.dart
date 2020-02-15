@@ -1610,6 +1610,10 @@ abstract class DartTypes {
   bool get useNullSafety;
   bool get useLegacySubtyping;
 
+  DartType bottomType() => useLegacySubtyping
+      ? commonElements.nullType
+      : neverType(Nullability.none);
+
   DartType interfaceType(ClassEntity element, List<DartType> typeArguments,
           Nullability nullability) =>
       _normalizeNullability(

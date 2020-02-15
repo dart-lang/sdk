@@ -136,7 +136,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = new JsElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(this);
+    _typeConverter = new DartTypeConverter(options, this);
     _types = new KernelDartTypes(this, options);
     _commonElements = new CommonElementsImpl(
         _types, _elementEnvironment, _elementMap.options);
@@ -297,7 +297,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
       this._environment, ir.Component component, DataSource source) {
     _elementEnvironment = new JsElementEnvironment(this);
-    _typeConverter = new DartTypeConverter(this);
+    _typeConverter = new DartTypeConverter(options, this);
     _types = new KernelDartTypes(this, options);
     _commonElements =
         new CommonElementsImpl(_types, _elementEnvironment, options);
@@ -902,8 +902,8 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     if (node.typeParameters.isNotEmpty) {
       List<DartType> typeParameters = <DartType>[];
       for (ir.TypeParameter typeParameter in node.typeParameters) {
-        typeParameters.add(getDartType(
-            new ir.TypeParameterType(typeParameter, ir.Nullability.legacy)));
+        typeParameters.add(getDartType(new ir.TypeParameterType(typeParameter,
+            ir.TypeParameterType.computeNullabilityFromBound(typeParameter))));
       }
       typeVariables = new List<FunctionTypeVariable>.generate(
           node.typeParameters.length,

@@ -180,6 +180,7 @@ class DartTypeNodeWriter
       _sink.writeEnum(DartTypeNodeKind.interfaceType);
     }
     _sink.writeClassNode(node.classNode);
+    _sink.writeEnum(node.nullability);
     visitTypes(node.typeArguments, functionTypeVariables);
   }
 
@@ -198,6 +199,7 @@ class DartTypeNodeWriter
       _sink._writeDartTypeNode(parameter.defaultType, functionTypeVariables);
     }
     _sink._writeDartTypeNode(node.returnType, functionTypeVariables);
+    _sink.writeEnum(node.nullability);
     _sink.writeInt(node.requiredParameterCount);
     visitTypes(node.positionalParameters, functionTypeVariables);
     _sink.writeInt(node.namedParameters.length);
@@ -217,11 +219,13 @@ class DartTypeNodeWriter
     if (index != -1) {
       _sink.writeEnum(DartTypeNodeKind.functionTypeVariable);
       _sink.writeInt(index);
+      _sink.writeEnum(node.typeParameterTypeNullability);
       _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
           allowNull: true);
     } else {
       _sink.writeEnum(DartTypeNodeKind.typeParameterType);
       _sink.writeTypeParameterNode(node.parameter);
+      _sink.writeEnum(node.typeParameterTypeNullability);
       _sink._writeDartTypeNode(node.promotedBound, functionTypeVariables,
           allowNull: true);
     }
@@ -232,6 +236,7 @@ class DartTypeNodeWriter
       ir.TypedefType node, List<ir.TypeParameter> functionTypeVariables) {
     _sink.writeEnum(DartTypeNodeKind.typedef);
     _sink.writeTypedefNode(node.typedefNode);
+    _sink.writeEnum(node.nullability);
     visitTypes(node.typeArguments, functionTypeVariables);
   }
 }

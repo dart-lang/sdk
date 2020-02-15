@@ -13,6 +13,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../ir/element_map.dart';
+import '../options.dart';
 
 /// Visitor that converts string literals and concatenations of string literals
 /// into the string value.
@@ -43,14 +44,27 @@ class Stringifier extends ir.ExpressionVisitor<String> {
 
 /// Visitor that converts kernel dart types into [DartType].
 class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
+  final CompilerOptions _options;
   final IrToElementMap elementMap;
   final Map<ir.TypeParameter, DartType> currentFunctionTypeParameters =
       <ir.TypeParameter, DartType>{};
   bool topLevel = true;
 
-  DartTypeConverter(this.elementMap);
+  DartTypeConverter(this._options, this.elementMap);
 
   DartTypes get _dartTypes => elementMap.commonElements.dartTypes;
+
+  Nullability _convertNullability(ir.Nullability nullability) {
+    if (!_options.useNullSafety) return Nullability.none;
+    switch (nullability) {
+      case ir.Nullability.nullable:
+        return Nullability.question;
+      case ir.Nullability.legacy:
+        return Nullability.star;
+      default:
+        return Nullability.none;
+    }
+  }
 
   DartType convert(ir.DartType type) {
     topLevel = true;
@@ -63,11 +77,8 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     return type.accept(this);
   }
 
-  InterfaceType visitSupertype(ir.Supertype node) {
-    ClassEntity cls = elementMap.getClass(node.classNode);
-    return _dartTypes.interfaceType(
-        cls, visitTypes(node.typeArguments), _dartTypes.defaultNullability);
-  }
+  InterfaceType visitSupertype(ir.Supertype node) =>
+      visitInterfaceType(node.asInterfaceType);
 
   List<DartType> visitTypes(List<ir.DartType> types) {
     topLevel = false;
@@ -90,7 +101,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     // `Never`. Attempting to check the bound here will overflow the stack.
     return _dartTypes.typeVariableType(
         elementMap.getTypeVariable(node.parameter),
-        _dartTypes.defaultNullability);
+        _convertNullability(node.nullability));
   }
 
   @override
@@ -99,7 +110,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
     List<FunctionTypeVariable> typeVariables;
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       FunctionTypeVariable typeVariable =
-          _dartTypes.functionTypeVariable(index, _dartTypes.defaultNullability);
+          _dartTypes.functionTypeVariable(index, Nullability.none);
       currentFunctionTypeParameters[typeParameter] = typeVariable;
       typeVariables ??= <FunctionTypeVariable>[];
       typeVariables.add(typeVariable);
@@ -123,7 +134,7 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
         node.namedParameters.map((n) => n.name).toList(),
         node.namedParameters.map((n) => visitType(n.type)).toList(),
         typeVariables ?? const <FunctionTypeVariable>[],
-        _dartTypes.defaultNullability);
+        _convertNullability(node.nullability));
     for (ir.TypeParameter typeParameter in node.typeParameters) {
       currentFunctionTypeParameters.remove(typeParameter);
     }
@@ -132,14 +143,15 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitInterfaceType(ir.InterfaceType node) {
+    Nullability nullability = _convertNullability(node.nullability);
     ClassEntity cls = elementMap.getClass(node.classNode);
     if (cls.name == 'FutureOr' &&
         cls.library == elementMap.commonElements.asyncLibrary) {
       return _dartTypes.futureOrType(
-          visitTypes(node.typeArguments).single, _dartTypes.defaultNullability);
+          visitTypes(node.typeArguments).single, nullability);
     }
     return _dartTypes.interfaceType(
-        cls, visitTypes(node.typeArguments), _dartTypes.defaultNullability);
+        cls, visitTypes(node.typeArguments), nullability);
   }
 
   @override
@@ -161,8 +173,12 @@ class DartTypeConverter extends ir.DartTypeVisitor<DartType> {
 
   @override
   DartType visitBottomType(ir.BottomType node) {
-    // TODO(fishythefish): Change `Null` to `Never` for NNBD.
-    return elementMap.commonElements.nullType;
+    return _dartTypes.bottomType();
+  }
+
+  @override
+  DartType visitNeverType(ir.NeverType node) {
+    return _dartTypes.neverType(_convertNullability(node.nullability));
   }
 }
 
