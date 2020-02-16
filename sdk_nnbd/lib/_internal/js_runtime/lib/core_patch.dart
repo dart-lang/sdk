@@ -701,7 +701,7 @@ class _CompileTimeError extends Error {
 class Uri {
   @patch
   static Uri get base {
-    String uri = Primitives.currentUri();
+    String? uri = Primitives.currentUri();
     if (uri != null) return Uri.parse(uri);
     throw new UnsupportedError("'Uri.base' is not supported");
   }
