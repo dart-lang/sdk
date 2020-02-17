@@ -697,6 +697,99 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
   }
 }
 
+class HandleLiveTemporariesVisitor : public ObjectPointerVisitor {
+ public:
+  explicit HandleLiveTemporariesVisitor(Isolate* isolate,
+                                        Thread* thread,
+                                        Thread::HandleLiveTemporariesOp op)
+      : ObjectPointerVisitor(isolate), thread_(thread), op_(op) {}
+
+  void VisitPointers(RawObject** first, RawObject** last) {
+    for (; first != last + 1; first++) {
+      RawObject* obj = *first;
+      // Stores into new-space objects don't need a write barrier.
+      if (obj->IsSmiOrNewObject()) continue;
+
+      // To avoid adding too much work into the remembered set, skip
+      // arrays. Write barrier elimination we'll do this.
+      if (obj->GetClassId() == kArrayCid) continue;
+
+      // Dart code won't store into VM-internal objects.
+      if (!obj->IsDartInstance()) continue;
+
+      // Dart code won't store into canonical instances.
+      if (obj->IsCanonical()) continue;
+
+      // Already remembered, nothing to do.
+      if (op_ == Thread::HandleLiveTemporariesOp::kAddToRememberedSet &&
+          obj->IsRemembered()) {
+        continue;
+      }
+
+      // Objects in the VM isolate heap are immutable and won't be
+      // stored into. Check this condition last because there's no bit
+      // in the header for it.
+      if (obj->InVMIsolateHeap()) continue;
+
+      switch (op_) {
+        case Thread::HandleLiveTemporariesOp::kAddToRememberedSet:
+          obj->AddToRememberedSet(thread_);
+          break;
+        case Thread::HandleLiveTemporariesOp::kAddToDeferredMarkingStack:
+          // Re-scan obj when finalizing marking.
+          thread_->DeferredMarkingStackAddObject(obj);
+          break;
+      }
+    }
+  }
+
+ private:
+  Thread* const thread_;
+  Thread::HandleLiveTemporariesOp op_;
+};
+
+// Write barrier elimination assumes that all live temporaries will be
+// in the remembered set after a scavenge triggered by a non-Dart-call
+// instruction (see Instruction::CanCallDart()), and additionally they will be
+// in the deferred marking stack if concurrent marking started. Specifically,
+// this includes any instruction which will always create an exit frame
+// below the current frame before any other Dart frames.
+//
+// Therefore, to support this assumption, we scan the stack after a scavenge
+// or when concurrent marking begins and add all live temporaries in
+// Dart frames preceeding an exit frame to the store buffer or deferred
+// marking stack.
+void Thread::HandleLiveTemporaries(HandleLiveTemporariesOp op) {
+  ASSERT(IsMutatorThread());
+
+  const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
+      StackFrameIterator::kAllowCrossThreadIteration;
+  StackFrameIterator frames_iterator(top_exit_frame_info(),
+                                     ValidationPolicy::kDontValidateFrames,
+                                     this, cross_thread_policy);
+  HandleLiveTemporariesVisitor visitor(isolate(), this, op);
+  bool scan_next_dart_frame = false;
+  for (StackFrame* frame = frames_iterator.NextFrame(); frame != NULL;
+       frame = frames_iterator.NextFrame()) {
+    if (frame->IsExitFrame()) {
+      scan_next_dart_frame = true;
+    } else if (frame->IsDartFrame()) {
+      if (scan_next_dart_frame) {
+        frame->VisitObjectPointers(&visitor);
+      }
+      scan_next_dart_frame = false;
+    }
+  }
+}
+
+void Thread::DeferredMarkLiveTemporaries() {
+  HandleLiveTemporaries(HandleLiveTemporariesOp::kAddToDeferredMarkingStack);
+}
+
+void Thread::RememberLiveTemporaries() {
+  HandleLiveTemporaries(HandleLiveTemporariesOp::kAddToRememberedSet);
+}
+
 bool Thread::CanLoadFromThread(const Object& object) {
   // In order to allow us to use assembler helper routines with non-[Code]
   // objects *before* stubs are initialized, we only loop ver the stubs if the

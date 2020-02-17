@@ -799,6 +799,8 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
     ASSERT(result);
   }
 
+  isolate_->DeferredMarkLiveTemporaries();
+
   // Wait for roots to be marked before exiting safepoint.
   MonitorLocker ml(&root_slices_monitor_);
   while (root_slices_finished_ != kNumRootSlices) {
