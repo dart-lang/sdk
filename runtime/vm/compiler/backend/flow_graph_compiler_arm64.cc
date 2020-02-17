@@ -935,10 +935,6 @@ void FlowGraphCompiler::CompileGraph() {
     ASSERT(assembler()->constant_pool_allowed());
     GenerateDeferredCode();
   }
-
-  for (intptr_t i = 0; i < indirect_gotos_.length(); ++i) {
-    indirect_gotos_[i]->ComputeOffsetTable();
-  }
 }
 
 void FlowGraphCompiler::GenerateCall(TokenPosition token_pos,

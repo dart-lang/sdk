@@ -142,6 +142,8 @@ FlowGraph* DartCompilationPipeline::BuildFlowGraph(
   return graph;
 }
 
+void DartCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {}
+
 void IrregexpCompilationPipeline::ParseFunction(
     ParsedFunction* parsed_function) {
   VMTagScope tagScope(parsed_function->thread(),
@@ -193,6 +195,10 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
   PrologueInfo prologue_info(-1, -1);
   return new (zone) FlowGraph(*parsed_function, result.graph_entry,
                               result.num_blocks, prologue_info);
+}
+
+void IrregexpCompilationPipeline::FinalizeCompilation(FlowGraph* flow_graph) {
+  backtrack_goto_->ComputeOffsetTable();
 }
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
@@ -630,6 +636,7 @@ RawCode* CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
+        pipeline->FinalizeCompilation(flow_graph);
       }
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");

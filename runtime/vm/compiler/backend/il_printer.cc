@@ -900,11 +900,8 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 void IndirectEntryInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("B%" Pd "[join indirect", block_id());
-  if (try_index() != kInvalidTryIndex) {
-    f->Print(" try_idx %" Pd, try_index());
-  }
-  f->Print("]:%" Pd " pred(", GetDeoptId());
+  ASSERT(try_index() == kInvalidTryIndex);
+  f->Print("B%" Pd "[join indirect]:%" Pd " pred(", block_id(), GetDeoptId());
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (i > 0) f->Print(", ");
     f->Print("B%" Pd, predecessors_[i]->block_id());

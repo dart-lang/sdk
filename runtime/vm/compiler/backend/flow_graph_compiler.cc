@@ -127,7 +127,6 @@ FlowGraphCompiler::FlowGraphCompiler(
       block_info_(block_order_.length()),
       deopt_infos_(),
       static_calls_target_table_(),
-      indirect_gotos_(),
       is_optimizing_(is_optimizing),
       speculative_policy_(speculative_policy),
       may_reoptimize_(false),
@@ -629,10 +628,6 @@ void FlowGraphCompiler::VisitBlocks() {
       }
 #endif
       StatsEnd(instr);
-
-      if (auto indirect_goto = instr->AsIndirectGoto()) {
-        indirect_gotos_.Add(indirect_goto);
-      }
     }
 
 #if defined(DEBUG)

@@ -1176,7 +1176,6 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<StaticCallsStruct*> static_calls_target_table_;
   // The table selectors of all dispatch table calls in the current function.
   GrowableArray<const compiler::TableSelector*> dispatch_table_call_targets_;
-  GrowableArray<IndirectGotoInstr*> indirect_gotos_;
   const bool is_optimizing_;
   SpeculativeInliningPolicy* speculative_policy_;
   // Set to true if optimized code has IC calls.

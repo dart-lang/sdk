@@ -255,7 +255,6 @@
       ".packages"
     ],
     "vm-kernel": [
-      "benchmarks/",
       "out/DebugIA32/",
       "out/DebugX64/",
       "out/DebugSIMARM/",
@@ -340,7 +339,6 @@
       ".vpython"
     ],
     "vm-kernel-nnbd": [
-      "benchmarks/",
       "out/DebugIA32NNBD/",
       "out/DebugX64NNBD/",
       "out/DebugSIMARMNNBD/",
