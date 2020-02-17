@@ -158,9 +158,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Return `true` if the given [element] represents the extension
-  /// `LibraryExtension`.
+  /// `DynamicLibraryExtension`.
   bool _isDynamicLibraryExtension(Element element) =>
-      element.name == 'LibraryExtension' && element.library.name == 'dart.ffi';
+      element.name == 'DynamicLibraryExtension' &&
+      element.library.name == 'dart.ffi';
 
   /// Returns `true` iff [nativeType] is a `ffi.NativeFunction<???>` type.
   bool _isNativeFunctionInterfaceType(DartType nativeType) {

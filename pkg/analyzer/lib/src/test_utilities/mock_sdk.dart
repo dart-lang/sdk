@@ -544,7 +544,7 @@ extension NativeFunctionPointer<NF extends Function>
 class Struct extends NativeType {}
 
 abstract class DynamicLibrary {}
-extension LibraryExtension on DynamicLibrary {
+extension DynamicLibraryExtension on DynamicLibrary {
   external F lookupFunction<T extends Function, F extends Function>(
       String symbolName);
 }

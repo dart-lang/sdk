@@ -50,6 +50,15 @@ case of `name` instead of converting them to lowercase.
   * `Dart_IsNonNullableType`
   * `Dart_IsNullableType`
 
+### Foreign Function Interface (`dart:ffi`)
+
+* **Breaking Change**: `Pointer.asFunction` and `DynamicLibrary.lookupFunction`
+  changed to extension methods. Invoking them dynamically previously already
+  threw an Exception, so runtime behavior stays the same. However, the
+  extension methods are only visible if `dart:ffi` is imported directly. So
+  this breaks code where `dart:ffi` is not directly imported. Fix: add an
+  import of `dart:ffi`.
+
 ### Tools
 
 #### Dart Dev Compiler (DDC)

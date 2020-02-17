@@ -50,7 +50,7 @@ class DynamicLibrary {
   Pointer<Void> get handle => Pointer.fromAddress(getHandle());
 }
 
-extension LibraryExtension on DynamicLibrary {
+extension DynamicLibraryExtension on DynamicLibrary {
   @patch
   DS lookupFunction<NS extends Function, DS extends Function>(
           String symbolName) =>

@@ -41,7 +41,7 @@ class DynamicLibrary {
 }
 
 /// Methods which cannot be invoked dynamically.
-extension LibraryExtension on DynamicLibrary {
+extension DynamicLibraryExtension on DynamicLibrary {
   /// Helper that combines lookup and cast to a Dart function.
   external F lookupFunction<T extends Function, F extends Function>(
       String symbolName);

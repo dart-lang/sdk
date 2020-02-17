@@ -238,8 +238,8 @@ class FfiTransformer extends Transformer {
             index.getMember('dart:ffi', 'NativeFunctionPointer', 'asFunction'),
         asFunctionInternal =
             index.getTopLevelMember('dart:ffi', '_asFunctionInternal'),
-        lookupFunctionMethod =
-            index.getMember('dart:ffi', 'LibraryExtension', 'lookupFunction'),
+        lookupFunctionMethod = index.getMember(
+            'dart:ffi', 'DynamicLibraryExtension', 'lookupFunction'),
         fromFunctionMethod =
             index.getMember('dart:ffi', 'Pointer', 'fromFunction'),
         libraryLookupMethod =
