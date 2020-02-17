@@ -259,7 +259,6 @@ class Configuration {
         isMinified: boolOption("minified"),
         useAnalyzerCfe: boolOption("use-cfe"),
         useAnalyzerFastaParser: boolOption("analyzer-use-fasta-parser"),
-        useBlobs: boolOption("use-blobs"),
         useElf: boolOption("use-elf"),
         useHotReload: boolOption("hot-reload"),
         useHotReloadRollback: boolOption("hot-reload-rollback"),
@@ -330,8 +329,6 @@ class Configuration {
   final bool useAnalyzerCfe;
   final bool useAnalyzerFastaParser;
 
-  // TODO(rnystrom): What is this?
-  final bool useBlobs;
   final bool useElf;
 
   final bool useHotReload;
@@ -359,7 +356,6 @@ class Configuration {
       bool isMinified,
       bool useAnalyzerCfe,
       bool useAnalyzerFastaParser,
-      bool useBlobs,
       bool useElf,
       bool useHotReload,
       bool useHotReloadRollback,
@@ -381,7 +377,6 @@ class Configuration {
         isMinified = isMinified ?? false,
         useAnalyzerCfe = useAnalyzerCfe ?? false,
         useAnalyzerFastaParser = useAnalyzerFastaParser ?? false,
-        useBlobs = useBlobs ?? false,
         useElf = useElf ?? false,
         useHotReload = useHotReload ?? false,
         useHotReloadRollback = useHotReloadRollback ?? false,
@@ -412,7 +407,6 @@ class Configuration {
       isMinified == other.isMinified &&
       useAnalyzerCfe == other.useAnalyzerCfe &&
       useAnalyzerFastaParser == other.useAnalyzerFastaParser &&
-      useBlobs == other.useBlobs &&
       useElf == other.useElf &&
       useHotReload == other.useHotReload &&
       useHotReloadRollback == other.useHotReloadRollback &&
@@ -462,7 +456,6 @@ class Configuration {
         isMinified,
         useAnalyzerCfe,
         useAnalyzerFastaParser,
-        useBlobs,
         useElf,
         useHotReload,
         useHotReloadRollback,
@@ -503,7 +496,6 @@ class Configuration {
     if (isMinified) fields.add("minified");
     if (useAnalyzerCfe) fields.add("use-cfe");
     if (useAnalyzerFastaParser) fields.add("analyzer-use-fasta-parser");
-    if (useBlobs) fields.add("use-blobs");
     if (useHotReload) fields.add("hot-reload");
     if (useHotReloadRollback) fields.add("hot-reload-rollback");
     if (useSdk) fields.add("use-sdk");
@@ -561,7 +553,6 @@ class Configuration {
     boolField("use-cfe", useAnalyzerCfe, other.useAnalyzerCfe);
     boolField("analyzer-use-fasta-parser", useAnalyzerFastaParser,
         other.useAnalyzerFastaParser);
-    boolField("use-blobs", useBlobs, other.useBlobs);
     boolField("host-checked", isHostChecked, other.isHostChecked);
     boolField("hot-reload", useHotReload, other.useHotReload);
     boolField("hot-reload-rollback", useHotReloadRollback,

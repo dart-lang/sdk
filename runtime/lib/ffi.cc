@@ -473,14 +473,6 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   code = function.CurrentCode();
-
-  // Blobs snapshots don't support BSS-relative relocations required by native
-  // callbacks (yet). Issue an error if the code has an unpatched relocation.
-  if (!code.VerifyBSSRelocations()) {
-    Exceptions::ThrowUnsupportedError(
-        "FFI callbacks are not yet supported in blobs snapshots. Please use "
-        "ELF or Assembly snapshots instead.");
-  }
 #else
   // We compile the callback immediately because we need to return a pointer to
   // the entry-point. Native calls do not use patching like Dart calls, so we

@@ -5816,9 +5816,6 @@ class Code : public Object {
 
   void Disassemble(DisassemblyFormatter* formatter = NULL) const;
 
-  // Returns true if all BSS relocations in the code have been patched.
-  bool VerifyBSSRelocations() const;
-
   class Comments : public ZoneAllocated {
    public:
     static Comments& New(intptr_t count);
