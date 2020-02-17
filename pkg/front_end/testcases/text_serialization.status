@@ -1234,6 +1234,7 @@ nnbd/issue39659: TextSerializationFailure
 nnbd/issue39822: TextSerializationFailure
 nnbd/issue40093: TextSerializationFailure
 nnbd/issue40134: TextSerializationFailure
+nnbd/issue40600: TextSerializationFailure
 nnbd/issue_39286: TextSerializationFailure
 nnbd/issue_39286_2: TextSerializationFailure
 nnbd/late: TextSerializationFailure

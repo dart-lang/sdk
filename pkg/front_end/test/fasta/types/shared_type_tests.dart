@@ -347,6 +347,12 @@ abstract class SubtypeTest<T, E> {
         typeParameters: 'E extends String');
     isObliviousSubtype('E', 'FutureOr<String>',
         typeParameters: 'E extends String?');
+    isSubtype('X', 'X', typeParameters: 'X extends num?');
+    isSubtype('FutureOr<X>', 'FutureOr<X>', typeParameters: 'X extends num?');
+    isSubtype('FutureOr<FutureOr<X>>', 'FutureOr<FutureOr<X>>',
+        typeParameters: 'X extends num?');
+    isSubtype('FutureOr<X>', 'FutureOr<FutureOr<X>>',
+        typeParameters: 'X extends num?');
 
     isSubtype('() ->* String*', 'FutureOr<() ->* void>*');
     isSubtype('() -> String', 'FutureOr<() -> void>');
