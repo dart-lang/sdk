@@ -1219,6 +1219,7 @@ nnbd/assignability: TextSerializationFailure
 nnbd/call: TextSerializationFailure
 nnbd/constants: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
+nnbd/definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/demote_closure_types: TextSerializationFailure
 nnbd/forbidden_supers: TextSerializationFailure
 nnbd/forin: TextSerializationFailure
@@ -1257,6 +1258,7 @@ nnbd/no_null_shorting: TextSerializationFailure
 nnbd/no_null_shorting_explicit_extension: TextSerializationFailure
 nnbd/no_null_shorting_extension: TextSerializationFailure
 nnbd/non_nullable_field_initialization: TextSerializationFailure
+nnbd/not_definitely_unassigned_late_local_variables: TextSerializationFailure
 nnbd/nsm_from_opt_in: TextSerializationFailure
 nnbd/null_access: TextSerializationFailure
 nnbd/null_aware_chain: TextSerializationFailure

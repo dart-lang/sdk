@@ -5488,11 +5488,15 @@ class InferenceVisitor
     if (isUnassigned) {
       inferrer.dataForTesting?.flowAnalysisResult?.unassignedNodes?.add(node);
       if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
-        // Synthetic variables aren't checked.
+        // Synthetic variables, local functions, and variables with
+        // invalid types aren't checked.
+        // TODO(dmitryas): Report errors on definitely unassigned late
+        // local variables with potentially non-nullable types.
         if (variable.name != null &&
             !variable.isLocalFunction &&
             variable.type is! InvalidType &&
-            variable.type.isPotentiallyNonNullable) {
+            variable.type.isPotentiallyNonNullable &&
+            !variable.isLate) {
           if (inferrer.nnbdStrongMode) {
             return new ExpressionInferenceResult(
                 new InvalidType(),
