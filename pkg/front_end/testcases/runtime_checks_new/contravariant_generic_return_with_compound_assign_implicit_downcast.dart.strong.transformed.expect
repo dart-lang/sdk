@@ -55,12 +55,12 @@ static method main() → void {
   let final self::D* #t1 = d in #t1.{self::D::value} = let final<BottomType> #t2 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:49:46: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
   d.value /*@ checkReturn=(num*) ->* num* */ += 1;
                                              ^" in (#t1.{self::D::value}.{self::C::+}(1) as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
-  self::expect(d.{self::D::setValue}(0), 1);
+  self::expect(let final self::D* #t3 = d in let final core::int* #t4 = 0 in #t3.{self::D::setValue}.call(#t4), 1);
   d = new self::D::•(new self::C::•<core::num*>(#C2));
   self::expectTypeError(() → core::Null? {
-    let final self::D* #t3 = d in #t3.{self::D::value} = let final<BottomType> #t4 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:53:48: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
+    let final self::D* #t5 = d in #t5.{self::D::value} = let final<BottomType> #t6 = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:53:48: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
     d.value /*@ checkReturn=(num*) ->* num* */ += 1;
-                                               ^" in (#t3.{self::D::value}.{self::C::+}(1) as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
+                                               ^" in (#t5.{self::D::value}.{self::C::+}(1) as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
   });
   self::expect(d.{self::D::setValue}, null);
 }

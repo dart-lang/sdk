@@ -57,6 +57,10 @@ class VmTarget extends Target {
   bool get supportsLateFields => !flags.forceLateLoweringForTesting;
 
   @override
+  bool get supportsExplicitGetterCalls =>
+      !flags.forceNoExplicitGetterCallsForTesting;
+
+  @override
   String get name => 'vm';
 
   // This is the order that bootstrap libraries are loaded according to

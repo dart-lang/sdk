@@ -130,6 +130,7 @@
         "/testcases/expression/",
         "/testcases/extensions/",
         "/testcases/general/",
+        "/testcases/implicit_getter_calls",
         "/testcases/inference",
         "/testcases/inference_new",
         "/testcases/instantiate_to_bound/",

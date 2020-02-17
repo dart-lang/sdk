@@ -16,6 +16,8 @@ class Class {
   int method() =>
       /*cfe.invoke: ClassWithCall*/
       /*cfe:nnbd.invoke: ClassWithCall!*/
+      /*cfe.ClassWithCall*/
+      /*cfe:nnbd.ClassWithCall!*/
       classWithCall()
           . /*cfe.invoke: int*/
           /*cfe:nnbd.invoke: int!*/
@@ -31,8 +33,11 @@ class GenericClass<S, T extends GenericClassWithCall<S>> {
   GenericClassWithCall<T> classWithCall;
 
   S method() =>
-      /*cfe.invoke: T*/ /*cfe:nnbd.invoke: T!*/ classWithCall()
-          . /*cfe.invoke: S*/ /*cfe:nnbd.invoke: S%*/ method();
+      /*cfe.invoke: T*/
+      /*cfe:nnbd.invoke: T!*/
+      /*cfe.GenericClassWithCall<T>*/
+      /*cfe:nnbd.GenericClassWithCall<T!>!*/
+      classWithCall(). /*cfe.invoke: S*/ /*cfe:nnbd.invoke: S%*/ method();
 }
 
 main() {
@@ -43,6 +48,8 @@ main() {
           /*cfe:nnbd.<String!,GenericClassWithCall<String!>!>*/ ()
       . /*cfe.invoke: GenericClassWithCall<String>*/
       /*cfe:nnbd.invoke: GenericClassWithCall<String!>!*/
+      /*cfe.GenericClassWithCall<GenericClassWithCall<String>>*/
+      /*cfe:nnbd.GenericClassWithCall<GenericClassWithCall<String!>!>!*/
       classWithCall()
       . /*cfe.invoke: String*/ /*cfe:nnbd.invoke: String!*/ method();
 }

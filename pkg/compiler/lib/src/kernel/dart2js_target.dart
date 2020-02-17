@@ -62,6 +62,11 @@ class Dart2jsTarget extends Target {
   @override
   bool get supportsLateFields => false;
 
+  // TODO(johnniwinther,sigmund): Remove this when js-interop handles getter
+  //  calls encoded with an explicit property get or disallows getter calls.
+  @override
+  bool get supportsExplicitGetterCalls => false;
+
   @override
   List<String> get extraRequiredLibraries => _requiredLibraries[name];
 

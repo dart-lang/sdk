@@ -10,7 +10,7 @@ class Foo<T extends core::Object* = dynamic> extends core::Object {
     : self::Foo::quux = quux, self::Foo::t = t, super core::Object::•()
     ;
   method call() → asy::Future<self::Foo::T*>*
-    return this.{self::Foo::quux}().{asy::Future::then}<self::Foo::T*>((dynamic _) → self::Foo::T* => this.{self::Foo::t});
+    return this.{self::Foo::quux}.call().{asy::Future::then}<self::Foo::T*>((dynamic _) → self::Foo::T* => this.{self::Foo::t});
 }
 class Bar extends core::Object {
   field self::Foo<self::Baz*>* qux = null;
@@ -18,7 +18,7 @@ class Bar extends core::Object {
     : super core::Object::•()
     ;
   method quuz() → asy::Future<void>*
-    return this.{self::Bar::qux}().{asy::Future::then}<self::Grault*>((self::Baz* baz) → self::Grault* => this.{self::Bar::corge}(baz)).{asy::Future::then}<void>((self::Grault* grault) → void => this.{self::Bar::garply}(grault));
+    return this.{self::Bar::qux}.{self::Foo::call}().{asy::Future::then}<self::Grault*>((self::Baz* baz) → self::Grault* => this.{self::Bar::corge}(baz)).{asy::Future::then}<void>((self::Grault* grault) → void => this.{self::Bar::garply}(grault));
   method corge(self::Baz* baz) → self::Grault*
     return null;
   method garply(self::Grault* grault) → void {}

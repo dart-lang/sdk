@@ -21,7 +21,7 @@ class FooActions extends core::Object {
     return new self::ActionDispatcher::•<self::Bar*>();
 }
 static method main() → void {
-  new self::FooActions::•().{self::FooActions::foo}(new self::Bar::•());
+  let final self::FooActions* #t1 = new self::FooActions::•() in let final self::Bar* #t2 = new self::Bar::•() in #t1.{self::FooActions::foo}.{self::ActionDispatcher::call}(#t2);
   new self::FooActions::•().{self::FooActions::foo}.{self::ActionDispatcher::call}(new self::Bar::•());
   new self::FooActions::•().{self::FooActions::foo}.{self::ActionDispatcher::call}(new self::Bar::•());
 }

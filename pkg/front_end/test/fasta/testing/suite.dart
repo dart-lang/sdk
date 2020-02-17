@@ -151,11 +151,15 @@ class TestOptions {
   final Map<ExperimentalFlag, bool> experimentalFlags;
   final bool forceLateLowering;
   final bool forceNnbdChecks;
+  final bool forceNoExplicitGetterCalls;
 
   TestOptions(this.experimentalFlags,
-      {this.forceLateLowering: false, this.forceNnbdChecks: false})
+      {this.forceLateLowering: false,
+      this.forceNnbdChecks: false,
+      this.forceNoExplicitGetterCalls: false})
       : assert(forceLateLowering != null),
-        assert(forceNnbdChecks != null);
+        assert(forceNnbdChecks != null),
+        assert(forceNoExplicitGetterCalls != null);
 
   Map<ExperimentalFlag, bool> computeExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
@@ -275,13 +279,16 @@ class FastaContext extends ChainContext with MatchContext {
     if (testOptions == null) {
       if (directory.uri == baseUri) {
         testOptions = new TestOptions({},
-            forceLateLowering: false, forceNnbdChecks: false);
+            forceLateLowering: false,
+            forceNnbdChecks: false,
+            forceNoExplicitGetterCalls: false);
       } else {
         File optionsFile =
             new File.fromUri(directory.uri.resolve('test.options'));
         if (optionsFile.existsSync()) {
           bool forceLateLowering = false;
           bool forceNnbdChecks = false;
+          bool forceNoExplicitGetterCalls = false;
           List<String> experimentalFlagsArguments = [];
           for (String line in optionsFile.readAsStringSync().split('\n')) {
             line = line.trim();
@@ -292,6 +299,8 @@ class FastaContext extends ChainContext with MatchContext {
               forceLateLowering = true;
             } else if (line.startsWith(Flags.forceNnbdChecks)) {
               forceNnbdChecks = true;
+            } else if (line.startsWith(Flags.forceNoExplicitGetterCalls)) {
+              forceNoExplicitGetterCalls = true;
             } else if (line.isNotEmpty) {
               throw new UnsupportedError("Unsupported test option '$line'");
             }
@@ -304,7 +313,8 @@ class FastaContext extends ChainContext with MatchContext {
                   onWarning: (String message) =>
                       throw new ArgumentError(message)),
               forceLateLowering: forceLateLowering,
-              forceNnbdChecks: forceNnbdChecks);
+              forceNnbdChecks: forceNnbdChecks,
+              forceNoExplicitGetterCalls: forceNoExplicitGetterCalls);
         } else {
           testOptions = _computeTestOptionsForDirectory(directory.parent);
         }
@@ -633,7 +643,9 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
       ticker,
       uriTranslator,
       new TestVmTarget(new TargetFlags(
-          forceLateLoweringForTesting: testOptions.forceLateLowering)),
+          forceLateLoweringForTesting: testOptions.forceLateLowering,
+          forceNoExplicitGetterCallsForTesting:
+              testOptions.forceNoExplicitGetterCalls)),
     );
     dillTarget.loader.appendLibraries(platform);
     if (alsoAppend != null) {

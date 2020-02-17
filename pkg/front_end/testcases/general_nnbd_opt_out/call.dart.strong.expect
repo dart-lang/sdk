@@ -81,7 +81,7 @@ static method main() → dynamic {
 Try changing 'call' to a method or explicitly invoke 'call'.
   var string5 = callableGetter(1);
                               ^";
-  dynamic string6 = callableGetter.{self::CallableGetter::call}(1);
+  dynamic string6 = let final self::CallableGetter* #t1 = callableGetter in let final core::int* #t2 = 1 in #t1.{self::CallableGetter::call}.call(#t2);
   dynamic string7 = callableGetter.{self::CallableGetter::call}.call(1);
   dynamic string8 = callableGetter.{self::CallableGetter::call}.call.call(1);
   dynamic nothing1 = closure.call();
@@ -97,7 +97,7 @@ Try changing 'call' to a method or explicitly invoke 'call'.
 Try changing 'call' to a method or explicitly invoke 'call'.
   var nothing9 = callableGetter();
                                ^";
-  dynamic nothing10 = callableGetter.{self::CallableGetter::call}();
+  dynamic nothing10 = callableGetter.{self::CallableGetter::call}.call();
   dynamic nothing11 = callableGetter.{self::CallableGetter::call}.call();
   dynamic nothing12 = callableGetter.{self::CallableGetter::call}.call.call();
 }

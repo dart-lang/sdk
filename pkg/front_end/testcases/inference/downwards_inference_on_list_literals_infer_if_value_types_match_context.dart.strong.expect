@@ -19,10 +19,10 @@ abstract class C extends core::Object {
     return null;
   abstract get assertDOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void;
   method method((core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertEOf) → dynamic {
-    this.{self::C::assertAOf}(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
+    let final self::C* #t1 = this in let final core::List<(self::DartType*) →* void>* #t2 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in #t1.{self::C::assertAOf}.call(#t2);
     self::C::assertBOf.call(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
     self::C::assertCOf.call(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
-    this.{self::C::assertDOf}(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
+    let final self::C* #t3 = this in let final core::List<(self::DartType*) →* void>* #t4 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in #t3.{self::C::assertDOf}.call(#t4);
     assertEOf.call(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
   }
 }
@@ -33,9 +33,9 @@ abstract class G<T extends core::Object* = dynamic> extends core::Object {
     ;
   abstract get assertDOf() → (core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void;
   method method((core::List<(self::DartType*) →* void>*) →* (self::DartType*) →* void assertEOf) → dynamic {
-    this.{self::G::assertAOf}(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
-    this.{self::G::assertAOf}(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
-    this.{self::G::assertDOf}(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
+    let final self::G<self::G::T*>* #t5 = this in let final core::List<(self::DartType*) →* void>* #t6 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in #t5.{self::G::assertAOf}.call(#t6);
+    let final self::G<self::G::T*>* #t7 = this in let final core::List<(self::DartType*) →* void>* #t8 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in #t7.{self::G::assertAOf}.call(#t8);
+    let final self::G<self::G::T*>* #t9 = this in let final core::List<(self::DartType*) →* void>* #t10 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in #t9.{self::G::assertDOf}.call(#t10);
     assertEOf.call(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
   }
 }
@@ -52,10 +52,10 @@ static method test() → dynamic {
   self::C::assertBOf.call(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
   self::C::assertCOf.call(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
   self::C* c;
-  c.{self::C::assertAOf}(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
-  c.{self::C::assertDOf}(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
+  let final self::C* #t11 = c in let final core::List<(self::DartType*) →* void>* #t12 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in #t11.{self::C::assertAOf}.call(#t12);
+  let final self::C* #t13 = c in let final core::List<(self::DartType*) →* void>* #t14 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in #t13.{self::C::assertDOf}.call(#t14);
   self::G<core::int*>* g;
-  g.{self::G::assertAOf}(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
-  g.{self::G::assertDOf}(<(self::DartType*) →* void>[self::_isInt, self::_isString]);
+  let final self::G<core::int*>* #t15 = g in let final core::List<(self::DartType*) →* void>* #t16 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in #t15.{self::G::assertAOf}.call(#t16);
+  let final self::G<core::int*>* #t17 = g in let final core::List<(self::DartType*) →* void>* #t18 = <(self::DartType*) →* void>[self::_isInt, self::_isString] in #t17.{self::G::assertDOf}.call(#t18);
 }
 static method main() → dynamic {}

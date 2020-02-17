@@ -1328,6 +1328,8 @@ highest
 highlighted
 hint
 historically
+hoist
+hoisted
 hold
 holder
 holding

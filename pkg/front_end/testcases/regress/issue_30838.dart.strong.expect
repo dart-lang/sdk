@@ -9,7 +9,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   method test() → void {
-    this.{self::A::f}<core::String*>("hello");
+    let final self::A* #t1 = this in let final core::String* #t2 = "hello" in #t1.{self::A::f}.call<core::String*>(#t2);
   }
 }
 static method foo<T extends core::Object* = dynamic>(self::foo::T* x) → core::int*

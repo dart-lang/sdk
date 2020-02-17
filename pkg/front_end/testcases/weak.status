@@ -35,7 +35,6 @@ general_nnbd_opt_out/external_import: RuntimeError # The native extension to imp
 general_nnbd_opt_out/incomplete_field_formal_parameter: RuntimeError
 general_nnbd_opt_out/invalid_type: TypeCheckError
 general_nnbd_opt_out/invocations: RuntimeError
-general_nnbd_opt_out/issue34899: TypeCheckError
 general_nnbd_opt_out/issue37776: RuntimeError
 general_nnbd_opt_out/issue38938: RuntimeError # no main and compile time errors.
 general_nnbd_opt_out/issue38944: RuntimeError # no main and compile time errors.

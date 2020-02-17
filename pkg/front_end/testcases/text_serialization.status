@@ -186,6 +186,7 @@ general/function_type_recovery: TextSerializationFailure # Was: Pass
 general/functions: TextSerializationFailure # Was: Pass
 general/future_or_test: TextSerializationFailure # Was: Pass
 general/generic_function_type_in_message: TextSerializationFailure
+general/getter_call: TextSerializationFailure
 general/having_part_with_part_and_annotation: TextSerializationFailure
 general/having_part_with_parts_and_annotation: TextSerializationFailure
 general/hello: TextSerializationFailure # Was: Pass
@@ -216,7 +217,7 @@ general/invalid_type: TypeCheckError
 general/invocations: TextSerializationFailure # Was: RuntimeError
 general/issue129167943: TextSerializationFailure
 general/issue34515: TextSerializationFailure
-general/issue34899: TypeCheckError
+general/issue34899: TextSerializationFailure
 general/issue35875: TextSerializationFailure
 general/issue37027: TextSerializationFailure
 general/issue37381: TextSerializationFailure
@@ -491,7 +492,7 @@ general_nnbd_opt_out/invalid_type: TypeCheckError
 general_nnbd_opt_out/invocations: TextSerializationFailure # Was: RuntimeError
 general_nnbd_opt_out/issue129167943: TextSerializationFailure
 general_nnbd_opt_out/issue34515: TextSerializationFailure
-general_nnbd_opt_out/issue34899: TypeCheckError
+general_nnbd_opt_out/issue34899: TextSerializationFailure
 general_nnbd_opt_out/issue35875: TextSerializationFailure
 general_nnbd_opt_out/issue37027: TextSerializationFailure
 general_nnbd_opt_out/issue37381: TextSerializationFailure
@@ -616,6 +617,7 @@ general_nnbd_opt_out/unused_methods: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/var_as_type_name: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/void_methods: TextSerializationFailure
 general_nnbd_opt_out/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
+implicit_getter_calls/getter_call: TextSerializationFailure
 inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
 inference/assert: TextSerializationFailure # Was: Pass
 inference/assert_initializer: TextSerializationFailure # Was: Pass

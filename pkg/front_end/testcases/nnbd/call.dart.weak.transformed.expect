@@ -17,6 +17,16 @@ library /*isNonNullableByDefault*/;
 //   f.call();
 //     ^
 //
+// pkg/front_end/testcases/nnbd/call.dart:15:5: Warning: Method 'call' is called on 'void Function()?' which is potentially null.
+// Try calling using ?. instead.
+//   c.field();
+//     ^
+//
+// pkg/front_end/testcases/nnbd/call.dart:16:5: Warning: Method 'call' is called on 'void Function()?' which is potentially null.
+// Try calling using ?. instead.
+//   c.getter();
+//     ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -33,7 +43,7 @@ static method error() → dynamic {
   f.call();
   f.call();
   self::Class c = new self::Class::•();
-  c.{self::Class::field}();
-  c.{self::Class::getter}();
+  c.{self::Class::field}.call();
+  c.{self::Class::getter}.call();
 }
 static method main() → dynamic {}

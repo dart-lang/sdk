@@ -49,7 +49,7 @@ static method bar() → dynamic {
        ^";
   self::A a = new self::A::•(x: 42);
   a.{self::A::foo}();
-  a.{self::A::f}();
+  a.{self::A::f}.call();
   self::g.call();
 }
 static method main() → dynamic {}

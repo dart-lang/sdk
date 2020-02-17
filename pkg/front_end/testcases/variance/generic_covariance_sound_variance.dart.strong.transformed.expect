@@ -60,7 +60,7 @@ class E<invariant T extends core::Object* = dynamic> extends core::Object {
     : self::E::f = f, super core::Object::•()
     ;
   method method(self::E::T* x) → core::int* {
-    this.{self::E::f}(x);
+    let final self::E<self::E::T*>* #t1 = this in let final self::E::T* #t2 = x in #t1.{self::E::f}.call(#t2);
   }
 }
 class F<invariant T extends core::Object* = dynamic> extends self::E<self::F::T*> implements self::D<self::F::T*> {

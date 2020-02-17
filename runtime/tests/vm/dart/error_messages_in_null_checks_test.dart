@@ -64,7 +64,7 @@ main(List<String> args) {
       (e) =>
           e is NoSuchMethodError &&
           e.toString().startsWith(
-              'NoSuchMethodError: The method \'bar\' was called on null.'));
+              'NoSuchMethodError: The getter \'bar\' was called on null.'));
 
   Expect.throws(() {
     myNull.bazz = 3;

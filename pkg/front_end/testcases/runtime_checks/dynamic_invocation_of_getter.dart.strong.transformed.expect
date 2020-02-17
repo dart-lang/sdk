@@ -9,7 +9,7 @@ class C extends core::Object {
     ;
 }
 static method g(self::C* c) → void {
-  c.{self::C::f}(1.5);
+  let final self::C* #t1 = c in let final core::double* #t2 = 1.5 in #t1.{self::C::f}.call(#t2);
 }
 static method h(core::int* i) → void {}
 static method test() → void {
