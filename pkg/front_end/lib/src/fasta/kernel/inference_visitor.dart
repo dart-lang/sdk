@@ -5140,7 +5140,8 @@ class InferenceVisitor
     inferrer.flowAnalysis.switchStatement_expressionEnd(node);
 
     bool hasDefault = false;
-    for (SwitchCaseImpl switchCase in node.cases) {
+    for (int caseIndex = 0; caseIndex < node.cases.length; ++caseIndex) {
+      SwitchCaseImpl switchCase = node.cases[caseIndex];
       hasDefault = hasDefault || switchCase.isDefault;
       inferrer.flowAnalysis
           .switchStatement_beginCase(switchCase.hasLabel, node);
@@ -5175,6 +5176,15 @@ class InferenceVisitor
           inferrer.inferStatement(switchCase.body);
       if (bodyResult.hasChanged) {
         switchCase.body = bodyResult.statement..parent = switchCase;
+      }
+
+      if (inferrer.isNonNullableByDefault && inferrer.performNnbdChecks) {
+        // The last case block is allowed to complete normally.
+        if (caseIndex < node.cases.length - 1 &&
+            inferrer.flowAnalysis.isReachable) {
+          inferrer.library.addProblem(messageSwitchCaseFallThrough,
+              switchCase.fileOffset, noLength, inferrer.helper.uri);
+        }
       }
     }
     inferrer.flowAnalysis.switchStatement_end(hasDefault);
