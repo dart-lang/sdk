@@ -1874,6 +1874,10 @@ class TypeInferrerImpl implements TypeInferrer {
   /// Modifies a type as appropriate when inferring a declared variable's type.
   DartType inferDeclarationType(DartType initializerType,
       {bool forSyntheticVariable: false}) {
+    if (initializerType == null) {
+      assert(isTopLevel, "No initializer type provided.");
+      return null;
+    }
     if (initializerType is BottomType ||
         (initializerType is InterfaceType &&
             initializerType.classNode == coreTypes.nullClass)) {

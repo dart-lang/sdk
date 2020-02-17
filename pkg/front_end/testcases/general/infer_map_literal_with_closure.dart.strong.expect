@@ -1,0 +1,13 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  field core::Map<core::String*, (core::String*) →* core::Null?>* map = <core::String*, (core::String*) →* core::Null?>{"foo": (core::String* a) → core::Null? {
+    core::int* c = a.{core::String::length};
+  }};
+  synthetic constructor •() → self::Class*
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}
