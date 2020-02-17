@@ -93,6 +93,9 @@ constexpr bool kDartUseBackgroundCompilation = true;
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   C(async_debugger, false, false, bool, true,                                  \
     "Debugger support async functions.")                                       \
+  P(async_igoto_threshold, int, 5,                                             \
+    "Number of continuations after which igoto-based async is used."           \
+    "-1 means never.")                                                         \
   P(background_compilation, bool, kDartUseBackgroundCompilation,               \
     "Run optimizing compilation in background")                                \
   R(code_comments, false, bool, false,                                         \

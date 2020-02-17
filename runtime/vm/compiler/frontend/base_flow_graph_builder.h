@@ -236,6 +236,8 @@ class BaseFlowGraphBuilder {
   FunctionEntryInstr* BuildFunctionEntry(GraphEntryInstr* graph_entry);
   JoinEntryInstr* BuildJoinEntry();
   JoinEntryInstr* BuildJoinEntry(intptr_t try_index);
+  IndirectEntryInstr* BuildIndirectEntry(intptr_t indirect_id,
+                                         intptr_t try_index);
 
   Fragment StrictCompare(TokenPosition position,
                          Token::Kind kind,
