@@ -618,6 +618,10 @@ class ScopeModelBuilder extends ir.Visitor<InitializerComplexity>
       const InitializerComplexity.lazy();
 
   @override
+  InitializerComplexity visitNeverType(ir.NeverType node) =>
+      const InitializerComplexity.lazy();
+
+  @override
   InitializerComplexity visitInvalidType(ir.InvalidType node) =>
       const InitializerComplexity.lazy();
 
