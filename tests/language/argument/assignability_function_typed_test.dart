@@ -30,15 +30,15 @@ main() {
   // Downcasts.
   f(intToObject);
   //^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_FUNCTION
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The top level function has type 'Object Function(int)' that isn't of expected type 'num Function(num)'.
   f(intToNum);
   //^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_FUNCTION
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The top level function has type 'num Function(int)' that isn't of expected type 'num Function(num)'.
   f(numToObject);
   //^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CAST_FUNCTION
+  // [analyzer] STATIC_WARNING.ARGUMENT_TYPE_NOT_ASSIGNABLE
   // [cfe] The top level function has type 'Object Function(num)' that isn't of expected type 'num Function(num)'.
 
   // Ok.
