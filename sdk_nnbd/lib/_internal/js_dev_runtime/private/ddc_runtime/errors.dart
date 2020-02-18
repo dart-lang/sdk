@@ -24,6 +24,20 @@ assertFailed(String? message,
   throw AssertionErrorImpl(message, fileUri, line, column, conditionSource);
 }
 
+// Run-time null safety assertion per:
+// https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#automatic-debug-assertion-insertion
+nullFailed(String? fileUri, int? line, int? column, String? variable) {
+  // TODO(vsm): Consider a weak mode warning cached by location.
+  if (_strictSubtypeChecks) {
+    throw AssertionErrorImpl(
+        'A null value was passed into a non-nullable parameter $variable',
+        fileUri,
+        line,
+        column,
+        '$variable != null');
+  }
+}
+
 throwCyclicInitializationError([String? field]) {
   throw CyclicInitializationError(field);
 }
