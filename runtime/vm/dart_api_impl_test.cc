@@ -1082,7 +1082,7 @@ TEST_CASE(DartAPI_FunctionIsStatic) {
   Dart_Handle klass = Dart_GetType(lib, NewString("Foo"), 0, NULL);
   EXPECT_VALID(klass);
 
-  Dart_Handle instance = Dart_Allocate(klass);
+  Dart_Handle instance = Dart_New(klass, Dart_Null(), 0, NULL);
 
   closure = Dart_GetField(instance, NewString("getString"));
   EXPECT_VALID(closure);
@@ -4884,42 +4884,12 @@ TEST_CASE(DartAPI_New) {
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(7, int_value);
 
-  // Allocate without a constructor.
-  Dart_Handle obj = Dart_Allocate(type);
-  EXPECT_VALID(obj);
-  instanceOf = false;
-  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceOf));
-  EXPECT(instanceOf);
-  foo = Dart_GetField(obj, NewString("foo"));
-  EXPECT(Dart_IsNull(foo));
-
   // Allocate and Invoke the unnamed constructor passing in an empty string.
   result = Dart_New(type, Dart_EmptyString(), 0, NULL);
   EXPECT_VALID(result);
   instanceOf = false;
   EXPECT_VALID(Dart_ObjectIsType(result, type, &instanceOf));
   EXPECT(instanceOf);
-  int_value = 0;
-  foo = Dart_GetField(result, NewString("foo"));
-  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
-  EXPECT_EQ(7, int_value);
-
-  // Allocate object and invoke the unnamed constructor with an empty string.
-  obj = Dart_Allocate(type);
-  EXPECT_VALID(obj);
-  instanceOf = false;
-  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceOf));
-  EXPECT(instanceOf);
-  // Use the empty string to invoke the unnamed constructor.
-  result = Dart_InvokeConstructor(obj, Dart_EmptyString(), 0, NULL);
-  EXPECT_VALID(result);
-  int_value = 0;
-  foo = Dart_GetField(result, NewString("foo"));
-  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
-  EXPECT_EQ(7, int_value);
-  // use Dart_Null to invoke the unnamed constructor.
-  result = Dart_InvokeConstructor(obj, Dart_Null(), 0, NULL);
-  EXPECT_VALID(result);
   int_value = 0;
   foo = Dart_GetField(result, NewString("foo"));
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
@@ -4935,19 +4905,6 @@ TEST_CASE(DartAPI_New) {
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(11, int_value);
 
-  // Allocate object and invoke a named constructor.
-  obj = Dart_Allocate(type);
-  EXPECT_VALID(obj);
-  instanceOf = false;
-  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceOf));
-  EXPECT(instanceOf);
-  result = Dart_InvokeConstructor(obj, NewString("named"), 1, args);
-  EXPECT_VALID(result);
-  int_value = 0;
-  foo = Dart_GetField(result, NewString("foo"));
-  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
-  EXPECT_EQ(11, int_value);
-
   // Invoke a hidden named constructor.
   result = Dart_New(type, NewString("_hidden"), 1, args);
   EXPECT_VALID(result);
@@ -4957,28 +4914,6 @@ TEST_CASE(DartAPI_New) {
   foo = Dart_GetField(result, NewString("foo"));
   EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
   EXPECT_EQ(-11, int_value);
-
-  // Allocate object and invoke a hidden named constructor.
-  obj = Dart_Allocate(type);
-  EXPECT_VALID(obj);
-  instanceOf = false;
-  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceOf));
-  EXPECT(instanceOf);
-  result = Dart_InvokeConstructor(obj, NewString("_hidden"), 1, args);
-  EXPECT_VALID(result);
-  int_value = 0;
-  foo = Dart_GetField(result, NewString("foo"));
-  EXPECT_VALID(Dart_IntegerToInt64(foo, &int_value));
-  EXPECT_EQ(-11, int_value);
-
-  // Allocate object and Invoke a constructor which throws an exception.
-  obj = Dart_Allocate(type);
-  EXPECT_VALID(obj);
-  instanceOf = false;
-  EXPECT_VALID(Dart_ObjectIsType(obj, type, &instanceOf));
-  EXPECT(instanceOf);
-  result = Dart_InvokeConstructor(obj, NewString("exception"), 1, args);
-  EXPECT_ERROR(result, "ConstructorDeath");
 
   // Invoke a factory constructor.
   result = Dart_New(type, NewString("multiply"), 1, args);
@@ -5645,14 +5580,13 @@ static void NativeArgumentCreate(Dart_NativeArguments args) {
   Dart_Handle type = Dart_GetType(lib, NewString("MyObject"), 0, NULL);
   EXPECT_VALID(type);
 
-  // Allocate without a constructor.
-  const int num_native_fields = 2;
-  const intptr_t native_fields[] = {kNativeArgumentNativeField1Value,
-                                    kNativeArgumentNativeField2Value};
   // Allocate and Setup native fields.
-  Dart_Handle obj =
-      Dart_AllocateWithNativeFields(type, num_native_fields, native_fields);
+  Dart_Handle obj = Dart_New(type, Dart_Null(), 0, nullptr);
   EXPECT_VALID(obj);
+  EXPECT_VALID(
+      Dart_SetNativeInstanceField(obj, 0, kNativeArgumentNativeField1Value));
+  EXPECT_VALID(
+      Dart_SetNativeInstanceField(obj, 1, kNativeArgumentNativeField2Value));
 
   kNativeArgumentNativeField1Value *= 2;
   kNativeArgumentNativeField2Value *= 2;
