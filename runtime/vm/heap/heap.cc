@@ -75,6 +75,7 @@ void Heap::MakeTLABIterable(Thread* thread) {
 
 void Heap::AbandonRemainingTLAB(Thread* thread) {
   MakeTLABIterable(thread);
+  new_space_.AddAbandonedInBytes(thread->end() - thread->top());
   thread->set_top(0);
   thread->set_end(0);
 }
