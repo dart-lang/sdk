@@ -12,7 +12,7 @@ library;
 // Problems in library:
 //
 // pkg/front_end/testcases/nnbd/inheritance_from_opt_in.dart:21:52: Error: Null safety features are disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.
+// Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.
 // class LegacyClass4c implements GenericInterface<num?> {}
 //                                                    ^
 // pkg/front_end/testcases/nnbd/inheritance_from_opt_in.dart:5:1: Context: This is the annotation that opts out this library from null safety features.

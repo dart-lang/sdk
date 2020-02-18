@@ -3881,7 +3881,7 @@ FieldNonNullableNotInitializedByConstructorWarning:
 
 NonNullableOptOut:
   template: "Null safety features are disabled for this library."
-  tip: "Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`."
+  tip: "Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`."
 
 NonNullableOptOutComment:
   template: "This is the annotation that opts out this library from null safety features."

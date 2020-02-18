@@ -6187,7 +6187,7 @@ const MessageCode messageNonNullableOptOut = const MessageCode(
     "NonNullableOptOut",
     message: r"""Null safety features are disabled for this library.""",
     tip:
-        r"""Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.7`.""");
+        r"""Try removing the `@dart=` annotation or setting the language version to at least `@dart=2.8`.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonNullableOptOutComment = messageNonNullableOptOutComment;
