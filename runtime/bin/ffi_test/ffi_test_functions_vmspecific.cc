@@ -12,21 +12,26 @@
 #include "platform/globals.h"
 #if defined(HOST_OS_WINDOWS)
 #include <psapi.h>
+#include <windows.h>
 #else
 #include <unistd.h>
+#endif
 
 // Only OK to use here because this is test code.
 #include <condition_variable>  // NOLINT(build/c++11)
 #include <functional>          // NOLINT(build/c++11)
 #include <mutex>               // NOLINT(build/c++11)
+#include <queue>               // NOLINT(build/c++11)
 #include <thread>              // NOLINT(build/c++11)
-#endif
 
-#include <setjmp.h>
-#include <signal.h>
+#include <setjmp.h>  // NOLINT
+#include <signal.h>  // NOLINT
 #include <iostream>
 #include <limits>
 
+// TODO(dartbug.com/40579): This requires static linking to either link
+// dart.exe or dart_precompiled_runtime.exe on Windows.
+// The sample currently fails on Windows in AOT mode.
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
 
@@ -263,5 +268,196 @@ DART_EXPORT intptr_t TestCallbackWrongIsolate(void (*fn)()) {
 }
 
 #endif  // defined(TARGET_OS_LINUX)
+
+////////////////////////////////////////////////////////////////////////////////
+// Functions for async callbacks example.
+//
+// sample_async_callback.dart
+
+void Fatal(char const* file, int line, char const* error) {
+  printf("FATAL %s:%i\n", file, line);
+  printf("%s\n", error);
+  Dart_DumpNativeStackTrace(NULL);
+  Dart_PrepareToAbort();
+  abort();
+}
+
+#define FATAL(error) Fatal(__FILE__, __LINE__, error)
+
+void SleepOnAnyOS(intptr_t seconds) {
+#if defined(HOST_OS_WINDOWS)
+  Sleep(1000 * seconds);
+#else
+  sleep(seconds);
+#endif
+}
+
+intptr_t (*my_callback_blocking_fp_)(intptr_t);
+Dart_Port my_callback_blocking_send_port_;
+
+void (*my_callback_non_blocking_fp_)(intptr_t);
+Dart_Port my_callback_non_blocking_send_port_;
+
+typedef std::function<void()> Work;
+
+// Notify Dart through a port that the C lib has pending async callbacks.
+//
+// Expects heap allocated `work` so delete can be called on it.
+//
+// The `send_port` should be from the isolate which registered the callback.
+void NotifyDart(Dart_Port send_port, const Work* work) {
+  const intptr_t work_addr = reinterpret_cast<intptr_t>(work);
+  printf("C   :  Posting message (port: %" Px64 ", work: %" Px ").\n",
+         send_port, work_addr);
+
+  Dart_CObject dart_object;
+  dart_object.type = Dart_CObject_kInt64;
+  dart_object.value.as_int64 = work_addr;
+
+  const bool result = Dart_PostCObject(send_port, &dart_object);
+  if (!result) {
+    FATAL("C   :  Posting message to port failed.");
+  }
+}
+
+// Do a callback to Dart in a blocking way, being interested in the result.
+//
+// Dart returns `a + 3`.
+intptr_t MyCallbackBlocking(intptr_t a) {
+  std::mutex mutex;
+  std::unique_lock<std::mutex> lock(mutex);
+  intptr_t result;
+  auto callback = my_callback_blocking_fp_;  // Define storage duration.
+  std::condition_variable cv;
+  bool notified = false;
+  const Work work = [a, &result, callback, &cv, &notified]() {
+    result = callback(a);
+    printf("C Da:     Notify result ready.\n");
+    notified = true;
+    cv.notify_one();
+  };
+  const Work* work_ptr = new Work(work);  // Copy to heap.
+  NotifyDart(my_callback_blocking_send_port_, work_ptr);
+  printf("C   :  Waiting for result.\n");
+  while (!notified) {
+    cv.wait(lock);
+  }
+  printf("C   :  Received result.\n");
+  return result;
+}
+
+// Do a callback to Dart in a non-blocking way.
+//
+// Dart sums all numbers posted to it.
+void MyCallbackNonBlocking(intptr_t a) {
+  auto callback = my_callback_non_blocking_fp_;  // Define storage duration.
+  const Work work = [a, callback]() { callback(a); };
+  // Copy to heap to make it outlive the function scope.
+  const Work* work_ptr = new Work(work);
+  NotifyDart(my_callback_non_blocking_send_port_, work_ptr);
+}
+
+// Simulated work for Thread #1.
+//
+// Simulates heavy work with sleeps.
+void Work1() {
+  printf("C T1: Work1 Start.\n");
+  SleepOnAnyOS(1);
+  const intptr_t val1 = 3;
+  printf("C T1: MyCallbackBlocking(%" Pd ").\n", val1);
+  const intptr_t val2 = MyCallbackBlocking(val1);  // val2 = 6.
+  printf("C T1: MyCallbackBlocking returned %" Pd ".\n", val2);
+  SleepOnAnyOS(1);
+  const intptr_t val3 = val2 - 1;  // val3 = 5.
+  printf("C T1: MyCallbackNonBlocking(%" Pd ").\n", val3);
+  MyCallbackNonBlocking(val3);  // Post 5 to Dart.
+  printf("C T1: Work1 Done.\n");
+}
+
+// Simulated work for Thread #2.
+//
+// Simulates lighter work, no sleeps.
+void Work2() {
+  printf("C T2: Work2 Start.\n");
+  const intptr_t val1 = 5;
+  printf("C T2: MyCallbackNonBlocking(%" Pd ").\n", val1);
+  MyCallbackNonBlocking(val1);  // Post 5 to Dart.
+  const intptr_t val2 = 1;
+  printf("C T2: MyCallbackBlocking(%" Pd ").\n", val2);
+  const intptr_t val3 = MyCallbackBlocking(val2);  // val3 = 4.
+  printf("C T2: MyCallbackBlocking returned %" Pd ".\n", val3);
+  printf("C T2: MyCallbackNonBlocking(%" Pd ").\n", val3);
+  MyCallbackNonBlocking(val3);  // Post 4 to Dart.
+  printf("C T2: Work2 Done.\n");
+}
+
+// Simulator that simulates concurrent work with multiple threads.
+class SimulateWork {
+ public:
+  static void StartWorkSimulator() {
+    running_work_simulator_ = new SimulateWork();
+    running_work_simulator_->Start();
+  }
+
+  static void StopWorkSimulator() {
+    running_work_simulator_->Stop();
+    delete running_work_simulator_;
+    running_work_simulator_ = nullptr;
+  }
+
+ private:
+  static SimulateWork* running_work_simulator_;
+
+  void Start() {
+    printf("C Da:  Starting SimulateWork.\n");
+    printf("C Da:   Starting worker threads.\n");
+    thread1 = new std::thread(Work1);
+    thread2 = new std::thread(Work2);
+    printf("C Da:  Started SimulateWork.\n");
+  }
+
+  void Stop() {
+    printf("C Da:  Stopping SimulateWork.\n");
+    printf("C Da:   Waiting for worker threads to finish.\n");
+    thread1->join();
+    thread2->join();
+    delete thread1;
+    delete thread2;
+    printf("C Da:  Stopped SimulateWork.\n");
+  }
+
+  std::thread* thread1;
+  std::thread* thread2;
+};
+SimulateWork* SimulateWork::running_work_simulator_ = 0;
+
+DART_EXPORT void RegisterMyCallbackBlocking(Dart_Port send_port,
+                                            intptr_t (*callback1)(intptr_t)) {
+  my_callback_blocking_fp_ = callback1;
+  my_callback_blocking_send_port_ = send_port;
+}
+
+DART_EXPORT void RegisterMyCallbackNonBlocking(Dart_Port send_port,
+                                               void (*callback)(intptr_t)) {
+  my_callback_non_blocking_fp_ = callback;
+  my_callback_non_blocking_send_port_ = send_port;
+}
+
+DART_EXPORT void StartWorkSimulator() {
+  SimulateWork::StartWorkSimulator();
+}
+
+DART_EXPORT void StopWorkSimulator() {
+  SimulateWork::StopWorkSimulator();
+}
+
+DART_EXPORT void ExecuteCallback(Work* work_ptr) {
+  printf("C Da:    ExecuteCallback(%" Pp ").\n",
+         reinterpret_cast<intptr_t>(work_ptr));
+  const Work work = *work_ptr;
+  work();
+  delete work_ptr;
+  printf("C Da:    ExecuteCallback done.\n");
+}
 
 }  // namespace dart

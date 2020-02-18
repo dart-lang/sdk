@@ -1120,6 +1120,7 @@ shared_library("ffi_test_dynamic_library") {
     cflags = [ "-fPIC" ]
   }
   if (is_win) {
+    # TODO(dartbug.com/40579): This wrongly links in dart.exe on precompiled.
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
@@ -1153,6 +1154,7 @@ shared_library("ffi_test_functions") {
     cflags = [ "-fPIC" ]
   }
   if (is_win) {
+    # TODO(dartbug.com/40579): This wrongly links in dart.exe on precompiled.
     libs = [ "dart.lib" ]
     abs_root_out_dir = rebase_path(root_out_dir)
     ldflags = [ "/LIBPATH:$abs_root_out_dir" ]
