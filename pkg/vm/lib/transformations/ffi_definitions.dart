@@ -309,64 +309,42 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         listElementAt);
   }
 
-  /// Sample output:
-  /// ffi.Pointer<ffi.Double> get _xPtr => addressOf.cast();
-  /// double get x => _xPtr.load();
-  /// set x(double v) => _xPtr.store(v);
   List<Procedure> _generateMethodsForField(Field field, NativeType type,
       Map<Abi, int> offsets, IndexedClass indexedClass) {
     final DartType nativeType = type == NativeType.kPointer
         ? field.type
         : InterfaceType(nativeTypesClasses[type.index], Nullability.legacy);
-    final DartType pointerType =
-        InterfaceType(pointerClass, Nullability.legacy, [nativeType]);
-    final Name pointerName = Name('#_ptr_${field.name.name}');
-
-    // Sample output:
-    // ffi.Pointer<ffi.Double> get _xPtr => addressOf.offsetBy(...).cast<ffi.Pointer<ffi.Double>>();
-    Expression pointer =
-        PropertyGet(ThisExpression(), addressOfField.name, addressOfField);
-    final hasNonZero = offsets.values.skipWhile((i) => i == 0).isNotEmpty;
-    if (hasNonZero) {
-      pointer = MethodInvocation(pointer, offsetByMethod.name,
-          Arguments([_runtimeBranchOnLayout(offsets)]), offsetByMethod);
-    }
-
     final Class nativeClass = (nativeType as InterfaceType).classNode;
     final NativeType nt = getType(nativeClass);
-    final typeArguments = [
-      if (nt == NativeType.kPointer && pointerType is InterfaceType)
-        pointerType.typeArguments[0]
-    ];
-
-    final Procedure pointerGetter = Procedure(
-        pointerName,
-        ProcedureKind.Getter,
-        FunctionNode(
-            ReturnStatement(MethodInvocation(pointer, castMethod.name,
-                Arguments([], types: [nativeType]), castMethod)),
-            returnType: pointerType),
-        fileUri: field.fileUri,
-        reference:
-            indexedClass?.lookupProcedureNotSetter(pointerName.name)?.reference)
-      ..fileOffset = field.fileOffset
-      ..isNonNullableByDefault = field.isNonNullableByDefault;
+    final bool isPointer = nt == NativeType.kPointer;
 
     // Sample output:
-    // double get x => _xPtr.value;
-    final loadMethod =
-        optimizedTypes.contains(nt) ? loadMethods[nt] : loadStructMethod;
+    // int get x => _loadInt8(pointer, offset);
+    //
+    // Treat Pointer fields different to get correct behavior without casts:
+    // Pointer<Int8> get x =>
+    //   _fromAddress<Int8>(_loadIntPtr(pointer, offset));
+    final loadMethod = isPointer
+        ? loadMethods[NativeType.kIntptr]
+        : optimizedTypes.contains(nt) ? loadMethods[nt] : loadStructMethod;
+    Expression getterReturnValue = StaticInvocation(
+        loadMethod,
+        Arguments([
+          PropertyGet(ThisExpression(), addressOfField.name, addressOfField)
+            ..fileOffset = field.fileOffset,
+          _runtimeBranchOnLayout(offsets)
+        ]))
+      ..fileOffset = field.fileOffset;
+    if (isPointer) {
+      final typeArg = (nativeType as InterfaceType).typeArguments.single;
+      getterReturnValue = StaticInvocation(
+          fromAddressInternal, Arguments([getterReturnValue], types: [typeArg]))
+        ..fileOffset = field.fileOffset;
+    }
     final Procedure getter = Procedure(
         field.name,
         ProcedureKind.Getter,
-        FunctionNode(
-            ReturnStatement(StaticInvocation(
-                loadMethod,
-                Arguments([
-                  PropertyGet(ThisExpression(), pointerName, pointerGetter),
-                  ConstantExpression(IntConstant(0),
-                      InterfaceType(intClass, Nullability.legacy))
-                ], types: typeArguments))),
+        FunctionNode(ReturnStatement(getterReturnValue),
             returnType: field.type),
         fileUri: field.fileUri,
         reference:
@@ -375,12 +353,25 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       ..isNonNullableByDefault = field.isNonNullableByDefault;
 
     // Sample output:
-    // set x(double v) { _xPtr.value = v; };
-    final storeMethod = storeMethods[nt];
+    // set x(int v) => _storeInt8(pointer, offset, v);
+    //
+    // Treat Pointer fields different to get correct behavior without casts:
+    // set x(Pointer<Int8> v) =>
+    //   _storeIntPtr(pointer, offset, (v as Pointer<Int8>).address);
+    final storeMethod =
+        isPointer ? storeMethods[NativeType.kIntptr] : storeMethods[nt];
     Procedure setter = null;
     if (!field.isFinal) {
       final VariableDeclaration argument =
-          VariableDeclaration('#v', type: field.type);
+          VariableDeclaration('#v', type: field.type)
+            ..fileOffset = field.fileOffset;
+      Expression argumentExpression = VariableGet(argument)
+        ..fileOffset = field.fileOffset;
+      if (isPointer) {
+        argumentExpression =
+            DirectPropertyGet(argumentExpression, addressGetter)
+              ..fileOffset = field.fileOffset;
+      }
       setter = Procedure(
           field.name,
           ProcedureKind.Setter,
@@ -388,11 +379,13 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               ReturnStatement(StaticInvocation(
                   storeMethod,
                   Arguments([
-                    PropertyGet(ThisExpression(), pointerName, pointerGetter),
-                    ConstantExpression(IntConstant(0),
-                        InterfaceType(intClass, Nullability.legacy)),
-                    VariableGet(argument)
-                  ], types: typeArguments))),
+                    PropertyGet(
+                        ThisExpression(), addressOfField.name, addressOfField)
+                      ..fileOffset = field.fileOffset,
+                    _runtimeBranchOnLayout(offsets),
+                    argumentExpression
+                  ]))
+                ..fileOffset = field.fileOffset),
               returnType: VoidType(),
               positionalParameters: [argument]),
           fileUri: field.fileUri,
@@ -405,7 +398,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     replacedGetters[field] = getter;
     replacedSetters[field] = setter;
 
-    return [pointerGetter, getter, if (setter != null) setter];
+    return [getter, if (setter != null) setter];
   }
 
   /// Sample output:

@@ -18,24 +18,18 @@ class Coordinate extends ffi::Struct {
   static factory allocate(core::double* x, core::double* y, ffi::Pointer<self::Coordinate*>* next) → self::Coordinate* {
     return let final self::Coordinate* #t1 = ffi::StructPointer|get#ref<self::Coordinate*>(all::allocate<self::Coordinate*>()) in let final void #t2 = #t1.{self::Coordinate::x} = x in let final void #t3 = #t1.{self::Coordinate::y} = y in let final void #t4 = #t1.{self::Coordinate::next} = next in #t1;
   }
-  get #_ptr_x() → ffi::Pointer<ffi::Double*>*
-    return this.{ffi::Struct::_addressOf}.{ffi::Pointer::cast}<ffi::Double*>();
   get x() → core::double*
-    return ffi::_loadDouble(this.{self::Coordinate::#_ptr_x}, #C7);
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C8).{core::List::[]}(ffi::_abi()));
   set x(core::double* #v) → void
-    return ffi::_storeDouble(this.{self::Coordinate::#_ptr_x}, #C7, #v);
-  get #_ptr_y() → ffi::Pointer<ffi::Double*>*
-    return this.{ffi::Struct::_addressOf}.{ffi::Pointer::_offsetBy}((#C9).{core::List::[]}(ffi::_abi())).{ffi::Pointer::cast}<ffi::Double*>();
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C8).{core::List::[]}(ffi::_abi()), #v);
   get y() → core::double*
-    return ffi::_loadDouble(this.{self::Coordinate::#_ptr_y}, #C7);
+    return ffi::_loadDouble(this.{ffi::Struct::_addressOf}, (#C10).{core::List::[]}(ffi::_abi()));
   set y(core::double* #v) → void
-    return ffi::_storeDouble(this.{self::Coordinate::#_ptr_y}, #C7, #v);
-  get #_ptr_next() → ffi::Pointer<ffi::Pointer<self::Coordinate*>*>*
-    return this.{ffi::Struct::_addressOf}.{ffi::Pointer::_offsetBy}((#C11).{core::List::[]}(ffi::_abi())).{ffi::Pointer::cast}<ffi::Pointer<self::Coordinate*>*>();
+    return ffi::_storeDouble(this.{ffi::Struct::_addressOf}, (#C10).{core::List::[]}(ffi::_abi()), #v);
   get next() → ffi::Pointer<self::Coordinate*>*
-    return ffi::_loadPointer<ffi::Pointer<self::Coordinate*>*>(this.{self::Coordinate::#_ptr_next}, #C7);
+    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadIntPtr(this.{ffi::Struct::_addressOf}, (#C12).{core::List::[]}(ffi::_abi())));
   set next(ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storePointer<ffi::Pointer<self::Coordinate*>*>(this.{self::Coordinate::#_ptr_next}, #C7, #v);
+    return ffi::_storeIntPtr(this.{ffi::Struct::_addressOf}, (#C12).{core::List::[]}(ffi::_abi()), #v.{=ffi::Pointer::address});
 }
 static method main() → dynamic {}
 
@@ -47,8 +41,9 @@ constants  {
   #C5 = 20
   #C6 = <core::int*>[#C4, #C5, #C4]
   #C7 = 0
-  #C8 = 8
-  #C9 = <core::int*>[#C8, #C8, #C8]
-  #C10 = 16
-  #C11 = <core::int*>[#C10, #C10, #C10]
+  #C8 = <core::int*>[#C7, #C7, #C7]
+  #C9 = 8
+  #C10 = <core::int*>[#C9, #C9, #C9]
+  #C11 = 16
+  #C12 = <core::int*>[#C11, #C11, #C11]
 }
