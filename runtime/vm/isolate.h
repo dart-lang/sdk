@@ -1075,9 +1075,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   static void NotifyLowMemory();
 
-  void RememberLiveTemporaries();
-  void DeferredMarkLiveTemporaries();
-
  private:
   friend class Dart;                  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().

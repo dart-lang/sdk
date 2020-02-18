@@ -972,7 +972,6 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
                                          RawPcDescriptors::Kind kind,
                                          LocationSummary* locs,
                                          Code::EntryKind entry_kind) {
-  ASSERT(CanCallDart());
   __ BranchLinkPatchable(stub, entry_kind);
   EmitCallsiteMetadata(token_pos, deopt_id, kind, locs);
 }
@@ -983,7 +982,6 @@ void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
                                                LocationSummary* locs,
                                                const Function& target,
                                                Code::EntryKind entry_kind) {
-  ASSERT(CanCallDart());
   if (FLAG_precompiled_mode && FLAG_use_bare_instructions) {
     __ GenerateUnRelocatedPcRelativeCall();
     AddPcRelativeCallTarget(target, entry_kind);
@@ -1053,7 +1051,6 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
                                             TokenPosition token_pos,
                                             LocationSummary* locs,
                                             Code::EntryKind entry_kind) {
-  ASSERT(CanCallDart());
   ASSERT(entry_kind == Code::EntryKind::kNormal ||
          entry_kind == Code::EntryKind::kUnchecked);
   ASSERT(Array::Handle(zone(), ic_data.arguments_descriptor()).Length() > 0);
@@ -1085,7 +1082,6 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     LocationSummary* locs,
     intptr_t try_index,
     intptr_t slow_path_argument_count) {
-  ASSERT(CanCallDart());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
   const ArgumentsDescriptor args_desc(arguments_descriptor);
   const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
@@ -1130,7 +1126,6 @@ void FlowGraphCompiler::EmitInstanceCallAOT(const ICData& ic_data,
                                             LocationSummary* locs,
                                             Code::EntryKind entry_kind,
                                             bool receiver_can_be_smi) {
-  ASSERT(CanCallDart());
   ASSERT(ic_data.NumArgsTested() == 1);
   const Code& initial_stub = StubCode::UnlinkedCall();
   const char* switchable_call_mode = "smiable";
