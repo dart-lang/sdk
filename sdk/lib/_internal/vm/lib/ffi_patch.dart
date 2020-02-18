@@ -122,79 +122,69 @@ int _abi()
 // allocating a Pointer with in elementAt/offsetBy. Allocating these pointers
 // and GCing new spaces takes a lot of the benchmark time. The next speedup is
 // getting rid of these allocations by inlining these functions.
-int _loadInt8(Pointer<Int8> pointer, int offsetInBytes) native "Ffi_loadInt8";
+int _loadInt8(Pointer pointer, int offsetInBytes) native "Ffi_loadInt8";
 
-int _loadInt16(Pointer<Int16> pointer, int offsetInBytes)
-    native "Ffi_loadInt16";
+int _loadInt16(Pointer pointer, int offsetInBytes) native "Ffi_loadInt16";
 
-int _loadInt32(Pointer<Int32> pointer, int offsetInBytes)
-    native "Ffi_loadInt32";
+int _loadInt32(Pointer pointer, int offsetInBytes) native "Ffi_loadInt32";
 
-int _loadInt64(Pointer<Int64> pointer, int offsetInBytes)
-    native "Ffi_loadInt64";
+int _loadInt64(Pointer pointer, int offsetInBytes) native "Ffi_loadInt64";
 
-int _loadUint8(Pointer<Uint8> pointer, int offsetInBytes)
-    native "Ffi_loadUint8";
+int _loadUint8(Pointer pointer, int offsetInBytes) native "Ffi_loadUint8";
 
-int _loadUint16(Pointer<Uint16> pointer, int offsetInBytes)
-    native "Ffi_loadUint16";
+int _loadUint16(Pointer pointer, int offsetInBytes) native "Ffi_loadUint16";
 
-int _loadUint32(Pointer<Uint32> pointer, int offsetInBytes)
-    native "Ffi_loadUint32";
+int _loadUint32(Pointer pointer, int offsetInBytes) native "Ffi_loadUint32";
 
-int _loadUint64(Pointer<Uint64> pointer, int offsetInBytes)
-    native "Ffi_loadUint64";
+int _loadUint64(Pointer pointer, int offsetInBytes) native "Ffi_loadUint64";
 
-int _loadIntPtr(Pointer<IntPtr> pointer, int offsetInBytes)
-    native "Ffi_loadIntPtr";
+int _loadIntPtr(Pointer pointer, int offsetInBytes) native "Ffi_loadIntPtr";
 
-double _loadFloat(Pointer<Float> pointer, int offsetInBytes)
-    native "Ffi_loadFloat";
+double _loadFloat(Pointer pointer, int offsetInBytes) native "Ffi_loadFloat";
 
-double _loadDouble(Pointer<Double> pointer, int offsetInBytes)
-    native "Ffi_loadDouble";
+double _loadDouble(Pointer pointer, int offsetInBytes) native "Ffi_loadDouble";
 
 Pointer<S> _loadPointer<S extends NativeType>(
-    Pointer<Pointer<S>> pointer, int offsetInBytes) native "Ffi_loadPointer";
+    Pointer pointer, int offsetInBytes) native "Ffi_loadPointer";
 
 S _loadStruct<S extends Struct>(Pointer<S> pointer, int index)
     native "Ffi_loadStruct";
 
-void _storeInt8(Pointer<Int8> pointer, int offsetInBytes, int value)
+void _storeInt8(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt8";
 
-void _storeInt16(Pointer<Int16> pointer, int offsetInBytes, int value)
+void _storeInt16(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt16";
 
-void _storeInt32(Pointer<Int32> pointer, int offsetInBytes, int value)
+void _storeInt32(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt32";
 
-void _storeInt64(Pointer<Int64> pointer, int offsetInBytes, int value)
+void _storeInt64(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeInt64";
 
-void _storeUint8(Pointer<Uint8> pointer, int offsetInBytes, int value)
+void _storeUint8(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint8";
 
-void _storeUint16(Pointer<Uint16> pointer, int offsetInBytes, int value)
+void _storeUint16(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint16";
 
-void _storeUint32(Pointer<Uint32> pointer, int offsetInBytes, int value)
+void _storeUint32(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint32";
 
-void _storeUint64(Pointer<Uint64> pointer, int offsetInBytes, int value)
+void _storeUint64(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeUint64";
 
-void _storeIntPtr(Pointer<IntPtr> pointer, int offsetInBytes, int value)
+void _storeIntPtr(Pointer pointer, int offsetInBytes, int value)
     native "Ffi_storeIntPtr";
 
-void _storeFloat(Pointer<Float> pointer, int offsetInBytes, double value)
+void _storeFloat(Pointer pointer, int offsetInBytes, double value)
     native "Ffi_storeFloat";
 
-void _storeDouble(Pointer<Double> pointer, int offsetInBytes, double value)
+void _storeDouble(Pointer pointer, int offsetInBytes, double value)
     native "Ffi_storeDouble";
 
-void _storePointer<S extends NativeType>(Pointer<Pointer<S>> pointer,
-    int offsetInBytes, Pointer<S> value) native "Ffi_storePointer";
+void _storePointer<S extends NativeType>(Pointer pointer, int offsetInBytes,
+    Pointer<S> value) native "Ffi_storePointer";
 
 Pointer<Int8> _elementAtInt8(Pointer<Int8> pointer, int index) =>
     Pointer.fromAddress(pointer.address + 1 * index);

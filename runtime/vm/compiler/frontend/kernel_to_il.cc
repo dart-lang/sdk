@@ -1211,13 +1211,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
           ffi_type_arg_cid, zone_);
 
-      // Check Dart signature type.
-      const auto& receiver_type =
-          AbstractType::Handle(function.ParameterTypeAt(0));
-      const auto& type_args = TypeArguments::Handle(receiver_type.arguments());
-      const auto& type_arg = AbstractType::Handle(type_args.TypeAt(0));
-      ASSERT(ffi_type_arg_cid == type_arg.type_class_id());
-
       ASSERT(function.NumParameters() == 2);
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
@@ -1297,13 +1290,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       const auto& native_rep = compiler::ffi::NativeType::FromTypedDataClassId(
           ffi_type_arg_cid, zone_);
 
-      // Check Dart signature type.
-      const auto& receiver_type =
-          AbstractType::Handle(function.ParameterTypeAt(0));
-      const auto& type_args = TypeArguments::Handle(receiver_type.arguments());
-      const auto& type_arg = AbstractType::Handle(type_args.TypeAt(0));
-      ASSERT(ffi_type_arg_cid == type_arg.type_class_id());
-
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
       LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
@@ -1319,10 +1305,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
         const auto& pointer_type_arg =
             AbstractType::Handle(pointer_type_args.TypeAt(0));
 
-        // The method _storePointer is a top level generic function, not an
-        // instance method on a generic class.
-        ASSERT(!type_arg.IsInstantiated(kFunctions));
-        ASSERT(type_arg.IsInstantiated(kCurrentClass));
         // But we type check it as a method on a generic class at runtime.
         body += LoadLocal(arg_value);
         body += LoadLocal(arg_pointer);
