@@ -41,10 +41,6 @@ Assembler::Assembler(ObjectPoolBuilder* object_pool_builder,
   };
 }
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
-  memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
-}
-
 void Assembler::call(Label* label) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   static const int kSize = 5;

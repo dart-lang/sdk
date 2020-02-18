@@ -13,6 +13,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/compiler/assembler/assembler_base.h"
 #include "vm/constants.h"
 #include "vm/constants_x86.h"
 #include "vm/hash_map.h"
@@ -947,9 +948,6 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
-  void Stop(const char* message) override;
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   static Address ElementAddressForIntIndex(bool is_external,
                                            intptr_t cid,

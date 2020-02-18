@@ -11,6 +11,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/compiler/assembler/assembler_base.h"
 #include "vm/constants.h"
 #include "vm/constants_x86.h"
 #include "vm/pointer_tagging.h"
@@ -843,9 +844,6 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
-  void Stop(const char* message) override;
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   // Check if the given value is an integer value that can be directly
   // emdedded into the code without additional XORing with jit_cookie.

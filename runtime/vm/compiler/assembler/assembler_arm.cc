@@ -72,16 +72,6 @@ uint32_t Address::vencoding() const {
   return vencoding;
 }
 
-void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
-  ASSERT(Utils::IsAligned(data, 4));
-  ASSERT(Utils::IsAligned(length, 4));
-  const uword end = data + length;
-  while (data < end) {
-    *reinterpret_cast<int32_t*>(data) = Instr::kBreakPointInstruction;
-    data += 4;
-  }
-}
-
 void Assembler::Emit(int32_t value) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   buffer_.Emit<int32_t>(value);

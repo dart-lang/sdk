@@ -12,6 +12,8 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
+#include "vm/constants_base.h"
+
 namespace dart {
 
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at

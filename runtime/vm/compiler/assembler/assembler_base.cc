@@ -4,7 +4,7 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
-#include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/assembler/assembler_base.h"
 
 #include "platform/utils.h"
 #include "vm/cpu.h"
@@ -51,13 +51,29 @@ intptr_t AssemblerBase::InsertAlignedRelocation(BSS::Relocation reloc) {
   return offset;
 }
 
+#if defined(DEBUG)
+static void InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
+#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
+  ASSERT(Utils::IsAligned(data, 4));
+  ASSERT(Utils::IsAligned(length, 4));
+  const uword end = data + length;
+  while (data < end) {
+    *reinterpret_cast<int32_t*>(data) = Instr::kBreakPointInstruction;
+    data += 4;
+  }
+#else
+  memset(reinterpret_cast<void*>(data), Instr::kBreakPointInstruction, length);
+#endif
+}
+#endif
+
 static uword NewContents(intptr_t capacity) {
   Zone* zone = Thread::Current()->zone();
   uword result = zone->AllocUnsafe(capacity);
 #if defined(DEBUG)
   // Initialize the buffer with kBreakPointInstruction to force a break
   // point if we ever execute an uninitialized part of the code buffer.
-  Assembler::InitializeMemoryWithBreakpoints(result, capacity);
+  InitializeMemoryWithBreakpoints(result, capacity);
 #endif
   return result;
 }
@@ -240,7 +256,7 @@ bool AssemblerBase::EmittingComments() {
   return FLAG_code_comments || FLAG_disassemble || FLAG_disassemble_optimized;
 }
 
-void Assembler::Stop(const char* message) {
+void AssemblerBase::Stop(const char* message) {
   Comment("Stop: %s", message);
   Breakpoint();
 }

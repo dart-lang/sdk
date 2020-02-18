@@ -14,6 +14,7 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 #include "vm/class_id.h"
+#include "vm/compiler/assembler/assembler_base.h"
 #include "vm/constants.h"
 #include "vm/hash_map.h"
 #include "vm/simulator.h"
@@ -489,9 +490,6 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() override { brk(0); }
-  void Stop(const char* message) override;
-
-  static void InitializeMemoryWithBreakpoints(uword data, intptr_t length);
 
   void SetPrologueOffset() {
     if (prologue_offset_ == -1) {
