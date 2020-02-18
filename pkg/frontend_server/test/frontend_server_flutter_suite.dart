@@ -235,5 +235,5 @@ main([List<String> arguments = const <String>[]]) async {
   print("Log files written to ${resultJsonUri.toFilePath()} and"
       " ${logsJsonUri.toFilePath()}");
 
-  return timeout ? 1 : 0;
+  exitCode = timeout ? 1 : 0;
 }
