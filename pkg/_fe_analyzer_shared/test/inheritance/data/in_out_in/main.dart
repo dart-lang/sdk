@@ -14,7 +14,5 @@ class SubClass1 extends LegacyClass1 {
 
 /*class: SubClass2:Class,Interface,LegacyClass2,Object,SubClass2*/
 class SubClass2 extends LegacyClass2 implements Interface {
-  // TODO(johnniwinther): Correctly merge `Interface.method` with
-  //  `LegacyClass2.method` to show nullabilities.
-  /*member: SubClass2.method:int* Function(int*)**/
+  /*member: SubClass2.method:int? Function(int!)!*/
 }

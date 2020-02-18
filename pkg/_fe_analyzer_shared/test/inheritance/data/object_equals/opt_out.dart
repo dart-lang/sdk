@@ -82,3 +82,99 @@ abstract class B implements A {
     return super.noSuchMethod(invocation);
   }
 }
+
+// From language_2/mixin/bound_test:
+
+/*class: AbstractExpression:AbstractExpression,Object*/
+abstract class AbstractExpression {
+  /*member: AbstractExpression.toString:String* Function()**/
+  /*member: AbstractExpression.noSuchMethod:dynamic Function(Invocation*)**/
+  /*member: AbstractExpression.==:bool* Function(Object*)**/
+}
+
+/*class: ExpressionWithEval:ExpressionWithEval,Object*/
+abstract class ExpressionWithEval {
+  /*member: ExpressionWithEval.toString:String* Function()**/
+  /*member: ExpressionWithEval.noSuchMethod:dynamic Function(Invocation*)**/
+  /*member: ExpressionWithEval.==:bool* Function(Object*)**/
+
+  /*member: ExpressionWithEval.eval:int**/
+  int get eval;
+}
+
+/*class: ExpressionWithStringConversion:ExpressionWithStringConversion,Object*/
+abstract class ExpressionWithStringConversion {
+  /*member: ExpressionWithStringConversion.noSuchMethod:dynamic Function(Invocation*)**/
+  /*member: ExpressionWithStringConversion.==:bool* Function(Object*)**/
+
+  /*member: ExpressionWithStringConversion.toString:String* Function()**/
+  String toString();
+}
+
+/*class: _Expression&AbstractExpression&ExpressionWithEval:AbstractExpression,ExpressionWithEval,Object,_Expression&AbstractExpression&ExpressionWithEval*/
+/*member: _Expression&AbstractExpression&ExpressionWithEval.toString:String* Function()**/
+/*member: _Expression&AbstractExpression&ExpressionWithEval.eval:int**/
+/*member: _Expression&AbstractExpression&ExpressionWithEval.noSuchMethod:dynamic Function(Invocation*)**/
+/*member: _Expression&AbstractExpression&ExpressionWithEval.==:bool* Function(Object*)**/
+
+/*class: Expression:AbstractExpression,Expression,ExpressionWithEval,ExpressionWithStringConversion,Object,_Expression&AbstractExpression&ExpressionWithEval*/
+/*member: Expression.toString:String* Function()**/
+/*member: Expression.eval:int**/
+/*member: Expression.noSuchMethod:dynamic Function(Invocation*)**/
+/*member: Expression.==:bool* Function(Object*)**/
+abstract class Expression = AbstractExpression
+    with ExpressionWithEval, ExpressionWithStringConversion;
+
+// From co19_2/Mixins/Mixin_Application/superinterfaces_t01:
+
+/*class: A2:A2,Object*/
+abstract class A2 {
+  /*member: A2.toString:String* Function()**/
+  /*member: A2.noSuchMethod:dynamic Function(Invocation*)**/
+  /*member: A2.==:bool* Function(Object*)**/
+
+  /*member: A2.a:int**/
+  int get a;
+}
+
+/*class: B2:B2,Object*/
+abstract class B2 {
+  /*member: B2.toString:String* Function()**/
+  /*member: B2.noSuchMethod:dynamic Function(Invocation*)**/
+  /*member: B2.==:bool* Function(Object*)**/
+
+  /*member: B2.b:int**/
+  int get b;
+}
+
+/*class: M2:A2,B2,M2,Object*/
+abstract class M2 implements A2, B2 {
+  /*member: M2.b:int**/
+  /*member: M2.a:int**/
+  /*member: M2.toString:String* Function()**/
+  /*member: M2.noSuchMethod:dynamic Function(Invocation*)**/
+  /*member: M2.==:bool* Function(Object*)**/
+}
+
+/*class: S2:Object,S2*/
+class S2 {
+  /*member: S2.toString:String* Function()**/
+  /*member: S2.noSuchMethod:dynamic Function(Invocation*)**/
+  /*member: S2.==:bool* Function(Object*)**/
+}
+
+/*class: _C2&S2&M2:A2,B2,M2,Object,S2,_C2&S2&M2*/
+/*member: _C2&S2&M2.b:int**/
+/*member: _C2&S2&M2.a:int**/
+/*member: _C2&S2&M2.toString:String* Function()**/
+/*member: _C2&S2&M2.noSuchMethod:dynamic Function(Invocation*)**/
+/*member: _C2&S2&M2.==:bool* Function(Object*)**/
+
+/*class: C2:A2,B2,C2,M2,Object,S2,_C2&S2&M2*/
+class /*error: MissingImplementationNotAbstract*/ C2 extends S2 with M2 {
+  /*member: C2.b:int**/
+  /*member: C2.a:int**/
+  /*member: C2.toString:String* Function()**/
+  /*member: C2.noSuchMethod:dynamic Function(Invocation*)**/
+  /*member: C2.==:bool* Function(Object*)**/
+}

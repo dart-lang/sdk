@@ -243,9 +243,6 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isAbstract => memberBuilder.member.isAbstract;
 
   @override
-  ProcedureKind get memberKind => null;
-
-  @override
   bool get hasExplicitReturnType {
     throw new UnsupportedError("${runtimeType}.hasExplicitReturnType");
   }
@@ -255,4 +252,7 @@ abstract class BuilderClassMember implements ClassMember {
     throw new UnsupportedError(
         "${runtimeType}.hasExplicitlyTypedFormalParameter");
   }
+
+  @override
+  String toString() => '$runtimeType($memberBuilder)';
 }

@@ -108,6 +108,12 @@ abstract class ClassMember {
   bool get isGetter;
   bool get isFinal;
   bool get isConst;
+
+  /// Returns `true` if this member is a regular method or operator.
+  bool get isFunction;
+
+  /// Returns `true` if this member is a field, getter or setter.
+  bool get isProperty;
   Member getMember(ClassHierarchyBuilder hierarchy);
   bool get isDuplicate;
   String get fullName;
@@ -117,7 +123,6 @@ abstract class ClassMember {
   Uri get fileUri;
   int get charOffset;
   bool get isAbstract;
-  ProcedureKind get memberKind;
   bool get hasExplicitReturnType;
   bool hasExplicitlyTypedFormalParameter(int index);
 }
@@ -130,13 +135,7 @@ abstract class ClassMember {
 /// ../../../../../../docs/language/dartLangSpec.tex#classMemberConflicts).
 bool isInheritanceConflict(ClassMember a, ClassMember b) {
   if (a.isStatic) return true;
-  if (a.memberKind == b.memberKind) return false;
-  if (a.isField) return !(b.isField || b.isGetter || b.isSetter);
-  if (b.isField) return !(a.isField || a.isGetter || a.isSetter);
-  if (a.isSetter) return !(b.isGetter || b.isSetter);
-  if (b.isSetter) return !(a.isGetter || a.isSetter);
-  if (a is InterfaceConflict || b is InterfaceConflict) return false;
-  return true;
+  return a.isProperty != b.isProperty;
 }
 
 bool hasSameSignature(FunctionNode a, FunctionNode b) {
@@ -472,6 +471,8 @@ class ClassHierarchyNodeBuilder {
     }
     ClassMember result = checkInheritanceConflict(a, b);
     if (result != null) return result;
+    assert(a.isProperty == b.isProperty,
+        "Unexpected member combination: $a vs $b");
     result = a;
     switch (mergeKind) {
       case MergeKind.superclassMembers:
@@ -499,11 +500,11 @@ class ClassHierarchyNodeBuilder {
                 classBuilder,
                 a,
                 concrete,
+                a.isProperty,
                 mergeKind.forSetters,
                 shouldModifyKernel,
                 concrete.isAbstract,
-                concrete.name,
-                concrete.memberKind);
+                concrete.name);
             hierarchy.delayedMemberChecks.add(result);
           }
         } else if (classBuilder.isMixinApplication &&
@@ -1232,11 +1233,11 @@ class ClassHierarchyNodeBuilder {
           member = new InterfaceConflict(
               classBuilder,
               [member],
+              member.isProperty,
               mergeKind.forSetters,
               shouldModifyKernel,
               member.isAbstract,
               member.name,
-              member.memberKind,
               isImplicitlyAbstract: member.isAbstract);
           hierarchy.delayedMemberChecks.add(member);
         }
@@ -2403,6 +2404,8 @@ abstract class DelayedMember implements ClassMember {
   /// Conflicting declarations.
   final List<ClassMember> declarations;
 
+  final bool isProperty;
+
   final bool isSetter;
 
   final bool modifyKernel;
@@ -2412,11 +2415,11 @@ abstract class DelayedMember implements ClassMember {
   @override
   final Name name;
 
-  @override
-  final ProcedureKind memberKind;
+  DelayedMember(this.classBuilder, this.declarations, this.isProperty,
+      this.isSetter, this.modifyKernel, this.isExplicitlyAbstract, this.name);
 
-  DelayedMember(this.classBuilder, this.declarations, this.isSetter,
-      this.modifyKernel, this.isExplicitlyAbstract, this.name, this.memberKind);
+  @override
+  bool get isFunction => !isProperty;
 
   @override
   bool get isAbstract => isExplicitlyAbstract;
@@ -2481,14 +2484,14 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   InheritedImplementationInterfaceConflict(
       ClassBuilder parent,
       List<ClassMember> declarations,
+      bool isProperty,
       bool isSetter,
       bool modifyKernel,
       bool isAbstract,
       Name name,
-      ProcedureKind memberKind,
       {this.isInheritableConflict = true})
-      : super(parent, declarations, isSetter, modifyKernel, isAbstract, name,
-            memberKind);
+      : super(parent, declarations, isProperty, isSetter, modifyKernel,
+            isAbstract, name);
 
   @override
   bool isObjectMember(ClassBuilder objectClass) {
@@ -2499,7 +2502,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
   String toString() {
     return "InheritedImplementationInterfaceConflict("
         "${classBuilder.fullNameForErrors}, "
-        "[${declarations.map((ClassMember m) => m.fullName).join(', ')}])";
+        "[${declarations.join(', ')}])";
   }
 
   @override
@@ -2519,7 +2522,7 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       }
     }
     return combinedMemberSignatureResult = new InterfaceConflict(classBuilder,
-            declarations, isSetter, modifyKernel, isAbstract, name, memberKind)
+            declarations, isProperty, isSetter, modifyKernel, isAbstract, name)
         .check(hierarchy);
   }
 
@@ -2530,11 +2533,11 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
         : new InheritedImplementationInterfaceConflict(
             parent,
             declarations.toList(),
+            isProperty,
             isSetter,
             modifyKernel,
             isAbstract,
-            name,
-            memberKind);
+            name);
   }
 
   static ClassMember combined(
@@ -2544,6 +2547,8 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       bool isSetter,
       bool createForwarders,
       {bool isInheritableConflict = true}) {
+    assert(concreteImplementation.isProperty == other.isProperty,
+        "Unexpected member combination: $concreteImplementation vs $other");
     List<ClassMember> declarations = <ClassMember>[];
     if (concreteImplementation is DelayedMember) {
       concreteImplementation.addAllDeclarationsTo(declarations);
@@ -2561,11 +2566,11 @@ class InheritedImplementationInterfaceConflict extends DelayedMember {
       return new InheritedImplementationInterfaceConflict(
           parent,
           declarations,
+          concreteImplementation.isProperty,
           isSetter,
           createForwarders,
           declarations.first.isAbstract,
           declarations.first.name,
-          declarations.first.memberKind,
           isInheritableConflict: isInheritableConflict);
     }
   }
@@ -2577,20 +2582,18 @@ class InterfaceConflict extends DelayedMember {
   InterfaceConflict(
       ClassBuilder parent,
       List<ClassMember> declarations,
+      bool isProperty,
       bool isSetter,
       bool modifyKernel,
       bool isAbstract,
       Name name,
-      ProcedureKind memberKind,
       {this.isImplicitlyAbstract: true})
-      : super(parent, declarations, isSetter, modifyKernel, isAbstract, name,
-            memberKind);
+      : super(parent, declarations, isProperty, isSetter, modifyKernel,
+            isAbstract, name);
 
   @override
-  bool isObjectMember(ClassBuilder objectClass) {
-    return declarations.length == 1 &&
-        declarations.first.isObjectMember(objectClass);
-  }
+  bool isObjectMember(ClassBuilder objectClass) =>
+      declarations.first.isObjectMember(objectClass);
 
   @override
   bool get isAbstract => isExplicitlyAbstract || isImplicitlyAbstract;
@@ -2600,7 +2603,7 @@ class InterfaceConflict extends DelayedMember {
   @override
   String toString() {
     return "InterfaceConflict(${classBuilder.fullNameForErrors}, "
-        "[${declarations.map((ClassMember m) => m.fullName).join(', ')}])";
+        "[${declarations.join(', ')}])";
   }
 
   DartType computeMemberType(
@@ -2659,6 +2662,8 @@ class InterfaceConflict extends DelayedMember {
     for (int i = declarations.length - 1; i >= 0; i--) {
       ClassMember candidate = declarations[i];
       Member target = candidate.getMember(hierarchy);
+      assert(target != null,
+          "No member computed for ${candidate} (${candidate.runtimeType})");
       DartType candidateType = computeMemberType(hierarchy, thisType, target);
       if (bestSoFar == null) {
         bestSoFar = candidate;
@@ -2715,14 +2720,17 @@ class InterfaceConflict extends DelayedMember {
           classBuilder.charOffset,
           length,
           context: context);
-      return null;
+      // TODO(johnniwinther): Maybe we should have an invalid marker to avoid
+      // cascading errors.
+      return combinedMemberSignatureResult =
+          declarations.first.getMember(hierarchy);
     }
     debug?.log("Combined Member Signature of ${fullNameForErrors}: "
         "${bestSoFar.fullName}");
 
     ProcedureKind kind = ProcedureKind.Method;
     Member bestMemberSoFar = bestSoFar.getMember(hierarchy);
-    if (bestSoFar.isField || bestSoFar.isSetter || bestSoFar.isGetter) {
+    if (bestSoFar.isProperty) {
       kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
     } else if (bestMemberSoFar is Procedure &&
         bestMemberSoFar.kind == ProcedureKind.Operator) {
@@ -2761,13 +2769,15 @@ class InterfaceConflict extends DelayedMember {
   DelayedMember withParent(ClassBuilder parent) {
     return parent == this.classBuilder
         ? this
-        : new InterfaceConflict(parent, declarations.toList(), isSetter,
-            modifyKernel, isAbstract, name, memberKind,
+        : new InterfaceConflict(parent, [this], isProperty, isSetter,
+            modifyKernel, isAbstract, name,
             isImplicitlyAbstract: isImplicitlyAbstract);
   }
 
   static ClassMember combined(ClassBuilder parent, ClassMember a, ClassMember b,
       bool isSetter, bool createForwarders) {
+    assert(a.isProperty == b.isProperty,
+        "Unexpected member combination: $a vs $b");
     List<ClassMember> declarations = <ClassMember>[];
     if (a is DelayedMember) {
       a.addAllDeclarationsTo(declarations);
@@ -2785,11 +2795,11 @@ class InterfaceConflict extends DelayedMember {
       return new InterfaceConflict(
           parent,
           declarations,
+          a.isProperty,
           isSetter,
           createForwarders,
           declarations.first.isAbstract,
-          declarations.first.name,
-          declarations.first.memberKind);
+          declarations.first.name);
     }
   }
 }
@@ -2799,13 +2809,13 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
       ClassBuilder parent,
       ClassMember abstractMember,
       ClassMember concreteImplementation,
+      bool isProperty,
       bool isSetter,
       bool modifyKernel,
       bool isAbstract,
-      Name name,
-      ProcedureKind memberKind)
+      Name name)
       : super(parent, <ClassMember>[concreteImplementation, abstractMember],
-            isSetter, modifyKernel, isAbstract, name, memberKind);
+            isProperty, isSetter, modifyKernel, isAbstract, name);
 
   @override
   bool isObjectMember(ClassBuilder objectClass) =>
@@ -2828,7 +2838,7 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
     }
 
     ProcedureKind kind = ProcedureKind.Method;
-    if (abstractMember.isSetter || abstractMember.isGetter) {
+    if (abstractMember.isProperty) {
       kind = isSetter ? ProcedureKind.Setter : ProcedureKind.Getter;
     }
     if (modifyKernel) {
@@ -2849,18 +2859,18 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
             parent,
             abstractMember,
             concreteImplementation,
+            isProperty,
             isSetter,
             modifyKernel,
             isAbstract,
-            name,
-            memberKind);
+            name);
   }
 
   @override
   String toString() {
     return "AbstractMemberOverridingImplementation("
         "${classBuilder.fullNameForErrors}, "
-        "[${declarations.map((ClassMember m) => m.fullName).join(', ')}])";
+        "[${declarations.join(', ')}])";
   }
 
   static ClassMember selectAbstract(ClassMember declaration) {
@@ -2875,7 +2885,7 @@ class AbstractMemberOverridingImplementation extends DelayedMember {
     if (declaration is AbstractMemberOverridingImplementation) {
       return declaration.concreteImplementation;
     } else if (declaration is InterfaceConflict && !declaration.isAbstract) {
-      return selectConcrete(declaration.declarations.single);
+      return selectConcrete(declaration.declarations.first);
     } else {
       return declaration;
     }

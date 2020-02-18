@@ -147,13 +147,21 @@ class DillClassMember extends BuilderClassMember {
   DillClassMember(this.memberBuilder);
 
   @override
-  ProcedureKind get memberKind => memberBuilder.kind;
+  bool get isProperty =>
+      memberBuilder.kind == null ||
+      memberBuilder.kind == ProcedureKind.Getter ||
+      memberBuilder.kind == ProcedureKind.Setter;
+
+  @override
+  bool get isFunction => !isProperty;
 
   @override
   bool get hasExplicitReturnType => true;
 
   @override
   bool hasExplicitlyTypedFormalParameter(int index) => true;
+
+  String toString() => 'DillClassMember($memberBuilder)';
 }
 
 int computeModifiers(Member member) {

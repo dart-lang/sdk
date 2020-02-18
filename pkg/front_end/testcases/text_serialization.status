@@ -210,6 +210,7 @@ general/infer_map_literal_with_closure: TextSerializationFailure
 general/interface_contravariant_from_class: TextSerializationFailure
 general/interface_covariantImpl_from_class: TextSerializationFailure
 general/interface_covariantInterface_from_class: TextSerializationFailure
+general/interface_conflict: TextSerializationFailure
 general/invalid_assignment: TextSerializationFailure # Was: Pass
 general/invalid_cast: TextSerializationFailure # Was: Pass
 general/invalid_operator2: TextSerializationFailure
@@ -251,6 +252,7 @@ general/mixin_application_override: TypeCheckError
 general/mixin_conflicts: TextSerializationFailure
 general/mixin_constructors_with_default_values: TextSerializationFailure # Was: Pass
 general/mixin_inherited_setter_for_mixed_in_field: TextSerializationFailure # Was: Pass
+general/mixin_interface_conflict: TextSerializationFailure
 general/mixin_super_repeated: TextSerializationFailure # Was: Pass
 general/mixin_with_static_member: TextSerializationFailure
 general/named_function_scope: TextSerializationFailure # Was: Pass

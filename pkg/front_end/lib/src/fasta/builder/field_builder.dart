@@ -591,6 +591,12 @@ class SourceFieldMember extends BuilderClassMember {
 
   SourceFieldMember(this.memberBuilder);
 
+  @override
+  bool get isProperty => true;
+
+  @override
+  bool get isFunction => false;
+
   TypeBuilder get type => memberBuilder.type;
 
   bool get hadTypesInferred => memberBuilder.hadTypesInferred;
@@ -1054,6 +1060,12 @@ class _LateFieldClassMember implements ClassMember {
   Member getMember(ClassHierarchyBuilder hierarchy) => _member;
 
   @override
+  bool get isProperty => isField || isGetter || isSetter;
+
+  @override
+  bool get isFunction => !isProperty;
+
+  @override
   ClassBuilder get classBuilder => fieldBuilder.classBuilder;
 
   @override
@@ -1098,12 +1110,6 @@ class _LateFieldClassMember implements ClassMember {
   bool get isConst {
     Member field = _member;
     return field is Field && field.isConst;
-  }
-
-  @override
-  ProcedureKind get memberKind {
-    Member procedure = _member;
-    return procedure is Procedure ? procedure.kind : null;
   }
 
   @override

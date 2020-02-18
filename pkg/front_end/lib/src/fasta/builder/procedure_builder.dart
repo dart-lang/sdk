@@ -521,6 +521,14 @@ class SourceProcedureMember extends BuilderClassMember {
 
   SourceProcedureMember(this.memberBuilder);
 
+  @override
+  bool get isProperty =>
+      memberBuilder.kind == ProcedureKind.Getter ||
+      memberBuilder.kind == ProcedureKind.Setter;
+
+  @override
+  bool get isFunction => !isProperty;
+
   List<FormalParameterBuilder> get formals => memberBuilder.formals;
 
   TypeBuilder get returnType => memberBuilder.returnType;
@@ -530,9 +538,6 @@ class SourceProcedureMember extends BuilderClassMember {
   void set hadTypesInferred(bool value) {
     memberBuilder.hadTypesInferred = value;
   }
-
-  @override
-  ProcedureKind get memberKind => memberBuilder.kind;
 
   @override
   bool get hasExplicitReturnType {
