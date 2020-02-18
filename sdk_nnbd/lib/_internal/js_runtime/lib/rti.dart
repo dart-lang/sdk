@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.5
-
 /// This library contains support for runtime type information.
 library rti;
 
@@ -144,10 +142,10 @@ class Rti {
 
   // Data value used by some tests.
   @pragma('dart2js:noElision')
-  Object _specializedTestResource;
+  Object? _specializedTestResource;
 
   static Object _getSpecializedTestResource(Rti rti) {
-    return rti._specializedTestResource;
+    return rti._specializedTestResource!;
   }
 
   static void _setSpecializedTestResource(Rti rti, Object value) {
@@ -155,7 +153,7 @@ class Rti {
   }
 
   // The Type object corresponding to this Rti.
-  Object _cachedRuntimeType;
+  Object? _cachedRuntimeType;
   static _Type _getCachedRuntimeType(Rti rti) =>
       JS('_Type|Null', '#', rti._cachedRuntimeType);
   static void _setCachedRuntimeType(Rti rti, _Type type) {
@@ -302,9 +300,9 @@ class Rti {
   /// type environment. The ambiguity between 'generic class is the environment'
   /// and 'generic class is a singleton type argument' is resolved by using
   /// different indexing in the recipe.
-  Object _evalCache;
+  Object? _evalCache;
 
-  static Object _getEvalCache(Rti rti) => rti._evalCache;
+  static Object? _getEvalCache(Rti rti) => rti._evalCache!;
   static void _setEvalCache(Rti rti, value) {
     rti._evalCache = value;
   }
@@ -322,9 +320,9 @@ class Rti {
   /// On [Rti]s that are generic function types, results of instantiation are
   /// cached on the generic function type to ensure fast repeated
   /// instantiations.
-  Object _bindCache;
+  Object? _bindCache;
 
-  static Object _getBindCache(Rti rti) => rti._bindCache;
+  static Object? _getBindCache(Rti rti) => rti._bindCache!;
   static void _setBindCache(Rti rti, value) {
     rti._bindCache = value;
   }
@@ -333,7 +331,7 @@ class Rti {
     return new Rti();
   }
 
-  Object _canonicalRecipe;
+  late Object _canonicalRecipe;
 
   static String _getCanonicalRecipe(Rti rti) {
     Object s = rti._canonicalRecipe;
@@ -351,7 +349,7 @@ class _FunctionParameters {
 
   static _FunctionParameters allocate() => _FunctionParameters();
 
-  Object _requiredPositional;
+  late Object _requiredPositional;
   static JSArray _getRequiredPositional(_FunctionParameters parameters) =>
       JS('JSUnmodifiableArray', '#', parameters._requiredPositional);
   static void _setRequiredPositional(
@@ -359,7 +357,7 @@ class _FunctionParameters {
     parameters._requiredPositional = requiredPositional;
   }
 
-  Object _optionalPositional;
+  late Object _optionalPositional;
   static JSArray _getOptionalPositional(_FunctionParameters parameters) =>
       JS('JSUnmodifiableArray', '#', parameters._optionalPositional);
   static void _setOptionalPositional(
@@ -376,7 +374,7 @@ class _FunctionParameters {
   /// the name [String]s and the odd indices are the type [Rti]s.
   ///
   /// Invariant: These pairs are sorted by name in lexicographically ascending order.
-  Object _optionalNamed;
+  late Object _optionalNamed;
   static JSArray _getOptionalNamed(_FunctionParameters parameters) =>
       JS('JSUnmodifiableArray', '#', parameters._optionalNamed);
   static void _setOptionalNamed(
@@ -426,7 +424,7 @@ Rti evalInInstance(instance, String recipe) {
 ///
 /// Called from generated code.
 @pragma('dart2js:noInline')
-Rti instantiatedGenericFunctionType(
+Rti? instantiatedGenericFunctionType(
     Rti genericFunctionRti, Rti instantiationRti) {
   // If --lax-runtime-type-to-string is enabled and we never check the function
   // type, then the function won't have a signature, so its RTI will be null. In
@@ -445,7 +443,7 @@ Rti instantiatedGenericFunctionType(
   String key = Rti._getCanonicalRecipe(instantiationRti);
   var probe = _Utils.mapGet(cache, key);
   if (probe != null) return _castToRti(probe);
-  Rti rti = _instantiate(_theUniverse(),
+  Rti? rti = _instantiate(_theUniverse(),
       Rti._getGenericFunctionBase(genericFunctionRti), typeArguments, 0);
   _Utils.mapSet(cache, key, rti);
   return rti;
@@ -459,7 +457,7 @@ Rti instantiatedGenericFunctionType(
 /// [depth] is the number of subsequent generic function parameters that are in
 /// scope. This is subtracted off the de Bruijn index for the type parameter to
 /// arrive at an potential index into [typeArguments].
-Rti _instantiate(universe, Rti rti, Object typeArguments, int depth) {
+Rti? _instantiate(universe, Rti rti, Object typeArguments, int depth) {
   int kind = Rti._getKind(rti);
   switch (kind) {
     case Rti.kindErased:
@@ -471,19 +469,19 @@ Rti _instantiate(universe, Rti rti, Object typeArguments, int depth) {
     case Rti.kindStar:
       Rti baseType = _castToRti(Rti._getPrimary(rti));
       Rti instantiatedBaseType =
-          _instantiate(universe, baseType, typeArguments, depth);
+          _instantiate(universe, baseType, typeArguments, depth)!;
       if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
       return _Universe._lookupStarRti(universe, instantiatedBaseType, true);
     case Rti.kindQuestion:
       Rti baseType = _castToRti(Rti._getPrimary(rti));
       Rti instantiatedBaseType =
-          _instantiate(universe, baseType, typeArguments, depth);
+          _instantiate(universe, baseType, typeArguments, depth)!;
       if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
       return _Universe._lookupQuestionRti(universe, instantiatedBaseType, true);
     case Rti.kindFutureOr:
       Rti baseType = _castToRti(Rti._getPrimary(rti));
       Rti instantiatedBaseType =
-          _instantiate(universe, baseType, typeArguments, depth);
+          _instantiate(universe, baseType, typeArguments, depth)!;
       if (_Utils.isIdentical(instantiatedBaseType, baseType)) return rti;
       return _Universe._lookupFutureOrRti(universe, instantiatedBaseType, true);
     case Rti.kindInterface:
@@ -497,7 +495,8 @@ Rti _instantiate(universe, Rti rti, Object typeArguments, int depth) {
           instantiatedInterfaceTypeArguments);
     case Rti.kindBinding:
       Rti base = Rti._getBindingBase(rti);
-      Rti instantiatedBase = _instantiate(universe, base, typeArguments, depth);
+      Rti instantiatedBase =
+          _instantiate(universe, base, typeArguments, depth)!;
       Object arguments = Rti._getBindingArguments(rti);
       Object instantiatedArguments =
           _instantiateArray(universe, arguments, typeArguments, depth);
@@ -508,7 +507,7 @@ Rti _instantiate(universe, Rti rti, Object typeArguments, int depth) {
     case Rti.kindFunction:
       Rti returnType = Rti._getReturnType(rti);
       Rti instantiatedReturnType =
-          _instantiate(universe, returnType, typeArguments, depth);
+          _instantiate(universe, returnType, typeArguments, depth)!;
       _FunctionParameters functionParameters = Rti._getFunctionParameters(rti);
       _FunctionParameters instantiatedFunctionParameters =
           _instantiateFunctionParameters(
@@ -524,7 +523,8 @@ Rti _instantiate(universe, Rti rti, Object typeArguments, int depth) {
       Object instantiatedBounds =
           _instantiateArray(universe, bounds, typeArguments, depth);
       Rti base = Rti._getGenericFunctionBase(rti);
-      Rti instantiatedBase = _instantiate(universe, base, typeArguments, depth);
+      Rti instantiatedBase =
+          _instantiate(universe, base, typeArguments, depth)!;
       if (_Utils.isIdentical(instantiatedBounds, bounds) &&
           _Utils.isIdentical(instantiatedBase, base)) return rti;
       return _Universe._lookupGenericFunctionRti(
@@ -546,7 +546,7 @@ Object _instantiateArray(
   Object result = JS('', '[]');
   for (int i = 0; i < length; i++) {
     Rti rti = _castToRti(_Utils.arrayAt(rtiArray, i));
-    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
+    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth)!;
     if (_Utils.isNotIdentical(instantiatedRti, rti)) {
       changed = true;
     }
@@ -564,7 +564,7 @@ Object _instantiateNamed(
   for (int i = 0; i < length; i += 2) {
     String name = _Utils.asString(_Utils.arrayAt(namedArray, i));
     Rti rti = _castToRti(_Utils.arrayAt(namedArray, i + 1));
-    Rti instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
+    Rti? instantiatedRti = _instantiate(universe, rti, typeArguments, depth);
     if (_Utils.isNotIdentical(instantiatedRti, rti)) {
       changed = true;
     }
@@ -611,7 +611,7 @@ bool _isClosure(object) => _Utils.instanceOf(object,
 /// Returns the structural function [Rti] of [closure], or `null`.
 /// [closure] must be a subclass of [Closure].
 /// Called from generated code.
-Rti closureFunctionType(closure) {
+Rti? closureFunctionType(closure) {
   var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
   var signature = JS('', '#[#]', closure, signatureName);
   if (signature != null) {
@@ -634,7 +634,7 @@ Rti instanceOrFunctionType(object, Rti testRti) {
       // If [testRti] is e.g. `FutureOr<Action>` (where `Action` is some
       // function type), we don't need to worry about the `Future<Action>`
       // branch because closures can't be `Future`s.
-      Rti rti = closureFunctionType(object);
+      Rti? rti = closureFunctionType(object);
       if (rti != null) return rti;
     }
   }
@@ -743,7 +743,7 @@ Rti _instanceTypeFromConstructorMiss(instance, constructor) {
 
 /// Returns the structural function type of [object], or `null` if the object is
 /// not a closure.
-Rti _instanceFunctionType(object) =>
+Rti? _instanceFunctionType(object) =>
     _isClosure(object) ? closureFunctionType(object) : null;
 
 /// Returns Rti from types table. The types table is initialized with recipe
@@ -785,7 +785,7 @@ Type typeLiteral(String recipe) {
 /// Implementation of [Type] based on Rti.
 class _Type implements Type {
   final Rti _rti;
-  int _hashCode;
+  int? _hashCode;
 
   _Type(this._rti);
 
@@ -1079,7 +1079,7 @@ String /*?*/ _checkStringNullable(object) {
   throw _TypeError.forType(object, 'String');
 }
 
-String _rtiArrayToString(Object array, List<String> genericContext) {
+String _rtiArrayToString(Object array, List<String>? genericContext) {
   String s = '', sep = '';
   for (int i = 0; i < _Utils.arrayLength(array); i++) {
     s += sep +
@@ -1089,10 +1089,10 @@ String _rtiArrayToString(Object array, List<String> genericContext) {
   return s;
 }
 
-String _functionRtiToString(Rti functionType, List<String> genericContext,
-    {Object bounds = null}) {
+String _functionRtiToString(Rti functionType, List<String>? genericContext,
+    {Object? bounds = null}) {
   String typeParametersText = '';
-  int outerContextLength;
+  int? outerContextLength;
 
   if (bounds != null) {
     int boundsLength = _Utils.arrayLength(bounds);
@@ -1183,7 +1183,7 @@ String _functionRtiToString(Rti functionType, List<String> genericContext,
   return '${typeParametersText}(${argumentsText}) => ${returnTypeText}';
 }
 
-String _rtiToString(Rti rti, List<String> genericContext) {
+String _rtiToString(Rti rti, List<String>? genericContext) {
   int kind = Rti._getKind(rti);
 
   if (kind == Rti.kindErased) return 'erased';
@@ -1241,8 +1241,9 @@ String _rtiToString(Rti rti, List<String> genericContext) {
   }
 
   if (kind == Rti.kindGenericFunctionParameter) {
+    var context = genericContext!;
     int index = Rti._getGenericFunctionParameterIndex(rti);
-    return genericContext[genericContext.length - 1 - index];
+    return context[context.length - 1 - index];
   }
 
   return '?';
@@ -1530,7 +1531,7 @@ class _Universe {
   }
 
   static Rti _parseRecipe(
-      Object universe, Object environment, String recipe, bool normalize) {
+      Object universe, Object? environment, String recipe, bool normalize) {
     Object parser = _Parser.create(universe, environment, recipe, normalize);
     Rti rti = _Parser.parse(parser);
     if (rti != null) return rti;
@@ -2063,7 +2064,7 @@ class _Parser {
   /// Marked as no-inline so the object literal is not cloned by inlining.
   @pragma('dart2js:noInline')
   static Object create(
-      Object universe, Object environment, String recipe, bool normalize) {
+      Object universe, Object? environment, String recipe, bool normalize) {
     return JS(
         '',
         '{'
@@ -2612,8 +2613,8 @@ bool _isSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     tEnv = tEnv == null ? tBounds : _Utils.arrayConcat(tBounds, tEnv);
 
     for (int i = 0; i < sLength; i++) {
-      var sBound = _Utils.arrayAt(sBounds, i);
-      var tBound = _Utils.arrayAt(tBounds, i);
+      var sBound = _castToRti(_Utils.arrayAt(sBounds, i));
+      var tBound = _castToRti(_Utils.arrayAt(tBounds, i));
       if (!_isSubtype(universe, sBound, sEnv, tBound, tEnv) ||
           !_isSubtype(universe, tBound, tEnv, sBound, sEnv)) {
         return false;
@@ -2731,18 +2732,18 @@ bool _isInterfaceSubtype(universe, Rti s, sEnv, Rti t, tEnv) {
     assert(length == _Utils.arrayLength(tArgs));
 
     var sVariances;
-    bool hasVariances;
+    bool? hasVariances;
     if (JS_GET_FLAG("VARIANCE")) {
       sVariances = _Universe.findTypeParameterVariances(universe, sName);
       hasVariances = sVariances != null;
-      assert(!hasVariances || length == _Utils.arrayLength(sVariances));
+      assert(!hasVariances! || length == _Utils.arrayLength(sVariances));
     }
 
     for (int i = 0; i < length; i++) {
       Rti sArg = _castToRti(_Utils.arrayAt(sArgs, i));
       Rti tArg = _castToRti(_Utils.arrayAt(tArgs, i));
       if (JS_GET_FLAG("VARIANCE")) {
-        int sVariance = hasVariances
+        int sVariance = hasVariances != null
             ? _Utils.asInt(_Utils.arrayAt(sVariances, i))
             : Variance.legacyCovariant;
         switch (sVariance) {
@@ -2890,7 +2891,7 @@ class _Utils {
   static JSArray arrayConcat(Object a1, Object a2) =>
       JS('JSArray', '#.concat(#)', a1, a2);
 
-  static void arrayPush(Object array, Object value) {
+  static void arrayPush(Object array, Object? value) {
     JS('', '#.push(#)', array, value);
   }
 
