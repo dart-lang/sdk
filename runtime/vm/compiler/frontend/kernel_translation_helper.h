@@ -763,6 +763,15 @@ class LibraryHelper {
     kExternal = 1 << 0,
     kSynthetic = 1 << 1,
     kIsNonNullableByDefault = 1 << 2,
+    kNonNullableByDefaultCompiledModeBit1Weak = 1 << 3,
+    kNonNullableByDefaultCompiledModeBit2Strong = 1 << 4,
+  };
+
+  enum NonNullableByDefaultCompiledMode {
+    kDisabled,
+    kWeak,
+    kStrong,
+    kAgnostic
   };
 
   explicit LibraryHelper(KernelReaderHelper* helper, uint32_t binary_version)
@@ -781,6 +790,14 @@ class LibraryHelper {
   bool IsSynthetic() const { return (flags_ & kSynthetic) != 0; }
   bool IsNonNullableByDefault() const {
     return (flags_ & kIsNonNullableByDefault) != 0;
+  }
+  NonNullableByDefaultCompiledMode GetNonNullableByDefaultCompiledMode() const {
+    bool weak = (flags_ & kNonNullableByDefaultCompiledModeBit1Weak) != 0;
+    bool strong = (flags_ & kNonNullableByDefaultCompiledModeBit2Strong) != 0;
+    if (weak && strong) return kAgnostic;
+    if (strong) return kStrong;
+    if (weak) return kWeak;
+    return kDisabled;
   }
 
   uint8_t flags_ = 0;

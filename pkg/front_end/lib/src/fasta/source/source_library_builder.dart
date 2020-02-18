@@ -36,6 +36,7 @@ import 'package:kernel/ast.dart'
         Member,
         Name,
         NeverType,
+        NonNullableByDefaultCompiledMode,
         Nullability,
         Procedure,
         ProcedureKind,
@@ -310,6 +311,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         super(
             fileUri, libraryDeclaration.toScope(importScope), new Scope.top()) {
     library.isNonNullableByDefault = isNonNullableByDefault;
+    library.nonNullableByDefaultCompiledMode = loader.target.enableNonNullable
+        ? (loader.nnbdStrongMode
+            ? NonNullableByDefaultCompiledMode.Strong
+            : NonNullableByDefaultCompiledMode.Weak)
+        : NonNullableByDefaultCompiledMode.Disabled;
   }
 
   SourceLibraryBuilder(
@@ -958,6 +964,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     library.isNonNullableByDefault = isNonNullableByDefault;
+    // TODO(CFE Team): Is this really needed in two places?
+    library.nonNullableByDefaultCompiledMode = loader.target.enableNonNullable
+        ? (loader.nnbdStrongMode
+            ? NonNullableByDefaultCompiledMode.Strong
+            : NonNullableByDefaultCompiledMode.Weak)
+        : NonNullableByDefaultCompiledMode.Disabled;
 
     return library;
   }
