@@ -2024,9 +2024,17 @@ DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1,
   }
 }
 
-// TODO(iposva): This call actually implements IsInstanceOfClass.
-// Do we also need a real Dart_IsInstanceOf, which should take an instance
-// rather than an object?
+// Assumes type is non-null.
+static bool InstanceIsType(const Thread* thread,
+                           const Instance& instance,
+                           const Type& type) {
+  ASSERT(!type.IsNull());
+  CHECK_CALLBACK_STATE(thread);
+  return instance.IsInstanceOf(NNBDMode::kLegacyLib, type,
+                               Object::null_type_arguments(),
+                               Object::null_type_arguments());
+}
+
 DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
                                           Dart_Handle type,
                                           bool* value) {
@@ -2051,10 +2059,7 @@ DART_EXPORT Dart_Handle Dart_ObjectIsType(Dart_Handle object,
     *value = false;
     RETURN_TYPE_ERROR(Z, object, Instance);
   }
-  CHECK_CALLBACK_STATE(T);
-  *value = instance.IsInstanceOf(NNBDMode::kLegacyLib, type_obj,
-                                 Object::null_type_arguments(),
-                                 Object::null_type_arguments());
+  *value = InstanceIsType(T, instance, type_obj);
   return Api::Success();
 }
 
@@ -2849,6 +2854,11 @@ DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
   return Api::NewHandle(T, arr.raw());
 }
 
+static bool CanTypeContainNull(const Type& type) {
+  return (type.nullability() == Nullability::kLegacy) ||
+         (type.nullability() == Nullability::kNullable);
+}
+
 DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
                                            intptr_t length) {
   DARTSCOPE(Thread::Current());
@@ -2863,7 +2873,46 @@ DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
         "%s expects argument 'type' to be a fully resolved type.",
         CURRENT_FUNC);
   }
+  if ((length > 0) && !CanTypeContainNull(type)) {
+    return Api::NewError("%s expects argument 'type' to be a nullable type.",
+                         CURRENT_FUNC);
+  }
   return Api::NewHandle(T, Array::New(length, type));
+}
+
+DART_EXPORT Dart_Handle Dart_NewListOfTypeFilled(Dart_Handle element_type,
+                                                 Dart_Handle fill_object,
+                                                 intptr_t length) {
+  DARTSCOPE(Thread::Current());
+  CHECK_LENGTH(length, Array::kMaxElements);
+  CHECK_CALLBACK_STATE(T);
+  const Type& type = Api::UnwrapTypeHandle(Z, element_type);
+  if (type.IsNull()) {
+    RETURN_TYPE_ERROR(Z, element_type, Type);
+  }
+  if (!type.IsFinalized()) {
+    return Api::NewError(
+        "%s expects argument 'type' to be a fully resolved type.",
+        CURRENT_FUNC);
+  }
+  const Instance& instance = Api::UnwrapInstanceHandle(Z, fill_object);
+  if (!instance.IsNull() && !InstanceIsType(T, instance, type)) {
+    return Api::NewError(
+        "%s expects argument 'fill_object' to have the same type as "
+        "'element_type'.",
+        CURRENT_FUNC);
+  }
+  if ((length > 0) && instance.IsNull() && !CanTypeContainNull(type)) {
+    return Api::NewError(
+        "%s expects argument 'fill_object' to be non-null for a non-nullable "
+        "'element_type'.",
+        CURRENT_FUNC);
+  }
+  Array& arr = Array::Handle(Z, Array::New(length, type));
+  for (intptr_t i = 0; i < arr.Length(); ++i) {
+    arr.SetAt(i, instance);
+  }
+  return Api::NewHandle(T, arr.raw());
 }
 
 #define GET_LIST_LENGTH(zone, type, obj, len)                                  \

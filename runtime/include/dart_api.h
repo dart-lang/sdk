@@ -2070,15 +2070,15 @@ typedef enum {
   Dart_CoreType_String,
 } Dart_CoreType_Id;
 
+// TODO(bkonyi): convert this to use nullable types once NNBD is enabled.
 /**
- * Returns a List of the desired length with the desired element type.
+ * Returns a List of the desired length with the desired legacy element type.
  *
  * \param element_type_id The type of elements of the list.
- *
  * \param length The length of the list.
  *
- * \return The List object if no error occurs. Otherwise returns
- *   an error handle.
+ * \return The List object if no error occurs. Otherwise returns an error
+ * handle.
  */
 DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
                                        intptr_t length);
@@ -2086,7 +2086,8 @@ DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
 /**
  * Returns a List of the desired length with the desired element type.
  *
- * \param element_type Handle to a type object. E.g., from Dart_GetType.
+ * \param element_type Handle to a nullable type object. E.g., from
+ * Dart_GetType or Dart_GetNullableType.
  *
  * \param length The length of the list.
  *
@@ -2095,6 +2096,25 @@ DART_EXPORT Dart_Handle Dart_NewListOf(Dart_CoreType_Id element_type_id,
  */
 DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
                                            intptr_t length);
+
+/**
+ * Returns a List of the desired length with the desired element type, filled
+ * with the provided object.
+ *
+ * \param element_type Handle to a type object. E.g., from Dart_GetType.
+ *
+ * \param fill_object Handle to an object of type 'element_type' that will be
+ * used to populate the list. This parameter can only be Dart_Null() if the
+ * length of the list is 0 or 'element_type' is a nullable type.
+ *
+ * \param length The length of the list.
+ *
+ * \return The List object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewListOfTypeFilled(Dart_Handle element_type,
+                                                 Dart_Handle fill_object,
+                                                 intptr_t length);
 
 /**
  * Gets the length of a List.

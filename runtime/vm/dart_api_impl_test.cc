@@ -5018,6 +5018,44 @@ TEST_CASE(DartAPI_New_Issue2971) {
   EXPECT(Dart_IsList(list_obj));
 }
 
+TEST_CASE(DartAPI_NewListOf) {
+  const char* kScriptChars =
+      "String expectListOfString(List<String> o) => '${o.first}';\n"
+      "String expectListOfDynamic(List<dynamic> o) => '${o.first}';\n"
+      "String expectListOfInt(List<int> o) => '${o.first}';\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  const int kNumArgs = 1;
+  Dart_Handle args[kNumArgs];
+  const char* str;
+
+  Dart_Handle string_list = Dart_NewListOf(Dart_CoreType_String, 1);
+  EXPECT_VALID(string_list);
+  args[0] = string_list;
+  Dart_Handle result =
+      Dart_Invoke(lib, NewString("expectListOfString"), kNumArgs, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_VALID(result);
+  EXPECT_STREQ("null", str);
+
+  Dart_Handle dynamic_list = Dart_NewListOf(Dart_CoreType_Dynamic, 1);
+  EXPECT_VALID(dynamic_list);
+  args[0] = dynamic_list;
+  result = Dart_Invoke(lib, NewString("expectListOfDynamic"), kNumArgs, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("null", str);
+
+  Dart_Handle int_list = Dart_NewListOf(Dart_CoreType_Int, 1);
+  EXPECT_VALID(int_list);
+  args[0] = int_list;
+  result = Dart_Invoke(lib, NewString("expectListOfInt"), kNumArgs, args);
+  EXPECT_VALID(result);
+  result = Dart_StringToCString(result, &str);
+  EXPECT_STREQ("null", str);
+}
+
 TEST_CASE(DartAPI_NewListOfType) {
   const char* kScriptChars =
       "class ZXHandle {}\n"
@@ -5092,6 +5130,69 @@ TEST_CASE(DartAPI_NewListOfType) {
   args[0] = never_list;
   EXPECT_VALID(
       Dart_Invoke(lib, NewString("expectListOfNever"), kNumArgs, args));
+}
+
+TEST_CASE(DartAPI_NewListOfTypeFilled) {
+  const char* kScriptChars =
+      "class ZXHandle {}\n"
+      "class ChannelReadResult {\n"
+      "  final List<ZXHandle> handles;\n"
+      "  ChannelReadResult(this.handles);\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  Dart_Handle zxhandle_type =
+      Dart_GetNonNullableType(lib, NewString("ZXHandle"), 0, NULL);
+  EXPECT_VALID(zxhandle_type);
+
+  Dart_Handle nullable_zxhandle_type =
+      Dart_GetNullableType(lib, NewString("ZXHandle"), 0, NULL);
+  EXPECT_VALID(nullable_zxhandle_type);
+
+  Dart_Handle integer = Dart_NewInteger(42);
+  EXPECT_VALID(integer);
+
+  Dart_Handle zxhandle = Dart_New(zxhandle_type, Dart_Null(), 0, NULL);
+  EXPECT_VALID(zxhandle);
+
+  Dart_Handle zxhandle_list =
+      Dart_NewListOfTypeFilled(zxhandle_type, zxhandle, 1);
+  EXPECT_VALID(zxhandle_list);
+
+  Dart_Handle result = Dart_ListGetAt(zxhandle_list, 0);
+  EXPECT_VALID(result);
+
+  EXPECT(Dart_IdentityEquals(result, zxhandle));
+
+  Dart_Handle readresult_type =
+      Dart_GetType(lib, NewString("ChannelReadResult"), 0, NULL);
+  EXPECT_VALID(zxhandle_type);
+
+  const int kNumArgs = 1;
+  Dart_Handle args[kNumArgs];
+  args[0] = zxhandle_list;
+  EXPECT_VALID(Dart_New(readresult_type, Dart_Null(), kNumArgs, args));
+
+  EXPECT_ERROR(Dart_NewListOfTypeFilled(Dart_Null(), Dart_Null(), 1),
+               "Dart_NewListOfTypeFilled expects argument 'element_type' to be "
+               "non-null.");
+  EXPECT_ERROR(Dart_NewListOfTypeFilled(Dart_True(), Dart_Null(), 1),
+               "Dart_NewListOfTypeFilled expects argument 'element_type' to be "
+               "of type Type.");
+  EXPECT_ERROR(
+      Dart_NewListOfTypeFilled(zxhandle_type, Dart_Null(), 1),
+      "Dart_NewListOfTypeFilled expects argument 'fill_object' to be non-null"
+      " for a non-nullable 'element_type'");
+  EXPECT_ERROR(
+      Dart_NewListOfTypeFilled(zxhandle_type, integer, 1),
+      "Dart_NewListOfTypeFilled expects argument 'fill_object' to have the same"
+      " type as 'element_type'.");
+
+  EXPECT_VALID(
+      Dart_NewListOfTypeFilled(nullable_zxhandle_type, Dart_Null(), 1));
+
+  // Null is always valid as the fill argument if we're creating an empty list.
+  EXPECT_VALID(Dart_NewListOfTypeFilled(zxhandle_type, Dart_Null(), 0));
 }
 
 static Dart_Handle PrivateLibName(Dart_Handle lib, const char* str) {
