@@ -39,7 +39,6 @@ class CompilationPipeline : public ZoneAllocated {
       ZoneGrowableArray<const ICData*>* ic_data_array,
       intptr_t osr_id,
       bool optimized) = 0;
-  virtual void FinalizeCompilation(FlowGraph* flow_graph) = 0;
   virtual ~CompilationPipeline() {}
 };
 
@@ -52,8 +51,6 @@ class DartCompilationPipeline : public CompilationPipeline {
                             ZoneGrowableArray<const ICData*>* ic_data_array,
                             intptr_t osr_id,
                             bool optimized) override;
-
-  void FinalizeCompilation(FlowGraph* flow_graph) override;
 };
 
 class IrregexpCompilationPipeline : public CompilationPipeline {
@@ -67,8 +64,6 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
                             ZoneGrowableArray<const ICData*>* ic_data_array,
                             intptr_t osr_id,
                             bool optimized) override;
-
-  void FinalizeCompilation(FlowGraph* flow_graph) override;
 
  private:
   IndirectGotoInstr* backtrack_goto_;

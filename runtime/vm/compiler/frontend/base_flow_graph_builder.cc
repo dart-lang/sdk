@@ -711,6 +711,13 @@ JoinEntryInstr* BaseFlowGraphBuilder::BuildJoinEntry() {
                                 GetNextDeoptId(), GetStackDepth());
 }
 
+IndirectEntryInstr* BaseFlowGraphBuilder::BuildIndirectEntry(
+    intptr_t indirect_id,
+    intptr_t try_index) {
+  return new (Z) IndirectEntryInstr(AllocateBlockId(), indirect_id, try_index,
+                                    GetNextDeoptId());
+}
+
 InputsArray* BaseFlowGraphBuilder::GetArguments(int count) {
   InputsArray* arguments = new (Z) ZoneGrowableArray<Value*>(Z, count);
   arguments->SetLength(count);

@@ -607,48 +607,100 @@ Fragment StreamingFlowGraphBuilder::CompleteBodyWithYieldContinuations(
   dispatch += StoreLocal(TokenPosition::kNoSource, scopes()->switch_variable);
   dispatch += Drop();
 
-  BlockEntryInstr* block = NULL;
-  for (intptr_t i = 0; i < yield_continuations().length(); i++) {
-    if (i == 1) {
-      // This is not a normal entry but a resumption.  Restore
-      // :current_context_var from :await_ctx_var.
-      // Note: after this point context_depth_ does not match current context
-      // depth so we should not access any local variables anymore.
-      dispatch += LoadLocal(scopes()->yield_context_variable);
-      dispatch += StoreLocal(TokenPosition::kNoSource,
-                             parsed_function()->current_context_var());
-      dispatch += Drop();
+  const intptr_t continuation_count = yield_continuations().length();
+
+  IndirectGotoInstr* indirect_goto;
+  if (FLAG_async_igoto_threshold >= 0 &&
+      continuation_count >= FLAG_async_igoto_threshold) {
+    const auto& offsets = TypedData::ZoneHandle(
+        Z, TypedData::New(kTypedDataInt32ArrayCid, continuation_count,
+                          Heap::kOld));
+
+    dispatch += Constant(offsets);
+    dispatch += LoadLocal(scopes()->switch_variable);
+
+    // Ideally this would just be LoadIndexedTypedData(kTypedDataInt32ArrayCid),
+    // but that doesn't work in unoptimised code.
+    // The optimiser will turn this into that in any case.
+    dispatch += InstanceCall(TokenPosition::kNoSource, Symbols::IndexToken(),
+                             Token::kINDEX, /*argument_count=*/2);
+
+    Value* offset_from_start = Pop();
+
+    indirect_goto = new (Z) IndirectGotoInstr(&offsets, offset_from_start);
+    dispatch <<= indirect_goto;
+
+    for (intptr_t i = 0; i < continuation_count; i++) {
+      if (i >= 1) {
+        Fragment resumption;
+        // Every continuation after the first is not a normal entry but a
+        // resumption.
+        // Restore :current_context_var from :await_ctx_var.
+        // Note: after this point context_depth_ does not match current context
+        // depth so we should not access any local variables anymore.
+        resumption += LoadLocal(scopes()->yield_context_variable);
+        resumption += StoreLocal(TokenPosition::kNoSource,
+                                 parsed_function()->current_context_var());
+        resumption += Drop();
+
+        Instruction* next = yield_continuations()[i].entry->next();
+        yield_continuations()[i].entry->LinkTo(resumption.entry);
+        resumption <<= next;
+      }
+
+      IndirectEntryInstr* indirect_entry = B->BuildIndirectEntry(
+          /*indirect_id=*/i, yield_continuations()[i].try_index);
+      indirect_entry->LinkTo(yield_continuations()[i].entry->next());
+
+      TargetEntryInstr* target = B->BuildTargetEntry();
+      Fragment(target) + Goto(indirect_entry);
+
+      indirect_goto->AddSuccessor(target);
     }
-    if (i == (yield_continuations().length() - 1)) {
-      // We reached the last possibility, no need to build more ifs.
-      // Continue to the last continuation.
+  } else {
+    BlockEntryInstr* block = nullptr;
+    for (intptr_t i = 0; i < continuation_count; i++) {
+      if (i == 1) {
+        // This is not a normal entry but a resumption.  Restore
+        // :current_context_var from :await_ctx_var.
+        // Note: after this point context_depth_ does not match current context
+        // depth so we should not access any local variables anymore.
+        dispatch += LoadLocal(scopes()->yield_context_variable);
+        dispatch += StoreLocal(TokenPosition::kNoSource,
+                               parsed_function()->current_context_var());
+        dispatch += Drop();
+      }
+      if (i == (continuation_count - 1)) {
+        // We reached the last possibility, no need to build more ifs.
+        // Continue to the last continuation.
+        // Note: continuations start with nop DropTemps instruction
+        // which acts like an anchor, so we need to skip it.
+        block->set_try_index(yield_continuations()[i].try_index);
+        dispatch <<= yield_continuations()[i].entry->next();
+        break;
+      }
+
+      // Build comparison:
+      //
+      //   if (:await_jump_var == i) {
+      //     -> yield_continuations()[i]
+      //   } else ...
+      //
+      TargetEntryInstr* then;
+      TargetEntryInstr* otherwise;
+      dispatch += LoadLocal(scopes()->switch_variable);
+      dispatch += IntConstant(i);
+      dispatch += B->BranchIfStrictEqual(&then, &otherwise);
+
+      // True branch is linked to appropriate continuation point.
       // Note: continuations start with nop DropTemps instruction
       // which acts like an anchor, so we need to skip it.
-      block->set_try_index(yield_continuations()[i].try_index);
-      dispatch <<= yield_continuations()[i].entry->next();
-      break;
+      then->LinkTo(yield_continuations()[i].entry->next());
+      then->set_try_index(yield_continuations()[i].try_index);
+      // False branch will contain the next comparison.
+      dispatch = Fragment(dispatch.entry, otherwise);
+      block = otherwise;
     }
-
-    // Build comparison:
-    //
-    //   if (:await_jump_var == i) {
-    //     -> yield_continuations()[i]
-    //   } else ...
-    //
-    TargetEntryInstr* then;
-    TargetEntryInstr* otherwise;
-    dispatch += LoadLocal(scopes()->switch_variable);
-    dispatch += IntConstant(i);
-    dispatch += B->BranchIfStrictEqual(&then, &otherwise);
-
-    // True branch is linked to appropriate continuation point.
-    // Note: continuations start with nop DropTemps instruction
-    // which acts like an anchor, so we need to skip it.
-    then->LinkTo(yield_continuations()[i].entry->next());
-    then->set_try_index(yield_continuations()[i].try_index);
-    // False branch will contain the next comparison.
-    dispatch = Fragment(dispatch.entry, otherwise);
-    block = otherwise;
   }
   B->context_depth_ = current_context_depth;
   return dispatch;

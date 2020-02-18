@@ -4036,15 +4036,13 @@ void IndirectGotoInstr::ComputeOffsetTable() {
       // must end with a goto to the indirect entry. Also, we can't use
       // last_instruction because 'target' is compacted/unreachable.
       Instruction* last = target->next();
-      while (last != NULL && !last->IsGoto()) {
+      while (last != nullptr && !last->IsGoto()) {
         last = last->next();
       }
       ASSERT(last);
-      IndirectEntryInstr* ientry =
-          last->AsGoto()->successor()->AsIndirectEntry();
-      ASSERT(ientry != NULL);
-      ASSERT(ientry->indirect_id() == i);
-      offset = ientry->offset();
+      const JoinEntryInstr* entry = last->AsGoto()->successor()->AsJoinEntry();
+      ASSERT(entry != nullptr);
+      offset = entry->offset();
     }
 
     ASSERT(offset > 0);

@@ -2512,7 +2512,6 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "CompileGraph");
         graph_compiler.CompileGraph();
-        pipeline->FinalizeCompilation(flow_graph);
       }
       {
         TIMELINE_DURATION(thread(), CompilerVerbose, "FinalizeCompilation");

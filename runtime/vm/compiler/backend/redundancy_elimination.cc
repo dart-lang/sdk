@@ -3310,7 +3310,7 @@ class TryCatchAnalyzer : public ValueObject {
     ASSERT(is_aot_);
 
     NumberCatchEntryParameters();
-    ComputeIncommingValues();
+    ComputeIncomingValues();
     CollectAliveParametersOrPhis();
     PropagateLivenessToInputs();
     EliminateDeadParameters();
@@ -3337,10 +3337,13 @@ class TryCatchAnalyzer : public ValueObject {
   // Compute potential incoming values for each Parameter in each catch block
   // by looking into environments assigned to MayThrow instructions within
   // blocks covered by the corresponding catch.
-  void ComputeIncommingValues() {
+  void ComputeIncomingValues() {
     for (auto block : flow_graph_->reverse_postorder()) {
-      if (block->try_index() == -1) continue;
+      if (block->try_index() == kInvalidTryIndex) {
+        continue;
+      }
 
+      ASSERT(block->try_index() < catch_by_index_.length());
       auto catch_entry = catch_by_index_[block->try_index()];
       const auto& idefs = *catch_entry->initial_definitions();
 
