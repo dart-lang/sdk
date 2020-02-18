@@ -112,6 +112,8 @@ ${ownType} is not a subtype of ${superType}
     if (subtype is InvalidType || supertype is InvalidType) {
       return true;
     }
+    // TODO(dmitryas): Find a way to tell the weak mode from strong mode to use
+    // [SubtypeCheckMode.withNullabilities] where necessary.
     return environment.isSubtypeOf(
         subtype, supertype, SubtypeCheckMode.ignoringNullabilities);
   }

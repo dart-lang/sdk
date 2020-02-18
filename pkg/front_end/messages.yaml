@@ -2059,13 +2059,30 @@ OverrideTypeMismatchParameter:
   tip: "Change to a supertype of '#type2', or, for a covariant parameter, a subtype."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
+OverrideTypeMismatchParameterWarning:
+  template: "The parameter '#name' of the method '#name2' has type '#type', which does not match the corresponding type, '#type2', in the overridden method, '#name3'."
+  tip: "Change to a supertype of '#type2', or, for a covariant parameter, a subtype."
+  severity: WARNING
+  analyzerCode: INVALID_METHOD_OVERRIDE
+
 OverrideTypeMismatchReturnType:
   template: "The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'."
   tip: "Change to a subtype of '#type2'."
   analyzerCode: INVALID_METHOD_OVERRIDE
 
+OverrideTypeMismatchReturnTypeWarning:
+  template: "The return type of the method '#name' is '#type', which does not match the return type, '#type2', of the overridden method, '#name2'."
+  tip: "Change to a subtype of '#type2'."
+  severity: WARNING
+  analyzerCode: INVALID_METHOD_OVERRIDE
+
 OverrideTypeMismatchSetter:
   template: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
+  analyzerCode: INVALID_METHOD_OVERRIDE
+
+OverrideTypeMismatchSetterWarning:
+  template: "The field '#name' has type '#type', which does not match the corresponding type, '#type2', in the overridden setter, '#name2'."
+  severity: WARNING
   analyzerCode: INVALID_METHOD_OVERRIDE
 
 PartOfSelf:
@@ -3354,6 +3371,11 @@ IncompatibleRedirecteeFunctionType:
       }
       class B<T extends int, S extends String> implements A<T> {}
 
+IncompatibleRedirecteeFunctionTypeWarning:
+  template: "The constructor function type '#type' isn't a subtype of '#type2'."
+  severity: WARNING
+  analyzerCode: REDIRECT_TO_INVALID_TYPE
+
 RedirectingFactoryIncompatibleTypeArgument:
   template: "The type '#type' doesn't extend '#type2'."
   tip: "Try using a different type as argument."
@@ -3364,6 +3386,12 @@ RedirectingFactoryIncompatibleTypeArgument:
          factory A() = B<T, int>;
       }
       class B<T extends int, S extends String> implements A<T> {}
+
+RedirectingFactoryIncompatibleTypeArgumentWarning:
+  template: "The type '#type' doesn't extend '#type2'."
+  tip: "Try using a different type as argument."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 SyntheticToken:
   template: "This couldn't be parsed."
@@ -3377,6 +3405,12 @@ IncorrectTypeArgument:
     class C<T extends num> {}
     main() { new C<String>(); }
 
+IncorrectTypeArgumentWarning:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
 IncorrectTypeArgumentQualified:
   template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
   tip: "Try changing type arguments so that they conform to the bounds."
@@ -3384,6 +3418,12 @@ IncorrectTypeArgumentQualified:
   script: >
     class C<T> { foo<U extends num>() {} }
     main() { new C<String>().foo<String>(); }
+
+IncorrectTypeArgumentQualifiedWarning:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 IncorrectTypeArgumentInSupertype:
   template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
@@ -3393,6 +3433,12 @@ IncorrectTypeArgumentInSupertype:
     class A<T extends num> {}
     class B extends A<String> {}
 
+IncorrectTypeArgumentInSupertypeWarning:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
 IncorrectTypeArgumentInReturnType:
   template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type."
   tip: "Try changing type arguments so that they conform to the bounds."
@@ -3400,6 +3446,12 @@ IncorrectTypeArgumentInReturnType:
   script: >
     class A<T extends num> {}
     A<String> foo() => null;
+
+IncorrectTypeArgumentInReturnTypeWarning:
+  template: "Type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the return type."
+  tip: "Try changing type arguments so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 IncorrectTypeArgumentInferred:
   template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
@@ -3409,6 +3461,12 @@ IncorrectTypeArgumentInferred:
     void foo<T extends num>(T t) {}
     main() { foo("bar"); }
 
+IncorrectTypeArgumentInferredWarning:
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
 IncorrectTypeArgumentQualifiedInferred:
   template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
   tip: "Try specifying type arguments explicitly so that they conform to the bounds."
@@ -3417,6 +3475,12 @@ IncorrectTypeArgumentQualifiedInferred:
     class C<T> { foo<U extends num>(U u) {} }
     main() { new C<String>().foo(""); }
 
+IncorrectTypeArgumentQualifiedInferredWarning:
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#type3.#name2'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
+
 IncorrectTypeArgumentInSupertypeInferred:
   template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
   tip: "Try specifying type arguments explicitly so that they conform to the bounds."
@@ -3424,6 +3488,12 @@ IncorrectTypeArgumentInSupertypeInferred:
   script: >
     class A<T extends A<T>> {}
     class B extends A {}
+
+IncorrectTypeArgumentInSupertypeInferredWarning:
+  template: "Inferred type argument '#type' doesn't conform to the bound '#type2' of the type variable '#name' on '#name2' in the supertype '#name3' of class '#name4'."
+  tip: "Try specifying type arguments explicitly so that they conform to the bounds."
+  severity: WARNING
+  analyzerCode: TYPE_ARGUMENT_NOT_MATCHING_BOUNDS
 
 IncorrectTypeArgumentVariable:
   template: "This is the type variable whose bound isn't conformed to."

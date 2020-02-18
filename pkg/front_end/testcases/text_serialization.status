@@ -1221,6 +1221,7 @@ late_lowering/return_late: TextSerializationFailure
 new_const_insertion/simple: TextSerializationFailure # Was: Pass
 nnbd/assign_type_variable: TextSerializationFailure
 nnbd/assignability: TextSerializationFailure
+nnbd/bounds_checks: TextSerializationFailure
 nnbd/call: TextSerializationFailure
 nnbd/constants: TextSerializationFailure
 nnbd/definite_assignment_and_completion: TextSerializationFailure
@@ -1233,6 +1234,7 @@ nnbd/generic_override: TextSerializationFailure
 nnbd/infer_from_opt_in: TextSerializationFailure
 nnbd/infer_from_opt_out: TextSerializationFailure
 nnbd/infer_if_null: TextSerializationFailure
+nnbd/infer_in_legacy_from_opted_in: TextSerializationFailure
 nnbd/inheritance_from_opt_in: TypeCheckError
 nnbd/inheritance_from_opt_out: TextSerializationFailure
 nnbd/intersection_types: TextSerializationFailure
@@ -1279,6 +1281,7 @@ nnbd/nullable_null: TextSerializationFailure
 nnbd/nullable_param: TextSerializationFailure
 nnbd/nullable_receiver: TextSerializationFailure
 nnbd/opt_out: TextSerializationFailure
+nnbd/override_checks: TextSerializationFailure
 nnbd/platform_definite_assignment/main: TextSerializationFailure
 nnbd/platform_optional_parameters/main: TextSerializationFailure
 nnbd/potentially_non_nullable_field: TextSerializationFailure

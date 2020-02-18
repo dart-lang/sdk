@@ -67,6 +67,8 @@ import '../kernel/kernel_target.dart' show KernelTarget;
 
 import '../kernel/types.dart' show Types;
 
+import '../loader.dart';
+
 import '../modifier.dart';
 
 import '../names.dart' show noSuchMethodName;
@@ -76,6 +78,8 @@ import '../problems.dart' show internalProblem, unhandled, unimplemented;
 import '../scope.dart';
 
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+
+import '../source/source_loader.dart';
 
 import '../type_inference/type_schema.dart' show UnknownType;
 
@@ -688,50 +692,84 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       Supertype supertype, TypeEnvironment typeEnvironment) {
     SourceLibraryBuilder library = this.library;
 
-    List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        new InterfaceType(
-            supertype.classNode, library.nonNullable, supertype.typeArguments),
-        typeEnvironment,
-        allowSuperBounded: false);
-    if (issues != null) {
-      for (TypeArgumentIssue issue in issues) {
-        Message message;
+    Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssues(
+            new InterfaceType(supertype.classNode, library.nonNullable,
+                supertype.typeArguments),
+            typeEnvironment,
+            SubtypeCheckMode.ignoringNullabilities,
+            allowSuperBounded: false)
+        ?.toSet();
+    Set<TypeArgumentIssue> nnbdIssues =
+        library.isNonNullableByDefault && library.loader.performNnbdChecks
+            ? findTypeArgumentIssues(
+                    new InterfaceType(supertype.classNode, library.nonNullable,
+                        supertype.typeArguments),
+                    typeEnvironment,
+                    SubtypeCheckMode.withNullabilities,
+                    allowSuperBounded: false)
+                ?.toSet()
+            : null;
+    if (legacyIssues != null || nnbdIssues != null) {
+      Set<TypeArgumentIssue> mergedIssues = legacyIssues ?? {};
+      if (nnbdIssues != null) {
+        mergedIssues.addAll(nnbdIssues.where(
+            (issue) => legacyIssues == null || !legacyIssues.contains(issue)));
+      }
+      for (TypeArgumentIssue issue in mergedIssues) {
         DartType argument = issue.argument;
         TypeParameter typeParameter = issue.typeParameter;
         bool inferred = library.inferredTypes.contains(argument);
         if (argument is FunctionType && argument.typeParameters.length > 0) {
           if (inferred) {
-            message = templateGenericFunctionTypeInferredAsActualTypeArgument
-                .withArguments(argument, library.isNonNullableByDefault);
+            library.reportTypeArgumentIssue(
+                templateGenericFunctionTypeInferredAsActualTypeArgument
+                    .withArguments(argument, library.isNonNullableByDefault),
+                fileUri,
+                charOffset,
+                null);
           } else {
-            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
+            library.reportTypeArgumentIssue(
+                messageGenericFunctionTypeUsedAsActualTypeArgument,
+                fileUri,
+                charOffset,
+                null);
           }
-          typeParameter = null;
         } else {
-          if (inferred) {
-            message =
-                templateIncorrectTypeArgumentInSupertypeInferred.withArguments(
+          void reportProblem(
+              Template<
+                      Message Function(DartType, DartType, String, String,
+                          String, String, bool)>
+                  template) {
+            library.reportTypeArgumentIssue(
+                template.withArguments(
                     argument,
                     typeParameter.bound,
                     typeParameter.name,
                     getGenericTypeName(issue.enclosingType),
                     supertype.classNode.name,
                     name,
-                    library.isNonNullableByDefault);
+                    library.isNonNullableByDefault),
+                fileUri,
+                charOffset,
+                typeParameter);
+          }
+
+          nnbdIssues ??= const {};
+          if (inferred) {
+            if (nnbdIssues.contains(issue) && !library.loader.nnbdStrongMode) {
+              reportProblem(
+                  templateIncorrectTypeArgumentInSupertypeInferredWarning);
+            } else {
+              reportProblem(templateIncorrectTypeArgumentInSupertypeInferred);
+            }
           } else {
-            message = templateIncorrectTypeArgumentInSupertype.withArguments(
-                argument,
-                typeParameter.bound,
-                typeParameter.name,
-                getGenericTypeName(issue.enclosingType),
-                supertype.classNode.name,
-                name,
-                library.isNonNullableByDefault);
+            if (nnbdIssues.contains(issue) && !library.loader.nnbdStrongMode) {
+              reportProblem(templateIncorrectTypeArgumentInSupertypeWarning);
+            } else {
+              reportProblem(templateIncorrectTypeArgumentInSupertype);
+            }
           }
         }
-
-        library.reportTypeArgumentIssue(
-            message, fileUri, charOffset, typeParameter);
       }
     }
   }
@@ -742,11 +780,26 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
 
     // Check in bounds of own type variables.
     for (TypeParameter parameter in cls.typeParameters) {
-      List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-          parameter.bound, typeEnvironment,
-          allowSuperBounded: true);
-      if (issues != null) {
-        for (TypeArgumentIssue issue in issues) {
+      Set<TypeArgumentIssue> legacyIssues = findTypeArgumentIssues(
+              parameter.bound,
+              typeEnvironment,
+              SubtypeCheckMode.ignoringNullabilities,
+              allowSuperBounded: true)
+          ?.toSet();
+      Set<TypeArgumentIssue> nnbdIssues =
+          library.isNonNullableByDefault && library.loader.performNnbdChecks
+              ? findTypeArgumentIssues(parameter.bound, typeEnvironment,
+                      SubtypeCheckMode.withNullabilities,
+                      allowSuperBounded: true)
+                  ?.toSet()
+              : null;
+      if (legacyIssues != null || nnbdIssues != null) {
+        Set<TypeArgumentIssue> mergedIssues = legacyIssues ?? {};
+        if (nnbdIssues != null) {
+          mergedIssues.addAll(nnbdIssues.where((issue) =>
+              legacyIssues == null || !legacyIssues.contains(issue)));
+        }
+        for (TypeArgumentIssue issue in mergedIssues) {
           DartType argument = issue.argument;
           TypeParameter typeParameter = issue.typeParameter;
           if (library.inferredTypes.contains(argument)) {
@@ -758,21 +811,37 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
             continue;
           }
 
-          Message message;
           if (argument is FunctionType && argument.typeParameters.length > 0) {
-            message = messageGenericFunctionTypeUsedAsActualTypeArgument;
-            typeParameter = null;
+            library.reportTypeArgumentIssue(
+                messageGenericFunctionTypeUsedAsActualTypeArgument,
+                fileUri,
+                parameter.fileOffset,
+                null);
           } else {
-            message = templateIncorrectTypeArgument.withArguments(
-                argument,
-                typeParameter.bound,
-                typeParameter.name,
-                getGenericTypeName(issue.enclosingType),
-                library.isNonNullableByDefault);
-          }
+            void reportProblem(
+                Template<
+                        Message Function(
+                            DartType, DartType, String, String, bool)>
+                    template) {
+              library.reportTypeArgumentIssue(
+                  template.withArguments(
+                      argument,
+                      typeParameter.bound,
+                      typeParameter.name,
+                      getGenericTypeName(issue.enclosingType),
+                      library.isNonNullableByDefault),
+                  fileUri,
+                  parameter.fileOffset,
+                  typeParameter);
+            }
 
-          library.reportTypeArgumentIssue(
-              message, fileUri, parameter.fileOffset, typeParameter);
+            nnbdIssues ??= const {};
+            if (nnbdIssues.contains(issue) && !library.loader.nnbdStrongMode) {
+              reportProblem(templateIncorrectTypeArgumentWarning);
+            } else {
+              reportProblem(templateIncorrectTypeArgument);
+            }
+          }
         }
       }
     }
@@ -1178,11 +1247,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     DartType supertype = inParameter ? declaredType : interfaceType;
 
     if (types.isSubtypeOfKernel(
-        subtype, supertype, SubtypeCheckMode.ignoringNullabilities)) {
+        subtype, supertype, SubtypeCheckMode.withNullabilities)) {
       // No problem--the proper subtyping relation is satisfied.
     } else if (isCovariant &&
         types.isSubtypeOfKernel(
-            supertype, subtype, SubtypeCheckMode.ignoringNullabilities)) {
+            supertype, subtype, SubtypeCheckMode.withNullabilities)) {
       // No problem--the overriding parameter is marked "covariant" and has
       // a type which is a subtype of the parameter it overrides.
     } else if (subtype is InvalidType || supertype is InvalidType) {
@@ -1190,48 +1259,82 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       // been reported.
     } else {
       // Report an error.
-      String declaredMemberName =
-          '${declaredMember.enclosingClass.name}.${declaredMember.name.name}';
-      String interfaceMemberName =
-          '${interfaceMember.enclosingClass.name}.${interfaceMember.name.name}';
-      Message message;
-      int fileOffset;
-      if (declaredParameter == null) {
-        if (asIfDeclaredParameter) {
-          // Setter overridden by field
-          message = templateOverrideTypeMismatchSetter.withArguments(
-              declaredMemberName,
-              declaredType,
-              interfaceType,
-              interfaceMemberName,
-              library.isNonNullableByDefault);
+      bool isErrorInNnbdOptedOutMode = !types.isSubtypeOfKernel(
+              subtype, supertype, SubtypeCheckMode.ignoringNullabilities) &&
+          (!isCovariant ||
+              !types.isSubtypeOfKernel(
+                  supertype, subtype, SubtypeCheckMode.ignoringNullabilities));
+      Loader loader = library.loader;
+      bool performNnbdChecks = loader is SourceLoader &&
+          library.isNonNullableByDefault &&
+          loader.performNnbdChecks;
+      bool nnbdStrongMode = loader is SourceLoader && loader.nnbdStrongMode;
+      bool isError =
+          isErrorInNnbdOptedOutMode || performNnbdChecks && nnbdStrongMode;
+      bool isWarning =
+          !isErrorInNnbdOptedOutMode && performNnbdChecks && !nnbdStrongMode;
+      assert(
+          !isError || !isWarning,
+          "A compile-time problem can't be an error and a warning "
+          "at the same time.");
+      if (isError || isWarning) {
+        String declaredMemberName = '${declaredMember.enclosingClass.name}'
+            '.${declaredMember.name.name}';
+        String interfaceMemberName = '${interfaceMember.enclosingClass.name}'
+            '.${interfaceMember.name.name}';
+        Message message;
+        int fileOffset;
+        if (declaredParameter == null) {
+          if (asIfDeclaredParameter) {
+            // Setter overridden by field
+            Template<Message Function(String, DartType, DartType, String, bool)>
+                template = isError
+                    ? templateOverrideTypeMismatchSetter
+                    : templateOverrideTypeMismatchSetterWarning;
+            message = template.withArguments(
+                declaredMemberName,
+                declaredType,
+                interfaceType,
+                interfaceMemberName,
+                library.isNonNullableByDefault);
+          } else {
+            Template<Message Function(String, DartType, DartType, String, bool)>
+                template = isError
+                    ? templateOverrideTypeMismatchReturnType
+                    : templateOverrideTypeMismatchReturnTypeWarning;
+            message = template.withArguments(
+                declaredMemberName,
+                declaredType,
+                interfaceType,
+                interfaceMemberName,
+                library.isNonNullableByDefault);
+          }
+          fileOffset = declaredMember.fileOffset;
         } else {
-          message = templateOverrideTypeMismatchReturnType.withArguments(
+          Template<
+                  Message Function(
+                      String, String, DartType, DartType, String, bool)>
+              template = isError
+                  ? templateOverrideTypeMismatchParameter
+                  : templateOverrideTypeMismatchParameterWarning;
+          message = template.withArguments(
+              declaredParameter.name,
               declaredMemberName,
               declaredType,
               interfaceType,
               interfaceMemberName,
               library.isNonNullableByDefault);
+          fileOffset = declaredParameter.fileOffset;
         }
-        fileOffset = declaredMember.fileOffset;
-      } else {
-        message = templateOverrideTypeMismatchParameter.withArguments(
-            declaredParameter.name,
-            declaredMemberName,
-            declaredType,
-            interfaceType,
-            interfaceMemberName,
-            library.isNonNullableByDefault);
-        fileOffset = declaredParameter.fileOffset;
+        reportInvalidOverride(
+            isInterfaceCheck, declaredMember, message, fileOffset, noLength,
+            context: [
+              templateOverriddenMethodCause
+                  .withArguments(interfaceMember.name.name)
+                  .withLocation(_getMemberUri(interfaceMember),
+                      interfaceMember.fileOffset, noLength)
+            ]);
       }
-      reportInvalidOverride(
-          isInterfaceCheck, declaredMember, message, fileOffset, noLength,
-          context: [
-            templateOverriddenMethodCause
-                .withArguments(interfaceMember.name.name)
-                .withLocation(_getMemberUri(interfaceMember),
-                    interfaceMember.fileOffset, noLength)
-          ]);
     }
   }
 
@@ -1652,6 +1755,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         DartType typeArgument = typeArguments[i];
         // Check whether the [typeArgument] respects the bounds of
         // [typeParameter].
+        Loader loader = library.loader;
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
             SubtypeCheckMode.ignoringNullabilities)) {
           addProblem(
@@ -1662,6 +1766,29 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
               redirectionTarget.charOffset,
               noLength);
           hasProblem = true;
+        } else if (library.isNonNullableByDefault &&
+            loader is SourceLoader &&
+            loader.performNnbdChecks) {
+          if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
+              SubtypeCheckMode.withNullabilities)) {
+            if (loader.nnbdStrongMode) {
+              addProblem(
+                  templateRedirectingFactoryIncompatibleTypeArgument
+                      .withArguments(typeArgument, typeParameterBound,
+                          library.isNonNullableByDefault),
+                  redirectionTarget.charOffset,
+                  noLength);
+              hasProblem = true;
+            } else {
+              addProblem(
+                  templateRedirectingFactoryIncompatibleTypeArgumentWarning
+                      .withArguments(typeArgument, typeParameterBound,
+                          library.isNonNullableByDefault),
+                  redirectionTarget.charOffset,
+                  noLength);
+              hasProblem = false;
+            }
+          }
         }
       }
     } else if (typeArguments == null &&
@@ -1716,6 +1843,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     if (redirecteeType == null) return;
 
     // Check whether [redirecteeType] <: [factoryType].
+    Loader loader = library.loader;
     if (!typeEnvironment.isSubtypeOf(
         redirecteeType, factoryType, SubtypeCheckMode.ignoringNullabilities)) {
       addProblem(
@@ -1723,6 +1851,25 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
               redirecteeType, factoryType, library.isNonNullableByDefault),
           factory.redirectionTarget.charOffset,
           noLength);
+    } else if (library.isNonNullableByDefault &&
+        loader is SourceLoader &&
+        loader.performNnbdChecks) {
+      if (!typeEnvironment.isSubtypeOf(
+          redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
+        if (loader.nnbdStrongMode) {
+          addProblem(
+              templateIncompatibleRedirecteeFunctionType.withArguments(
+                  redirecteeType, factoryType, library.isNonNullableByDefault),
+              factory.redirectionTarget.charOffset,
+              noLength);
+        } else {
+          addProblem(
+              templateIncompatibleRedirecteeFunctionTypeWarning.withArguments(
+                  redirecteeType, factoryType, library.isNonNullableByDefault),
+              factory.redirectionTarget.charOffset,
+              noLength);
+        }
+      }
     }
   }
 

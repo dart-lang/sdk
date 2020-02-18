@@ -343,7 +343,7 @@ class ClosureContext {
     DartType inferredType =
         inferrer.inferReturnType(_inferredUnwrappedReturnOrYieldType);
     if (!inferrer.typeSchemaEnvironment.isSubtypeOf(inferredType,
-        returnOrYieldContext, SubtypeCheckMode.ignoringNullabilities)) {
+        returnOrYieldContext, SubtypeCheckMode.withNullabilities)) {
       // If the inferred return type isn't a subtype of the context, we use the
       // context.
       inferredType = greatestClosure(inferrer.coreTypes, returnOrYieldContext);
@@ -1140,8 +1140,8 @@ class TypeInferrerImpl implements TypeInferrer {
               DartType typeArgument = inferredTypeArguments[index];
               DartType bound =
                   inferredSubstitution.substituteType(typeParameter.bound);
-              if (!typeSchemaEnvironment.isSubtypeOf(typeArgument, bound,
-                  SubtypeCheckMode.ignoringNullabilities)) {
+              if (!typeSchemaEnvironment.isSubtypeOf(
+                  typeArgument, bound, SubtypeCheckMode.withNullabilities)) {
                 return;
               }
             }
@@ -4257,9 +4257,9 @@ class ExtensionAccessCandidate {
     if (this.isPlatform == other.isPlatform) {
       // Both are platform or not platform.
       bool thisIsSubtype = typeSchemaEnvironment.isSubtypeOf(
-          this.onType, other.onType, SubtypeCheckMode.ignoringNullabilities);
+          this.onType, other.onType, SubtypeCheckMode.withNullabilities);
       bool thisIsSupertype = typeSchemaEnvironment.isSubtypeOf(
-          other.onType, this.onType, SubtypeCheckMode.ignoringNullabilities);
+          other.onType, this.onType, SubtypeCheckMode.withNullabilities);
       if (thisIsSubtype && !thisIsSupertype) {
         // This is subtype of other and not vice-versa.
         return true;
@@ -4270,11 +4270,11 @@ class ExtensionAccessCandidate {
         thisIsSubtype = typeSchemaEnvironment.isSubtypeOf(
             this.onTypeInstantiateToBounds,
             other.onTypeInstantiateToBounds,
-            SubtypeCheckMode.ignoringNullabilities);
+            SubtypeCheckMode.withNullabilities);
         thisIsSupertype = typeSchemaEnvironment.isSubtypeOf(
             other.onTypeInstantiateToBounds,
             this.onTypeInstantiateToBounds,
-            SubtypeCheckMode.ignoringNullabilities);
+            SubtypeCheckMode.withNullabilities);
         if (thisIsSubtype && !thisIsSupertype) {
           // This is subtype of other and not vice-versa.
           return true;

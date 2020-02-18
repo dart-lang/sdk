@@ -1030,8 +1030,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
     switch (asyncModifier) {
       case AsyncMarker.Async:
         DartType futureBottomType = libraryBuilder.loader.futureOfBottom;
-        if (!typeEnvironment.isSubtypeOf(futureBottomType, returnType,
-            SubtypeCheckMode.ignoringNullabilities)) {
+        if (!typeEnvironment.isSubtypeOf(
+            futureBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
           problem = fasta.messageIllegalAsyncReturnType;
         }
         break;
@@ -1040,8 +1040,8 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         DartType streamBottomType = libraryBuilder.loader.streamOfBottom;
         if (returnType is VoidType) {
           problem = fasta.messageIllegalAsyncGeneratorVoidReturnType;
-        } else if (!typeEnvironment.isSubtypeOf(streamBottomType, returnType,
-            SubtypeCheckMode.ignoringNullabilities)) {
+        } else if (!typeEnvironment.isSubtypeOf(
+            streamBottomType, returnType, SubtypeCheckMode.withNullabilities)) {
           problem = fasta.messageIllegalAsyncGeneratorReturnType;
         }
         break;
@@ -1051,7 +1051,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (returnType is VoidType) {
           problem = fasta.messageIllegalSyncGeneratorVoidReturnType;
         } else if (!typeEnvironment.isSubtypeOf(iterableBottomType, returnType,
-            SubtypeCheckMode.ignoringNullabilities)) {
+            SubtypeCheckMode.withNullabilities)) {
           problem = fasta.messageIllegalSyncGeneratorReturnType;
         }
         break;
@@ -5560,7 +5560,7 @@ class BodyBuilder extends ScopeListener<JumpTarget>
         if (formal != null && formal.type != null) {
           DartType formalType = formal.variable.type;
           if (!typeEnvironment.isSubtypeOf(formalType, builder.fieldType,
-              SubtypeCheckMode.ignoringNullabilities)) {
+              SubtypeCheckMode.withNullabilities)) {
             libraryBuilder.addProblem(
                 fasta.templateInitializingFormalTypeMismatch.withArguments(
                     name,

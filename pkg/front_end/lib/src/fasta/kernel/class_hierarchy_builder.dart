@@ -2348,8 +2348,12 @@ class DelayedOverrideCheck {
             if (a.hadTypesInferred) {
               if (b.isSetter &&
                   (!a.isAssignable ||
-                      hierarchy.types.isSubtypeOfKernel(type, a.fieldType,
-                          SubtypeCheckMode.ignoringNullabilities))) {
+                      hierarchy.types.isSubtypeOfKernel(
+                          type,
+                          a.fieldType,
+                          classBuilder.library.isNonNullableByDefault
+                              ? SubtypeCheckMode.withNullabilities
+                              : SubtypeCheckMode.ignoringNullabilities))) {
                 type = a.fieldType;
               } else {
                 reportCantInferFieldType(classBuilder, a);
@@ -2636,10 +2640,10 @@ class InterfaceConflict extends DelayedMember {
   bool isMoreSpecific(ClassHierarchyBuilder hierarchy, DartType a, DartType b) {
     if (isSetter) {
       return hierarchy.types
-          .isSubtypeOfKernel(b, a, SubtypeCheckMode.ignoringNullabilities);
+          .isSubtypeOfKernel(b, a, SubtypeCheckMode.withNullabilities);
     } else {
       return hierarchy.types
-          .isSubtypeOfKernel(a, b, SubtypeCheckMode.ignoringNullabilities);
+          .isSubtypeOfKernel(a, b, SubtypeCheckMode.withNullabilities);
     }
   }
 

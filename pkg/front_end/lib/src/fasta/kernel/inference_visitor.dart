@@ -1791,11 +1791,11 @@ class InferenceVisitor
       bool isMap = inferrer.typeSchemaEnvironment.isSubtypeOf(
           spreadType,
           inferrer.coreTypes.mapRawType(inferrer.library.nullable),
-          SubtypeCheckMode.ignoringNullabilities);
+          SubtypeCheckMode.withNullabilities);
       bool isIterable = inferrer.typeSchemaEnvironment.isSubtypeOf(
           spreadType,
           inferrer.coreTypes.iterableRawType(inferrer.library.nullable),
-          SubtypeCheckMode.ignoringNullabilities);
+          SubtypeCheckMode.withNullabilities);
       if (isMap && !isIterable) {
         mapSpreadOffset = entry.fileOffset;
       }

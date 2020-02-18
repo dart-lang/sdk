@@ -257,7 +257,7 @@ class CollectionTransformer extends Transformer {
     Statement loopBody;
     if (element.elementType == null ||
         !typeEnvironment.isSubtypeOf(element.elementType, elementType,
-            SubtypeCheckMode.ignoringNullabilities)) {
+            SubtypeCheckMode.withNullabilities)) {
       variable = _createForInVariable(element.fileOffset, const DynamicType());
       VariableDeclaration castedVar = _createVariable(
           _createImplicitAs(element.expression.fileOffset,
@@ -441,8 +441,8 @@ class CollectionTransformer extends Transformer {
     VariableDeclaration variable;
     Statement loopBody;
     if (entry.entryType == null ||
-        !typeEnvironment.isSubtypeOf(entry.entryType, entryType,
-            SubtypeCheckMode.ignoringNullabilities)) {
+        !typeEnvironment.isSubtypeOf(
+            entry.entryType, entryType, SubtypeCheckMode.withNullabilities)) {
       variable = _createForInVariable(
           entry.fileOffset,
           new InterfaceType(mapEntryClass, _currentLibrary.nonNullable,

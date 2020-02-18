@@ -210,12 +210,29 @@ class TypeArgumentIssue {
 
   TypeArgumentIssue(
       this.index, this.argument, this.typeParameter, this.enclosingType);
+
+  int get hashCode {
+    int hash = 0x3fffffff & index;
+    hash = 0x3fffffff & (hash * 31 + (hash ^ argument.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ typeParameter.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ enclosingType.hashCode));
+    return hash;
+  }
+
+  bool operator ==(dynamic other) {
+    assert(other is TypeArgumentIssue);
+    if (other is! TypeArgumentIssue) return false;
+    return index == other.index &&
+        argument == other.argument &&
+        typeParameter == other.typeParameter &&
+        enclosingType == other.enclosingType;
+  }
 }
 
 // TODO(dmitryas):  Remove [typedefInstantiations] when type arguments passed to
 // typedefs are preserved in the Kernel output.
-List<TypeArgumentIssue> findTypeArgumentIssues(
-    DartType type, TypeEnvironment typeEnvironment,
+List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
+    TypeEnvironment typeEnvironment, SubtypeCheckMode subtypeCheckMode,
     {bool allowSuperBounded = false}) {
   List<TypeParameter> variables;
   List<DartType> arguments;
@@ -233,7 +250,8 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
         typeParameters: functionType.typeParameters,
         requiredParameterCount: functionType.requiredParameterCount,
         typedefType: null);
-    typedefRhsResult = findTypeArgumentIssues(cloned, typeEnvironment,
+    typedefRhsResult = findTypeArgumentIssues(
+        cloned, typeEnvironment, subtypeCheckMode,
         allowSuperBounded: true);
     type = functionType.typedefType;
   }
@@ -247,21 +265,25 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
   } else if (type is FunctionType) {
     List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
     for (TypeParameter parameter in type.typeParameters) {
-      result.addAll(findTypeArgumentIssues(parameter.bound, typeEnvironment,
+      result.addAll(findTypeArgumentIssues(
+              parameter.bound, typeEnvironment, subtypeCheckMode,
               allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
     for (DartType formal in type.positionalParameters) {
-      result.addAll(findTypeArgumentIssues(formal, typeEnvironment,
+      result.addAll(findTypeArgumentIssues(
+              formal, typeEnvironment, subtypeCheckMode,
               allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
     for (NamedType named in type.namedParameters) {
-      result.addAll(findTypeArgumentIssues(named.type, typeEnvironment,
+      result.addAll(findTypeArgumentIssues(
+              named.type, typeEnvironment, subtypeCheckMode,
               allowSuperBounded: true) ??
           const <TypeArgumentIssue>[]);
     }
-    result.addAll(findTypeArgumentIssues(type.returnType, typeEnvironment,
+    result.addAll(findTypeArgumentIssues(
+            type.returnType, typeEnvironment, subtypeCheckMode,
             allowSuperBounded: true) ??
         const <TypeArgumentIssue>[]);
     return result.isEmpty ? null : result;
@@ -282,16 +304,19 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, variables[i], type));
-    } else if (!typeEnvironment.isSubtypeOf(
-        argument,
-        substitute(variables[i].bound, substitutionMap),
-        SubtypeCheckMode.ignoringNullabilities)) {
+    } else if (variables[i].bound is! InvalidType &&
+        !typeEnvironment.isSubtypeOf(
+            argument,
+            substitute(variables[i].bound, substitutionMap),
+            subtypeCheckMode)) {
+      // If the bound is InvalidType it's not checked, because an error was
+      // reported already at the time of the creation of InvalidType.
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, variables[i], type));
     }
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        argument, typeEnvironment,
+        argument, typeEnvironment, subtypeCheckMode,
         allowSuperBounded: true);
     if (issues != null) {
       argumentsResult ??= <TypeArgumentIssue>[];
@@ -330,10 +355,8 @@ List<TypeArgumentIssue> findTypeArgumentIssues(
       result ??= <TypeArgumentIssue>[];
       result.add(
           new TypeArgumentIssue(i, argumentsToReport[i], variables[i], type));
-    } else if (!typeEnvironment.isSubtypeOf(
-        argument,
-        substitute(variables[i].bound, substitutionMap),
-        SubtypeCheckMode.ignoringNullabilities)) {
+    } else if (!typeEnvironment.isSubtypeOf(argument,
+        substitute(variables[i].bound, substitutionMap), subtypeCheckMode)) {
       result ??= <TypeArgumentIssue>[];
       result.add(
           new TypeArgumentIssue(i, argumentsToReport[i], variables[i], type));
@@ -356,6 +379,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
     List<TypeParameter> parameters,
     List<DartType> arguments,
     TypeEnvironment typeEnvironment,
+    SubtypeCheckMode subtypeCheckMode,
     {Map<FunctionType, List<DartType>> typedefInstantiations}) {
   assert(arguments.length == parameters.length);
   List<TypeArgumentIssue> result;
@@ -372,16 +396,14 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
       // Generic function types aren't allowed as type arguments either.
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
-    } else if (!typeEnvironment.isSubtypeOf(
-        argument,
-        substitute(parameters[i].bound, substitutionMap),
-        SubtypeCheckMode.ignoringNullabilities)) {
+    } else if (!typeEnvironment.isSubtypeOf(argument,
+        substitute(parameters[i].bound, substitutionMap), subtypeCheckMode)) {
       result ??= <TypeArgumentIssue>[];
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null));
     }
 
     List<TypeArgumentIssue> issues = findTypeArgumentIssues(
-        argument, typeEnvironment,
+        argument, typeEnvironment, subtypeCheckMode,
         allowSuperBounded: true);
     if (issues != null) {
       result ??= <TypeArgumentIssue>[];
