@@ -21,7 +21,8 @@ const Map<Type, int> _knownSizes = {
   Double: 8,
 };
 
-final int _intPtrSize = [8, 4, 4][_abi()];
+@pragma("vm:prefer-inline")
+int get _intPtrSize => (const [8, 4, 4])[_abi()];
 
 @patch
 int sizeOf<T extends NativeType>() {
