@@ -2040,6 +2040,12 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   final NullabilitySuffix nullabilitySuffix;
 
+  /// An optional promoted bound on the type parameter.
+  ///
+  /// 'null' indicates that the type parameter's bound has not been promoted and
+  /// is therefore the same as the bound of [element].
+  final DartType promotedBound;
+
   /**
    * Initialize a newly created type parameter type to be declared by the given
    * [element] and to have the given name.
@@ -2047,10 +2053,12 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeParameterTypeImpl({
     @required TypeParameterElement element,
     @required this.nullabilitySuffix,
+    this.promotedBound,
   }) : super(element);
 
   @override
-  DartType get bound => element.bound ?? DynamicTypeImpl.instance;
+  DartType get bound =>
+      promotedBound ?? element.bound ?? DynamicTypeImpl.instance;
 
   @override
   ElementLocation get definition => element.location;
@@ -2077,22 +2085,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
           return false;
         }
       }
-
-      // If the same declaration, or the same promoted element.
-      if (identical(other.element, element)) {
-        return true;
-      }
-
-      // If the same declaration, but one or both are promoted.
-      if (identical(other.element.declaration, element.declaration)) {
-        return other.bound == bound;
-      }
-
-      // The rare case when we have equal, but not the same declarations.
-      // This happens when we create fresh elements, when new library context.
-      // Type promotion works only locally, where we have same declarations.
-      // So, there is no need to check bounds.
-      return true;
+      return other.promotedBound == promotedBound;
     }
 
     return false;
@@ -2111,6 +2104,10 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
 
   @override
   DartType resolveToBound(DartType objectType) {
+    if (promotedBound != null) {
+      return promotedBound;
+    }
+
     if (element.bound == null) {
       return objectType;
     }
@@ -2184,6 +2181,7 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     return TypeParameterTypeImpl(
       element: element,
       nullabilitySuffix: nullabilitySuffix,
+      promotedBound: promotedBound,
     );
   }
 

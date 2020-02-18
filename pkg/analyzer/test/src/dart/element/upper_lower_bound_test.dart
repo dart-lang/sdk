@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeSystemImpl;
@@ -112,7 +111,6 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
   test_isBottom() {
     TypeParameterElement T;
-    TypeParameterMember T2;
 
     // BOTTOM(Never) is true
     isBottom(neverNone);
@@ -122,15 +120,13 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     // BOTTOM(X&T) is true iff BOTTOM(T)
     T = typeParameter('T', bound: objectQuestion);
 
-    T2 = promoteTypeParameter(T, neverNone);
-    isBottom(typeParameterTypeNone(T2));
-    isBottom(typeParameterTypeQuestion(T2));
-    isBottom(typeParameterTypeStar(T2));
+    isBottom(promotedTypeParameterTypeNone(T, neverNone));
+    isBottom(promotedTypeParameterTypeQuestion(T, neverNone));
+    isBottom(promotedTypeParameterTypeStar(T, neverNone));
 
-    T2 = promoteTypeParameter(T, neverQuestion);
-    isNotBottom(typeParameterTypeNone(T2));
-    isNotBottom(typeParameterTypeQuestion(T2));
-    isNotBottom(typeParameterTypeStar(T2));
+    isNotBottom(promotedTypeParameterTypeNone(T, neverQuestion));
+    isNotBottom(promotedTypeParameterTypeQuestion(T, neverQuestion));
+    isNotBottom(promotedTypeParameterTypeStar(T, neverQuestion));
 
     // BOTTOM(X extends T) is true iff BOTTOM(T)
     T = typeParameter('T', bound: neverNone);
@@ -165,10 +161,9 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     isNotBottom(typeParameterTypeQuestion(T));
     isNotBottom(typeParameterTypeStar(T));
 
-    T2 = promoteTypeParameter(typeParameter('T'), intNone);
-    isNotBottom(typeParameterTypeNone(T2));
-    isNotBottom(typeParameterTypeQuestion(T2));
-    isNotBottom(typeParameterTypeStar(T2));
+    isNotBottom(promotedTypeParameterTypeNone(T, intNone));
+    isNotBottom(promotedTypeParameterTypeQuestion(T, intNone));
+    isNotBottom(promotedTypeParameterTypeStar(T, intNone));
   }
 
   test_isMoreBottom() {
@@ -238,27 +233,21 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
 
     // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
     isMoreBottom(
-      typeParameterTypeNone(
-        promoteTypeParameter(
-          typeParameter('T', bound: objectQuestion),
-          neverNone,
-        ),
+      promotedTypeParameterTypeNone(
+        typeParameter('T', bound: objectQuestion),
+        neverNone,
       ),
-      typeParameterTypeQuestion(
-        promoteTypeParameter(
-          typeParameter('S', bound: objectQuestion),
-          neverNone,
-        ),
+      promotedTypeParameterTypeQuestion(
+        typeParameter('S', bound: objectQuestion),
+        neverNone,
       ),
     );
 
     // MOREBOTTOM(X&T, S) = true
     isMoreBottom(
-      typeParameterTypeNone(
-        promoteTypeParameter(
-          typeParameter('T', bound: objectQuestion),
-          neverNone,
-        ),
+      promotedTypeParameterTypeNone(
+        typeParameter('T', bound: objectQuestion),
+        neverNone,
       ),
       typeParameterTypeNone(
         typeParameter('S', bound: neverNone),
@@ -270,11 +259,9 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
       typeParameterTypeNone(
         typeParameter('T', bound: neverNone),
       ),
-      typeParameterTypeNone(
-        promoteTypeParameter(
-          typeParameter('S', bound: objectQuestion),
-          neverNone,
-        ),
+      promotedTypeParameterTypeNone(
+        typeParameter('S', bound: objectQuestion),
+        neverNone,
       ),
     );
 
@@ -573,11 +560,9 @@ class LowerBoundTest extends _BoundsTestBase {
     }
 
     {
-      var T = typeParameterTypeNone(
-        promoteTypeParameter(
-          typeParameter('T', bound: objectQuestion),
-          neverNone,
-        ),
+      var T = promotedTypeParameterTypeNone(
+        typeParameter('T', bound: objectQuestion),
+        neverNone,
       );
       check(T, intNone);
       check(T, intQuestion);
@@ -601,11 +586,9 @@ class LowerBoundTest extends _BoundsTestBase {
 
     check(
       neverNone,
-      typeParameterTypeNone(
-        promoteTypeParameter(
-          typeParameter('T', bound: objectQuestion),
-          neverNone,
-        ),
+      promotedTypeParameterTypeNone(
+        typeParameter('T', bound: objectQuestion),
+        neverNone,
       ),
     );
   }
@@ -1101,10 +1084,18 @@ class LowerBoundTest extends _BoundsTestBase {
 
     {
       var T = typeParameter('T', bound: objectQuestion);
-      var T2 = promoteTypeParameter(T, objectNone);
-      check(typeParameterTypeNone(T), typeParameterTypeNone(T2));
-      check(typeParameterTypeQuestion(T), typeParameterTypeNone(T2));
-      check(typeParameterTypeStar(T), typeParameterTypeNone(T2));
+      check(
+        typeParameterTypeNone(T),
+        promotedTypeParameterTypeNone(T, objectNone),
+      );
+      check(
+        typeParameterTypeQuestion(T),
+        promotedTypeParameterTypeNone(T, objectNone),
+      );
+      check(
+        typeParameterTypeStar(T),
+        promotedTypeParameterTypeNone(T, objectNone),
+      );
     }
 
     {
@@ -1300,8 +1291,8 @@ actual: $resultStr
 
     // Check that the result is a lower bound.
     if (checkSubtype) {
-      expect(typeSystem.isSubtypeOf(result, T1), true);
-      expect(typeSystem.isSubtypeOf(result, T2), true);
+      expect(typeSystem.isSubtypeOf2(result, T1), true);
+      expect(typeSystem.isSubtypeOf2(result, T2), true);
     }
 
     // Check for symmetry.
@@ -1349,11 +1340,9 @@ class UpperBoundTest extends _BoundsTestBase {
     }
 
     {
-      var T = typeParameterTypeNone(
-        promoteTypeParameter(
-          typeParameter('T', bound: objectQuestion),
-          neverNone,
-        ),
+      var T = promotedTypeParameterTypeNone(
+        typeParameter('T', bound: objectQuestion),
+        neverNone,
       );
       check(T, intNone);
       check(T, intQuestion);
@@ -1377,11 +1366,9 @@ class UpperBoundTest extends _BoundsTestBase {
 
     check(
       neverNone,
-      typeParameterTypeNone(
-        promoteTypeParameter(
-          typeParameter('T', bound: objectQuestion),
-          neverNone,
-        ),
+      promotedTypeParameterTypeNone(
+        typeParameter('T', bound: objectQuestion),
+        neverNone,
       ),
     );
   }
@@ -2063,8 +2050,8 @@ actual: $resultStr
 ''');
 
     // Check that the result is an upper bound.
-    expect(typeSystem.isSubtypeOf(T1, result), true);
-    expect(typeSystem.isSubtypeOf(T2, result), true);
+    expect(typeSystem.isSubtypeOf2(T1, result), true);
+    expect(typeSystem.isSubtypeOf2(T2, result), true);
 
     // Check for symmetry.
     result = typeSystem.getLeastUpperBound(T2, T1);
@@ -2150,24 +2137,7 @@ class _BoundsTestBase with ElementsTypesMixin {
     var typeParameterCollector = _TypeParameterCollector();
     DartTypeVisitor.visit(type, typeParameterCollector);
     for (var typeParameter in typeParameterCollector.typeParameters) {
-      if (typeParameter is TypeParameterMember) {
-        var base = typeParameter.declaration;
-        var baseBound = base.bound;
-        if (baseBound != null) {
-          var baseBoundStr = baseBound.getDisplayString(withNullability: true);
-          typeStr += ', ${typeParameter.name} extends ' + baseBoundStr;
-        }
-
-        var bound = typeParameter.bound;
-        var boundStr = bound.getDisplayString(withNullability: true);
-        typeStr += ', ${typeParameter.name} & ' + boundStr;
-      } else {
-        var bound = typeParameter.bound;
-        if (bound != null) {
-          var boundStr = bound.getDisplayString(withNullability: true);
-          typeStr += ', ${typeParameter.name} extends ' + boundStr;
-        }
-      }
+      typeStr += ', $typeParameter';
     }
     return typeStr;
   }
@@ -2180,7 +2150,7 @@ class _BoundsTestBase with ElementsTypesMixin {
 }
 
 class _TypeParameterCollector extends DartTypeVisitor<void> {
-  final Set<TypeParameterElement> typeParameters = {};
+  final Set<String> typeParameters = {};
 
   /// We don't need to print bounds for these type parameters, because
   /// they are already included into the function type itself, and cannot
@@ -2223,7 +2193,31 @@ class _TypeParameterCollector extends DartTypeVisitor<void> {
   @override
   void visitTypeParameterType(TypeParameterType type) {
     if (!functionTypeParameters.contains(type.element)) {
-      typeParameters.add(type.element);
+      var bound = type.element.bound;
+      var promotedBound = (type as TypeParameterTypeImpl).promotedBound;
+
+      if (bound == null && promotedBound == null) {
+        return;
+      }
+
+      var str = '';
+
+      if (bound != null) {
+        var boundStr = bound.getDisplayString(withNullability: true);
+        str += '${type.element.name} extends ' + boundStr;
+      }
+
+      if (promotedBound != null) {
+        var promotedBoundStr = promotedBound.getDisplayString(
+          withNullability: true,
+        );
+        if (str.isNotEmpty) {
+          str += ', ';
+        }
+        str += '${type.element.name} & ' + promotedBoundStr;
+      }
+
+      typeParameters.add(str);
     }
   }
 

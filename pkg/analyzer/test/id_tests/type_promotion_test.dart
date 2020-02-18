@@ -11,7 +11,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/null_safety_understanding_flag.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
@@ -73,10 +72,11 @@ class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
 
   @override
   String getText(DartType actualData) {
-    if (actualData is TypeParameterType) {
+    if (actualData is TypeParameterTypeImpl) {
       var element = actualData.element;
-      if (element is TypeParameterMember) {
-        return '${element.name} & ${_typeToString(element.bound)}';
+      var promotedBound = actualData.promotedBound;
+      if (promotedBound != null) {
+        return '${element.name} & ${_typeToString(promotedBound)}';
       }
     }
     return _typeToString(actualData);

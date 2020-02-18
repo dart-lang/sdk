@@ -16,7 +16,6 @@ import 'package:analyzer/dart/element/type_system.dart' as public;
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart' show TypeParameterMember;
 import 'package:analyzer/src/dart/element/normalize.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
 import 'package:analyzer/src/dart/element/runtime_type_equality.dart';
@@ -973,9 +972,16 @@ class Dart2TypeSystem extends TypeSystem {
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
     // BOTTOM(X extends T) is true iff BOTTOM(T)
-    if (type is TypeParameterType) {
-      var T = type.element.bound;
-      return isBottom(T);
+    if (type is TypeParameterTypeImpl) {
+      var T = type.promotedBound;
+      if (T != null) {
+        return isBottom(T);
+      }
+
+      T = type.element.bound;
+      if (T != null) {
+        return isBottom(T);
+      }
     }
 
     // BOTTOM(T) is false otherwise
@@ -1049,28 +1055,31 @@ class Dart2TypeSystem extends TypeSystem {
     }
 
     // Type parameters.
-    if (T is TypeParameterType && S is TypeParameterType) {
+    if (T is TypeParameterTypeImpl && S is TypeParameterTypeImpl) {
       // We have eliminated the possibility that T_nullability or S_nullability
       // is anything except none by this point.
       assert(T_nullability == NullabilitySuffix.none);
       assert(S_nullability == NullabilitySuffix.none);
       var T_element = T.element;
       var S_element = S.element;
+
       // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
-      if (T_element is TypeParameterMember &&
-          S_element is TypeParameterMember) {
-        var T_bound = T_element.bound;
-        var S_bound = S_element.bound;
-        return isMoreBottom(T_bound, S_bound);
+      var T_promotedBound = T.promotedBound;
+      var S_promotedBound = S.promotedBound;
+      if (T_promotedBound != null && S_promotedBound != null) {
+        return isMoreBottom(T_promotedBound, S_promotedBound);
       }
+
       // MOREBOTTOM(X&T, S) = true
-      if (T_element is TypeParameterMember) {
+      if (T_promotedBound != null) {
         return true;
       }
+
       // MOREBOTTOM(T, Y&S) = false
-      if (S_element is TypeParameterMember) {
+      if (S_promotedBound != null) {
         return false;
       }
+
       // MOREBOTTOM(X extends T, Y extends S) = MOREBOTTOM(T, S)
       var T_bound = T_element.bound;
       var S_bound = S_element.bound;
@@ -1282,11 +1291,17 @@ class Dart2TypeSystem extends TypeSystem {
       // * if `T0` is an unpromoted type variable with bound `B`,
       //   then `T0 <: T1` iff `B <: Object`.
       // * if `T0` is a promoted type variable `X & S`,
-      //   then `T0 <: T1`iff `S <: Object`.
+      //   then `T0 <: T1` iff `S <: Object`.
       if (T0_nullability == NullabilitySuffix.none &&
           T0 is TypeParameterTypeImpl) {
-        var bound = T0.element.bound ?? objectQuestion;
-        return isSubtypeOf2(bound, objectNone);
+        var S = T0.promotedBound;
+        var B = T0.element.bound;
+        if (S == null && B != null) {
+          return isSubtypeOf2(B, objectNone);
+        }
+        if (S != null) {
+          return isSubtypeOf2(S, objectNone);
+        }
       }
       // * if `T0` is `FutureOr<S>` for some `S`,
       //   then `T0 <: T1` iff `S <: Object`
@@ -1376,21 +1391,24 @@ class Dart2TypeSystem extends TypeSystem {
       return isSubtypeOf2(S0, T1) && isSubtypeOf2(nullNone, T1);
     }
 
+    // Type Variable Reflexivity 1: if T0 is a type variable X0 or a promoted
+    // type variables X0 & S0 and T1 is X0 then:
+    //   * T0 <: T1
+    if (T0 is TypeParameterTypeImpl &&
+        T1 is TypeParameterTypeImpl &&
+        T1.promotedBound == null &&
+        T0.element == T1.element) {
+      return true;
+    }
+
     // Right Promoted Variable: if `T1` is a promoted type variable `X1 & S1`:
     //   * `T0 <: T1` iff `T0 <: X1` and `T0 <: S1`
-    if (T0 is TypeParameterTypeImpl) {
-      if (T1 is TypeParameterTypeImpl && T0.definition == T1.definition) {
-        var S0 = T0.element.bound ?? objectQuestion;
-        var S1 = T1.element.bound ?? objectQuestion;
-        if (isSubtypeOf2(S0, S1)) {
-          return true;
-        }
-      }
-
-      var T0_element = T0.element;
-      if (T0_element is TypeParameterMember) {
-        return isSubtypeOf2(T0_element.bound, T1);
-      }
+    if (T1 is TypeParameterTypeImpl && T1.promotedBound != null) {
+      var X1 = TypeParameterTypeImpl(
+        element: T1.element,
+        nullabilitySuffix: T1.nullabilitySuffix,
+      );
+      return isSubtypeOf2(T0, X1) && isSubtypeOf2(T0, T1.promotedBound);
     }
 
     // Right FutureOr: if `T1` is `FutureOr<S1>` then:
@@ -1414,8 +1432,12 @@ class Dart2TypeSystem extends TypeSystem {
       // * or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
       // * or `T0` is `X0 & S0` and `S0 <: T1`
       if (T0 is TypeParameterTypeImpl) {
-        var S0 = T0.element.bound ?? objectQuestion;
-        if (isSubtypeOf2(S0, T1)) {
+        var S0 = T0.promotedBound;
+        if (S0 != null && isSubtypeOf2(S0, T1)) {
+          return true;
+        }
+        var B0 = T0.element.bound;
+        if (B0 != null && isSubtypeOf2(B0, T1)) {
           return true;
         }
       }
@@ -1438,8 +1460,14 @@ class Dart2TypeSystem extends TypeSystem {
       // or `T0` is `X0` and `X0` has bound `S0` and `S0 <: T1`
       // or `T0` is `X0 & S0` and `S0 <: T1`
       if (T0 is TypeParameterTypeImpl) {
-        var S0 = T0.element.bound ?? objectQuestion;
-        return isSubtypeOf2(S0, T1);
+        var S0 = T0.promotedBound;
+        if (S0 != null && isSubtypeOf2(S0, T1)) {
+          return true;
+        }
+        var B0 = T0.element.bound;
+        if (B0 != null && isSubtypeOf2(B0, T1)) {
+          return true;
+        }
       }
       // iff
       return false;
@@ -1457,8 +1485,13 @@ class Dart2TypeSystem extends TypeSystem {
     // Left Type Variable Bound: `T0` is a type variable `X0` with bound `B0`
     //   * and `B0 <: T1`
     if (T0 is TypeParameterTypeImpl) {
-      var S0 = T0.element.bound ?? objectQuestion;
-      if (isSubtypeOf2(S0, T1)) {
+      var S0 = T0.promotedBound;
+      if (S0 != null && isSubtypeOf2(S0, T1)) {
+        return true;
+      }
+
+      var B0 = T0.element.bound;
+      if (B0 != null && isSubtypeOf2(B0, T1)) {
         return true;
       }
     }
@@ -1604,9 +1637,10 @@ class Dart2TypeSystem extends TypeSystem {
     if (from is TypeParameterType) {
       if (isSubtypeOf2(to, from.bound ?? DynamicTypeImpl.instance)) {
         var declaration = from.element.declaration;
-        var newElement = TypeParameterMember(declaration, null, to);
-        return newElement.instantiate(
+        return TypeParameterTypeImpl(
+          element: declaration,
           nullabilitySuffix: from.nullabilitySuffix,
+          promotedBound: to,
         );
       }
     }
@@ -3564,32 +3598,29 @@ abstract class TypeSystem implements public.TypeSystem {
 
     if (type is TypeParameterTypeImpl) {
       var element = type.element;
-      var promotedBound =
-          promoteToNonNull(element.bound ?? typeProvider.objectType);
-      var identicalBound = identical(promotedBound, element.bound);
-      if (identicalBound) {
-        if (type.nullabilitySuffix == NullabilitySuffix.none) {
-          return type;
-        } else {
-          return TypeParameterTypeImpl(
-            element: element,
-            nullabilitySuffix: NullabilitySuffix.none,
-          );
-        }
-      } else {
-        // Note: we need to use `element.declaration` because `element` might
-        // itself be a TypeParameterMember (due to a previous promotion), and
-        // you can't create a TypeParameterMember wrapping a
-        // TypeParameterMember.
+
+      // NonNull(X & T) = X & NonNull(T)
+      if (type.promotedBound != null) {
+        var promotedBound = promoteToNonNull(type.promotedBound);
         return TypeParameterTypeImpl(
-          element: TypeParameterMember(
-            element.declaration,
-            null,
-            promotedBound,
-          ),
+          element: element,
           nullabilitySuffix: NullabilitySuffix.none,
+          promotedBound: promotedBound,
         );
       }
+
+      // NonNull(X) = X & NonNull(B), where B is the bound of X
+      var promotedBound = element.bound != null
+          ? promoteToNonNull(element.bound)
+          : typeProvider.objectType;
+      if (identical(promotedBound, element.bound)) {
+        promotedBound = null;
+      }
+      return TypeParameterTypeImpl(
+        element: element,
+        nullabilitySuffix: NullabilitySuffix.none,
+        promotedBound: promotedBound,
+      );
     }
 
     return (type as TypeImpl).withNullability(NullabilitySuffix.none);

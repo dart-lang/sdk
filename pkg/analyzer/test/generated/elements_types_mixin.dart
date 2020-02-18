@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -473,12 +472,49 @@ mixin ElementsTypesMixin {
     return parameter;
   }
 
-  TypeParameterMember promoteTypeParameter(
+  TypeParameterTypeImpl promotedTypeParameterType({
+    @required TypeParameterElement element,
+    @required NullabilitySuffix nullabilitySuffix,
+    @required DartType promotedBound,
+  }) {
+    return TypeParameterTypeImpl(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+      promotedBound: promotedBound,
+    );
+  }
+
+  TypeParameterTypeImpl promotedTypeParameterTypeNone(
     TypeParameterElement element,
-    DartType bound,
+    DartType promotedBound,
   ) {
-    assert(element is! TypeParameterMember);
-    return TypeParameterMember(element, null, bound);
+    return promotedTypeParameterType(
+      element: element,
+      nullabilitySuffix: NullabilitySuffix.none,
+      promotedBound: promotedBound,
+    );
+  }
+
+  TypeParameterTypeImpl promotedTypeParameterTypeQuestion(
+    TypeParameterElement element,
+    DartType promotedBound,
+  ) {
+    return promotedTypeParameterType(
+      element: element,
+      nullabilitySuffix: NullabilitySuffix.question,
+      promotedBound: promotedBound,
+    );
+  }
+
+  TypeParameterTypeImpl promotedTypeParameterTypeStar(
+    TypeParameterElement element,
+    DartType promotedBound,
+  ) {
+    return promotedTypeParameterType(
+      element: element,
+      nullabilitySuffix: NullabilitySuffix.star,
+      promotedBound: promotedBound,
+    );
   }
 
   ParameterElement requiredParameter({

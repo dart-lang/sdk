@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/nullability_eliminator.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -1013,82 +1012,6 @@ class TopLevelVariableMember extends VariableMember
   @override
   T accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitTopLevelVariableElement(this);
-  }
-}
-
-/**
- * A type parameter defined inside of another parameterized type, where the
- * values of the enclosing type parameters are known.
- *
- * For example:
- *
- *     class C<T> {
- *       S m<S extends T>(S s);
- *     }
- *
- * If we have `C<num>.m` and we ask for the type parameter "S", we should get
- * `<S extends num>` instead of `<S extends T>`. This is how the parameter
- * and return types work, see: [FunctionType.parameters],
- * [FunctionType.returnType], and [ParameterMember].
- */
-class TypeParameterMember extends Member implements TypeParameterElement {
-  DartType _bound;
-  DartType _type;
-
-  TypeParameterMember(TypeParameterElement declaration,
-      MapSubstitution substitution, this._bound)
-      : super(declaration, substitution, false) {
-    _type = TypeParameterTypeImpl(
-      element: this,
-      nullabilitySuffix: NullabilitySuffix.star,
-    );
-  }
-
-  @deprecated
-  @override
-  TypeParameterElement get baseElement => declaration;
-
-  @override
-  DartType get bound => _bound;
-
-  @override
-  TypeParameterElement get declaration =>
-      super.declaration as TypeParameterElement;
-
-  @override
-  Element get enclosingElement => declaration.enclosingElement;
-
-  @override
-  int get hashCode => declaration.hashCode;
-
-  @override
-  TypeParameterType get type => _type;
-
-  @override
-  bool operator ==(Object other) {
-    if (other is TypeParameterMember) {
-      return declaration == other.declaration;
-    }
-    return declaration == other;
-  }
-
-  @override
-  T accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitTypeParameterElement(this);
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeTypeParameter(this);
-  }
-
-  @override
-  TypeParameterType instantiate({
-    @required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return TypeParameterTypeImpl(
-      element: this,
-      nullabilitySuffix: nullabilitySuffix,
-    );
   }
 }
 

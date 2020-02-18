@@ -13,7 +13,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/token.dart' show KeywordToken;
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -3326,13 +3325,12 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
 
   test_typeParameter() {
     void check(
-      TypeParameterType type,
-      TypeParameterElement expectedDeclaration,
+      TypeParameterTypeImpl type,
+      TypeParameterElement expectedElement,
       DartType expectedBound,
     ) {
-      var actualElement = type.element as TypeParameterMember;
-      expect(actualElement.declaration, expectedDeclaration);
-      expect(actualElement.bound, expectedBound);
+      expect(type.element, expectedElement);
+      expect(type.promotedBound, expectedBound);
     }
 
     var T = typeParameter('T');

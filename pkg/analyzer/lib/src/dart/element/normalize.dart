@@ -6,7 +6,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
@@ -234,10 +233,17 @@ class NormalizeHelper {
     return (S as TypeImpl).withNullability(NullabilitySuffix.star);
   }
 
-  /// NORM(X extends T)
   /// NORM(X & T)
-  DartType _typeParameterType(TypeParameterType T) {
+  /// NORM(X extends T)
+  DartType _typeParameterType(TypeParameterTypeImpl T) {
     var element = T.element;
+
+    // NORM(X & T)
+    if (T.promotedBound != null) {
+      // let S be NORM(T)
+      var S = _normalize(T.promotedBound);
+      return _typeParameterType_promoted(element, S);
+    }
 
     var bound = element.bound;
     if (bound == null) {
@@ -258,18 +264,18 @@ class NormalizeHelper {
       return NeverTypeImpl.instance;
     }
 
-    if (element is TypeParameterMember) {
-      return _typeParameterType_promoted(element, S);
-    } else {
-      // NORM(X extends T)
-      // * else X
-      return T;
-    }
+    // else X extends T
+    return T;
   }
 
   /// NORM(X & T)
   /// * let S be NORM(T)
-  DartType _typeParameterType_promoted(TypeParameterMember X, DartType S) {
+  DartType _typeParameterType_promoted(TypeParameterElement X, DartType S) {
+    // * if S is Never then Never
+    if (identical(S, NeverTypeImpl.instance)) {
+      return NeverTypeImpl.instance;
+    }
+
     // * if S is a top type then X
     if (typeSystem.isTop(S)) {
       return X.declaration.instantiate(
@@ -301,13 +307,10 @@ class NormalizeHelper {
     }
 
     // * else X & S
-    var promoted = TypeParameterMember(
-      X.declaration,
-      Substitution.empty,
-      S,
-    );
-    return promoted.instantiate(
+    return TypeParameterTypeImpl(
+      element: X.declaration,
       nullabilitySuffix: NullabilitySuffix.none,
+      promotedBound: S,
     );
   }
 }
