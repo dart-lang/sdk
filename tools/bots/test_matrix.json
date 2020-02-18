@@ -3268,7 +3268,11 @@
         },
         {
           "name": "compile flutter tests",
-          "script": "tools/bots/flutter/compile_flutter.sh"
+          "script": "tools/bots/flutter/compile_flutter.sh",
+          "testRunner": true,
+          "arguments": [
+            "-nflutter-frontend"
+          ]
         }
       ]
     },

@@ -72,6 +72,7 @@ if $prepareOnly
 then
   echo "Preparations complete!"
   echo "Flutter is now in $tmpdir/flutter and the patched sdk in $tmpdir/flutter_patched_sdk"
+  echo "You can run the test with $dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk"
 else
-  $dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter.dart --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk
+  $dart --enable-asserts pkg/frontend_server/test/frontend_server_flutter_suite.dart -v --flutterDir=$tmpdir/flutter --flutterPlatformDir=$tmpdir/flutter_patched_sdk $@
 fi
