@@ -479,7 +479,7 @@ final constantMaps = JS<Object>('!', 'new Map()');
 // Keeping the paths is probably expensive.  It would probably
 // be more space efficient to just use a direct hash table with
 // an appropriately defined structural equality function.
-Object _lookupNonTerminal(Object map, Object key) {
+Object _lookupNonTerminal(Object map, Object? key) {
   var result = JS('', '#.get(#)', map, key);
   if (result != null) return result;
   JS('', '#.set(#, # = new Map())', map, key, result);
