@@ -298,6 +298,8 @@ def dart_try_builder(name,
                      location_regexp=None,
                      properties={},
                      on_cq=False):
+    if on_cq and location_regexp:
+        fail("Can't be on the default CQ and conditionally on the CQ")
     dimensions = dict(dimensions)
     dimensions["pool"] = "luci.dart.try"
     dimensions.setdefault("os", "Linux")
@@ -474,6 +476,7 @@ def dart_vm_extra_builder(name, on_cq=False, location_regexp=None, **kwargs):
     triggered_by = ["dart-vm-gitiles-trigger-%s"]
     if on_cq and not location_regexp:
         location_regexp = to_location_regexp(VM_PATHS)
+        on_cq = False
     dart_ci_sandbox_builder(
         name,
         triggered_by=triggered_by,
@@ -492,8 +495,7 @@ dart_ci_sandbox_builder(
 dart_ci_sandbox_builder(
     "front-end-nnbd-linux-release-x64",
     category="cfe|nn",
-    location_regexp=to_location_regexp(CFE_PATHS),
-    on_cq=True)
+    location_regexp=to_location_regexp(CFE_PATHS))
 dart_ci_sandbox_builder(
     "flutter-frontend",
     category="cfe|fl",
@@ -664,24 +666,20 @@ dart_ci_sandbox_builder("pkg-linux-debug", category="pkg|ld", channels=["try"])
 dart_ci_sandbox_builder(
     "dart2js-strong-hostasserts-linux-ia32-d8",
     category="dart2js|d8|ha",
-    location_regexp=to_location_regexp(DART2JS_PATHS),
-    on_cq=True)
+    location_regexp=to_location_regexp(DART2JS_PATHS))
 dart_ci_sandbox_builder("dart2js-rti-linux-x64-d8", category="dart2js|d8|rti")
 dart_ci_sandbox_builder(
     "dart2js-minified-strong-linux-x64-d8",
     category="dart2js|d8|mi",
-    location_regexp=to_location_regexp(DART2JS_PATHS),
-    on_cq=True)
+    location_regexp=to_location_regexp(DART2JS_PATHS))
 dart_ci_sandbox_builder(
     "dart2js-unit-linux-x64-release",
     category="dart2js|d8|u",
-    location_regexp=to_location_regexp(DART2JS_PATHS),
-    on_cq=True)
+    location_regexp=to_location_regexp(DART2JS_PATHS))
 dart_ci_sandbox_builder(
     "dart2js-strong-linux-x64-chrome",
     category="dart2js|chrome|l",
-    location_regexp=to_location_regexp(DART2JS_PATHS),
-    on_cq=True)
+    location_regexp=to_location_regexp(DART2JS_PATHS))
 dart_ci_sandbox_builder(
     "dart2js-csp-minified-linux-x64-chrome", category="dart2js|chrome|csp")
 dart_ci_sandbox_builder(
@@ -718,7 +716,6 @@ dart_ci_sandbox_builder(
     category="analyzer|fa",
     channels=["try"],
     notifies=None,
-    on_cq=True,
     location_regexp=[
         ".+/[+]/DEPS",
         ".+/[+]/pkg/analysis_server/.+",
@@ -770,14 +767,12 @@ dart_ci_builder(
 dart_ci_sandbox_builder(
     "ddc-linux-release-chrome",
     category="ddc|l",
-    location_regexp=to_location_regexp(DDC_PATHS),
-    on_cq=True)
+    location_regexp=to_location_regexp(DDC_PATHS))
 dart_ci_sandbox_builder(
     "ddc-nnbd-linux-release-chrome",
     category="ddc|nn",
     channels=["try"],
-    location_regexp=to_location_regexp(DDC_PATHS),
-    on_cq=True)
+    location_regexp=to_location_regexp(DDC_PATHS))
 dart_ci_sandbox_builder(
     "ddc-mac-release-chrome", category="ddc|m", dimensions=mac())
 dart_ci_sandbox_builder(
