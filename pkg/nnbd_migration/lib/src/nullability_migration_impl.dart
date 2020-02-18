@@ -76,7 +76,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
         source,
         _decoratedClassHierarchy,
         result.typeProvider,
-        library.typeSystem as Dart2TypeSystem,
+        library.typeSystem as TypeSystemImpl,
         _variables,
         library,
         listener,
