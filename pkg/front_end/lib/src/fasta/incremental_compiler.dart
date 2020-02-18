@@ -43,8 +43,7 @@ import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 
-import 'package:package_config_v2/package_config.dart'
-    show Package, PackageConfig;
+import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 

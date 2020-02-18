@@ -11,7 +11,7 @@ import 'dart:collection' show Queue;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:kernel/ast.dart' show Class, DartType, Library;
-import 'package:package_config_v2/package_config.dart';
+import 'package:package_config/package_config.dart';
 
 import 'scope.dart';
 

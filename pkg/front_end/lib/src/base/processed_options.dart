@@ -17,7 +17,7 @@ import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
 
-import 'package:package_config_v2/package_config.dart';
+import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, DiagnosticMessage;

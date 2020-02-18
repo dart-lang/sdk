@@ -25,7 +25,7 @@ import 'package:front_end/src/fasta/command_line_reporting.dart'
 
 import 'package:kernel/kernel.dart';
 
-import 'package:package_config_v2/package_config.dart';
+import 'package:package_config/package_config.dart';
 
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription, runMe;

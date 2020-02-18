@@ -6,7 +6,7 @@ library fasta.uri_translator;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:package_config_v2/package_config.dart';
+import 'package:package_config/package_config.dart';
 
 import '../base/libraries_specification.dart' show TargetLibrariesSpecification;
 import 'compiler_context.dart' show CompilerContext;

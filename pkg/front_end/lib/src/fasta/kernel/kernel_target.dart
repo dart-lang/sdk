@@ -51,7 +51,7 @@ import 'package:kernel/target/changed_structure_notifier.dart'
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show verifyGetStaticType;
-import 'package:package_config_v2/package_config.dart';
+import 'package:package_config/package_config.dart';
 
 import '../../api_prototype/file_system.dart' show FileSystem;
 

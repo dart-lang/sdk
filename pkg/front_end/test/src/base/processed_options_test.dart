@@ -13,7 +13,7 @@ import 'package:front_end/src/fasta/fasta_codes.dart';
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart'
     show CanonicalName, Library, Component, loadComponentFromBytes;
-import 'package:package_config_v2/package_config.dart';
+import 'package:package_config/package_config.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
