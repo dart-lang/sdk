@@ -3152,6 +3152,58 @@ main() {
     expect(target.operand.toSource(), "foo");
   }
 
+  void test_bangBeforeFuctionCall1() {
+    // https://github.com/dart-lang/sdk/issues/39776
+    var unit = parseCompilationUnit('f() { Function? f1; f1!(42); }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement1 = body.block.statements[0] as VariableDeclarationStatement;
+    expect(statement1.toSource(), "Function? f1;");
+    var statement2 = body.block.statements[1] as ExpressionStatement;
+
+    // expression is "f1!(42)"
+    var expression = statement2.expression as FunctionExpressionInvocation;
+    expect(expression.toSource(), "f1!(42)");
+
+    var functionExpression = expression.function as PostfixExpression;
+    SimpleIdentifier identifier = functionExpression.operand;
+    expect(identifier.name, 'f1');
+    expect(functionExpression.operator.lexeme, '!');
+
+    expect(expression.typeArguments, null);
+
+    expect(expression.argumentList.arguments.length, 1);
+    IntegerLiteral argument = expression.argumentList.arguments.single;
+    expect(argument.value, 42);
+  }
+
+  void test_bangBeforeFuctionCall2() {
+    // https://github.com/dart-lang/sdk/issues/39776
+    var unit = parseCompilationUnit('f() { Function f2; f2!<int>(42); }');
+    var funct = unit.declarations[0] as FunctionDeclaration;
+    var body = funct.functionExpression.body as BlockFunctionBody;
+    var statement1 = body.block.statements[0] as VariableDeclarationStatement;
+    expect(statement1.toSource(), "Function f2;");
+    var statement2 = body.block.statements[1] as ExpressionStatement;
+
+    // expression is "f2!<int>(42)"
+    var expression = statement2.expression as FunctionExpressionInvocation;
+    expect(expression.toSource(), "f2!<int>(42)");
+
+    var functionExpression = expression.function as PostfixExpression;
+    SimpleIdentifier identifier = functionExpression.operand;
+    expect(identifier.name, 'f2');
+    expect(functionExpression.operator.lexeme, '!');
+
+    expect(expression.typeArguments.arguments.length, 1);
+    TypeName typeArgument = expression.typeArguments.arguments.single;
+    expect(typeArgument.name.name, "int");
+
+    expect(expression.argumentList.arguments.length, 1);
+    IntegerLiteral argument = expression.argumentList.arguments.single;
+    expect(argument.value, 42);
+  }
+
   void test_nullCheckOnLiteral_disabled() {
     parseCompilationUnit('f() { var x = 0!; }',
         errors: [expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 15, 1)],
