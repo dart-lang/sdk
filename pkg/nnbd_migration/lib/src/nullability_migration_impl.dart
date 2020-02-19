@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:nnbd_migration/instrumentation.dart';
@@ -16,10 +17,15 @@ import 'package:nnbd_migration/src/fix_aggregator.dart';
 import 'package:nnbd_migration/src/fix_builder.dart';
 import 'package:nnbd_migration/src/node_builder.dart';
 import 'package:nnbd_migration/src/nullability_node.dart';
+import 'package:nnbd_migration/src/postmortem_file.dart';
 import 'package:nnbd_migration/src/variables.dart';
 
 /// Implementation of the [NullabilityMigration] public API.
 class NullabilityMigrationImpl implements NullabilityMigration {
+  /// Set this constant to a pathname to cause nullability migration to output
+  /// a post-mortem file that can be later examined by tool/postmortem.dart.
+  static const String _postmortemPath = null;
+
   final NullabilityMigrationListener listener;
 
   Variables _variables;
@@ -41,6 +47,11 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   final _decoratedTypeParameterBounds = DecoratedTypeParameterBounds();
 
+  /// If not `null`, the object that will be used to write out post-mortem
+  /// information once migration is complete.
+  final PostmortemFileWriter _postmortemFileWriter =
+      _makePostmortemFileWriter();
+
   /// Prepares to perform nullability migration.
   ///
   /// If [permissive] is `true`, exception handling logic will try to proceed
@@ -60,13 +71,14 @@ class NullabilityMigrationImpl implements NullabilityMigration {
   NullabilityMigrationImpl._(this.listener, this._graph, this._permissive,
       this._instrumentation, this.removeViaComments) {
     _instrumentation?.immutableNodes(_graph.never, _graph.always);
+    _postmortemFileWriter?.graph = _graph;
   }
 
   @override
   void finalizeInput(ResolvedUnitResult result) {
     if (!_propagated) {
       _propagated = true;
-      _graph.propagate();
+      _graph.propagate(_postmortemFileWriter);
     }
     var unit = result.unit;
     var compilationUnit = unit.declaredElement;
@@ -107,8 +119,9 @@ class NullabilityMigrationImpl implements NullabilityMigration {
     }
   }
 
-  /// TODO(paulberry): eliminate?
-  void finish() {}
+  void finish() {
+    _postmortemFileWriter?.write();
+  }
 
   void prepareInput(ResolvedUnitResult result) {
     if (_variables == null) {
@@ -147,7 +160,7 @@ class NullabilityMigrationImpl implements NullabilityMigration {
 
   @override
   void update() {
-    _graph.update();
+    _graph.update(_postmortemFileWriter);
   }
 
   static Location _computeLocation(
@@ -161,5 +174,11 @@ class NullabilityMigrationImpl implements NullabilityMigration {
       locationInfo.columnNumber,
     );
     return location;
+  }
+
+  static PostmortemFileWriter _makePostmortemFileWriter() {
+    if (_postmortemPath == null) return null;
+    return PostmortemFileWriter(
+        PhysicalResourceProvider.INSTANCE.getFile(_postmortemPath));
   }
 }

@@ -6,17 +6,19 @@
 /// non-null intent.
 class NonNullIntent {
   /// State of a nullability node for which no non-null intent has been seen.
-  static const none = NonNullIntent._(false);
+  static const none = NonNullIntent._('none', false);
 
   /// State of a nullability node for which indirect evidence of non-null intent
   /// has been seen (e.g. an assertion or a use of a value in a non-null
   /// context).
-  static const indirect = NonNullIntent._(true);
+  static const indirect = NonNullIntent._('indirect', true);
 
   /// State of a nullability node for which direct evidence of non-null intent
   /// has been seen (e.g. an explicit "/*!*/" on a type, or a non-nullable type
   /// coming from a migrated library).
-  static const direct = NonNullIntent._(true, isDirect: true);
+  static const direct = NonNullIntent._('direct', true, isDirect: true);
+
+  final String name;
 
   /// Indicates whether this state represents a determination that non-null
   /// intent is present.
@@ -26,11 +28,29 @@ class NonNullIntent {
   /// intent (see [direct]).
   final bool isDirect;
 
-  const NonNullIntent._(this.isPresent, {this.isDirect = false});
+  factory NonNullIntent.fromJson(dynamic json) {
+    switch (json as String) {
+      case 'none':
+        return none;
+      case 'indirect':
+        return indirect;
+      case 'direct':
+        return direct;
+      default:
+        throw StateError('Unrecognized nullability $json');
+    }
+  }
+
+  const NonNullIntent._(this.name, this.isPresent, {this.isDirect = false});
 
   /// Returns a [NonNullIntent] object representing the result of adding
   /// indirect non-null intent to `this`.
   NonNullIntent addIndirect() => isPresent ? this : indirect;
+
+  String toJson() => name;
+
+  @override
+  String toString() => name;
 }
 
 /// State of a nullability node.
@@ -63,8 +83,23 @@ class Nullability {
   /// later be used in a contravariant way that requires it to be nullable.
   final bool isExactNullable;
 
+  factory Nullability.fromJson(dynamic json) {
+    switch (json as String) {
+      case 'non-nullable':
+        return nonNullable;
+      case 'ordinary nullable':
+        return ordinaryNullable;
+      case 'exact nullable':
+        return exactNullable;
+      default:
+        throw StateError('Unrecognized nullability $json');
+    }
+  }
+
   const Nullability._(this.name, this.isNullable,
       {this.isExactNullable = false});
+
+  String toJson() => name;
 
   @override
   String toString() => name;
