@@ -5154,22 +5154,43 @@ class InferenceVisitor
         switchCase.expressions[index] = caseExpression..parent = switchCase;
         DartType caseExpressionType = caseExpressionResult.inferredType;
 
-        // Check whether the expression type is assignable to the case
-        // expression type.
-        if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
-          inferrer.helper.addProblem(
-              templateSwitchExpressionNotAssignable.withArguments(
-                  expressionType,
-                  caseExpressionType,
-                  inferrer.isNonNullableByDefault),
-              caseExpression.fileOffset,
-              noLength,
-              context: [
-                messageSwitchExpressionNotAssignableCause.withLocation(
-                    inferrer.uriForInstrumentation,
-                    node.expression.fileOffset,
-                    noLength)
-              ]);
+        if (inferrer.library.isNonNullableByDefault) {
+          if (inferrer.performNnbdChecks) {
+            if (!inferrer.typeSchemaEnvironment.isSubtypeOf(caseExpressionType,
+                expressionType, SubtypeCheckMode.withNullabilities)) {
+              inferrer.helper.addProblem(
+                  templateSwitchExpressionNotSubtype.withArguments(
+                      caseExpressionType,
+                      expressionType,
+                      inferrer.isNonNullableByDefault),
+                  caseExpression.fileOffset,
+                  noLength,
+                  context: [
+                    messageSwitchExpressionNotAssignableCause.withLocation(
+                        inferrer.uriForInstrumentation,
+                        node.expression.fileOffset,
+                        noLength)
+                  ]);
+            }
+          }
+        } else {
+          // Check whether the expression type is assignable to the case
+          // expression type.
+          if (!inferrer.isAssignable(expressionType, caseExpressionType)) {
+            inferrer.helper.addProblem(
+                templateSwitchExpressionNotAssignable.withArguments(
+                    expressionType,
+                    caseExpressionType,
+                    inferrer.isNonNullableByDefault),
+                caseExpression.fileOffset,
+                noLength,
+                context: [
+                  messageSwitchExpressionNotAssignableCause.withLocation(
+                      inferrer.uriForInstrumentation,
+                      node.expression.fileOffset,
+                      noLength)
+                ]);
+          }
         }
       }
       StatementInferenceResult bodyResult =

@@ -3578,6 +3578,43 @@ Message _withArgumentsSwitchExpressionNotAssignable(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    templateSwitchExpressionNotSubtype = const Template<
+            Message Function(
+                DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+        messageTemplate:
+            r"""Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression.""",
+        withArguments: _withArgumentsSwitchExpressionNotSubtype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>
+    codeSwitchExpressionNotSubtype = const Code<
+        Message Function(
+            DartType _type, DartType _type2, bool isNonNullableByDefault)>(
+  "SwitchExpressionNotSubtype",
+  templateSwitchExpressionNotSubtype,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSwitchExpressionNotSubtype(
+    DartType _type, DartType _type2, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  List<Object> type2Parts = labeler.labelType(_type2);
+  String type = typeParts.join();
+  String type2 = type2Parts.join();
+  return new Message(codeSwitchExpressionNotSubtype,
+      message:
+          """Type '${type}' of the case expression is not a subtype of type '${type2}' of this switch expression.""" +
+              labeler.originMessages,
+      arguments: {'type': _type, 'type2': _type2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateThrowingNotAssignableToObjectError = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(

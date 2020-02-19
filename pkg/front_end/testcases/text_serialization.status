@@ -207,10 +207,10 @@ general/import_conflicting_types: TextSerializationFailure
 general/incomplete_field_formal_parameter: TextSerializationFailure # Was: RuntimeError
 general/infer_field_from_multiple: TypeCheckError
 general/infer_map_literal_with_closure: TextSerializationFailure
+general/interface_conflict: TextSerializationFailure
 general/interface_contravariant_from_class: TextSerializationFailure
 general/interface_covariantImpl_from_class: TextSerializationFailure
 general/interface_covariantInterface_from_class: TextSerializationFailure
-general/interface_conflict: TextSerializationFailure
 general/invalid_assignment: TextSerializationFailure # Was: Pass
 general/invalid_cast: TextSerializationFailure # Was: Pass
 general/invalid_operator2: TextSerializationFailure
@@ -1297,6 +1297,7 @@ nnbd/sink_hierarchy: TextSerializationFailure
 nnbd/strictly_non_nullable_warnings: TextSerializationFailure
 nnbd/substitution_in_inference: TextSerializationFailure
 nnbd/switch_redesign_fall_over: TextSerializationFailure
+nnbd/switch_redesign_types: TextSerializationFailure
 nnbd/tearoff_from_nullable_receiver: TextSerializationFailure
 nnbd/type_parameter_types: TextSerializationFailure
 no_such_method_forwarders/abstract_accessors_from_field: TextSerializationFailure # Was: Pass

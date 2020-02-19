@@ -2615,6 +2615,9 @@ SwitchExpressionNotAssignableCause:
   template: "The switch expression is here."
   severity: CONTEXT
 
+SwitchExpressionNotSubtype:
+  template: "Type '#type' of the case expression is not a subtype of type '#type2' of this switch expression."
+
 SwitchHasCaseAfterDefault:
   index: 16
   template: "The default case should be the last case in a switch statement."
