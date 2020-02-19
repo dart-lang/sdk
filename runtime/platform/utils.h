@@ -182,8 +182,10 @@ class Utils {
   static inline bool IsUint(int N, T value) {
     ASSERT((0 < N) &&
            (static_cast<unsigned int>(N) < (kBitsPerByte * sizeof(value))));
-    T limit = static_cast<T>(1) << N;
-    return (0 <= value) && (value < limit);
+    const auto limit =
+        (static_cast<typename std::make_unsigned<T>::type>(1) << N) - 1;
+    return (0 <= value) &&
+           (static_cast<typename std::make_unsigned<T>::type>(value) <= limit);
   }
 
   // Check whether the magnitude of value fits in N bits, i.e., whether an

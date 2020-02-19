@@ -17272,8 +17272,7 @@ RawObject* Instance::GetField(const Field& field) const {
   if (FLAG_precompiled_mode && field.is_unboxing_candidate()) {
     switch (field.guarded_cid()) {
       case kDoubleCid:
-        return Double::New(
-            LoadNonPointer(reinterpret_cast<double_t*>(FieldAddr(field))));
+        return Double::New(*reinterpret_cast<double_t*>(FieldAddr(field)));
       case kFloat32x4Cid:
         return Float32x4::New(
             *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
@@ -17282,8 +17281,7 @@ RawObject* Instance::GetField(const Field& field) const {
             *reinterpret_cast<simd128_value_t*>(FieldAddr(field)));
       default:
         if (field.is_non_nullable_integer()) {
-          return Integer::New(
-              LoadNonPointer(reinterpret_cast<int64_t*>(FieldAddr(field))));
+          return Integer::New(*reinterpret_cast<int64_t*>(FieldAddr(field)));
         } else {
           UNREACHABLE();
           return nullptr;
