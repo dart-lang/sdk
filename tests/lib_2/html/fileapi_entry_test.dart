@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:async_helper/async_helper.dart';
-import 'package:expect/minitest.dart';
+import 'package:unittest/unittest.dart';
 
 class FileAndDir {
   FileEntry file;
