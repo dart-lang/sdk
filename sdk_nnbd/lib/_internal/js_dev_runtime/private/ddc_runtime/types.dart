@@ -1113,10 +1113,19 @@ _isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
   // 1) All named params in the superclass are named params in the subclass.
   // 2) All required named params in the subclass are required named params
   //    in the superclass.
+  // 3) With strict null checking disabled, we treat required named params as
+  //    optional named params.
   let named1 = $ft1.named;
   let requiredNamed1 = $ft1.requiredNamed;
   let named2 = $ft2.named;
   let requiredNamed2 = $ft2.requiredNamed;
+  if (!strictMode) {
+    // In weak mode, treat required named params as optional named params.
+    named1 = Object.assign({}, named1, requiredNamed1);
+    named2 = Object.assign({}, named2, requiredNamed2);
+    requiredNamed1 = {};
+    requiredNamed2 = {};
+  }
 
   let names = $getOwnPropertyNames(requiredNamed1);
   for (let i = 0; i < names.length; ++i) {
@@ -1146,7 +1155,7 @@ _isFunctionSubtype(ft1, ft2, bool strictMode) => JS('', '''(() => {
     if (n1 === void 0) {
       return false;
     }
-    if (!$_isSubtype(n2, n1)) {
+    if (!$_isSubtype(n2, n1, strictMode)) {
       return false;
     }
   }
@@ -1602,10 +1611,19 @@ class _TypeInferrer {
     // 1) All named params in the superclass are named params in the subclass.
     // 2) All required named params in the subclass are required named params
     //    in the superclass.
+    // 3) With strict null checking disabled, we treat required named params as
+    //    optional named params.
     var supertypeNamed = supertype.getNamedParameters();
     var supertypeRequiredNamed = supertype.getRequiredNamedParameters();
     var subtypeNamed = supertype.getNamedParameters();
     var subtypeRequiredNamed = supertype.getRequiredNamedParameters();
+    if (!_strictSubtypeChecks) {
+      // In weak mode, treat required named params as optional named params.
+      supertypeNamed = {...supertypeNamed, ...supertypeRequiredNamed};
+      subtypeNamed = {...subtypeNamed, ...subtypeRequiredNamed};
+      supertypeRequiredNamed = {};
+      subtypeRequiredNamed = {};
+    }
     for (var name in subtypeRequiredNamed.keys) {
       var supertypeParamType = supertypeRequiredNamed[name];
       if (supertypeParamType == null) return false;
