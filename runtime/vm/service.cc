@@ -4435,15 +4435,7 @@ void Service::PrintJSONForVM(JSONStream* js, bool ref) {
   {
     JSONArray jsarr_isolate_groups(&jsobj, "isolateGroups");
     IsolateGroup::ForEach([&jsarr_isolate_groups](IsolateGroup* isolate_group) {
-      bool has_internal = false;
-      isolate_group->ForEachIsolate([&has_internal](Isolate* isolate) {
-        if (Isolate::IsVMInternalIsolate(isolate)) {
-          has_internal = true;
-        }
-      });
-      if (FLAG_show_invisible_isolates || !has_internal) {
-        jsarr_isolate_groups.AddValue(isolate_group);
-      }
+      jsarr_isolate_groups.AddValue(isolate_group);
     });
   }
 }

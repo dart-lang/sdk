@@ -397,7 +397,7 @@ void IsolateGroup::PrintToJSONObject(JSONObject* jsobj, bool ref) {
   jsobj->AddProperty("type", (ref ? "@IsolateGroup" : "IsolateGroup"));
   jsobj->AddServiceId(ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING, id());
 
-  jsobj->AddProperty("name", source()->script_uri);
+  jsobj->AddProperty("name", "isolate_group");
   jsobj->AddPropertyF("number", "%" Pu64 "", id());
   if (ref) {
     return;

@@ -145,20 +145,6 @@ hr {
   flex-wrap: wrap;
 }
 
-.flex-row-wrap-right {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.flex-row-spaced {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-
 .inline-flex-row {
   display: inline-flex;
   flex-direction: row;
@@ -295,12 +281,6 @@ hr {
   flex-grow: 0;
   flex-shrink: 0;
   flex-basis: 90%;
-}
-
-.flex-item-even {
-  flex-grow: 1;
-  flex-shrink: 0;
-  padding: 5px;
 }
 
 .indent {
@@ -1526,12 +1506,11 @@ eval-box .historyDelete button:hover {
 .isolate-ref-container {
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 5px;
-  font-weight: bolder;
 }
 
 .isolate-state-container {
   display: inline-block;
+  min-width: 18ex;
 }
 
 .isolate-shared-summary > .summary {

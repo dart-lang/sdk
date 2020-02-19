@@ -1291,7 +1291,6 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
 
   @override
   void _update(Map map, bool mapIsRef) {
-    _upgradeCollection(map, vm);
     name = map['name'];
     vmName = map.containsKey('_vmName') ? map['_vmName'] : name;
     number = int.tryParse(map['number']);
@@ -1300,9 +1299,7 @@ class IsolateGroup extends ServiceObjectOwner implements M.IsolateGroup {
     }
     _loaded = true;
     isolates.clear();
-    for (var isolate in map['isolates']) {
-      isolates.add(isolate);
-    }
+    isolates.addAll(map['isolates'] as List<Isolate>);
     isolates.sort(ServiceObject.LexicalSortName);
     vm._buildIsolateGroupList();
   }
