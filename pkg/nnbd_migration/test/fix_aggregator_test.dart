@@ -100,6 +100,27 @@ List<int> f(int i) {
 ''');
   }
 
+  Future<void>
+      test_eliminateDeadIf_element_delete_drop_completely_not_in_sequence() async {
+    await analyze('''
+List<int> f(int i) {
+  return [for (var x in [1, 2, 3]) if (i == null) null];
+}
+''');
+    var previewInfo = run({
+      findNode.ifElement('=='): NodeChangeForIfElement()..conditionValue = false
+    });
+    // This is a little kludgy; we could drop the `for` loop, but it's difficult
+    // to do so, and this is a rare enough corner case that it doesn't seem
+    // worth it.  Replacing the `if` with `...{}` has the right effect, since
+    // it expands to nothing.
+    expect(previewInfo.applyTo(code), '''
+List<int> f(int i) {
+  return [for (var x in [1, 2, 3]) ...{}];
+}
+''');
+  }
+
   Future<void> test_eliminateDeadIf_element_delete_keep_else() async {
     await analyze('''
 List<int> f(int i) {
@@ -231,6 +252,30 @@ void f(int i) {
     });
     expect(previewInfo.applyTo(code), '''
 void f(int i) {}
+''');
+  }
+
+  Future<void>
+      test_eliminateDeadIf_statement_delete_drop_completely_not_in_block() async {
+    await analyze('''
+void f(int i) {
+  while (true)
+    if (i == null) {
+      print('null');
+    }
+}
+''');
+    var previewInfo = run({
+      findNode.statement('if'): NodeChangeForIfStatement()
+        ..conditionValue = false
+    });
+    // Note: formatting is a little weird here but it's such a rare case that
+    // we don't care.
+    expect(previewInfo.applyTo(code), '''
+void f(int i) {
+  while (true)
+    {}
+}
 ''');
   }
 

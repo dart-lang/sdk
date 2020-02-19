@@ -204,9 +204,31 @@ mixin NodeChangeForConditional<N extends AstNode> on NodeChange<N> {
     }
     if (nodeToKeep == null ||
         nodeToKeep is Block && nodeToKeep.statements.isEmpty) {
+      // The conditional node collapses to a no-op, so try to remove it
+      // entirely.
       var info =
           AtomicEditInfo(NullabilityFixDescription.discardIf, conditionReasons);
-      return aggregator.planner.removeNode(node, info: info);
+      var removeNode = aggregator.planner.tryRemoveNode(node, info: info);
+      if (removeNode != null) {
+        return removeNode;
+      } else {
+        // We can't remove the node because it's not inside a sequence, so we
+        // have to create a suitable replacement.
+        if (node is IfStatement) {
+          return aggregator.planner
+              .replace(node, [AtomicEdit.insert('{}', info: info)], info: info);
+        } else if (node is IfElement) {
+          return aggregator.planner.replace(
+              node, [AtomicEdit.insert('...{}', info: info)],
+              info: info);
+        } else {
+          // We should never get here; the only types of conditional nodes that
+          // can wind up collapsing to a no-op are if statements and if
+          // elements.
+          throw StateError(
+              'Unexpected node type collapses to no-op: ${node.runtimeType}');
+        }
+      }
     }
     var infoBefore = AtomicEditInfo(descriptionBefore, conditionReasons);
     var infoAfter = AtomicEditInfo(descriptionAfter, conditionReasons);
