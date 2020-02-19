@@ -4173,6 +4173,85 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle type,
   return Api::NewHandle(T, new_object.raw());
 }
 
+static RawInstance* AllocateObject(Thread* thread, const Class& cls) {
+  if (!cls.is_fields_marked_nullable()) {
+    // Mark all fields as nullable.
+    Zone* zone = thread->zone();
+    Class& iterate_cls = Class::Handle(zone, cls.raw());
+    Field& field = Field::Handle(zone);
+    Array& fields = Array::Handle(zone);
+    while (!iterate_cls.IsNull()) {
+      ASSERT(iterate_cls.is_finalized());
+      iterate_cls.set_is_fields_marked_nullable();
+      fields = iterate_cls.fields();
+      iterate_cls = iterate_cls.SuperClass();
+      for (int field_num = 0; field_num < fields.Length(); field_num++) {
+        field ^= fields.At(field_num);
+        if (field.is_static()) {
+          continue;
+        }
+        field.RecordStore(Object::null_object());
+      }
+    }
+  }
+
+  // Allocate an object for the given class.
+  return Instance::New(cls);
+}
+
+DART_EXPORT Dart_Handle Dart_Allocate(Dart_Handle type) {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+
+  const Type& type_obj = Api::UnwrapTypeHandle(Z, type);
+  // Get the class to instantiate.
+  if (type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, type, Type);
+  }
+  const Class& cls = Class::Handle(Z, type_obj.type_class());
+  CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+#if defined(DEBUG)
+  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
+    return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
+  }
+#endif
+  CHECK_ERROR_HANDLE(cls.EnsureIsFinalized(T));
+  return Api::NewHandle(T, AllocateObject(T, cls));
+}
+
+DART_EXPORT Dart_Handle
+Dart_AllocateWithNativeFields(Dart_Handle type,
+                              intptr_t num_native_fields,
+                              const intptr_t* native_fields) {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+
+  const Type& type_obj = Api::UnwrapTypeHandle(Z, type);
+  // Get the class to instantiate.
+  if (type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, type, Type);
+  }
+  if (native_fields == NULL) {
+    RETURN_NULL_ERROR(native_fields);
+  }
+  const Class& cls = Class::Handle(Z, type_obj.type_class());
+  CHECK_ERROR_HANDLE(cls.VerifyEntryPoint());
+#if defined(DEBUG)
+  if (!cls.is_allocated() && (Dart::vm_snapshot_kind() == Snapshot::kFullAOT)) {
+    return Api::NewError("Precompilation dropped '%s'", cls.ToCString());
+  }
+#endif
+  CHECK_ERROR_HANDLE(cls.EnsureIsFinalized(T));
+  if (num_native_fields != cls.num_native_fields()) {
+    return Api::NewError(
+        "%s: invalid number of native fields %" Pd " passed in, expected %d",
+        CURRENT_FUNC, num_native_fields, cls.num_native_fields());
+  }
+  const Instance& instance = Instance::Handle(Z, AllocateObject(T, cls));
+  instance.SetNativeFields(num_native_fields, native_fields);
+  return Api::NewHandle(T, instance.raw());
+}
+
 static Dart_Handle SetupArguments(Thread* thread,
                                   int num_args,
                                   Dart_Handle* arguments,
@@ -4197,6 +4276,83 @@ static Dart_Handle SetupArguments(Thread* thread,
     args->SetAt((i + extra_args), arg);
   }
   return Api::Success();
+}
+
+DART_EXPORT Dart_Handle Dart_InvokeConstructor(Dart_Handle object,
+                                               Dart_Handle name,
+                                               int number_of_arguments,
+                                               Dart_Handle* arguments) {
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  CHECK_CALLBACK_STATE(T);
+
+  if (number_of_arguments < 0) {
+    return Api::NewError(
+        "%s expects argument 'number_of_arguments' to be non-negative.",
+        CURRENT_FUNC);
+  }
+  const Instance& instance = Api::UnwrapInstanceHandle(Z, object);
+  if (instance.IsNull()) {
+    RETURN_TYPE_ERROR(Z, object, Instance);
+  }
+
+  // Since we have allocated an object it would mean that the type
+  // is finalized.
+  // TODO(asiva): How do we ensure that a constructor is not called more than
+  // once for the same object.
+
+  // Construct name of the constructor to invoke.
+  const String& constructor_name = Api::UnwrapStringHandle(Z, name);
+  const AbstractType& type_obj =
+      AbstractType::Handle(Z, instance.GetType(Heap::kNew));
+  const Class& cls = Class::Handle(Z, type_obj.type_class());
+  const String& class_name = String::Handle(Z, cls.Name());
+  const Array& strings = Array::Handle(Z, Array::New(3));
+  strings.SetAt(0, class_name);
+  strings.SetAt(1, Symbols::Dot());
+  if (constructor_name.IsNull()) {
+    strings.SetAt(2, Symbols::Empty());
+  } else {
+    strings.SetAt(2, constructor_name);
+  }
+  const String& dot_name = String::Handle(Z, String::ConcatAll(strings));
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(Z, type_obj.arguments());
+  const Function& constructor =
+      Function::Handle(Z, cls.LookupFunctionAllowPrivate(dot_name));
+  const int kTypeArgsLen = 0;
+  const int extra_args = 1;
+  if (!constructor.IsNull() && constructor.IsGenerativeConstructor() &&
+      constructor.AreValidArgumentCounts(
+          kTypeArgsLen, number_of_arguments + extra_args, 0, NULL)) {
+    CHECK_ERROR_HANDLE(constructor.VerifyCallEntryPoint());
+    // Create the argument list.
+    // Constructors get the uninitialized object.
+    if (!type_arguments.IsNull()) {
+      // The type arguments will be null if the class has no type
+      // parameters, in which case the following call would fail
+      // because there is no slot reserved in the object for the
+      // type vector.
+      instance.SetTypeArguments(type_arguments);
+    }
+    Dart_Handle result;
+    Array& args = Array::Handle(Z);
+    result =
+        SetupArguments(T, number_of_arguments, arguments, extra_args, &args);
+    if (!Api::IsError(result)) {
+      args.SetAt(0, instance);
+      const Object& retval =
+          Object::Handle(Z, DartEntry::InvokeFunction(constructor, args));
+      if (retval.IsError()) {
+        result = Api::NewHandle(T, retval.raw());
+      } else {
+        result = Api::NewHandle(T, instance.raw());
+      }
+    }
+    return result;
+  }
+  return Api::NewError("%s expects argument 'name' to be a valid constructor.",
+                       CURRENT_FUNC);
 }
 
 DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
