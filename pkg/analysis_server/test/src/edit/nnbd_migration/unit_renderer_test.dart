@@ -71,6 +71,78 @@ bool b = a!.isEven;
         equals('Added a non-null assertion to nullable expression'));
   }
 
+  Future<void> test_handle_large_deleted_region_near_top_of_file() async {
+    await buildInfoForSingleTestFile('''
+class C {
+  int hash(Iterable<int> elements) {
+    if (elements == null) {
+      return null.hashCode;
+    }
+    return 0;
+  }
+}
+
+List<int> x = [null];
+''', migratedContent: '''
+class C {
+  int hash(Iterable<int> elements) {
+    if (elements == null) {
+      return null.hashCode;
+    }
+    return 0;
+  }
+}
+
+List<int?> x = [null];
+''', removeViaComments: false);
+    renderUnits();
+    // No assertions necessary; we are checking to make sure there is no crash.
+  }
+
+  Future<void> test_info_within_deleted_code() async {
+    await buildInfoForSingleTestFile('''
+class C {
+  int hash(Iterable<int> elements) {
+    if (elements == null) {
+      return null.hashCode;
+    }
+    return 0;
+  }
+}
+
+List<int> x = [null];
+''', migratedContent: '''
+class C {
+  int hash(Iterable<int> elements) {
+    if (elements == null) {
+      return null.hashCode;
+    }
+    return 0;
+  }
+}
+
+List<int?> x = [null];
+''', removeViaComments: false);
+    var outputJson = renderUnits()[0];
+    var output = jsonDecode(outputJson);
+    // Strip out URLs and span IDs; they're not being tested here.
+    var navContent = output['navigationContent']
+        .replaceAll(RegExp('href="[^"]*"'), 'href="..."')
+        .replaceAll(RegExp('id="[^"]*"'), 'id="..."');
+    expect(navContent, '''
+class <span id="...">C</span> {
+  <a href="..." class="nav-link">int</a> <span id="...">hash</span>(<a href="..." class="nav-link">Iterable</a>&lt;<a href="..." class="nav-link">int</a>&gt; <span id="...">elements</span>) {
+    if (<a href="..." class="nav-link">elements</a> <a href="..." class="nav-link">==</a> null) {
+      return null.<a href="..." class="nav-link">hashCode</a>;
+    }
+    return 0;
+  }
+}
+
+<a href="..." class="nav-link">List</a>&lt;<a href="..." class="nav-link">int</a>?&gt; <span id="...">x</span> = <span id="...">[null]</span>;
+''');
+  }
+
   Future<void> test_navContentContainsEscapedHtml() async {
     await buildInfoForSingleTestFile('List<String> a = null;',
         migratedContent: 'List<String>? a = null;');
