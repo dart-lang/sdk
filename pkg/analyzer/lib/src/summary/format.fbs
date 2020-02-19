@@ -936,36 +936,38 @@ table AvailableDeclaration {
 
   isFinal:bool (id: 11);
 
+  isStatic:bool (id: 12);
+
   /// The kind of the declaration.
-  kind:AvailableDeclarationKind (id: 12);
+  kind:AvailableDeclarationKind (id: 13);
 
-  locationOffset:uint (id: 13);
+  locationOffset:uint (id: 14);
 
-  locationStartColumn:uint (id: 14);
+  locationStartColumn:uint (id: 15);
 
-  locationStartLine:uint (id: 15);
+  locationStartLine:uint (id: 16);
 
   /// The first part of the declaration name, usually the only one, for example
   /// the name of a class like `MyClass`, or a function like `myFunction`.
-  name:string (id: 16);
+  name:string (id: 17);
 
-  parameterNames:[string] (id: 17);
+  parameterNames:[string] (id: 18);
 
-  parameters:string (id: 18);
+  parameters:string (id: 19);
 
-  parameterTypes:[string] (id: 19);
+  parameterTypes:[string] (id: 20);
 
   /// The partial list of relevance tags.  Not every declaration has one (for
   /// example, function do not currently), and not every declaration has to
   /// store one (for classes it can be computed when we know the library that
   /// includes this file).
-  relevanceTags:[string] (id: 20);
+  relevanceTags:[string] (id: 21);
 
-  requiredParameterCount:uint (id: 21);
+  requiredParameterCount:uint (id: 22);
 
-  returnType:string (id: 22);
+  returnType:string (id: 23);
 
-  typeParameters:string (id: 23);
+  typeParameters:string (id: 24);
 }
 
 /// Information about an available, even if not yet imported file.

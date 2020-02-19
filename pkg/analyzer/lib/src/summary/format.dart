@@ -2158,6 +2158,7 @@ class AvailableDeclarationBuilder extends Object
   bool _isConst;
   bool _isDeprecated;
   bool _isFinal;
+  bool _isStatic;
   idl.AvailableDeclarationKind _kind;
   int _locationOffset;
   int _locationStartColumn;
@@ -2259,6 +2260,13 @@ class AvailableDeclarationBuilder extends Object
 
   set isFinal(bool value) {
     this._isFinal = value;
+  }
+
+  @override
+  bool get isStatic => _isStatic ??= false;
+
+  set isStatic(bool value) {
+    this._isStatic = value;
   }
 
   @override
@@ -2370,6 +2378,7 @@ class AvailableDeclarationBuilder extends Object
       bool isConst,
       bool isDeprecated,
       bool isFinal,
+      bool isStatic,
       idl.AvailableDeclarationKind kind,
       int locationOffset,
       int locationStartColumn,
@@ -2394,6 +2403,7 @@ class AvailableDeclarationBuilder extends Object
         _isConst = isConst,
         _isDeprecated = isDeprecated,
         _isFinal = isFinal,
+        _isStatic = isStatic,
         _kind = kind,
         _locationOffset = locationOffset,
         _locationStartColumn = locationStartColumn,
@@ -2440,6 +2450,7 @@ class AvailableDeclarationBuilder extends Object
     signature.addBool(this._isConst == true);
     signature.addBool(this._isDeprecated == true);
     signature.addBool(this._isFinal == true);
+    signature.addBool(this._isStatic == true);
     signature.addInt(this._kind == null ? 0 : this._kind.index);
     signature.addInt(this._locationOffset ?? 0);
     signature.addInt(this._locationStartColumn ?? 0);
@@ -2568,41 +2579,44 @@ class AvailableDeclarationBuilder extends Object
     if (_isFinal == true) {
       fbBuilder.addBool(11, true);
     }
+    if (_isStatic == true) {
+      fbBuilder.addBool(12, true);
+    }
     if (_kind != null && _kind != idl.AvailableDeclarationKind.CLASS) {
-      fbBuilder.addUint8(12, _kind.index);
+      fbBuilder.addUint8(13, _kind.index);
     }
     if (_locationOffset != null && _locationOffset != 0) {
-      fbBuilder.addUint32(13, _locationOffset);
+      fbBuilder.addUint32(14, _locationOffset);
     }
     if (_locationStartColumn != null && _locationStartColumn != 0) {
-      fbBuilder.addUint32(14, _locationStartColumn);
+      fbBuilder.addUint32(15, _locationStartColumn);
     }
     if (_locationStartLine != null && _locationStartLine != 0) {
-      fbBuilder.addUint32(15, _locationStartLine);
+      fbBuilder.addUint32(16, _locationStartLine);
     }
     if (offset_name != null) {
-      fbBuilder.addOffset(16, offset_name);
+      fbBuilder.addOffset(17, offset_name);
     }
     if (offset_parameterNames != null) {
-      fbBuilder.addOffset(17, offset_parameterNames);
+      fbBuilder.addOffset(18, offset_parameterNames);
     }
     if (offset_parameters != null) {
-      fbBuilder.addOffset(18, offset_parameters);
+      fbBuilder.addOffset(19, offset_parameters);
     }
     if (offset_parameterTypes != null) {
-      fbBuilder.addOffset(19, offset_parameterTypes);
+      fbBuilder.addOffset(20, offset_parameterTypes);
     }
     if (offset_relevanceTags != null) {
-      fbBuilder.addOffset(20, offset_relevanceTags);
+      fbBuilder.addOffset(21, offset_relevanceTags);
     }
     if (_requiredParameterCount != null && _requiredParameterCount != 0) {
-      fbBuilder.addUint32(21, _requiredParameterCount);
+      fbBuilder.addUint32(22, _requiredParameterCount);
     }
     if (offset_returnType != null) {
-      fbBuilder.addOffset(22, offset_returnType);
+      fbBuilder.addOffset(23, offset_returnType);
     }
     if (offset_typeParameters != null) {
-      fbBuilder.addOffset(23, offset_typeParameters);
+      fbBuilder.addOffset(24, offset_typeParameters);
     }
     return fbBuilder.endTable();
   }
@@ -2637,6 +2651,7 @@ class _AvailableDeclarationImpl extends Object
   bool _isConst;
   bool _isDeprecated;
   bool _isFinal;
+  bool _isStatic;
   idl.AvailableDeclarationKind _kind;
   int _locationOffset;
   int _locationStartColumn;
@@ -2728,83 +2743,89 @@ class _AvailableDeclarationImpl extends Object
   }
 
   @override
+  bool get isStatic {
+    _isStatic ??= const fb.BoolReader().vTableGet(_bc, _bcOffset, 12, false);
+    return _isStatic;
+  }
+
+  @override
   idl.AvailableDeclarationKind get kind {
     _kind ??= const _AvailableDeclarationKindReader()
-        .vTableGet(_bc, _bcOffset, 12, idl.AvailableDeclarationKind.CLASS);
+        .vTableGet(_bc, _bcOffset, 13, idl.AvailableDeclarationKind.CLASS);
     return _kind;
   }
 
   @override
   int get locationOffset {
     _locationOffset ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 13, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 14, 0);
     return _locationOffset;
   }
 
   @override
   int get locationStartColumn {
     _locationStartColumn ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 14, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
     return _locationStartColumn;
   }
 
   @override
   int get locationStartLine {
     _locationStartLine ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 15, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 16, 0);
     return _locationStartLine;
   }
 
   @override
   String get name {
-    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 16, '');
+    _name ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 17, '');
     return _name;
   }
 
   @override
   List<String> get parameterNames {
     _parameterNames ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 17, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 18, const <String>[]);
     return _parameterNames;
   }
 
   @override
   String get parameters {
-    _parameters ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 18, '');
+    _parameters ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 19, '');
     return _parameters;
   }
 
   @override
   List<String> get parameterTypes {
     _parameterTypes ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 19, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 20, const <String>[]);
     return _parameterTypes;
   }
 
   @override
   List<String> get relevanceTags {
     _relevanceTags ??= const fb.ListReader<String>(fb.StringReader())
-        .vTableGet(_bc, _bcOffset, 20, const <String>[]);
+        .vTableGet(_bc, _bcOffset, 21, const <String>[]);
     return _relevanceTags;
   }
 
   @override
   int get requiredParameterCount {
     _requiredParameterCount ??=
-        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 21, 0);
+        const fb.Uint32Reader().vTableGet(_bc, _bcOffset, 22, 0);
     return _requiredParameterCount;
   }
 
   @override
   String get returnType {
-    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 22, '');
+    _returnType ??= const fb.StringReader().vTableGet(_bc, _bcOffset, 23, '');
     return _returnType;
   }
 
   @override
   String get typeParameters {
     _typeParameters ??=
-        const fb.StringReader().vTableGet(_bc, _bcOffset, 23, '');
+        const fb.StringReader().vTableGet(_bc, _bcOffset, 24, '');
     return _typeParameters;
   }
 }
@@ -2848,6 +2869,9 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
     }
     if (isFinal != false) {
       _result["isFinal"] = isFinal;
+    }
+    if (isStatic != false) {
+      _result["isStatic"] = isStatic;
     }
     if (kind != idl.AvailableDeclarationKind.CLASS) {
       _result["kind"] = kind.toString().split('.')[1];
@@ -2902,6 +2926,7 @@ abstract class _AvailableDeclarationMixin implements idl.AvailableDeclaration {
         "isConst": isConst,
         "isDeprecated": isDeprecated,
         "isFinal": isFinal,
+        "isStatic": isStatic,
         "kind": kind,
         "locationOffset": locationOffset,
         "locationStartColumn": locationStartColumn,
