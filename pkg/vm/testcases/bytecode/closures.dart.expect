@@ -1612,22 +1612,20 @@ Function 'testCallThroughGetter1', reflectable, debuggable
     return-type dart:core::int
 
 Bytecode {
-  Entry                4
+  Entry                3
   CheckStack           0
   Push                 FP[-5]
+  InterfaceCall        CP#0, 1
   PopLocal             r0
   Push                 FP[-5]
-  InterfaceCall        CP#0, 1
+  InterfaceCall        CP#2, 1
   PopLocal             r1
   Push                 FP[-5]
-  InterfaceCall        CP#2, 1
-  PopLocal             r2
-  Push                 r0
   InterfaceCall        CP#4, 1
-  StoreLocal           r3
+  StoreLocal           r2
+  Push                 r0
   Push                 r1
   Push                 r2
-  Push                 r3
   UncheckedClosureCall CP#6, 3
   ReturnTOS
 }
@@ -1647,23 +1645,21 @@ Function 'testCallThroughGetter2', reflectable, debuggable
     return-type dart:core::int
 
 Bytecode {
-  Entry                4
+  Entry                3
   CheckStack           0
   Push                 FP[-5]
+  InterfaceCall        CP#0, 1
   PopLocal             r0
   Push                 FP[-5]
-  InterfaceCall        CP#0, 1
-  PopLocal             r1
-  Push                 FP[-5]
   InterfaceCall        CP#2, 1
-  PopLocal             r2
+  PopLocal             r1
   PushConstant         CP#4
-  Push                 r0
+  Push                 FP[-5]
   InterfaceCall        CP#5, 1
-  StoreLocal           r3
+  StoreLocal           r2
+  Push                 r0
   Push                 r1
   Push                 r2
-  Push                 r3
   UncheckedClosureCall CP#7, 4
   ReturnTOS
 }
@@ -1877,11 +1873,11 @@ ConstantPool {
     abstract method evalArg2() → dart.core::int*;
     abstract method getE() → #lib::E*;
     method testCallThroughGetter1() → dart.core::int*
-      return let final #lib::E* #t1 = this in let final dart.core::int* #t2 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t3 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*, dart.core::int*) →* dart.core::int*] #t1.{#lib::E::foo1}.call(#t2, #t3);
+      return let final dart.core::int* #t1 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t2 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:(dart.core::int*, dart.core::int*) →* dart.core::int*] this.{#lib::E::foo1}.call(#t1, #t2);
     method testCallThroughGetter2() → dart.core::int*
-      return let final #lib::E* #t4 = this in let final dart.core::int* #t5 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t6 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:<T extends dart.core::Object* = dynamic>(T*, T*) →* dart.core::int*] #t4.{#lib::E::foo2}.call<dart.core::int*>(#t5, #t6);
+      return let final dart.core::int* #t3 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t4 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:<T extends dart.core::Object* = dynamic>(T*, T*) →* dart.core::int*] this.{#lib::E::foo2}.call<dart.core::int*>(#t3, #t4);
     method testCallThroughGetter3() → dart.core::int*
-      return let final #lib::E* #t7 = this.{#lib::E::getE}() in let final dart.core::int* #t8 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t9 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:<T extends dart.core::Object* = dynamic>(T*, T*) →* dart.core::int*] #t7.{#lib::E::foo2}.call<dart.core::int*>(#t8, #t9);
+      return let final #lib::E* #t5 = this.{#lib::E::getE}() in let final dart.core::int* #t6 = this.{#lib::E::evalArg1}() in let final dart.core::int* #t7 = this.{#lib::E::evalArg2}() in [@vm.call-site-attributes.metadata=receiverType:<T extends dart.core::Object* = dynamic>(T*, T*) →* dart.core::int*] #t5.{#lib::E::foo2}.call<dart.core::int*>(#t6, #t7);
   }
   static method simpleClosure() → dart.core::int* {
     dart.core::int* x = 5;

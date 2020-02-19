@@ -9,10 +9,10 @@ class C<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method f(generic-covariant-impl self::C::T* value) → void {
-    let final self::C<self::C::T*>* #t1 = this in let final self::C::T* #t2 = value in (#t1.{self::C::y} as{TypeError,CovarianceCheck} (self::C::T*) →* void).call(#t2);
+    let final self::C::T* #t1 = value in this.{self::C::y}.call(#t1);
   }
 }
 static method g(self::C<core::num*>* c) → void {
-  let final self::C<core::num*>* #t3 = c in let final core::double* #t4 = 1.5 in (#t3.{self::C::y} as{TypeError,CovarianceCheck} (core::num*) →* void).call(#t4);
+  let final self::C<core::num*>* #t2 = c in let final core::double* #t3 = 1.5 in (#t2.{self::C::y} as{TypeError,CovarianceCheck} (core::num*) →* void).call(#t3);
 }
 static method main() → void {}

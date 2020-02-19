@@ -248,7 +248,7 @@ class Class7 {
 }
 
 class SubClass7 extends Class7 {
-  /*member: SubClass7.field7b:[exact=JSUInt31]*/
+  /*member: SubClass7.field7b:[null|exact=JSUInt31]*/
   var field7b;
 
   /*member: SubClass7.:[exact=SubClass7]*/

@@ -3085,6 +3085,7 @@ Let createLet(VariableDeclaration variable, Expression body) {
 /// This is useful for creating let variables for expressions in replacement
 /// code.
 VariableDeclaration createVariable(Expression expression, DartType type) {
+  assert(expression is! ThisExpression);
   return new VariableDeclaration.forValue(expression, type: type)
     ..fileOffset = expression.fileOffset;
 }

@@ -328,6 +328,7 @@ general/stringliteral: TextSerializationFailure # Was: Pass
 general/super_call: TextSerializationFailure # Was: Pass
 general/super_nsm: TextSerializationFailure # Was: Pass
 general/tabs: TextSerializationFailure # Was: Pass
+general/this_field_call: TextSerializationFailure
 general/three_typedefs_loop: TextSerializationFailure
 general/top_level_accessors: TextSerializationFailure # Was: Pass
 general/top_level_accessors_part: TextSerializationFailure # Was: Pass
@@ -621,6 +622,7 @@ general_nnbd_opt_out/var_as_type_name: TextSerializationFailure # Was: Pass
 general_nnbd_opt_out/void_methods: TextSerializationFailure
 general_nnbd_opt_out/warn_unresolved_sends: InstrumentationMismatch # Test assumes Dart 1.0 semantics
 implicit_getter_calls/getter_call: TextSerializationFailure
+implicit_getter_calls/this_field_call: TextSerializationFailure
 inference/abstract_class_instantiation: InstrumentationMismatch # Issue #30040
 inference/assert: TextSerializationFailure # Was: Pass
 inference/assert_initializer: TextSerializationFailure # Was: Pass

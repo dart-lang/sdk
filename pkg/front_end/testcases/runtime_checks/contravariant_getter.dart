@@ -10,7 +10,7 @@ typedef void F<T>(T x);
 class C<T> {
   F<T> y;
   void f(T value) {
-    this.y /*@checkGetterReturn=(C::T*) ->* void*/ (value);
+    this.y(value);
   }
 }
 
