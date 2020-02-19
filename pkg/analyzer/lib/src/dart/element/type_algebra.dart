@@ -134,11 +134,6 @@ class FreshTypeParameters {
   DartType substitute(DartType type) => substitution.substituteType(type);
 }
 
-/// TODO(scheglov) Remove when add `ReplacementVisitor`.
-abstract class InternalTypeSubstitutor extends _TypeSubstitutor {
-  InternalTypeSubstitutor(_TypeSubstitutor outer) : super(outer);
-}
-
 /// Substitution that is based on the [map].
 abstract class MapSubstitution extends Substitution {
   const MapSubstitution();
