@@ -15,6 +15,10 @@ used (see Issue [39627][]).
 
 [39627]: https://github.com/dart-lang/sdk/issues/39627
 
+* **Breaking Change**: `Node.insertAllBefore` erroneously had a return type of
+`Node`, even though it was not returning anything. This has been corrected to
+`void`.
+
 #### `dart:io`
 
 * Class `HttpParser` will no longer throw an exception when a HTTP response
