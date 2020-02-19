@@ -385,7 +385,6 @@ void main() {
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40689')
   Future<void> test_project_lib_getters_class() async {
     await addProjectFile('lib/a.dart', r'''
 class A {
@@ -402,6 +401,7 @@ void main() {
     assertNoSuggestion(completion: 'g');
   }
 
+  @failingTest
   Future<void> test_project_lib_getters_static() async {
     await addProjectFile('lib/a.dart', r'''
 class A {
@@ -459,7 +459,6 @@ void main() {
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40689')
   Future<void> test_project_lib_setters_class() async {
     await addProjectFile('lib/a.dart', r'''
 class A {
@@ -476,7 +475,6 @@ void main() {
     assertNoSuggestion(completion: 's');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40689')
   Future<void> test_project_lib_setters_static() async {
     await addProjectFile('lib/a.dart', r'''
 class A {
