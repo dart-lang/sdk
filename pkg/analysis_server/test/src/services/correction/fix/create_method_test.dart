@@ -12,10 +12,10 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CreateMethodTest);
-    defineReflectiveTests(CreateMethodMixinTest);
-    defineReflectiveTests(CreateMethodWithExtensionMethodsTest);
     defineReflectiveTests(AddMissingHashOrEqualsTest);
+    defineReflectiveTests(CreateMethodMixinTest);
+    defineReflectiveTests(CreateMethodTest);
+    defineReflectiveTests(CreateMethodWithExtensionMethodsTest);
   });
 }
 
@@ -443,6 +443,30 @@ class A {
   }
 
   static void myUndefinedMethod() {}
+}
+''');
+  }
+
+  Future<void> test_functionType_method_enclosingClass_instance() async {
+    await resolveTestUnit('''
+class C {
+  void m1() {
+    m2(m3);
+  }
+
+  void m2(int Function(int) f) {}
+}
+''');
+    await assertHasFix('''
+class C {
+  void m1() {
+    m2(m3);
+  }
+
+  void m2(int Function(int) f) {}
+
+  int m3(int p1) {
+  }
 }
 ''');
   }

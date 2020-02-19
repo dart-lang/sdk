@@ -4770,6 +4770,13 @@ class FixProcessor extends BaseProcessor {
         // append parameters
         builder.write('(');
         List<ParameterElement> parameters = functionType.parameters;
+        var parameterNames = <String>{};
+        for (int i = 0; i < parameters.length; i++) {
+          var name = parameters[i].name;
+          if (name.isNotEmpty) {
+            parameterNames.add(name);
+          }
+        }
         for (int i = 0; i < parameters.length; i++) {
           ParameterElement parameter = parameters[i];
           // append separator
@@ -4788,7 +4795,12 @@ class FixProcessor extends BaseProcessor {
           }
           // append parameter name
           builder.addLinkedEdit('ARG$i', (DartLinkedEditBuilder builder) {
-            builder.write(parameter.displayName);
+            var name = parameter.name;
+            if (name.isEmpty) {
+              name = _generateUniqueName(parameterNames, 'p');
+              parameterNames.add(name);
+            }
+            builder.write(name);
           });
         }
         builder.write(')');
@@ -4867,6 +4879,18 @@ class FixProcessor extends BaseProcessor {
     var collector = _ElementReferenceCollector(element);
     root.accept(collector);
     return collector.references;
+  }
+
+  /// Generate a name that does not occur in [existingNames] that begins with
+  /// the given [prefix].
+  String _generateUniqueName(Set<String> existingNames, String prefix) {
+    var index = 1;
+    var name = '$prefix$index';
+    while (existingNames.contains(name)) {
+      index++;
+      name = '$prefix$index';
+    }
+    return name;
   }
 
   /// Return the class, enum or mixin declaration for the given [element].
