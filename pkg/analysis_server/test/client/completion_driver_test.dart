@@ -385,8 +385,41 @@ void main() {
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40689')
+  Future<void> test_project_lib_getters_class() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {
+  int get g => 0;
+}
+''');
+
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    assertNoSuggestion(completion: 'g');
+  }
+
+  Future<void> test_project_lib_getters_static() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {
+  static int get g => 0;
+}
+''');
+
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    assertSuggestion(completion: 'g');
+  }
+
   /// See: https://github.com/dart-lang/sdk/issues/40626
-  Future<void> test_project_lib_getters() async {
+  Future<void> test_project_lib_getters_topLevel() async {
     await addProjectFile('lib/a.dart', r'''
 int get g => 0;
 ''');
@@ -426,8 +459,42 @@ void main() {
         kind: CompletionSuggestionKind.INVOCATION);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40689')
+  Future<void> test_project_lib_setters_class() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {
+  set s(int s) {}
+}
+''');
+
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    assertNoSuggestion(completion: 's');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/40689')
+  Future<void> test_project_lib_setters_static() async {
+    await addProjectFile('lib/a.dart', r'''
+class A {
+  static set g(int g) {}
+}
+''');
+
+    await addTestFile('''
+void main() {
+  ^
+}
+''');
+
+    assertNoSuggestion(completion: 'g');
+  }
+
   /// See: https://github.com/dart-lang/sdk/issues/40626
-  Future<void> test_project_lib_setters() async {
+  Future<void> test_project_lib_setters_topLevel() async {
     await addProjectFile('lib/a.dart', r'''
 set s(int s) {}
 ''');
