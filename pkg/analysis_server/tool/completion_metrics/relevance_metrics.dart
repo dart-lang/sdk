@@ -1309,9 +1309,18 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// Return the element kind of the element associated with the left-most
   /// identifier that is a child of the [node].
   ElementKind _leftMostKind(AstNode node) {
+    if (node is InstanceCreationExpression) {
+      return convertElementToElementKind(node.staticElement);
+    }
     var element = _leftMostElement(node);
     if (element == null) {
-      return ElementKind.UNKNOWN;
+      return null;
+    }
+    if (element is ClassElement) {
+      var parent = node.parent;
+      if (parent is Annotation && parent.arguments != null) {
+        element = parent.element;
+      }
     }
     return convertElementToElementKind(element);
   }
@@ -1419,7 +1428,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     return -1;
   }
 
-  /// Record information about the given [node] occurring the given [context].
+  /// Record information about the given [node] occurring in the given
+  /// [context].
   void _recordDataForNode(String context, AstNode node,
       {List<Keyword> allowedKeywords = noKeywords}) {
     _recordElementKind(context, node);
@@ -1442,6 +1452,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var kind = _leftMostKind(node);
       if (kind != null) {
         data.recordElementKind(context, kind);
+        if (node is Expression) {
+          data.recordElementKind('Expression', kind);
+        } else if (node is Statement) {
+          data.recordElementKind('Statement', kind);
+        }
       }
     }
   }
@@ -1504,6 +1519,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         }
 
         int superclassDepth = getSuperclassDepth();
+        // TODO(brianwilkerson) Consider cross referencing with the depth of the
+        //  class containing the reference.
         if (superclassDepth >= 0) {
           _recordDistance('member (superclass)', superclassDepth);
         } else {
@@ -1639,6 +1656,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           }
         }
         data.recordTokenType(context, type);
+        if (node is Expression) {
+          data.recordTokenType('Expression', type);
+        } else if (node is Statement) {
+          data.recordTokenType('Statement', type);
+        }
       }
     }
   }
