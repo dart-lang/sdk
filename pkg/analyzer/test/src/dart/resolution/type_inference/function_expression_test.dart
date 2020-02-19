@@ -31,6 +31,42 @@ class FunctionExpressionTest extends DriverResolutionTest {
     }
   }
 
+  test_downward_argumentType_Never() async {
+    await assertNoErrorsInCode(r'''
+void foo(void Function(Never) a) {}
+
+main() {
+  foo((x) {});
+}
+''');
+
+    assertParameterElementType(
+      findNode.simpleParameter('x) {}'),
+      typeStringByNullability(
+        nullable: 'Object?',
+        legacy: 'Object',
+      ),
+    );
+  }
+
+  test_downward_argumentType_Null() async {
+    await resolveTestCode(r'''
+void foo(void Function(Null) a) {}
+
+main() {
+  foo((x) {});
+}
+''');
+
+    assertParameterElementType(
+      findNode.simpleParameter('x) {}'),
+      typeStringByNullability(
+        nullable: 'Object?',
+        legacy: 'Object',
+      ),
+    );
+  }
+
   test_returnType_blockBody_notNullable() async {
     await resolveTestCode('''
 var v = (bool b) {

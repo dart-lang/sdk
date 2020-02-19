@@ -161,8 +161,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<void> {
         // inferred a type in some fashion.
         if (p.hasImplicitType && (p.type == null || p.type.isDynamic)) {
           inferredType = _typeSystem.greatestClosure(inferredType);
-          if (inferredType.isDartCoreNull) {
-            inferredType = _typeProvider.objectType;
+          if (inferredType.isDartCoreNull || inferredType is NeverTypeImpl) {
+            inferredType = _isNonNullableByDefault
+                ? _typeSystem.objectQuestion
+                : _typeSystem.objectStar;
           }
           if (_migrationResolutionHooks != null) {
             inferredType = _migrationResolutionHooks

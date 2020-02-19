@@ -487,13 +487,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(expression.staticParameterElement, expected);
   }
 
-  void assertParameterType(Expression expression, String expected) {
-    var parameterElement = expression.staticParameterElement;
-    if (expected == null) {
-      expect(parameterElement, isNull);
-    } else {
-      assertType(parameterElement.type, expected);
-    }
+  void assertParameterElementType(FormalParameter node, String expected) {
+    var parameterElement = node.declaredElement;
+    assertType(parameterElement.type, expected);
   }
 
   void assertPostfixExpression(
