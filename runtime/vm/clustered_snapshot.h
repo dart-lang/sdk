@@ -276,11 +276,11 @@ class Serializer : public ThreadStackResource {
   }
 
  public:
-  void WriteRootRef(RawObject* object) {
+  void WriteRootRef(RawObject* object, const char* name = nullptr) {
     intptr_t id = WriteRefId(object);
     WriteUnsigned(id);
     if (profile_writer_ != nullptr) {
-      profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, id});
+      profile_writer_->AddRoot({V8SnapshotProfileWriter::kSnapshot, id}, name);
     }
   }
 

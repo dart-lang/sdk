@@ -5114,10 +5114,10 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   Serialize();
 
   // Write roots.
-  WriteRootRef(symbols.raw());
+  WriteRootRef(symbols.raw(), "symbol-table");
   if (Snapshot::IncludesCode(kind_)) {
     for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-      WriteRootRef(StubCode::EntryAt(i).raw());
+      WriteRootRef(StubCode::EntryAt(i).raw(), StubCode::NameAt(i));
     }
   }
 
@@ -5134,6 +5134,13 @@ intptr_t Serializer::WriteVMSnapshot(const Array& symbols) {
   // Return the number of objects, -1 accounts for unused ref 0.
   return next_ref_index_ - 1;
 }
+
+static const char* kObjectStoreFieldNames[] = {
+#define DECLARE_OBJECT_STORE_FIELD(Type, Name) #Name,
+    OBJECT_STORE_FIELD_LIST(DECLARE_OBJECT_STORE_FIELD,
+                            DECLARE_OBJECT_STORE_FIELD)
+#undef DECLARE_OBJECT_STORE_FIELD
+};
 
 void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
                                       ObjectStore* object_store) {
@@ -5162,7 +5169,7 @@ void Serializer::WriteIsolateSnapshot(intptr_t num_base_objects,
 
   // Write roots.
   for (RawObject** p = from; p <= to; p++) {
-    WriteRootRef(*p);
+    WriteRootRef(*p, kObjectStoreFieldNames[p - from]);
   }
 
   // Serialize dispatch table.

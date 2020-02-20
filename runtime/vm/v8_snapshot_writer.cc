@@ -134,7 +134,8 @@ void V8SnapshotProfileWriter::WriteEdgeInfo(JSONWriter* writer,
   writer->PrintNewline();
 }
 
-void V8SnapshotProfileWriter::AddRoot(ObjectId object_id) {
+void V8SnapshotProfileWriter::AddRoot(ObjectId object_id,
+                                      const char* name /*= nullptr*/) {
   EnsureId(object_id);
   // HeapSnapshotWorker.HeapSnapshot.calculateDistances (from HeapSnapshot.js)
   // assumes that the root does not have more than one edge to any other node
@@ -143,7 +144,8 @@ void V8SnapshotProfileWriter::AddRoot(ObjectId object_id) {
 
   ObjectIdToNodeInfoTraits::Pair pair;
   pair.key = object_id;
-  pair.value = NodeInfo{0, 0, object_id, 0, nullptr, 0};
+  pair.value = NodeInfo{
+      0, name != nullptr ? EnsureString(name) : -1, object_id, 0, nullptr, 0};
   roots_.Insert(pair);
 }
 
@@ -239,7 +241,11 @@ void V8SnapshotProfileWriter::Write(JSONWriter* writer) {
     ObjectIdToNodeInfoTraits::Pair* entry = nullptr;
     auto roots_it = roots_.GetIterator();
     for (int i = 0; (entry = roots_it.Next()) != nullptr; ++i) {
-      WriteEdgeInfo(writer, {kInternal, i, entry->key});
+      if (entry->value.name != -1) {
+        WriteEdgeInfo(writer, {kProperty, entry->value.name, entry->key});
+      } else {
+        WriteEdgeInfo(writer, {kInternal, i, entry->key});
+      }
     }
 
     auto nodes_it = nodes_.GetIterator();
