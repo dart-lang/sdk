@@ -696,6 +696,16 @@
         "enable-asserts": true
       }
     },
+    "dartk-strong-(linux|mac|win)-(debug|product|release)-x64": {
+      "options": {
+        "enable-experiment": [
+          "non-nullable"
+        ],
+        "vm-options": [
+          "--strong-non-nullable-typechecks"
+        ]
+      }
+    },
     "dartk-(linux|mac|win)-(debug|product|release)-(ia32|simarm|simarm64|x64)-ast": {
       "options": {
         "builder-tag": "ast",
