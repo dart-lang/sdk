@@ -5494,11 +5494,7 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
   ASSERT(((1 << CallingConventions::kFirstCalleeSavedCpuReg) &
           CallingConventions::kArgumentRegisters) == 0);
 
-#if defined(TARGET_ARCH_ARM)
-  constexpr intptr_t kNumTemps = 3;
-#else
   constexpr intptr_t kNumTemps = 2;
-#endif
 
   LocationSummary* summary = new (zone)
       LocationSummary(zone, /*num_inputs=*/InputCount(),
@@ -5511,10 +5507,6 @@ LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                            CallingConventions::kSecondNonArgumentRegister));
   summary->set_temp(1, Location::RegisterLocation(
                            CallingConventions::kFirstCalleeSavedCpuReg));
-#if defined(TARGET_ARCH_ARM)
-  summary->set_temp(2, Location::RegisterLocation(
-                           CallingConventions::kSecondCalleeSavedCpuReg));
-#endif
   summary->set_out(0, marshaller_.LocInFfiCall(compiler::ffi::kResultIndex));
 
   for (intptr_t i = 0, n = marshaller_.num_args(); i < n; ++i) {

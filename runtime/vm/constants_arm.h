@@ -332,8 +332,8 @@ const int kAbiPreservedFpuRegCount = 4;
 
 const RegList kReservedCpuRegisters = (1 << SPREG) | (1 << FPREG) | (1 << TMP) |
                                       (1 << PP) | (1 << THR) | (1 << LR) |
-                                      (1 << PC);
-constexpr intptr_t kNumberOfReservedCpuRegisters = 7;
+                                      (1 << PC) | (1 << NOTFP);
+constexpr intptr_t kNumberOfReservedCpuRegisters = 8;
 // CPU registers available to Dart allocator.
 constexpr RegList kDartAvailableCpuRegs =
     kAllCpuRegistersList & ~kReservedCpuRegisters;
@@ -402,8 +402,7 @@ class CallingConventions {
   // We choose these to avoid overlap between themselves and reserved registers.
   static constexpr Register kFirstNonArgumentRegister = R8;
   static constexpr Register kSecondNonArgumentRegister = R9;
-  static constexpr Register kFirstCalleeSavedCpuReg = NOTFP;
-  static constexpr Register kSecondCalleeSavedCpuReg = R4;
+  static constexpr Register kFirstCalleeSavedCpuReg = R4;
   static constexpr Register kStackPointerRegister = SPREG;
 };
 

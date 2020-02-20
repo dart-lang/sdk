@@ -1167,8 +1167,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                THR, compiler::target::Thread::
                         call_native_through_safepoint_entry_point_offset()));
 
-    // Calls R8 in a safepoint and clobbers NOTFP and R4.
-    ASSERT(branch == R8 && temp == NOTFP && locs()->temp(2).reg() == R4);
+    // Calls R8 in a safepoint and clobbers R4 and NOTFP.
+    ASSERT(branch == R8 && temp == R4);
+    static_assert((kReservedCpuRegisters & (1 << NOTFP)) != 0,
+                  "NOTFP should be a reserved register");
     __ blx(TMP);
   }
 

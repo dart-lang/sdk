@@ -38,7 +38,7 @@ void TypeTestingStubGenerator::
         const TypeArguments& tp,
         const TypeArguments& ta) {
   const Register kInstanceReg = R0;
-  const Register kInstanceTypeArguments = NOTFP;
+  const Register kInstanceTypeArguments = R4;
   const Register kClassIdReg = R9;
 
   BuildOptimizedSubclassRangeCheckWithTypeArguments(
@@ -54,7 +54,7 @@ void TypeTestingStubGenerator::BuildOptimizedTypeArgumentValueCheck(
     compiler::Label* check_failed) {
   const Register kInstantiatorTypeArgumentsReg = R2;
   const Register kFunctionTypeArgumentsReg = R1;
-  const Register kInstanceTypeArguments = NOTFP;
+  const Register kInstanceTypeArguments = R4;
 
   const Register kClassIdReg = R9;
   const Register kOwnTypeArgumentValue = TMP;
