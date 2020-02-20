@@ -1087,7 +1087,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
                               const Dart_IsolateFlags& api_flags,
                               bool is_vm_isolate = false);
 
-  // The isolates_list_monitor_ should be held when calling Kill().
+  // The isolate_creation_monitor_ should be held when calling Kill().
   void KillLocked(LibMsgId msg_id);
 
   void LowLevelShutdown();
@@ -1277,9 +1277,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   RawError* sticky_error_;
 
-  // Isolate list next pointer.
-  Isolate* next_ = nullptr;
-
   // Protect access to boxed_field_list_.
   Mutex field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
@@ -1303,6 +1300,11 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   std::unique_ptr<WeakTable> forward_table_new_;
   std::unique_ptr<WeakTable> forward_table_old_;
 
+  // Signals whether the isolate can receive messages (e.g. KillAllIsolates can
+  // send a kill message).
+  // This is protected by [isolate_creation_monitor_].
+  bool accepts_messages_ = false;
+
   static Dart_IsolateGroupCreateCallback create_group_callback_;
   static Dart_InitializeIsolateCallback initialize_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
@@ -1314,12 +1316,19 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 #endif
 
   // Manage list of existing isolates.
-  static bool AddIsolateToList(Isolate* isolate);
-  static void RemoveIsolateFromList(Isolate* isolate);
+  static bool TryMarkIsolateReady(Isolate* isolate);
+  static void UnMarkIsolateReady(Isolate* isolate);
+  static void MarkIsolateDead(bool is_application_isolate);
+  bool AcceptsMessagesLocked() {
+    ASSERT(isolate_creation_monitor_->IsOwnedByCurrentThread());
+    return accepts_messages_;
+  }
 
-  // This monitor protects isolates_list_head_, and creation_enabled_.
-  static Monitor* isolates_list_monitor_;
-  static Isolate* isolates_list_head_;
+  // This monitor protects application_isolates_count_, total_isolates_count_,
+  // creation_enabled_.
+  static Monitor* isolate_creation_monitor_;
+  static intptr_t application_isolates_count_;
+  static intptr_t total_isolates_count_;
   static bool creation_enabled_;
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
