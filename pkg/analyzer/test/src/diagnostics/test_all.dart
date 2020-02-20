@@ -499,6 +499,7 @@ import 'wrong_type_parameter_variance_in_superinterface_test.dart'
     as wrong_type_parameter_variance_in_superinterface;
 import 'yield_each_in_non_generator_test.dart' as yield_each_in_non_generator;
 import 'yield_in_non_generator_test.dart' as yield_in_non_generator;
+import 'yield_of_invalid_type_test.dart' as yield_of_invalid_type;
 
 main() {
   defineReflectiveSuite(() {
@@ -842,5 +843,6 @@ main() {
     wrong_type_parameter_variance_in_superinterface.main();
     yield_each_in_non_generator.main();
     yield_in_non_generator.main();
+    yield_of_invalid_type.main();
   }, name: 'diagnostics');
 }
